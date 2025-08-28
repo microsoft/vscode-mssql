@@ -200,6 +200,15 @@
         <note>{0} is the error message</note>
         <target state="translated">移除 Microsoft Entra 帳戶時發生錯誤: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
+        <source xml:lang="en">An error occurred while searching database objects</source>
+        <target state="new">An error occurred while searching database objects</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fe01cd2e56483272d8d46be5c77c37d6be1aba49dfbe2fa79f68b4740723b758">
+        <source xml:lang="en">An error occurred while searching database objects: {0}</source>
+        <note>{0} is the error detail returned from the search operation</note>
+        <target state="new">An error occurred while searching database objects: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++56f99fbd59570e105fca5070d135f8f86c67f48168d43f8020b70523f06b21bb">
         <source xml:lang="en">An error occurred: {0}</source>
         <note>{0} is the error message</note>
@@ -1261,6 +1270,10 @@
         <source xml:lang="en">Enter new column width</source>
         <target state="translated">輸入新的欄寬</target>
       </trans-unit>
+      <trans-unit id="++CODE++03c72a0dd31428f797eaadef0452b218e6d7cfbfc8b66e7f47e404818a53cda0">
+        <source xml:lang="en">Enter part of an object name to search for</source>
+        <target state="new">Enter part of an object name to search for</target>
+      </trans-unit>
       <trans-unit id="++CODE++7014aff13517c4071a9de8a8d338ac3ca12ae8ecf6589941d84170aa47cdcac3">
         <source xml:lang="en">Enter password</source>
         <target state="translated">輸入密碼</target>
@@ -1839,6 +1852,10 @@ Error:
         <source xml:lang="en">Invalid connection URI provided.</source>
         <target state="new">Invalid connection URI provided.</target>
       </trans-unit>
+      <trans-unit id="++CODE++5c61e4661a7417ada5f0b7d34d9c3cd27dcc3aad485b337ea6d58cd077be7c8c">
+        <source xml:lang="en">Invalid connection URI. Please ensure you have an active database connection.</source>
+        <target state="new">Invalid connection URI. Please ensure you have an active database connection.</target>
+      </trans-unit>
       <trans-unit id="++CODE++c265d537d7811a1e8fa19df9305f90ad86e0326ad6dd2d585172fcf570023c57">
         <source xml:lang="en">Invalid connection string: {0}</source>
         <target state="translated">無效的連接字串: {0}</target>
@@ -2221,6 +2238,10 @@ Error:
         <source xml:lang="en">No account selected</source>
         <target state="translated">未選取任何帳戶</target>
       </trans-unit>
+      <trans-unit id="++CODE++971d7b9ca9340d6e8e22146855f8ef9cd9576279575ad1f7bd2fb5f40eaaddf9">
+        <source xml:lang="en">No active database connection. Please connect to a database first.</source>
+        <target state="new">No active database connection. Please connect to a database first.</target>
+      </trans-unit>
       <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
         <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
         <target state="new">No active text editor found. Please open a file with an active database connection.</target>
@@ -2241,6 +2262,11 @@ Error:
       <trans-unit id="++CODE++87a122216f22b55fd29964cf75c886ef5da5cd8369e2a6e24c73ec0ad22227ba">
         <source xml:lang="en">No connection was found. Please connect to a server first.</source>
         <target state="translated">找不到連線。請先連線到伺服器。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3280128c0901d1323dde9a406ee7d2d6e8e1b98fd30971fa6134b302fec41eca">
+        <source xml:lang="en">No database objects found matching '{0}'</source>
+        <note>{0} is the search term</note>
+        <target state="new">No database objects found matching '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
@@ -2906,6 +2932,10 @@ Query: {1}</source>
         <source xml:lang="en">Search connection groups</source>
         <target state="translated">搜尋連線群組</target>
       </trans-unit>
+      <trans-unit id="++CODE++448fcd5b80608528b5b492337667acf711f486e31784b41b4bba7066a9527ac4">
+        <source xml:lang="en">Search for database objects...</source>
+        <target state="new">Search for database objects...</target>
+      </trans-unit>
       <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
         <source xml:lang="en">Search options...</source>
         <target state="translated">搜尋選項...</target>
@@ -2917,6 +2947,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++771f5d2c0599dcf4194e3fdddd9a5212d6392f4703d29971575bb455b5287a84">
         <source xml:lang="en">Search tables...</source>
         <target state="translated">搜尋資料表...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f0b2ef28c0bec626ad14f56179e18d97cdbfcb4f676c4735f95eae628d079538">
+        <source xml:lang="en">Search term cannot be empty</source>
+        <target state="new">Search term cannot be empty</target>
       </trans-unit>
       <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
         <source xml:lang="en">Search...</source>
@@ -2983,6 +3017,11 @@ Query: {1}</source>
       <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
         <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
         <target state="translated">選取延伸模組，以管理連線共用權限</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cac9a015dc3356af3f386e840985bfc09d57c0b9cc01a88e26ec67f3501058d8">
+        <source xml:lang="en">Select an object to view its definition ({0} results)</source>
+        <note>{0} is the number of results</note>
+        <target state="new">Select an object to view its definition ({0} results)</target>
       </trans-unit>
       <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
         <source xml:lang="en">Select image</source>
@@ -4405,6 +4444,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.scriptExecute">
         <source xml:lang="en">Script as Execute</source>
         <target state="translated">執行指令碼</target>
+      </trans-unit>
+      <trans-unit id="mssql.searchObjects">
+        <source xml:lang="en">Search Objects</source>
+        <target state="new">Search Objects</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
