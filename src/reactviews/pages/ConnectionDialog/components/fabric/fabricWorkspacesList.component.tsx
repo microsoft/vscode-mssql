@@ -37,13 +37,6 @@ import { useFabricExplorerStyles } from "./fabricExplorer.styles";
 import { ApiStatus, Status } from "../../../../../sharedInterfaces/webview";
 import { Keys } from "../../../../common/keys";
 
-interface FabricWorkspacesListProps {
-    workspaces: FabricWorkspaceInfo[];
-    onSelectWorkspace: (workspace: FabricWorkspaceInfo) => void;
-    selectedWorkspace?: FabricWorkspaceInfo;
-    fabricWorkspacesLoadStatus: Status;
-}
-
 export const FabricWorkspacesList = ({
     workspaces,
     onSelectWorkspace,
@@ -205,78 +198,11 @@ export const FabricWorkspacesList = ({
                                     selectedItems={selectedItems}
                                     onSelectionChange={onSelectionChange}>
                                     {filteredWorkspaces.map((workspace) => (
-                                        <ListItem
+                                        <FabricWorkspaceListItem
                                             key={workspace.id}
-                                            value={workspace.id}
-                                            className={mergeClasses(
-                                                styles.workspaceItem,
-                                                selectedItems.includes(workspace.id) &&
-                                                    styles.workspaceItemSelected,
-                                            )}
-                                            aria-label={workspace.displayName}
-                                            title={workspace.displayName}
-                                            // eslint-disable-next-line no-restricted-syntax
-                                            checkmark={null}>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    minHeight: "20px",
-                                                }}>
-                                                {/* Icon container with consistent styling */}
-                                                <div className={styles.iconContainer}>
-                                                    {/* display error if workspace status is errored */}
-                                                    {workspace.loadStatus.status ===
-                                                        ApiStatus.Error && (
-                                                        <Tooltip
-                                                            content={
-                                                                workspace.loadStatus.message ?? ""
-                                                            }
-                                                            relationship="label">
-                                                            <ErrorCircleRegular
-                                                                style={{
-                                                                    width: "100%",
-                                                                    height: "100%",
-                                                                }}
-                                                            />
-                                                        </Tooltip>
-                                                    )}
-                                                    {/* display loading spinner */}
-                                                    {workspace.loadStatus.status ===
-                                                        ApiStatus.Loading && (
-                                                        <Spinner
-                                                            size="extra-tiny"
-                                                            style={{
-                                                                width: "100%",
-                                                                height: "100%",
-                                                            }}
-                                                        />
-                                                    )}
-                                                    {/* display workspace icon */}
-                                                    {(workspace.loadStatus.status ===
-                                                        ApiStatus.Loaded ||
-                                                        workspace.loadStatus.status ===
-                                                            ApiStatus.NotStarted) && (
-                                                        <PeopleTeamRegular
-                                                            style={{
-                                                                width: "100%",
-                                                                height: "100%",
-                                                            }}
-                                                        />
-                                                    )}
-                                                </div>
-
-                                                <Text
-                                                    style={{
-                                                        overflow: "hidden",
-                                                        textOverflow: "ellipsis",
-                                                        whiteSpace: "nowrap",
-                                                        flex: 1,
-                                                    }}>
-                                                    {workspace.displayName}
-                                                </Text>
-                                            </div>
-                                        </ListItem>
+                                            workspace={workspace}
+                                            isSelected={selectedItems.includes(workspace.id)}
+                                        />
                                     ))}
                                 </List>
                             )}
@@ -287,3 +213,85 @@ export const FabricWorkspacesList = ({
         </div>
     );
 };
+
+const FabricWorkspaceListItem = ({ workspace, isSelected }: FabricWorkspaceListItemProps) => {
+    const styles = useFabricExplorerStyles();
+
+    return (
+        <ListItem
+            key={workspace.id}
+            value={workspace.id}
+            className={mergeClasses(
+                styles.workspaceItem,
+                isSelected && styles.workspaceItemSelected,
+            )}
+            aria-label={workspace.displayName}
+            title={workspace.displayName}
+            // eslint-disable-next-line no-restricted-syntax
+            checkmark={null}>
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    minHeight: "20px",
+                }}>
+                {/* Icon container with consistent styling */}
+                <div className={styles.iconContainer}>
+                    {/* display error if workspace status is errored */}
+                    {workspace.loadStatus.status === ApiStatus.Error && (
+                        <Tooltip content={workspace.loadStatus.message ?? ""} relationship="label">
+                            <ErrorCircleRegular
+                                style={{
+                                    width: "100%",
+                                    height: "100%",
+                                }}
+                            />
+                        </Tooltip>
+                    )}
+                    {/* display loading spinner */}
+                    {workspace.loadStatus.status === ApiStatus.Loading && (
+                        <Spinner
+                            size="extra-tiny"
+                            style={{
+                                width: "100%",
+                                height: "100%",
+                            }}
+                        />
+                    )}
+                    {/* display workspace icon */}
+                    {(workspace.loadStatus.status === ApiStatus.Loaded ||
+                        workspace.loadStatus.status === ApiStatus.NotStarted) && (
+                        <PeopleTeamRegular
+                            style={{
+                                width: "100%",
+                                height: "100%",
+                            }}
+                        />
+                    )}
+                </div>
+
+                <Text
+                    style={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        flex: 1,
+                    }}>
+                    {workspace.displayName}
+                </Text>
+            </div>
+        </ListItem>
+    );
+};
+
+interface FabricWorkspacesListProps {
+    workspaces: FabricWorkspaceInfo[];
+    onSelectWorkspace: (workspace: FabricWorkspaceInfo) => void;
+    selectedWorkspace?: FabricWorkspaceInfo;
+    fabricWorkspacesLoadStatus: Status;
+}
+
+interface FabricWorkspaceListItemProps {
+    workspace: FabricWorkspaceInfo;
+    isSelected: boolean;
+}

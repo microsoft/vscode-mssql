@@ -209,7 +209,7 @@ export const AddFirewallRuleDialog = ({
                                             </Dropdown>
                                         </Field>
                                         <Field
-                                            label={Loc.firewallRules.tenant}
+                                            label={Loc.azure.tenant}
                                             className={formStyles.formComponentDiv}>
                                             <Dropdown
                                                 value={tenantDisplayText}
