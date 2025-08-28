@@ -14,8 +14,6 @@ import { Url } from "url";
 import * as LocalizedConstants from "../constants/locConstants";
 import { Logger } from "../models/logger";
 
-export const tooManyRequestsCode = 429;
-
 export class HttpHelper {
     constructor(private logger?: Logger) {}
 
@@ -26,60 +24,21 @@ export class HttpHelper {
         const config = this.setupConfigAndProxyForRequest(requestUrl, token);
         requestUrl = this.constructRequestUrl(requestUrl, config);
 
-        const MAX_RETRIES = 10;
-        let delay = 1000; // start with 1s
-        const MAX_DELAY = 8000; // cap at 8s
-
-        let lastError: unknown;
-        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-            try {
-                const response: AxiosResponse<TResponse> = await axios.get<TResponse>(
-                    requestUrl,
-                    config,
-                );
-
-                if (response.status !== tooManyRequestsCode) {
-                    // Success
-                    this.logger?.piiSanitized(
-                        "GET request ",
-                        [
-                            {
-                                name: "response",
-                                objOrArray:
-                                    (response.data as TResponse) ??
-                                    (response.data as { value: TResponse }),
-                            },
-                        ],
-                        [],
-                        requestUrl,
-                    );
-                    return response;
-                }
-
-                this.logger?.verbose(
-                    `429 Too Many Requests received (attempt ${attempt + 1}/${MAX_RETRIES}). Retrying in ${delay}ms...`,
-                );
-            } catch (err) {
-                lastError = err;
-                this.logger?.error(
-                    `Error making GET request to ${requestUrl}: ${
-                        err instanceof Error ? err.message : String(err)
-                    } (attempt ${attempt + 1}/${MAX_RETRIES})`,
-                );
-                // If it's not a 429, don't retry further
-                if (!axios.isAxiosError(err) || err.response?.status !== tooManyRequestsCode) {
-                    throw err;
-                }
-            }
-            await new Promise((resolve) => setTimeout(resolve, delay));
-            delay = Math.min(delay * 2, MAX_DELAY);
-        }
-
-        throw new Error(
-            `GET request to ${requestUrl} failed after ${MAX_RETRIES} retries. Last error: ${
-                lastError instanceof Error ? lastError.message : String(lastError)
-            }`,
+        const response: AxiosResponse = await axios.get<TResponse>(requestUrl, config);
+        this.logger?.piiSanitized(
+            "GET request ",
+            [
+                {
+                    name: "response",
+                    objOrArray:
+                        (response.data?.value as TResponse) ??
+                        (response.data as { value: TResponse }),
+                },
+            ],
+            [],
+            requestUrl,
         );
+        return response;
     }
 
     public async makePostRequest<TResponse, TPayload>(
