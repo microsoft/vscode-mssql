@@ -156,6 +156,20 @@ export class FabricHelper {
         }
     }
 
+    public static async getFabricDatabase(
+        workspaceId: string,
+        databaseId: string,
+        tenantId?: string,
+    ): Promise<ISqlDbArtifact> {
+        const response = await this.fetchFromFabric<ISqlDbArtifact>(
+            `workspaces/${workspaceId}/sqlDatabases/${databaseId}`,
+            `getting Fabric database '${databaseId}'`,
+            tenantId,
+        );
+
+        return response;
+    }
+
     public static async fetchFromFabric<TResponse>(
         api: string,
         reason: string,
@@ -219,6 +233,8 @@ export class FabricHelper {
             `Create SQL Database for workspace ${workspaceId}`,
             tenantId,
         );
+
+        console.log(response);
 
         return response;
     }

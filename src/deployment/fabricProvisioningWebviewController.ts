@@ -39,6 +39,10 @@ import {
 import { IConnectionGroup } from "../sharedInterfaces/connectionGroup";
 import { TelemetryViews } from "../sharedInterfaces/telemetry";
 import { fetchUserGroups } from "../azure/utils";
+import { getErrorMessage } from "../utils/utils";
+import { IConnectionProfile } from "../models/interfaces";
+import { ConnectionCredentials } from "../models/connectionCredentials";
+import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 
 export class FabricProvisioningWebviewController extends FormWebviewController<
     FabricProvisioningFormState,
@@ -257,8 +261,6 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
                 searchBoxPlaceholder: Fabric.searchWorkspaces,
                 validate(state: FabricProvisioningWebviewState, value: string) {
                     {
-                        console.log(state.workspaces);
-                        console.log(value);
                         if (!value) {
                             return {
                                 isValid: false,
@@ -417,23 +419,6 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             });
     }
 
-    private provisionDatabase(tenantId?: string): void {
-        if (this.state.formState.tenantId === "" && !tenantId) return;
-        FabricHelper.createFabricSqlDatabase(
-            this.state.formState.workspace,
-            this.state.formState.databaseName,
-            this.state.formState.databaseDescription,
-            tenantId || this.state.formState.tenantId,
-        )
-            .then((database) => {
-                this.state.database = database;
-                this.updateState();
-            })
-            .catch((err) => {
-                console.error("Failed to create database", err);
-            });
-    }
-
     private async getCapacities(tenantId?: string): Promise<void> {
         if (this.state.formState.tenantId === "" && !tenantId) return;
         if (this.state.capacityIds.size !== 0) return;
@@ -529,5 +514,67 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             ...Object.values(this.state.workspacesWithPermissions),
             ...Object.values(this.state.workspacesWithoutPermissions),
         ];
+    }
+
+    private provisionDatabase(tenantId?: string): void {
+        if (this.state.formState.tenantId === "" && !tenantId) return;
+        this.state.provisionLoadState = ApiStatus.Loading;
+        this.updateState();
+        FabricHelper.createFabricSqlDatabase(
+            this.state.formState.workspace,
+            this.state.formState.databaseName,
+            this.state.formState.databaseDescription,
+            tenantId || this.state.formState.tenantId,
+        )
+            .then((database) => {
+                this.state.database = database;
+                this.state.provisionLoadState = ApiStatus.Loaded;
+                this.updateState();
+                void this.connectToDatabase();
+            })
+            .catch((err) => {
+                console.error("Failed to create database", err);
+                this.state.errorMessage = getErrorMessage(err);
+                this.state.provisionLoadState = ApiStatus.Error;
+                this.updateState();
+            });
+    }
+
+    private async connectToDatabase() {
+        console.log("trying to connect", this.state.database);
+
+        if (!this.state.database) return;
+        this.state.connectionLoadState = ApiStatus.Loading;
+        this.updateState();
+        try {
+            const databaseDetails = await FabricHelper.getFabricDatabase(
+                this.state.formState.workspace,
+                this.state.database.id,
+                this.state.formState.tenantId,
+            );
+            const databaseConnectionString = databaseDetails.properties.connectionString;
+            const databaseConnectionDetails =
+                await this.mainController.connectionManager.parseConnectionString(
+                    databaseConnectionString,
+                );
+            const databaseConnectionProfile: IConnectionDialogProfile =
+                await ConnectionCredentials.createConnectionInfo(databaseConnectionDetails);
+            console.log(databaseConnectionProfile);
+            databaseConnectionProfile.profileName =
+                this.state.formState.profileName || this.state.database.displayName;
+            databaseConnectionProfile.groupId = this.state.formState.groupId;
+            databaseConnectionProfile.authenticationType = AuthenticationType.AzureMFA;
+            databaseConnectionProfile.accountId = this.state.formState.accountId;
+            const profile = await this.mainController.connectionManager.connectionUI.saveProfile(
+                databaseConnectionProfile as IConnectionProfile,
+            );
+
+            await this.mainController.createObjectExplorerSession(profile);
+            this.state.connectionLoadState = ApiStatus.Loaded;
+        } catch (err) {
+            this.state.connectionLoadState = ApiStatus.Error;
+            this.state.errorMessage = getErrorMessage(err);
+        }
+        this.updateState();
     }
 }

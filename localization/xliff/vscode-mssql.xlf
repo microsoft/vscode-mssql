@@ -1399,8 +1399,11 @@
     <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
       <source xml:lang="en">Instant Container Setup</source>
     </trans-unit>
-    <trans-unit id="++CODE++d6b6aeb8df7709976da0402b656ac1e508a9e25e2542e9c2c1aec56c241aebeb">
-      <source xml:lang="en">Insufficient Permissions</source>
+    <trans-unit id="++CODE++07fe70d13a25b3d4c4f7d4e64e1aaa9b9d80952a1478fb7e2da36209ccbf549f">
+      <source xml:lang="en">Insufficient Capacity Permissions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ece3ecedb5f57c84cc9749995b62f69213c0cb04b1578a713fda486ff04f8fdb">
+      <source xml:lang="en">Insufficient Worskpace Permissions</source>
     </trans-unit>
     <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
       <source xml:lang="en">Integrated</source>

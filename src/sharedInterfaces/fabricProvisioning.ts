@@ -37,6 +37,7 @@ export class FabricProvisioningWebviewState
     formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
     /** Used to track fabric database provision state */
     provisionLoadState: ApiStatus = ApiStatus.NotStarted;
+    connectionLoadState: ApiStatus = ApiStatus.NotStarted;
     constructor(params?: Partial<FabricProvisioningWebviewState>) {
         for (const key in params) {
             if (key in this) {

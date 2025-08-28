@@ -84,6 +84,7 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
                         Workspace: {fabricProvisioningState.formState.workspace}
                         Start Time: {fabricProvisioningState.deploymentStartTime}
                     </div>
+                    <div>{fabricProvisioningState.connectionLoadState}</div>
                 </div>
             </Card>
         </div>
