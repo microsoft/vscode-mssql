@@ -329,6 +329,7 @@
   "Loading databases in selected workspace...": "Loading databases in selected workspace...",
   "Error loading workspaces": "Error loading workspaces",
   "Error loading databases": "Error loading databases",
+  "Connection Authentication": "Connection Authentication",
   "Sign into Azure": "Sign into Azure",
   "Not signed in": "Not signed in",
   "Azure Account": "Azure Account",
@@ -1286,6 +1287,20 @@
     "comment": [
       "{0} is the rule info in format 'name (startIp - endIp)'",
       "{1} is the error message"
+    ]
+  },
+  "Failed to get tenant '{0}' for account '{1}'./{0} is the tenant id{1} is the account name": {
+    "message": "Failed to get tenant '{0}' for account '{1}'.",
+    "comment": [
+      "{0} is the tenant id",
+      "{1} is the account name"
+    ]
+  },
+  "Failed to get Fabric workspaces for tenant '{0} ({1})'./{0} is the tenant name{1} is the tenant id": {
+    "message": "Failed to get Fabric workspaces for tenant '{0} ({1})'.",
+    "comment": [
+      "{0} is the tenant name",
+      "{1} is the tenant id"
     ]
   },
   "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again./{0} is the number of invalid accounts that have been removed": {
