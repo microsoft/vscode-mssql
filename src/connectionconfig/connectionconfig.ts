@@ -22,6 +22,14 @@ export type ConfigTarget = ConfigurationTarget.Global | ConfigurationTarget.Work
  * Implements connection profile file storage.
  */
 export class ConnectionConfig implements IConnectionConfig {
+    /**
+     * Get all connection groups from both user and workspace settings.
+     */
+    public getAllConnectionGroups(): IConnectionGroup[] {
+        const userGroups = this.getGroupsFromSettings(ConfigurationTarget.Global);
+        const workspaceGroups = this.getGroupsFromSettings(ConfigurationTarget.Workspace);
+        return [...userGroups, ...workspaceGroups];
+    }
     protected _logger: Logger;
     public initialized: Deferred<void> = new Deferred<void>();
 
@@ -50,8 +58,9 @@ export class ConnectionConfig implements IConnectionConfig {
 
     public getWorkspaceConnectionsGroup(): IConnectionGroup | undefined {
         const rootGroup = this.getRootGroup();
+        console.log("ROOT GROUP FOUND: " + rootGroup.id);
         if (!rootGroup) return undefined;
-        const groups = this.getGroupsFromSettings();
+        const groups = this.getAllConnectionGroups();
         return groups.find(
             (g) => g.name === "Workspace Connections" && g.parentId === rootGroup.id,
         );
@@ -317,7 +326,13 @@ export class ConnectionConfig implements IConnectionConfig {
         }
 
         if (!group.parentId) {
-            group.parentId = this.getUserConnectionsGroupId();
+            // If target is workspace, parent should be Workspace Connections group
+            if (target === ConfigurationTarget.Workspace) {
+                group.parentId = this.getWorkspaceConnectionsGroupId();
+                console.log("workspace id:" + group.parentId);
+            } else {
+                group.parentId = this.getUserConnectionsGroupId();
+            }
         }
 
         const groups = this.getGroupsFromSettings(target);
