@@ -541,8 +541,6 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     }
 
     private async connectToDatabase() {
-        console.log("trying to connect", this.state.database);
-
         if (!this.state.database) return;
         this.state.connectionLoadState = ApiStatus.Loading;
         this.updateState();
@@ -559,7 +557,6 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
                 );
             const databaseConnectionProfile: IConnectionDialogProfile =
                 await ConnectionCredentials.createConnectionInfo(databaseConnectionDetails);
-            console.log(databaseConnectionProfile);
             databaseConnectionProfile.profileName =
                 this.state.formState.profileName || this.state.database.displayName;
             databaseConnectionProfile.groupId = this.state.formState.groupId;

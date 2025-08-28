@@ -6,17 +6,22 @@
 import { useContext, useEffect } from "react";
 import { Card, makeStyles, Spinner, tokens } from "@fluentui/react-components";
 import { FabricProvisioningContext } from "./fabricProvisioningStateProvider";
-import { Checkmark20Regular } from "@fluentui/react-icons";
+import { Checkmark20Regular, Circle20Regular, Dismiss20Regular } from "@fluentui/react-icons";
 import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
     outerDiv: {
-        height: "fit-content",
-        width: "500px",
-        position: "relative",
-        overflow: "auto",
-        justifyContent: "center",
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
         alignItems: "center",
+        justifyContent: "center",
+        height: "100%",
+        width: "100%",
+        minWidth: "650px",
+        minHeight: "fit-content",
+        paddingBottom: "50px",
     },
     spinnerDiv: {
         display: "flex",
@@ -47,6 +52,15 @@ const useStyles = makeStyles({
     topSpace: {
         marginTop: "8px",
     },
+    contentDiv: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "fit-content",
+        width: "500px",
+    },
 });
 
 export const ProvisionFabricDatabasePage: React.FC = () => {
@@ -56,7 +70,23 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
 
     if (!state || !fabricProvisioningState) return undefined;
 
-    useEffect(() => {}, [fabricProvisioningState.database]);
+    useEffect(() => {}, [
+        fabricProvisioningState.provisionLoadState,
+        fabricProvisioningState.connectionLoadState,
+    ]);
+
+    const getStatusIcon = (status: ApiStatus) => {
+        if (status === ApiStatus.NotStarted) {
+            return <Circle20Regular style={{ color: "gray" }} />;
+        }
+        if (status === ApiStatus.Loaded) {
+            return <Checkmark20Regular style={{ color: "green" }} />;
+        }
+        if (status === ApiStatus.Error) {
+            return <Dismiss20Regular style={{ color: "red" }} />;
+        }
+        return <Spinner size="tiny" />;
+    };
 
     return (
         <div>
@@ -65,11 +95,7 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
                 <div className={classes.separatorDiv} />
                 <div className={classes.header}>
                     <div className={classes.leftHeader}>
-                        {fabricProvisioningState.database ? (
-                            <Checkmark20Regular style={{ color: "green" }} />
-                        ) : (
-                            <Spinner size="tiny" />
-                        )}
+                        {getStatusIcon(fabricProvisioningState.provisionLoadState)}
                         {fabricProvisioningState.database ? (
                             <span>
                                 Finished Deploying {fabricProvisioningState.database.displayName}
@@ -78,11 +104,13 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
                             <span>Deployment in progress...</span>
                         )}
                     </div>
-                    <div>
-                        Deployment Name: {fabricProvisioningState.formState.databaseName}
-                        Tenant: {fabricProvisioningState.formState.tenantId}
-                        Workspace: {fabricProvisioningState.formState.workspace}
-                        Start Time: {fabricProvisioningState.deploymentStartTime}
+                    <div className={classes.contentDiv}>
+                        <span>
+                            Deployment Name: {fabricProvisioningState.formState.databaseName}
+                        </span>
+                        <span>Tenant: {fabricProvisioningState.formState.tenantId}</span>
+                        <span>Workspace: {fabricProvisioningState.formState.workspace}</span>
+                        <span>Start Time: {fabricProvisioningState.deploymentStartTime}</span>
                     </div>
                     <div>{fabricProvisioningState.connectionLoadState}</div>
                 </div>

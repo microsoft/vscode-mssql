@@ -219,7 +219,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                             }}
                         />
                     ) : (
-                        <div className={classes.buttonContent}>
+                        <div className={classes.buttonContent} style={{ marginTop: "20px" }}>
                             <Spinner size="tiny" />
                             Loading workspaces....
                         </div>
