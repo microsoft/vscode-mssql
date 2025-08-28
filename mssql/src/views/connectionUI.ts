@@ -501,6 +501,9 @@ export class ConnectionUI {
      * Save a connection profile using the connection store
      */
     public async saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+        // Set scope based on group
+        const group = this._connectionStore.connectionConfig.getGroupById(profile.groupId);
+        profile.scope = group?.scope || "user";
         return await this._connectionStore.saveProfile(profile);
     }
 
