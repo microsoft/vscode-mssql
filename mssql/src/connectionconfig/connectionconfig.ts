@@ -234,9 +234,8 @@ export class ConnectionConfig implements IConnectionConfig {
      */
     public async removeConnection(profile: IConnectionProfile): Promise<boolean> {
         // Determine if this is a workspace connection
-        const workspaceGroupId = this.getWorkspaceConnectionsGroupId();
         let target = ConfigurationTarget.Global;
-        if (profile.groupId === workspaceGroupId) {
+        if (profile.scope === "workspace") {
             target = ConfigurationTarget.Workspace;
         }
         let profiles = this.getConnectionsFromSettings(target);
@@ -349,8 +348,11 @@ export class ConnectionConfig implements IConnectionConfig {
         id: string,
         contentAction: "delete" | "move" = "delete",
     ): Promise<boolean> {
-        const connections = this.getConnectionsFromSettings();
-        const groups = this.getGroupsFromSettings();
+        // Get all connections and groups from both user and workspace
+        const userConnections = this.getConnectionsFromSettings(ConfigurationTarget.Global);
+        const workspaceConnections = this.getConnectionsFromSettings(ConfigurationTarget.Workspace);
+        const allConnections = [...userConnections, ...workspaceConnections];
+        const groups = this.getAllConnectionGroups();
         const rootGroup = this.getRootGroup();
 
         if (!rootGroup) {
@@ -371,18 +373,34 @@ export class ConnectionConfig implements IConnectionConfig {
         };
 
         let connectionModified = false;
-        let remainingConnections: IConnectionProfile[];
-        let remainingGroups: IConnectionGroup[];
+        let remainingUserConnections: IConnectionProfile[] = userConnections.slice();
+        let remainingWorkspaceConnections: IConnectionProfile[] = workspaceConnections.slice();
+        let remainingUserGroups: IConnectionGroup[] = this.getGroupsFromSettings(
+            ConfigurationTarget.Global,
+        ).slice();
+        let remainingWorkspaceGroups: IConnectionGroup[] = this.getGroupsFromSettings(
+            ConfigurationTarget.Workspace,
+        ).slice();
 
         if (contentAction === "delete") {
             // Get all nested subgroups to remove
             const groupsToRemove = getAllSubgroupIds(id);
 
             // Remove all connections in the groups being removed
-            remainingConnections = connections.filter((conn) => {
+            remainingUserConnections = remainingUserConnections.filter((conn) => {
                 if (groupsToRemove.has(conn.groupId)) {
                     this._logger.verbose(
-                        `Removing connection '${conn.id}' because its group '${conn.groupId}' was removed`,
+                        `Removing user connection '${conn.id}' because its group '${conn.groupId}' was removed`,
+                    );
+                    connectionModified = true;
+                    return false;
+                }
+                return true;
+            });
+            remainingWorkspaceConnections = remainingWorkspaceConnections.filter((conn) => {
+                if (groupsToRemove.has(conn.groupId)) {
+                    this._logger.verbose(
+                        `Removing workspace connection '${conn.id}' because its group '${conn.groupId}' was removed`,
                     );
                     connectionModified = true;
                     return false;
@@ -391,14 +409,27 @@ export class ConnectionConfig implements IConnectionConfig {
             });
 
             // Remove all groups that were marked for removal
-            remainingGroups = groups.filter((g) => !groupsToRemove.has(g.id));
+            remainingUserGroups = remainingUserGroups.filter((g) => !groupsToRemove.has(g.id));
+            remainingWorkspaceGroups = remainingWorkspaceGroups.filter(
+                (g) => !groupsToRemove.has(g.id),
+            );
         } else {
             // Move immediate child connections and groups to User Connections group
             const userGroupId = this.getUserConnectionsGroupId();
-            remainingConnections = connections.map((conn) => {
+            remainingUserConnections = remainingUserConnections.map((conn) => {
                 if (conn.groupId === id) {
                     this._logger.verbose(
-                        `Moving connection '${conn.id}' to User Connections group because its immediate parent group '${id}' was removed`,
+                        `Moving user connection '${conn.id}' to User Connections group because its immediate parent group '${id}' was removed`,
+                    );
+                    connectionModified = true;
+                    return { ...conn, groupId: userGroupId };
+                }
+                return conn;
+            });
+            remainingWorkspaceConnections = remainingWorkspaceConnections.map((conn) => {
+                if (conn.groupId === id) {
+                    this._logger.verbose(
+                        `Moving workspace connection '${conn.id}' to User Connections group because its immediate parent group '${id}' was removed`,
                     );
                     connectionModified = true;
                     return { ...conn, groupId: userGroupId };
@@ -407,13 +438,23 @@ export class ConnectionConfig implements IConnectionConfig {
             });
 
             // First remove the target group
-            remainingGroups = groups.filter((g) => g.id !== id);
+            remainingUserGroups = remainingUserGroups.filter((g) => g.id !== id);
+            remainingWorkspaceGroups = remainingWorkspaceGroups.filter((g) => g.id !== id);
 
             // Then reparent immediate children to User Connections group
-            remainingGroups = remainingGroups.map((g) => {
+            remainingUserGroups = remainingUserGroups.map((g) => {
                 if (g.parentId === id) {
                     this._logger.verbose(
-                        `Moving group '${g.id}' to User Connections group because its immediate parent group '${id}' was removed`,
+                        `Moving user group '${g.id}' to User Connections group because its immediate parent group '${id}' was removed`,
+                    );
+                    return { ...g, parentId: userGroupId };
+                }
+                return g;
+            });
+            remainingWorkspaceGroups = remainingWorkspaceGroups.map((g) => {
+                if (g.parentId === id) {
+                    this._logger.verbose(
+                        `Moving workspace group '${g.id}' to User Connections group because its immediate parent group '${id}' was removed`,
                     );
                     return { ...g, parentId: userGroupId };
                 }
@@ -421,16 +462,34 @@ export class ConnectionConfig implements IConnectionConfig {
             });
         }
 
-        if (remainingGroups.length === groups.length) {
+        // If no group was removed, return false
+        const originalUserGroups = this.getGroupsFromSettings(ConfigurationTarget.Global);
+        const originalWorkspaceGroups = this.getGroupsFromSettings(ConfigurationTarget.Workspace);
+        if (
+            remainingUserGroups.length === originalUserGroups.length &&
+            remainingWorkspaceGroups.length === originalWorkspaceGroups.length
+        ) {
             this._logger.error(`Connection group with ID '${id}' not found when removing.`);
             return false;
         }
 
+        // Write updated connections and groups to correct settings
         if (connectionModified) {
-            await this.writeConnectionsToSettings(remainingConnections);
+            await this.writeConnectionsToSettings(
+                remainingUserConnections,
+                ConfigurationTarget.Global,
+            );
+            await this.writeConnectionsToSettings(
+                remainingWorkspaceConnections,
+                ConfigurationTarget.Workspace,
+            );
         }
 
-        await this.writeConnectionGroupsToSettings(remainingGroups);
+        await this.writeConnectionGroupsToSettings(remainingUserGroups);
+        await this.writeConnectionGroupsToSettingsWithTarget(
+            remainingWorkspaceGroups,
+            ConfigurationTarget.Workspace,
+        );
         return true;
     }
 
