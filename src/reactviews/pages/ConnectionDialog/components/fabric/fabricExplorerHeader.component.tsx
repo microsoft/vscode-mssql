@@ -82,13 +82,13 @@ const FabricExplorerHeader = ({
         <div className={styles.headerContainer}>
             <div className={styles.dropdownContainer}>
                 <div className={styles.dropdownGroup}>
-                    <Label className={styles.dropdownLabel}>Account</Label>
+                    <Label className={styles.dropdownLabel}>{Loc.connectionDialog.account}</Label>
                     <Dropdown
                         className={styles.compactDropdown}
                         value={selectedAccountName}
                         selectedOptions={selectedAccountId ? [selectedAccountId] : []}
                         onOptionSelect={handleAccountChange}
-                        placeholder="Select an account"
+                        placeholder={Loc.connectionDialog.selectAnAccount}
                         size="small">
                         {azureAccounts.map((account) => (
                             <Option key={account.id} value={account.id} text={account.name}>
@@ -98,13 +98,13 @@ const FabricExplorerHeader = ({
                     </Dropdown>
                 </div>
                 <div className={styles.dropdownGroup}>
-                    <Label className={styles.dropdownLabel}>Tenant</Label>
+                    <Label className={styles.dropdownLabel}>{Loc.azure.tenant}</Label>
                     <Dropdown
                         className={styles.compactDropdown}
                         value={selectedTenantName}
                         selectedOptions={selectedTenantId ? [selectedTenantId] : []}
                         onOptionSelect={handleTenantChange}
-                        placeholder="Select a tenant"
+                        placeholder={Loc.azure.selectATenant}
                         size="small">
                         {azureTenants.map((tenant) => (
                             <Option key={tenant.id} value={tenant.id} text={tenant.name}>

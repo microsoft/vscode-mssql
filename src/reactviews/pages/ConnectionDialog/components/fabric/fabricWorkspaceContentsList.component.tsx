@@ -173,6 +173,7 @@ export const FabricWorkspaceContentsList = ({
 
         return (
             <>
+                {/* Debugging information; not expected to be seen by user */}
                 <Label>Unexpected state:</Label>
                 <Label>FabricWorkspaceLoadStatus: {fabricWorkspacesLoadStatus.status}</Label>
                 <Label>SelectedWorkspace: {selectedWorkspace?.id}</Label>
