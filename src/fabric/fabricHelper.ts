@@ -23,6 +23,7 @@ export class FabricHelper {
     static readonly fabricTokenRequestUriBase = vscode.Uri.parse(
         "https://analysis.windows.net/powerbi/api/",
     );
+    static readonly longRunningOperationCode = 202;
     constructor() {}
 
     public static async getFabricCapacities(tenantId: string): Promise<ICapacity[]> {
@@ -150,7 +151,9 @@ export class FabricHelper {
                 tenantId,
             );
             return response.value;
-        } catch (err) {}
+        } catch (err) {
+            // console.log(err);
+        }
     }
 
     public static async fetchFromFabric<TResponse>(
@@ -239,7 +242,7 @@ export class FabricHelper {
             payload,
         );
 
-        if (response.status === 202) {
+        if (response.status === this.longRunningOperationCode) {
             response = await this.handleLongRunningOperation(
                 response.headers["retry-after"] as string,
                 response.headers["location"],

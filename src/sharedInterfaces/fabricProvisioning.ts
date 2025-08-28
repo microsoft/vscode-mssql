@@ -28,6 +28,7 @@ export class FabricProvisioningWebviewState
     dialog: IDialogProps | undefined;
     public workspaces: IWorkspace[] = [];
     public capacities: ICapacity[] = [];
+    public userGroupIds: Set<string> = new Set<string>();
     public database: ISqlDbArtifact | undefined = undefined;
     /** Used to track the form validation state */
     formValidationLoadState: ApiStatus = ApiStatus.NotStarted;

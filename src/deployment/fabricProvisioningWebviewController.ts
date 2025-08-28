@@ -38,6 +38,7 @@ import {
 } from "../controllers/connectionGroupWebviewController";
 import { IConnectionGroup } from "../sharedInterfaces/connectionGroup";
 import { TelemetryViews } from "../sharedInterfaces/telemetry";
+import { fetchUserGroups } from "../azure/utils";
 
 export class FabricProvisioningWebviewController extends FormWebviewController<
     FabricProvisioningFormState,
@@ -333,6 +334,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     }
 
     private async reloadFabricComponents(tenantId?: string) {
+        this.state.userGroupIds = new Set<string>();
         this.state.workspaces = [];
         this.updateState();
         this.getWorkspaces(tenantId);
@@ -353,10 +355,9 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     }
 
     private getWorkspaces(tenantId?: string): void {
-        const effectiveTenantId = tenantId || this.state.formState.tenantId;
-        if (!effectiveTenantId) return;
-
-        FabricHelper.getFabricWorkspaces(effectiveTenantId)
+        if (this.state.formState.tenantId === "" && !tenantId) return;
+        const startTime = Date.now();
+        FabricHelper.getFabricWorkspaces(tenantId || this.state.formState.tenantId)
             .then((workspaces) => {
                 return this.sortWorkspacesByPermission(workspaces, WorkspaceRole.Contributor);
             })
@@ -367,6 +368,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
                 this.state.formState.workspace =
                     workspaceOptions.length > 0 ? workspaceOptions[0].value : "";
                 this.updateState();
+                console.log(Date.now() - startTime);
             })
             .catch((err) => {
                 console.error("Failed to load workspaces", err);
@@ -403,7 +405,10 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             );
             if (!roles) return workspace;
             for (const role of roles) {
-                if (WorkspaceRoleRank[role.role] >= WorkspaceRoleRank[workspace.role]) {
+                if (
+                    WorkspaceRoleRank[role.role] >= WorkspaceRoleRank[workspace.role] &&
+                    this.state.userGroupIds.has(role.id)
+                ) {
                     workspace.role = role.role;
                 }
             }
@@ -418,10 +423,16 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         requiredRole: WorkspaceRole,
         tenantId?: string,
     ): Promise<IWorkspace[]> {
+        if (this.state.userGroupIds.size === 0) {
+            const userId = this.state.formState.accountId.split(".")[0];
+            const userGroups = await fetchUserGroups(userId);
+            this.state.userGroupIds = new Set(userGroups.map((userGroup) => userGroup.id));
+            this.state.userGroupIds.add(userId);
+        }
         // Fetch all roles in parallel
         const workspacesWithRoles = await Promise.all(
             workspaces.map(async (workspace) => {
-                return await this.getRoleForWorkspace(workspace, tenantId);
+                return await this.getRoleForWorkspace(workspace, tenantId); // getting rate limited right now
             }),
         );
 
