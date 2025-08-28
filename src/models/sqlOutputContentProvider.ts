@@ -381,10 +381,6 @@ export class SqlOutputContentProvider {
                         resultWebviewState.resultSetSummaries[batchId] = {};
                     }
                     resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
-                    // Switch to results tab for the first result set
-                    if (countResultSets(resultWebviewState.resultSetSummaries) === 1) {
-                        resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Results;
-                    }
                     this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 },
             );
