@@ -57,6 +57,7 @@
   "Check Constraint": "Check Constraint",
   "New Check Constraint": "New Check Constraint",
   "Advanced Options": "Advanced Options",
+  "Search term cannot be empty": "Search term cannot be empty",
   "{0} issue/{0} is the number of issues": {
     "message": "{0} issue",
     "comment": [
@@ -1126,6 +1127,29 @@
   "Reload Visual Studio Code": "Reload Visual Studio Code",
   "Switch to MSAL": "Switch to MSAL",
   "Query succeeded": "Query succeeded",
+  "Search for database objects...": "Search for database objects...",
+  "Enter part of an object name to search for": "Enter part of an object name to search for",
+  "No database objects found matching '{0}'/{0} is the search term": {
+    "message": "No database objects found matching '{0}'",
+    "comment": [
+      "{0} is the search term"
+    ]
+  },
+  "An error occurred while searching database objects": "An error occurred while searching database objects",
+  "An error occurred while searching database objects: {0}/{0} is the error detail returned from the search operation": {
+    "message": "An error occurred while searching database objects: {0}",
+    "comment": [
+      "{0} is the error detail returned from the search operation"
+    ]
+  },
+  "No active database connection. Please connect to a database first.": "No active database connection. Please connect to a database first.",
+  "Select an object to view its definition ({0} results)/{0} is the number of results": {
+    "message": "Select an object to view its definition ({0} results)",
+    "comment": [
+      "{0} is the number of results"
+    ]
+  },
+  "Invalid connection URI. Please ensure you have an active database connection.": "Invalid connection URI. Please ensure you have an active database connection.",
   "Query failed": "Query failed",
   "Loading": "Loading",
   "Execution Plan": "Execution Plan",
