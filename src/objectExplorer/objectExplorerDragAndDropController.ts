@@ -105,48 +105,47 @@ export class ObjectExplorerDragAndDropController
                         `Dragged ${dragData.type} '${dragData.name}' (ID: ${dragData.id}) onto group '${targetInfo.label}' (ID: ${targetInfo.id})`,
                     );
 
-                    const workspaceGroupId =
-                        this.connectionStore.connectionConfig.getWorkspaceConnectionsGroupId();
                     if (dragData.type === "connection") {
                         const conn = await this.connectionStore.connectionConfig.getConnectionById(
                             dragData.id,
                         );
                         conn.groupId = targetInfo.id;
-                        // If moving to Workspace Connections, store in workspace settings
-                        if (targetInfo.id === workspaceGroupId) {
-                            await this.connectionStore.connectionConfig.updateConnectionWithTarget(
-                                conn,
-                                vscode.ConfigurationTarget.Workspace,
-                            );
-                        } else {
-                            await this.connectionStore.connectionConfig.updateConnectionWithTarget(
-                                conn,
-                                vscode.ConfigurationTarget.Global,
-                            );
-                        }
+                        // Set scope based on target group
+                        const targetGroup = this.connectionStore.connectionConfig.getGroupById(
+                            targetInfo.id,
+                        );
+                        conn.scope = targetGroup?.scope || "user";
+                        const configTarget =
+                            conn.scope === "workspace"
+                                ? vscode.ConfigurationTarget.Workspace
+                                : vscode.ConfigurationTarget.Global;
+                        await this.connectionStore.connectionConfig.updateConnectionWithTarget(
+                            conn,
+                            configTarget,
+                        );
                     } else {
                         const group = this.connectionStore.connectionConfig.getGroupById(
                             dragData.id,
                         );
-
                         if (group.id === targetInfo.id) {
                             this._logger.verbose("Cannot move group into itself; skipping.");
                             return;
                         }
 
                         group.parentId = targetInfo.id;
-                        // If moving to Workspace Connections, store in workspace settings
-                        if (targetInfo.id === workspaceGroupId) {
-                            await this.connectionStore.connectionConfig.updateGroupWithTarget(
-                                group,
-                                vscode.ConfigurationTarget.Workspace,
-                            );
-                        } else {
-                            await this.connectionStore.connectionConfig.updateGroupWithTarget(
-                                group,
-                                vscode.ConfigurationTarget.Global,
-                            );
-                        }
+                        // Set scope based on target group
+                        const targetGroup = this.connectionStore.connectionConfig.getGroupById(
+                            targetInfo.id,
+                        );
+                        group.scope = targetGroup?.scope || "user";
+                        const configTarget =
+                            group.scope === "workspace"
+                                ? vscode.ConfigurationTarget.Workspace
+                                : vscode.ConfigurationTarget.Global;
+                        await this.connectionStore.connectionConfig.updateGroupWithTarget(
+                            group,
+                            configTarget,
+                        );
                     }
 
                     sendActionEvent(TelemetryViews.ObjectExplorer, TelemetryActions.DragAndDrop, {
