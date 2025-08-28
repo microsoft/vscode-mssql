@@ -120,9 +120,18 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
         // TODO: Double check if this prompt template is optimal for optimize functionality
     },
     showSchema: {
-        type: CommandType.PromptSubstitute,
+        type: CommandType.Simple,
         requiresConnection: true,
-        promptTemplate: `${USE_TOOLS_PREFIX}show the database schema structure including tables, relationships, and keys. `,
+        handler: async (request, stream, controller, connectionUri) => {
+            if (connectionUri) {
+                // TODO: Implement schema designer opening
+                // - Call the schema designer command to visualize database structure
+                // - Should open the visual schema designer with tables, relationships, and keys
+                stream.markdown("🔍 Opening schema designer...\n\n");
+                // TODO: Call controller.schemaDesigner.open() or similar method
+            }
+            return true; // Command was handled
+        },
     },
     showDefinition: {
         type: CommandType.PromptSubstitute,
