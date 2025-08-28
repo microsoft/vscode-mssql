@@ -104,14 +104,7 @@ export class ObjectExplorerDragAndDropController
             return;
         }
 
-        // Prevent dropping onto User Connections or Workspace Connections groups
-        if (
-            target instanceof ConnectionGroupNode &&
-            (target.label === "User Connections" || target.label === "Workspace Connections")
-        ) {
-            // Do nothing, prevent drop
-            return;
-        }
+        // Allow dropping child items into User Connections or Workspace Connections groups
 
         // Prevent drag-and-drop if target is root
         if (target === undefined) {
