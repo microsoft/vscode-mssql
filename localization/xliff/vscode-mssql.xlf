@@ -772,8 +772,16 @@
     <trans-unit id="++CODE++e7d103b1170502b9fb94e08c67732e21aa132dbed79e58605736029791d7a8a8">
       <source xml:lang="en">Creating Container</source>
     </trans-unit>
+    <trans-unit id="++CODE++f25b28d86db44d028580bac2348b043db0eebc8a41f443aaaa5d22bfd2cb3fd2">
+      <source xml:lang="en">Creating SQL Database for workspace {0}</source>
+      <note>{0} is the workspace ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
       <source xml:lang="en">Creating and starting your SQL Server container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dbfe0a6c5a4cae79965c542e317484c3b53346daa195d3ec31d91c55c92181a3">
+      <source xml:lang="en">Creating workspace with capacity {0}</source>
+      <note>{0} is the capacity ID</note>
     </trans-unit>
     <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
       <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
@@ -1333,9 +1341,18 @@
     <trans-unit id="++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc">
       <source xml:lang="en">Getting Docker Ready...</source>
     </trans-unit>
+    <trans-unit id="++CODE++4f2809d46e4d5ae64171f0a386b32412184dbf2ea9fb08956f407bed421b7bea">
+      <source xml:lang="en">Getting Fabric workspace &apos;{0}&apos;</source>
+      <note>{0} is the workspace ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++2a8c8cd4e7c7142bffa09b893aaf7ab5886407a22a7ef9b2ee4f60f46fad7bf0">
       <source xml:lang="en">Getting connection details for connection &apos;{0}&apos;</source>
       <note>{0} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++7c6ecb13b6127990792bdb4cd61037a4d398bcda0034b4e9d23af714a5785c85">
+      <source xml:lang="en">Getting connection string for SQL Endpoint &apos;{0}&apos; in workspace &apos;{1}&apos;</source>
+      <note>{0} is the SQL endpoint ID
+{1} is the workspace ID</note>
     </trans-unit>
     <trans-unit id="++CODE++407c9ce5c11270b1d15836456ad1efdbe70f71f3c845186e535f82f02112be4e">
       <source xml:lang="en">Getting container ready for connections</source>
@@ -1537,6 +1554,22 @@
     <trans-unit id="++CODE++a951e5e9bc9076528c081d96624e0a6b73e1ae9034bc9aa4c1e8bd77e9dffcc4">
       <source xml:lang="en">List views for connection &apos;{0}&apos;?</source>
       <note>{0} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8043c062698783f821c86c7bc00a285e71f93c8ddf50815cfa601fef33905401">
+      <source xml:lang="en">Listing Fabric SQL Databases for workspace &apos;{0}&apos;</source>
+      <note>{0} is the workspace ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d63cd16cd7f14f873a95c39ea88cdd895461edd04b9fa7894a5b050274e85b1f">
+      <source xml:lang="en">Listing Fabric SQL Endpoints for workspace &apos;{0}&apos;</source>
+      <note>{0} is the workspace ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a5c14e0446ba987ee1804ac7f75c2cf29a526c5b3efc8ec431eeb50d200ad7f0">
+      <source xml:lang="en">Listing Fabric capacities for tenant &apos;{0}&apos;</source>
+      <note>{0} is the tenant ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0674831e66235d3d493987bb2f89a42a981be092b9be08a7214438e389b30737">
+      <source xml:lang="en">Listing Fabric workspaces for tenant &apos;{0}&apos;</source>
+      <note>{0} is the tenant ID</note>
     </trans-unit>
     <trans-unit id="++CODE++b96793f36b682b832b59fce2ab2fbfbe394de6c913abd6f389f8c19273f040a5">
       <source xml:lang="en">Listing databases for connection &apos;{0}&apos;</source>
