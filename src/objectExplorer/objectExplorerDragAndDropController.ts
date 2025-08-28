@@ -48,6 +48,15 @@ export class ObjectExplorerDragAndDropController
     ): void {
         const item = source[0]; // Handle only the first item for simplicity
 
+        // Prevent dragging User Connections and Workspace Connections groups
+        if (
+            item instanceof ConnectionGroupNode &&
+            (item.label === "User Connections" || item.label === "Workspace Connections")
+        ) {
+            // Do not set drag data, effectively disabling drag
+            return;
+        }
+
         if (item instanceof ConnectionNode || item instanceof ConnectionGroupNode) {
             const dragData: ObjectExplorerDragMetadata = {
                 name: item.label.toString(),
@@ -83,23 +92,39 @@ export class ObjectExplorerDragAndDropController
             return;
         }
 
+        // Prevent dropping User Connections or Workspace Connections groups anywhere
+        const userGroupId = this.connectionStore.connectionConfig.getUserConnectionsGroupId();
+        const workspaceGroupId =
+            this.connectionStore.connectionConfig.getWorkspaceConnectionsGroupId();
+        if (
+            dragData.type === "connectionGroup" &&
+            (dragData.id === userGroupId || dragData.id === workspaceGroupId)
+        ) {
+            // Do nothing, prevent drop
+            return;
+        }
+
+        // Prevent dropping onto User Connections or Workspace Connections groups
+        if (
+            target instanceof ConnectionGroupNode &&
+            (target.label === "User Connections" || target.label === "Workspace Connections")
+        ) {
+            // Do nothing, prevent drop
+            return;
+        }
+
+        // Prevent drag-and-drop if target is root
+        if (target === undefined) {
+            return;
+        }
+
         try {
             if (dragData.isConnectionOrGroup && dragData.type && dragData.id) {
-                if (target instanceof ConnectionGroupNode || target === undefined) {
-                    let targetInfo: { label: string; id: string };
-
-                    // If the target is undefined, we're dropping onto the root of the Object Explorer
-                    if (target === undefined) {
-                        targetInfo = {
-                            label: "ROOT",
-                            id: this.connectionStore.rootGroupId,
-                        };
-                    } else {
-                        targetInfo = {
-                            label: target.label.toString(),
-                            id: target.id,
-                        };
-                    }
+                if (target instanceof ConnectionGroupNode) {
+                    let targetInfo: { label: string; id: string } = {
+                        label: target.label.toString(),
+                        id: target.id,
+                    };
 
                     this._logger.verbose(
                         `Dragged ${dragData.type} '${dragData.name}' (ID: ${dragData.id}) onto group '${targetInfo.label}' (ID: ${targetInfo.id})`,
@@ -150,7 +175,7 @@ export class ObjectExplorerDragAndDropController
 
                     sendActionEvent(TelemetryViews.ObjectExplorer, TelemetryActions.DragAndDrop, {
                         dragType: dragData.type,
-                        dropTarget: target ? "connectionGroup" : "ROOT",
+                        dropTarget: "connectionGroup",
                     });
                 }
             }
