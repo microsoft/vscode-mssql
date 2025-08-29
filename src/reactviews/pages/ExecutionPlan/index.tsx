@@ -5,14 +5,14 @@
 
 import ReactDOM from "react-dom/client";
 import "../../index.css";
-import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
 import { ExecutionPlanStateProvider } from "./executionPlanStateProvider";
 import { ExecutionPlanPage } from "./executionPlanPage";
+import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider>
+    <VscodeWebviewProvider2>
         <ExecutionPlanStateProvider>
             <ExecutionPlanPage />
         </ExecutionPlanStateProvider>
-    </VscodeWebviewProvider>,
+    </VscodeWebviewProvider2>,
 );

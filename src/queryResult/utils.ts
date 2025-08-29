@@ -335,7 +335,7 @@ export function registerCommonRequestHandlers(
         return (await updateTotalCost(state, payload)) as qr.QueryResultWebviewState;
     });
     webviewController.onRequest(qr.ShowFilterDisabledMessageRequest.type, async () => {
-        this.vscodeWrapper.showInformationMessage(
+        vscode.window.showInformationMessage(
             LocalizedConstants.inMemoryDataProcessingThresholdExceeded,
         );
     });
