@@ -25,7 +25,6 @@ import {
     ConnectionDialogFormItemSpec,
     ConnectionStringDialogProps,
     GetConnectionDisplayNameRequest,
-    FabricWorkspaceInfo,
     IAzureAccount,
     GetSqlAnalyticsEndpointUriFromFabricRequest,
 } from "../sharedInterfaces/connectionDialog";
@@ -82,7 +81,7 @@ import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewC
 import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { FabricHelper } from "../fabric/fabricHelper";
-import { FabricSqlDbInfo } from "../sharedInterfaces/fabric";
+import { FabricSqlDbInfo, FabricWorkspaceInfo } from "../sharedInterfaces/fabric";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 

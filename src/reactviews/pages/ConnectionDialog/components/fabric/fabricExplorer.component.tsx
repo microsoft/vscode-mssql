@@ -86,6 +86,7 @@ export const FabricExplorer = ({
                     selectedWorkspace={selectedWorkspace}
                     searchFilter={searchFilter}
                     onSelectDatabase={handleDatabaseSelected}
+                    theme={context.themeKind}
                 />
             </div>
         </>

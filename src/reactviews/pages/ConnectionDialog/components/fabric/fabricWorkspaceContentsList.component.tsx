@@ -30,17 +30,15 @@ import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { Keys } from "../../../../common/keys";
 import { useFabricExplorerStyles } from "./fabricExplorer.styles";
-import { ApiStatus, Status } from "../../../../../sharedInterfaces/webview";
-
-// Icon imports for database types
-const sqlDatabaseIcon = require("../../../../media/sql_db.svg");
-const sqlAnalyticsEndpointIcon = require("../../../../media/data_warehouse.svg");
+import { ApiStatus, ColorThemeKind, Status } from "../../../../../sharedInterfaces/webview";
+import { themeType } from "../../../../common/utils";
 
 export const FabricWorkspaceContentsList = ({
     onSelectDatabase,
     fabricWorkspacesLoadStatus,
     selectedWorkspace,
     searchFilter = "",
+    theme,
 }: WorkspaceContentsList) => {
     const styles = useFabricExplorerStyles();
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
@@ -91,7 +89,7 @@ export const FabricWorkspaceContentsList = ({
                                 minWidth: 0,
                             }}>
                             <img
-                                src={getItemIcon(item.type)}
+                                src={getItemIcon(item.type, theme)}
                                 alt={item.typeDisplayName}
                                 style={{
                                     width: "20px",
@@ -286,24 +284,46 @@ export const FabricWorkspaceContentsList = ({
 
     //#endregion Helper Methods
 
+    //#region Icons
+
+    function getItemIcon(artifactType: string, theme: ColorThemeKind): string {
+        switch (artifactType) {
+            case SqlArtifactTypes.SqlDatabase:
+                return sqlDatabaseIcon(theme);
+            case SqlArtifactTypes.SqlAnalyticsEndpoint:
+                return sqlAnalyticsEndpointIcon(theme);
+            default:
+                console.error(`Unknown artifact type for getItemIcon(): ${artifactType}`);
+                return sqlDatabaseIcon(theme);
+        }
+    }
+
+    function sqlDatabaseIcon(colorTheme: ColorThemeKind) {
+        const theme = themeType(colorTheme);
+        const saveIcon =
+            theme === "dark"
+                ? require("../../../../media/sqlDb-inverse.svg")
+                : require("../../../../media/sqlDb.svg");
+        return saveIcon;
+    }
+
+    function sqlAnalyticsEndpointIcon(colorTheme: ColorThemeKind) {
+        const theme = themeType(colorTheme);
+        const saveIcon =
+            theme === "dark"
+                ? require("../../../../media/dataWarehouse-inverse.svg")
+                : require("../../../../media/dataWarehouse.svg");
+        return saveIcon;
+    }
+
+    //#endregion
+
     return (
         <div className={styles.container}>
             <div className={styles.workspaceGrid}>{renderGridContent()}</div>
         </div>
     );
 };
-
-function getItemIcon(artifactType: string): string {
-    switch (artifactType) {
-        case SqlArtifactTypes.SqlDatabase:
-            return sqlDatabaseIcon;
-        case SqlArtifactTypes.SqlAnalyticsEndpoint:
-            return sqlAnalyticsEndpointIcon;
-        default:
-            console.error(`Unknown artifact type for getItemIcon(): ${artifactType}`);
-            return sqlDatabaseIcon;
-    }
-}
 
 export function getTypeDisplayName(artifactType: string): string {
     switch (artifactType) {
@@ -323,6 +343,7 @@ interface WorkspaceContentsList {
     selectedWorkspace: FabricWorkspaceInfo | undefined;
     searchFilter?: string;
     typeFilter?: string[];
+    theme: ColorThemeKind;
 }
 
 interface FabricSqlGridItem extends FabricSqlDbInfo {
