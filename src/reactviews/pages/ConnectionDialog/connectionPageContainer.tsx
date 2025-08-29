@@ -30,7 +30,6 @@ import {
     MessageBarBody,
     Radio,
     RadioGroup,
-    Tooltip,
 } from "@fluentui/react-components";
 import { DismissRegular, Form20Regular } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
@@ -94,17 +93,6 @@ export const ConnectionInfoFormContainer = () => {
     function handleConnect(event: React.FormEvent) {
         event.preventDefault();
         context.connect();
-    }
-
-    function getAzureAccountsText(): string {
-        switch (context.state.azureAccounts.length) {
-            case 0:
-                return locConstants.azure.notSignedIn;
-            case 1:
-                return context.state.azureAccounts[0].name;
-            default:
-                return locConstants.azure.nAccounts(context.state.azureAccounts.length);
-        }
     }
 
     return (
@@ -233,50 +221,6 @@ export const ConnectionInfoFormContainer = () => {
                                             style={{ marginRight: "8px" }}
                                         />
                                         {locConstants.connectionDialog.browseAzure}
-                                        <span style={{ margin: "0 8px" }} />
-                                        <Tooltip
-                                            content={
-                                                <>
-                                                    {context.state.azureAccounts.length === 0 && (
-                                                        <span>
-                                                            {
-                                                                locConstants.azure
-                                                                    .clickToSignIntoAnAzureAccount
-                                                            }
-                                                        </span>
-                                                    )}
-                                                    {context.state.azureAccounts.length > 0 && (
-                                                        <>
-                                                            {locConstants.azure.currentlySignedInAs}
-                                                            <br />
-                                                            <ul>
-                                                                {context.state.azureAccounts.map(
-                                                                    (account) => (
-                                                                        <li key={account.id}>
-                                                                            {account.name}
-                                                                        </li>
-                                                                    ),
-                                                                )}
-                                                            </ul>
-                                                        </>
-                                                    )}
-                                                </>
-                                            }
-                                            relationship="description">
-                                            <Link
-                                                onClick={() => {
-                                                    context.signIntoAzureForBrowse(
-                                                        ConnectionInputMode.AzureBrowse,
-                                                    );
-                                                }}
-                                                inline>
-                                                {getAzureAccountsText()}
-                                                {" • "}
-                                                {context.state.azureAccounts.length === 0
-                                                    ? locConstants.azure.signIntoAzure
-                                                    : locConstants.azure.addAccount}
-                                            </Link>
-                                        </Tooltip>
                                     </div>
                                 }
                             />

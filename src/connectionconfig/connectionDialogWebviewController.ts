@@ -239,16 +239,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         await this.updateItemVisibility();
-
-        this.state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
-            return {
-                id: a.id,
-                name: a.label,
-            } as IAzureAccount;
-        });
-        this.state.loadingAzureAccountsStatus =
-            this.state.azureAccounts.length === 0 ? ApiStatus.NotStarted : ApiStatus.Loaded;
-        this.updateState();
     }
 
     private registerRpcHandlers() {
@@ -273,6 +263,28 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 state.connectionProfile.server = undefined;
                 state.connectionProfile.database = undefined;
                 state.connectionProfile.user = undefined;
+
+                // Also clear old Fabric state
+                state.fabricWorkspacesLoadStatus = { status: ApiStatus.NotStarted };
+                state.fabricWorkspaces = [];
+
+                if (!state.selectedAccountId) {
+                    if (
+                        state.loadingAzureAccountsStatus === ApiStatus.NotStarted ||
+                        state.loadingAzureAccountsStatus === ApiStatus.Error
+                    ) {
+                        state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
+                            return {
+                                id: a.id,
+                                name: a.label,
+                            } as IAzureAccount;
+                        });
+                        state.selectedAccountId = state.azureAccounts[0].id;
+                        state.loadingAzureAccountsStatus = ApiStatus.Loaded;
+
+                        this.updateState(state);
+                    }
+                }
 
                 if (state.selectedAccountId && state.selectedTenantId) {
                     await this.loadFabricWorkspaces(

@@ -6,7 +6,7 @@
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
-import { Button, Spinner } from "@fluentui/react-components";
+import { Button, Field, Link, Spinner, Tooltip } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
@@ -75,6 +75,17 @@ export const AzureBrowsePage = () => {
         }
 
         setConnectionProperty("server", serverUri);
+    }
+
+    function getAzureAccountsText(): string {
+        switch (context!.state.azureAccounts.length) {
+            case 0:
+                return Loc.azure.notSignedIn;
+            case 1:
+                return context!.state.azureAccounts[0].name;
+            default:
+                return Loc!.azure.nAccounts(context!.state.azureAccounts.length);
+        }
     }
 
     // #region Effects
@@ -227,6 +238,46 @@ export const AzureBrowsePage = () => {
             />
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
+                    <div
+                        className={formStyles.formComponentDiv}
+                        style={{ marginTop: "0", marginBottom: "12px" }}>
+                        <Field orientation="horizontal">
+                            <Tooltip
+                                content={
+                                    <>
+                                        {context.state.azureAccounts.length === 0 && (
+                                            <span>{Loc.azure.clickToSignIntoAnAzureAccount}</span>
+                                        )}
+                                        {context.state.azureAccounts.length > 0 && (
+                                            <>
+                                                {Loc.azure.currentlySignedInAs}
+                                                <br />
+                                                <ul>
+                                                    {context.state.azureAccounts.map((account) => (
+                                                        <li key={account.id}>{account.name}</li>
+                                                    ))}
+                                                </ul>
+                                            </>
+                                        )}
+                                    </>
+                                }
+                                relationship="description">
+                                <Link
+                                    onClick={() => {
+                                        context.signIntoAzureForBrowse(
+                                            ConnectionInputMode.AzureBrowse,
+                                        );
+                                    }}
+                                    inline>
+                                    {getAzureAccountsText()}
+                                    {" • "}
+                                    {context.state.azureAccounts.length === 0
+                                        ? Loc.azure.signIntoAzure
+                                        : Loc.azure.addAccount}
+                                </Link>
+                            </Tooltip>
+                        </Field>
+                    </div>
                     <AzureFilterCombobox
                         label={Loc.connectionDialog.subscriptionLabel}
                         clearable
