@@ -30,7 +30,6 @@ export interface CommandDefinition {
     skipConnectionLabels?: boolean; // Skip showing generic connection status labels in chat handler
     promptTemplate?: string;
     handler?: (
-        request: vscode.ChatRequest,
         stream: vscode.ChatResponseStream,
         controller: MainController,
         connectionUri: string | undefined,
@@ -43,7 +42,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
         type: CommandType.Simple,
         requiresConnection: false,
         skipConnectionLabels: true, // Provides its own connection status
-        handler: async (request, stream, controller, _connectionUri) => {
+        handler: async (stream, controller, _connectionUri) => {
             const res = await controller.onNewConnection();
             if (res) {
                 stream.markdown(`${connectedLabelPrefix} ${loc.connectedSuccessfully}\n\n`);
@@ -57,7 +56,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
         type: CommandType.Simple,
         requiresConnection: true,
         skipConnectionLabels: true, // Provides its own connection status
-        handler: async (request, stream, controller, connectionUri) => {
+        handler: async (stream, controller, connectionUri) => {
             if (connectionUri) {
                 await controller.connectionManager.disconnect(connectionUri);
                 stream.markdown(`${disconnectedLabelPrefix} ${loc.disconnectedSuccessfully}\n\n`);
@@ -69,7 +68,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
         type: CommandType.Simple,
         requiresConnection: true,
         skipConnectionLabels: true, // Provides its own connection status
-        handler: async (request, stream, controller, connectionUri) => {
+        handler: async (stream, controller, connectionUri) => {
             if (connectionUri && isConnectionActive(controller, connectionUri)) {
                 const res = await controller.onChooseDatabase();
                 if (res) {
@@ -91,7 +90,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
         type: CommandType.Simple,
         requiresConnection: true,
         skipConnectionLabels: true, // Provides its own connection information
-        handler: async (request, stream, controller, connectionUri) => {
+        handler: async (stream, controller, connectionUri) => {
             if (connectionUri && isConnectionActive(controller, connectionUri)) {
                 const connection = controller.connectionManager.getConnectionInfo(connectionUri);
                 if (connection) {
@@ -162,7 +161,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
     showSchema: {
         type: CommandType.Simple,
         requiresConnection: true,
-        handler: async (request, stream, controller, connectionUri) => {
+        handler: async (stream, controller, connectionUri) => {
             if (connectionUri && isConnectionActive(controller, connectionUri)) {
                 stream.markdown(`🔍 ${loc.openingSchemaDesigner}\n\n`);
                 const connInfo = controller.connectionManager.getConnectionInfo(connectionUri);
@@ -200,7 +199,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
     listServers: {
         type: CommandType.Simple,
         requiresConnection: false,
-        handler: async (request, stream, controller, _connectionUri) => {
+        handler: async (stream, controller, _connectionUri) => {
             try {
                 const profiles =
                     await controller.connectionManager.connectionStore.readAllConnections(false);
@@ -367,7 +366,7 @@ export async function handleChatCommand(
 
         // Handle simple commands
         if (commandDef.type === CommandType.Simple && commandDef.handler) {
-            await commandDef.handler(request, stream, controller, connectionUri);
+            await commandDef.handler(stream, controller, connectionUri);
             sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatCommand, {
                 ...telemetryProperties,
                 success: "true",
