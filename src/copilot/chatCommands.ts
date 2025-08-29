@@ -5,6 +5,10 @@
 
 import * as vscode from "vscode";
 import MainController from "../controllers/mainController";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
+import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 
 const DISCONNECTED_LABEL_PREFIX = "> ⚠️";
 const CONNECTED_LABEL_PREFIX = "> 🟢";
@@ -21,6 +25,7 @@ export enum CommandType {
 export interface CommandDefinition {
     type: CommandType;
     requiresConnection: boolean;
+    skipConnectionLabels?: boolean; // Skip showing generic connection status labels in chat handler
     promptTemplate?: string;
     handler?: (
         request: vscode.ChatRequest,
@@ -35,6 +40,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
     connect: {
         type: CommandType.Simple,
         requiresConnection: false,
+        skipConnectionLabels: true, // Provides its own connection status
         handler: async (request, stream, controller, _connectionUri) => {
             const res = await controller.onNewConnection();
             if (res) {
@@ -48,6 +54,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
     disconnect: {
         type: CommandType.Simple,
         requiresConnection: true,
+        skipConnectionLabels: true, // Provides its own connection status
         handler: async (request, stream, controller, connectionUri) => {
             if (connectionUri) {
                 await controller.connectionManager.disconnect(connectionUri);
@@ -59,14 +66,18 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
     changeDatabase: {
         type: CommandType.Simple,
         requiresConnection: true,
+        skipConnectionLabels: true, // Provides its own connection status
         handler: async (request, stream, controller, connectionUri) => {
-            if (connectionUri) {
-                // TODO: Implement database change logic
-                // - Parse database name from user input or show quick pick
-                // - Call connection manager to change database
-                // - Show success/failure message
+            if (connectionUri && isConnectionActive(controller, connectionUri)) {
+                const res = await controller.onChooseDatabase();
+                if (res) {
+                    stream.markdown(`${CONNECTED_LABEL_PREFIX} Database changed successfully\n\n`);
+                } else {
+                    stream.markdown(`${DISCONNECTED_LABEL_PREFIX} Failed to change database\n\n`);
+                }
+            } else {
                 stream.markdown(
-                    "🔄 Change Database command will open the database selection dialog.\n\n",
+                    `${DISCONNECTED_LABEL_PREFIX} No active connection for database change\n\n`,
                 );
             }
             return true; // Command was handled
@@ -75,8 +86,9 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
     connectionDetails: {
         type: CommandType.Simple,
         requiresConnection: true,
+        skipConnectionLabels: true, // Provides its own connection information
         handler: async (request, stream, controller, connectionUri) => {
-            if (connectionUri) {
+            if (connectionUri && isConnectionActive(controller, connectionUri)) {
                 const connection = controller.connectionManager.getConnectionInfo(connectionUri);
                 if (connection) {
                     const details =
@@ -90,6 +102,8 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
                         `${DISCONNECTED_LABEL_PREFIX} No connection information found\n\n`,
                     );
                 }
+            } else {
+                stream.markdown(`${DISCONNECTED_LABEL_PREFIX} No active connection\n\n`);
             }
             return true; // Command was handled
         },
@@ -123,12 +137,32 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
         type: CommandType.Simple,
         requiresConnection: true,
         handler: async (request, stream, controller, connectionUri) => {
-            if (connectionUri) {
-                // TODO: Implement schema designer opening
-                // - Call the schema designer command to visualize database structure
-                // - Should open the visual schema designer with tables, relationships, and keys
+            if (connectionUri && isConnectionActive(controller, connectionUri)) {
                 stream.markdown("🔍 Opening schema designer...\n\n");
-                // TODO: Call controller.schemaDesigner.open() or similar method
+                const connInfo = controller.connectionManager.getConnectionInfo(connectionUri);
+                const connCreds = connInfo?.credentials;
+                if (!connCreds) {
+                    // TODO: Better error handling - should this ever happen if connection is active?
+                    stream.markdown(
+                        `${DISCONNECTED_LABEL_PREFIX} No connection credentials found\n\n`,
+                    );
+                    return true;
+                }
+
+                const designer = await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
+                    controller.context,
+                    new VscodeWrapper(),
+                    controller,
+                    controller.schemaDesignerService,
+                    connCreds.database,
+                    undefined,
+                    connectionUri,
+                );
+                designer.revealToForeground();
+            } else {
+                stream.markdown(
+                    `${DISCONNECTED_LABEL_PREFIX} No active connection for schema view\n\n`,
+                );
             }
             return true; // Command was handled
         },
@@ -139,9 +173,39 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
         promptTemplate: `${USE_TOOLS_PREFIX}show the definition and structure of the specified database object: `,
     },
     listServers: {
-        type: CommandType.PromptSubstitute,
+        type: CommandType.Simple,
         requiresConnection: false,
-        promptTemplate: `${USE_TOOLS_PREFIX}list all available database servers and connection profiles. `,
+        handler: async (request, stream, controller, _connectionUri) => {
+            try {
+                const profiles =
+                    await controller.connectionManager.connectionStore.readAllConnections(false);
+
+                if (!profiles || profiles.length === 0) {
+                    stream.markdown("📋 **Available Servers**\n\n");
+                    stream.markdown("No saved connection profiles found.\n\n");
+                    stream.markdown("Use `/connect` to create a new connection.\n\n");
+                } else {
+                    stream.markdown("📋 **Available Servers**\n\n");
+
+                    for (const profile of profiles) {
+                        const serverInfo =
+                            `${SERVER_DATABASE_LABEL_PREFIX} **${profile.profileName || "Unnamed Profile"}**\n` +
+                            `${SERVER_DATABASE_LABEL_PREFIX} Server: ${profile.server}\n` +
+                            `${SERVER_DATABASE_LABEL_PREFIX} Database: ${profile.database || "Default"}\n` +
+                            `${SERVER_DATABASE_LABEL_PREFIX} Authentication: ${profile.authenticationType || "SQL Login"}\n\n`;
+                        stream.markdown(serverInfo);
+                    }
+
+                    stream.markdown(`Found ${profiles.length} saved connection profile(s).\n\n`);
+                }
+            } catch (error) {
+                stream.markdown(
+                    `${DISCONNECTED_LABEL_PREFIX} Error retrieving server list: ${error instanceof Error ? error.message : "Unknown error"}\n\n`,
+                );
+            }
+
+            return true; // Command was handled
+        },
     },
     listDatabases: {
         type: CommandType.PromptSubstitute,
@@ -174,6 +238,32 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
         promptTemplate: `${USE_TOOLS_PREFIX}list all stored procedures in the current database. `,
     },
 };
+
+/**
+ * Checks if a connection is actually active and valid
+ */
+function isConnectionActive(
+    controller: MainController,
+    connectionUri: string | undefined,
+): boolean {
+    if (!connectionUri) {
+        return false;
+    }
+
+    const connection = controller.connectionManager.getConnectionInfo(connectionUri);
+    return connection !== undefined;
+}
+
+/**
+ * Checks if a command should skip showing generic connection labels
+ */
+export function commandSkipsConnectionLabels(commandName: string | undefined): boolean {
+    if (!commandName) {
+        return false;
+    }
+    const command = CHAT_COMMANDS[commandName];
+    return command?.skipConnectionLabels ?? false;
+}
 
 /**
  * Checks if a command requires a database connection
@@ -230,35 +320,70 @@ export async function handleChatCommand(
         return { handled: false };
     }
 
-    // Check connection requirements
-    if (commandDef.requiresConnection && !connectionUri) {
-        return {
-            handled: true,
-            errorMessage: `${DISCONNECTED_LABEL_PREFIX} No database connection. Please connect first using \`/connect\`.\n\n`,
-        };
+    // Send telemetry for all chat command usage
+    const telemetryProperties: Record<string, string> = {
+        commandName,
+        commandType: commandDef.type,
+        requiresConnection: commandDef.requiresConnection.toString(),
+        hasConnection: isConnectionActive(controller, connectionUri).toString(),
+    };
+
+    try {
+        // Check connection requirements - verify connection is actually active
+        if (commandDef.requiresConnection && !isConnectionActive(controller, connectionUri)) {
+            sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatCommand, {
+                ...telemetryProperties,
+                success: "false",
+                errorType: "noConnection",
+            });
+            return {
+                handled: true,
+                errorMessage: `${DISCONNECTED_LABEL_PREFIX} No active database connection. Please connect first using \`/connect\`.\n\n`,
+            };
+        }
+
+        // Handle simple commands
+        if (commandDef.type === CommandType.Simple && commandDef.handler) {
+            await commandDef.handler(request, stream, controller, connectionUri);
+            sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatCommand, {
+                ...telemetryProperties,
+                success: "true",
+            });
+            return { handled: true };
+        }
+
+        // Handle prompt substitute commands
+        if (commandDef.type === CommandType.PromptSubstitute && commandDef.promptTemplate) {
+            sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatCommand, {
+                ...telemetryProperties,
+                success: "true",
+            });
+            return {
+                handled: false, // Don't handle completely, let it continue to language model
+                promptToAdd: commandDef.promptTemplate,
+            };
+        }
+
+        sendActionEvent(TelemetryViews.MssqlCopilot, TelemetryActions.ChatCommand, {
+            ...telemetryProperties,
+            success: "false",
+            errorType: "unknownCommandType",
+        });
+        return { handled: false };
+    } catch (error) {
+        sendErrorEvent(
+            TelemetryViews.MssqlCopilot,
+            TelemetryActions.ChatCommand,
+            error,
+            false,
+            undefined,
+            undefined,
+            {
+                ...telemetryProperties,
+                success: "false",
+                errorType: "exception",
+            },
+        );
+        throw error;
     }
-
-    // Special case: don't show "not connected" for connect command
-    if (commandName === "connect" && !connectionUri) {
-        // Allow connect command when not connected, don't show the disconnected message first
-    }
-
-    // TODO: For prompt substitute commands when not connected, we should return early
-    // instead of letting LLM continue with "Use tools to..." prompt, since tools won't work without connection
-
-    // Handle simple commands
-    if (commandDef.type === CommandType.Simple && commandDef.handler) {
-        await commandDef.handler(request, stream, controller, connectionUri);
-        return { handled: true };
-    }
-
-    // Handle prompt substitute commands
-    if (commandDef.type === CommandType.PromptSubstitute && commandDef.promptTemplate) {
-        return {
-            handled: false, // Don't handle completely, let it continue to language model
-            promptToAdd: commandDef.promptTemplate,
-        };
-    }
-
-    return { handled: false };
 }

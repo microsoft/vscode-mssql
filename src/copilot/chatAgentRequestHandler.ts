@@ -26,7 +26,7 @@ import { getErrorMessage } from "../utils/utils";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
 import MainController from "../controllers/mainController";
 import { Logger } from "../models/logger";
-import { handleChatCommand } from "./chatCommands";
+import { handleChatCommand, commandSkipsConnectionLabels } from "./chatCommands";
 
 export interface ISqlChatResult extends vscode.ChatResult {
     metadata: {
@@ -306,8 +306,10 @@ export const createSqlAgentRequestHandler = (
                     };
                 }
 
-                // Show not connected message only if not handled by commands
-                stream.markdown(`${DISCONNECTED_LABEL_PREFIX} ${loc.notConnected}\n\n`);
+                // Show not connected message only if not handled by commands and command doesn't skip labels
+                if (!commandSkipsConnectionLabels(request.command)) {
+                    stream.markdown(`${DISCONNECTED_LABEL_PREFIX} ${loc.notConnected}\n\n`);
+                }
 
                 // Apply prompt template if this is a prompt substitute command
                 if (commandResult.promptToAdd) {
@@ -330,10 +332,6 @@ export const createSqlAgentRequestHandler = (
                 `${CONNECTED_LABEL_PREFIX} ${loc.connectedTo}  \n` +
                 `${SERVER_DATABASE_LABEL_PREFIX} ${loc.server(connection.credentials.server)}  \n` +
                 `${SERVER_DATABASE_LABEL_PREFIX} ${loc.database(connection.credentials.database)}\n\n`;
-            stream.markdown(connectionMessage);
-
-            // TODO: Some commands (like connectionDetails) may show duplicate connection labels
-            // since they display their own connection info and this section already shows it
 
             // Handle chat commands
             const commandResult = await handleChatCommand(
@@ -349,6 +347,11 @@ export const createSqlAgentRequestHandler = (
                 return {
                     metadata: { command: request.command || "", correlationId: correlationId },
                 };
+            }
+
+            // Show connection info only if command wasn't handled and doesn't skip labels
+            if (!commandSkipsConnectionLabels(request.command)) {
+                stream.markdown(connectionMessage);
             }
 
             // Apply prompt template if this is a prompt substitute command
