@@ -79,8 +79,8 @@ export const COMMANDS = {
         args: ["info"],
     }),
     GET_DOCKER_PATH: (): DockerCommand => ({
-        command: "powershell",
-        args: ["(Get-Command docker).Source"],
+        command: "powershell.exe",
+        args: ["-Command", "(Get-Command docker).Source"],
     }),
     START_DOCKER: (path: string) => ({
         win32: {
@@ -119,8 +119,8 @@ export const COMMANDS = {
         },
     },
     SWITCH_ENGINE: (path: string): DockerCommand => ({
-        command: "powershell",
-        args: [`& "${sanitizeContainerInput(path)}" -SwitchLinuxEngine`],
+        command: "powershell.exe",
+        args: ["-Command", `& "${sanitizeContainerInput(path)}" -SwitchLinuxEngine`],
     }),
     GET_CONTAINERS: (): DockerCommand => ({
         command: "docker",
@@ -406,24 +406,6 @@ async function execDockerCommand(cmd: DockerCommand): Promise<string> {
 }
 
 /**
- * Safe PowerShell command execution helper
- */
-async function execPowerShellCommand(cmd: DockerCommand): Promise<string> {
-    const powerShellExecutable = platform() === "win32" ? "powershell.exe" : "pwsh";
-    return execDockerCommand({
-        command: powerShellExecutable,
-        args: ["-Command", ...cmd.args],
-    });
-}
-
-/**
- * Safe system command execution helper for platform-specific system operations
- */
-async function execSystemCommand(cmd: DockerCommand): Promise<string> {
-    return execDockerCommand(cmd);
-}
-
-/**
  * Safe command execution for commands with pipes (using spawn)
  */
 async function execDockerCommandWithPipe(
@@ -527,7 +509,7 @@ export async function checkEngine(): Promise<DockerCommandParams> {
                 msgYes,
             );
             if (confirmation === msgYes) {
-                await execPowerShellCommand(COMMANDS.SWITCH_ENGINE(dockerCliPath));
+                await execDockerCommand(COMMANDS.SWITCH_ENGINE(dockerCliPath));
             } else {
                 throw new Error(ContainerDeployment.switchToLinuxContainersCanceled);
             }
@@ -582,7 +564,7 @@ export async function validateContainerName(containerName: string): Promise<stri
  */
 export async function getDockerPath(executable: string): Promise<string> {
     try {
-        const stdout = await execPowerShellCommand(COMMANDS.GET_DOCKER_PATH());
+        const stdout = await execDockerCommand(COMMANDS.GET_DOCKER_PATH());
         const fullPath = stdout.trim();
 
         const parts = fullPath.split(path.sep);
@@ -720,7 +702,7 @@ export async function startDocker(
 
     try {
         dockerLogger.appendLine("Waiting for Docker to start...");
-        await execSystemCommand(startCommand);
+        await execDockerCommand(startCommand);
 
         let attempts = 0;
         const maxAttempts = 30;
