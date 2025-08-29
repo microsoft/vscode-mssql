@@ -9,15 +9,12 @@ import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import { MssqlChatAgent as loc } from "../constants/locConstants";
+import { CHAT_COMMAND_PROMPTS } from "./prompts";
 
 const DISCONNECTED_LABEL_PREFIX = "> ⚠️";
 const CONNECTED_LABEL_PREFIX = "> 🟢";
 const SERVER_DATABASE_LABEL_PREFIX = "> ➖";
-
-// Common prefix for prompt substitute commands to encourage tool usage
-const USE_TOOLS_PREFIX = "Use tools to ";
-
-// TODO: Localize all user-facing strings in this file using locConstants
 
 export enum CommandType {
     Simple = "simple",
@@ -46,9 +43,9 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
         handler: async (request, stream, controller, _connectionUri) => {
             const res = await controller.onNewConnection();
             if (res) {
-                stream.markdown(`${CONNECTED_LABEL_PREFIX} Connected successfully\n\n`);
+                stream.markdown(`${CONNECTED_LABEL_PREFIX} ${loc.connectedSuccessfully}\n\n`);
             } else {
-                stream.markdown(`${DISCONNECTED_LABEL_PREFIX} Failed to connect\n\n`);
+                stream.markdown(`${DISCONNECTED_LABEL_PREFIX} ${loc.failedToConnect}\n\n`);
             }
             return true; // Command was handled
         },
@@ -60,7 +57,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
         handler: async (request, stream, controller, connectionUri) => {
             if (connectionUri) {
                 await controller.connectionManager.disconnect(connectionUri);
-                stream.markdown(`${DISCONNECTED_LABEL_PREFIX} Disconnected successfully\n\n`);
+                stream.markdown(`${DISCONNECTED_LABEL_PREFIX} ${loc.disconnectedSuccessfully}\n\n`);
             }
             return true; // Command was handled
         },
@@ -73,13 +70,17 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
             if (connectionUri && isConnectionActive(controller, connectionUri)) {
                 const res = await controller.onChooseDatabase();
                 if (res) {
-                    stream.markdown(`${CONNECTED_LABEL_PREFIX} Database changed successfully\n\n`);
+                    stream.markdown(
+                        `${CONNECTED_LABEL_PREFIX} ${loc.databaseChangedSuccessfully}\n\n`,
+                    );
                 } else {
-                    stream.markdown(`${DISCONNECTED_LABEL_PREFIX} Failed to change database\n\n`);
+                    stream.markdown(
+                        `${DISCONNECTED_LABEL_PREFIX} ${loc.failedToChangeDatabase}\n\n`,
+                    );
                 }
             } else {
                 stream.markdown(
-                    `${DISCONNECTED_LABEL_PREFIX} No active connection for database change\n\n`,
+                    `${DISCONNECTED_LABEL_PREFIX} ${loc.noActiveConnectionForDatabaseChange}\n\n`,
                 );
             }
             return true; // Command was handled
@@ -94,18 +95,18 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
                 const connection = controller.connectionManager.getConnectionInfo(connectionUri);
                 if (connection) {
                     const details =
-                        `${CONNECTED_LABEL_PREFIX} **Connection Details**\n\n` +
-                        `${SERVER_DATABASE_LABEL_PREFIX} **Server:** ${connection.credentials.server}\n` +
-                        `${SERVER_DATABASE_LABEL_PREFIX} **Database:** ${connection.credentials.database}\n` +
-                        `${SERVER_DATABASE_LABEL_PREFIX} **Authentication:** ${connection.credentials.authenticationType || "SQL Login"}\n\n`;
+                        `${CONNECTED_LABEL_PREFIX} **${loc.connectionDetails}**\n\n` +
+                        `${SERVER_DATABASE_LABEL_PREFIX} **${loc.serverLabel}:** ${connection.credentials.server}\n` +
+                        `${SERVER_DATABASE_LABEL_PREFIX} **${loc.databaseLabel}:** ${connection.credentials.database}\n` +
+                        `${SERVER_DATABASE_LABEL_PREFIX} **${loc.authentication}:** ${connection.credentials.authenticationType || loc.sqlLogin}\n\n`;
                     stream.markdown(details);
                 } else {
                     stream.markdown(
-                        `${DISCONNECTED_LABEL_PREFIX} No connection information found\n\n`,
+                        `${DISCONNECTED_LABEL_PREFIX} ${loc.noConnectionInformationFound}\n\n`,
                     );
                 }
             } else {
-                stream.markdown(`${DISCONNECTED_LABEL_PREFIX} No active connection\n\n`);
+                stream.markdown(`${DISCONNECTED_LABEL_PREFIX} ${loc.noActiveConnection}\n\n`);
             }
             return true; // Command was handled
         },
@@ -115,38 +116,35 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
     runQuery: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
-        promptTemplate: `${USE_TOOLS_PREFIX}run query: `,
+        promptTemplate: CHAT_COMMAND_PROMPTS.runQuery,
     },
     explain: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
-        promptTemplate: `${USE_TOOLS_PREFIX}explain query: `,
-        // TODO: Double check if this prompt template is optimal for explain functionality
+        promptTemplate: CHAT_COMMAND_PROMPTS.explain,
     },
     fix: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
-        promptTemplate: `${USE_TOOLS_PREFIX}fix this SQL code: `,
-        // TODO: Double check if this prompt template is optimal for fix functionality
+        promptTemplate: CHAT_COMMAND_PROMPTS.fix,
     },
     optimize: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
-        promptTemplate: `${USE_TOOLS_PREFIX}optimize this SQL query for better performance: `,
-        // TODO: Double check if this prompt template is optimal for optimize functionality
+        promptTemplate: CHAT_COMMAND_PROMPTS.optimize,
     },
     showSchema: {
         type: CommandType.Simple,
         requiresConnection: true,
         handler: async (request, stream, controller, connectionUri) => {
             if (connectionUri && isConnectionActive(controller, connectionUri)) {
-                stream.markdown("🔍 Opening schema designer...\n\n");
+                stream.markdown(`${loc.openingSchemaDesigner}\n\n`);
                 const connInfo = controller.connectionManager.getConnectionInfo(connectionUri);
                 const connCreds = connInfo?.credentials;
                 if (!connCreds) {
                     // TODO: Better error handling - should this ever happen if connection is active?
                     stream.markdown(
-                        `${DISCONNECTED_LABEL_PREFIX} No connection credentials found\n\n`,
+                        `${DISCONNECTED_LABEL_PREFIX} ${loc.noConnectionCredentialsFound}\n\n`,
                     );
                     return true;
                 }
@@ -163,7 +161,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
                 designer.revealToForeground();
             } else {
                 stream.markdown(
-                    `${DISCONNECTED_LABEL_PREFIX} No active connection for schema view\n\n`,
+                    `${DISCONNECTED_LABEL_PREFIX} ${loc.noActiveConnectionForSchemaView}\n\n`,
                 );
             }
             return true; // Command was handled
@@ -172,7 +170,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
     showDefinition: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
-        promptTemplate: `${USE_TOOLS_PREFIX}show the definition and structure of the specified database object: `,
+        promptTemplate: CHAT_COMMAND_PROMPTS.showDefinition,
     },
     listServers: {
         type: CommandType.Simple,
@@ -183,26 +181,26 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
                     await controller.connectionManager.connectionStore.readAllConnections(false);
 
                 if (!profiles || profiles.length === 0) {
-                    stream.markdown("📋 **Available Servers**\n\n");
-                    stream.markdown("No saved connection profiles found.\n\n");
-                    stream.markdown("Use `/connect` to create a new connection.\n\n");
+                    stream.markdown(`${loc.availableServers}\n\n`);
+                    stream.markdown(`${loc.noSavedConnectionProfilesFound}\n\n`);
+                    stream.markdown(`${loc.useConnectToCreateNewConnection}\n\n`);
                 } else {
-                    stream.markdown("📋 **Available Servers**\n\n");
+                    stream.markdown(`${loc.availableServers}\n\n`);
 
                     for (const profile of profiles) {
                         const serverInfo =
-                            `${SERVER_DATABASE_LABEL_PREFIX} **${profile.profileName || "Unnamed Profile"}**\n` +
-                            `${SERVER_DATABASE_LABEL_PREFIX} Server: ${profile.server}\n` +
-                            `${SERVER_DATABASE_LABEL_PREFIX} Database: ${profile.database || "Default"}\n` +
-                            `${SERVER_DATABASE_LABEL_PREFIX} Authentication: ${profile.authenticationType || "SQL Login"}\n\n`;
+                            `${SERVER_DATABASE_LABEL_PREFIX} **${profile.profileName || loc.unnamedProfile}**\n` +
+                            `${SERVER_DATABASE_LABEL_PREFIX} ${loc.serverLabel}: ${profile.server}\n` +
+                            `${SERVER_DATABASE_LABEL_PREFIX} ${loc.databaseLabel}: ${profile.database || loc.default}\n` +
+                            `${SERVER_DATABASE_LABEL_PREFIX} ${loc.authentication}: ${profile.authenticationType || loc.sqlLogin}\n\n`;
                         stream.markdown(serverInfo);
                     }
 
-                    stream.markdown(`Found ${profiles.length} saved connection profile(s).\n\n`);
+                    stream.markdown(`${loc.foundSavedConnectionProfiles(profiles.length)}\n\n`);
                 }
             } catch (error) {
                 stream.markdown(
-                    `${DISCONNECTED_LABEL_PREFIX} Error retrieving server list: ${error instanceof Error ? error.message : "Unknown error"}\n\n`,
+                    `${DISCONNECTED_LABEL_PREFIX} ${loc.errorRetrievingServerList(error instanceof Error ? error.message : loc.unknownError)}\n\n`,
                 );
             }
 
@@ -212,32 +210,32 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
     listDatabases: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
-        promptTemplate: `${USE_TOOLS_PREFIX}list all databases available on the current server. `,
+        promptTemplate: CHAT_COMMAND_PROMPTS.listDatabases,
     },
     listSchemas: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
-        promptTemplate: `${USE_TOOLS_PREFIX}list all schemas in the current database. `,
+        promptTemplate: CHAT_COMMAND_PROMPTS.listSchemas,
     },
     listTables: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
-        promptTemplate: `${USE_TOOLS_PREFIX}list all tables in the current database. `,
+        promptTemplate: CHAT_COMMAND_PROMPTS.listTables,
     },
     listViews: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
-        promptTemplate: `${USE_TOOLS_PREFIX}list all views in the current database. `,
+        promptTemplate: CHAT_COMMAND_PROMPTS.listViews,
     },
     listFunctions: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
-        promptTemplate: `${USE_TOOLS_PREFIX}list all functions in the current database. `,
+        promptTemplate: CHAT_COMMAND_PROMPTS.listFunctions,
     },
     listProcedures: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
-        promptTemplate: `${USE_TOOLS_PREFIX}list all stored procedures in the current database. `,
+        promptTemplate: CHAT_COMMAND_PROMPTS.listProcedures,
     },
 };
 
@@ -340,7 +338,7 @@ export async function handleChatCommand(
             });
             return {
                 handled: true,
-                errorMessage: `${DISCONNECTED_LABEL_PREFIX} No active database connection. Please connect first using \`/connect\`.\n\n`,
+                errorMessage: `${DISCONNECTED_LABEL_PREFIX} ${loc.noActiveDatabaseConnection}\n\n`,
             };
         }
 

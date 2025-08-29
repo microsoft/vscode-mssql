@@ -1756,6 +1756,37 @@
       "{0} is the connection ID"
     ]
   },
+  "Connected successfully": "Connected successfully",
+  "Failed to connect": "Failed to connect",
+  "Disconnected successfully": "Disconnected successfully",
+  "Database changed successfully": "Database changed successfully",
+  "Failed to change database": "Failed to change database",
+  "No active connection for database change": "No active connection for database change",
+  "Connection Details": "Connection Details",
+  "Authentication": "Authentication",
+  "No connection information found": "No connection information found",
+  "No active connection": "No active connection",
+  "🔍 Opening schema designer...": "🔍 Opening schema designer...",
+  "No connection credentials found": "No connection credentials found",
+  "No active connection for schema view": "No active connection for schema view",
+  "📋 **Available Servers**": "📋 **Available Servers**",
+  "No saved connection profiles found.": "No saved connection profiles found.",
+  "Use `/connect` to create a new connection.": "Use `/connect` to create a new connection.",
+  "Unnamed Profile": "Unnamed Profile",
+  "Found {0} saved connection profile(s)./{0} is the number of connection profiles": {
+    "message": "Found {0} saved connection profile(s).",
+    "comment": [
+      "{0} is the number of connection profiles"
+    ]
+  },
+  "Error retrieving server list: {0}/{0} is the error message": {
+    "message": "Error retrieving server list: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "Unknown error": "Unknown error",
+  "No active database connection. Please connect first using `/connect`.": "No active database connection. Please connect first using `/connect`.",
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
   "Cancel failed: {0}/{0} is the error message": {
     "message": "Cancel failed: {0}",

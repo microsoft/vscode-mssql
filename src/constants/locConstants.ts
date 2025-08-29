@@ -1492,6 +1492,51 @@ export class MssqlChatAgent {
             comment: ["{0} is the connection ID"],
         });
     };
+
+    // Chat Commands localization strings
+    public static connectedSuccessfully = l10n.t("Connected successfully");
+    public static failedToConnect = l10n.t("Failed to connect");
+    public static disconnectedSuccessfully = l10n.t("Disconnected successfully");
+    public static databaseChangedSuccessfully = l10n.t("Database changed successfully");
+    public static failedToChangeDatabase = l10n.t("Failed to change database");
+    public static noActiveConnectionForDatabaseChange = l10n.t(
+        "No active connection for database change",
+    );
+    public static connectionDetails = l10n.t("Connection Details");
+    public static serverLabel = l10n.t("Server");
+    public static databaseLabel = l10n.t("Database");
+    public static authentication = l10n.t("Authentication");
+    public static sqlLogin = l10n.t("SQL Login");
+    public static noConnectionInformationFound = l10n.t("No connection information found");
+    public static noActiveConnection = l10n.t("No active connection");
+    public static openingSchemaDesigner = l10n.t("🔍 Opening schema designer...");
+    public static noConnectionCredentialsFound = l10n.t("No connection credentials found");
+    public static noActiveConnectionForSchemaView = l10n.t("No active connection for schema view");
+    public static availableServers = l10n.t("📋 **Available Servers**");
+    public static noSavedConnectionProfilesFound = l10n.t("No saved connection profiles found.");
+    public static useConnectToCreateNewConnection = l10n.t(
+        "Use `/connect` to create a new connection.",
+    );
+    public static unnamedProfile = l10n.t("Unnamed Profile");
+    public static default = l10n.t("Default");
+    public static foundSavedConnectionProfiles = (count: number) => {
+        return l10n.t({
+            message: "Found {0} saved connection profile(s).",
+            args: [count],
+            comment: ["{0} is the number of connection profiles"],
+        });
+    };
+    public static errorRetrievingServerList = (errorMessage: string) => {
+        return l10n.t({
+            message: "Error retrieving server list: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    };
+    public static unknownError = l10n.t("Unknown error");
+    public static noActiveDatabaseConnection = l10n.t(
+        "No active database connection. Please connect first using `/connect`.",
+    );
 }
 
 export class QueryEditor {
