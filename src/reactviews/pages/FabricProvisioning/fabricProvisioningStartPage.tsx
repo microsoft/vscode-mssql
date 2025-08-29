@@ -9,7 +9,7 @@ import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
-import { FabricProvisioningInputForm } from "./fabricProvisioningInputForm";
+import { FabricProvisioningInfoPage } from "./fabricProvisioningInfoPage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -50,7 +50,7 @@ export const FabricProvisioningStartPage = () => {
                     </div>
                 );
             case ApiStatus.Loaded:
-                return <FabricProvisioningInputForm />;
+                return <FabricProvisioningInfoPage />;
             case ApiStatus.Error:
                 return (
                     <div className={classes.spinnerDiv}>

@@ -56,12 +56,12 @@ export class LocConstants {
             hidePassword: l10n.t("Hide password"),
             dismiss: l10n.t("Dismiss"),
             error: l10n.t("Error"),
+            getStarted: l10n.t("Get Started"),
         };
     }
 
     public get objectExplorerFiltering() {
         return {
-            error: l10n.t("Error"),
             clearAll: l10n.t("Clear All"),
             ok: l10n.t("OK"),
             and: l10n.t("And"),
@@ -845,7 +845,6 @@ export class LocConstants {
             learnMoreAboutSqlServer2025: l10n.t("Learn more about SQL Server 2025 features"),
             sqlServerEditionsComparison: l10n.t("Compare SQL Server editions"),
             configureAndCustomizeSqlServer: l10n.t("Configure and customize SQL Server containers"),
-            getStarted: l10n.t("Get Started"),
             gettingDockerReady: l10n.t("Getting Docker Ready..."),
             checkingPrerequisites: l10n.t("Checking pre-requisites"),
             createContainer: l10n.t("Create Container"),
@@ -872,6 +871,22 @@ export class LocConstants {
             deploymentFailed: l10n.t("Deployment Failed"),
             connectionFailed: l10n.t("Connection Failed"),
             connectingToDatabase: l10n.t("Connecting to Database"),
+            builtOnAzureSQL: l10n.t("OLTP, built on Azure SQL"),
+            builtOnAzureSQLDescription: l10n.t(
+                "Developer-friendly transactional database using the Azure SQL Database Engine.",
+            ),
+            analyticsReady: l10n.t("Analytics-ready by default"),
+            analyticsReadyDescription: l10n.t(
+                "Data automatically replicated to OneLake in real time with a SQL analytics endpoint.",
+            ),
+            integratedAndSecure: l10n.t("Integrated & secure"),
+            integratedAndSecureDescription: l10n.t(
+                "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.",
+            ),
+            smartPerformance: l10n.t("Smart performance"),
+            smartPerformanceDescription: l10n.t(
+                "Automatic tuning features like automatic index creation enabled by default.",
+            ),
         };
     }
 }

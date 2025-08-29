@@ -158,7 +158,7 @@ export const LocalContainersInfoPage: React.FC = () => {
                             setShowNext(true);
                         }}
                         appearance={"primary"}>
-                        {locConstants.localContainers.getStarted}
+                        {locConstants.common.getStarted}
                     </Button>
                 </div>
             </div>

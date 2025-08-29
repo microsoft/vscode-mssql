@@ -164,6 +164,9 @@
     <trans-unit id="++CODE++82fcdad573baa3443513b5c61196ed142a07d6b967afc2778c8932549a5ad455">
       <source xml:lang="en">An unknown error occurred. Please try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++6ca0797fa56ecdc7f5f08c99504d70d93a42ccbe0e904e273144c6fd9efdc21c">
+      <source xml:lang="en">Analytics-ready by default</source>
+    </trans-unit>
     <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
       <source xml:lang="en">And</source>
     </trans-unit>
@@ -236,6 +239,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a27adfa57c8938761efd3fc482ea8e81fc898b286f29d04c783c9d3b60b22824">
       <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you&apos;ve created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0b88b412b158e1648835456305f857b2228f04cdd61b08afc1924ea48fcee4c0">
+      <source xml:lang="en">Automatic tuning features like automatic index creation enabled by default.</source>
     </trans-unit>
     <trans-unit id="++CODE++92eb0b1fb89f1725b3c1fe652164720d7b2d17222e81bd5057f02f645fb24e67">
       <source xml:lang="en">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</source>
@@ -784,6 +790,9 @@
     <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
       <source xml:lang="en">Data Type</source>
     </trans-unit>
+    <trans-unit id="++CODE++e3a5d47b33a0d2d672730f3278c43f30e8a43b8c973534f001e775f9dc5135bf">
+      <source xml:lang="en">Data automatically replicated to OneLake in real time with a SQL analytics endpoint.</source>
+    </trans-unit>
     <trans-unit id="++CODE++002d75dcd5ce57695a446308e181eaf59edc9236246aa29a124ecb72409a65d7">
       <source xml:lang="en">Data type mismatch: &apos;{0}&apos; in column &apos;{1}&apos; incompatible with &apos;{2}&apos; in &apos;{3}&apos;</source>
       <note>{0} is source data type
@@ -866,6 +875,9 @@
     </trans-unit>
     <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
       <source xml:lang="en">Details</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707">
+      <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine.</source>
     </trans-unit>
     <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
       <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
@@ -1426,6 +1438,9 @@
     <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
       <source xml:lang="en">Integrated</source>
     </trans-unit>
+    <trans-unit id="++CODE++aca9e581f935a7772af49f14b1bc37305d26449df47ba4a8ecea51c758d4814f">
+      <source xml:lang="en">Integrated &amp; secure</source>
+    </trans-unit>
     <trans-unit id="++CODE++eced7daa046aa47caa62c3306d8114cb2f558fd2f53ebd2cc4d3b802857d200b">
       <source xml:lang="en">Invalid Firewall rule name</source>
     </trans-unit>
@@ -1812,6 +1827,9 @@
     </trans-unit>
     <trans-unit id="++CODE++565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3">
       <source xml:lang="en">OK</source>
+    </trans-unit>
+    <trans-unit id="++CODE++17353b3f8f54bed0a811ad1ed6fb9f3505a0e039df3b934afb3e8bc11976a2ca">
+      <source xml:lang="en">OLTP, built on Azure SQL</source>
     </trans-unit>
     <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
       <source xml:lang="en">Object Explorer Filter</source>
@@ -2433,6 +2451,9 @@
     <trans-unit id="++CODE++f6dd83003322db3c5d5ef293a8dc73363ae462529918cc8d17cc94f9988c0d45">
       <source xml:lang="en">Simple Container Management</source>
     </trans-unit>
+    <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
+      <source xml:lang="en">Smart performance</source>
+    </trans-unit>
     <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
       <source xml:lang="en">Sort Ascending</source>
     </trans-unit>
@@ -2800,6 +2821,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
+      <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>
     </trans-unit>
     <trans-unit id="++CODE++87bb59ba2f92f2a5a9f13e021fd58dd14ae5c065b1046146875e6e68d5ebc8b7">
       <source xml:lang="en">Workspace</source>
