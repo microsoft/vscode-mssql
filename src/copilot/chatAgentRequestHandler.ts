@@ -27,6 +27,11 @@ import { MssqlChatAgent as loc } from "../constants/locConstants";
 import MainController from "../controllers/mainController";
 import { Logger } from "../models/logger";
 import { handleChatCommand, commandSkipsConnectionLabels } from "./chatCommands";
+import {
+    disconnectedLabelPrefix,
+    connectedLabelPrefix,
+    serverDatabaseLabelPrefix,
+} from "./chatConstants";
 
 export interface ISqlChatResult extends vscode.ChatResult {
     metadata: {
@@ -34,10 +39,6 @@ export interface ISqlChatResult extends vscode.ChatResult {
         correlationId: string;
     };
 }
-
-const DISCONNECTED_LABEL_PREFIX = "> ⚠️";
-const CONNECTED_LABEL_PREFIX = "> 🟢";
-const SERVER_DATABASE_LABEL_PREFIX = "> ➖";
 
 export const createSqlAgentRequestHandler = (
     copilotService: CopilotService,
@@ -308,7 +309,7 @@ export const createSqlAgentRequestHandler = (
 
                 // Show not connected message only if not handled by commands and command doesn't skip labels
                 if (!commandSkipsConnectionLabels(request.command)) {
-                    stream.markdown(`${DISCONNECTED_LABEL_PREFIX} ${loc.notConnected}\n\n`);
+                    stream.markdown(`${disconnectedLabelPrefix} ${loc.notConnected}\n\n`);
                 }
 
                 // Apply prompt template if this is a prompt substitute command
@@ -329,9 +330,9 @@ export const createSqlAgentRequestHandler = (
             }
 
             var connectionMessage =
-                `${CONNECTED_LABEL_PREFIX} ${loc.connectedTo}  \n` +
-                `${SERVER_DATABASE_LABEL_PREFIX} ${loc.server(connection.credentials.server)}  \n` +
-                `${SERVER_DATABASE_LABEL_PREFIX} ${loc.database(connection.credentials.database)}\n\n`;
+                `${connectedLabelPrefix} ${loc.connectedTo}  \n` +
+                `${serverDatabaseLabelPrefix} ${loc.server(connection.credentials.server)}  \n` +
+                `${serverDatabaseLabelPrefix} ${loc.database(connection.credentials.database)}\n\n`;
 
             // Handle chat commands
             const commandResult = await handleChatCommand(

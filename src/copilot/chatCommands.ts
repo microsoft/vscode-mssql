@@ -11,10 +11,11 @@ import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWe
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
 import { CHAT_COMMAND_PROMPTS } from "./prompts";
-
-const DISCONNECTED_LABEL_PREFIX = "> ⚠️";
-const CONNECTED_LABEL_PREFIX = "> 🟢";
-const SERVER_DATABASE_LABEL_PREFIX = "> ➖";
+import {
+    disconnectedLabelPrefix,
+    connectedLabelPrefix,
+    serverDatabaseLabelPrefix,
+} from "./chatConstants";
 
 export enum CommandType {
     Simple = "simple",
@@ -43,9 +44,9 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
         handler: async (request, stream, controller, _connectionUri) => {
             const res = await controller.onNewConnection();
             if (res) {
-                stream.markdown(`${CONNECTED_LABEL_PREFIX} ${loc.connectedSuccessfully}\n\n`);
+                stream.markdown(`${connectedLabelPrefix} ${loc.connectedSuccessfully}\n\n`);
             } else {
-                stream.markdown(`${DISCONNECTED_LABEL_PREFIX} ${loc.failedToConnect}\n\n`);
+                stream.markdown(`${disconnectedLabelPrefix} ${loc.failedToConnect}\n\n`);
             }
             return true; // Command was handled
         },
@@ -57,7 +58,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
         handler: async (request, stream, controller, connectionUri) => {
             if (connectionUri) {
                 await controller.connectionManager.disconnect(connectionUri);
-                stream.markdown(`${DISCONNECTED_LABEL_PREFIX} ${loc.disconnectedSuccessfully}\n\n`);
+                stream.markdown(`${disconnectedLabelPrefix} ${loc.disconnectedSuccessfully}\n\n`);
             }
             return true; // Command was handled
         },
@@ -71,16 +72,14 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
                 const res = await controller.onChooseDatabase();
                 if (res) {
                     stream.markdown(
-                        `${CONNECTED_LABEL_PREFIX} ${loc.databaseChangedSuccessfully}\n\n`,
+                        `${connectedLabelPrefix} ${loc.databaseChangedSuccessfully}\n\n`,
                     );
                 } else {
-                    stream.markdown(
-                        `${DISCONNECTED_LABEL_PREFIX} ${loc.failedToChangeDatabase}\n\n`,
-                    );
+                    stream.markdown(`${disconnectedLabelPrefix} ${loc.failedToChangeDatabase}\n\n`);
                 }
             } else {
                 stream.markdown(
-                    `${DISCONNECTED_LABEL_PREFIX} ${loc.noActiveConnectionForDatabaseChange}\n\n`,
+                    `${disconnectedLabelPrefix} ${loc.noActiveConnectionForDatabaseChange}\n\n`,
                 );
             }
             return true; // Command was handled
@@ -95,18 +94,18 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
                 const connection = controller.connectionManager.getConnectionInfo(connectionUri);
                 if (connection) {
                     const details =
-                        `${CONNECTED_LABEL_PREFIX} **${loc.connectionDetails}**\n\n` +
-                        `${SERVER_DATABASE_LABEL_PREFIX} **${loc.serverLabel}:** ${connection.credentials.server}\n` +
-                        `${SERVER_DATABASE_LABEL_PREFIX} **${loc.databaseLabel}:** ${connection.credentials.database}\n` +
-                        `${SERVER_DATABASE_LABEL_PREFIX} **${loc.authentication}:** ${connection.credentials.authenticationType || loc.sqlLogin}\n\n`;
+                        `${connectedLabelPrefix} **${loc.connectionDetails}**\n\n` +
+                        `${serverDatabaseLabelPrefix} **${loc.serverLabel}:** ${connection.credentials.server}\n` +
+                        `${serverDatabaseLabelPrefix} **${loc.databaseLabel}:** ${connection.credentials.database}\n` +
+                        `${serverDatabaseLabelPrefix} **${loc.authentication}:** ${connection.credentials.authenticationType || loc.sqlLogin}\n\n`;
                     stream.markdown(details);
                 } else {
                     stream.markdown(
-                        `${DISCONNECTED_LABEL_PREFIX} ${loc.noConnectionInformationFound}\n\n`,
+                        `${disconnectedLabelPrefix} ${loc.noConnectionInformationFound}\n\n`,
                     );
                 }
             } else {
-                stream.markdown(`${DISCONNECTED_LABEL_PREFIX} ${loc.noActiveConnection}\n\n`);
+                stream.markdown(`${disconnectedLabelPrefix} ${loc.noActiveConnection}\n\n`);
             }
             return true; // Command was handled
         },
@@ -138,13 +137,12 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
         requiresConnection: true,
         handler: async (request, stream, controller, connectionUri) => {
             if (connectionUri && isConnectionActive(controller, connectionUri)) {
-                stream.markdown(`${loc.openingSchemaDesigner}\n\n`);
+                stream.markdown(`🔍 ${loc.openingSchemaDesigner}\n\n`);
                 const connInfo = controller.connectionManager.getConnectionInfo(connectionUri);
                 const connCreds = connInfo?.credentials;
                 if (!connCreds) {
-                    // TODO: Better error handling - should this ever happen if connection is active?
                     stream.markdown(
-                        `${DISCONNECTED_LABEL_PREFIX} ${loc.noConnectionCredentialsFound}\n\n`,
+                        `${disconnectedLabelPrefix} ${loc.noConnectionCredentialsFound}\n\n`,
                     );
                     return true;
                 }
@@ -161,7 +159,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
                 designer.revealToForeground();
             } else {
                 stream.markdown(
-                    `${DISCONNECTED_LABEL_PREFIX} ${loc.noActiveConnectionForSchemaView}\n\n`,
+                    `${disconnectedLabelPrefix} ${loc.noActiveConnectionForSchemaView}\n\n`,
                 );
             }
             return true; // Command was handled
@@ -181,18 +179,18 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
                     await controller.connectionManager.connectionStore.readAllConnections(false);
 
                 if (!profiles || profiles.length === 0) {
-                    stream.markdown(`${loc.availableServers}\n\n`);
+                    stream.markdown(`📋 **${loc.availableServers}**\n\n`);
                     stream.markdown(`${loc.noSavedConnectionProfilesFound}\n\n`);
-                    stream.markdown(`${loc.useConnectToCreateNewConnection}\n\n`);
+                    stream.markdown(`${loc.useConnectToCreateNewConnection("/connect")}\n\n`);
                 } else {
-                    stream.markdown(`${loc.availableServers}\n\n`);
+                    stream.markdown(`📋 **${loc.availableServers}**\n\n`);
 
                     for (const profile of profiles) {
                         const serverInfo =
-                            `${SERVER_DATABASE_LABEL_PREFIX} **${profile.profileName || loc.unnamedProfile}**\n` +
-                            `${SERVER_DATABASE_LABEL_PREFIX} ${loc.serverLabel}: ${profile.server}\n` +
-                            `${SERVER_DATABASE_LABEL_PREFIX} ${loc.databaseLabel}: ${profile.database || loc.default}\n` +
-                            `${SERVER_DATABASE_LABEL_PREFIX} ${loc.authentication}: ${profile.authenticationType || loc.sqlLogin}\n\n`;
+                            `${serverDatabaseLabelPrefix} **${profile.profileName || loc.unnamedProfile}**\n` +
+                            `${serverDatabaseLabelPrefix} ${loc.serverLabel}: ${profile.server}\n` +
+                            `${serverDatabaseLabelPrefix} ${loc.databaseLabel}: ${profile.database || loc.default}\n` +
+                            `${serverDatabaseLabelPrefix} ${loc.authentication}: ${profile.authenticationType || loc.sqlLogin}\n\n`;
                         stream.markdown(serverInfo);
                     }
 
@@ -200,7 +198,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
                 }
             } catch (error) {
                 stream.markdown(
-                    `${DISCONNECTED_LABEL_PREFIX} ${loc.errorRetrievingServerList(error instanceof Error ? error.message : loc.unknownError)}\n\n`,
+                    `${disconnectedLabelPrefix} ${loc.errorRetrievingServerList(error instanceof Error ? error.message : loc.unknownError)}\n\n`,
                 );
             }
 
@@ -338,7 +336,7 @@ export async function handleChatCommand(
             });
             return {
                 handled: true,
-                errorMessage: `${DISCONNECTED_LABEL_PREFIX} ${loc.noActiveDatabaseConnection}\n\n`,
+                errorMessage: `${disconnectedLabelPrefix} ${loc.noActiveDatabaseConnection}\n\n`,
             };
         }
 

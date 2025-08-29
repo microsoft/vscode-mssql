@@ -1766,12 +1766,17 @@
   "Authentication": "Authentication",
   "No connection information found": "No connection information found",
   "No active connection": "No active connection",
-  "🔍 Opening schema designer...": "🔍 Opening schema designer...",
+  "Opening schema designer...": "Opening schema designer...",
   "No connection credentials found": "No connection credentials found",
   "No active connection for schema view": "No active connection for schema view",
-  "📋 **Available Servers**": "📋 **Available Servers**",
+  "Available Servers": "Available Servers",
   "No saved connection profiles found.": "No saved connection profiles found.",
-  "Use `/connect` to create a new connection.": "Use `/connect` to create a new connection.",
+  "Use {0} to create a new connection./{0} is the connect command": {
+    "message": "Use {0} to create a new connection.",
+    "comment": [
+      "{0} is the connect command"
+    ]
+  },
   "Unnamed Profile": "Unnamed Profile",
   "Found {0} saved connection profile(s)./{0} is the number of connection profiles": {
     "message": "Found {0} saved connection profile(s).",

@@ -1509,14 +1509,18 @@ export class MssqlChatAgent {
     public static sqlLogin = l10n.t("SQL Login");
     public static noConnectionInformationFound = l10n.t("No connection information found");
     public static noActiveConnection = l10n.t("No active connection");
-    public static openingSchemaDesigner = l10n.t("🔍 Opening schema designer...");
+    public static openingSchemaDesigner = l10n.t("Opening schema designer...");
     public static noConnectionCredentialsFound = l10n.t("No connection credentials found");
     public static noActiveConnectionForSchemaView = l10n.t("No active connection for schema view");
-    public static availableServers = l10n.t("📋 **Available Servers**");
+    public static availableServers = l10n.t("Available Servers");
     public static noSavedConnectionProfilesFound = l10n.t("No saved connection profiles found.");
-    public static useConnectToCreateNewConnection = l10n.t(
-        "Use `/connect` to create a new connection.",
-    );
+    public static useConnectToCreateNewConnection = (connectCommand: string) => {
+        return l10n.t({
+            message: "Use {0} to create a new connection.",
+            args: [connectCommand],
+            comment: ["{0} is the connect command"],
+        });
+    };
     public static unnamedProfile = l10n.t("Unnamed Profile");
     public static default = l10n.t("Default");
     public static foundSavedConnectionProfiles = (count: number) => {

@@ -237,6 +237,9 @@
     <trans-unit id="++CODE++a27adfa57c8938761efd3fc482ea8e81fc898b286f29d04c783c9d3b60b22824">
       <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you&apos;ve created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
     </trans-unit>
+    <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
+      <source xml:lang="en">Available Servers</source>
+    </trans-unit>
     <trans-unit id="++CODE++92eb0b1fb89f1725b3c1fe652164720d7b2d17222e81bd5057f02f645fb24e67">
       <source xml:lang="en">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</source>
       <note>{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum</note>
@@ -1863,6 +1866,9 @@
     <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
       <source xml:lang="en">Opening Publish Script. This may take a while...</source>
     </trans-unit>
+    <trans-unit id="++CODE++fe0d6bd1aef549a43c5fca4a838882918bd3a85e9641cb5150f31df976e18e38">
+      <source xml:lang="en">Opening schema designer...</source>
+    </trans-unit>
     <trans-unit id="++CODE++291101a07fe980e93b900ae85c9eb824f9e7e93d0d754be7440b9386b615cad7">
       <source xml:lang="en">Operator</source>
     </trans-unit>
@@ -2734,8 +2740,9 @@
     <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
       <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
     </trans-unit>
-    <trans-unit id="++CODE++faaa8fa849491a397892a490650506fc6fe07a43fc6c74ea13dbb7259613eb06">
-      <source xml:lang="en">Use `/connect` to create a new connection.</source>
+    <trans-unit id="++CODE++6fa7eeedfe2d3774f7d0d8fbb044c15710f171f58174bf7435ab1757e92d0c27">
+      <source xml:lang="en">Use {0} to create a new connection.</source>
+      <note>{0} is the connect command</note>
     </trans-unit>
     <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
       <source xml:lang="en">User name</source>
@@ -2985,12 +2992,6 @@
     </trans-unit>
     <trans-unit id="++CODE++4d765d766973242c68c5a2d3b20c7164beb22948ceaf7095ce44f901cc2f4052">
       <source xml:lang="en">❌ Deny Access (Current)</source>
-    </trans-unit>
-    <trans-unit id="++CODE++3c3af6db38a2839f23aa8a28419cb64299d7219eb7798929277c541a687d007c">
-      <source xml:lang="en">📋 **Available Servers**</source>
-    </trans-unit>
-    <trans-unit id="++CODE++d0ab501a2d8249e17d81150cb5b25991fec72f89346e8d813a5e8713bf6f729f">
-      <source xml:lang="en">🔍 Opening schema designer...</source>
     </trans-unit>
   </body></file>
   <file original="package" source-language="en" datatype="plaintext"><body>
