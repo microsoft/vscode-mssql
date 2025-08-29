@@ -49,19 +49,18 @@ export async function initializeLocalContainersState(
     return state;
 }
 
-export function registerLocalContainersReducers(
-    deploymentController: DeploymentWebviewController,
-    mainController: MainController,
-) {
+export function registerLocalContainersReducers(deploymentController: DeploymentWebviewController) {
     deploymentController.registerReducer("completeDockerStep", async (state, payload) => {
+        const localContainersWebviewState =
+            state.deploymentTypeState as lc.LocalContainersWebviewState;
         const currentStepNumber = payload.dockerStep;
-        const currentStep = state.deploymentTypeState.dockerSteps[currentStepNumber];
+        const currentStep = localContainersWebviewState.dockerSteps[currentStepNumber];
         if (currentStep.loadState !== ApiStatus.NotStarted) return state;
 
         let newDeploymentTypeState = {
-            ...state.deploymentTypeState,
+            ...localContainersWebviewState,
             dockerSteps: {
-                ...state.deploymentTypeState.dockerSteps,
+                ...localContainersWebviewState.dockerSteps,
                 [currentStepNumber]: { ...currentStep, loadState: ApiStatus.Loading },
             },
         };
@@ -78,7 +77,7 @@ export function registerLocalContainersReducers(
         if (currentStepNumber === lc.DockerStepOrder.connectToContainer) {
             const connectionResult = await addContainerConnection(
                 newDeploymentTypeState.formState,
-                mainController,
+                deploymentController.mainController,
             );
             stepSuccessful = connectionResult;
 
@@ -137,18 +136,23 @@ export function registerLocalContainersReducers(
         return state;
     });
     deploymentController.registerReducer("resetDockerStepState", async (state, _payload) => {
+        const localContainersWebviewState =
+            state.deploymentTypeState as lc.LocalContainersWebviewState;
         // Reset the current step to NotStarted
-        const currentStepNumber = state.deploymentTypeState.currentDockerStep;
-        state.deploymentTypeState.dockerSteps[currentStepNumber].loadState = ApiStatus.NotStarted;
+        const currentStepNumber = localContainersWebviewState.currentDockerStep;
+        localContainersWebviewState.dockerSteps[currentStepNumber].loadState = ApiStatus.NotStarted;
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.RetryDockerStep, {
             dockerStep: lc.DockerStepOrder[currentStepNumber],
         });
+        state.deploymentTypeState = localContainersWebviewState;
         return state;
     });
     deploymentController.registerReducer("checkDockerProfile", async (state, _payload) => {
+        const localContainersWebviewState =
+            state.deploymentTypeState as lc.LocalContainersWebviewState;
         state.deploymentTypeState.formValidationLoadState = ApiStatus.Loading;
         deploymentController.updateState(state);
-        let newDeploymentTypeState = { ...state.deploymentTypeState };
+        let newDeploymentTypeState = { ...localContainersWebviewState };
 
         newDeploymentTypeState = await validateDockerConnectionProfile(newDeploymentTypeState);
         const hasAdvancedOptions =
@@ -158,7 +162,7 @@ export function registerLocalContainersReducers(
         if (!newDeploymentTypeState.formState.containerName) {
             newDeploymentTypeState.formState.containerName =
                 await dockerUtils.validateContainerName(
-                    state.deploymentTypeState.formState.containerName,
+                    localContainersWebviewState.formState.containerName,
                 );
         }
 

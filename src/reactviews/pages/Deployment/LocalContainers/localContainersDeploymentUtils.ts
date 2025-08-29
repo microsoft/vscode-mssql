@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { DeploymentContextProps } from "../../../../sharedInterfaces/deployment";
+import { LocalContainersWebviewState } from "../../../../sharedInterfaces/localContainers";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 
 /**
@@ -15,7 +16,7 @@ export async function runDockerStep(
     state: DeploymentContextProps,
     lastStep: number,
 ): Promise<void> {
-    const localContainersState = state.state.deploymentTypeState;
+    const localContainersState = state.state.deploymentTypeState as LocalContainersWebviewState;
     const currentStep = localContainersState.currentDockerStep;
     // If the current step is less than or equal to the last step,
     // complete the step to move to the next one
@@ -31,7 +32,7 @@ export async function runDockerStep(
  * @return {boolean} True if the last step is loaded, false otherwise.
  */
 export function isLastStepLoaded(state: DeploymentContextProps, lastStep: number): boolean {
-    const localContainersState = state.state.deploymentTypeState;
+    const localContainersState = state.state.deploymentTypeState as LocalContainersWebviewState;
     return localContainersState.dockerSteps[lastStep].loadState === ApiStatus.Loaded;
 }
 
@@ -41,7 +42,7 @@ export function isLastStepLoaded(state: DeploymentContextProps, lastStep: number
  * @return {boolean} True if the current step has errored, false otherwise.
  */
 export function checkStepErrored(state: DeploymentContextProps): boolean {
-    const localContainersState = state.state.deploymentTypeState;
+    const localContainersState = state.state.deploymentTypeState as LocalContainersWebviewState;
 
     // Safe check to ensure currentDockerStep is within bounds; if not, we've finished all steps
     if (

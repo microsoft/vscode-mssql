@@ -11,7 +11,10 @@ import {
     isLastStepLoaded,
     runDockerStep,
 } from "./localContainersDeploymentUtils";
-import { DockerStepOrder } from "../../../../sharedInterfaces/localContainers";
+import {
+    DockerStepOrder,
+    LocalContainersWebviewState,
+} from "../../../../sharedInterfaces/localContainers";
 import { LocalContainersHeader } from "./localContainersHeader";
 import { locConstants } from "../../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
@@ -20,14 +23,14 @@ import { DeploymentContext } from "../deploymentStateProvider";
 export const LocalContainersSetupStepsPage: React.FC = () => {
     const classes = stepPageStyles();
     const state = useContext(DeploymentContext);
-    const localContainersState = state?.state.deploymentTypeState;
+    const localContainersState = state?.state.deploymentTypeState as LocalContainersWebviewState;
     const [stepsLoaded, setStepsLoaded] = useState(false);
     const [stepsErrored, setStepsErrored] = useState(false);
     const lastStep = DockerStepOrder.connectToContainer;
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!localContainersState || !localContainersState.formState.containerName) {
+    if (!state || !localContainersState || !localContainersState.formState.containerName) {
         return undefined;
     }
 

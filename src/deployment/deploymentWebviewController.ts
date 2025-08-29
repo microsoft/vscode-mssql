@@ -24,6 +24,8 @@ import { TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import * as localContainers from "./localContainersWebviewUtils";
 import { LocalContainersWebviewState } from "../sharedInterfaces/localContainers";
+import * as fabricProvisioning from "./fabricProvisioningWebviewUtils";
+import { FabricProvisioningWebviewState } from "../sharedInterfaces/fabricProvisioning";
 
 export class DeploymentWebviewController extends FormWebviewController<
     DeploymentFormState,
@@ -74,6 +76,12 @@ export class DeploymentWebviewController extends FormWebviewController<
                     new LocalContainersWebviewState(),
                     state.connectionGroupOptions,
                 );
+            } else if (payload.deploymentType === DeploymentType.FabricProvisioning) {
+                newDeploymentTypeState = await fabricProvisioning.initializeFabricProvisioningState(
+                    this,
+                    state.connectionGroupOptions,
+                    this.logger,
+                );
             }
             state.deploymentTypeState = newDeploymentTypeState;
             state.formState = newDeploymentTypeState.formState;
@@ -87,11 +95,10 @@ export class DeploymentWebviewController extends FormWebviewController<
             let newDeploymentTypeState: DeploymentTypeState = state.deploymentTypeState;
             if (state.deploymentType === DeploymentType.LocalContainers) {
                 newDeploymentTypeState = await localContainers.handleLocalContainersFormAction(
-                    state.deploymentTypeState,
+                    state.deploymentTypeState as LocalContainersWebviewState,
                     payload,
                 );
             }
-
             state.deploymentTypeState = newDeploymentTypeState;
 
             return state;
@@ -132,7 +139,9 @@ export class DeploymentWebviewController extends FormWebviewController<
 
         this.registerReducer("dispose", async (state, _payload) => {
             if (state.deploymentType === DeploymentType.LocalContainers) {
-                localContainers.sendLocalContainersCloseEventTelemetry(state.deploymentTypeState);
+                localContainers.sendLocalContainersCloseEventTelemetry(
+                    state.deploymentTypeState as LocalContainersWebviewState,
+                );
             }
 
             this.panel.dispose();
@@ -140,7 +149,8 @@ export class DeploymentWebviewController extends FormWebviewController<
             return state;
         });
 
-        localContainers.registerLocalContainersReducers(this, this.mainController);
+        localContainers.registerLocalContainersReducers(this);
+        fabricProvisioning.registerFabricProvisioningReducers(this);
     }
 
     async updateItemVisibility() {}
@@ -149,5 +159,20 @@ export class DeploymentWebviewController extends FormWebviewController<
         state: DeploymentWebviewState,
     ): (keyof DeploymentFormState)[] {
         return Object.keys(state.formComponents) as (keyof DeploymentFormState)[];
+    }
+
+    public async validateDeploymentForm(
+        propertyName?: keyof DeploymentFormState,
+    ): Promise<string[]> {
+        this.state.formState = this.state.deploymentTypeState.formState;
+        // @ts-ignore
+        this.state.formComponents = this.state.deploymentTypeState.formComponents;
+        const formErrors = (await this.validateForm(
+            this.state.formState,
+            propertyName,
+            undefined,
+            this,
+        )) as string[];
+        return formErrors;
     }
 }

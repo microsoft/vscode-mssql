@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FormItemActionButton, FormItemSpec } from "../sharedInterfaces/form";
+import { FormItemActionButton, FormItemSpec, FormState } from "../sharedInterfaces/form";
 import { ConnectionDialog, refreshTokenLabel } from "../constants/locConstants";
 import { AzureController } from "../azure/azureController";
 import { getErrorMessage } from "../utils/utils";
@@ -36,6 +36,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
  */
 export async function getAccountActionButtons(
     accountFormController: FormWebviewController<any, any, any, any>,
+    accountFormControllerState: FormState<any, any, any>,
     accountsComponent: FormItemSpec<any, any, any>,
     azureAccountService: AzureAccountService,
     logger: Logger,
@@ -47,7 +48,7 @@ export async function getAccountActionButtons(
     const actionButtons: FormItemActionButton[] = [];
     actionButtons.push({
         label:
-            accountFormController.state.formState.accountId === ""
+            accountFormControllerState.formState.accountId === ""
                 ? ConnectionDialog.signIn
                 : ConnectionDialog.addAccount,
         id: "azureSignIn",
@@ -68,7 +69,7 @@ export async function getAccountActionButtons(
                 `Read ${accountsComponent.options.length} Azure accounts: ${accountsComponent.options.map((a) => a.value).join(", ")}`,
             );
 
-            accountFormController.state.formState.accountId = account.key.id;
+            accountFormControllerState.formState.accountId = account.key.id;
             logger.verbose(`Selecting '${account.key.id}'`);
 
             accountFormController.updateState();
@@ -76,10 +77,10 @@ export async function getAccountActionButtons(
         },
     });
 
-    if (refreshAccountTokenCondition && accountFormController.state.formState.accountId) {
+    if (refreshAccountTokenCondition && accountFormControllerState.formState.accountId) {
         const account = (await azureAccountService.getAccounts()).find(
             (account) =>
-                account.displayInfo.userId === accountFormController.state.formState.accountId,
+                account.displayInfo.userId === accountFormControllerState.formState.accountId,
         );
 
         if (account) {
@@ -110,7 +111,7 @@ export async function getAccountActionButtons(
                         const account = (await azureAccountService.getAccounts()).find(
                             (account) =>
                                 account.displayInfo.userId ===
-                                accountFormController.state.formState.accountId,
+                                accountFormControllerState.formState.accountId,
                         );
                         if (account) {
                             try {

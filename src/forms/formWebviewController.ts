@@ -67,9 +67,16 @@ export abstract class FormWebviewController<
         formTarget: TForm,
         propertyName?: keyof TForm,
         updateValidation?: boolean,
+        formWebviewController?: FormWebviewController<
+            TForm,
+            TState,
+            TFormItemSpec,
+            TReducers,
+            TResult
+        >,
     ): Promise<(keyof TForm)[]> {
         const erroredInputs: (keyof TForm)[] = [];
-        const self = this;
+        const self = this ?? formWebviewController;
 
         function validateComponent(component: FormItemSpec<TForm, TState, TFormItemSpec>) {
             if (!component.validate) {
@@ -90,13 +97,13 @@ export abstract class FormWebviewController<
         }
 
         if (propertyName) {
-            const component = this.state.formComponents[propertyName];
+            const component = self.state.formComponents[propertyName];
             if (component) {
                 validateComponent(component);
             }
         } else {
-            this.getActiveFormComponents(this.state)
-                .map((x) => this.state.formComponents[x])
+            self.getActiveFormComponents(self.state)
+                .map((x) => self.state.formComponents[x])
                 .forEach((c) => {
                     if (c.hidden) {
                         c.validation = {

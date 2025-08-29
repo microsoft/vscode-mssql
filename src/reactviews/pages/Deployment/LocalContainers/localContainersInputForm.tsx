@@ -65,9 +65,10 @@ export const LocalContainersInputForm: React.FC = () => {
     const [showNext, setShowNext] = useState(false);
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
     const deploymentState = state?.state;
-    const localContainersState = deploymentState?.deploymentTypeState;
+    const localContainersState =
+        deploymentState?.deploymentTypeState as LocalContainersWebviewState;
 
-    if (!state || !localContainersState) return undefined;
+    if (!state || !deploymentState || !localContainersState) return undefined;
 
     const { formComponents } = localContainersState;
     const eulaComponent = Object.values(formComponents).find(

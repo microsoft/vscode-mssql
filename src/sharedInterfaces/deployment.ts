@@ -13,6 +13,12 @@ import {
 import { ApiStatus } from "./webview";
 import { ConnectionGroupSpec } from "./connectionGroup";
 import { IDialogProps } from "./connectionDialog";
+import {
+    FabricProvisioningContextProps,
+    FabricProvisioningFormState,
+    FabricProvisioningReducers,
+    FabricProvisioningWebviewState,
+} from "./fabricProvisioning";
 
 export class DeploymentWebviewState
     implements FormState<DeploymentFormState, DeploymentWebviewState, DeploymentFormItemSpec>
@@ -108,10 +114,14 @@ export interface DeploymentFormItemSpec
     isAdvancedOption: boolean;
 }
 
-export type DeploymentTypeState = LocalContainersWebviewState;
+export type DeploymentTypeState = LocalContainersWebviewState | FabricProvisioningWebviewState;
 
-export type DeploymentContextProps = DeploymentCommonContextProps & LocalContainersContextProps;
+export type DeploymentContextProps = DeploymentCommonContextProps &
+    LocalContainersContextProps &
+    FabricProvisioningContextProps;
 
-export type DeploymentReducers = DeploymentCommonReducers & LocalContainersReducers;
+export type DeploymentReducers = DeploymentCommonReducers &
+    LocalContainersReducers &
+    FabricProvisioningReducers;
 
-export type DeploymentFormState = LocalContainersFormState;
+export type DeploymentFormState = LocalContainersFormState | FabricProvisioningFormState;

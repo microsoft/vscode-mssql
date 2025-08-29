@@ -7,12 +7,14 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { createContext } from "react";
 import {
     DeploymentContextProps,
+    DeploymentFormState,
     DeploymentReducers,
     DeploymentType,
     DeploymentWebviewState,
 } from "../../../sharedInterfaces/deployment";
 import { getCoreRPCs } from "../../common/utils";
 import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
+import { FormEvent } from "../../../sharedInterfaces/form";
 
 const DeploymentContext = createContext<DeploymentContextProps | undefined>(undefined);
 
@@ -29,6 +31,7 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                 state: webviewState?.state,
                 themeKind: webviewState?.themeKind,
                 ...getCoreRPCs(webviewState),
+                //#region Common Reducers
                 initializeDeploymentSpecifics: function (deploymentType: DeploymentType): void {
                     webviewState?.extensionRpc.action("initializeDeploymentSpecifics", {
                         deploymentType: deploymentType,
@@ -36,9 +39,24 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                 },
                 formAction: function (event): void {
                     webviewState?.extensionRpc.action("formAction", {
-                        event: event,
+                        event: event as FormEvent<DeploymentFormState>,
                     });
                 },
+                setConnectionGroupDialogState: function (shouldOpen: boolean): void {
+                    webviewState?.extensionRpc.action("setConnectionGroupDialogState", {
+                        shouldOpen: shouldOpen,
+                    });
+                },
+                createConnectionGroup: function (connectionGroupSpec: ConnectionGroupSpec): void {
+                    webviewState?.extensionRpc.action("createConnectionGroup", {
+                        connectionGroupSpec: connectionGroupSpec,
+                    });
+                },
+                dispose: function (): void {
+                    webviewState?.extensionRpc.action("dispose", {});
+                },
+                //#endregion
+                //#region Local Containers Reducers
                 completeDockerStep: function (dockerStep: number): void {
                     webviewState?.extensionRpc.action("completeDockerStep", {
                         dockerStep: dockerStep,
@@ -50,19 +68,7 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                 checkDockerProfile: function (): void {
                     webviewState?.extensionRpc.action("checkDockerProfile", {});
                 },
-                createConnectionGroup: function (connectionGroupSpec: ConnectionGroupSpec): void {
-                    webviewState?.extensionRpc.action("createConnectionGroup", {
-                        connectionGroupSpec: connectionGroupSpec,
-                    });
-                },
-                setConnectionGroupDialogState: function (shouldOpen: boolean): void {
-                    webviewState?.extensionRpc.action("setConnectionGroupDialogState", {
-                        shouldOpen: shouldOpen,
-                    });
-                },
-                dispose: function (): void {
-                    webviewState?.extensionRpc.action("dispose", {});
-                },
+                //#endregion
             }}>
             {children}
         </DeploymentContext.Provider>

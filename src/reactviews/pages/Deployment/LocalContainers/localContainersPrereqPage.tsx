@@ -12,7 +12,10 @@ import {
     isLastStepLoaded,
     runDockerStep,
 } from "./localContainersDeploymentUtils";
-import { DockerStepOrder } from "../../../../sharedInterfaces/localContainers";
+import {
+    DockerStepOrder,
+    LocalContainersWebviewState,
+} from "../../../../sharedInterfaces/localContainers";
 import { LocalContainersHeader } from "./localContainersHeader";
 import { locConstants } from "../../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
@@ -21,7 +24,7 @@ import { DeploymentContext } from "../deploymentStateProvider";
 export const LocalContainersPrereqPage: React.FC = () => {
     const classes = stepPageStyles();
     const state = useContext(DeploymentContext);
-    const localContainersState = state?.state.deploymentTypeState;
+    const localContainersState = state?.state.deploymentTypeState as LocalContainersWebviewState;
     const [showNext, setShowNext] = useState(false);
     const [stepsLoaded, setStepsLoaded] = useState(false);
     const [stepsErrored, setStepsErrored] = useState(false);

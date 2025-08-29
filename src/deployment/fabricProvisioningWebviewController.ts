@@ -324,6 +324,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     private async getAzureActionButtons(): Promise<FormItemActionButton[]> {
         return await getAccountActionButtons(
             this,
+            this.state,
             this.getFormComponent(this.state, "accountId"),
             this.mainController.azureAccountService,
             this.logger,
