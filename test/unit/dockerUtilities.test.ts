@@ -713,11 +713,32 @@ suite("Docker Utilities", () => {
         sinon.assert.callCount(spawnStub, 3);
     });
 
-    test("startDocker: tests both success and failure cases", async () => {
-        // Stub platform and dependent modules
-        const platformStub = sandbox.stub(os, "platform");
+    test("startDocker: should return success when Docker is already running", async () => {
+        const spawnStub = sandbox.stub(childProcess, "spawn");
 
-        // Docker is already started
+        // Helper to create mock process that succeeds with output
+        const createSuccessProcess = (output: string) => ({
+            stdout: {
+                on: sinon.stub().callsFake((event, callback) => {
+                    if (event === "data") setTimeout(() => callback(output), 0);
+                }),
+            },
+            stderr: { on: sinon.stub() },
+            on: sinon.stub().callsFake((event, callback) => {
+                if (event === "close") setTimeout(() => callback(0), 5);
+            }),
+        });
+
+        spawnStub.returns(createSuccessProcess("Docker is running") as any);
+
+        const result = await dockerUtils.startDocker();
+        assert.ok(result.success, "Docker is already running, should be successful");
+        sinon.assert.calledOnce(spawnStub);
+        sinon.assert.calledWith(spawnStub, "docker", ["info"]);
+    });
+
+    test("startDocker: should start Docker successfully on Windows when not running", async () => {
+        sandbox.stub(os, "platform").returns(Platform.Windows);
         const spawnStub = sandbox.stub(childProcess, "spawn");
 
         // Helper to create mock process that succeeds with output
@@ -742,14 +763,6 @@ suite("Docker Utilities", () => {
             }),
         });
 
-        spawnStub.returns(createSuccessProcess("Docker is running") as any);
-
-        let result = await dockerUtils.startDocker();
-        assert.ok(result.success, "Docker is already running, should be successful");
-
-        // 2. Windows platform, docker is not running
-        platformStub.returns(Platform.Windows);
-        spawnStub.resetHistory();
         spawnStub
             .onFirstCall()
             .returns(createFailureProcess(new Error("Docker not running")) as any); // CHECK_DOCKER_RUNNING (initial check)
@@ -760,59 +773,101 @@ suite("Docker Utilities", () => {
                     "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
                 ) as any,
             ); // GET_DOCKER_PATH
-        spawnStub.onThirdCall().returns(createSuccessProcess("Started Docker") as any); // START_DOCKER (execSystemCommand)
+        spawnStub.onThirdCall().returns(createSuccessProcess("Started Docker") as any); // START_DOCKER (execDockerCommand)
         // For the polling loop that checks if Docker started - make it succeed immediately
         spawnStub.onCall(3).returns(createSuccessProcess("Docker Running") as any); // First CHECK_DOCKER_RUNNING in polling loop
 
-        result = await dockerUtils.startDocker();
+        const result = await dockerUtils.startDocker();
         assert.ok(result.success, "Docker should start successfully on Windows");
-        spawnStub.resetBehavior();
-        platformStub.resetBehavior();
+        assert.strictEqual(spawnStub.callCount, 4);
+    });
 
-        // 3. Linux platform, docker is not running
-        platformStub.returns(Platform.Linux);
-        spawnStub.resetHistory();
+    test("startDocker: should start Docker successfully on Linux when not running", async () => {
+        sandbox.stub(os, "platform").returns(Platform.Linux);
+        const spawnStub = sandbox.stub(childProcess, "spawn");
+
+        // Helper to create mock process that succeeds with output
+        const createSuccessProcess = (output: string) => ({
+            stdout: {
+                on: sinon.stub().callsFake((event, callback) => {
+                    if (event === "data") setTimeout(() => callback(output), 0);
+                }),
+            },
+            stderr: { on: sinon.stub() },
+            on: sinon.stub().callsFake((event, callback) => {
+                if (event === "close") setTimeout(() => callback(0), 5);
+            }),
+        });
+
+        // Helper to create mock process that fails
+        const createFailureProcess = (error: Error) => ({
+            stdout: { on: sinon.stub() },
+            stderr: { on: sinon.stub() },
+            on: sinon.stub().callsFake((event, callback) => {
+                if (event === "error") setTimeout(() => callback(error), 0);
+            }),
+        });
+
         spawnStub
             .onFirstCall()
             .returns(createFailureProcess(new Error("Docker not running")) as any); // CHECK_DOCKER_RUNNING (initial check)
-        spawnStub.onSecondCall().returns(createSuccessProcess("Started Docker") as any); // START_DOCKER (execSystemCommand)
+        spawnStub.onSecondCall().returns(createSuccessProcess("Started Docker") as any); // START_DOCKER (execDockerCommand)
         // For the polling loop that checks if Docker started - make it succeed immediately
         spawnStub.onCall(2).returns(createSuccessProcess("Docker Running") as any); // First CHECK_DOCKER_RUNNING in polling loop
 
-        result = await dockerUtils.startDocker();
+        const result = await dockerUtils.startDocker();
         assert.ok(result.success, "Docker should start successfully on Linux");
-        spawnStub.resetBehavior();
-        platformStub.resetBehavior();
+        assert.strictEqual(spawnStub.callCount, 3);
+    });
 
-        // 4. Try to start Docker on unsupported platform
-        platformStub.returns("fakePlatform" as Platform); // Fake unsupported platform
-        spawnStub.resetHistory();
+    test("startDocker: should fail on unsupported platform", async () => {
+        sandbox.stub(os, "platform").returns("fakePlatform" as Platform);
+        const spawnStub = sandbox.stub(childProcess, "spawn");
+
+        // Helper to create mock process that fails
+        const createFailureProcess = (error: Error) => ({
+            stdout: { on: sinon.stub() },
+            stderr: { on: sinon.stub() },
+            on: sinon.stub().callsFake((event, callback) => {
+                if (event === "error") setTimeout(() => callback(error), 0);
+            }),
+        });
+
         spawnStub
             .onFirstCall()
             .returns(createFailureProcess(new Error("Docker not running")) as any); // CHECK_DOCKER_RUNNING
-        result = await dockerUtils.startDocker();
+
+        const result = await dockerUtils.startDocker();
         assert.ok(!result.success, "Should not succeed on unsupported platform");
         assert.strictEqual(
             result.error,
             ContainerDeployment.unsupportedDockerPlatformError("fakePlatform"),
         );
-        spawnStub.resetBehavior();
-        platformStub.resetBehavior();
+    });
 
-        // 5. Windows platform, docker not installed
-        platformStub.returns(Platform.Windows);
-        spawnStub.resetHistory();
+    test("startDocker: should fail on Windows when Docker is not installed", async () => {
+        sandbox.stub(os, "platform").returns(Platform.Windows);
+        const spawnStub = sandbox.stub(childProcess, "spawn");
+
+        // Helper to create mock process that fails
+        const createFailureProcess = (error: Error) => ({
+            stdout: { on: sinon.stub() },
+            stderr: { on: sinon.stub() },
+            on: sinon.stub().callsFake((event, callback) => {
+                if (event === "error") setTimeout(() => callback(error), 0);
+            }),
+        });
+
         spawnStub
             .onFirstCall()
             .returns(createFailureProcess(new Error("Docker not running")) as any); // CHECK_DOCKER_RUNNING
         spawnStub
             .onSecondCall()
             .returns(createFailureProcess(new Error("Docker not installed")) as any); // GET_DOCKER_PATH
-        result = await dockerUtils.startDocker();
+
+        const result = await dockerUtils.startDocker();
         assert.ok(!result.success, "Should fail if Docker is not installed");
         assert.strictEqual(result.error, ContainerDeployment.dockerDesktopPathError);
-        spawnStub.resetBehavior();
-        platformStub.resetBehavior();
     });
 
     test("restartContainer: should restart the container and return success or error", async () => {
