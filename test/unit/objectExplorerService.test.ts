@@ -3557,6 +3557,178 @@ suite("OE Service Tests", () => {
             ).to.equal("SqlLogin");
         });
     });
+
+    suite("ConnectionNode Filter Behavior", () => {
+        let sandbox: sinon.SinonSandbox;
+
+        setup(() => {
+            initializeIconUtils();
+            sandbox = sinon.createSandbox();
+        });
+
+        teardown(() => {
+            sandbox.restore();
+        });
+
+        test("Database connection should be filterable even without filterableProperties from server", () => {
+            // Create a database connection profile
+            const databaseConnectionProfile = {
+                id: "db-conn1",
+                server: "testserver",
+                database: "testdb", // This makes it a database connection
+                authenticationType: "SqlLogin",
+                user: "testuser",
+                password: "testpass",
+                savePassword: true,
+                groupId: TEST_ROOT_GROUP_ID,
+            } as IConnectionProfile;
+
+            // Create a connection node in disconnected state
+            const connectionNode = new ConnectionNode(databaseConnectionProfile);
+
+            // Verify initial state is not filterable (disconnected)
+            expect(connectionNode.context.filterable, "Disconnected node should not be filterable")
+                .to.be.false;
+
+            // Simulate connecting with nodeInfo that has NO filterableProperties
+            const nodeInfoWithoutFilters = {
+                nodePath: "/server/database",
+                nodeType: "Database",
+                label: "testdb",
+                isLeaf: false,
+                nodeStatus: "Connected",
+                nodeSubType: "Database",
+                errorMessage: "",
+                metadata: null,
+                filterableProperties: [], // Empty array - simulates server not providing filters
+            };
+
+            // Update to connected state
+            connectionNode.updateToConnectedState({
+                nodeInfo: nodeInfoWithoutFilters,
+                sessionId: "test-session",
+                parentNode: undefined,
+                connectionProfile: databaseConnectionProfile,
+            });
+
+            // Verify that the database connection is now filterable despite no filterableProperties
+            expect(connectionNode.context.filterable, "Database connection should be filterable").to
+                .be.true;
+            expect(connectionNode.context.type, "Node type should be Server").to.equal("Server");
+            expect(connectionNode.context.subType, "Node subtype should be Database").to.equal(
+                "Database",
+            );
+        });
+
+        test("Server connection should use filterableProperties from server", () => {
+            // Create a server connection profile (no database specified)
+            const serverConnectionProfile = {
+                id: "server-conn1",
+                server: "testserver",
+                database: "", // Empty database means server connection
+                authenticationType: "SqlLogin",
+                user: "testuser",
+                password: "testpass",
+                savePassword: true,
+                groupId: TEST_ROOT_GROUP_ID,
+            } as IConnectionProfile;
+
+            // Create a connection node
+            const connectionNode = new ConnectionNode(serverConnectionProfile);
+
+            // Simulate connecting with nodeInfo that has NO filterableProperties
+            const nodeInfoWithoutFilters = {
+                nodePath: "/server",
+                nodeType: "Server",
+                label: "testserver",
+                isLeaf: false,
+                nodeStatus: "Connected",
+                nodeSubType: "",
+                errorMessage: "",
+                metadata: null,
+                filterableProperties: [], // Empty array
+            };
+
+            // Update to connected state
+            connectionNode.updateToConnectedState({
+                nodeInfo: nodeInfoWithoutFilters,
+                sessionId: "test-session",
+                parentNode: undefined,
+                connectionProfile: serverConnectionProfile,
+            });
+
+            // Verify that server connection is NOT filterable when no filterableProperties provided
+            expect(
+                connectionNode.context.filterable,
+                "Server connection without filterableProperties should not be filterable",
+            ).to.be.false;
+
+            // Now test with filterableProperties provided
+            const nodeInfoWithFilters = {
+                ...nodeInfoWithoutFilters,
+                filterableProperties: [
+                    {
+                        name: "Name",
+                        type: 0, // NodeFilterPropertyDataType.String
+                        displayName: "Name",
+                        description: "Object name filter",
+                    },
+                ], // Has filter properties
+            };
+
+            connectionNode.updateToConnectedState({
+                nodeInfo: nodeInfoWithFilters,
+                sessionId: "test-session",
+                parentNode: undefined,
+                connectionProfile: serverConnectionProfile,
+            });
+
+            // Verify that server connection IS filterable when filterableProperties are provided
+            expect(
+                connectionNode.context.filterable,
+                "Server connection with filterableProperties should be filterable",
+            ).to.be.true;
+        });
+
+        test("Database connection should be filterable even with undefined filterableProperties", () => {
+            // Create a database connection profile
+            const databaseConnectionProfile = {
+                id: "db-conn2",
+                server: "testserver",
+                database: "testdb2",
+                authenticationType: "Integrated",
+                groupId: TEST_ROOT_GROUP_ID,
+            } as IConnectionProfile;
+
+            const connectionNode = new ConnectionNode(databaseConnectionProfile);
+
+            // Simulate connecting with nodeInfo that has undefined filterableProperties
+            const nodeInfoUndefinedFilters = {
+                nodePath: "/server/database",
+                nodeType: "Database",
+                label: "testdb2",
+                isLeaf: false,
+                nodeStatus: "Connected",
+                nodeSubType: "Database",
+                errorMessage: "",
+                metadata: null,
+                filterableProperties: undefined, // Undefined - simulates server not providing property at all
+            };
+
+            connectionNode.updateToConnectedState({
+                nodeInfo: nodeInfoUndefinedFilters,
+                sessionId: "test-session",
+                parentNode: undefined,
+                connectionProfile: databaseConnectionProfile,
+            });
+
+            // Verify that database connection is filterable even with undefined filterableProperties
+            expect(
+                connectionNode.context.filterable,
+                "Database connection should be filterable even with undefined filterableProperties",
+            ).to.be.true;
+        });
+    });
 });
 
 const TEST_ROOT_GROUP_ID = "test-root-group-id";
