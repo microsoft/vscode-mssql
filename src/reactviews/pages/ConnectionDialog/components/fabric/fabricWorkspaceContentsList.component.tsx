@@ -117,7 +117,7 @@ export const FabricWorkspaceContentsList = ({
                 ),
             }),
         ],
-        [],
+        [theme],
     );
 
     function handleServerSelected(database: FabricSqlGridItem) {
