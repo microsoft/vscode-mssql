@@ -282,7 +282,7 @@ export async function completeFormComponents(
 
     // add missing validation functions for generated components
     components["server"].validate = (state: ConnectionDialogWebviewState, value: string) => {
-        if (state.connectionProfile.authenticationType === AuthenticationType.SqlLogin && !value) {
+        if (!value) {
             return {
                 isValid: false,
                 validationMessage: Loc.serverIsRequired,

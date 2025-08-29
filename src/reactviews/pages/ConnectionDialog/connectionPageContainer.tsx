@@ -48,6 +48,7 @@ import { AddFirewallRuleDialog } from "../AddFirewallRule/addFirewallRule.compon
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
 import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
+import { FabricBrowsePage } from "./fabricBrowsePage";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
     switch (connectionDialogContext?.state.selectedInputMode) {
@@ -55,6 +56,8 @@ function renderContent(connectionDialogContext: ConnectionDialogContextProps): R
             return <ConnectionFormPage />;
         case ConnectionInputMode.AzureBrowse:
             return <AzureBrowsePage />;
+        case ConnectionInputMode.FabricBrowse:
+            return <FabricBrowsePage />;
     }
 }
 
@@ -79,6 +82,15 @@ export const ConnectionInfoFormContainer = () => {
         return saveIcon;
     }
 
+    function fabricIcon(colorTheme: ColorThemeKind) {
+        const theme = themeType(colorTheme);
+        const saveIcon =
+            theme === "dark"
+                ? require("../../media/fabric-inverse.svg")
+                : require("../../media/fabric.svg");
+        return saveIcon;
+    }
+
     function handleConnect(event: React.FormEvent) {
         event.preventDefault();
         context.connect();
@@ -89,7 +101,7 @@ export const ConnectionInfoFormContainer = () => {
             case 0:
                 return locConstants.azure.notSignedIn;
             case 1:
-                return context.state.azureAccounts[0];
+                return context.state.azureAccounts[0].name;
             default:
                 return locConstants.azure.nAccounts(context.state.azureAccounts.length);
         }
@@ -240,8 +252,8 @@ export const ConnectionInfoFormContainer = () => {
                                                             <ul>
                                                                 {context.state.azureAccounts.map(
                                                                     (account) => (
-                                                                        <li key={account}>
-                                                                            {account}
+                                                                        <li key={account.id}>
+                                                                            {account.name}
                                                                         </li>
                                                                     ),
                                                                 )}
@@ -253,7 +265,9 @@ export const ConnectionInfoFormContainer = () => {
                                             relationship="description">
                                             <Link
                                                 onClick={() => {
-                                                    context.signIntoAzureForBrowse();
+                                                    context.signIntoAzureForBrowse(
+                                                        ConnectionInputMode.AzureBrowse,
+                                                    );
                                                 }}
                                                 inline>
                                                 {getAzureAccountsText()}
@@ -263,6 +277,21 @@ export const ConnectionInfoFormContainer = () => {
                                                     : locConstants.azure.addAccount}
                                             </Link>
                                         </Tooltip>
+                                    </div>
+                                }
+                            />
+                            <Radio
+                                value={ConnectionInputMode.FabricBrowse}
+                                label={
+                                    <div className={styles.inputLink}>
+                                        <Image
+                                            src={fabricIcon(context.themeKind)}
+                                            alt={"Fabric"}
+                                            height={20}
+                                            width={20}
+                                            style={{ marginRight: "8px" }}
+                                        />
+                                        {locConstants.connectionDialog.browseFabric}
                                     </div>
                                 }
                             />

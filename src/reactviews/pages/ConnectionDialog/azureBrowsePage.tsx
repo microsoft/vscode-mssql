@@ -6,13 +6,14 @@
 import { useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
-import { Button, Link, makeStyles, Spinner } from "@fluentui/react-components";
+import { Button, Spinner } from "@fluentui/react-components";
 import { Filter16Filled } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
     ConnectionDialogContextProps,
     ConnectionDialogFormItemSpec,
     ConnectionDialogWebviewState,
+    ConnectionInputMode,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
@@ -21,24 +22,7 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { removeDuplicates } from "../../common/utils";
 import { DefaultSelectionMode, updateComboboxSelection } from "../../common/comboboxHelper";
 import { AzureFilterCombobox } from "./AzureFilterCombobox.component";
-
-const useStyles = makeStyles({
-    icon: {
-        width: "75px",
-        height: "75px",
-        marginBottom: "10px",
-    },
-    notSignedInContainer: {
-        marginTop: "20px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        textAlign: "center",
-    },
-    signInLink: {
-        marginTop: "8px",
-    },
-});
+import { EntraSignInEmpty } from "./components/entraSignInEmpty.component";
 
 export const azureLogoColor = () => {
     return require(`../../media/azure-color.svg`);
@@ -51,7 +35,6 @@ export const AzureBrowsePage = () => {
     }
 
     const formStyles = useFormStyles();
-    const styles = useStyles();
 
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
@@ -232,34 +215,16 @@ export const AzureBrowsePage = () => {
 
     return (
         <div>
-            {context.state.loadingAzureAccountsStatus === ApiStatus.NotStarted && (
-                <div className={styles.notSignedInContainer}>
-                    <img
-                        className={styles.icon}
-                        src={azureLogoColor()}
-                        alt={Loc.connectionDialog.signIntoAzureToBrowse}
-                    />
-                    <div>{Loc.connectionDialog.signIntoAzureToBrowse}</div>
-                    <Link
-                        className={styles.signInLink}
-                        onClick={() => {
-                            context.signIntoAzureForBrowse();
-                        }}>
-                        {Loc.azure.signIntoAzure}
-                    </Link>
-                </div>
-            )}
-            {context.state.loadingAzureAccountsStatus === ApiStatus.Loading && (
-                <div className={styles.notSignedInContainer}>
-                    <img
-                        className={styles.icon}
-                        src={azureLogoColor()}
-                        alt={Loc.connectionDialog.signIntoAzureToBrowse}
-                    />
-                    <div>Loading Azure Accounts</div>
-                    <Spinner size="large" />
-                </div>
-            )}
+            <EntraSignInEmpty
+                loadAccountStatus={context.state.loadingAzureAccountsStatus}
+                brandImageSource={azureLogoColor()}
+                signInText={Loc.connectionDialog.signIntoAzureToBrowse}
+                linkText={Loc.azure.signIntoAzure}
+                loadingText={Loc.azure.loadingAzureAccounts}
+                onSignInClick={() =>
+                    context.signIntoAzureForBrowse(ConnectionInputMode.AzureBrowse)
+                }
+            />
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
                     <AzureFilterCombobox
