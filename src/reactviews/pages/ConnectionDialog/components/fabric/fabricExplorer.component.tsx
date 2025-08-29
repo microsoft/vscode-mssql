@@ -80,7 +80,7 @@ export const FabricExplorer = ({
                 onSelectTenantId={handleSelectTenantId}
                 onSearchInputChanged={handleSearchInputChanged}
             />
-            <div className={fabricStyles.container}>
+            <div className={fabricStyles.workspaceExplorer}>
                 <FabricWorkspacesList
                     workspaces={fabricWorkspaces}
                     selectedWorkspace={selectedWorkspace}

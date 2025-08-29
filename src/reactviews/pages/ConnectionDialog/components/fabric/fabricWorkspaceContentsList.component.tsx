@@ -318,11 +318,7 @@ export const FabricWorkspaceContentsList = ({
 
     //#endregion
 
-    return (
-        <div className={styles.container}>
-            <div className={styles.workspaceGrid}>{renderGridContent()}</div>
-        </div>
-    );
+    return <div className={styles.workspaceContentList}>{renderGridContent()}</div>;
 };
 
 export function getTypeDisplayName(artifactType: string): string {

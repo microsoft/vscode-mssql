@@ -6,15 +6,14 @@
 import { makeStyles, shorthands } from "@fluentui/react-components";
 
 export const useFabricExplorerStyles = makeStyles({
-    container: {
+    workspaceExplorer: {
         display: "flex",
         height: "400px",
         width: "100%",
         gap: "10px",
         overflow: "hidden",
-        marginTop: "10px",
     },
-    workspaceExplorer: {
+    workspaceList: {
         display: "flex",
         flexDirection: "column",
         width: "250px",
@@ -24,7 +23,7 @@ export const useFabricExplorerStyles = makeStyles({
         borderRight: "1px solid var(--vscode-panel-border)",
         backgroundColor: "var(--vscode-sideBar-background)",
     },
-    workspaceExplorerCollapsed: {
+    workspaceListCollapsed: {
         display: "flex",
         flexDirection: "column",
         width: "36px",
@@ -35,10 +34,9 @@ export const useFabricExplorerStyles = makeStyles({
         borderRight: "1px solid var(--vscode-panel-border)",
         backgroundColor: "var(--vscode-sideBar-background)",
     },
-    workspaceGrid: {
+    workspaceContentList: {
         flexGrow: 1,
         overflow: "auto",
-        ...shorthands.padding("8px", "8px", "16px", "8px"),
         height: "100%",
         display: "flex",
         flexDirection: "column",

@@ -95,10 +95,7 @@ export const FabricWorkspacesList = ({
     );
 
     return (
-        <div
-            className={
-                isExplorerCollapsed ? styles.workspaceExplorerCollapsed : styles.workspaceExplorer
-            }>
+        <div className={isExplorerCollapsed ? styles.workspaceListCollapsed : styles.workspaceList}>
             <div className={styles.workspaceHeader}>
                 {!isExplorerCollapsed && (
                     <Input
