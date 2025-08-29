@@ -154,6 +154,9 @@
       <source xml:lang="en">An error occurred while removing Microsoft Entra account: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
+      <source xml:lang="en">An error occurred while searching database objects</source>
+    </trans-unit>
     <trans-unit id="++CODE++fe01cd2e56483272d8d46be5c77c37d6be1aba49dfbe2fa79f68b4740723b758">
       <source xml:lang="en">An error occurred while searching database objects: {0}</source>
       <note>{0} is the error detail returned from the search operation</note>
@@ -1836,12 +1839,16 @@
     <trans-unit id="++CODE++87a122216f22b55fd29964cf75c886ef5da5cd8369e2a6e24c73ec0ad22227ba">
       <source xml:lang="en">No connection was found. Please connect to a server first.</source>
     </trans-unit>
-    <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
-      <source xml:lang="en">No databases found in the selected workspace.</source>
-    </trans-unit>
     <trans-unit id="++CODE++3280128c0901d1323dde9a406ee7d2d6e8e1b98fd30971fa6134b302fec41eca">
       <source xml:lang="en">No database objects found matching &apos;{0}&apos;</source>
       <note>{0} is the search term</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
+      <source xml:lang="en">No databases found in the selected workspace.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++44abb1efd9e1246e7a38688a54d76fd070a07de55884b732dff70f7eff9a0491">
+      <source xml:lang="en">No databases found in workspace &apos;{0}&apos;.</source>
+      <note>{0} is the name of the workspace</note>
     </trans-unit>
     <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
       <source xml:lang="en">No items</source>
@@ -2371,11 +2378,11 @@
     <trans-unit id="++CODE++771f5d2c0599dcf4194e3fdddd9a5212d6392f4703d29971575bb455b5287a84">
       <source xml:lang="en">Search tables...</source>
     </trans-unit>
-    <trans-unit id="++CODE++5c192a3e6f23b125cfaa70c46f6fcd47a2081fa7270e7687687ea8596d2e012f">
-      <source xml:lang="en">Search workspaces...</source>
-    </trans-unit>
     <trans-unit id="++CODE++f0b2ef28c0bec626ad14f56179e18d97cdbfcb4f676c4735f95eae628d079538">
       <source xml:lang="en">Search term cannot be empty</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5c192a3e6f23b125cfaa70c46f6fcd47a2081fa7270e7687687ea8596d2e012f">
+      <source xml:lang="en">Search workspaces...</source>
     </trans-unit>
     <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
       <source xml:lang="en">Search...</source>

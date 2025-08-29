@@ -637,9 +637,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             // Response from VS Code account system shows all tenants as "Home", so we need to extract the home tenant ID manually
             const homeTenantId = VsCodeAzureHelper.getHomeTenantIdForAccount(azureAccount);
 
-            state.selectedTenantId =
-                homeTenantId ??
-                (state.azureTenants.length > 0 ? state.azureTenants[0].id : undefined);
+            // For personal Microsoft accounts, the extracted tenant ID may not be one that the user has access to.
+            // Only use the extracted tenant ID if it's in the tenant list; otherwise, default to the first.
+            state.selectedTenantId = tenants.find((t) => t.tenantId === homeTenantId)
+                ? homeTenantId
+                : state.azureTenants.length > 0
+                  ? state.azureTenants[0].id
+                  : undefined;
 
             return state;
         });
