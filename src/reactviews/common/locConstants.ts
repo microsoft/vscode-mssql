@@ -345,6 +345,7 @@ export class LocConstants {
             currentlySignedInAs: l10n.t("Currently signed in as:"),
             loadingAzureAccounts: l10n.t("Loading Azure Accounts"),
             tenant: l10n.t("Tenant"),
+            loadingTenants: l10n.t("Loading tenants..."),
             selectATenant: l10n.t("Select a tenant"),
         };
     }

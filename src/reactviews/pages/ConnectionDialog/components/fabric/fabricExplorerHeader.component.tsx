@@ -15,7 +15,7 @@ import {
     makeStyles,
 } from "@fluentui/react-components";
 import { Search20Regular } from "@fluentui/react-icons";
-import { ColorThemeKind } from "../../../../../sharedInterfaces/webview";
+import { ApiStatus, ColorThemeKind } from "../../../../../sharedInterfaces/webview";
 import { themeType } from "../../../../common/utils";
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { IAzureAccount, IAzureTenant } from "../../../../../sharedInterfaces/connectionDialog";
@@ -27,9 +27,10 @@ const FabricExplorerHeader = ({
     searchValue = "",
     selectedTypeFilters: _selectedTypeFilters = [],
     azureAccounts = [],
-    azureTenants = [],
     selectedAccountId = "",
+    azureTenants = [],
     selectedTenantId = "",
+    azureTenantsLoadStatus = ApiStatus.NotStarted,
 }: FabricBrowserHeaderProps) => {
     const styles = useStyles();
 
@@ -101,10 +102,19 @@ const FabricExplorerHeader = ({
                     <Label className={styles.dropdownLabel}>{Loc.azure.tenant}</Label>
                     <Dropdown
                         className={styles.compactDropdown}
-                        value={selectedTenantName}
+                        value={
+                            azureTenantsLoadStatus === ApiStatus.Loading
+                                ? undefined
+                                : selectedTenantName
+                        }
                         selectedOptions={selectedTenantId ? [selectedTenantId] : []}
                         onOptionSelect={handleTenantChange}
-                        placeholder={Loc.azure.selectATenant}
+                        placeholder={
+                            azureTenantsLoadStatus === ApiStatus.Loading
+                                ? Loc.azure.loadingTenants
+                                : Loc.azure.selectATenant
+                        }
+                        disabled={azureTenantsLoadStatus === ApiStatus.Loading}
                         size="small">
                         {azureTenants.map((tenant) => (
                             <Option key={tenant.id} value={tenant.id} text={tenant.name}>
@@ -139,6 +149,7 @@ interface FabricBrowserHeaderProps {
     azureTenants: IAzureTenant[];
     selectedAccountId: string | undefined;
     selectedTenantId: string | undefined;
+    azureTenantsLoadStatus: ApiStatus;
     searchValue?: string;
     selectedTypeFilters?: string[];
 }

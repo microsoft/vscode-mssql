@@ -40,6 +40,7 @@ export class ConnectionDialogWebviewState
     };
     public azureAccounts: IAzureAccount[] = [];
     public loadingAzureAccountsStatus: ApiStatus = ApiStatus.NotStarted;
+    public loadingAzureTenantsStatus: ApiStatus = ApiStatus.NotStarted;
     public azureSubscriptions: AzureSubscriptionInfo[] = [];
     public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
     public azureServers: AzureSqlServerInfo[] = [];

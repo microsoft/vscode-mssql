@@ -621,9 +621,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("selectAzureAccount", async (state, payload) => {
+            // Loading state
             state.selectedAccountId = payload.accountId;
+            state.azureTenants = [];
+            state.selectedTenantId = "";
+            state.loadingAzureTenantsStatus = ApiStatus.Loading;
 
-            // TODO: loading state
+            this.updateState(state);
 
             // set the list of tenants and selected tenant
             const azureAccount = await VsCodeAzureHelper.getAccountById(payload.accountId);
@@ -644,6 +648,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 : state.azureTenants.length > 0
                   ? state.azureTenants[0].id
                   : undefined;
+
+            state.loadingAzureTenantsStatus = ApiStatus.Loaded;
 
             return state;
         });

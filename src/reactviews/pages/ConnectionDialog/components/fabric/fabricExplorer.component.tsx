@@ -70,6 +70,7 @@ export const FabricExplorer = ({
                 azureTenants={context.state.azureTenants}
                 selectedAccountId={context.state.selectedAccountId}
                 selectedTenantId={context.state.selectedTenantId}
+                azureTenantsLoadStatus={context.state.loadingAzureTenantsStatus}
                 onSelectAccountId={handleSelectAccountId}
                 onSelectTenantId={handleSelectTenantId}
                 onSearchInputChanged={handleSearchInputChanged}
