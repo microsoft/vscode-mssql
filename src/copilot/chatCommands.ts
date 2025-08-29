@@ -17,6 +17,8 @@ const SERVER_DATABASE_LABEL_PREFIX = "> ➖";
 // Common prefix for prompt substitute commands to encourage tool usage
 const USE_TOOLS_PREFIX = "Use tools to ";
 
+// TODO: Localize all user-facing strings in this file using locConstants
+
 export enum CommandType {
     Simple = "simple",
     PromptSubstitute = "prompt",
