@@ -590,8 +590,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             if (state.loadingAzureAccountsStatus === ApiStatus.NotStarted) {
                 state.loadingAzureAccountsStatus = ApiStatus.Loading;
+                state.loadingAzureTenantsStatus = ApiStatus.NotStarted;
+                state.azureTenants = [];
                 this.updateState(state);
             }
+
+            const existingAccounts = state.azureAccounts.map((a) => a.id);
 
             try {
                 await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
@@ -608,6 +612,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     name: a.label,
                 } as IAzureAccount;
             });
+
+            // find the account that was added, and select it
+            state.selectedAccountId = state.azureAccounts.find(
+                (a) => !existingAccounts.includes(a.id),
+            )?.id;
+
             state.loadingAzureAccountsStatus = ApiStatus.Loaded;
             this.updateState(state);
 

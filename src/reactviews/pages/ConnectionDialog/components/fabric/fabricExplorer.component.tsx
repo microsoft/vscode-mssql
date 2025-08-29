@@ -16,6 +16,7 @@ import { useFabricExplorerStyles } from "./fabricExplorer.styles";
 export const FabricExplorer = ({
     fabricWorkspaces,
     fabricWorkspacesLoadStatus,
+    onSignIntoMicrosoftAccount,
     onSelectAccountId,
     onSelectTenantId,
     onSelectWorkspace,
@@ -41,17 +42,8 @@ export const FabricExplorer = ({
         return fabricWorkspaces.find((w) => w.id === selectedWorkspaceId);
     }, [fabricWorkspaces, selectedWorkspaceId]);
 
-    function handleSearchInputChanged(_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) {
-        setSearchFilter(data.value);
-    }
-
-    function handleDatabaseSelected(database: FabricSqlDbInfo) {
-        onSelectDatabase(database);
-    }
-
-    function handleWorkspaceSelected(workspace: FabricWorkspaceInfo) {
-        setSelectedWorkspaceId(workspace.id);
-        onSelectWorkspace(workspace);
+    function handleSignIntoMicrosoftAccount() {
+        onSignIntoMicrosoftAccount();
     }
 
     function handleSelectAccountId(accountId: string) {
@@ -60,6 +52,18 @@ export const FabricExplorer = ({
 
     function handleSelectTenantId(tenantId: string) {
         onSelectTenantId(tenantId);
+    }
+
+    function handleWorkspaceSelected(workspace: FabricWorkspaceInfo) {
+        setSelectedWorkspaceId(workspace.id);
+        onSelectWorkspace(workspace);
+    }
+
+    function handleDatabaseSelected(database: FabricSqlDbInfo) {
+        onSelectDatabase(database);
+    }
+    function handleSearchInputChanged(_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) {
+        setSearchFilter(data.value);
     }
 
     return (
@@ -71,6 +75,7 @@ export const FabricExplorer = ({
                 selectedAccountId={context.state.selectedAccountId}
                 selectedTenantId={context.state.selectedTenantId}
                 azureTenantsLoadStatus={context.state.loadingAzureTenantsStatus}
+                onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
                 onSelectAccountId={handleSelectAccountId}
                 onSelectTenantId={handleSelectTenantId}
                 onSearchInputChanged={handleSearchInputChanged}
@@ -97,6 +102,7 @@ export const FabricExplorer = ({
 export interface FabricExplorerProps {
     fabricWorkspaces: FabricWorkspaceInfo[];
     fabricWorkspacesLoadStatus: Status;
+    onSignIntoMicrosoftAccount: () => void;
     onSelectAccountId: (accountId: string) => void;
     onSelectTenantId: (tenantId: string) => void;
     onSelectWorkspace: (workspace: FabricWorkspaceInfo) => void;

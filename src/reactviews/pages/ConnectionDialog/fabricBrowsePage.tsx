@@ -56,6 +56,10 @@ export const FabricBrowsePage = () => {
         context!.formAction({ propertyName, value, isAction: false });
     }
 
+    function handleSignIntoMicrosoftAccount() {
+        context?.signIntoAzureForBrowse(ConnectionInputMode.FabricBrowse);
+    }
+
     function handleSelectAccountId(accountId: string) {
         context!.selectAzureAccount(accountId);
     }
@@ -111,6 +115,7 @@ export const FabricBrowsePage = () => {
                         <FabricExplorer
                             fabricWorkspaces={context.state.fabricWorkspaces}
                             fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
+                            onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
                             onSelectAccountId={handleSelectAccountId}
                             onSelectTenantId={handleSelectTenantId}
                             onSelectWorkspace={handleSelectWorkspace}

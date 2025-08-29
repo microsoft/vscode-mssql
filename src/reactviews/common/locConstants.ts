@@ -924,6 +924,12 @@ export class LocConstants {
             ),
         };
     }
+
+    public get fabric() {
+        return {
+            addFabricAccount: l10n.t("+ Add Fabric Account"),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();

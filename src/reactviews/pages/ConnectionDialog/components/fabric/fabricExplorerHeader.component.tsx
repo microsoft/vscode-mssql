@@ -19,11 +19,13 @@ import { ApiStatus, ColorThemeKind } from "../../../../../sharedInterfaces/webvi
 import { themeType } from "../../../../common/utils";
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { IAzureAccount, IAzureTenant } from "../../../../../sharedInterfaces/connectionDialog";
+import { addNewMicrosoftAccount } from "../../../../common/constants";
 
 const FabricExplorerHeader = ({
-    onSearchInputChanged,
+    onSignIntoMicrosoftAccount,
     onSelectAccountId,
     onSelectTenantId,
+    onSearchInputChanged,
     searchValue = "",
     selectedTypeFilters: _selectedTypeFilters = [],
     azureAccounts = [],
@@ -66,6 +68,11 @@ const FabricExplorerHeader = ({
     }, [selectedTenantId]);
 
     function handleAccountChange(_event: SelectionEvents, data: OptionOnSelectData) {
+        if (data.optionValue === addNewMicrosoftAccount) {
+            onSignIntoMicrosoftAccount();
+            return;
+        }
+
         const accountName = data.optionText || "";
         const accountId = data.optionValue || "";
         setSelectedAccountName(accountName);
@@ -91,6 +98,12 @@ const FabricExplorerHeader = ({
                         onOptionSelect={handleAccountChange}
                         placeholder={Loc.connectionDialog.selectAnAccount}
                         size="small">
+                        <Option
+                            text={Loc.fabric.addFabricAccount}
+                            key={addNewMicrosoftAccount}
+                            value={addNewMicrosoftAccount}>
+                            {Loc.azure.addAzureAccount}
+                        </Option>
                         {azureAccounts.map((account) => (
                             <Option key={account.id} value={account.id} text={account.name}>
                                 {account.name}
@@ -142,6 +155,7 @@ const FabricExplorerHeader = ({
 export default FabricExplorerHeader;
 
 interface FabricBrowserHeaderProps {
+    onSignIntoMicrosoftAccount: () => void;
     onSelectAccountId: (accountId: string) => void;
     onSelectTenantId: (tenantId: string) => void;
     onSearchInputChanged: (_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) => void;
