@@ -5,7 +5,6 @@
 
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 import {
-    ExecutionPlanProvider,
     ExecutionPlanReducers,
     ExecutionPlanState,
     ExecutionPlanWebviewState,
@@ -27,23 +26,6 @@ export enum QueryResultLoadState {
 export enum QueryResultSaveAsTrigger {
     ContextMenu = "ContextMenu",
     Toolbar = "Toolbar",
-}
-
-export interface QueryResultReactProvider extends Omit<ExecutionPlanProvider, "getExecutionPlan"> {
-    setResultTab: (tabId: QueryResultPaneTabs) => void;
-    setResultViewMode: (viewMode: QueryResultViewMode) => void;
-    /**
-     * Gets the execution plan graph from the provider for a result set
-     * @param uri the uri of the query result state this request is associated with
-     */
-    getExecutionPlan(uri: string): void;
-
-    /**
-     * Opens a file of type with with specified content
-     * @param content the content of the file
-     * @param type the type of file to open
-     */
-    openFileThroughLink(content: string, type: string): void;
 }
 
 export enum QueryResultPaneTabs {
@@ -79,7 +61,6 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     messages: IMessage[];
     tabStates?: QueryResultTabStates;
     isExecutionPlan?: boolean;
-    actualPlanEnabled?: boolean;
     selection?: ISlickRange[];
     executionPlanState: ExecutionPlanState;
     fontSettings: FontSettings;

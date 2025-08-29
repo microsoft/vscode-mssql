@@ -21,6 +21,58 @@ export class HttpHelper {
         requestUrl: string,
         token: string,
     ): Promise<AxiosResponse<TResponse>> {
+        const config = this.setupConfigAndProxyForRequest(requestUrl, token);
+        requestUrl = this.constructRequestUrl(requestUrl, config);
+
+        const response: AxiosResponse = await axios.get<TResponse>(requestUrl, config);
+        this.logger?.piiSanitized(
+            "GET request ",
+            [
+                {
+                    name: "response",
+                    objOrArray:
+                        (response.data?.value as TResponse) ??
+                        (response.data as { value: TResponse }),
+                },
+            ],
+            [],
+            requestUrl,
+        );
+        return response;
+    }
+
+    public async makePostRequest<TResponse, TPayload>(
+        requestUrl: string,
+        token: string,
+        payload: TPayload,
+    ): Promise<AxiosResponse<TResponse>> {
+        const config = this.setupConfigAndProxyForRequest(requestUrl, token);
+        requestUrl = this.constructRequestUrl(requestUrl, config);
+
+        const response: AxiosResponse = await axios.post<TResponse>(requestUrl, payload, config);
+        this.logger?.piiSanitized(
+            "POST request ",
+            [{ name: "response", objOrArray: response.data }],
+            [],
+            requestUrl,
+        );
+        return response;
+    }
+
+    /**
+     * Builds an Axios request config with headers, auth token, and proxy/agent settings.
+     *
+     * - Adds JSON content type and bearer token headers.
+     * - Disables Axios status throwing (`validateStatus` always true).
+     * - Checks VS Code HTTP proxy settings or environment variables.
+     * - If a proxy is found, disables Axios' default proxy handling
+     *   and attaches a custom HTTP/HTTPS agent.
+     *
+     * @param requestUrl - The target request URL.
+     * @param token - Bearer token for the Authorization header.
+     * @returns AxiosRequestConfig with headers and proxy/agent configuration.
+     */
+    private setupConfigAndProxyForRequest(requestUrl: string, token: string): AxiosRequestConfig {
         const config: AxiosRequestConfig = {
             headers: {
                 "Content-Type": "application/json",
@@ -54,47 +106,33 @@ export class HttpHelper {
             } else {
                 config.httpAgent = agent.agent;
             }
+        }
+        return config;
+    }
+
+    /**
+     * Constructs a request URL that explicitly includes the port number when no proxy is configured.
+     *
+     * If a proxy is configured in the request config, the original URL is returned unchanged.
+     *
+     * @param requestUrl - The original request URL.
+     * @param config - The Axios request configuration, which may contain proxy settings.
+     * @returns A URL string with the appropriate port included if no proxy is configured,
+     *          otherwise the original request URL.
+     */
+    private constructRequestUrl(requestUrl: string, config: AxiosRequestConfig): string {
+        if (!config.proxy) {
+            // Request URL will include HTTPS port 443 ('https://management.azure.com:443/tenants?api-version=2019-11-01'), so
+            // that Axios doesn't try to reach this URL with HTTP port 80 on HTTP proxies, which result in an error. See https://github.com/axios/axios/issues/925
 
             const HTTPS_PORT = 443;
             const HTTP_PORT = 80;
             const parsedRequestUrl = url.parse(requestUrl);
             const port = parsedRequestUrl.protocol?.startsWith("https") ? HTTPS_PORT : HTTP_PORT;
 
-            // Request URL will include HTTPS port 443 ('https://management.azure.com:443/tenants?api-version=2019-11-01'), so
-            // that Axios doesn't try to reach this URL with HTTP port 80 on HTTP proxies, which result in an error. See https://github.com/axios/axios/issues/925
-            const requestUrlWithPort = `${parsedRequestUrl.protocol}//${parsedRequestUrl.hostname}:${port}${parsedRequestUrl.path}`;
-            const response: AxiosResponse = await axios.get<TResponse>(requestUrlWithPort, config);
-            this.logger?.piiSanitized(
-                "GET request ",
-                [
-                    {
-                        name: "response",
-                        objOrArray:
-                            (response.data?.value as TResponse) ??
-                            (response.data as { value: TResponse }),
-                    },
-                ],
-                [],
-                requestUrl,
-            );
-            return response;
+            return `${parsedRequestUrl.protocol}//${parsedRequestUrl.hostname}:${port}${parsedRequestUrl.path}`;
         }
-
-        const response: AxiosResponse = await axios.get<TResponse>(requestUrl, config);
-        this.logger?.piiSanitized(
-            "GET request ",
-            [
-                {
-                    name: "response",
-                    objOrArray:
-                        (response.data?.value as TResponse) ??
-                        (response.data as { value: TResponse }),
-                },
-            ],
-            [],
-            requestUrl,
-        );
-        return response;
+        return requestUrl;
     }
 
     private loadEnvironmentProxyValue(): string | undefined {

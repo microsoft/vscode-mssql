@@ -89,6 +89,7 @@ export const cmdCopyObjectName = "mssql.copyObjectName";
 export const cmdFilterNode = "mssql.filterNode";
 export const cmdFilterNodeWithExistingFilters = "mssql.filterNodeWithExistingFilters";
 export const cmdClearFilters = "mssql.clearFilters";
+export const cmdSearchObjects = "mssql.searchObjects";
 export const cmdOpenExtension = "extension.open";
 export const cmdLoadCompletionExtension = "mssql.loadCompletionExtension";
 export const cmdAzureSignIn = "azure-account.login";

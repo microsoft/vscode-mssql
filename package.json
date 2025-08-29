@@ -537,6 +537,11 @@
                     "group": "2_MSSQL_serverDbActions@2"
                 },
                 {
+                    "command": "mssql.searchObjects",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/",
+                    "group": "2_MSSQL_serverDbActions@3"
+                },
+                {
                     "command": "mssql.scriptSelect",
                     "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|View)\\b/",
                     "group": "3_MSSQL_script@1"
@@ -648,9 +653,14 @@
                     "group": "inline@1"
                 },
                 {
+                    "command": "mssql.disconnectObjectExplorerNode",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
+                    "group": "inline@2"
+                },
+                {
                     "command": "mssql.clearFilters",
                     "when": "view == objectExplorer && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
-                    "group": "inline@2"
+                    "group": "inline@3"
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
@@ -968,7 +978,14 @@
             {
                 "command": "mssql.disconnectObjectExplorerNode",
                 "title": "%mssql.disconnect%",
-                "category": "MS SQL"
+                "category": "MS SQL",
+                "icon": "$(debug-disconnect)"
+            },
+            {
+                "command": "mssql.searchObjects",
+                "title": "%mssql.searchObjects%",
+                "category": "MS SQL",
+                "icon": "$(search)"
             },
             {
                 "command": "mssql.scriptSelect",

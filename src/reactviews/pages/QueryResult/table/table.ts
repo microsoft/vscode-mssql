@@ -3,10 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// import 'media/table';
-// import 'media/slick.grid';
-// import 'media/slickColorTheme';
-
 import "../../../media/table.css";
 import { TableDataView } from "./tableDataView";
 import { ITableSorter, ITableConfiguration, ITableStyles, FilterableColumn } from "./interfaces";
@@ -22,18 +18,15 @@ import {
     GetColumnWidthsRequest,
     GetFiltersRequest,
     GetGridScrollPositionRequest,
-    QueryResultReducers,
-    QueryResultWebviewState,
     ResultSetSummary,
     SetColumnWidthsRequest,
     SetGridScrollPositionNotification,
 } from "../../../../sharedInterfaces/queryResult";
-import { VscodeWebviewContext } from "../../../common/vscodeWebviewProvider";
-import { QueryResultContextProps } from "../queryResultStateProvider";
+import { QueryResultReactProvider } from "../queryResultStateProvider";
 import { CopyKeybind } from "./plugins/copyKeybind.plugin";
 import { AutoColumnSize } from "./plugins/autoColumnSize.plugin";
 import { MouseButton } from "../../../common/utils";
-// import { MouseWheelSupport } from './plugins/mousewheelTableScroll.plugin';
+import { ColorThemeKind } from "../../../../sharedInterfaces/webview";
 
 function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
     return {
@@ -51,7 +44,6 @@ export const xmlLanguageId = "xml";
 export const jsonLanguageId = "json";
 
 export class Table<T extends Slick.SlickData> implements IThemable {
-    public queryResultContext: QueryResultContextProps;
     protected styleElement: HTMLStyleElement;
     protected idPrefix: string;
 
@@ -66,27 +58,28 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     protected _tableContainer: HTMLElement;
     private selectionModel: CellSelectionModel<T>;
     public headerFilter: HeaderFilter<T>;
+    private _lastScrollAt: number = 0;
 
     constructor(
         parent: HTMLElement,
         styles: ITableStyles,
         private uri: string,
         private resultSetSummary: ResultSetSummary,
-        private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>,
-        context: QueryResultContextProps,
+        private context: QueryResultReactProvider,
         private linkHandler: (fileContent: string, fileType: string) => void,
         private gridId: string,
         private configuration: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
         gridParentRef?: React.RefObject<HTMLDivElement>,
+        autoSizeColumns: boolean = false,
+        themeKind: ColorThemeKind = ColorThemeKind.Dark,
     ) {
-        this.queryResultContext = context!;
         this.linkHandler = linkHandler;
         this.selectionModel = new CellSelectionModel<T>(
             {
                 hasRowSelector: true,
             },
-            webViewState,
+            context,
         );
         if (
             !configuration ||
@@ -142,19 +135,13 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this._container.appendChild(this._tableContainer);
         this.styleElement = DOM.createStyleSheet(this._container);
         this._grid = new Slick.Grid<T>(this._tableContainer, this._data, [], newOptions);
-        this.headerFilter = new HeaderFilter(
-            webViewState.themeKind,
-            this.queryResultContext,
-            this.webViewState,
-            gridId,
-        );
+        this.headerFilter = new HeaderFilter(this.uri, themeKind, this.context, gridId);
         this.registerPlugin(this.headerFilter);
         this.registerPlugin(
             new ContextMenu(
                 this.uri,
                 this.resultSetSummary,
-                this.queryResultContext,
-                this.webViewState,
+                this.context,
                 this.configuration.dataProvider as IDisposableDataProvider<T>,
             ),
         );
@@ -162,7 +149,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             new CopyKeybind(
                 this.uri,
                 this.resultSetSummary,
-                this.webViewState,
+                this.context,
                 this.configuration.dataProvider as IDisposableDataProvider<T>,
             ),
         );
@@ -171,9 +158,9 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             new AutoColumnSize(
                 {
                     maxWidth: MAX_COLUMN_WIDTH_PX,
-                    autoSizeOnRender: this.webViewState.state.autoSizeColumns,
+                    autoSizeOnRender: autoSizeColumns,
                 },
-                this.webViewState,
+                this.context,
             ),
         );
 
@@ -206,22 +193,17 @@ export class Table<T extends Slick.SlickData> implements IThemable {
                 .getColumns()
                 .slice(1)
                 .map((v) => v.width);
-            let currentColumnSizes = await this.webViewState.extensionRpc.sendRequest(
+            let currentColumnSizes = await this.context.extensionRpc.sendRequest(
                 GetColumnWidthsRequest.type,
-                {
-                    uri: this.queryResultContext.state.uri,
-                },
+                { uri: this.uri },
             );
             if (currentColumnSizes === columnSizes) {
                 return;
             }
-
-            let message = {
-                uri: this.queryResultContext.state.uri,
-                columnWidths: columnSizes,
-            };
-
-            await this.webViewState.extensionRpc.sendRequest(SetColumnWidthsRequest.type, message);
+            await this.context.extensionRpc.sendRequest(SetColumnWidthsRequest.type, {
+                uri: this.uri,
+                columnWidths: columnSizes as number[],
+            });
         });
 
         this._grid.onScroll.subscribe(async (_e, data) => {
@@ -230,10 +212,11 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             }
 
             const viewport = this._grid.getViewport();
-            await this.webViewState.extensionRpc.sendNotification(
+            this._lastScrollAt = Date.now();
+            await this.context.extensionRpc.sendNotification(
                 SetGridScrollPositionNotification.type,
                 {
-                    uri: this.queryResultContext.state.uri,
+                    uri: this.uri,
                     gridId: this.gridId,
                     scrollLeft: viewport.leftPx,
                     scrollTop: viewport.top,
@@ -246,12 +229,13 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     }
 
     public async restoreColumnWidths(): Promise<void> {
-        const columnWidthArray = await this.webViewState.extensionRpc.sendRequest(
+        const columnWidthArray = await this.context.extensionRpc.sendRequest(
             GetColumnWidthsRequest.type,
             {
-                uri: this.queryResultContext.state.uri,
+                uri: this.uri,
             },
         );
+
         if (!columnWidthArray) {
             return;
         }
@@ -274,19 +258,15 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     public async setupFilterState(): Promise<boolean> {
         let sortColumn: Slick.Column<T> | undefined = undefined;
         let sortDirection: boolean | undefined = undefined;
-        const filterMapArray = await this.webViewState.extensionRpc.sendRequest(
-            GetFiltersRequest.type,
-            {
-                uri: this.queryResultContext.state.uri,
-            },
-        );
-
+        const filterMapArray = await this.context.extensionRpc.sendRequest(GetFiltersRequest.type, {
+            uri: this.uri,
+        });
         if (!filterMapArray) {
             return false;
         }
         const filterMap = filterMapArray.find((filter) => filter[this.gridId]);
         if (!filterMap || !filterMap[this.gridId]) {
-            this.queryResultContext.log("No filters found in store");
+            this.context.log("No filters found in store");
             return false;
         }
         for (const column of this.columns) {
@@ -324,10 +304,10 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     }
 
     public async setupScrollPosition(): Promise<void> {
-        const scrollPosition = await this.webViewState.extensionRpc.sendRequest(
+        const scrollPosition = await this.context.extensionRpc.sendRequest(
             GetGridScrollPositionRequest.type,
             {
-                uri: this.queryResultContext.state.uri,
+                uri: this.uri,
                 gridId: this.gridId,
             },
         );
@@ -345,11 +325,46 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         }
     }
 
+    /**
+     * Execute a rendering action while preserving the current selection and focus state
+     * @param action The action to execute
+     */
+    private withRenderPreservingSelection(action: () => void): void {
+        const hadFocus = this._container.contains(document.activeElement);
+        const activeCell = this._grid.getActiveCell();
+        const selectedRanges = this.getSelectedRanges();
+
+        action();
+
+        if (hadFocus) {
+            // Let SlickGrid finish its render tick before restoring focus/selection
+            setTimeout(() => {
+                this.focus();
+                const recentlyScrolled = Date.now() - this._lastScrollAt < 250;
+                // Restore selection always – this does not force scroll
+                if (selectedRanges?.length) {
+                    this.selectionModel.setSelectedRanges(selectedRanges);
+                }
+                // Only restore active cell if it would not force-scroll the viewport
+                if (activeCell && !recentlyScrolled) {
+                    const vp = this._grid.getViewport();
+                    const inView = activeCell.row >= vp.top && activeCell.row <= vp.bottom;
+                    if (inView) {
+                        this._grid.setActiveCell(activeCell.row, activeCell.cell);
+                    }
+                    // If not in view or user recently scrolled, skip restoring active cell to avoid snapping viewport
+                }
+            }, 0);
+        }
+    }
+
     public rerenderGrid() {
-        this._grid.updateRowCount();
-        this._grid.setColumns(this._grid.getColumns());
-        this._grid.invalidateAllRows();
-        this._grid.render();
+        this.withRenderPreservingSelection(() => {
+            this._grid.updateRowCount();
+            this._grid.setColumns(this._grid.getColumns());
+            this._grid.invalidateAllRows();
+            this._grid.render();
+        });
     }
 
     private mapMouseEvent(slickEvent: Slick.Event<any>) {
@@ -391,18 +406,22 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     }
 
     public invalidateRows(rows: number[], keepEditor: boolean) {
-        this._grid.invalidateRows(rows, keepEditor);
-        this._grid.render();
+        this.withRenderPreservingSelection(() => {
+            this._grid.invalidateRows(rows, keepEditor);
+            this._grid.render();
+        });
     }
 
     public updateRowCount() {
-        this._grid.updateRowCount();
-        this._grid.render();
-        if (this._autoscroll) {
-            this._grid.scrollRowIntoView(this._data.getLength() - 1, false);
-        }
-        this.ariaRowCount = this.grid.getDataLength();
-        this.ariaColumnCount = this.grid.getColumns().length;
+        this.withRenderPreservingSelection(() => {
+            this._grid.updateRowCount();
+            this._grid.render();
+            if (this._autoscroll) {
+                this._grid.scrollRowIntoView(this._data.getLength() - 1, false);
+            }
+            this.ariaRowCount = this.grid.getDataLength();
+            this.ariaColumnCount = this.grid.getColumns().length;
+        });
     }
 
     set columns(columns: Slick.Column<T>[]) {

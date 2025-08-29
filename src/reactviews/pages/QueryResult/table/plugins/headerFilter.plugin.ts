@@ -11,23 +11,20 @@ import { append, $ } from "../dom";
 import { IDisposableDataProvider, instanceOfIDisposableDataProvider } from "../dataProvider";
 import "../../../../media/table.css";
 import { locConstants } from "../../../../common/locConstants";
-import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
 import { resolveVscodeThemeType } from "../../../../common/utils";
 import { VirtualizedList } from "../../../../common/virtualizedList";
 import { EventManager } from "../../../../common/eventManager";
 
-import { QueryResultContextProps } from "../../queryResultStateProvider";
 import {
     ColumnFilterState,
     GetFiltersRequest,
     GridColumnMap,
-    QueryResultReducers,
-    QueryResultWebviewState,
     SetFiltersRequest,
     ShowFilterDisabledMessageRequest,
     SortProperties,
 } from "../../../../../sharedInterfaces/queryResult";
 import { ColorThemeKind } from "../../../../../sharedInterfaces/webview";
+import { QueryResultReactProvider } from "../../queryResultStateProvider";
 
 export type SortDirection = "sort-asc" | "sort-desc" | "reset";
 
@@ -62,9 +59,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
     private currentSortButton: JQuery<HTMLElement> | null = null;
 
     constructor(
+        private uri: string,
         public theme: ColorThemeKind,
-        private queryResultContext: QueryResultContextProps,
-        private webviewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>,
+        private queryResultContext: QueryResultReactProvider,
         private gridId: string,
     ) {}
 
@@ -85,11 +82,6 @@ export class HeaderFilter<T extends Slick.SlickData> {
             .subscribe(this.grid.onHeaderContextMenu, (e: Event) =>
                 this.headerContextMenuHandler(e),
             );
-        // .subscribe(this.grid.onClick, (e: DOMEvent) => this.handleBodyMouseDown(e as MouseEvent))
-        // .subscribe(this.grid.onColumnsResized, () => this.columnsResized());
-
-        // addEventListener('click', e => this.handleBodyMouseDown(e));
-        // this.disposableStore.add(addDisposableListener(document.body, 'keydown', e => this.handleKeyDown(e)));
     }
 
     public destroy() {
@@ -157,7 +149,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 e.stopPropagation();
                 e.preventDefault();
                 if (!this.enabled) {
-                    await this.webviewState.extensionRpc.sendRequest(
+                    await this.queryResultContext.extensionRpc.sendRequest(
                         ShowFilterDisabledMessageRequest.type,
                     );
                     return;
@@ -237,7 +229,9 @@ export class HeaderFilter<T extends Slick.SlickData> {
 
     private async showFilter(filterButton: HTMLElement) {
         if (!this.enabled) {
-            await this.webviewState.extensionRpc.sendRequest(ShowFilterDisabledMessageRequest.type);
+            await this.queryResultContext.extensionRpc.sendRequest(
+                ShowFilterDisabledMessageRequest.type,
+            );
             return;
         }
         let $menuButton: JQuery<HTMLElement> | undefined;
@@ -517,12 +511,12 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 filterValues: [],
                 sorted: SortProperties.NONE,
             };
-            if (this.queryResultContext.state.uri) {
+            if (this.uri) {
                 // Get the current filters from the query result singleton store
-                let gridColumnMapArray = await this.webviewState.extensionRpc.sendRequest(
+                let gridColumnMapArray = await this.queryResultContext.extensionRpc.sendRequest(
                     GetFiltersRequest.type,
                     {
-                        uri: this.queryResultContext.state.uri,
+                        uri: this.uri,
                     },
                 );
                 if (!gridColumnMapArray) {
@@ -533,8 +527,8 @@ export class HeaderFilter<T extends Slick.SlickData> {
                     gridColumnMapArray,
                     columnDef.id!,
                 );
-                await this.webviewState.extensionRpc.sendRequest(SetFiltersRequest.type, {
-                    uri: this.queryResultContext.state.uri,
+                await this.queryResultContext.extensionRpc.sendRequest(SetFiltersRequest.type, {
+                    uri: this.uri,
                     filters: gridColumnMapArray,
                 });
             }
@@ -558,22 +552,22 @@ export class HeaderFilter<T extends Slick.SlickData> {
     private async updateState(newState: ColumnFilterState, columnId: string): Promise<void> {
         let newStateArray: GridColumnMap[];
         // Check if there is any existing filter state
-        if (!this.queryResultContext.state.uri) {
+        if (!this.uri) {
             this.queryResultContext.log("no uri set for query result state");
             return;
         }
-        let currentFiltersArray = await this.webviewState.extensionRpc.sendRequest(
+        let currentFiltersArray = await this.queryResultContext.extensionRpc.sendRequest(
             GetFiltersRequest.type,
             {
-                uri: this.queryResultContext.state.uri,
+                uri: this.uri,
             },
         );
         if (!currentFiltersArray) {
             currentFiltersArray = [];
         }
         newStateArray = this.combineFilters(currentFiltersArray, newState, columnId);
-        await this.webviewState.extensionRpc.sendRequest(SetFiltersRequest.type, {
-            uri: this.queryResultContext.state.uri,
+        await this.queryResultContext.extensionRpc.sendRequest(SetFiltersRequest.type, {
+            uri: this.uri,
             filters: newStateArray,
         });
     }
