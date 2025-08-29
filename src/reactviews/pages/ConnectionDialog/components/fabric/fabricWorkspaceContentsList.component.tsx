@@ -78,6 +78,9 @@ export const FabricWorkspaceContentsList = ({
         (): TableColumnDefinition<FabricSqlGridItem>[] => [
             createTableColumn<FabricSqlGridItem>({
                 columnId: "name",
+                compare: (a, b) => {
+                    return a.displayName.localeCompare(b.displayName);
+                },
                 renderHeaderCell: () => `${Loc.connectionDialog.nameColumnHeader}`,
                 renderCell: (item) => (
                     <DataGridCell>
@@ -107,6 +110,9 @@ export const FabricWorkspaceContentsList = ({
             }),
             createTableColumn<FabricSqlGridItem>({
                 columnId: "type",
+                compare: (a, b) => {
+                    return a.typeDisplayName.localeCompare(b.typeDisplayName);
+                },
                 renderHeaderCell: () => `${Loc.connectionDialog.typeColumnHeader}`,
                 renderCell: (item) => (
                     <DataGridCell>
@@ -235,8 +241,9 @@ export const FabricWorkspaceContentsList = ({
             getRowId={(item: FabricSqlGridItem) => item.id}
             size="small"
             focusMode="composite"
-            resizableColumns={true}
+            resizableColumns
             columnSizingOptions={columnSizingOptions}
+            sortable
             style={{
                 flexGrow: 1,
                 height: "100%",
