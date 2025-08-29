@@ -279,6 +279,10 @@
         <source xml:lang="en">Are you sure?</source>
         <target state="translated">Вы уверены?</target>
       </trans-unit>
+      <trans-unit id="++CODE++66880d2d8216260d201917a72eb245440ef18ba9b54c070ee39aa4c343ae126f">
+        <source xml:lang="en">Authentication</source>
+        <target state="new">Authentication</target>
+      </trans-unit>
       <trans-unit id="++CODE++eccf8ea40318babf1bd28fa823e0fa905383eed481da5fccb9f54ea4a6152943">
         <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
         <target state="translated">Библиотека проверки подлинности изменена. Перезагрузите Visual Studio Code.</target>
@@ -316,6 +320,10 @@
       <trans-unit id="++CODE++a27adfa57c8938761efd3fc482ea8e81fc898b286f29d04c783c9d3b60b22824">
         <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
         <target state="translated">Автоматическое упорядочивание автоматически изменит размещение всех элементов диаграммы на основе оптимальных алгоритмов макета. Созданное вами настраиваемое размещение будут потеряно. Вы хотите продолжить автоматическое упорядочивание диаграммы схемы?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
+        <source xml:lang="en">Available Servers</source>
+        <target state="new">Available Servers</target>
       </trans-unit>
       <trans-unit id="++CODE++92eb0b1fb89f1725b3c1fe652164720d7b2d17222e81bd5057f02f645fb24e67">
         <source xml:lang="en">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</source>
@@ -661,6 +669,10 @@
         <source xml:lang="en">Close the current connection</source>
         <target state="translated">Закрыть текущее подключение</target>
       </trans-unit>
+      <trans-unit id="++CODE++b977b950c1ae31e5aeb9ef778cc20a66fc034eb81e738e0206104b677962c465">
+        <source xml:lang="en">Cloud</source>
+        <target state="new">Cloud</target>
+      </trans-unit>
       <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
         <source xml:lang="en">Collapse</source>
         <target state="translated">Свернуть</target>
@@ -796,6 +808,10 @@
         <note>{0} is the profile ID</note>
         <target state="translated">Установить подключение с помощью профиля {0}?</target>
       </trans-unit>
+      <trans-unit id="++CODE++28d29898bc769fd6df013da142af60f451953946e641fc2a2bee0e49b235a623">
+        <source xml:lang="en">Connected successfully</source>
+        <target state="new">Connected successfully</target>
+      </trans-unit>
       <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>
         <note>{0} is the server name
@@ -848,6 +864,10 @@
       <trans-unit id="++CODE++5f04ae9ed6a865bb382c66ef4bd4e57df4ce19d4142b8c87ac40d65ae54d278f">
         <source xml:lang="en">Connecting...</source>
         <target state="translated">Подключение...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++880cac6e9612c7672ce73c666f54c5f789e7b1ed1b9f0b7f1431fe84a2e59bce">
+        <source xml:lang="en">Connection Details</source>
+        <target state="new">Connection Details</target>
       </trans-unit>
       <trans-unit id="++CODE++dba530f818587a0d79d7bb8f59e07d372d10691f49c560e3e4c3d42d105fe9e7">
         <source xml:lang="en">Connection Dialog</source>
@@ -1061,6 +1081,10 @@
         <source xml:lang="en">Database Project</source>
         <target state="translated">Проект базы данных</target>
       </trans-unit>
+      <trans-unit id="++CODE++ec9c37392a809590dbb62879bd1b261c3675552b33d4d8936d539925d774f6a6">
+        <source xml:lang="en">Database changed successfully</source>
+        <target state="new">Database changed successfully</target>
+      </trans-unit>
       <trans-unit id="++CODE++e97a0773fb7b656c174155270bd9ded70bc82caa0fc5d65b3ba24871577a5b08">
         <source xml:lang="en">Database name</source>
         <target state="translated">Имя базы данных</target>
@@ -1138,6 +1162,10 @@
         <source xml:lang="en">Disconnected on document "{0}"</source>
         <note>{0} is the document name</note>
         <target state="translated">Разорвано подключение документа "{0}"</target>
+      </trans-unit>
+      <trans-unit id="++CODE++459c45733e24412e32c08ebea6b6819b4a29ca99ec1b99e5c8036d0165df44b7">
+        <source xml:lang="en">Disconnected successfully</source>
+        <target state="new">Disconnected successfully</target>
       </trans-unit>
       <trans-unit id="++CODE++810e6bf829af848a6ab728e3b8f94dde597f95f47f11b160ca7eaa9f0d21395b">
         <source xml:lang="en">Disconnecting from connection '{0}'</source>
@@ -1367,6 +1395,11 @@ Error:
         <source xml:lang="en">Error occurred opening content in editor.</source>
         <target state="translated">При открытии документа в редакторе произошла ошибка.</target>
       </trans-unit>
+      <trans-unit id="++CODE++7ce810c92d5881cd4638f73772ee57317b503d0f04dbc5cd2f281f77ac1d697d">
+        <source xml:lang="en">Error retrieving server list: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Error retrieving server list: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++2982897442ab8ee74ad10f968e801f2979c59ecc19ae9d2041eeedec219fd8f1">
         <source xml:lang="en">Error running Docker commands. Please make sure Docker is running.</source>
         <target state="translated">Ошибка при выполнении команд Docker. Убедитесь, что средство Docker запущено.</target>
@@ -1453,6 +1486,14 @@ Error:
         <source xml:lang="en">Failed to apply changes: '{0}'</source>
         <note>{0} is the error message returned from the publish changes operation</note>
         <target state="translated">Не удалось применить изменения: "{0}"</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0f20f13b4e0c02dbfd1419272fdc0223aea4745a0704daf5f91876a21476bda2">
+        <source xml:lang="en">Failed to change database</source>
+        <target state="new">Failed to change database</target>
+      </trans-unit>
+      <trans-unit id="++CODE++46c9f3b7520fde539ec4452ba821c1b8ad43f18971284f033ab93d32f04c65df">
+        <source xml:lang="en">Failed to connect</source>
+        <target state="new">Failed to connect</target>
       </trans-unit>
       <trans-unit id="++CODE++6e543be4255a8c4362baca16d0850278f1d95a7df9cd38f4b94ecbda4abe57e5">
         <source xml:lang="en">Failed to connect to database: {0}</source>
@@ -1666,6 +1707,11 @@ Error:
         <source xml:lang="en">Found pending reconnect promise for uri {0}, waiting.</source>
         <note>{0} is the uri</note>
         <target state="translated">Найдено ожидающее обещание повторного подключения для URI {0}, ждем.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fc70e7e548649aa12095a141703b67943b4437de990082c3646b3ab61884dcf0">
+        <source xml:lang="en">Found {0} saved connection profile(s).</source>
+        <note>{0} is the number of connection profiles</note>
+        <target state="new">Found {0} saved connection profile(s).</target>
       </trans-unit>
       <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
         <source xml:lang="en">General</source>
@@ -2238,6 +2284,22 @@ Error:
         <source xml:lang="en">No account selected</source>
         <target state="translated">Учетная запись не выбрана</target>
       </trans-unit>
+      <trans-unit id="++CODE++9659b767df189a5839c87672cb77cb5c7e5dbe63f59c88712ad34358dda02676">
+        <source xml:lang="en">No active connection</source>
+        <target state="new">No active connection</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fd8753767d0ca74647a1d3b877db12f2a65a06f4c81db6eadd086759df0a5ad1">
+        <source xml:lang="en">No active connection for database change</source>
+        <target state="new">No active connection for database change</target>
+      </trans-unit>
+      <trans-unit id="++CODE++796911143ea8bb8e1ff88271e2618eb63b05d9e04cdf6e9363533b0715ab3574">
+        <source xml:lang="en">No active connection for schema view</source>
+        <target state="new">No active connection for schema view</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d932a05eba0200bedb4b5449ce9e6487525ba3ecfd164e137388fd0833b4121b">
+        <source xml:lang="en">No active database connection in the current editor. Please establish a connection to continue.</source>
+        <target state="new">No active database connection in the current editor. Please establish a connection to continue.</target>
+      </trans-unit>
       <trans-unit id="++CODE++971d7b9ca9340d6e8e22146855f8ef9cd9576279575ad1f7bd2fb5f40eaaddf9">
         <source xml:lang="en">No active database connection. Please connect to a database first.</source>
         <target state="new">No active database connection. Please connect to a database first.</target>
@@ -2250,10 +2312,18 @@ Error:
         <source xml:lang="en">No changes detected</source>
         <target state="translated">Никаких изменений не обнаружено</target>
       </trans-unit>
+      <trans-unit id="++CODE++d359844ae129bd7d51eda9e3c61dcf5c4036be148cdf783fc11d6454e8ca372b">
+        <source xml:lang="en">No connection credentials found</source>
+        <target state="new">No connection credentials found</target>
+      </trans-unit>
       <trans-unit id="++CODE++bb6f0c310647145d31546d24967be9eb8ebae90f640642e9fbb5d7713e6e8550">
         <source xml:lang="en">No connection found for connectionId: {0}</source>
         <note>{0} is the connection ID</note>
         <target state="translated">Не найдено подключение для connectionId: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3820494b45e56abad074e97c277e6328476da0ec09dacdf18bc5d5d7a6984cb2">
+        <source xml:lang="en">No connection information found</source>
+        <target state="new">No connection information found</target>
       </trans-unit>
       <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
         <source xml:lang="en">No connection profile to remove.</source>
@@ -2293,6 +2363,10 @@ Error:
       <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
         <source xml:lang="en">No results to display</source>
         <target state="translated">Нет результатов для отображения</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
+        <source xml:lang="en">No saved connection profiles found.</source>
+        <target state="new">No saved connection profiles found.</target>
       </trans-unit>
       <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
         <source xml:lang="en">No schema differences were found.</source>
@@ -2433,6 +2507,10 @@ Error:
       <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
         <target state="translated">Открытие сценария публикации. Это может занять некоторое время...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fe0d6bd1aef549a43c5fca4a838882918bd3a85e9641cb5150f31df976e18e38">
+        <source xml:lang="en">Opening schema designer...</source>
+        <target state="new">Opening schema designer...</target>
       </trans-unit>
       <trans-unit id="++CODE++291101a07fe980e93b900ae85c9eb824f9e7e93d0d754be7440b9386b615cad7">
         <source xml:lang="en">Operator</source>
@@ -3057,6 +3135,14 @@ Query: {1}</source>
         <note>{0} is the server name</note>
         <target state="translated">Сервер — {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++6b0054dcd0116896729545198c9cdfe9b8f97008d91d39084e5c8808a6784c58">
+        <source xml:lang="en">Server Edition</source>
+        <target state="new">Server Edition</target>
+      </trans-unit>
+      <trans-unit id="++CODE++86c1cd65696eadbc588fd4fe04d8b03ca948befc5a89467c621edf47f885118c">
+        <source xml:lang="en">Server Version</source>
+        <target state="new">Server Version</target>
+      </trans-unit>
       <trans-unit id="++CODE++1c53883708ab16a3743793905feb38c8e77c295d846ff276491831e1de69b6e1">
         <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
         <target state="translated">Выполняется подключение к серверу. Хотите отменить?</target>
@@ -3561,6 +3647,14 @@ Query: {1}</source>
         <source xml:lang="en">Undo</source>
         <target state="translated">Отменить</target>
       </trans-unit>
+      <trans-unit id="++CODE++27c2ccd962c2b8dccb52fe3688ab236f186f7a41fd57d810478712048e9ad3f8">
+        <source xml:lang="en">Unknown error</source>
+        <target state="new">Unknown error</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e4dd0ac78c7663f350454bad4258d3b6d38971181470082487d131decc61880b">
+        <source xml:lang="en">Unnamed Profile</source>
+        <target state="new">Unnamed Profile</target>
+      </trans-unit>
       <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
         <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
         <note>{0} is the architecture name of the machine</note>
@@ -3590,6 +3684,15 @@ Query: {1}</source>
       <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
         <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
         <target state="translated">Использовать T-SQL IntelliSense и проверку синтаксиса на ошибки в текущем документе</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6fa7eeedfe2d3774f7d0d8fbb044c15710f171f58174bf7435ab1757e92d0c27">
+        <source xml:lang="en">Use {0} to create a new connection.</source>
+        <note>{0} is the connect command</note>
+        <target state="new">Use {0} to create a new connection.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b512d97e7cbf97c273e4db073bbb547aa65a84589227f8f3d9e4a72b9372a24d">
+        <source xml:lang="en">User</source>
+        <target state="new">User</target>
       </trans-unit>
       <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
         <source xml:lang="en">User name</source>
