@@ -760,6 +760,9 @@ export class FabricProvisioning {
     public static workspacePermissionsError = l10n.t(
         "Please select a workspace where you have sufficient permissions (Contributor or higher)",
     );
+    public static databaseNameError = l10n.t(
+        "This database name is already in use. Please choose a different name.",
+    );
 }
 
 export class QueryResult {

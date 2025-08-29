@@ -23,7 +23,6 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { FabricProvisioningContext } from "./fabricProvisioningStateProvider";
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
-import { ProvisionFabricDatabasePage } from "./provisionFabricDatabasePage";
 import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
@@ -32,6 +31,7 @@ import { SearchableDropdownOptions } from "../../common/searchableDropdown.compo
 import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
 import { FormItemOptions } from "../../../sharedInterfaces/form";
 import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
+import { ProvisionFabricDatabasePage } from "./provisionFabricDatabasePage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -219,9 +219,11 @@ export const FabricProvisioningInputForm: React.FC = () => {
                             }}
                         />
                     ) : (
-                        <div className={classes.buttonContent} style={{ marginTop: "20px" }}>
+                        <div
+                            className={classes.buttonContent}
+                            style={{ marginTop: "20px", marginBottom: "20px" }}>
                             <Spinner size="tiny" />
-                            Loading workspaces....
+                            {locConstants.fabricProvisioning.loadingWorkspaces}...
                         </div>
                     )}
 

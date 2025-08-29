@@ -55,6 +55,7 @@ export class LocConstants {
             showPassword: l10n.t("Show password"),
             hidePassword: l10n.t("Hide password"),
             dismiss: l10n.t("Dismiss"),
+            error: l10n.t("Error"),
         };
     }
 
@@ -861,6 +862,16 @@ export class LocConstants {
     public get fabricProvisioning() {
         return {
             createDatabase: l10n.t("Create Database"),
+            loadingWorkspaces: l10n.t("Loading workspaces"),
+            finishedDeployment: l10n.t("Finished Deployment"),
+            deploymentInProgress: l10n.t("Deployment in progress"),
+            deploymentName: l10n.t("Deployment Name"),
+            workspace: l10n.t("Workspace"),
+            startTime: l10n.t("Start Time"),
+            provisioning: l10n.t("Provisioning"),
+            deploymentFailed: l10n.t("Deployment Failed"),
+            connectionFailed: l10n.t("Connection Failed"),
+            connectingToDatabase: l10n.t("Connecting to Database"),
         };
     }
 }

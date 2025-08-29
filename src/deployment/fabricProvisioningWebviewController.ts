@@ -50,8 +50,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     FabricProvisioningFormItemSpec,
     FabricProvisioningReducers
 > {
-    defaultWorkspacePermissionsCap = 20;
-    requiredInputs: FabricProvisioningFormItemSpec[];
+    workspaceRoleRequestLimit = 20;
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
@@ -85,7 +84,6 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     }
 
     private async initialize() {
-        const startTime = Date.now();
         this.state.loadState = ApiStatus.Loading;
         const connectionGroupOptions =
             await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
@@ -107,7 +105,6 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             databaseName: "",
             databaseDescription: "",
         } as FabricProvisioningFormState;
-
         const azureActionButtons = await this.getAzureActionButtons();
         this.state.formComponents = this.setFabricProvisioningFormComponents(
             azureAccountOptions,
@@ -119,48 +116,30 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         this.state.loadState = ApiStatus.Loaded;
         this.updateState();
         this.getWorkspaces();
-        console.log("Load stats: ", Date.now() - startTime);
     }
 
     private registerRpcHandlers() {
         this.registerReducer("reloadFabricEnvironment", async (state, payload) => {
-            state.workspaces = [];
             await this.reloadFabricComponents(payload.newTenant);
             return state;
         });
         this.registerReducer("handleWorkspaceFormAction", async (state, payload) => {
-            const workspace = state.workspacesWithPermissions[payload.workspaceId];
-            if (workspace && !workspace.role) {
-                delete state.workspacesWithPermissions[workspace.id];
-                const workspaceWithRole = await this.getRoleForWorkspace(
-                    workspace,
-                    state.formState.tenantId,
-                );
-                if (hasWorkspacePermission(workspaceWithRole.role, WorkspaceRole.Contributor)) {
-                    state.workspacesWithPermissions[workspaceWithRole.id] = workspaceWithRole;
-                } else {
-                    state.workspacesWithoutPermissions[workspaceWithRole.id] = workspaceWithRole;
-                }
-                this.state.workspacesWithPermissions = state.workspacesWithPermissions;
-                this.state.workspacesWithoutPermissions = state.workspacesWithoutPermissions;
-                state.formComponents.workspace.options = this.getWorkspaceOptions();
-            }
-            state.formState.workspace = payload.workspaceId;
-            const workspaceComponent = this.getFormComponent(state, "workspace");
-            const validation = workspaceComponent.validate(state, state.formState.workspace);
-            workspaceComponent.validation = validation;
-            if (!validation.isValid) {
-                state.formErrors.push("workspace");
-            }
-            return state;
+            return await this.handleWorkspaceFormAction(state, payload.workspaceId);
         });
         this.registerReducer("createDatabase", async (state, _payload) => {
             state.formValidationLoadState = ApiStatus.Loading;
             this.updateState(state);
+            state = await this.handleWorkspaceFormAction(state, state.formState.workspace);
             state.formErrors = await this.validateForm(state.formState);
             if (state.formErrors.length === 0) {
                 this.provisionDatabase();
-                state.deploymentStartTime = Date.now().toLocaleString();
+                state.deploymentStartTime = new Date().toUTCString();
+                state.tenantName = state.formComponents.tenantId.options.find(
+                    (option) => option.value === state.formState.tenantId,
+                )?.displayName;
+                state.workspaceName = state.formComponents.workspace.options.find(
+                    (option) => option.value === state.formState.workspace,
+                )?.displayName;
                 state.formValidationLoadState = ApiStatus.Loaded;
             } else {
                 state.formValidationLoadState = ApiStatus.NotStarted;
@@ -200,6 +179,11 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             } else {
                 state.dialog = undefined;
             }
+            return state;
+        });
+        this.registerReducer("dispose", async (state, _payload) => {
+            this.panel.dispose();
+            this.dispose();
             return state;
         });
     }
@@ -284,10 +268,25 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
                 label: FabricProvisioning.databaseName,
                 isAdvancedOption: false,
                 placeholder: FabricProvisioning.enterDatabaseName,
-                validate: (_state: FabricProvisioningWebviewState, value: string) => ({
-                    isValid: !!value,
-                    validationMessage: value ? "" : FabricProvisioning.databaseNameIsRequired,
-                }),
+                validate(state: FabricProvisioningWebviewState, value: string) {
+                    {
+                        if (!value) {
+                            return {
+                                isValid: false,
+                                validationMessage: FabricProvisioning.databaseNameIsRequired,
+                            };
+                        }
+                        const isUniqueDatabaseName =
+                            !state.databaseNamesInWorkspace.includes(value);
+
+                        return {
+                            isValid: isUniqueDatabaseName,
+                            validationMessage: isUniqueDatabaseName
+                                ? ""
+                                : FabricProvisioning.databaseNameError,
+                        };
+                    }
+                },
             }),
             tenantId: createFormItem({
                 propertyName: "tenantId",
@@ -363,6 +362,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         this.state.capacityIds = new Set<string>();
         this.state.userGroupIds = new Set<string>();
         this.state.workspaces = [];
+        this.state.databaseNamesInWorkspace = [];
         this.updateState();
         this.getWorkspaces(tenantId);
     }
@@ -395,7 +395,6 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
     private getWorkspaces(tenantId?: string): void {
         if (this.state.formState.tenantId === "" && !tenantId) return;
 
-        const startTime = Date.now();
         tenantId = tenantId || this.state.formState.tenantId;
 
         this.getCapacities(tenantId)
@@ -412,7 +411,6 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
                 this.state.formState.workspace =
                     workspaceOptions.length > 0 ? workspaceOptions[0].value : "";
                 this.updateState();
-                console.log(Date.now() - startTime);
             })
             .catch((err) => {
                 console.error("Failed to load workspaces", err);
@@ -488,7 +486,7 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
         // Fetch all roles in parallel if it won't hit rate limits
         if (
             Object.keys(workspacesWithValidOrUnknownCapacities).length <
-            this.defaultWorkspacePermissionsCap
+            this.workspaceRoleRequestLimit
         ) {
             const workspacesWithRoles = await Promise.all(
                 Object.values(workspacesWithValidOrUnknownCapacities).map(async (workspace) => {
@@ -514,6 +512,54 @@ export class FabricProvisioningWebviewController extends FormWebviewController<
             ...Object.values(this.state.workspacesWithPermissions),
             ...Object.values(this.state.workspacesWithoutPermissions),
         ];
+    }
+
+    private async handleWorkspaceFormAction(
+        state: FabricProvisioningWebviewState,
+        workspaceId: string,
+    ): Promise<FabricProvisioningWebviewState> {
+        const workspace = state.workspacesWithPermissions[workspaceId];
+        if (workspace && !workspace.role) {
+            delete state.workspacesWithPermissions[workspace.id];
+            const workspaceWithRole = await this.getRoleForWorkspace(
+                workspace,
+                state.formState.tenantId,
+            );
+            if (hasWorkspacePermission(workspaceWithRole.role, WorkspaceRole.Contributor)) {
+                state.workspacesWithPermissions[workspaceWithRole.id] = workspaceWithRole;
+            } else {
+                state.workspacesWithoutPermissions[workspaceWithRole.id] = workspaceWithRole;
+            }
+            this.state.workspacesWithPermissions = state.workspacesWithPermissions;
+            this.state.workspacesWithoutPermissions = state.workspacesWithoutPermissions;
+            state.formComponents.workspace.options = this.getWorkspaceOptions();
+        }
+        state.formState.workspace = workspace.id;
+        const workspaceComponent = this.getFormComponent(state, "workspace");
+        const workspaceValidation = workspaceComponent.validate(state, state.formState.workspace);
+        workspaceComponent.validation = workspaceValidation;
+        if (!workspaceValidation.isValid) {
+            state.formErrors.push("workspace");
+            state.databaseNamesInWorkspace = [];
+        } else {
+            const databasesInWorkspaces = await FabricHelper.getFabricDatabases(
+                workspace,
+                state.formState.tenantId,
+            );
+            state.databaseNamesInWorkspace = databasesInWorkspaces.map(
+                (database) => database.displayName,
+            );
+        }
+        const databaseNameComponent = this.getFormComponent(state, "databaseName");
+        const databaseNameValidation = databaseNameComponent.validate(
+            state,
+            state.formState.databaseName,
+        );
+        databaseNameComponent.validation = databaseNameValidation;
+        if (!databaseNameValidation.isValid) {
+            state.formErrors.push("databaseName");
+        }
+        return state;
     }
 
     private provisionDatabase(tenantId?: string): void {

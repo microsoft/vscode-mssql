@@ -4,11 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect } from "react";
-import { Card, makeStyles, Spinner, tokens } from "@fluentui/react-components";
+import { Button, Card, makeStyles, Spinner, tokens } from "@fluentui/react-components";
 import { FabricProvisioningContext } from "./fabricProvisioningStateProvider";
 import { Checkmark20Regular, Circle20Regular, Dismiss20Regular } from "@fluentui/react-icons";
 import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -23,6 +24,33 @@ const useStyles = makeStyles({
         minHeight: "fit-content",
         paddingBottom: "50px",
     },
+    innerDiv: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+        height: "fit-content",
+        width: "fit-content",
+        minWidth: "650px",
+    },
+    button: {
+        height: "28px",
+        width: "60px",
+        marginTop: "20px",
+    },
+    contentHeader: {
+        fontSize: "22px",
+        fontWeight: 400,
+        padding: "8px",
+        textAlign: "left",
+    },
+    buttonDiv: {
+        display: "flex",
+        flexDirection: "row",
+        justifyContent: "center",
+        width: "100%",
+        padding: "8px",
+        gap: "5px",
+    },
     spinnerDiv: {
         display: "flex",
         justifyContent: "center",
@@ -34,6 +62,8 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         gap: "8px",
+        fontSize: "18px",
+        fontWeight: 400,
     },
     separatorDiv: {
         position: "absolute",
@@ -49,17 +79,40 @@ const useStyles = makeStyles({
         justifyContent: "space-between",
         padding: "4px",
     },
-    topSpace: {
-        marginTop: "8px",
+    cardContentDiv: {
+        display: "flex",
+        flexDirection: "row",
+        gap: "2px",
+        height: "100%",
+        width: "100%",
     },
-    contentDiv: {
+    cardColumn: {
+        display: "flex",
+        flexDirection: "column",
+        padding: "20px",
+        width: "fit-content",
+    },
+    cardDiv: {
         display: "flex",
         flexDirection: "column",
         gap: "2px",
-        alignItems: "center",
-        justifyContent: "center",
+        minHeight: "250px",
         height: "fit-content",
-        width: "500px",
+        width: "100%",
+    },
+    cardItem: {
+        fontSize: "14px",
+        padding: "10px",
+    },
+    cardItemLabel: {
+        color: tokens.colorNeutralForeground4,
+        paddingRight: "10px",
+    },
+    cardHeader: {
+        width: "100%",
+        fontSize: "24px",
+        padding: "8px",
+        textAlign: "left",
     },
 });
 
@@ -75,7 +128,13 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
         fabricProvisioningState.connectionLoadState,
     ]);
 
-    const getStatusIcon = (status: ApiStatus) => {
+    const getStatusIcon = () => {
+        let status: ApiStatus;
+        if (fabricProvisioningState.provisionLoadState !== ApiStatus.Loaded) {
+            status = fabricProvisioningState.provisionLoadState;
+        } else {
+            status = fabricProvisioningState.connectionLoadState;
+        }
         if (status === ApiStatus.NotStarted) {
             return <Circle20Regular style={{ color: "gray" }} />;
         }
@@ -88,33 +147,99 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
         return <Spinner size="tiny" />;
     };
 
+    const getHeaderText = () => {
+        let headerText = locConstants.fabricProvisioning.finishedDeployment;
+        if (fabricProvisioningState.provisionLoadState === ApiStatus.Error) {
+            headerText = locConstants.fabricProvisioning.deploymentFailed;
+        } else if (fabricProvisioningState.provisionLoadState !== ApiStatus.Loaded) {
+            headerText = `${locConstants.fabricProvisioning.deploymentInProgress}...`;
+        } else if (fabricProvisioningState.connectionLoadState === ApiStatus.Error) {
+            headerText = locConstants.fabricProvisioning.connectionFailed;
+        } else if (fabricProvisioningState.connectionLoadState !== ApiStatus.Loaded) {
+            headerText = `${locConstants.fabricProvisioning.connectingToDatabase}`;
+        }
+        return headerText;
+    };
+
     return (
         <div>
             <FabricProvisioningHeader />
-            <Card className={classes.outerDiv}>
-                <div className={classes.separatorDiv} />
-                <div className={classes.header}>
-                    <div className={classes.leftHeader}>
-                        {getStatusIcon(fabricProvisioningState.provisionLoadState)}
-                        {fabricProvisioningState.database ? (
-                            <span>
-                                Finished Deploying {fabricProvisioningState.database.displayName}
-                            </span>
-                        ) : (
-                            <span>Deployment in progress...</span>
-                        )}
+            <div className={classes.outerDiv}>
+                <div className={classes.innerDiv}>
+                    <div className={classes.contentHeader}>
+                        {locConstants.fabricProvisioning.provisioning}{" "}
+                        {fabricProvisioningState.formState.databaseName}
                     </div>
-                    <div className={classes.contentDiv}>
-                        <span>
-                            Deployment Name: {fabricProvisioningState.formState.databaseName}
-                        </span>
-                        <span>Tenant: {fabricProvisioningState.formState.tenantId}</span>
-                        <span>Workspace: {fabricProvisioningState.formState.workspace}</span>
-                        <span>Start Time: {fabricProvisioningState.deploymentStartTime}</span>
+                    <Card className={classes.cardDiv}>
+                        <div className={classes.separatorDiv} />
+                        <div className={classes.cardHeader}>
+                            <div className={classes.leftHeader}>
+                                {getStatusIcon()}
+                                {getHeaderText()}
+                            </div>
+                        </div>
+                        <div className={classes.cardContentDiv}>
+                            {fabricProvisioningState.errorMessage ? (
+                                <div className={classes.cardColumn}>
+                                    <span className={classes.cardItem}>
+                                        <span className={classes.cardItemLabel}>
+                                            {locConstants.common.error}:
+                                        </span>
+                                        {fabricProvisioningState.errorMessage}
+                                    </span>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className={classes.cardColumn}>
+                                        <span className={classes.cardItem}>
+                                            <span className={classes.cardItemLabel}>
+                                                {locConstants.fabricProvisioning.deploymentName}:
+                                            </span>
+                                            {fabricProvisioningState.formState.databaseName}
+                                        </span>
+                                        <span className={classes.cardItem}>
+                                            <span className={classes.cardItemLabel}>
+                                                {locConstants.fabricProvisioning.startTime}:
+                                            </span>
+                                            {fabricProvisioningState.deploymentStartTime}
+                                        </span>
+                                    </div>
+                                    <div
+                                        className={classes.cardColumn}
+                                        style={{ paddingLeft: "100px" }}>
+                                        <span className={classes.cardItem}>
+                                            <span className={classes.cardItemLabel}>
+                                                {locConstants.firewallRules.tenant}:
+                                            </span>
+                                            {fabricProvisioningState.tenantName}
+                                        </span>
+                                        <span className={classes.cardItem}>
+                                            <span className={classes.cardItemLabel}>
+                                                {locConstants.fabricProvisioning.workspace}:
+                                            </span>
+                                            {fabricProvisioningState.workspaceName}
+                                        </span>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </Card>
+                    <div className={classes.buttonDiv}>
+                        <Button
+                            className={classes.button}
+                            onClick={() => state.dispose()}
+                            appearance={
+                                fabricProvisioningState.connectionLoadState === ApiStatus.Loaded
+                                    ? "primary"
+                                    : "secondary"
+                            }>
+                            {fabricProvisioningState.connectionLoadState === ApiStatus.Loaded
+                                ? locConstants.common.finish
+                                : locConstants.common.cancel}
+                        </Button>
                     </div>
-                    <div>{fabricProvisioningState.connectionLoadState}</div>
                 </div>
-            </Card>
+            </div>
         </div>
     );
 };

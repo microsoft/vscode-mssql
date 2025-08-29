@@ -63,6 +63,9 @@ const FabricProvisioningStateProvider: React.FC<FabricProvisioningProviderProps>
                         shouldOpen: shouldOpen,
                     });
                 },
+                dispose: function (): void {
+                    webviewState?.extensionRpc.action("dispose", {});
+                },
             }}>
             {children}
         </FabricProvisioningContext.Provider>

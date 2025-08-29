@@ -621,6 +621,9 @@
     <trans-unit id="++CODE++fc83034782062ce727014f496892adc8087186e29e686533f40d6064c70e7c7c">
       <source xml:lang="en">Connecting to Container</source>
     </trans-unit>
+    <trans-unit id="++CODE++bd02214c7799ec6a69018761f76fed82a6516c170ddbc3fdbf6f0c2a7b566d9f">
+      <source xml:lang="en">Connecting to Database</source>
+    </trans-unit>
     <trans-unit id="++CODE++4f7403da68117c9595b82a6c264837910b1421a60537bcfa77a004a58b0a4c7a">
       <source xml:lang="en">Connecting to server &quot;{0}&quot; on document &quot;{1}&quot;.</source>
       <note>{0} is the server name
@@ -653,6 +656,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ddb621f87c5c0baf1158d527d62ad1bf9752e53483d2540591ce3ae35e06fd6b">
       <source xml:lang="en">Connection Error</source>
+    </trans-unit>
+    <trans-unit id="++CODE++42aa4e7bc5d2c21a58bb8444c81129c26ccb652e805a73266e8737c55981a6a3">
+      <source xml:lang="en">Connection Failed</source>
     </trans-unit>
     <trans-unit id="++CODE++fea70af0cad96e7c97f889724e5dfe0e2d28cbf958e905f5e51ba2584c3d9458">
       <source xml:lang="en">Connection Group</source>
@@ -842,6 +848,15 @@
     </trans-unit>
     <trans-unit id="++CODE++05a2d7332eb9d8bf164487c743a2e93c21b16bb2061a93e3ee2ceb508eadb753">
       <source xml:lang="en">Deny</source>
+    </trans-unit>
+    <trans-unit id="++CODE++05081f14d114ed28b2997927154de0eb554e2938d0254935df8bf9b4a129769f">
+      <source xml:lang="en">Deployment Failed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d88868890471c6cc2ac101b2e2d848718a71936be8158d3c57ec81840fbefa54">
+      <source xml:lang="en">Deployment Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cc51187ae9dbe9ccc606865c0177000cdeca2af5bca1c36c7f3065882c6ee18b">
+      <source xml:lang="en">Deployment in progress</source>
     </trans-unit>
     <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
       <source xml:lang="en">Description</source>
@@ -1218,6 +1233,9 @@
     <trans-unit id="++CODE++a6c7a84baa6750fce33f7512acd6793e53def1d228b5f2efb8074b42648424fc">
       <source xml:lang="en">Finish</source>
     </trans-unit>
+    <trans-unit id="++CODE++1b301aefb6d539ae0f9ad9d0a548549459322b5271d33f2b041df5c096e996b6">
+      <source xml:lang="en">Finished Deployment</source>
+    </trans-unit>
     <trans-unit id="++CODE++b9ab95c28bb1c6c21592e63cc03daacec4bb7be9774e47ec9a1c6f8721e26b08">
       <source xml:lang="en">Finished query execution for document &quot;{0}&quot;</source>
       <note>{0} is the document name</note>
@@ -1571,6 +1589,9 @@
     </trans-unit>
     <trans-unit id="++CODE++136a37d2ee433b1eb4302a84ebee86659922e34ca61c2383bc863191b5aeeafa">
       <source xml:lang="en">Loading text view...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++58878f300e53ea741b29ea101504537639f39f997791a5950d225f8353fad887">
+      <source xml:lang="en">Loading workspaces</source>
     </trans-unit>
     <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
       <source xml:lang="en">Loading...</source>
@@ -1979,6 +2000,9 @@
     <trans-unit id="++CODE++7c68cc7494a11be986cf0d4ac8e2acb67d5aa67b35151c2435cb1c51ccd060d8">
       <source xml:lang="en">Provider &apos;{0}&apos; does not have a Microsoft resource endpoint defined.</source>
       <note>{0} is the provider</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7">
+      <source xml:lang="en">Provisioning</source>
     </trans-unit>
     <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
       <source xml:lang="en">Publish</source>
@@ -2433,6 +2457,9 @@
     <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
       <source xml:lang="en">Start IP Address</source>
     </trans-unit>
+    <trans-unit id="++CODE++271189ae389a39d79c24cd43cee7e86f57b7543bd1aebe14817ea8981cfdfcde">
+      <source xml:lang="en">Start Time</source>
+    </trans-unit>
     <trans-unit id="++CODE++bdc02a6178825493234ef2190acba2fe15e3fb76a37fb9a740ea4e5b7b843961">
       <source xml:lang="en">Start, stop, and remove containers directly from the extension.</source>
     </trans-unit>
@@ -2657,6 +2684,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
+      <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
     </trans-unit>
     <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
       <source xml:lang="en">Timestamp</source>

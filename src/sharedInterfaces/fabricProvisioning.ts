@@ -30,9 +30,12 @@ export class FabricProvisioningWebviewState
     workspacesWithoutPermissions: Record<string, IWorkspace> = {};
     capacityIds: Set<string> = new Set<string>();
     userGroupIds: Set<string> = new Set<string>();
-    public deploymentStartTime: string = "";
-    public workspaces: IWorkspace[] = [];
-    public database: ISqlDbArtifact | undefined = undefined;
+    deploymentStartTime: string = "";
+    workspaces: IWorkspace[] = [];
+    databaseNamesInWorkspace: string[] = [];
+    database: ISqlDbArtifact | undefined = undefined;
+    tenantName: string = "";
+    workspaceName: string = "";
     /** Used to track the form validation state */
     formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
     /** Used to track fabric database provision state */
@@ -98,6 +101,7 @@ export interface FabricProvisioningContextProps
      * @param shouldOpen - A boolean indicating whether the dialog should be open or closed.
      */
     setConnectionGroupDialogState(shouldOpen: boolean): void;
+    dispose(): void;
 }
 
 export interface FabricProvisioningReducers extends FormReducers<FabricProvisioningFormState> {
@@ -125,4 +129,5 @@ export interface FabricProvisioningReducers extends FormReducers<FabricProvision
      * Handles the action of opening/closing the connection group dialog.
      */
     setConnectionGroupDialogState: { shouldOpen: boolean };
+    dispose: {};
 }
