@@ -45,6 +45,8 @@ export class SqlOutputContentProvider {
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
     private _queryResultWebviewController: QueryResultWebviewController;
     private _actualPlanStatuses: string[] = [];
+    // Throttle timers for state updates per result URI (messages, results, etc.)
+    private _stateUpdateTimers: Map<string, NodeJS.Timeout> = new Map();
 
     constructor(
         private _context: vscode.ExtensionContext,
@@ -425,7 +427,7 @@ export class SqlOutputContentProvider {
                     queryRunner.uri,
                 );
                 resultWebviewState.messages.push(message);
-                this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                this.scheduleThrottledUpdate(queryRunner.uri);
             });
             const onMessageListener = queryRunner.onMessage(async (message) => {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
@@ -434,7 +436,7 @@ export class SqlOutputContentProvider {
 
                 resultWebviewState.messages.push(message);
 
-                this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                this.scheduleThrottledUpdate(queryRunner.uri);
             });
             const onCompleteListener = queryRunner.onComplete(async (e) => {
                 const { totalMilliseconds, hasError, isRefresh } = e;
@@ -556,6 +558,25 @@ export class SqlOutputContentProvider {
     }
 
     /**
+     * Schedule a throttled state update for a given URI.
+     * Coalesces rapid updates (messages/results) into a single update.
+     */
+    private scheduleThrottledUpdate(uri: string, delayMs: number = 100): void {
+        if (this._stateUpdateTimers.has(uri)) {
+            return; // already scheduled
+        }
+        const timer = setTimeout(() => {
+            try {
+                const state = this._queryResultWebviewController.getQueryResultState(uri);
+                this.updateWebviewState(uri, state);
+            } finally {
+                this._stateUpdateTimers.delete(uri);
+            }
+        }, delayMs);
+        this._stateUpdateTimers.set(uri, timer);
+    }
+
+    /**
      * Executed from the MainController when an untitled text document was saved to the disk. If
      * any queries were executed from the untitled document, the queryrunner will be remapped to
      * a new resuls uri based on the uri of the newly saved file.
@@ -646,6 +667,12 @@ export class SqlOutputContentProvider {
     public cleanupRunner(uri: string): void {
         let queryRunnerState = this._queryResultsMap.get(uri);
         if (queryRunnerState) {
+            // Clear any pending throttled state update for this URI
+            const timer = this._stateUpdateTimers.get(uri);
+            if (timer) {
+                clearTimeout(timer);
+                this._stateUpdateTimers.delete(uri);
+            }
             this._queryResultsMap.delete(uri);
             queryRunnerState.listeners?.forEach((listener) => listener.dispose());
             if (queryRunnerState.queryRunner.isExecutingQuery) {

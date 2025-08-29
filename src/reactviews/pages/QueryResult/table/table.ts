@@ -58,6 +58,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     protected _tableContainer: HTMLElement;
     private selectionModel: CellSelectionModel<T>;
     public headerFilter: HeaderFilter<T>;
+    private _lastScrollAt: number = 0;
 
     constructor(
         parent: HTMLElement,
@@ -211,6 +212,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             }
 
             const viewport = this._grid.getViewport();
+            this._lastScrollAt = Date.now();
             await this.context.extensionRpc.sendNotification(
                 SetGridScrollPositionNotification.type,
                 {
@@ -338,11 +340,19 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             // Let SlickGrid finish its render tick before restoring focus/selection
             setTimeout(() => {
                 this.focus();
-                if (activeCell) {
-                    this._grid.setActiveCell(activeCell.row, activeCell.cell);
-                }
+                const recentlyScrolled = Date.now() - this._lastScrollAt < 250;
+                // Restore selection always – this does not force scroll
                 if (selectedRanges?.length) {
                     this.selectionModel.setSelectedRanges(selectedRanges);
+                }
+                // Only restore active cell if it would not force-scroll the viewport
+                if (activeCell && !recentlyScrolled) {
+                    const vp = this._grid.getViewport();
+                    const inView = activeCell.row >= vp.top && activeCell.row <= vp.bottom;
+                    if (inView) {
+                        this._grid.setActiveCell(activeCell.row, activeCell.cell);
+                    }
+                    // If not in view or user recently scrolled, skip restoring active cell to avoid snapping viewport
                 }
             }, 0);
         }
