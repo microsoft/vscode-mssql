@@ -1672,6 +1672,9 @@
     <trans-unit id="++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb">
       <source xml:lang="en">Loading execution plan...</source>
     </trans-unit>
+    <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
+      <source xml:lang="en">Loading tenants...</source>
+    </trans-unit>
     <trans-unit id="++CODE++136a37d2ee433b1eb4302a84ebee86659922e34ca61c2383bc863191b5aeeafa">
       <source xml:lang="en">Loading text view...</source>
     </trans-unit>

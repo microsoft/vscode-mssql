@@ -345,6 +345,7 @@
   "Currently signed in as:": "Currently signed in as:",
   "Loading Azure Accounts": "Loading Azure Accounts",
   "Tenant": "Tenant",
+  "Loading tenants...": "Loading tenants...",
   "Select a tenant": "Select a tenant",
   "Loading execution plan...": "Loading execution plan...",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
