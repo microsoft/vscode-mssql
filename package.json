@@ -246,7 +246,7 @@
                     },
                     {
                         "name": "getConnectionDetails",
-                        "description": "Shows a complete breakdown of the active connection: server name, database, version, authentication type, and connection string."
+                        "description": "Shows a complete breakdown of the active connection: server name, database, version, authentication type."
                     },
                     {
                         "name": "changeDatabase",
