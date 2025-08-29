@@ -15,7 +15,9 @@ import {
     disconnectedLabelPrefix,
     connectedLabelPrefix,
     serverDatabaseLabelPrefix,
+    errorLabelPrefix,
 } from "./chatConstants";
+import { getErrorMessage } from "../utils/utils";
 
 export enum CommandType {
     Simple = "simple",
@@ -85,7 +87,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
             return true; // Command was handled
         },
     },
-    connectionDetails: {
+    getConnectionDetails: {
         type: CommandType.Simple,
         requiresConnection: true,
         skipConnectionLabels: true, // Provides its own connection information
@@ -93,11 +95,36 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
             if (connectionUri && isConnectionActive(controller, connectionUri)) {
                 const connection = controller.connectionManager.getConnectionInfo(connectionUri);
                 if (connection) {
-                    const details =
-                        `${connectedLabelPrefix} **${loc.connectionDetails}**\n\n` +
-                        `${serverDatabaseLabelPrefix} **${loc.serverLabel}:** ${connection.credentials.server}\n` +
-                        `${serverDatabaseLabelPrefix} **${loc.databaseLabel}:** ${connection.credentials.database}\n` +
-                        `${serverDatabaseLabelPrefix} **${loc.authentication}:** ${connection.credentials.authenticationType || loc.sqlLogin}\n\n`;
+                    const serverInfo = controller.connectionManager.getServerInfo(
+                        connection.credentials,
+                    );
+
+                    let details = `${connectedLabelPrefix} **${loc.connectionDetails}**  \n`;
+
+                    // Basic connection info
+                    details += `${serverDatabaseLabelPrefix} **${loc.serverLabel}:** ${connection.credentials.server}  \n`;
+                    details += `${serverDatabaseLabelPrefix} **${loc.databaseLabel}:** ${connection.credentials.database}  \n`;
+                    details += `${serverDatabaseLabelPrefix} **${loc.authentication}:** ${connection.credentials.authenticationType || loc.sqlLogin}  \n`;
+
+                    // Server version information
+                    if (serverInfo) {
+                        if (serverInfo.serverVersion) {
+                            details += `${serverDatabaseLabelPrefix} **${loc.serverVersion}:** ${serverInfo.serverVersion}  \n`;
+                        }
+                        if (serverInfo.serverEdition) {
+                            details += `${serverDatabaseLabelPrefix} **${loc.serverEdition}:** ${serverInfo.serverEdition}  \n`;
+                        }
+                        if (serverInfo.isCloud !== undefined) {
+                            details += `${serverDatabaseLabelPrefix} **${loc.cloud}:** ${serverInfo.isCloud ? loc.yes : loc.no}  \n`;
+                        }
+                    }
+
+                    // User information (if not integrated auth)
+                    if (connection.credentials.user) {
+                        details += `${serverDatabaseLabelPrefix} **${loc.user}:** ${connection.credentials.user}  \n`;
+                    }
+
+                    details += "\n";
                     stream.markdown(details);
                 } else {
                     stream.markdown(
@@ -197,9 +224,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
                     stream.markdown(`${loc.foundSavedConnectionProfiles(profiles.length)}\n\n`);
                 }
             } catch (error) {
-                stream.markdown(
-                    `${disconnectedLabelPrefix} ${loc.errorRetrievingServerList(error instanceof Error ? error.message : loc.unknownError)}\n\n`,
-                );
+                throw error; // Let main catch handle error telemetry and user message
             }
 
             return true; // Command was handled
@@ -382,6 +407,9 @@ export async function handleChatCommand(
                 errorType: "exception",
             },
         );
-        throw error;
+        return {
+            handled: true,
+            errorMessage: `${errorLabelPrefix} ${getErrorMessage(error)}\n\n`,
+        };
     }
 }

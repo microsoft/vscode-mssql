@@ -1764,6 +1764,10 @@
   "No active connection for database change": "No active connection for database change",
   "Connection Details": "Connection Details",
   "Authentication": "Authentication",
+  "Server Version": "Server Version",
+  "Server Edition": "Server Edition",
+  "Cloud": "Cloud",
+  "User": "User",
   "No connection information found": "No connection information found",
   "No active connection": "No active connection",
   "Opening schema designer...": "Opening schema designer...",
@@ -1791,7 +1795,7 @@
     ]
   },
   "Unknown error": "Unknown error",
-  "No active database connection. Please connect first using `/connect`.": "No active database connection. Please connect first using `/connect`.",
+  "No active database connection in the current editor. Please establish a connection to continue.": "No active database connection in the current editor. Please establish a connection to continue.",
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
   "Cancel failed: {0}/{0} is the error message": {
     "message": "Cancel failed: {0}",

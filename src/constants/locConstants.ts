@@ -1507,6 +1507,12 @@ export class MssqlChatAgent {
     public static databaseLabel = l10n.t("Database");
     public static authentication = l10n.t("Authentication");
     public static sqlLogin = l10n.t("SQL Login");
+    public static serverVersion = l10n.t("Server Version");
+    public static serverEdition = l10n.t("Server Edition");
+    public static cloud = l10n.t("Cloud");
+    public static yes = l10n.t("Yes");
+    public static no = l10n.t("No");
+    public static user = l10n.t("User");
     public static noConnectionInformationFound = l10n.t("No connection information found");
     public static noActiveConnection = l10n.t("No active connection");
     public static openingSchemaDesigner = l10n.t("Opening schema designer...");
@@ -1539,7 +1545,7 @@ export class MssqlChatAgent {
     };
     public static unknownError = l10n.t("Unknown error");
     public static noActiveDatabaseConnection = l10n.t(
-        "No active database connection. Please connect first using `/connect`.",
+        "No active database connection in the current editor. Please establish a connection to continue.",
     );
 }
 

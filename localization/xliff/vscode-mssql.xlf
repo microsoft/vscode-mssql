@@ -505,6 +505,9 @@
     <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
       <source xml:lang="en">Close the current connection</source>
     </trans-unit>
+    <trans-unit id="++CODE++b977b950c1ae31e5aeb9ef778cc20a66fc034eb81e738e0206104b677962c465">
+      <source xml:lang="en">Cloud</source>
+    </trans-unit>
     <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
       <source xml:lang="en">Collapse</source>
     </trans-unit>
@@ -1716,8 +1719,8 @@
     <trans-unit id="++CODE++796911143ea8bb8e1ff88271e2618eb63b05d9e04cdf6e9363533b0715ab3574">
       <source xml:lang="en">No active connection for schema view</source>
     </trans-unit>
-    <trans-unit id="++CODE++f1311636cfce6dd7e5b8971f59cacbd1d06aac1951d5f85eaaf164453f559686">
-      <source xml:lang="en">No active database connection. Please connect first using `/connect`.</source>
+    <trans-unit id="++CODE++d932a05eba0200bedb4b5449ce9e6487525ba3ecfd164e137388fd0833b4121b">
+      <source xml:lang="en">No active database connection in the current editor. Please establish a connection to continue.</source>
     </trans-unit>
     <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
       <source xml:lang="en">No changes detected</source>
@@ -2330,6 +2333,12 @@
       <source xml:lang="en">Server - {0}</source>
       <note>{0} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++6b0054dcd0116896729545198c9cdfe9b8f97008d91d39084e5c8808a6784c58">
+      <source xml:lang="en">Server Edition</source>
+    </trans-unit>
+    <trans-unit id="++CODE++86c1cd65696eadbc588fd4fe04d8b03ca948befc5a89467c621edf47f885118c">
+      <source xml:lang="en">Server Version</source>
+    </trans-unit>
     <trans-unit id="++CODE++1c53883708ab16a3743793905feb38c8e77c295d846ff276491831e1de69b6e1">
       <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
     </trans-unit>
@@ -2743,6 +2752,9 @@
     <trans-unit id="++CODE++6fa7eeedfe2d3774f7d0d8fbb044c15710f171f58174bf7435ab1757e92d0c27">
       <source xml:lang="en">Use {0} to create a new connection.</source>
       <note>{0} is the connect command</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b512d97e7cbf97c273e4db073bbb547aa65a84589227f8f3d9e4a72b9372a24d">
+      <source xml:lang="en">User</source>
     </trans-unit>
     <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
       <source xml:lang="en">User name</source>

@@ -245,7 +245,7 @@
                         "description": "Analyze query performance and suggest improvements (e.g., indexing, restructuring)."
                     },
                     {
-                        "name": "connectionDetails",
+                        "name": "getConnectionDetails",
                         "description": "Shows a complete breakdown of the active connection: server name, database, version, authentication type, and connection string."
                     },
                     {
