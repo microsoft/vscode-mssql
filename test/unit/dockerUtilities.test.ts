@@ -770,7 +770,7 @@ suite("Docker Utilities", () => {
             .onSecondCall()
             .returns(
                 createSuccessProcess(
-                    "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
+                    "C:/Program Files/Docker/Docker/resources/bin/docker.exe",
                 ) as any,
             ); // GET_DOCKER_PATH
         spawnStub.onThirdCall().returns(createSuccessProcess("Started Docker") as any); // START_DOCKER (execDockerCommand)
