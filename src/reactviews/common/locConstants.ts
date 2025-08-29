@@ -220,7 +220,7 @@ export class LocConstants {
             showAll: l10n.t("Show All"),
             sqlAnalyticsEndpoint: l10n.t("SQL Analytics Endpoint"),
             sqlDatabase: l10n.t("SQL Database"),
-            noWorkspacesAvailable: l10n.t("No workspaces available"),
+            noWorkspacesFound: l10n.t("No workspaces found"),
             nameColumnHeader: l10n.t("Name"),
             typeColumnHeader: l10n.t("Type"),
             locationColumnHeader: l10n.t("Location (Workspace)"),

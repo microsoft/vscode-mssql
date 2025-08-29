@@ -184,7 +184,11 @@ export const FabricWorkspacesList = ({
                         <>
                             {!filteredWorkspaces ||
                                 (filteredWorkspaces.length === 0 && (
-                                    <Label>{Loc.connectionDialog.noWorkspacesAvailable}</Label>
+                                    <div className={styles.workspaceListMessageContainer}>
+                                        <Text className={styles.messageText}>
+                                            {Loc.connectionDialog.noWorkspacesFound}
+                                        </Text>
+                                    </div>
                                 ))}
                             {filteredWorkspaces.length > 0 && (
                                 <List

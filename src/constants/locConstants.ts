@@ -664,8 +664,8 @@ export class ObjectExplorer {
 
 export class ConnectionDialog {
     public static connectionDialog = l10n.t("Connection Dialog");
-    public static azureAccount = l10n.t("Azure Account");
-    public static azureAccountIsRequired = l10n.t("Azure Account is required");
+    public static microsoftAccount = l10n.t("Microsoft Account");
+    public static microsoftAccountIsRequired = l10n.t("Microsoft Account is required");
     public static selectAnAccount = l10n.t("Select an account");
     public static savePassword = l10n.t("Save Password");
     public static tenantId = l10n.t("Tenant ID");

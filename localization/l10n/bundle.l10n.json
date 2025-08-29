@@ -250,7 +250,7 @@
   "Show All": "Show All",
   "SQL Analytics Endpoint": "SQL Analytics Endpoint",
   "SQL Database": "SQL Database",
-  "No workspaces available": "No workspaces available",
+  "No workspaces found": "No workspaces found",
   "Location (Workspace)": "Location (Workspace)",
   "Expand Workspace Explorer": "Expand Workspace Explorer",
   "Explorer": "Explorer",
@@ -1254,7 +1254,8 @@
     ]
   },
   "Connection Dialog": "Connection Dialog",
-  "Azure Account is required": "Azure Account is required",
+  "Microsoft Account": "Microsoft Account",
+  "Microsoft Account is required": "Microsoft Account is required",
   "Save Password": "Save Password",
   "Tenant ID is required": "Tenant ID is required",
   "Connection Group": "Connection Group",

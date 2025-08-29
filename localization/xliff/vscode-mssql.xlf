@@ -258,9 +258,6 @@
     <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
       <source xml:lang="en">Azure Account</source>
     </trans-unit>
-    <trans-unit id="++CODE++9caca4621a4e79e9eba8871a8b0772c87fe7af38b1e5ce6518083abfd676c241">
-      <source xml:lang="en">Azure Account is required</source>
-    </trans-unit>
     <trans-unit id="++CODE++34ec466979918ed648dd5ae40b41e849fa6398b0d0a5f076ac3b0061d149d168">
       <source xml:lang="en">Azure Code Grant</source>
     </trans-unit>
@@ -1738,6 +1735,12 @@
     <trans-unit id="++CODE++2d275a74912cca2e02e6d41f9cae3a75ceef3ed0ef734eff3710e10eb7112228">
       <source xml:lang="en">Metric</source>
     </trans-unit>
+    <trans-unit id="++CODE++e62105462009615e24c43715b276cc4743f4efd9bfd6e1e4bc108a5f9a328be9">
+      <source xml:lang="en">Microsoft Account</source>
+    </trans-unit>
+    <trans-unit id="++CODE++871ca3cb96885bd9a333a1d2914f5f4782b9d0477bcfddd603db5e4f98bde56a">
+      <source xml:lang="en">Microsoft Account is required</source>
+    </trans-unit>
     <trans-unit id="++CODE++8055a31cb4833efbf1b76994151d8256bfc8500f2985d3d0ab1cf222dd91a043">
       <source xml:lang="en">Microsoft Corp</source>
     </trans-unit>
@@ -1888,8 +1891,8 @@
     <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
       <source xml:lang="en">No tools to process.</source>
     </trans-unit>
-    <trans-unit id="++CODE++663c666b98596ee2becded8ac3b2a7cf3fc428585f67937544aa219d8ad8f4b4">
-      <source xml:lang="en">No workspaces available</source>
+    <trans-unit id="++CODE++1507d637b267b1f20c1238414d7e51458fe7d6b98b292a8497d9982634fbe83c">
+      <source xml:lang="en">No workspaces found</source>
     </trans-unit>
     <trans-unit id="++CODE++f567a09466c3451f2b171ee4b409a52f3aea306cea3bd4ca9ad4cef8669f1856">
       <source xml:lang="en">No workspaces found. Please change Fabric account or tenant to view available workspaces.</source>
