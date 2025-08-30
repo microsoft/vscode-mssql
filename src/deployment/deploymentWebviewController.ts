@@ -108,17 +108,13 @@ export class DeploymentWebviewController extends FormWebviewController<
                     payload,
                 );
             } else {
-                console.log("Form action: ", payload);
-                // delegate to FormWebviewController's reducer
-                const updatedState = (await this.handleFormAction(
+                state = (await this.handleDeploymentFormAction(
                     state,
                     payload,
                 )) as DeploymentWebviewState;
-                state = updatedState;
                 state.deploymentTypeState.formState = state.formState;
                 state.deploymentTypeState.formErrors = state.formErrors;
                 state.deploymentTypeState.formComponents = state.formComponents as any;
-                console.log("Updated state: ", state);
             }
 
             return state;
@@ -184,6 +180,30 @@ export class DeploymentWebviewController extends FormWebviewController<
         state: DeploymentWebviewState,
     ): (keyof DeploymentFormState)[] {
         return Object.keys(state.formComponents) as (keyof DeploymentFormState)[];
+    }
+
+    private async handleDeploymentFormAction(state, payload) {
+        if (payload.event.isAction) {
+            const component = state.formComponents[payload.event.propertyName];
+            if (component && component.actionButtons) {
+                const actionButton = component.actionButtons.find(
+                    (b) => b.id === payload.event.value,
+                );
+                if (actionButton?.callback) {
+                    await actionButton.callback();
+                }
+            }
+        } else {
+            (state.formState[
+                payload.event.propertyName
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ] as any) = payload.event.value;
+            this.state.deploymentTypeState.formState = state.formState;
+            await this.validateDeploymentForm(payload.event.propertyName);
+        }
+        await this.updateItemVisibility();
+
+        return state;
     }
 
     public async validateDeploymentForm(

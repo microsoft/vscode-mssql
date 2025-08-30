@@ -35,6 +35,9 @@
     <trans-unit id="++CODE++6ab58ce9ca23e017bf594366b66b620458a5580640ddaf3aebf96f3c8fdf0977">
       <source xml:lang="en">A firewall rule is required to access this server.</source>
     </trans-unit>
+    <trans-unit id="++CODE++6b262b5e3f3a492b857cb857bded5d039fa91cbc72a121ef398ef5676b2be947">
+      <source xml:lang="en">A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services</source>
+    </trans-unit>
     <trans-unit id="++CODE++880a0618dd92395efe1446e54fe5d50854c148586fdc14f5da8aecda61c827ae">
       <source xml:lang="en">A predefined global default value for the column or binding.</source>
     </trans-unit>
@@ -278,6 +281,9 @@
     <trans-unit id="++CODE++29852e83a6613ccf439cb69654f96550fd0ce1de27609b5167992cef02a9ea55">
       <source xml:lang="en">Azure: Sign In with Device Code</source>
     </trans-unit>
+    <trans-unit id="++CODE++76900f1bfd16c8d4dd3d25e6f46638d7165aee23883ccea6bfe071c514421769">
+      <source xml:lang="en">Back</source>
+    </trans-unit>
     <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
       <source xml:lang="en">Back to preview</source>
     </trans-unit>
@@ -457,6 +463,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2191d6b3f382356ffd46db277fcd0896e4b5f73a62989e0af8754832ed84c319">
       <source xml:lang="en">Choose a port to host the SQL Server Docker Container</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8dc22bcccf1fa2165bc27bcd3af9d5979985733f54896c185307a1ccd0e0d134">
+      <source xml:lang="en">Choose an option to provision a database</source>
     </trans-unit>
     <trans-unit id="++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0">
       <source xml:lang="en">Choose color</source>
@@ -762,6 +771,12 @@
     <trans-unit id="++CODE++037da908d1a0194c30554abfd678cc6ecc4762a021237b597c1205add3de7a4f">
       <source xml:lang="en">Create New Connection Group</source>
     </trans-unit>
+    <trans-unit id="++CODE++2491afdca82a92663822feb8cd1ef045295b05178959965f47eb4d8b41058e47">
+      <source xml:lang="en">Create a Local Docker SQL Server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9a7e5fd0bc07cda4a2566f5511731060a3ea3c0ba1e458357c673faf73ac7ca4">
+      <source xml:lang="en">Create a SQL Database in Fabric</source>
+    </trans-unit>
     <trans-unit id="++CODE++1c67dff33030f48bfc399c9c9c43fb0c67e6986d741c12604cfd9cdf6f03bcb9">
       <source xml:lang="en">Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.</source>
     </trans-unit>
@@ -929,6 +944,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
       <source xml:lang="en">Don&apos;t Show Again</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
+      <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
     </trans-unit>
     <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
       <source xml:lang="en">Edit</source>
@@ -1596,11 +1614,17 @@
     <trans-unit id="++CODE++10a371b8dc47cdf83c4cd7f926daf76305a6b52311a69b3087d744151dc53501">
       <source xml:lang="en">Loading Table Designer</source>
     </trans-unit>
-    <trans-unit id="++CODE++02bb7cb27116645ab68671a04d8f35d473c32d981ec5ec784e8aa20e9067c2a2">
-      <source xml:lang="en">Loading deployment page...</source>
+    <trans-unit id="++CODE++d1fdc252fab1c642cc1b487dbb6658fd77d5831e03b3d391b4c73b01226d75ff">
+      <source xml:lang="en">Loading deployment</source>
     </trans-unit>
     <trans-unit id="++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb">
       <source xml:lang="en">Loading execution plan...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5aa7a4eb1f103858e56dc2f529435ff221afa8e7ff280a24ec6bbd810dd5b163">
+      <source xml:lang="en">Loading fabric provisioning...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++934bbb16d95b8f72c6353bba1afc96aee3975ae50aaca4b3abe9389f292b4987">
+      <source xml:lang="en">Loading local containers...</source>
     </trans-unit>
     <trans-unit id="++CODE++136a37d2ee433b1eb4302a84ebee86659922e34ca61c2383bc863191b5aeeafa">
       <source xml:lang="en">Loading text view...</source>
@@ -1714,6 +1738,9 @@
     <trans-unit id="++CODE++4a00fefe019ef43393da250ba4b62d7b6af849a1acac99b1192ffbeda8828fe7">
       <source xml:lang="en">New Column Mapping</source>
     </trans-unit>
+    <trans-unit id="++CODE++ab23a59c68316fe4f3a53c610bdf6d7a43090ced0e69ce60895361f176ce93f6">
+      <source xml:lang="en">New Deployment</source>
+    </trans-unit>
     <trans-unit id="++CODE++b71586503f1694b5328fa16ed600eb0d20d4d9608dfb54f44ae97fe4ac43f0bf">
       <source xml:lang="en">New Foreign Key</source>
     </trans-unit>
@@ -1722,6 +1749,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6334507f512e52b67d0a5a0fb392e35e5d3acc29acdce7218f66b6199150f589">
       <source xml:lang="en">New Microsoft Entra account could not be added.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b4c5f1e4a0aa7e76ff536db2405a1dc104afa4d291f29eb04656cae55facd5bd">
+      <source xml:lang="en">New SQL Database</source>
     </trans-unit>
     <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
       <source xml:lang="en">New column mapping</source>
@@ -3322,7 +3352,7 @@
     <trans-unit id="mssql.query.textSize">
       <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
     </trans-unit>
-    <trans-unit id="mssql.deployLocalDockerContainer">
+    <trans-unit id="mssql.newDeployment">
       <source xml:lang="en">New Deployment</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorerNewQuery">
@@ -3369,9 +3399,6 @@
     </trans-unit>
     <trans-unit id="mssql.authCodeGrant.description">
       <source xml:lang="en">Prompts users to sign in using their browser.</source>
-    </trans-unit>
-    <trans-unit id="mssql.provisionFabricDb">
-      <source xml:lang="en">Provision Fabric Database</source>
     </trans-unit>
     <trans-unit id="extension.queryHistory">
       <source xml:lang="en">Query History</source>

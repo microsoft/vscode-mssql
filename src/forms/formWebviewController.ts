@@ -29,42 +29,32 @@ export abstract class FormWebviewController<
 
     private registerFormRpcHandlers() {
         this.registerReducer("formAction", async (state, payload) => {
-            return await this.handleFormAction(state, payload);
-        });
-    }
-
-    /**
-     * Handles form actions
-     * @param state The current state
-     * @param payload The action payload
-     * @returns The updated state
-     */
-    public async handleFormAction(state: TState, payload: TReducers["formAction"]) {
-        if (payload.event.isAction) {
-            const component = this.getFormComponent(state, payload.event.propertyName);
-            if (component && component.actionButtons) {
-                const actionButton = component.actionButtons.find(
-                    (b) => b.id === payload.event.value,
-                );
-                if (actionButton?.callback) {
-                    await actionButton.callback();
+            if (payload.event.isAction) {
+                const component = this.getFormComponent(this.state, payload.event.propertyName);
+                if (component && component.actionButtons) {
+                    const actionButton = component.actionButtons.find(
+                        (b) => b.id === payload.event.value,
+                    );
+                    if (actionButton?.callback) {
+                        await actionButton.callback();
+                    }
                 }
+            } else {
+                (this.state.formState[
+                    payload.event.propertyName
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ] as any) = payload.event.value;
+                await this.validateForm(
+                    this.state.formState,
+                    payload.event.propertyName,
+                    payload.event.updateValidation,
+                );
+                await this.afterSetFormProperty(payload.event.propertyName);
             }
-        } else {
-            (state.formState[
-                payload.event.propertyName
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ] as any) = payload.event.value;
-            await this.validateForm(
-                state.formState,
-                payload.event.propertyName,
-                payload.event.updateValidation,
-            );
-            await this.afterSetFormProperty(payload.event.propertyName);
-        }
-        await this.updateItemVisibility();
+            await this.updateItemVisibility();
 
-        return state;
+            return state;
+        });
     }
 
     /**
@@ -99,13 +89,13 @@ export abstract class FormWebviewController<
         }
 
         if (propertyName) {
-            const component = self.state.formComponents[propertyName];
+            const component = this.state.formComponents[propertyName];
             if (component) {
                 validateComponent(component);
             }
         } else {
-            self.getActiveFormComponents(self.state)
-                .map((x) => self.state.formComponents[x])
+            this.getActiveFormComponents(this.state)
+                .map((x) => this.state.formComponents[x])
                 .forEach((c) => {
                     if (c.hidden) {
                         c.validation = {
@@ -118,7 +108,6 @@ export abstract class FormWebviewController<
                     }
                 });
         }
-        console.log(erroredInputs);
 
         return erroredInputs;
     }

@@ -234,8 +234,6 @@ export class FabricHelper {
             tenantId,
         );
 
-        console.log(response);
-
         return response;
     }
 

@@ -96,7 +96,6 @@ export function registerFabricProvisioningReducers(
         state.deploymentTypeState = fabricProvisioningState;
         state.formState = fabricProvisioningState.formState;
         state.formErrors = fabricProvisioningState.formErrors;
-        console.log(state);
         return state;
     });
     deploymentController.registerReducer("createDatabase", async (state, _payload) => {
@@ -108,7 +107,8 @@ export function registerFabricProvisioningReducers(
             fabricProvisioningState,
             fabricProvisioningState.formState.workspace,
         );
-        state.formErrors = await deploymentController.validateDeploymentForm();
+        updatefabricProvisioningState(deploymentController, fabricProvisioningState);
+        fabricProvisioningState.formErrors = await deploymentController.validateDeploymentForm();
         if (fabricProvisioningState.formErrors.length === 0) {
             provisionDatabase(deploymentController);
             fabricProvisioningState.deploymentStartTime = new Date().toUTCString();
@@ -203,7 +203,6 @@ export function setFabricProvisioningFormComponents(
             placeholder: FabricProvisioning.enterDatabaseName,
             validate(state: fp.FabricProvisioningState, value: string) {
                 {
-                    console.log("Validating database name: ", value, state);
                     if (!value) {
                         return {
                             isValid: false,
@@ -559,7 +558,6 @@ export async function handleWorkspaceFormAction(
     state: fp.FabricProvisioningState,
     workspaceId: string,
 ): Promise<fp.FabricProvisioningState> {
-    console.log("A");
     const workspace = state.workspacesWithPermissions[workspaceId];
     if (workspace && !workspace.role) {
         delete state.workspacesWithPermissions[workspace.id];
@@ -602,7 +600,6 @@ export async function handleWorkspaceFormAction(
     if (!databaseNameValidation.isValid) {
         state.formErrors.push("databaseName");
     }
-    console.log(state.formErrors);
     return state;
 }
 

@@ -123,6 +123,7 @@
   "Dismiss": "Dismiss",
   "Error": "Error",
   "Get Started": "Get Started",
+  "Back": "Back",
   "Clear All": "Clear All",
   "OK": "OK",
   "And": "And",
@@ -698,8 +699,15 @@
   "Hue": "Hue",
   "Saturation": "Saturation",
   "Brightness": "Brightness",
-  "Loading deployment page...": "Loading deployment page...",
+  "Loading deployment": "Loading deployment",
+  "New SQL Database": "New SQL Database",
+  "Choose an option to provision a database": "Choose an option to provision a database",
   "Local SQL Server database container": "Local SQL Server database container",
+  "Create a Local Docker SQL Server": "Create a Local Docker SQL Server",
+  "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!": "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
+  "Create a SQL Database in Fabric": "Create a SQL Database in Fabric",
+  "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services": "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
+  "Loading local containers...": "Loading local containers...",
   "Instant Container Setup": "Instant Container Setup",
   "Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.": "Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.",
   "Simple Container Management": "Simple Container Management",
@@ -717,6 +725,7 @@
   "Hide full error message": "Hide full error message",
   "Show full error message": "Show full error message",
   "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
+  "Loading fabric provisioning...": "Loading fabric provisioning...",
   "SQL Database in Fabric": "SQL Database in Fabric",
   "Create Database": "Create Database",
   "Loading workspaces": "Loading workspaces",
@@ -1162,6 +1171,7 @@
     ]
   },
   "Enable Experiences & Reload": "Enable Experiences & Reload",
+  "New Deployment": "New Deployment",
   "Error loading; refresh to try again": "Error loading; refresh to try again",
   "No items": "No items",
   "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
@@ -1304,7 +1314,6 @@
       "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum"
     ]
   },
-  "Create Local SQL Container": "Create Local SQL Container",
   "{0} stopped successfully./{0} stopped successfully.": {
     "message": "{0} stopped successfully.",
     "comment": [
@@ -1406,6 +1415,7 @@
   "Container failed to start within the timeout period. Please wait a few minutes and try again.": "Container failed to start within the timeout period. Please wait a few minutes and try again.",
   "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.": "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.",
   "Install Docker": "Install Docker",
+  "Create Local SQL Container": "Create Local SQL Container",
   "Starting Docker...": "Starting Docker...",
   "Starting Container...": "Starting Container...",
   "Readying container for connections...": "Readying container for connections...",
