@@ -22,6 +22,7 @@ export interface IConnectionGroup {
     parentId?: string;
     color?: string;
     description?: string;
+    scope?: "user" | "workspace";
 }
 
 /**
@@ -41,6 +42,7 @@ export interface ConnectionGroupState {
     description?: string;
     color?: string;
     message?: string;
+    scope?: "user" | "workspace";
 }
 
 /**
@@ -68,4 +70,5 @@ export interface ConnectionGroupSpec {
     name: string;
     description?: string;
     color?: string;
+    scope: "user" | "workspace";
 }
