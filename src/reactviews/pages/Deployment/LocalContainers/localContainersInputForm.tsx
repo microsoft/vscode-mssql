@@ -10,7 +10,7 @@ import { LocalContainersSetupStepsPage } from "./localContainersSetupStepsPage";
 import {
     LocalContainersContextProps,
     LocalContainersFormItemSpec,
-    LocalContainersWebviewState,
+    LocalContainersState,
     DockerConnectionProfile,
 } from "../../../../sharedInterfaces/localContainers";
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
@@ -65,8 +65,7 @@ export const LocalContainersInputForm: React.FC = () => {
     const [showNext, setShowNext] = useState(false);
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
     const deploymentState = state?.state;
-    const localContainersState =
-        deploymentState?.deploymentTypeState as LocalContainersWebviewState;
+    const localContainersState = deploymentState?.deploymentTypeState as LocalContainersState;
 
     if (!state || !deploymentState || !localContainersState) return undefined;
 
@@ -99,7 +98,7 @@ export const LocalContainersInputForm: React.FC = () => {
                     }>
                     <FormField<
                         DockerConnectionProfile,
-                        LocalContainersWebviewState,
+                        LocalContainersState,
                         LocalContainersFormItemSpec,
                         LocalContainersContextProps
                     >
@@ -140,7 +139,7 @@ export const LocalContainersInputForm: React.FC = () => {
                     {renderFormFields(false)}
                     <FormField<
                         DockerConnectionProfile,
-                        LocalContainersWebviewState,
+                        LocalContainersState,
                         LocalContainersFormItemSpec,
                         LocalContainersContextProps
                     >
@@ -195,7 +194,7 @@ export const LocalContainersInputForm: React.FC = () => {
                         }}>
                         <FormField<
                             DockerConnectionProfile,
-                            LocalContainersWebviewState,
+                            LocalContainersState,
                             LocalContainersFormItemSpec,
                             LocalContainersContextProps
                         >

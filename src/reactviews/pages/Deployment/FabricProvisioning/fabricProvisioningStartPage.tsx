@@ -8,9 +8,9 @@ import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
-import { FabricProvisioningInfoPage } from "./fabricProvisioningInfoPage";
 import { DeploymentContext } from "../deploymentStateProvider";
-import { FabricProvisioningWebviewState } from "../../../../sharedInterfaces/fabricProvisioning";
+import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
+import { FabricProvisioningInputForm } from "./fabricProvisioningInputForm";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -38,8 +38,7 @@ const useStyles = makeStyles({
 export const FabricProvisioningStartPage = () => {
     const classes = useStyles();
     const state = useContext(DeploymentContext);
-    const fabricProvisioningState = state?.state
-        .deploymentTypeState as FabricProvisioningWebviewState;
+    const fabricProvisioningState = state?.state.deploymentTypeState as FabricProvisioningState;
 
     const renderMainContent = () => {
         switch (fabricProvisioningState?.loadState) {
@@ -47,13 +46,13 @@ export const FabricProvisioningStartPage = () => {
                 return (
                     <div className={classes.spinnerDiv}>
                         <Spinner
-                            label={locConstants.localContainers.loadingDeploymentPage}
+                            label={locConstants.fabricProvisioning.loadingFabricProvisioning}
                             labelPosition="below"
                         />
                     </div>
                 );
             case ApiStatus.Loaded:
-                return <FabricProvisioningInfoPage />;
+                return <FabricProvisioningInputForm />;
             case ApiStatus.Error:
                 return (
                     <div className={classes.spinnerDiv}>

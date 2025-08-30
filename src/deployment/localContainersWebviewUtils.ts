@@ -26,9 +26,9 @@ import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 
 export async function initializeLocalContainersState(
-    state: lc.LocalContainersWebviewState,
+    state: lc.LocalContainersState,
     groupOptions: FormItemOptions[],
-): Promise<lc.LocalContainersWebviewState> {
+): Promise<lc.LocalContainersState> {
     state.platform = platform();
     const versions = await dockerUtils.getSqlServerContainerVersions();
     state.formComponents = setLocalContainersFormComponents(versions, groupOptions);
@@ -50,8 +50,7 @@ export async function initializeLocalContainersState(
 
 export function registerLocalContainersReducers(deploymentController: DeploymentWebviewController) {
     deploymentController.registerReducer("completeDockerStep", async (state, payload) => {
-        const localContainersWebviewState =
-            state.deploymentTypeState as lc.LocalContainersWebviewState;
+        const localContainersWebviewState = state.deploymentTypeState as lc.LocalContainersState;
         const currentStepNumber = payload.dockerStep;
         const currentStep = localContainersWebviewState.dockerSteps[currentStepNumber];
         if (currentStep.loadState !== ApiStatus.NotStarted) return state;
@@ -135,8 +134,7 @@ export function registerLocalContainersReducers(deploymentController: Deployment
         return state;
     });
     deploymentController.registerReducer("resetDockerStepState", async (state, _payload) => {
-        const localContainersWebviewState =
-            state.deploymentTypeState as lc.LocalContainersWebviewState;
+        const localContainersWebviewState = state.deploymentTypeState as lc.LocalContainersState;
         // Reset the current step to NotStarted
         const currentStepNumber = localContainersWebviewState.currentDockerStep;
         localContainersWebviewState.dockerSteps[currentStepNumber].loadState = ApiStatus.NotStarted;
@@ -147,8 +145,7 @@ export function registerLocalContainersReducers(deploymentController: Deployment
         return state;
     });
     deploymentController.registerReducer("checkDockerProfile", async (state, _payload) => {
-        const localContainersWebviewState =
-            state.deploymentTypeState as lc.LocalContainersWebviewState;
+        const localContainersWebviewState = state.deploymentTypeState as lc.LocalContainersState;
         state.deploymentTypeState.formValidationLoadState = ApiStatus.Loading;
         deploymentController.updateState(state);
         let newDeploymentTypeState = { ...localContainersWebviewState };
@@ -186,18 +183,18 @@ export function registerLocalContainersReducers(deploymentController: Deployment
 }
 
 export async function handleLocalContainersFormAction(
-    state: lc.LocalContainersWebviewState,
+    state: lc.LocalContainersState,
     payload: DeploymentCommonReducers["formAction"],
-): Promise<lc.LocalContainersWebviewState> {
+): Promise<lc.LocalContainersState> {
     (state.formState as any)[payload.event.propertyName] = payload.event.value;
 
     return await validateDockerConnectionProfile(state, payload.event.propertyName);
 }
 
 export async function validateDockerConnectionProfile(
-    state: lc.LocalContainersWebviewState,
+    state: lc.LocalContainersState,
     propertyName?: keyof lc.DockerConnectionProfile,
-): Promise<lc.LocalContainersWebviewState> {
+): Promise<lc.LocalContainersState> {
     const erroredInputs: string[] = [];
     const components = propertyName
         ? [state.formComponents[propertyName]]
@@ -260,15 +257,17 @@ export async function validatePort(port: string): Promise<boolean> {
     return newPort === portNumber;
 }
 
-export function sendLocalContainersCloseEventTelemetry(
-    state: lc.LocalContainersWebviewState,
-): void {
-    sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.CloseLocalContainers, {
-        // Include the current step, its status, and its potential error in the telemetry
-        currentStep: lc.DockerStepOrder[state.currentDockerStep],
-        currentStepStatus: state.dockerSteps[state.currentDockerStep]?.loadState,
-        currentStepErrorMessage: state.dockerSteps[state.currentDockerStep]?.errorMessage,
-    });
+export function sendLocalContainersCloseEventTelemetry(state: lc.LocalContainersState): void {
+    sendActionEvent(
+        TelemetryViews.LocalContainers,
+        TelemetryActions.FinishLocalContainersDeployment,
+        {
+            // Include the current step, its status, and its potential error in the telemetry
+            currentStep: lc.DockerStepOrder[state.currentDockerStep],
+            currentStepStatus: state.dockerSteps[state.currentDockerStep]?.loadState,
+            currentStepErrorMessage: state.dockerSteps[state.currentDockerStep]?.errorMessage,
+        },
+    );
 }
 
 export async function addContainerConnection(
@@ -306,7 +305,7 @@ export function setLocalContainersFormComponents(
     string,
     FormItemSpec<
         lc.DockerConnectionProfile,
-        lc.LocalContainersWebviewState,
+        lc.LocalContainersState,
         lc.LocalContainersFormItemSpec
     >
 > {

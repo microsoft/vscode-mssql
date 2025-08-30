@@ -8,11 +8,11 @@ import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form"
 import { IDialogProps } from "./connectionDialog";
 import { ISqlDbArtifact, IWorkspace } from "./fabric";
 
-export class FabricProvisioningWebviewState
+export class FabricProvisioningState
     implements
         FormState<
             FabricProvisioningFormState,
-            FabricProvisioningWebviewState,
+            FabricProvisioningState,
             FabricProvisioningFormItemSpec
         >
 {
@@ -40,12 +40,12 @@ export class FabricProvisioningWebviewState
     /** Used to track fabric database provision state */
     provisionLoadState: ApiStatus = ApiStatus.NotStarted;
     connectionLoadState: ApiStatus = ApiStatus.NotStarted;
-    constructor(params?: Partial<FabricProvisioningWebviewState>) {
+    constructor(params?: Partial<FabricProvisioningState>) {
         for (const key in params) {
             if (key in this) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- safe due to key in this check being a Partial of the class
-                (this as any)[key as keyof FabricProvisioningWebviewState] =
-                    params[key as keyof FabricProvisioningWebviewState]!;
+                (this as any)[key as keyof FabricProvisioningState] =
+                    params[key as keyof FabricProvisioningState]!;
             }
         }
     }
@@ -64,7 +64,7 @@ export interface FabricProvisioningFormState {
 export interface FabricProvisioningFormItemSpec
     extends FormItemSpec<
         FabricProvisioningFormState,
-        FabricProvisioningWebviewState,
+        FabricProvisioningState,
         FabricProvisioningFormItemSpec
     > {
     componentWidth: string;
@@ -74,7 +74,7 @@ export interface FabricProvisioningFormItemSpec
 export interface FabricProvisioningContextProps
     extends FormContextProps<
         FabricProvisioningFormState,
-        FabricProvisioningWebviewState,
+        FabricProvisioningState,
         FabricProvisioningFormItemSpec
     > {
     /**

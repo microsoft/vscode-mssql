@@ -8,15 +8,12 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 
-export class AddLocalContainerConnectionTreeNode extends vscode.TreeItem {
+export class NewDeploymentTreeNode extends vscode.TreeItem {
     constructor() {
-        super(
-            LocalizedConstants.LocalContainers.msgCreateLocalSqlContainer,
-            vscode.TreeItemCollapsibleState.None,
-        );
+        super(LocalizedConstants.newDeployment, vscode.TreeItemCollapsibleState.None);
         this.command = {
-            title: LocalizedConstants.LocalContainers.msgCreateLocalSqlContainer,
-            command: Constants.cmdDeployLocalDockerContainer,
+            title: LocalizedConstants.newDeployment,
+            command: Constants.cmdNewDeployment,
         };
         this.iconPath = {
             light: ObjectExplorerUtils.iconPath("add_light"),

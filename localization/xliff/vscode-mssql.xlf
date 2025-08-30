@@ -2158,6 +2158,9 @@
       <source xml:lang="en">Running query on connection &apos;{0}&apos;</source>
       <note>{0} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++af3833fe6e68c2d9413baff794c0d8ec52a7765ca4d16410bfafa0ab528ee269">
+      <source xml:lang="en">SQL Database in Fabric</source>
+    </trans-unit>
     <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
       <source xml:lang="en">SQL Login</source>
     </trans-unit>

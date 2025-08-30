@@ -7,13 +7,9 @@ import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormState } from "./form";
 import { IConnectionDialogProfile, IDialogProps } from "./connectionDialog";
 
-export class LocalContainersWebviewState
+export class LocalContainersState
     implements
-        FormState<
-            DockerConnectionProfile,
-            LocalContainersWebviewState,
-            LocalContainersFormItemSpec
-        >
+        FormState<DockerConnectionProfile, LocalContainersState, LocalContainersFormItemSpec>
 {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
@@ -35,12 +31,12 @@ export class LocalContainersWebviewState
     formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
     /** Used to track the current step in the Docker deployment process */
     currentDockerStep: DockerStepOrder = DockerStepOrder.dockerInstallation;
-    constructor(params?: Partial<LocalContainersWebviewState>) {
+    constructor(params?: Partial<LocalContainersState>) {
         for (const key in params) {
             if (key in this) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- safe due to key in this check being a Partial of the class
-                (this as any)[key as keyof LocalContainersWebviewState] =
-                    params[key as keyof LocalContainersWebviewState]!;
+                (this as any)[key as keyof LocalContainersState] =
+                    params[key as keyof LocalContainersState]!;
             }
         }
     }
@@ -57,7 +53,7 @@ export interface DockerConnectionProfile extends IConnectionDialogProfile {
 export interface LocalContainersFormItemSpec
     extends FormItemSpec<
         DockerConnectionProfile,
-        LocalContainersWebviewState,
+        LocalContainersState,
         LocalContainersFormItemSpec
     > {
     componentWidth: string;
@@ -67,7 +63,7 @@ export interface LocalContainersFormItemSpec
 export interface LocalContainersContextProps
     extends FormContextProps<
         DockerConnectionProfile,
-        LocalContainersWebviewState,
+        LocalContainersState,
         LocalContainersFormItemSpec
     > {
     /**

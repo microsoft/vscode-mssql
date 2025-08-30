@@ -90,8 +90,7 @@ export abstract class FormWebviewController<
                 self.state,
                 formTarget[component.propertyName] as string | boolean | number,
             );
-            // if not passed in, it should update validation
-            if (updateValidation !== false) {
+            if (updateValidation) {
                 component.validation = validation;
             }
             if (!validation.isValid) {
@@ -119,6 +118,7 @@ export abstract class FormWebviewController<
                     }
                 });
         }
+        console.log(erroredInputs);
 
         return erroredInputs;
     }

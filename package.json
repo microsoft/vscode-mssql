@@ -414,7 +414,7 @@
                     "group": "navigation"
                 },
                 {
-                    "command": "mssql.deployLocalDockerContainer",
+                    "command": "mssql.newDeployment",
                     "when": "config.mssql.enableRichExperiences && view == objectExplorer",
                     "title": "%mssql.deployLocalDockerContainer%",
                     "group": "navigation"
@@ -1091,19 +1091,8 @@
                 "icon": "$(trash)"
             },
             {
-                "command": "mssql.deployLocalDockerContainer",
-                "title": "%mssql.deployLocalDockerContainer%",
-                "when": "mssql.enableRichExperiences",
-                "category": "MS SQL",
-                "icon": {
-                    "dark": "media/newContainer_dark.svg",
-                    "light": "media/newContainer_light.svg"
-                }
-            },
-            {
-                "command": "mssql.provisionFabricDb",
-                "title": "%mssql.provisionFabricDb%",
-                "when": "mssql.enableRichExperiences",
+                "command": "mssql.newDeployment",
+                "title": "%mssql.newDeployment%",
                 "category": "MS SQL",
                 "icon": {
                     "dark": "media/newContainer_dark.svg",

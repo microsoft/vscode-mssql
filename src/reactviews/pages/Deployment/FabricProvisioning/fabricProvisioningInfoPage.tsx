@@ -6,10 +6,12 @@
 import { useContext, useState } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
-import { FabricProvisioningInputForm } from "./fabricProvisioningInputForm";
 import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
 import { DeploymentContext } from "../deploymentStateProvider";
-import { FabricProvisioningWebviewState } from "../../../../sharedInterfaces/fabricProvisioning";
+import { FabricProvisioningStartPage } from "./fabricProvisioningStartPage";
+import { DeploymentType } from "../../../../sharedInterfaces/deployment";
+import { ChooseDeploymentTypePage } from "../chooseDeploymentTypePage";
+import { ChevronLeft20Regular } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -73,27 +75,34 @@ const useStyles = makeStyles({
         height: "100%",
         gap: "20px",
     },
+    backButton: {
+        position: "absolute",
+        top: "10px",
+        left: "10px",
+    },
 });
 
 export const FabricProvisioningInfoPage: React.FC = () => {
     const classes = useStyles();
     const state = useContext(DeploymentContext);
-    const fabricProvisioningState = state?.state
-        .deploymentTypeState as FabricProvisioningWebviewState;
-
-    if (!state || !fabricProvisioningState) return undefined;
     const [showNext, setShowNext] = useState(false);
+    const [showPrevious, setShowPrevious] = useState(false);
 
-    // If this passes, container deployment state is guaranteed
-    // to be defined, so we can reference it as non-null
-    if (!state || !fabricProvisioningState) {
-        return undefined;
-    }
+    if (!state) return;
 
-    return showNext ? (
-        <FabricProvisioningInputForm />
+    return showPrevious ? (
+        <ChooseDeploymentTypePage />
+    ) : showNext ? (
+        <FabricProvisioningStartPage />
     ) : (
         <div>
+            <Button
+                className={classes.backButton}
+                onClick={() => setShowPrevious(true)}
+                appearance="transparent">
+                <ChevronLeft20Regular style={{ marginRight: "4px" }} />
+                {locConstants.common.back}
+            </Button>
             <FabricProvisioningHeader />
             <div className={classes.outerDiv}>
                 <div className={classes.stepsDiv}>
@@ -164,6 +173,7 @@ export const FabricProvisioningInfoPage: React.FC = () => {
                     <Button
                         className={classes.button}
                         onClick={() => {
+                            state.initializeDeploymentSpecifics(DeploymentType.FabricProvisioning);
                             setShowNext(true);
                         }}
                         appearance={"primary"}>

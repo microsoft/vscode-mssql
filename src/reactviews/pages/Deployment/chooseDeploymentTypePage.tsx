@@ -3,12 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect, useState } from "react";
-import { Button, makeStyles } from "@fluentui/react-components";
+import { useContext, useState } from "react";
+import { Card, makeStyles, tokens } from "@fluentui/react-components";
 import { DeploymentContext } from "./deploymentStateProvider";
-import { LocalContainersStartPage } from "./LocalContainers/localContainersStartPage";
 import { DeploymentType } from "../../../sharedInterfaces/deployment";
-import { FabricProvisioningStartPage } from "./FabricProvisioning/fabricProvisioningStartPage";
+import { FabricProvisioningInfoPage } from "./FabricProvisioning/fabricProvisioningInfoPage";
+import { LocalContainersInfoPage } from "./LocalContainers/localContainersInfoPage";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -22,20 +23,10 @@ const useStyles = makeStyles({
         minWidth: "750px",
         minHeight: "fit-content",
     },
-    stepsDiv: {
+    cardRow: {
         display: "flex",
-        flexDirection: "column",
-        gap: "2px",
-        alignItems: "center",
-        justifyContent: "center",
-        width: "500px",
-    },
-    button: {
-        height: "28px",
-        width: "fit-content",
-        textWrap: "nowrap",
-        marginTop: "20px",
-        marginBottom: "20px",
+        flexDirection: "row",
+        gap: "20px",
     },
     itemDiv: {
         position: "relative",
@@ -54,60 +45,151 @@ const useStyles = makeStyles({
         gap: "10px",
         width: "425px",
     },
-    titleDiv: {
-        fontWeight: "bold",
-    },
-    icon: {
-        marginTop: "-10px",
+    dockerIcon: {
         width: "75px",
         height: "75px",
         marginRight: "10px",
     },
-    link: {
-        textDecoration: "none",
+    sqlInFabricIcon: {
+        width: "65px",
+        height: "65px",
+        marginRight: "10px",
+    },
+    subtitleDiv: {
+        width: "100%",
+        fontSize: "14px",
+        alignItems: "unset",
+        textAlign: "left",
+        fontWeight: 400,
+        paddingLeft: "70px",
+        paddingBottom: "50px",
+    },
+    outerHeaderDiv: {
+        display: "flex",
+        flexDirection: "row",
+        gap: "20px",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        minWidth: "750px",
+        minHeight: "fit-content",
+        top: 0,
+        left: 0,
+        paddingTop: "50px",
+        width: "100%",
+        paddingLeft: "70px",
+        paddingBottom: "15px",
+    },
+    titleDiv: {
+        fontWeight: 500,
+        fontSize: "24px",
+        display: "flex",
+        alignItems: "center",
+    },
+    headerIcon: {
+        width: "58px",
+        height: "58px",
+    },
+    cardDiv: {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: "20px",
+        gap: "5px",
+        width: "400px",
+        marginTop: "5px",
+    },
+    cardHeader: {
+        fontWeight: 400,
+        fontSize: "18px",
+        padding: "5px",
+        marginTop: "5px",
+    },
+    cardDescription: {
+        fontWeight: 400,
+        fontSize: "14px",
+        padding: "5px",
+        color: tokens.colorNeutralForeground4,
     },
 });
 
 export const ChooseDeploymentTypePage: React.FC = () => {
     const classes = useStyles();
     const state = useContext(DeploymentContext);
-    const [showNext, setShowNext] = useState(false);
-    const deploymentState = state?.state;
+    const [deploymentType, setDeploymentType] = useState<DeploymentType>();
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!state || !deploymentState) {
+    if (!state) {
         return undefined;
     }
 
-    const handleChoice = async (choice: DeploymentType) => {
-        // reset step states
-        await state.initializeDeploymentSpecifics(choice);
-        setShowNext(true);
+    const getDeploymentStartPage = () => {
+        if (deploymentType === DeploymentType.LocalContainers) {
+            return <LocalContainersInfoPage />;
+        } else if (deploymentType === DeploymentType.FabricProvisioning) {
+            return <FabricProvisioningInfoPage />;
+        }
+        return null;
     };
 
-    useEffect(() => {}, [deploymentState.isDeploymentTypeInitialized]);
-
-    return showNext && deploymentState.isDeploymentTypeInitialized ? (
-        deploymentState.deploymentType === DeploymentType.LocalContainers ? (
-            <LocalContainersStartPage />
-        ) : deploymentState.deploymentType === DeploymentType.FabricProvisioning ? (
-            <FabricProvisioningStartPage />
-        ) : null
+    return deploymentType !== undefined ? (
+        getDeploymentStartPage()
     ) : (
         <div>
-            <Button
-                className={classes.button}
-                onClick={() => handleChoice(DeploymentType.LocalContainers)}
-                appearance="primary">
-                Local Containers
-            </Button>
-            <Button
-                className={classes.button}
-                onClick={() => handleChoice(DeploymentType.FabricProvisioning)}
-                appearance="primary">
-                Fabric Provisioning
-            </Button>
+            <div className={classes.outerHeaderDiv}>
+                <img className={classes.headerIcon} src={deploymentIcon()} />
+                <div className={classes.titleDiv}>{locConstants.deployment.deploymentHeader}</div>
+            </div>
+            <div className={classes.subtitleDiv}>
+                {locConstants.deployment.deploymentDescription}
+            </div>
+
+            <div className={classes.outerDiv}>
+                <div className={classes.cardRow}>
+                    <Card
+                        className={classes.cardDiv}
+                        onClick={() => setDeploymentType(DeploymentType.LocalContainers)}>
+                        <img
+                            className={classes.dockerIcon}
+                            src={dockerIcon()}
+                            alt={locConstants.deployment.dockerSqlServerHeader}
+                        />
+                        <span className={classes.cardHeader}>
+                            {locConstants.deployment.dockerSqlServerHeader}
+                        </span>
+                        <span className={classes.cardDescription}>
+                            {locConstants.deployment.dockerSqlServerDescription}
+                        </span>
+                    </Card>
+                    <Card
+                        className={classes.cardDiv}
+                        onClick={() => setDeploymentType(DeploymentType.FabricProvisioning)}>
+                        <img
+                            className={classes.sqlInFabricIcon}
+                            src={sqlDbInFabricIcon()}
+                            alt={locConstants.deployment.fabricProvisioningHeader}
+                        />
+                        <span className={classes.cardHeader}>
+                            {locConstants.deployment.fabricProvisioningHeader}
+                        </span>
+                        <span className={classes.cardDescription}>
+                            {locConstants.deployment.fabricProvisioningDescription}
+                        </span>
+                    </Card>
+                </div>
+            </div>
         </div>
     );
+};
+
+export const deploymentIcon = () => {
+    return require(`../../media/sqlDatabase.svg`);
+};
+
+export const dockerIcon = () => {
+    return require(`../../media/docker.svg`);
+};
+
+export const sqlDbInFabricIcon = () => {
+    return require(`../../media/sqlDbInFabric.svg`);
 };

@@ -572,6 +572,7 @@ export function enableRichExperiencesPrompt(learnMoreUrl: string) {
     });
 }
 export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
+export let newDeployment = l10n.t("New Deployment");
 
 export class ObjectExplorer {
     public static ErrorLoadingRefreshToTryAgain = l10n.t("Error loading; refresh to try again");
@@ -802,7 +803,6 @@ export class QueryResult {
 }
 
 export class LocalContainers {
-    public static createLocalSqlContainer = l10n.t("Create Local SQL Container");
     public static stoppedContainerSucessfully = (name: string) =>
         l10n.t({
             message: "{0} stopped successfully.",

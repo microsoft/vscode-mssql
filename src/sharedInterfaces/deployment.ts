@@ -8,7 +8,7 @@ import {
     LocalContainersContextProps,
     DockerConnectionProfile as LocalContainersFormState,
     LocalContainersReducers,
-    LocalContainersWebviewState,
+    LocalContainersState,
 } from "./localContainers";
 import { ApiStatus } from "./webview";
 import { ConnectionGroupSpec } from "./connectionGroup";
@@ -17,7 +17,7 @@ import {
     FabricProvisioningContextProps,
     FabricProvisioningFormState,
     FabricProvisioningReducers,
-    FabricProvisioningWebviewState,
+    FabricProvisioningState,
 } from "./fabricProvisioning";
 
 export class DeploymentWebviewState
@@ -26,7 +26,6 @@ export class DeploymentWebviewState
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
     deploymentType: DeploymentType = DeploymentType.LocalContainers;
-    isDeploymentTypeInitialized: boolean = false;
     dialog: IDialogProps | undefined;
     deploymentTypeState: DeploymentTypeState = {} as DeploymentTypeState;
     formState: DeploymentFormState = {} as DeploymentFormState;
@@ -114,7 +113,7 @@ export interface DeploymentFormItemSpec
     isAdvancedOption: boolean;
 }
 
-export type DeploymentTypeState = LocalContainersWebviewState | FabricProvisioningWebviewState;
+export type DeploymentTypeState = LocalContainersState | FabricProvisioningState;
 
 export type DeploymentContextProps = DeploymentCommonContextProps &
     LocalContainersContextProps &

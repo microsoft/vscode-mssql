@@ -7,9 +7,9 @@ import { useContext } from "react";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
-import { LocalContainersInfoPage } from "./localContainersInfoPage";
 import { locConstants } from "../../../common/locConstants";
 import { DeploymentContext } from "../deploymentStateProvider";
+import { LocalContainersPrereqPage } from "./localContainersPrereqPage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -44,13 +44,13 @@ export const LocalContainersStartPage = () => {
                 return (
                     <div className={classes.spinnerDiv}>
                         <Spinner
-                            label={locConstants.localContainers.loadingDeploymentPage}
+                            label={locConstants.localContainers.loadingLocalContainers}
                             labelPosition="below"
                         />
                     </div>
                 );
             case ApiStatus.Loaded:
-                return <LocalContainersInfoPage />;
+                return <LocalContainersPrereqPage />;
             case ApiStatus.Error:
                 return (
                     <div className={classes.spinnerDiv}>

@@ -16,7 +16,7 @@ import { FormField } from "../../../common/forms/form.component";
 import {
     FabricProvisioningContextProps,
     FabricProvisioningFormItemSpec,
-    FabricProvisioningWebviewState,
+    FabricProvisioningState,
     FabricProvisioningFormState,
 } from "../../../../sharedInterfaces/fabricProvisioning";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
@@ -70,8 +70,7 @@ const useStyles = makeStyles({
 export const FabricProvisioningInputForm: React.FC = () => {
     const classes = useStyles();
     const state = useContext(DeploymentContext);
-    const fabricProvisioningState = state?.state
-        .deploymentTypeState as FabricProvisioningWebviewState;
+    const fabricProvisioningState = state?.state.deploymentTypeState as FabricProvisioningState;
 
     if (!state || !fabricProvisioningState) return undefined;
 
@@ -104,7 +103,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                     }>
                     <FormField<
                         FabricProvisioningFormState,
-                        FabricProvisioningWebviewState,
+                        FabricProvisioningState,
                         FabricProvisioningFormItemSpec,
                         FabricProvisioningContextProps
                     >
@@ -145,7 +144,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                     {renderFormFields(false)}
                     <FormField<
                         FabricProvisioningFormState,
-                        FabricProvisioningWebviewState,
+                        FabricProvisioningState,
                         FabricProvisioningFormItemSpec,
                         FabricProvisioningContextProps
                     >
@@ -173,7 +172,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                     {fabricProvisioningState.formState.accountId && (
                         <FormField<
                             FabricProvisioningFormState,
-                            FabricProvisioningWebviewState,
+                            FabricProvisioningState,
                             FabricProvisioningFormItemSpec,
                             FabricProvisioningContextProps
                         >
@@ -202,7 +201,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                     {fabricProvisioningState.workspaces.length > 0 ? (
                         <FormField<
                             FabricProvisioningFormState,
-                            FabricProvisioningWebviewState,
+                            FabricProvisioningState,
                             FabricProvisioningFormItemSpec,
                             FabricProvisioningContextProps
                         >

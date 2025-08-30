@@ -10,7 +10,7 @@ import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { DeploymentContext } from "../deploymentStateProvider";
-import { FabricProvisioningWebviewState } from "../../../../sharedInterfaces/fabricProvisioning";
+import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -120,8 +120,7 @@ const useStyles = makeStyles({
 export const ProvisionFabricDatabasePage: React.FC = () => {
     const classes = useStyles();
     const state = useContext(DeploymentContext);
-    const fabricProvisioningState = state?.state
-        .deploymentTypeState as FabricProvisioningWebviewState;
+    const fabricProvisioningState = state?.state.deploymentTypeState as FabricProvisioningState;
 
     if (!state || !fabricProvisioningState) return undefined;
 

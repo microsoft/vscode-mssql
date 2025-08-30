@@ -221,13 +221,9 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdClearPooledConnections, async () => {
                 await this.onClearPooledConnections();
             });
-            this.registerCommand(Constants.cmdDeployLocalDockerContainer);
-            this._event.on(Constants.cmdDeployLocalDockerContainer, () => {
-                this.onDeployContainer();
-            });
-            this.registerCommand(Constants.cmdProvisionFabricDb);
-            this._event.on(Constants.cmdProvisionFabricDb, async () => {
-                await this.onProvisionFabricDb();
+            this.registerCommand(Constants.cmdNewDeployment);
+            this._event.on(Constants.cmdNewDeployment, () => {
+                this.onNewDeployment();
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -1807,8 +1803,8 @@ export default class MainController implements vscode.Disposable {
         return false;
     }
 
-    public onDeployContainer(): void {
-        sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.OpenLocalContainers);
+    public onNewDeployment(): void {
+        sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
         const reactPanel = new DeploymentWebviewController(
             this._context,
@@ -1817,8 +1813,6 @@ export default class MainController implements vscode.Disposable {
         );
         reactPanel.revealToForeground();
     }
-
-    public async onProvisionFabricDb(): Promise<void> {}
 
     /**
      * Makes a connection and save if saveConnection is set to true

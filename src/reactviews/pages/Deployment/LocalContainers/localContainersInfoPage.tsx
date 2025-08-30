@@ -5,10 +5,13 @@
 
 import { useContext, useState } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
-import { LocalContainersPrereqPage } from "./localContainersPrereqPage";
 import { LocalContainersHeader } from "./localContainersHeader";
 import { locConstants } from "../../../common/locConstants";
 import { DeploymentContext } from "../deploymentStateProvider";
+import { LocalContainersStartPage } from "./localContainersStartPage";
+import { DeploymentType } from "../../../../sharedInterfaces/deployment";
+import { ChevronLeft20Regular } from "@fluentui/react-icons";
+import { ChooseDeploymentTypePage } from "../chooseDeploymentTypePage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -36,6 +39,11 @@ const useStyles = makeStyles({
         textWrap: "nowrap",
         marginTop: "20px",
         marginBottom: "20px",
+    },
+    backButton: {
+        position: "absolute",
+        top: "10px",
+        left: "10px",
     },
     itemDiv: {
         position: "relative",
@@ -71,19 +79,27 @@ const useStyles = makeStyles({
 export const LocalContainersInfoPage: React.FC = () => {
     const classes = useStyles();
     const state = useContext(DeploymentContext);
-    const localContainersState = state?.state.deploymentTypeState;
     const [showNext, setShowNext] = useState(false);
+    const [showPrevious, setShowPrevious] = useState(false);
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!state || !localContainersState) {
+    if (!state) {
         return undefined;
     }
-
-    return showNext ? (
-        <LocalContainersPrereqPage />
+    return showPrevious ? (
+        <ChooseDeploymentTypePage />
+    ) : showNext ? (
+        <LocalContainersStartPage />
     ) : (
         <div>
+            <Button
+                className={classes.backButton}
+                onClick={() => setShowPrevious(true)}
+                appearance="transparent">
+                <ChevronLeft20Regular style={{ marginRight: "4px" }} />
+                {locConstants.common.back}
+            </Button>
             <LocalContainersHeader
                 headerText={locConstants.localContainers.sqlServerContainerHeader}
             />
@@ -155,6 +171,7 @@ export const LocalContainersInfoPage: React.FC = () => {
                     <Button
                         className={classes.button}
                         onClick={() => {
+                            state.initializeDeploymentSpecifics(DeploymentType.LocalContainers);
                             setShowNext(true);
                         }}
                         appearance={"primary"}>

@@ -57,6 +57,7 @@ export class LocConstants {
             dismiss: l10n.t("Dismiss"),
             error: l10n.t("Error"),
             getStarted: l10n.t("Get Started"),
+            back: l10n.t("Back"),
         };
     }
 
@@ -826,9 +827,26 @@ export class LocConstants {
         };
     }
 
+    public get deployment() {
+        return {
+            loadingDeploymentPage: l10n.t("Loading deployment"),
+            deploymentHeader: l10n.t("New SQL Database"),
+            deploymentDescription: l10n.t("Choose an option to provision a database"),
+            sqlServerContainerHeader: l10n.t("Local SQL Server database container"),
+            dockerSqlServerHeader: l10n.t("Create a Local Docker SQL Server"),
+            dockerSqlServerDescription: l10n.t(
+                "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
+            ),
+            fabricProvisioningHeader: l10n.t("Create a SQL Database in Fabric"),
+            fabricProvisioningDescription: l10n.t(
+                "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
+            ),
+        };
+    }
+
     public get localContainers() {
         return {
-            loadingDeploymentPage: l10n.t("Loading deployment page..."),
+            loadingLocalContainers: l10n.t("Loading local containers..."),
             sqlServerContainerHeader: l10n.t("Local SQL Server database container"),
             instantContainerSetup: l10n.t("Instant Container Setup"),
             instantContainerDescription: l10n.t(
@@ -860,6 +878,7 @@ export class LocConstants {
 
     public get fabricProvisioning() {
         return {
+            loadingFabricProvisioning: l10n.t("Loading fabric provisioning..."),
             sqlDatabaseInFabric: l10n.t("SQL Database in Fabric"),
             createDatabase: l10n.t("Create Database"),
             loadingWorkspaces: l10n.t("Loading workspaces"),

@@ -59,7 +59,7 @@ import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
 import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
 import { getConnectionDisplayName } from "../models/connectionInfo";
-import { AddLocalContainerConnectionTreeNode } from "../deployment/addLocalContainerConnectionTreeNode";
+import { NewDeploymentTreeNode } from "../deployment/newDeploymentTreeNode";
 import { getErrorMessage } from "../utils/utils";
 
 export interface CreateSessionResult {
@@ -343,7 +343,7 @@ export class ObjectExplorerService {
     private getAddConnectionNodes(): AddConnectionTreeNode[] {
         let nodeList = [new AddConnectionTreeNode()];
         if (this._isRichExperienceEnabled) {
-            nodeList.push(new AddLocalContainerConnectionTreeNode());
+            nodeList.push(new NewDeploymentTreeNode());
         }
 
         return nodeList;

@@ -44,7 +44,7 @@ export const DeploymentStartPage = () => {
                 return (
                     <div className={classes.spinnerDiv}>
                         <Spinner
-                            label={locConstants.localContainers.loadingDeploymentPage}
+                            label={`${locConstants.deployment.loadingDeploymentPage}...`}
                             labelPosition="below"
                         />
                     </div>

@@ -717,6 +717,7 @@
   "Hide full error message": "Hide full error message",
   "Show full error message": "Show full error message",
   "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
+  "SQL Database in Fabric": "SQL Database in Fabric",
   "Create Database": "Create Database",
   "Loading workspaces": "Loading workspaces",
   "Finished Deployment": "Finished Deployment",

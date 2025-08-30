@@ -7,7 +7,7 @@ import { useContext } from "react";
 import { makeStyles } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
 import { DeploymentContext } from "../deploymentStateProvider";
-import { FabricProvisioningWebviewState } from "../../../../sharedInterfaces/fabricProvisioning";
+import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -43,8 +43,7 @@ interface HeaderProps {
 export const FabricProvisioningHeader: React.FC<HeaderProps> = ({ paddingLeft }) => {
     const classes = useStyles();
     const state = useContext(DeploymentContext);
-    const fabricProvisioningState = state?.state
-        .deploymentTypeState as FabricProvisioningWebviewState;
+    const fabricProvisioningState = state?.state.deploymentTypeState as FabricProvisioningState;
 
     if (!state || !fabricProvisioningState) return undefined;
 
