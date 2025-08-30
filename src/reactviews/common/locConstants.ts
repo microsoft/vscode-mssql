@@ -860,6 +860,7 @@ export class LocConstants {
 
     public get fabricProvisioning() {
         return {
+            sqlDatabaseInFabric: l10n.t("SQL Database in Fabric"),
             createDatabase: l10n.t("Create Database"),
             loadingWorkspaces: l10n.t("Loading workspaces"),
             finishedDeployment: l10n.t("Finished Deployment"),

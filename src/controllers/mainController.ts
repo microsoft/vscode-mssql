@@ -87,7 +87,6 @@ import {
     stopContainer,
 } from "../deployment/dockerUtils";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
-import { FabricProvisioningWebviewController } from "../deployment/fabricProvisioningWebviewController";
 
 /**
  * The main controller class that initializes the extension
@@ -1819,14 +1818,7 @@ export default class MainController implements vscode.Disposable {
         reactPanel.revealToForeground();
     }
 
-    public async onProvisionFabricDb(): Promise<void> {
-        const reactPanel = new FabricProvisioningWebviewController(
-            this._context,
-            this._vscodeWrapper,
-            this,
-        );
-        reactPanel.revealToForeground();
-    }
+    public async onProvisionFabricDb(): Promise<void> {}
 
     /**
      * Makes a connection and save if saveConnection is set to true

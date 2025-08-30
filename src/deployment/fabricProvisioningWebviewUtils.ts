@@ -13,7 +13,6 @@ import {
     FabricProvisioning,
     refreshTokenLabel,
 } from "../constants/locConstants";
-import MainController from "../controllers/mainController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { FabricHelper } from "../fabric/fabricHelper";
 import { Logger } from "../models/logger";
@@ -46,9 +45,6 @@ export async function initializeFabricProvisioningState(
     logger: Logger,
 ): Promise<fp.FabricProvisioningWebviewState> {
     const state = new fp.FabricProvisioningWebviewState();
-    state.loadState = ApiStatus.Loading;
-    const connectionGroupOptions =
-        await deploymentController.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
     const azureAccountOptions = await getAccounts(
         deploymentController.mainController.azureAccountService,
         logger,
@@ -61,12 +57,15 @@ export async function initializeFabricProvisioningState(
     );
     state.formState = {
         accountId: defaultAccountId,
-        groupId: connectionGroupOptions[0].value,
+        groupId: groupOptions[0].value,
         tenantId: tenantOptions.length > 0 ? tenantOptions[0].value : "",
         workspace: "",
         databaseName: "",
         databaseDescription: "",
     } as fp.FabricProvisioningFormState;
+
+    // set context
+    deploymentController.state.deploymentTypeState = state;
     const azureActionButtons = await getAzureActionButtons(deploymentController, logger);
     state.formComponents = setFabricProvisioningFormComponents(
         azureAccountOptions,
@@ -95,6 +94,8 @@ export function registerFabricProvisioningReducers(
             payload.workspaceId,
         );
         state.deploymentTypeState = fabricProvisioningWebviewState;
+        state.formState = fabricProvisioningWebviewState.formState;
+        state.formErrors = fabricProvisioningWebviewState.formErrors;
         return state;
     });
     deploymentController.registerReducer("createDatabase", async (state, _payload) => {
@@ -103,14 +104,13 @@ export function registerFabricProvisioningReducers(
         fabricProvisioningWebviewState.formValidationLoadState = ApiStatus.Loading;
 
         updateFabricProvisioningWebviewState(deploymentController, fabricProvisioningWebviewState);
-
         fabricProvisioningWebviewState = await handleWorkspaceFormAction(
             fabricProvisioningWebviewState,
             fabricProvisioningWebviewState.formState.workspace,
         );
         state.formErrors = await deploymentController.validateDeploymentForm();
         if (fabricProvisioningWebviewState.formErrors.length === 0) {
-            this.provisionDatabase();
+            provisionDatabase(deploymentController);
             fabricProvisioningWebviewState.deploymentStartTime = new Date().toUTCString();
             fabricProvisioningWebviewState.tenantName =
                 fabricProvisioningWebviewState.formComponents.tenantId.options.find(
@@ -367,7 +367,10 @@ export async function loadComponentsAfterSignIn(
         if (tenants.length > 0 && !tenants.find((t) => t.value === state.formState.tenantId)) {
             // if expected tenantId is not in the list of tenants, set it to the first tenant
             state.formState.tenantId = tenants[0].value;
-            await deploymentController.validateDeploymentForm("tenantId");
+            const errors = await deploymentController.validateDeploymentForm("tenantId");
+            if (errors.length) {
+                state.formErrors.push("tenantId");
+            }
         }
     }
     accountComponent.actionButtons = await getAzureActionButtons(deploymentController, logger);

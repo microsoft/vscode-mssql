@@ -5,11 +5,12 @@
 
 import { useContext, useEffect } from "react";
 import { Button, Card, makeStyles, Spinner, tokens } from "@fluentui/react-components";
-import { FabricProvisioningContext } from "./fabricProvisioningStateProvider";
 import { Checkmark20Regular, Circle20Regular, Dismiss20Regular } from "@fluentui/react-icons";
 import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { locConstants } from "../../common/locConstants";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { locConstants } from "../../../common/locConstants";
+import { DeploymentContext } from "../deploymentStateProvider";
+import { FabricProvisioningWebviewState } from "../../../../sharedInterfaces/fabricProvisioning";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -117,9 +118,10 @@ const useStyles = makeStyles({
 });
 
 export const ProvisionFabricDatabasePage: React.FC = () => {
-    const state = useContext(FabricProvisioningContext);
     const classes = useStyles();
-    const fabricProvisioningState = state?.state;
+    const state = useContext(DeploymentContext);
+    const fabricProvisioningState = state?.state
+        .deploymentTypeState as FabricProvisioningWebviewState;
 
     if (!state || !fabricProvisioningState) return undefined;
 

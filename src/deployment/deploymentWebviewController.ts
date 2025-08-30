@@ -25,7 +25,6 @@ import { ApiStatus } from "../sharedInterfaces/webview";
 import * as localContainers from "./localContainersWebviewUtils";
 import { LocalContainersWebviewState } from "../sharedInterfaces/localContainers";
 import * as fabricProvisioning from "./fabricProvisioningWebviewUtils";
-import { FabricProvisioningWebviewState } from "../sharedInterfaces/fabricProvisioning";
 
 export class DeploymentWebviewController extends FormWebviewController<
     DeploymentFormState,
@@ -71,6 +70,9 @@ export class DeploymentWebviewController extends FormWebviewController<
     private registerRpcHandlers() {
         this.registerReducer("initializeDeploymentSpecifics", async (state, payload) => {
             let newDeploymentTypeState: DeploymentTypeState;
+            state.deploymentType = payload.deploymentType;
+            state.deploymentTypeState.loadState = ApiStatus.Loading;
+            this.updateState(state);
             if (payload.deploymentType === DeploymentType.LocalContainers) {
                 newDeploymentTypeState = await localContainers.initializeLocalContainersState(
                     new LocalContainersWebviewState(),
@@ -92,14 +94,21 @@ export class DeploymentWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("formAction", async (state, payload) => {
-            let newDeploymentTypeState: DeploymentTypeState = state.deploymentTypeState;
             if (state.deploymentType === DeploymentType.LocalContainers) {
-                newDeploymentTypeState = await localContainers.handleLocalContainersFormAction(
+                state.deploymentTypeState = await localContainers.handleLocalContainersFormAction(
                     state.deploymentTypeState as LocalContainersWebviewState,
                     payload,
                 );
+            } else {
+                // delegate to FormWebviewController's reducer
+                const updatedState = (await this.handleFormAction(
+                    state,
+                    payload,
+                )) as DeploymentWebviewState;
+                state = updatedState;
+                state.deploymentTypeState.formState = state.formState;
+                state.deploymentTypeState.formErrors = state.formErrors;
             }
-            state.deploymentTypeState = newDeploymentTypeState;
 
             return state;
         });
@@ -164,15 +173,32 @@ export class DeploymentWebviewController extends FormWebviewController<
     public async validateDeploymentForm(
         propertyName?: keyof DeploymentFormState,
     ): Promise<string[]> {
-        this.state.formState = this.state.deploymentTypeState.formState;
-        // @ts-ignore
-        this.state.formComponents = this.state.deploymentTypeState.formComponents;
-        const formErrors = (await this.validateForm(
-            this.state.formState,
-            propertyName,
-            undefined,
-            this,
-        )) as string[];
-        return formErrors;
+        let errors: string[] = [];
+        if (propertyName) {
+            const component = this.state.deploymentTypeState.formComponents[propertyName];
+            if (!component.validate) return errors;
+            const componentValidation = component.validate(
+                this.state.deploymentTypeState as any,
+                this.state.deploymentTypeState.formState[propertyName],
+            );
+            if (!componentValidation) {
+                errors.push(propertyName);
+            }
+            component.validation = componentValidation;
+        } else {
+            for (const componentKey of Object.keys(this.state.deploymentTypeState.formState)) {
+                const component = this.state.deploymentTypeState.formComponents[componentKey];
+                if (!component.validate) continue;
+                const componentValidation = component.validate(
+                    this.state.deploymentTypeState as any,
+                    this.state.deploymentTypeState.formState[componentKey],
+                );
+                if (!componentValidation) {
+                    errors.push(componentKey);
+                }
+                component.validation = componentValidation;
+            }
+        }
+        return errors;
     }
 }

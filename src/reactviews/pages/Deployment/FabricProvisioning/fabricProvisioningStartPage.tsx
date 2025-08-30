@@ -4,12 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext } from "react";
-import { FabricProvisioningContext } from "./fabricProvisioningStateProvider";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { locConstants } from "../../common/locConstants";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { locConstants } from "../../../common/locConstants";
 import { FabricProvisioningInfoPage } from "./fabricProvisioningInfoPage";
+import { DeploymentContext } from "../deploymentStateProvider";
+import { FabricProvisioningWebviewState } from "../../../../sharedInterfaces/fabricProvisioning";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -36,8 +37,10 @@ const useStyles = makeStyles({
 
 export const FabricProvisioningStartPage = () => {
     const classes = useStyles();
-    const state = useContext(FabricProvisioningContext);
-    const fabricProvisioningState = state?.state;
+    const state = useContext(DeploymentContext);
+    const fabricProvisioningState = state?.state
+        .deploymentTypeState as FabricProvisioningWebviewState;
+
     const renderMainContent = () => {
         switch (fabricProvisioningState?.loadState) {
             case ApiStatus.Loading:

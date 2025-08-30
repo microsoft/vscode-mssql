@@ -69,6 +69,21 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                     webviewState?.extensionRpc.action("checkDockerProfile", {});
                 },
                 //#endregion
+                //#region Fabric Provisioning Reducers
+                reloadFabricEnvironment: function (newTenant: string): void {
+                    webviewState?.extensionRpc.action("reloadFabricEnvironment", {
+                        newTenant: newTenant,
+                    });
+                },
+                handleWorkspaceFormAction: function (workspaceId: string): void {
+                    webviewState?.extensionRpc.action("handleWorkspaceFormAction", {
+                        workspaceId: workspaceId,
+                    });
+                },
+                createDatabase: function (): void {
+                    webviewState?.extensionRpc.action("createDatabase", {});
+                },
+                //#endregion
             }}>
             {children}
         </DeploymentContext.Provider>

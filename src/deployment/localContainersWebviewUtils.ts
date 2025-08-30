@@ -29,7 +29,6 @@ export async function initializeLocalContainersState(
     state: lc.LocalContainersWebviewState,
     groupOptions: FormItemOptions[],
 ): Promise<lc.LocalContainersWebviewState> {
-    state.loadState = ApiStatus.Loading;
     state.platform = platform();
     const versions = await dockerUtils.getSqlServerContainerVersions();
     state.formComponents = setLocalContainersFormComponents(versions, groupOptions);

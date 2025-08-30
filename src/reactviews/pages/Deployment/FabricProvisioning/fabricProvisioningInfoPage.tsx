@@ -5,10 +5,11 @@
 
 import { useContext, useState } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
-import { locConstants } from "../../common/locConstants";
-import { FabricProvisioningContext } from "./fabricProvisioningStateProvider";
+import { locConstants } from "../../../common/locConstants";
 import { FabricProvisioningInputForm } from "./fabricProvisioningInputForm";
 import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
+import { DeploymentContext } from "../deploymentStateProvider";
+import { FabricProvisioningWebviewState } from "../../../../sharedInterfaces/fabricProvisioning";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -76,8 +77,9 @@ const useStyles = makeStyles({
 
 export const FabricProvisioningInfoPage: React.FC = () => {
     const classes = useStyles();
-    const state = useContext(FabricProvisioningContext);
-    const fabricProvisioningState = state?.state;
+    const state = useContext(DeploymentContext);
+    const fabricProvisioningState = state?.state
+        .deploymentTypeState as FabricProvisioningWebviewState;
 
     if (!state || !fabricProvisioningState) return undefined;
     const [showNext, setShowNext] = useState(false);
@@ -174,5 +176,5 @@ export const FabricProvisioningInfoPage: React.FC = () => {
 };
 
 export const instantSetup = () => {
-    return require(`../../media/instantSetup.svg`);
+    return require(`../../../media/instantSetup.svg`);
 };

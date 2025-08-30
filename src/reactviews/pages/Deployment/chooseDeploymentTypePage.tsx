@@ -8,6 +8,7 @@ import { Button, makeStyles } from "@fluentui/react-components";
 import { DeploymentContext } from "./deploymentStateProvider";
 import { LocalContainersStartPage } from "./LocalContainers/localContainersStartPage";
 import { DeploymentType } from "../../../sharedInterfaces/deployment";
+import { FabricProvisioningStartPage } from "./FabricProvisioning/fabricProvisioningStartPage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -88,19 +89,23 @@ export const ChooseDeploymentTypePage: React.FC = () => {
     useEffect(() => {}, [deploymentState.isDeploymentTypeInitialized]);
 
     return showNext && deploymentState.isDeploymentTypeInitialized ? (
-        <LocalContainersStartPage />
+        deploymentState.deploymentType === DeploymentType.LocalContainers ? (
+            <LocalContainersStartPage />
+        ) : deploymentState.deploymentType === DeploymentType.FabricProvisioning ? (
+            <FabricProvisioningStartPage />
+        ) : null
     ) : (
         <div>
             <Button
                 className={classes.button}
                 onClick={() => handleChoice(DeploymentType.LocalContainers)}
-                appearance={"primary"}>
+                appearance="primary">
                 Local Containers
             </Button>
             <Button
                 className={classes.button}
                 onClick={() => handleChoice(DeploymentType.FabricProvisioning)}
-                appearance={"primary"}>
+                appearance="primary">
                 Fabric Provisioning
             </Button>
         </div>

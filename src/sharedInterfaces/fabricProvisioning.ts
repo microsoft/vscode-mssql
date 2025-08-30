@@ -7,7 +7,6 @@ import { ApiStatus } from "./webview";
 import { FormContextProps, FormItemSpec, FormReducers, FormState } from "./form";
 import { IDialogProps } from "./connectionDialog";
 import { ISqlDbArtifact, IWorkspace } from "./fabric";
-import { ConnectionGroupSpec } from "./connectionGroup";
 
 export class FabricProvisioningWebviewState
     implements
@@ -91,17 +90,6 @@ export interface FabricProvisioningContextProps
      * Handles the request for the database provisioning process
      */
     createDatabase(): void;
-    /**
-     * Creates a connection group based on the provided spec.
-     */
-    createConnectionGroup(connectionGroupSpec: ConnectionGroupSpec): void;
-
-    /**
-     * Sets the visibility of the connection group dialog based on the provided state.
-     * @param shouldOpen - A boolean indicating whether the dialog should be open or closed.
-     */
-    setConnectionGroupDialogState(shouldOpen: boolean): void;
-    dispose(): void;
 }
 
 export interface FabricProvisioningReducers extends FormReducers<FabricProvisioningFormState> {
@@ -118,16 +106,4 @@ export interface FabricProvisioningReducers extends FormReducers<FabricProvision
      * Handles the request for the database provisioning process
      */
     createDatabase: {};
-    /**
-     * Handles the action of creating a connection group.
-     */
-    createConnectionGroup: {
-        connectionGroupSpec: ConnectionGroupSpec;
-    };
-
-    /**
-     * Handles the action of opening/closing the connection group dialog.
-     */
-    setConnectionGroupDialogState: { shouldOpen: boolean };
-    dispose: {};
 }

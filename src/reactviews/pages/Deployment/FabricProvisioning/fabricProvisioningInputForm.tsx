@@ -12,26 +12,26 @@ import {
     Spinner,
     tokens,
 } from "@fluentui/react-components";
-import { FormField } from "../../common/forms/form.component";
+import { FormField } from "../../../common/forms/form.component";
 import {
     FabricProvisioningContextProps,
     FabricProvisioningFormItemSpec,
     FabricProvisioningWebviewState,
     FabricProvisioningFormState,
-} from "../../../sharedInterfaces/fabricProvisioning";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { FabricProvisioningContext } from "./fabricProvisioningStateProvider";
+} from "../../../../sharedInterfaces/fabricProvisioning";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
-import { locConstants } from "../../common/locConstants";
+import { locConstants } from "../../../common/locConstants";
 import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
-} from "../../../sharedInterfaces/connectionGroup";
-import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
-import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
-import { FormItemOptions } from "../../../sharedInterfaces/form";
+} from "../../../../sharedInterfaces/connectionGroup";
+import { SearchableDropdownOptions } from "../../../common/searchableDropdown.component";
+import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
+import { FormItemOptions } from "../../../../sharedInterfaces/form";
 import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
 import { ProvisionFabricDatabasePage } from "./provisionFabricDatabasePage";
+import { DeploymentContext } from "../deploymentStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -69,8 +69,9 @@ const useStyles = makeStyles({
 
 export const FabricProvisioningInputForm: React.FC = () => {
     const classes = useStyles();
-    const state = useContext(FabricProvisioningContext);
-    const fabricProvisioningState = state?.state;
+    const state = useContext(DeploymentContext);
+    const fabricProvisioningState = state?.state
+        .deploymentTypeState as FabricProvisioningWebviewState;
 
     if (!state || !fabricProvisioningState) return undefined;
 

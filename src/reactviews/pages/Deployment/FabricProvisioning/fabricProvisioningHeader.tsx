@@ -5,7 +5,9 @@
 
 import { useContext } from "react";
 import { makeStyles } from "@fluentui/react-components";
-import { FabricProvisioningContext } from "./fabricProvisioningStateProvider";
+import { locConstants } from "../../../common/locConstants";
+import { DeploymentContext } from "../deploymentStateProvider";
+import { FabricProvisioningWebviewState } from "../../../../sharedInterfaces/fabricProvisioning";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -39,20 +41,23 @@ interface HeaderProps {
 }
 
 export const FabricProvisioningHeader: React.FC<HeaderProps> = ({ paddingLeft }) => {
-    const state = useContext(FabricProvisioningContext);
     const classes = useStyles();
-    const fabricProvisioningState = state?.state;
+    const state = useContext(DeploymentContext);
+    const fabricProvisioningState = state?.state
+        .deploymentTypeState as FabricProvisioningWebviewState;
 
     if (!state || !fabricProvisioningState) return undefined;
 
     return (
         <div className={classes.outerDiv} style={{ paddingLeft: paddingLeft ?? "70px" }}>
             <img className={classes.icon} src={sqlInFabricIcon()} />
-            <div className={classes.titleDiv}>SQL database in Fabric</div>
+            <div className={classes.titleDiv}>
+                {locConstants.fabricProvisioning.sqlDatabaseInFabric}
+            </div>
         </div>
     );
 };
 
 export const sqlInFabricIcon = () => {
-    return require(`../../media/sqlDbInFabric.svg`);
+    return require(`../../../media/sqlDbInFabric.svg`);
 };
