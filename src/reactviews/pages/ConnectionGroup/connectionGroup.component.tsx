@@ -108,7 +108,8 @@ export const ConnectionGroupDialog = ({
         return groupName.trim() !== "";
     }
 
-    function handleSubmit() {
+    function handleSubmit(e: React.FormEvent) {
+        if (e) e.preventDefault();
         if (isReadyToSubmit()) {
             saveConnectionGroup({
                 name: groupName,
@@ -251,8 +252,8 @@ export const ConnectionGroupDialog = ({
                             appearance="primary"
                             type="submit"
                             style={{ width: "auto", whiteSpace: "nowrap" }}
-                            onClick={() => {
-                                handleSubmit();
+                            onClick={(e) => {
+                                handleSubmit(e);
                             }}
                             disabled={!isReadyToSubmit()}>
                             {Loc.connectionGroups.saveConnectionGroup}

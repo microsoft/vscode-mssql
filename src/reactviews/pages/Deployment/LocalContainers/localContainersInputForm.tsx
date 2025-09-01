@@ -115,7 +115,7 @@ export const LocalContainersInputForm: React.FC = () => {
 
     useEffect(() => {
         setShowNext(localContainersState.isDockerProfileValid);
-    }, [localContainersState]);
+    }, [localContainersState.isDockerProfileValid]);
 
     return showNext ? (
         <LocalContainersSetupStepsPage />
