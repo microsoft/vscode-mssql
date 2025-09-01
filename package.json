@@ -416,7 +416,7 @@
                 {
                     "command": "mssql.newDeployment",
                     "when": "config.mssql.enableRichExperiences && view == objectExplorer",
-                    "title": "%mssql.deployLocalDockerContainer%",
+                    "title": "%mssql.newDeployment%",
                     "group": "navigation"
                 }
             ],
