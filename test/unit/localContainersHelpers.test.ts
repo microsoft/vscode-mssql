@@ -8,24 +8,31 @@ import * as sinon from "sinon";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { FormItemType } from "../../src/sharedInterfaces/form";
 import * as dockerUtils from "../../src/deployment/dockerUtils";
-import {
-    initializeLocalContainersState,
-    registerLocalContainersReducers,
-    validateDockerConnectionProfile,
-    validatePort,
-    addContainerConnection,
-    setLocalContainersFormComponents,
-} from "../../src/deployment/localContainersHelpers";
+import * as localContainersHelpers from "../../src/deployment/localContainersHelpers";
 import * as lc from "../../src/sharedInterfaces/localContainers";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
-import { sendActionEvent, sendErrorEvent } from "../../src/telemetry/telemetry";
 import MainController from "../../src/controllers/mainController";
+import { stubTelemetry } from "./utils";
 
 suite("localContainers logic", () => {
     let sandbox: sinon.SinonSandbox;
+    let sendActionEvent: sinon.SinonStub;
+    let sendErrorEvent: sinon.SinonStub;
+    let deploymentController: DeploymentWebviewController;
+    let updateStateStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
+        ({ sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox));
+        updateStateStub = sandbox.stub();
+
+        deploymentController = {
+            state: {},
+            updateState: updateStateStub,
+            registerReducer: sandbox.stub().callsFake((name, fn) => {
+                (deploymentController as any)[name] = fn;
+            }),
+        } as any;
     });
 
     teardown(() => {
@@ -41,7 +48,7 @@ suite("localContainers logic", () => {
             .returns([{ loadState: ApiStatus.NotStarted }] as any);
 
         const groupOptions = [{ displayName: "Default Group", value: "default" }];
-        const state = await initializeLocalContainersState(groupOptions);
+        const state = await localContainersHelpers.initializeLocalContainersState(groupOptions);
 
         assert.strictEqual(state.loadState, ApiStatus.Loaded);
         assert.strictEqual(state.formState.version, "latest");
@@ -52,7 +59,10 @@ suite("localContainers logic", () => {
     test("setLocalContainersFormComponents builds expected keys", () => {
         const versions = [{ displayName: "Latest", value: "latest" }];
         const groups = [{ displayName: "Default Group", value: "default" }];
-        const components = setLocalContainersFormComponents(versions, groups);
+        const components = localContainersHelpers.setLocalContainersFormComponents(
+            versions,
+            groups,
+        );
 
         const expectedKeys = [
             "version",
@@ -79,10 +89,10 @@ suite("localContainers logic", () => {
             .withArgs(1)
             .resolves(-1);
 
-        assert.strictEqual(await validatePort("1433"), true);
-        assert.strictEqual(await validatePort("1"), false);
-        assert.strictEqual(await validatePort("NaN"), false);
-        assert.strictEqual(await validatePort(""), true);
+        assert.strictEqual(await localContainersHelpers.validatePort("1433"), true);
+        assert.strictEqual(await localContainersHelpers.validatePort("1"), false);
+        assert.strictEqual(await localContainersHelpers.validatePort("NaN"), false);
+        assert.strictEqual(await localContainersHelpers.validatePort(""), true);
     });
 
     test("validateDockerConnectionProfile validates containerName and port", async () => {
@@ -101,7 +111,7 @@ suite("localContainers logic", () => {
         sandbox.stub(dockerUtils, "findAvailablePort").resolves(1433);
 
         const state = {
-            formComponents: setLocalContainersFormComponents(
+            formComponents: localContainersHelpers.setLocalContainersFormComponents(
                 [{ displayName: "Latest", value: "latest" }],
                 [{ displayName: "Group", value: "g" }],
             ),
@@ -114,51 +124,140 @@ suite("localContainers logic", () => {
             formErrors: [] as string[],
         } as lc.LocalContainersState;
 
-        const validResult = await validateDockerConnectionProfile(state);
+        const validResult = await localContainersHelpers.validateDockerConnectionProfile(state);
         assert.deepEqual(validResult.formErrors, []);
 
         state.formState.containerName = "badName";
         state.formState.port = 1;
-        const invalidResult = await validateDockerConnectionProfile(state);
+        const invalidResult = await localContainersHelpers.validateDockerConnectionProfile(state);
         assert.ok(invalidResult.formErrors.includes("containerName"));
         assert.ok(invalidResult.formErrors.includes("port"));
     });
 
-    test("registerLocalContainersReducers wires reducers and runs completeDockerStep", async () => {
-        const fakeController = {
-            registerReducer(name: string, fn: any) {
-                this.reducers[name] = fn;
+    test("completeDockerStep updates state on successful step", async () => {
+        const stepActionStub = sandbox.stub().resolves({ success: true });
+        const state: any = {
+            deploymentTypeState: {
+                currentDockerStep: 0,
+                dockerSteps: [
+                    { loadState: ApiStatus.NotStarted, argNames: [], stepAction: stepActionStub },
+                ],
+                formState: { version: "1.0" },
             },
-            reducers: {} as Record<string, Function>,
-            state: { deploymentTypeState: {} },
-            updateState: sinon.stub(),
-            mainController: {},
-        } as unknown as DeploymentWebviewController & { reducers: Record<string, Function> };
+        };
 
-        sandbox.stub(sendActionEvent);
-        sandbox.stub(sendErrorEvent);
-        sandbox.stub(dockerUtils, "findAvailablePort").resolves(1433);
+        localContainersHelpers.registerLocalContainersReducers(deploymentController);
+        const newState = await (deploymentController as any).completeDockerStep(state, {
+            dockerStep: 0,
+        });
 
-        registerLocalContainersReducers(fakeController);
+        assert.strictEqual(newState.deploymentTypeState.dockerSteps[0].loadState, ApiStatus.Loaded);
+        assert.strictEqual(newState.deploymentTypeState.currentDockerStep, 1);
+        assert.ok(sendActionEvent.called);
+    });
 
-        const localState: lc.LocalContainersState = {
-            dockerSteps: [
-                {
-                    loadState: ApiStatus.NotStarted,
-                    stepAction: sinon.stub().resolves({ success: true }),
-                    argNames: [],
-                } as any,
-            ],
-            formState: { version: "latest" } as any,
-            currentDockerStep: 0,
-        } as any;
+    test("completeDockerStep updates state on failed step", async () => {
+        const stepActionStub = sandbox
+            .stub()
+            .resolves({ success: false, error: "fail", fullErrorText: "full fail" });
+        const state: any = {
+            deploymentTypeState: {
+                currentDockerStep: 0,
+                dockerSteps: [
+                    { loadState: ApiStatus.NotStarted, argNames: [], stepAction: stepActionStub },
+                ],
+                formState: { version: "1.0" },
+            },
+        };
 
-        const result = await fakeController.reducers["completeDockerStep"](
-            { deploymentTypeState: localState },
-            { dockerStep: 0 },
+        localContainersHelpers.registerLocalContainersReducers(deploymentController);
+        const newState = await (deploymentController as any).completeDockerStep(state, {
+            dockerStep: 0,
+        });
+
+        assert.strictEqual(newState.deploymentTypeState.dockerSteps[0].loadState, ApiStatus.Error);
+        assert.strictEqual(newState.deploymentTypeState.currentDockerStep, 0);
+        assert.ok(sendErrorEvent.called);
+    });
+
+    test("resetDockerStepState resets current step", async () => {
+        const state: any = {
+            deploymentTypeState: {
+                currentDockerStep: 0,
+                dockerSteps: [{ loadState: ApiStatus.Loaded }],
+            },
+        };
+
+        localContainersHelpers.registerLocalContainersReducers(deploymentController);
+        const newState = await (deploymentController as any).resetDockerStepState(state, {});
+
+        assert.strictEqual(
+            newState.deploymentTypeState.dockerSteps[0].loadState,
+            ApiStatus.NotStarted,
         );
+        assert.ok(sendActionEvent.called);
+    });
 
-        assert.strictEqual(result.deploymentTypeState.dockerSteps[0].loadState, ApiStatus.Loaded);
+    test("checkDockerProfile validates form and sends telemetry", async () => {
+        sandbox.stub(dockerUtils, "validateContainerName").resolves("validName");
+        sandbox.stub(dockerUtils, "findAvailablePort").resolves(1433);
+        sandbox.stub(localContainersHelpers, "validateDockerConnectionProfile").resolves({
+            formState: {
+                containerName: "validName",
+                port: 1433,
+                hostname: "localhost",
+                version: "1.0",
+                password: "pass",
+                savePassword: true,
+                profileName: "profile1",
+                groupId: "default",
+                acceptEula: true,
+            },
+            formComponents: {},
+            formErrors: [],
+        } as any);
+
+        // Complete formState with all expected keys
+        const state: any = {
+            deploymentTypeState: {
+                formState: {
+                    containerName: "",
+                    port: undefined,
+                    hostname: "",
+                    version: "1.0",
+                    password: "",
+                    savePassword: false,
+                    profileName: "",
+                    groupId: "",
+                    acceptEula: false,
+                },
+                formErrors: [],
+                formComponents: {},
+                formValidationLoadState: ApiStatus.NotStarted,
+                dockerSteps: [
+                    {
+                        loadState: ApiStatus.NotStarted,
+                        argNames: [],
+                        stepAction: sandbox.stub().resolves({ success: true }),
+                    },
+                ],
+                currentDockerStep: 0,
+                isDockerProfileValid: false,
+            },
+        };
+
+        // Register reducers
+        localContainersHelpers.registerLocalContainersReducers(deploymentController);
+
+        // Call the reducer
+        const newState = await (deploymentController as any).checkDockerProfile(state, {});
+
+        // Assertions
+        assert.strictEqual(
+            newState.deploymentTypeState.formValidationLoadState,
+            ApiStatus.NotStarted,
+        );
+        assert.ok(sendActionEvent.called);
     });
 
     test("addContainerConnection returns true on success", async () => {
@@ -179,9 +278,29 @@ suite("localContainers logic", () => {
             createObjectExplorerSession: createSessionStub,
         } as unknown as MainController;
 
-        const result = await addContainerConnection(dockerProfile, mainController);
+        const result = await localContainersHelpers.addContainerConnection(
+            dockerProfile,
+            mainController,
+        );
         assert.strictEqual(result, true);
         assert.ok(saveProfileStub.calledOnce);
         assert.ok(createSessionStub.calledOnce);
+    });
+
+    test("sendLocalContainersCloseEventTelemetry sends telemetry event", async () => {
+        const state = {
+            currentDockerStep: 0,
+            dockerSteps: [{ loadState: ApiStatus.Loaded }],
+        } as lc.LocalContainersState;
+
+        await localContainersHelpers.sendLocalContainersCloseEventTelemetry(state);
+
+        assert.ok(sendActionEvent.calledOnce);
+    });
+
+    test("updateLocalContainersState updates state", async () => {
+        await localContainersHelpers.updateLocalContainersState(deploymentController, {} as any);
+
+        assert.ok(updateStateStub.calledOnce);
     });
 });
