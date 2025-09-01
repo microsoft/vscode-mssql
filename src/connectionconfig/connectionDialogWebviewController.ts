@@ -64,6 +64,7 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
 import {
     configSelectedAzureSubscriptions,
+    defaultPortNumber,
     errorFirewallRule,
     errorSSLCertificateValidationFailed,
 } from "../constants/constants";
@@ -650,6 +651,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
      * (e.g. due to form selections, like authType and inputMode) */
     private cleanConnection(connection: IConnectionDialogProfile): IConnectionDialogProfile {
         const cleanedConnection = structuredClone(connection);
+        if (!cleanedConnection.port) {
+            cleanedConnection.port = defaultPortNumber;
+        }
 
         // Clear values for inputs that are hidden due to form selections
         for (const option of Object.values(this.state.formComponents)) {
