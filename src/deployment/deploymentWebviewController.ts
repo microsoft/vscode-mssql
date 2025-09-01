@@ -139,6 +139,7 @@ export class DeploymentWebviewController extends FormWebviewController<
                 await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
 
             state.dialog = undefined;
+            state.deploymentTypeState.dialog = state.dialog;
 
             this.updateState(state);
             return state;
@@ -150,6 +151,7 @@ export class DeploymentWebviewController extends FormWebviewController<
             } else {
                 state.dialog = undefined;
             }
+            state.deploymentTypeState.dialog = state.dialog;
             return state;
         });
 
