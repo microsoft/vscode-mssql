@@ -20,13 +20,13 @@ import {
     DeploymentType,
     DeploymentTypeState,
 } from "../sharedInterfaces/deployment";
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import * as localContainers from "./localContainersWebviewUtils";
+import * as localContainers from "./localContainersHelpers";
 import { LocalContainersState } from "../sharedInterfaces/localContainers";
-import * as fabricProvisioning from "./fabricProvisioningWebviewUtils";
+import * as fabricProvisioning from "./fabricProvisioningHelpers";
 import { newDeployment } from "../constants/locConstants";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { FabricProvisioningState } from "../sharedInterfaces/fabricProvisioning";
 
 export class DeploymentWebviewController extends FormWebviewController<
     DeploymentFormState,
@@ -75,19 +75,10 @@ export class DeploymentWebviewController extends FormWebviewController<
             state.deploymentTypeState.loadState = ApiStatus.Loading;
             this.updateState(state);
             if (payload.deploymentType === DeploymentType.LocalContainers) {
-                sendActionEvent(
-                    TelemetryViews.LocalContainers,
-                    TelemetryActions.StartLocalContainersDeployment,
-                );
                 newDeploymentTypeState = await localContainers.initializeLocalContainersState(
-                    new LocalContainersState(),
                     state.connectionGroupOptions,
                 );
             } else if (payload.deploymentType === DeploymentType.FabricProvisioning) {
-                sendActionEvent(
-                    TelemetryViews.FabricProvisioning,
-                    TelemetryActions.StartFabricProvisioningDeployment,
-                );
                 newDeploymentTypeState = await fabricProvisioning.initializeFabricProvisioningState(
                     this,
                     state.connectionGroupOptions,
@@ -161,9 +152,8 @@ export class DeploymentWebviewController extends FormWebviewController<
                     state.deploymentTypeState as LocalContainersState,
                 );
             } else if (state.deploymentType === DeploymentType.FabricProvisioning) {
-                sendActionEvent(
-                    TelemetryViews.FabricProvisioning,
-                    TelemetryActions.FinishFabricProvisioningDeployment,
+                fabricProvisioning.sendFabricProvisioningCloseEventTelemetry(
+                    state.deploymentTypeState as FabricProvisioningState,
                 );
             }
 

@@ -36,6 +36,8 @@ import { fetchUserGroups } from "../azure/utils";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionProfile } from "../models/interfaces";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 
 export const workspaceRoleRequestLimit = 20;
 
@@ -44,6 +46,7 @@ export async function initializeFabricProvisioningState(
     groupOptions: FormItemOptions[],
     logger: Logger,
 ): Promise<fp.FabricProvisioningState> {
+    const startTime = Date.now();
     const state = new fp.FabricProvisioningState();
     const azureAccountOptions = await getAccounts(
         deploymentController.mainController.azureAccountService,
@@ -74,6 +77,14 @@ export async function initializeFabricProvisioningState(
         tenantOptions,
     );
     state.loadState = ApiStatus.Loaded;
+    sendActionEvent(
+        TelemetryViews.FabricProvisioning,
+        TelemetryActions.StartFabricProvisioningDeployment,
+        {},
+        {
+            localContainersInitTimeInMs: Date.now() - startTime,
+        },
+    );
     getWorkspaces(deploymentController);
     return state;
 }
@@ -421,6 +432,7 @@ export function getWorkspaces(
 ): void {
     let state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
     if (state.formState.tenantId === "" && !tenantId) return;
+    const startTime = Date.now();
 
     tenantId = tenantId || state.formState.tenantId;
 
@@ -443,9 +455,24 @@ export function getWorkspaces(
             state.formState.workspace =
                 workspaceOptions.length > 0 ? workspaceOptions[0].value : "";
             updatefabricProvisioningState(deploymentController, state);
+            sendActionEvent(
+                TelemetryViews.FabricProvisioning,
+                TelemetryActions.GetWorkspaces,
+                {},
+                {
+                    numWorkspaces: state.workspaces.length,
+                    workspaceLoadTimeInMs: Date.now() - startTime,
+                },
+            );
         })
         .catch((err) => {
             console.error("Failed to load workspaces", err);
+            sendErrorEvent(
+                TelemetryViews.FabricProvisioning,
+                TelemetryActions.GetWorkspaces,
+                err,
+                true,
+            );
         });
 }
 
@@ -456,14 +483,30 @@ export async function getCapacities(
     const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
     if (state.formState.tenantId === "" && !tenantId) return;
     if (state.capacityIds.size !== 0) return;
+
+    const startTime = Date.now();
     try {
         const capacities = await FabricHelper.getFabricCapacities(
             tenantId || state.formState.tenantId,
         );
         state.capacityIds = new Set(capacities.map((capacities) => capacities.id));
         updatefabricProvisioningState(deploymentController, state);
+        sendActionEvent(
+            TelemetryViews.FabricProvisioning,
+            TelemetryActions.GetWorkspaces,
+            {},
+            {
+                capacitiesLoadTimeInMs: Date.now() - startTime,
+            },
+        );
     } catch (err) {
         console.error("Failed to load capacities", err);
+        sendErrorEvent(
+            TelemetryViews.FabricProvisioning,
+            TelemetryActions.LoadCapacities,
+            err,
+            true,
+        );
     }
 }
 
@@ -474,6 +517,8 @@ export async function getRoleForWorkspace(
 ): Promise<IWorkspace> {
     if (state.formState.tenantId === "" && !tenantId) return;
     workspace.role = WorkspaceRole.Viewer;
+    const startTime = Date.now();
+
     try {
         const roles = await FabricHelper.getRoleForWorkspace(
             workspace.id,
@@ -488,8 +533,22 @@ export async function getRoleForWorkspace(
                 workspace.role = role.role;
             }
         }
+        sendActionEvent(
+            TelemetryViews.FabricProvisioning,
+            TelemetryActions.GetWorkspaceRole,
+            {},
+            {
+                workspaceRoleLoadTimeInMs: Date.now() - startTime,
+            },
+        );
     } catch (err) {
         console.error("Failed to get workspace role", err);
+        sendErrorEvent(
+            TelemetryViews.FabricProvisioning,
+            TelemetryActions.GetWorkspaceRole,
+            err,
+            true,
+        );
     }
     return workspace;
 }
@@ -524,6 +583,7 @@ export async function sortWorkspacesByPermission(
         }
     }
 
+    const startTime = Date.now();
     // Fetch all roles in parallel if it won't hit rate limits
     if (Object.keys(workspacesWithValidOrUnknownCapacities).length < workspaceRoleRequestLimit) {
         const workspacesWithRoles = await Promise.all(
@@ -541,6 +601,14 @@ export async function sortWorkspacesByPermission(
             // Also keep workspace in the global map
             state.workspaces[workspace.id] = workspace;
         }
+        sendActionEvent(
+            TelemetryViews.FabricProvisioning,
+            TelemetryActions.GetPermissionsForWorkspaces,
+            {},
+            {
+                workspacePermissionsLoadTimeInMs: Date.now() - startTime,
+            },
+        );
     } else {
         state.workspacesWithPermissions = workspacesWithValidOrUnknownCapacities;
     }
@@ -583,12 +651,21 @@ export async function handleWorkspaceFormAction(
         state.formErrors.push("workspace");
         state.databaseNamesInWorkspace = [];
     } else {
+        const startTime = Date.now();
         const databasesInWorkspaces = await FabricHelper.getFabricDatabases(
             workspace,
             state.formState.tenantId,
         );
         state.databaseNamesInWorkspace = databasesInWorkspaces.map(
             (database) => database.displayName,
+        );
+        sendActionEvent(
+            TelemetryViews.FabricProvisioning,
+            TelemetryActions.GetFabricDatabases,
+            {},
+            {
+                fabricDatabasesLoadTimeInMs: Date.now() - startTime,
+            },
         );
     }
     const databaseNameComponent = state.formComponents["databaseName"];
@@ -609,6 +686,7 @@ export function provisionDatabase(
 ): void {
     const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
     if (state.formState.tenantId === "" && !tenantId) return;
+    const startTime = Date.now();
     state.provisionLoadState = ApiStatus.Loading;
     updatefabricProvisioningState(deploymentController, state);
     FabricHelper.createFabricSqlDatabase(
@@ -621,6 +699,14 @@ export function provisionDatabase(
             state.database = database;
             state.provisionLoadState = ApiStatus.Loaded;
             updatefabricProvisioningState(deploymentController, state);
+            sendActionEvent(
+                TelemetryViews.FabricProvisioning,
+                TelemetryActions.ProvisionFabricDatabase,
+                {},
+                {
+                    provisionDatabaseLoadTimeInMs: Date.now() - startTime,
+                },
+            );
             void connectToDatabase(deploymentController);
         })
         .catch((err) => {
@@ -628,12 +714,19 @@ export function provisionDatabase(
             state.errorMessage = getErrorMessage(err);
             state.provisionLoadState = ApiStatus.Error;
             updatefabricProvisioningState(deploymentController, state);
+            sendErrorEvent(
+                TelemetryViews.FabricProvisioning,
+                TelemetryActions.ProvisionFabricDatabase,
+                err,
+                true,
+            );
         });
 }
 
 export async function connectToDatabase(deploymentController: DeploymentWebviewController) {
     const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
     if (!state.database) return;
+    const startTime = Date.now();
     state.connectionLoadState = ApiStatus.Loading;
     updatefabricProvisioningState(deploymentController, state);
     try {
@@ -661,11 +754,39 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
 
         await deploymentController.mainController.createObjectExplorerSession(profile);
         state.connectionLoadState = ApiStatus.Loaded;
+        sendActionEvent(
+            TelemetryViews.FabricProvisioning,
+            TelemetryActions.ConnectToFabricDatabase,
+            {},
+            {
+                connectToDatabaseLoadTimeInMs: Date.now() - startTime,
+            },
+        );
     } catch (err) {
         state.connectionLoadState = ApiStatus.Error;
         state.errorMessage = getErrorMessage(err);
+        sendErrorEvent(
+            TelemetryViews.FabricProvisioning,
+            TelemetryActions.ConnectToFabricDatabase,
+            err,
+            true,
+        );
     }
     updatefabricProvisioningState(deploymentController, state);
+}
+
+export function sendFabricProvisioningCloseEventTelemetry(state: fp.FabricProvisioningState): void {
+    sendActionEvent(
+        TelemetryViews.FabricProvisioning,
+        TelemetryActions.FinishFabricProvisioningDeployment,
+        {
+            // Include telemetry data about the state when closed
+            formValidationState: state.formValidationLoadState,
+            errorMessage: state.errorMessage,
+            provisionState: state.provisionLoadState,
+            connectionState: state.connectionLoadState,
+        },
+    );
 }
 
 export function updatefabricProvisioningState(
