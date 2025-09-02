@@ -846,6 +846,10 @@ export default class MainController implements vscode.Disposable {
         return this._initialized;
     }
 
+    public get context(): vscode.ExtensionContext {
+        return this._context;
+    }
+
     /**
      * Initializes the extension
      */
@@ -1996,7 +2000,7 @@ export default class MainController implements vscode.Disposable {
     /**
      * Choose a new database from the current server
      */
-    private async onChooseDatabase(): Promise<boolean> {
+    public async onChooseDatabase(): Promise<boolean> {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
             const success = await this._connectionMgr.onChooseDatabase();
             return success;
