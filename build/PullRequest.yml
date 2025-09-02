@@ -3,11 +3,23 @@ trigger:
   branches:
     include:
       - release/*
+
 pool:
   vmImage: "macos-latest"
 
+# Disable automatic Get Sources
+resources:
+  repositories:
+    - repository: self
+      type: git
+      ref: $(Build.SourceBranch)
+      clean: true   # ensures clean checkout
+
 steps:
+  - checkout: self   # manual checkout at the very start
+    clean: true
+
   - template: ./templates/build.yml@self
     parameters:
-      publishArtifactName: drop # artifact name for publish task
-      packageOffline: false # don't build offline packages for PR builds to speed runs up
+      publishArtifactName: drop
+      packageOffline: false
