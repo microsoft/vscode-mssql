@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { QueryResultWebviewState } from "../../../sharedInterfaces/queryResult";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 
@@ -25,8 +24,11 @@ export const saveAsExcelIcon = (theme: ColorThemeKind) => {
         : require("../../media/saveExcel_inverse.svg");
 };
 
-export function hasResultsOrMessages(state: QueryResultWebviewState): boolean {
-    return Object.keys(state.resultSetSummaries).length > 0 || state.messages.length > 0;
+export function hasResultsOrMessages(
+    resultSetSummaries: Record<number, Record<number, qr.ResultSetSummary>>,
+    messages: qr.IMessage[],
+): boolean {
+    return Object.keys(resultSetSummaries).length > 0 || messages.length > 0;
 }
 
 /**
@@ -34,7 +36,10 @@ export function hasResultsOrMessages(state: QueryResultWebviewState): boolean {
  * @param messages - Array messages to process
  * @returns Array of messages with newline characters split into separate messages
  */
-export const splitMessages = (messages: qr.IMessage[]): qr.IMessage[] => {
+export const splitMessages = (messages: qr.IMessage[] | undefined | null): qr.IMessage[] => {
+    if (!messages || messages.length === 0) {
+        return [];
+    }
     return messages.flatMap((message) => {
         const lines = message.message.split(/\r?\n/);
         return lines.map((line) => {

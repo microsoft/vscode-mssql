@@ -145,6 +145,7 @@ export enum TelemetryActions {
     PublishSession = "PublishSession",
     GetDefinition = "GetDefinition",
     LookupPassword = "LookupPassword",
+    ChatCommand = "ChatCommand",
 }
 
 /**

@@ -13,6 +13,7 @@ import { useContext, useState } from "react";
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { ExecutionPlanView } from "./executionPlanView";
 import { locConstants } from "../../common/locConstants";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 
 const useStyles = makeStyles({
     iconStack: {
@@ -65,13 +66,14 @@ export const IconStack: React.FC<IconStackProps> = ({
     xml,
 }) => {
     const classes = useStyles();
+    const { themeKind } = useVscodeWebview2();
     const context = useContext(ExecutionPlanContext);
 
     if (!context) {
         return undefined;
     }
 
-    const theme = context.themeKind;
+    const theme = themeKind;
     const [tooltipsEnabled, setTooltipsEnabled] = useState(true);
     enum InputEnum {
         CustomZoom,

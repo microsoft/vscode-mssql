@@ -38,6 +38,7 @@ import StatusView from "../views/statusView";
 import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { DatabaseObjectSearchService } from "../services/databaseObjectSearchService";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
@@ -1032,6 +1033,13 @@ export default class ConnectionManager {
             }
             if (result) {
                 this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgDisconnected(fileUri));
+            }
+
+            // Free any search metadata cached for this connection
+            try {
+                DatabaseObjectSearchService.clearCache(fileUri);
+            } catch {
+                // best-effort cleanup; ignore errors
             }
 
             this.removeActiveConnection(fileUri);

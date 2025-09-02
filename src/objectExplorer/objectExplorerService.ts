@@ -410,8 +410,19 @@ export class ObjectExplorerService {
         const newConnectionNodes = new Map<string, ConnectionNode>();
 
         // Add all group nodes from settings first
+        // Read the user setting for collapsed/expanded state
+        const config = vscode.workspace.getConfiguration(Constants.extensionName);
+        const collapseGroups = config.get<boolean>(
+            Constants.cmdObjectExplorerCollapseOrExpandByDefault,
+            false,
+        );
+
         for (const group of serverGroups) {
-            const groupNode = new ConnectionGroupNode(group);
+            // Pass the desired collapsible state to the ConnectionGroupNode constructor
+            const initialState = collapseGroups
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.Expanded;
+            const groupNode = new ConnectionGroupNode(group, initialState);
 
             if (this._connectionGroupNodes.has(group.id)) {
                 groupNode.id = this._connectionGroupNodes.get(group.id).id;
@@ -1032,7 +1043,7 @@ export class ObjectExplorerService {
             }
         };
 
-        return await new Promise<boolean>((resolve, reject) => {
+        return await new Promise<boolean>((resolve) => {
             vscode.window.withProgress(
                 {
                     location: vscode.ProgressLocation.Notification,

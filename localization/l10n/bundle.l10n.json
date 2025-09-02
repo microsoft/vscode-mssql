@@ -57,6 +57,7 @@
   "Check Constraint": "Check Constraint",
   "New Check Constraint": "New Check Constraint",
   "Advanced Options": "Advanced Options",
+  "Search term cannot be empty": "Search term cannot be empty",
   "{0} issue/{0} is the number of issues": {
     "message": "{0} issue",
     "comment": [
@@ -1154,6 +1155,29 @@
   "Reload Visual Studio Code": "Reload Visual Studio Code",
   "Switch to MSAL": "Switch to MSAL",
   "Query succeeded": "Query succeeded",
+  "Search for database objects...": "Search for database objects...",
+  "Enter part of an object name to search for": "Enter part of an object name to search for",
+  "No database objects found matching '{0}'/{0} is the search term": {
+    "message": "No database objects found matching '{0}'",
+    "comment": [
+      "{0} is the search term"
+    ]
+  },
+  "An error occurred while searching database objects": "An error occurred while searching database objects",
+  "An error occurred while searching database objects: {0}/{0} is the error detail returned from the search operation": {
+    "message": "An error occurred while searching database objects: {0}",
+    "comment": [
+      "{0} is the error detail returned from the search operation"
+    ]
+  },
+  "No active database connection. Please connect to a database first.": "No active database connection. Please connect to a database first.",
+  "Select an object to view its definition ({0} results)/{0} is the number of results": {
+    "message": "Select an object to view its definition ({0} results)",
+    "comment": [
+      "{0} is the number of results"
+    ]
+  },
+  "Invalid connection URI. Please ensure you have an active database connection.": "Invalid connection URI. Please ensure you have an active database connection.",
   "Query failed": "Query failed",
   "Loading": "Loading",
   "Execution Plan": "Execution Plan",
@@ -1801,6 +1825,46 @@
       "{0} is the connection ID"
     ]
   },
+  "Connected successfully": "Connected successfully",
+  "Failed to connect": "Failed to connect",
+  "Disconnected successfully": "Disconnected successfully",
+  "Database changed successfully": "Database changed successfully",
+  "Failed to change database": "Failed to change database",
+  "No active connection for database change": "No active connection for database change",
+  "Connection Details": "Connection Details",
+  "Authentication": "Authentication",
+  "Server Version": "Server Version",
+  "Server Edition": "Server Edition",
+  "Cloud": "Cloud",
+  "User": "User",
+  "No connection information found": "No connection information found",
+  "No active connection": "No active connection",
+  "Opening schema designer...": "Opening schema designer...",
+  "No connection credentials found": "No connection credentials found",
+  "No active connection for schema view": "No active connection for schema view",
+  "Available Servers": "Available Servers",
+  "No saved connection profiles found.": "No saved connection profiles found.",
+  "Use {0} to create a new connection./{0} is the connect command": {
+    "message": "Use {0} to create a new connection.",
+    "comment": [
+      "{0} is the connect command"
+    ]
+  },
+  "Unnamed Profile": "Unnamed Profile",
+  "Found {0} saved connection profile(s)./{0} is the number of connection profiles": {
+    "message": "Found {0} saved connection profile(s).",
+    "comment": [
+      "{0} is the number of connection profiles"
+    ]
+  },
+  "Error retrieving server list: {0}/{0} is the error message": {
+    "message": "Error retrieving server list: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "Unknown error": "Unknown error",
+  "No active database connection in the current editor. Please establish a connection to continue.": "No active database connection in the current editor. Please establish a connection to continue.",
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
   "Cancel failed: {0}/{0} is the error message": {
     "message": "Cancel failed: {0}",
@@ -1837,6 +1901,33 @@
   },
   "Clear permissions for all extensions to access your connections": "Clear permissions for all extensions to access your connections",
   "All permissions for extensions to access your connections have been cleared.": "All permissions for extensions to access your connections have been cleared.",
+  "No active text editor found. Please open a file with an active database connection.": "No active text editor found. Please open a file with an active database connection.",
+  "Connection with ID \"{0}\" not found. Please verify the connection ID exists./{0} is the connection ID": {
+    "message": "Connection with ID \"{0}\" not found. Please verify the connection ID exists.",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Failed to establish connection with ID \"{0}\". Please check connection details and network connectivity./{0} is the connection ID": {
+    "message": "Failed to establish connection with ID \"{0}\". Please check connection details and network connectivity.",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Invalid connection URI provided.": "Invalid connection URI provided.",
+  "Connection is not active. Please establish a connection before performing this action.": "Connection is not active. Please establish a connection before performing this action.",
+  "Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this./{0} is the extension ID": {
+    "message": "Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.",
+    "comment": [
+      "{0} is the extension ID"
+    ]
+  },
+  "Connection sharing permission is required for extension: '{0}'/{0} is the extension ID": {
+    "message": "Connection sharing permission is required for extension: '{0}'",
+    "comment": [
+      "{0} is the extension ID"
+    ]
+  },
   "Create Connection Group": "Create Connection Group",
   "Edit Connection Group - {0}/{0} is the connection group name": {
     "message": "Edit Connection Group - {0}",

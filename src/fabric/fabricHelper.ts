@@ -46,6 +46,14 @@ export class FabricHelper {
         return response.value;
     }
 
+    /**
+     * Retrieves a specific Fabric workspace by its ID for a given tenant.
+     *
+     * @param workspaceId The ID of the workspace to fetch.
+     * @param tenantId The ID of the tenant that owns the workspace.
+     * @returns A promise that resolves to the `IWorkspace` object.
+     * @throws {Error} Throws an error if the underlying Fabric API request fails.
+     */
     public static async getFabricWorkspace(
         workspaceId: string,
         tenantId: string,
@@ -59,6 +67,15 @@ export class FabricHelper {
         return response;
     }
 
+    /**
+     * Retrieves the list of Fabric SQL databases for a given workspace.
+     *
+     * @param workspace The workspace object or workspace ID for which to fetch databases.
+     * @param tenantId Optional tenant ID for scoping the request.
+     * @returns A promise that resolves to an array of `FabricSqlDbInfo` objects
+     * @throws {Error} Throws an error if the underlying Fabric API request fails or if database
+     *         processing encounters an error.
+     */
     public static async getFabricDatabases(
         workspace: IWorkspace | string,
         tenantId?: string,
@@ -101,6 +118,13 @@ export class FabricHelper {
         return result;
     }
 
+    /**
+     * Retrieves the list of Fabric SQL endpoints for a given workspace.
+     *
+     * @param workspace The workspace object or workspace ID to fetch SQL endpoints from.
+     * @param tenantId Optional tenant ID for scoping the request.
+     * @returns A promise that resolves to an array of `FabricSqlDbInfo` objects.
+     */
     public static async getFabricSqlEndpoints(workspace: IWorkspace | string, tenantId?: string) {
         const workspacePromise =
             typeof workspace === "string"

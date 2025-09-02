@@ -200,6 +200,15 @@
         <note>{0} is the error message</note>
         <target state="translated">移除 Microsoft Entra 帐户时出错: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
+        <source xml:lang="en">An error occurred while searching database objects</source>
+        <target state="new">An error occurred while searching database objects</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fe01cd2e56483272d8d46be5c77c37d6be1aba49dfbe2fa79f68b4740723b758">
+        <source xml:lang="en">An error occurred while searching database objects: {0}</source>
+        <note>{0} is the error detail returned from the search operation</note>
+        <target state="new">An error occurred while searching database objects: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++56f99fbd59570e105fca5070d135f8f86c67f48168d43f8020b70523f06b21bb">
         <source xml:lang="en">An error occurred: {0}</source>
         <note>{0} is the error message</note>
@@ -270,6 +279,10 @@
         <source xml:lang="en">Are you sure?</source>
         <target state="translated">是否确定?</target>
       </trans-unit>
+      <trans-unit id="++CODE++66880d2d8216260d201917a72eb245440ef18ba9b54c070ee39aa4c343ae126f">
+        <source xml:lang="en">Authentication</source>
+        <target state="new">Authentication</target>
+      </trans-unit>
       <trans-unit id="++CODE++eccf8ea40318babf1bd28fa823e0fa905383eed481da5fccb9f54ea4a6152943">
         <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
         <target state="translated">身份验证库已更改，请重新加载 Visual Studio Code。</target>
@@ -307,6 +320,10 @@
       <trans-unit id="++CODE++a27adfa57c8938761efd3fc482ea8e81fc898b286f29d04c783c9d3b60b22824">
         <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
         <target state="translated">自动排列将根据最佳布局算法自动重新定位所有关系图元素。你创建的任何自定义位置都将丢失。是否继续自动排列架构关系图?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
+        <source xml:lang="en">Available Servers</source>
+        <target state="new">Available Servers</target>
       </trans-unit>
       <trans-unit id="++CODE++92eb0b1fb89f1725b3c1fe652164720d7b2d17222e81bd5057f02f645fb24e67">
         <source xml:lang="en">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</source>
@@ -652,6 +669,10 @@
         <source xml:lang="en">Close the current connection</source>
         <target state="translated">关闭当前连接</target>
       </trans-unit>
+      <trans-unit id="++CODE++b977b950c1ae31e5aeb9ef778cc20a66fc034eb81e738e0206104b677962c465">
+        <source xml:lang="en">Cloud</source>
+        <target state="new">Cloud</target>
+      </trans-unit>
       <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
         <source xml:lang="en">Collapse</source>
         <target state="translated">折叠</target>
@@ -787,6 +808,10 @@
         <note>{0} is the profile ID</note>
         <target state="translated">是否使用配置文件 {0} 进行连接?</target>
       </trans-unit>
+      <trans-unit id="++CODE++28d29898bc769fd6df013da142af60f451953946e641fc2a2bee0e49b235a623">
+        <source xml:lang="en">Connected successfully</source>
+        <target state="new">Connected successfully</target>
+      </trans-unit>
       <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>
         <note>{0} is the server name
@@ -840,6 +865,10 @@
         <source xml:lang="en">Connecting...</source>
         <target state="translated">正在连接...</target>
       </trans-unit>
+      <trans-unit id="++CODE++880cac6e9612c7672ce73c666f54c5f789e7b1ed1b9f0b7f1431fe84a2e59bce">
+        <source xml:lang="en">Connection Details</source>
+        <target state="new">Connection Details</target>
+      </trans-unit>
       <trans-unit id="++CODE++dba530f818587a0d79d7bb8f59e07d372d10691f49c560e3e4c3d42d105fe9e7">
         <source xml:lang="en">Connection Dialog</source>
         <target state="translated">“连接”对话框</target>
@@ -864,6 +893,10 @@
         <source xml:lang="en">Connection error</source>
         <target state="translated">连接错误</target>
       </trans-unit>
+      <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
+        <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
+        <target state="new">Connection is not active. Please establish a connection before performing this action.</target>
+      </trans-unit>
       <trans-unit id="++CODE++28512f31201abdd26ae93d0caaba3b8a3c77113b9665059a9e1d2ba4e47de64d">
         <source xml:lang="en">Connection not found for uri "{0}".</source>
         <note>{0} is the uri</note>
@@ -874,9 +907,24 @@
         <note>{0} is the profile ID</note>
         <target state="translated">找不到连接配置文件“{0}”。</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8">
+        <source xml:lang="en">Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.</source>
+        <note>{0} is the extension ID</note>
+        <target state="new">Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6fc14523d003cf70290f0110eeafa850232518f52a0d26436b18c1e838cf1c27">
+        <source xml:lang="en">Connection sharing permission is required for extension: '{0}'</source>
+        <note>{0} is the extension ID</note>
+        <target state="new">Connection sharing permission is required for extension: '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
         <target state="translated">连接字符串是必需的</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6ae8947e98979cbbaeb55a8af448297f63002580ddebd9731fd40ec3ddcdc849">
+        <source xml:lang="en">Connection with ID "{0}" not found. Please verify the connection ID exists.</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Connection with ID "{0}" not found. Please verify the connection ID exists.</target>
       </trans-unit>
       <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
         <source xml:lang="en">Consider adding a name for this foreign key</source>
@@ -1033,6 +1081,10 @@
         <source xml:lang="en">Database Project</source>
         <target state="translated">数据库项目</target>
       </trans-unit>
+      <trans-unit id="++CODE++ec9c37392a809590dbb62879bd1b261c3675552b33d4d8936d539925d774f6a6">
+        <source xml:lang="en">Database changed successfully</source>
+        <target state="new">Database changed successfully</target>
+      </trans-unit>
       <trans-unit id="++CODE++e97a0773fb7b656c174155270bd9ded70bc82caa0fc5d65b3ba24871577a5b08">
         <source xml:lang="en">Database name</source>
         <target state="translated">数据库名称</target>
@@ -1110,6 +1162,10 @@
         <source xml:lang="en">Disconnected on document "{0}"</source>
         <note>{0} is the document name</note>
         <target state="translated">已断开文档“{0}”的连接</target>
+      </trans-unit>
+      <trans-unit id="++CODE++459c45733e24412e32c08ebea6b6819b4a29ca99ec1b99e5c8036d0165df44b7">
+        <source xml:lang="en">Disconnected successfully</source>
+        <target state="new">Disconnected successfully</target>
       </trans-unit>
       <trans-unit id="++CODE++810e6bf829af848a6ab728e3b8f94dde597f95f47f11b160ca7eaa9f0d21395b">
         <source xml:lang="en">Disconnecting from connection '{0}'</source>
@@ -1242,6 +1298,10 @@
         <source xml:lang="en">Enter new column width</source>
         <target state="translated">输入新列宽</target>
       </trans-unit>
+      <trans-unit id="++CODE++03c72a0dd31428f797eaadef0452b218e6d7cfbfc8b66e7f47e404818a53cda0">
+        <source xml:lang="en">Enter part of an object name to search for</source>
+        <target state="new">Enter part of an object name to search for</target>
+      </trans-unit>
       <trans-unit id="++CODE++7014aff13517c4071a9de8a8d338ac3ca12ae8ecf6589941d84170aa47cdcac3">
         <source xml:lang="en">Enter password</source>
         <target state="translated">输入密码</target>
@@ -1335,6 +1395,11 @@ Error:
         <source xml:lang="en">Error occurred opening content in editor.</source>
         <target state="translated">在编辑器中打开內容时发生错误。</target>
       </trans-unit>
+      <trans-unit id="++CODE++7ce810c92d5881cd4638f73772ee57317b503d0f04dbc5cd2f281f77ac1d697d">
+        <source xml:lang="en">Error retrieving server list: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Error retrieving server list: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++2982897442ab8ee74ad10f968e801f2979c59ecc19ae9d2041eeedec219fd8f1">
         <source xml:lang="en">Error running Docker commands. Please make sure Docker is running.</source>
         <target state="translated">运行 Docker 命令时出错。请确保 Docker 正在运行。</target>
@@ -1422,6 +1487,14 @@ Error:
         <note>{0} is the error message returned from the publish changes operation</note>
         <target state="translated">无法应用更改:“{0}”</target>
       </trans-unit>
+      <trans-unit id="++CODE++0f20f13b4e0c02dbfd1419272fdc0223aea4745a0704daf5f91876a21476bda2">
+        <source xml:lang="en">Failed to change database</source>
+        <target state="new">Failed to change database</target>
+      </trans-unit>
+      <trans-unit id="++CODE++46c9f3b7520fde539ec4452ba821c1b8ad43f18971284f033ab93d32f04c65df">
+        <source xml:lang="en">Failed to connect</source>
+        <target state="new">Failed to connect</target>
+      </trans-unit>
       <trans-unit id="++CODE++6e543be4255a8c4362baca16d0850278f1d95a7df9cd38f4b94ecbda4abe57e5">
         <source xml:lang="en">Failed to connect to database: {0}</source>
         <note>{0} is the database name</note>
@@ -1446,6 +1519,11 @@ Error:
         <source xml:lang="en">Failed to delete {0}.</source>
         <note>Failed to delete {0}.</note>
         <target state="translated">无法删除 {0}。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b">
+        <source xml:lang="en">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</target>
       </trans-unit>
       <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
         <source xml:lang="en">Failed to fetch user tokens.</source>
@@ -1630,6 +1708,11 @@ Error:
         <note>{0} is the uri</note>
         <target state="translated">找到 URI {0} 的挂起的重新连接承诺，正在等待。</target>
       </trans-unit>
+      <trans-unit id="++CODE++fc70e7e548649aa12095a141703b67943b4437de990082c3646b3ab61884dcf0">
+        <source xml:lang="en">Found {0} saved connection profile(s).</source>
+        <note>{0} is the number of connection profiles</note>
+        <target state="new">Found {0} saved connection profile(s).</target>
+      </trans-unit>
       <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
         <source xml:lang="en">General</source>
         <target state="translated">常规</target>
@@ -1810,6 +1893,14 @@ Error:
       <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
         <source xml:lang="en">Invalid column width</source>
         <target state="translated">列宽无效</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4ce86c72bcd330160b14a711a925bf6f8e24fdd6b26d4a7abbfa548e510648d5">
+        <source xml:lang="en">Invalid connection URI provided.</source>
+        <target state="new">Invalid connection URI provided.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c61e4661a7417ada5f0b7d34d9c3cd27dcc3aad485b337ea6d58cd077be7c8c">
+        <source xml:lang="en">Invalid connection URI. Please ensure you have an active database connection.</source>
+        <target state="new">Invalid connection URI. Please ensure you have an active database connection.</target>
       </trans-unit>
       <trans-unit id="++CODE++c265d537d7811a1e8fa19df9305f90ad86e0326ad6dd2d585172fcf570023c57">
         <source xml:lang="en">Invalid connection string: {0}</source>
@@ -2193,14 +2284,46 @@ Error:
         <source xml:lang="en">No account selected</source>
         <target state="translated">未选择任何帐户</target>
       </trans-unit>
+      <trans-unit id="++CODE++9659b767df189a5839c87672cb77cb5c7e5dbe63f59c88712ad34358dda02676">
+        <source xml:lang="en">No active connection</source>
+        <target state="new">No active connection</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fd8753767d0ca74647a1d3b877db12f2a65a06f4c81db6eadd086759df0a5ad1">
+        <source xml:lang="en">No active connection for database change</source>
+        <target state="new">No active connection for database change</target>
+      </trans-unit>
+      <trans-unit id="++CODE++796911143ea8bb8e1ff88271e2618eb63b05d9e04cdf6e9363533b0715ab3574">
+        <source xml:lang="en">No active connection for schema view</source>
+        <target state="new">No active connection for schema view</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d932a05eba0200bedb4b5449ce9e6487525ba3ecfd164e137388fd0833b4121b">
+        <source xml:lang="en">No active database connection in the current editor. Please establish a connection to continue.</source>
+        <target state="new">No active database connection in the current editor. Please establish a connection to continue.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++971d7b9ca9340d6e8e22146855f8ef9cd9576279575ad1f7bd2fb5f40eaaddf9">
+        <source xml:lang="en">No active database connection. Please connect to a database first.</source>
+        <target state="new">No active database connection. Please connect to a database first.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
+        <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
+        <target state="new">No active text editor found. Please open a file with an active database connection.</target>
+      </trans-unit>
       <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
         <source xml:lang="en">No changes detected</source>
         <target state="translated">未检测到更改</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d359844ae129bd7d51eda9e3c61dcf5c4036be148cdf783fc11d6454e8ca372b">
+        <source xml:lang="en">No connection credentials found</source>
+        <target state="new">No connection credentials found</target>
       </trans-unit>
       <trans-unit id="++CODE++bb6f0c310647145d31546d24967be9eb8ebae90f640642e9fbb5d7713e6e8550">
         <source xml:lang="en">No connection found for connectionId: {0}</source>
         <note>{0} is the connection ID</note>
         <target state="translated">找不到 connectionId 为 {0} 的连接</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3820494b45e56abad074e97c277e6328476da0ec09dacdf18bc5d5d7a6984cb2">
+        <source xml:lang="en">No connection information found</source>
+        <target state="new">No connection information found</target>
       </trans-unit>
       <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
         <source xml:lang="en">No connection profile to remove.</source>
@@ -2209,6 +2332,11 @@ Error:
       <trans-unit id="++CODE++87a122216f22b55fd29964cf75c886ef5da5cd8369e2a6e24c73ec0ad22227ba">
         <source xml:lang="en">No connection was found. Please connect to a server first.</source>
         <target state="translated">找不到任何连接。请先连接到服务器。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3280128c0901d1323dde9a406ee7d2d6e8e1b98fd30971fa6134b302fec41eca">
+        <source xml:lang="en">No database objects found matching '{0}'</source>
+        <note>{0} is the search term</note>
+        <target state="new">No database objects found matching '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
@@ -2230,11 +2358,15 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++4dfded12d62e6f18c858be45db4d0f8b07d57a31417037444685fecadb4351d5">
         <source xml:lang="en">No results for the active editor</source>
-        <target state="new">No results for the active editor</target>
+        <target state="translated">没有找到活动编辑器的结果</target>
       </trans-unit>
       <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
         <source xml:lang="en">No results to display</source>
         <target state="translated">没有可显示的结果</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
+        <source xml:lang="en">No saved connection profiles found.</source>
+        <target state="new">No saved connection profiles found.</target>
       </trans-unit>
       <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
         <source xml:lang="en">No schema differences were found.</source>
@@ -2375,6 +2507,10 @@ Error:
       <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
         <target state="translated">正在打开发布脚本。这可能需要一些时间...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fe0d6bd1aef549a43c5fca4a838882918bd3a85e9641cb5150f31df976e18e38">
+        <source xml:lang="en">Opening schema designer...</source>
+        <target state="new">Opening schema designer...</target>
       </trans-unit>
       <trans-unit id="++CODE++291101a07fe980e93b900ae85c9eb824f9e7e93d0d754be7440b9386b615cad7">
         <source xml:lang="en">Operator</source>
@@ -2681,7 +2817,7 @@ Error:
       <trans-unit id="++CODE++ccb11e8d73c1d40ef67b26d9ca77a50ab2987d9ac9af361e065c3c1c6699c116">
         <source xml:lang="en">Results ({0})</source>
         <note>{0} is the number of results</note>
-        <target state="new">Results ({0})</target>
+        <target state="translated">结果({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
         <source xml:lang="en">Retry</source>
@@ -2709,7 +2845,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
         <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
-        <target state="new">Run a query in the current editor, or switch to an editor that has results.</target>
+        <target state="translated">在当前编辑器中运行查询，或切换到有结果的编辑器。</target>
       </trans-unit>
       <trans-unit id="++CODE++8c69f23e4bff75d84e54afc088af9057c1b2285242fe96f175cbc395b3a16620">
         <source xml:lang="en">Run query on connection '{0}'?
@@ -2874,6 +3010,10 @@ Query: {1}</source>
         <source xml:lang="en">Search connection groups</source>
         <target state="translated">搜索连接组</target>
       </trans-unit>
+      <trans-unit id="++CODE++448fcd5b80608528b5b492337667acf711f486e31784b41b4bba7066a9527ac4">
+        <source xml:lang="en">Search for database objects...</source>
+        <target state="new">Search for database objects...</target>
+      </trans-unit>
       <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
         <source xml:lang="en">Search options...</source>
         <target state="translated">搜索选项...</target>
@@ -2885,6 +3025,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++771f5d2c0599dcf4194e3fdddd9a5212d6392f4703d29971575bb455b5287a84">
         <source xml:lang="en">Search tables...</source>
         <target state="translated">搜索表...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f0b2ef28c0bec626ad14f56179e18d97cdbfcb4f676c4735f95eae628d079538">
+        <source xml:lang="en">Search term cannot be empty</source>
+        <target state="new">Search term cannot be empty</target>
       </trans-unit>
       <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
         <source xml:lang="en">Search...</source>
@@ -2952,6 +3096,11 @@ Query: {1}</source>
         <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
         <target state="translated">选择用于管理连接共享权限的扩展</target>
       </trans-unit>
+      <trans-unit id="++CODE++cac9a015dc3356af3f386e840985bfc09d57c0b9cc01a88e26ec67f3501058d8">
+        <source xml:lang="en">Select an object to view its definition ({0} results)</source>
+        <note>{0} is the number of results</note>
+        <target state="new">Select an object to view its definition ({0} results)</target>
+      </trans-unit>
       <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
         <source xml:lang="en">Select image</source>
         <target state="translated">选择映像</target>
@@ -2985,6 +3134,14 @@ Query: {1}</source>
         <source xml:lang="en">Server - {0}</source>
         <note>{0} is the server name</note>
         <target state="translated">服务器 - {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6b0054dcd0116896729545198c9cdfe9b8f97008d91d39084e5c8808a6784c58">
+        <source xml:lang="en">Server Edition</source>
+        <target state="new">Server Edition</target>
+      </trans-unit>
+      <trans-unit id="++CODE++86c1cd65696eadbc588fd4fe04d8b03ca948befc5a89467c621edf47f885118c">
+        <source xml:lang="en">Server Version</source>
+        <target state="new">Server Version</target>
       </trans-unit>
       <trans-unit id="++CODE++1c53883708ab16a3743793905feb38c8e77c295d846ff276491831e1de69b6e1">
         <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
@@ -3490,6 +3647,14 @@ Query: {1}</source>
         <source xml:lang="en">Undo</source>
         <target state="translated">撤消</target>
       </trans-unit>
+      <trans-unit id="++CODE++27c2ccd962c2b8dccb52fe3688ab236f186f7a41fd57d810478712048e9ad3f8">
+        <source xml:lang="en">Unknown error</source>
+        <target state="new">Unknown error</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e4dd0ac78c7663f350454bad4258d3b6d38971181470082487d131decc61880b">
+        <source xml:lang="en">Unnamed Profile</source>
+        <target state="new">Unnamed Profile</target>
+      </trans-unit>
       <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
         <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
         <note>{0} is the architecture name of the machine</note>
@@ -3519,6 +3684,15 @@ Query: {1}</source>
       <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
         <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
         <target state="translated">在当前文档中使用 T-SQL Intellisense 和语法错误检查</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6fa7eeedfe2d3774f7d0d8fbb044c15710f171f58174bf7435ab1757e92d0c27">
+        <source xml:lang="en">Use {0} to create a new connection.</source>
+        <note>{0} is the connect command</note>
+        <target state="new">Use {0} to create a new connection.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b512d97e7cbf97c273e4db073bbb547aa65a84589227f8f3d9e4a72b9372a24d">
+        <source xml:lang="en">User</source>
+        <target state="new">User</target>
       </trans-unit>
       <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
         <source xml:lang="en">User name</source>
@@ -4160,9 +4334,9 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
         <target state="translated">当用户选择“AzureMFA”身份验证时，允许将 SQL 身份验证提供程序用于“Microsoft Entra ID 交互式”身份验证模式。这将在获取访问令牌时启用服务器端资源终结点集成。仅“MSAL”身份验证库支持此选项。请在更改此选项后重启 Visual Studio Code。</target>
       </trans-unit>
-      <trans-unit id="mssql.showExecutionPlanInResults">
+      <trans-unit id="mssql.showEstimatedPlan">
         <source xml:lang="en">Estimated Plan</source>
-        <target state="translated">估计计划</target>
+        <target state="new">Estimated Plan</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>
@@ -4336,7 +4510,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
         <source xml:lang="en">Reveal Query Result</source>
-        <target state="new">Reveal Query Result</target>
+        <target state="translated">显示查询结果</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.rewriteQuery">
         <source xml:lang="en">Rewrite Query (Preview)</source>
@@ -4373,6 +4547,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.scriptExecute">
         <source xml:lang="en">Script as Execute</source>
         <target state="translated">撰写为 Execute 的脚本</target>
+      </trans-unit>
+      <trans-unit id="mssql.searchObjects">
+        <source xml:lang="en">Search Objects</source>
+        <target state="new">Search Objects</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
@@ -4560,6 +4738,10 @@ See the estimated plan without running the query, or view the actual query plan 
         <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
         <target state="translated">启用后，使用连接组的颜色对连接状态栏项进行着色。默认情况下禁用此设置。 此操作直接使用连接组文件夹的颜色，并且不会更改它，以确保与当前 VS Code 主题的对比度。用户应选择适合其主题的连接组颜色。</target>
       </trans-unit>
+      <trans-unit id="mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription">
+        <source xml:lang="en">When enabled, connection groups will be collapsed instead of expanded at startup.</source>
+        <target state="new">When enabled, connection groups will be collapsed instead of expanded at startup.</target>
+      </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
         <target state="translated">启用后，对象资源管理器中的数据库对象将按架构进行分类。</target>
@@ -4600,7 +4782,7 @@ You can also click the 'Open in New Tab' button to view your query results in th
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.delimiter">
         <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)</source>
-        <target state="new">[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)</target>
+        <target state="translated">[可选] 将结果保存为 CSV 时用于分隔数据项的分隔符。从常用分隔符中进行选择，例如逗号(,)、tab (\t)、分号(;)或竖线(|)</target>
       </trans-unit>
       <trans-unit id="mssql.ignorePlatformWarning">
         <source xml:lang="en">[Optional] Do not show unsupported platform warnings</source>
@@ -4608,7 +4790,7 @@ You can also click the 'Open in New Tab' button to view your query results in th
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.encoding">
         <source xml:lang="en">[Optional] File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility</source>
-        <target state="new">[Optional] File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility</target>
+        <target state="translated">[可选] 将结果保存为 CSV 时使用的文件编码。根据目标应用程序兼容性从 UTF-8 (推荐)、UTF-16、ASCII 或 Latin-1 中进行选择</target>
       </trans-unit>
       <trans-unit id="mssql.connection.currentLanguage">
         <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>

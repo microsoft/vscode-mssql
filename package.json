@@ -226,8 +226,77 @@
                 "id": "mssql.agent",
                 "name": "mssql",
                 "description": "Azure SQL Copilot agent",
-                "commands": [],
-                "isSticky": true
+                "isSticky": true,
+                "commands": [
+                    {
+                        "name": "runQuery",
+                        "description": "Execute a SQL query in the currently connected database and return results."
+                    },
+                    {
+                        "name": "explain",
+                        "description": "Provide natural language explanations for SQL/ORM code, queries, functions, or stored procedures."
+                    },
+                    {
+                        "name": "fix",
+                        "description": "Detect and correct syntax issues or missing constraints in SQL/ORM code.."
+                    },
+                    {
+                        "name": "optimize",
+                        "description": "Analyze query performance and suggest improvements (e.g., indexing, restructuring)."
+                    },
+                    {
+                        "name": "getConnectionDetails",
+                        "description": "Shows a complete breakdown of the active connection: server name, database, version, authentication type."
+                    },
+                    {
+                        "name": "changeDatabase",
+                        "description": "Switch to a different database within the current server."
+                    },
+                    {
+                        "name": "disconnect",
+                        "description": "Disconnect from the currently connected database."
+                    },
+                    {
+                        "name": "connect",
+                        "description": "Connect to a database."
+                    },
+                    {
+                        "name": "showSchema",
+                        "description": "Visualize the structure of the current database schema, including tables, relationships, and keys."
+                    },
+                    {
+                        "name": "showDefinition",
+                        "description": "Display structure of a specific table, view, function, or stored procedure."
+                    },
+                    {
+                        "name": "listServers",
+                        "description": "List all available database servers in OE."
+                    },
+                    {
+                        "name": "listDatabases",
+                        "description": "List all databases on the current server."
+                    },
+                    {
+                        "name": "listSchemas",
+                        "description": "List all schemas in the current database."
+                    },
+                    {
+                        "name": "listTables",
+                        "description": "List all tables in the current database."
+                    },
+                    {
+                        "name": "listViews",
+                        "description": "List all views in the current database."
+                    },
+                    {
+                        "name": "listFunctions",
+                        "description": "List all functions in the current database."
+                    },
+                    {
+                        "name": "listProcedures",
+                        "description": "List all procedures in the current database."
+                    }
+                ]
             }
         ],
         "customEditors": [
@@ -308,27 +377,27 @@
                 },
                 {
                     "command": "mssql.disconnect",
-                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && resourcePath not in mssql.runningQueries",
                     "group": "navigation@3"
                 },
                 {
                     "command": "mssql.changeDatabase",
-                    "when": "editorLangId == sql && !isInDiffEditor",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries",
                     "group": "navigation@4"
                 },
                 {
-                    "command": "mssql.showExecutionPlanInResults",
-                    "when": "editorLangId == sql && !isInDiffEditor",
+                    "command": "mssql.showEstimatedPlan",
+                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries",
                     "group": "navigation@4"
                 },
                 {
                     "command": "mssql.enableActualPlan",
-                    "when": "editorLangId == sql && !isInDiffEditor && !(resource in mssql.executionPlan.urisWithActualPlanEnabled)",
+                    "when": "editorLangId == sql && !isInDiffEditor && (resource not in mssql.executionPlan.urisWithActualPlanEnabled) && (resourcePath not in mssql.runningQueries)",
                     "group": "navigation@5"
                 },
                 {
                     "command": "mssql.disableActualPlan",
-                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.executionPlan.urisWithActualPlanEnabled",
+                    "when": "editorLangId == sql && !isInDiffEditor && (resource in mssql.executionPlan.urisWithActualPlanEnabled) && (resourcePath not in mssql.runningQueries)",
                     "group": "navigation@5"
                 }
             ],
@@ -468,6 +537,11 @@
                     "group": "2_MSSQL_serverDbActions@2"
                 },
                 {
+                    "command": "mssql.searchObjects",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/",
+                    "group": "2_MSSQL_serverDbActions@3"
+                },
+                {
                     "command": "mssql.scriptSelect",
                     "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|View)\\b/",
                     "group": "3_MSSQL_script@1"
@@ -579,9 +653,14 @@
                     "group": "inline@1"
                 },
                 {
+                    "command": "mssql.disconnectObjectExplorerNode",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
+                    "group": "inline@2"
+                },
+                {
                     "command": "mssql.clearFilters",
                     "when": "view == objectExplorer && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
-                    "group": "inline@2"
+                    "group": "inline@3"
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
@@ -899,7 +978,14 @@
             {
                 "command": "mssql.disconnectObjectExplorerNode",
                 "title": "%mssql.disconnect%",
-                "category": "MS SQL"
+                "category": "MS SQL",
+                "icon": "$(debug-disconnect)"
+            },
+            {
+                "command": "mssql.searchObjects",
+                "title": "%mssql.searchObjects%",
+                "category": "MS SQL",
+                "icon": "$(search)"
             },
             {
                 "command": "mssql.scriptSelect",
@@ -1016,8 +1102,8 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.showExecutionPlanInResults",
-                "title": "%mssql.showExecutionPlanInResults%",
+                "command": "mssql.showEstimatedPlan",
+                "title": "%mssql.showEstimatedPlan%",
                 "category": "MS SQL",
                 "icon": {
                     "dark": "media/executionPlan_dark.svg",
@@ -1925,6 +2011,12 @@
                     "description": "%mssql.objectExplorer.groupBySchema%",
                     "default": false
                 },
+                "mssql.objectExplorer.collapseConnectionGroupsOnStartup": {
+                    "type": "boolean",
+                    "description": "%mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription%",
+                    "default": false,
+                    "scope": "window"
+                },
                 "mssql.objectExplorer.expandTimeout": {
                     "type": "number",
                     "default": 45,
@@ -2012,7 +2104,7 @@
                             "altText": "%mssql.walkthroughs.nextSteps.viewQueryPlan.altText%"
                         },
                         "completionEvents": [
-                            "onCommand:mssql.showExecutionPlanInResults",
+                            "onCommand:mssql.showEstimatedPlan",
                             "onCommand:mssql.enableActualPlan",
                             "onCommand:mssql.disableActualPlan"
                         ]

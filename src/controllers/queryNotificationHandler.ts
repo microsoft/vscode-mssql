@@ -13,10 +13,14 @@ import {
     QueryExecuteCompleteNotification,
     QueryExecuteBatchStartNotification,
     QueryExecuteBatchCompleteNotification,
+    QueryExecuteResultSetAvailableNotification,
+    QueryExecuteResultSetUpdatedNotification,
     QueryExecuteResultSetCompleteNotification,
     QueryExecuteMessageNotification,
     QueryExecuteCompleteNotificationResult,
     QueryExecuteBatchNotificationParams,
+    QueryExecuteResultSetAvailableNotificationParams,
+    QueryExecuteResultSetUpdatedNotificationParams,
     QueryExecuteResultSetCompleteNotificationParams,
     QueryExecuteMessageParams,
 } from "../models/contracts/queryExecute";
@@ -60,6 +64,14 @@ export class QueryNotificationHandler {
             this.handleBatchCompleteNotification(),
         );
         client.onNotification(
+            QueryExecuteResultSetAvailableNotification.type,
+            this.handleResultSetAvailableNotification(),
+        );
+        client.onNotification(
+            QueryExecuteResultSetUpdatedNotification.type,
+            this.handleResultSetUpdatedNotification(),
+        );
+        client.onNotification(
             QueryExecuteResultSetCompleteNotification.type,
             this.handleResultSetCompleteNotification(),
         );
@@ -98,6 +110,18 @@ export class QueryNotificationHandler {
     public handleBatchCompleteNotification(): NotificationHandler<QueryExecuteBatchNotificationParams> {
         return this.makeHandler<QueryExecuteBatchNotificationParams>((r, e) =>
             r.handleBatchComplete(e),
+        );
+    }
+
+    public handleResultSetAvailableNotification(): NotificationHandler<QueryExecuteResultSetAvailableNotificationParams> {
+        return this.makeHandler<QueryExecuteResultSetAvailableNotificationParams>((r, e) =>
+            r.handleResultSetAvailable(e),
+        );
+    }
+
+    public handleResultSetUpdatedNotification(): NotificationHandler<QueryExecuteResultSetUpdatedNotificationParams> {
+        return this.makeHandler<QueryExecuteResultSetUpdatedNotificationParams>((r, e) =>
+            r.handleResultSetUpdated(e),
         );
     }
 

@@ -49,7 +49,7 @@ suite("Docker Utilities", () => {
 
         assert.strictEqual(steps[0].headerText, LocalContainers.dockerInstallHeader);
         assert.strictEqual(steps[0].bodyText, LocalContainers.dockerInstallBody);
-        assert.strictEqual(steps[0].errorLink, "https://docs.docker.com/engine/install/");
+        assert.strictEqual(steps[0].errorLink, "https://www.docker.com/products/docker-desktop/");
         assert.strictEqual(steps[0].errorLinkText, LocalContainers.installDocker);
         assert.strictEqual(
             typeof steps[0].stepAction,

@@ -6,12 +6,12 @@
 import React, { useContext, useEffect, useState } from "react";
 import { makeStyles } from "@fluentui/react-components";
 import { Editor } from "@monaco-editor/react";
-import { QueryResultContext } from "./queryResultStateProvider";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { resolveVscodeThemeType } from "../../common/utils";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
+import { QueryResultCommandsContext } from "./queryResultStateProvider";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 
 const useStyles = makeStyles({
     textViewContainer: {
@@ -46,11 +46,13 @@ export interface TextViewProps {
 
 export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fontSettings }) => {
     const classes = useStyles();
-    const context = useContext(QueryResultContext);
-    const webViewState = useVscodeWebview<qr.QueryResultWebviewState, qr.QueryResultReducers>();
+    const context = useContext(QueryResultCommandsContext);
     const [textContent, setTextContent] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(true);
-    const EOL = webViewState.EOL;
+    const { themeKind, EOL } = useVscodeWebview2<
+        qr.QueryResultWebviewState,
+        qr.QueryResultReducers
+    >();
 
     useEffect(() => {
         const generateTextView = async () => {
@@ -99,7 +101,7 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
 
                         // Get all rows for this result set first to calculate proper column widths
                         if (resultSetSummary.rowCount > 0) {
-                            const response = await webViewState.extensionRpc.sendRequest(
+                            const response = await context?.extensionRpc.sendRequest(
                                 qr.GetRowsRequest.type,
                                 {
                                     uri: uri,
@@ -193,7 +195,7 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
         };
 
         void generateTextView();
-    }, [uri, resultSetSummaries, webViewState]);
+    }, [uri, resultSetSummaries]);
 
     if (loading) {
         return <div className={classes.noResults}>{locConstants.queryResult.loadingTextView}</div>;
@@ -207,7 +209,7 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
                         width="100%"
                         height="100%"
                         language="plaintext"
-                        theme={resolveVscodeThemeType(context?.themeKind || ColorThemeKind.Light)}
+                        theme={resolveVscodeThemeType(themeKind || ColorThemeKind.Light)}
                         value={textContent}
                         options={{
                             readOnly: true,

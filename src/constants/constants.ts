@@ -76,6 +76,8 @@ export const cmdObjectExplorerEnableGroupBySchemaCommand =
     "mssql.objectExplorer.enableGroupBySchema";
 export const cmdObjectExplorerDisableGroupBySchemaCommand =
     "mssql.objectExplorer.disableGroupBySchema";
+export const cmdObjectExplorerCollapseOrExpandByDefault =
+    "objectExplorer.collapseConnectionGroupsOnStartup";
 export const cmdEnableRichExperiencesCommand = "mssql.enableRichExperiences";
 export const cmdScriptSelect = "mssql.scriptSelect";
 export const cmdScriptCreate = "mssql.scriptCreate";
@@ -87,6 +89,7 @@ export const cmdCopyObjectName = "mssql.copyObjectName";
 export const cmdFilterNode = "mssql.filterNode";
 export const cmdFilterNodeWithExistingFilters = "mssql.filterNodeWithExistingFilters";
 export const cmdClearFilters = "mssql.clearFilters";
+export const cmdSearchObjects = "mssql.searchObjects";
 export const cmdOpenExtension = "extension.open";
 export const cmdLoadCompletionExtension = "mssql.loadCompletionExtension";
 export const cmdAzureSignIn = "azure-account.login";
@@ -95,7 +98,7 @@ export const cmdAzureSignInToCloud = "azure-account.loginToCloud";
 export const cmdAadRemoveAccount = "mssql.removeAadAccount";
 export const cmdAadAddAccount = "mssql.addAadAccount";
 export const cmdClearAzureTokenCache = "mssql.clearAzureAccountTokenCache";
-export const cmdShowExecutionPlanInResults = "mssql.showExecutionPlanInResults";
+export const cmdShowEstimatedPlan = "mssql.showEstimatedPlan";
 export const cmdEnableActualPlan = "mssql.enableActualPlan";
 export const cmdDisableActualPlan = "mssql.disableActualPlan";
 export const cmdNewTable = "mssql.newTable";

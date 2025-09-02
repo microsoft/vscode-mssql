@@ -545,6 +545,36 @@ export let reloadChoice = l10n.t("Reload Visual Studio Code");
 export let switchToMsal = l10n.t("Switch to MSAL");
 export let dismiss = l10n.t("Dismiss");
 export let querySuccess = l10n.t("Query succeeded");
+export let searchObjectsPlaceholder = l10n.t("Search for database objects...");
+export let searchObjectsPrompt = l10n.t("Enter part of an object name to search for");
+export function searchObjectsNoResultsMessage(term: string) {
+    return l10n.t({
+        message: "No database objects found matching '{0}'",
+        args: [term],
+        comment: ["{0} is the search term"],
+    });
+}
+export let searchObjectsError = l10n.t("An error occurred while searching database objects");
+export function searchObjectsErrorWithDetail(detail: string) {
+    return l10n.t({
+        message: "An error occurred while searching database objects: {0}",
+        args: [detail],
+        comment: ["{0} is the error detail returned from the search operation"],
+    });
+}
+export let searchObjectsNoConnection = l10n.t(
+    "No active database connection. Please connect to a database first.",
+);
+export function searchObjectsSelectPrompt(count: string | number) {
+    return l10n.t({
+        message: "Select an object to view its definition ({0} results)",
+        args: [count],
+        comment: ["{0} is the number of results"],
+    });
+}
+export let searchObjectsInvalidConnectionUri = l10n.t(
+    "Invalid connection URI. Please ensure you have an active database connection.",
+);
 export let queryFailed = l10n.t("Query failed");
 
 export let parameters = l10n.t("Parameters");
@@ -1518,6 +1548,61 @@ export class MssqlChatAgent {
             comment: ["{0} is the connection ID"],
         });
     };
+
+    // Chat Commands localization strings
+    public static connectedSuccessfully = l10n.t("Connected successfully");
+    public static failedToConnect = l10n.t("Failed to connect");
+    public static disconnectedSuccessfully = l10n.t("Disconnected successfully");
+    public static databaseChangedSuccessfully = l10n.t("Database changed successfully");
+    public static failedToChangeDatabase = l10n.t("Failed to change database");
+    public static noActiveConnectionForDatabaseChange = l10n.t(
+        "No active connection for database change",
+    );
+    public static connectionDetails = l10n.t("Connection Details");
+    public static serverLabel = l10n.t("Server");
+    public static databaseLabel = l10n.t("Database");
+    public static authentication = l10n.t("Authentication");
+    public static sqlLogin = l10n.t("SQL Login");
+    public static serverVersion = l10n.t("Server Version");
+    public static serverEdition = l10n.t("Server Edition");
+    public static cloud = l10n.t("Cloud");
+    public static yes = l10n.t("Yes");
+    public static no = l10n.t("No");
+    public static user = l10n.t("User");
+    public static noConnectionInformationFound = l10n.t("No connection information found");
+    public static noActiveConnection = l10n.t("No active connection");
+    public static openingSchemaDesigner = l10n.t("Opening schema designer...");
+    public static noConnectionCredentialsFound = l10n.t("No connection credentials found");
+    public static noActiveConnectionForSchemaView = l10n.t("No active connection for schema view");
+    public static availableServers = l10n.t("Available Servers");
+    public static noSavedConnectionProfilesFound = l10n.t("No saved connection profiles found.");
+    public static useConnectToCreateNewConnection = (connectCommand: string) => {
+        return l10n.t({
+            message: "Use {0} to create a new connection.",
+            args: [connectCommand],
+            comment: ["{0} is the connect command"],
+        });
+    };
+    public static unnamedProfile = l10n.t("Unnamed Profile");
+    public static default = l10n.t("Default");
+    public static foundSavedConnectionProfiles = (count: number) => {
+        return l10n.t({
+            message: "Found {0} saved connection profile(s).",
+            args: [count],
+            comment: ["{0} is the number of connection profiles"],
+        });
+    };
+    public static errorRetrievingServerList = (errorMessage: string) => {
+        return l10n.t({
+            message: "Error retrieving server list: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    };
+    public static unknownError = l10n.t("Unknown error");
+    public static noActiveDatabaseConnection = l10n.t(
+        "No active database connection in the current editor. Please establish a connection to continue.",
+    );
 }
 
 export class QueryEditor {
@@ -1577,6 +1662,41 @@ export class ConnectionSharing {
     public static AllPermissionsCleared = l10n.t(
         "All permissions for extensions to access your connections have been cleared.",
     );
+    public static noActiveEditorError = l10n.t(
+        "No active text editor found. Please open a file with an active database connection.",
+    );
+    public static connectionNotFoundError(connectionId: string) {
+        return l10n.t({
+            message: `Connection with ID "{0}" not found. Please verify the connection ID exists.`,
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    }
+    public static failedToEstablishConnectionError(connectionId: string) {
+        return l10n.t({
+            message: `Failed to establish connection with ID "{0}". Please check connection details and network connectivity.`,
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    }
+    public static invalidConnectionUri = l10n.t("Invalid connection URI provided.");
+    public static connectionNotActive = l10n.t(
+        "Connection is not active. Please establish a connection before performing this action.",
+    );
+    public static permissionDenied(extensionId: string) {
+        return l10n.t({
+            message: `Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.`,
+            args: [extensionId],
+            comment: ["{0} is the extension ID"],
+        });
+    }
+    public static permissionRequired(extensionId: string) {
+        return l10n.t({
+            message: `Connection sharing permission is required for extension: '{0}'`,
+            args: [extensionId],
+            comment: ["{0} is the extension ID"],
+        });
+    }
 }
 
 export class ConnectionGroup {
