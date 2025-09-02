@@ -662,8 +662,8 @@ export class ObjectExplorer {
 
 export class ConnectionDialog {
     public static connectionDialog = l10n.t("Connection Dialog");
-    public static azureAccount = l10n.t("Azure Account");
-    public static azureAccountIsRequired = l10n.t("Azure Account is required");
+    public static microsoftAccount = l10n.t("Microsoft Account");
+    public static microsoftAccountIsRequired = l10n.t("Microsoft Account is required");
     public static selectAnAccount = l10n.t("Select an account");
     public static addAccount = l10n.t("Add account");
     public static savePassword = l10n.t("Save Password");
@@ -717,6 +717,10 @@ export class ConnectionDialog {
         });
     }
     public static ClearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
+
+    public static noWorkspacesFound = l10n.t(
+        "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+    );
 }
 
 export class FirewallRule {
@@ -758,6 +762,100 @@ export class Azure {
             ],
         });
     };
+
+    public static failedToGetTenantForAccount = (tenantId: string, accountName: string) => {
+        return l10n.t({
+            message: "Failed to get tenant '{0}' for account '{1}'.",
+            args: [tenantId, accountName],
+            comment: ["{0} is the tenant id", "{1} is the account name"],
+        });
+    };
+}
+
+export class Fabric {
+    public static failedToGetWorkspacesForTenant = (tenantName: string, tenantId: string) => {
+        return l10n.t({
+            message: "Failed to get Fabric workspaces for tenant '{0} ({1})'.",
+            args: [tenantName, tenantId],
+            comment: ["{0} is the tenant name", "{1} is the tenant id"],
+        });
+    };
+
+    public static listingCapacitiesForTenant = (tenantId: string) => {
+        return l10n.t({
+            message: "Listing Fabric capacities for tenant '{0}'",
+            args: [tenantId],
+            comment: ["{0} is the tenant ID"],
+        });
+    };
+
+    public static listingWorkspacesForTenant = (tenantId: string) => {
+        return l10n.t({
+            message: "Listing Fabric workspaces for tenant '{0}'",
+            args: [tenantId],
+            comment: ["{0} is the tenant ID"],
+        });
+    };
+
+    public static gettingWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Getting Fabric workspace '{0}'",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
+    public static listingSqlDatabasesForWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Listing Fabric SQL Databases for workspace '{0}'",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
+    public static listingSqlEndpointsForWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Listing Fabric SQL Endpoints for workspace '{0}'",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
+    public static gettingConnectionStringForSqlEndpoint = (
+        sqlEndpointId: string,
+        workspaceId: string,
+    ) => {
+        return l10n.t({
+            message: "Getting connection string for SQL Endpoint '{0}' in workspace '{1}'",
+            args: [sqlEndpointId, workspaceId],
+            comment: ["{0} is the SQL endpoint ID", "{1} is the workspace ID"],
+        });
+    };
+
+    public static createWorkspaceWithCapacity = (capacityId: string) => {
+        return l10n.t({
+            message: "Creating workspace with capacity {0}",
+            args: [capacityId],
+            comment: ["{0} is the capacity ID"],
+        });
+    };
+
+    public static createSqlDatabaseForWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Creating SQL Database for workspace {0}",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
+    public static fabricAccount = l10n.t("Fabric Account");
+    public static fabricAccountIsRequired = l10n.t("Fabric Account is required");
+    public static workspace = l10n.t("Workspace");
+    public static selectAWorkspace = l10n.t("Select a Workspace");
+    public static searchWorkspaces = l10n.t("Search Workspaces");
+    public static workspaceIsRequired = l10n.t("Workspace is required");
+    public static insufficientWorkspacePermissions = l10n.t("Insufficient Worskpace Permissions");
+    public static insufficientCapacityPermissions = l10n.t("Insufficient Capacity Permissions");
 }
 
 export class Accounts {
@@ -769,17 +867,6 @@ export class Accounts {
             comment: ["{0} is the number of invalid accounts that have been removed"],
         });
     };
-}
-
-export class Fabric {
-    public static fabricAccount = l10n.t("Fabric Account");
-    public static fabricAccountIsRequired = l10n.t("Fabric Account is required");
-    public static workspace = l10n.t("Workspace");
-    public static selectAWorkspace = l10n.t("Select a Workspace");
-    public static searchWorkspaces = l10n.t("Search Workspaces");
-    public static workspaceIsRequired = l10n.t("Workspace is required");
-    public static insufficientWorkspacePermissions = l10n.t("Insufficient Worskpace Permissions");
-    public static insufficientCapacityPermissions = l10n.t("Insufficient Capacity Permissions");
 }
 
 export class FabricProvisioning {

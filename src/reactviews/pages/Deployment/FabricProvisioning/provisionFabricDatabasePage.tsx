@@ -210,7 +210,7 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
                                         style={{ paddingLeft: "100px" }}>
                                         <span className={classes.cardItem}>
                                             <span className={classes.cardItemLabel}>
-                                                {locConstants.firewallRules.tenant}:
+                                                {locConstants.azure.tenant}:
                                             </span>
                                             {fabricProvisioningState.tenantName}
                                         </span>

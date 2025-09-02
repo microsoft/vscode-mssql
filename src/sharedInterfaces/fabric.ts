@@ -11,7 +11,9 @@ export interface FabricSqlDbInfo {
     displayName: string;
     database: string;
     type: string;
+    workspaceId: string;
     workspaceName: string;
+    tenantId: string;
 }
 
 export interface FabricWorkspaceInfo {
@@ -28,7 +30,7 @@ export enum SqlArtifactTypes {
 }
 
 /**
- * ICapacity Fabric capacity as seen in api responses
+ * ICapacity Fabric capacity as seen in API responses
  */
 export interface ICapacity {
     id: string;
@@ -44,7 +46,7 @@ export enum ICapacityState {
 }
 
 /**
- * IWorkspace Fabric workspace as seen in api responses
+ * IWorkspace Fabric workspace as seen in API responses
  */
 export interface IWorkspace {
     id: string;
@@ -68,7 +70,7 @@ export interface IFabricError {
 }
 
 /**
- * IWorkspaceRole Fabric Workspace role as seen in api responses
+ * IWorkspaceRole Fabric Workspace role as seen in API responses
  */
 export interface IWorkspaceRoleAssignment {
     id: string;

@@ -102,6 +102,7 @@
   "Apply": "Apply",
   "Next": "Next",
   "Clear Selection": "Clear Selection",
+  "Clear": "Clear",
   "Find": "Find",
   "Find Next": "Find Next",
   "Find Previous": "Find Previous",
@@ -172,7 +173,6 @@
   "Property": "Property",
   "Operator": "Operator",
   "Value": "Value",
-  "Clear": "Clear",
   "Publishing Changes": "Publishing Changes",
   "Changes published successfully": "Changes published successfully",
   "Close Designer": "Close Designer",
@@ -225,7 +225,6 @@
   "A firewall rule is required to access this server.": "A firewall rule is required to access this server.",
   "Add Firewall Rule": "Add Firewall Rule",
   "Sign into Azure in order to add a firewall rule.": "Sign into Azure in order to add a firewall rule.",
-  "Tenant": "Tenant",
   "Rule name": "Rule name",
   "Add my client IP ({0})/{0} is the IP address of the client": {
     "message": "Add my client IP ({0})",
@@ -233,6 +232,40 @@
       "{0} is the IP address of the client"
     ]
   },
+  "Search workspaces...": "Search workspaces...",
+  "Loading Fabric Accounts": "Loading Fabric Accounts",
+  "Fabric Account": "Fabric Account",
+  "Select an account": "Select an account",
+  "Account": "Account",
+  "Sign In": "Sign In",
+  "Tenant ID": "Tenant ID",
+  "Authentication Type": "Authentication Type",
+  "Browse By": "Browse By",
+  "My Data": "My Data",
+  "Recent": "Recent",
+  "Favorites": "Favorites",
+  "Fabric Workspaces": "Fabric Workspaces",
+  "Sign into Fabric": "Sign into Fabric",
+  "Filter by keyword": "Filter by keyword",
+  "Filter": "Filter",
+  "Filter by type": "Filter by type",
+  "Show All": "Show All",
+  "SQL Analytics Endpoint": "SQL Analytics Endpoint",
+  "SQL Database": "SQL Database",
+  "No workspaces found": "No workspaces found",
+  "Location (Workspace)": "Location (Workspace)",
+  "Expand Workspace Explorer": "Expand Workspace Explorer",
+  "Explorer": "Explorer",
+  "Collapse Workspace Explorer": "Collapse Workspace Explorer",
+  "Select a workspace to view the databases in it.": "Select a workspace to view the databases in it.",
+  "No databases found in workspace '{0}'./{0} is the name of the workspace": {
+    "message": "No databases found in workspace '{0}'.",
+    "comment": [
+      "{0} is the name of the workspace"
+    ]
+  },
+  "No databases found in the selected workspace.": "No databases found in the selected workspace.",
+  "Database list": "Database list",
   "Connect": "Connect",
   "Advanced Connection Settings": "Advanced Connection Settings",
   "Advanced": "Advanced",
@@ -247,6 +280,7 @@
   "Parameters": "Parameters",
   "Connection String": "Connection String",
   "Browse Azure": "Browse Azure",
+  "Browse Fabric": "Browse Fabric",
   "Load from Connection String": "Load from Connection String",
   "Saved Connections": "Saved Connections",
   "Recent Connections": "Recent Connections",
@@ -286,6 +320,18 @@
   "Paste": "Paste",
   "Search settings...": "Search settings...",
   "You must be signed into Azure in order to browse SQL databases.": "You must be signed into Azure in order to browse SQL databases.",
+  "You must be signed into Fabric in order to browse SQL databases.": "You must be signed into Fabric in order to browse SQL databases.",
+  "Loading workspaces...": "Loading workspaces...",
+  "Loading databases in '{0}'.../{0} is the name of the workspace": {
+    "message": "Loading databases in '{0}'...",
+    "comment": [
+      "{0} is the name of the workspace"
+    ]
+  },
+  "Loading databases in selected workspace...": "Loading databases in selected workspace...",
+  "Error loading workspaces": "Error loading workspaces",
+  "Error loading databases": "Error loading databases",
+  "Connection Authentication": "Connection Authentication",
   "Sign into Azure": "Sign into Azure",
   "Not signed in": "Not signed in",
   "Azure Account": "Azure Account",
@@ -299,6 +345,10 @@
   },
   "Click to sign into an Azure account": "Click to sign into an Azure account",
   "Currently signed in as:": "Currently signed in as:",
+  "Loading Azure Accounts": "Loading Azure Accounts",
+  "Tenant": "Tenant",
+  "Loading tenants...": "Loading tenants...",
+  "Select a tenant": "Select a tenant",
   "Loading execution plan...": "Loading execution plan...",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
@@ -415,7 +465,6 @@
   "Auto Arrange": "Auto Arrange",
   "Auto Arrange Confirmation": "Auto Arrange Confirmation",
   "Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?": "Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?",
-  "Filter": "Filter",
   "Filter ({0})/{0} is the number of selected tables": {
     "message": "Filter ({0})",
     "comment": [
@@ -726,6 +775,7 @@
   "Hide full error message": "Hide full error message",
   "Show full error message": "Show full error message",
   "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
+  "+ Add Fabric Account": "+ Add Fabric Account",
   "Loading fabric provisioning...": "Loading fabric provisioning...",
   "SQL Database in Fabric": "SQL Database in Fabric",
   "Create Database": "Create Database",
@@ -823,7 +873,6 @@
   "End IP Address": "End IP Address",
   "Firewall rule name": "Firewall rule name",
   "[Optional] Database to connect (press Enter to connect to <default> database)": "[Optional] Database to connect (press Enter to connect to <default> database)",
-  "Authentication Type": "Authentication Type",
   "authenticationType": "authenticationType",
   "Integrated": "Integrated",
   "SQL Login": "SQL Login",
@@ -1234,12 +1283,10 @@
     ]
   },
   "Connection Dialog": "Connection Dialog",
-  "Azure Account is required": "Azure Account is required",
-  "Select an account": "Select an account",
+  "Microsoft Account": "Microsoft Account",
+  "Microsoft Account is required": "Microsoft Account is required",
   "Add account": "Add account",
   "Save Password": "Save Password",
-  "Tenant ID": "Tenant ID",
-  "Select a tenant": "Select a tenant",
   "Tenant ID is required": "Tenant ID is required",
   "Enter profile name": "Enter profile name",
   "[Optional] Enter a display name for this connection profile": "[Optional] Enter a display name for this connection profile",
@@ -1275,6 +1322,7 @@
     ]
   },
   "Clear cache and refresh token": "Clear cache and refresh token",
+  "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
   "Add Firewall Rule to {0}/{0} is the server name": {
     "message": "Add Firewall Rule to {0}",
     "comment": [
@@ -1298,6 +1346,69 @@
     "comment": [
       "{0} is the rule info in format 'name (startIp - endIp)'",
       "{1} is the error message"
+    ]
+  },
+  "Failed to get tenant '{0}' for account '{1}'./{0} is the tenant id{1} is the account name": {
+    "message": "Failed to get tenant '{0}' for account '{1}'.",
+    "comment": [
+      "{0} is the tenant id",
+      "{1} is the account name"
+    ]
+  },
+  "Failed to get Fabric workspaces for tenant '{0} ({1})'./{0} is the tenant name{1} is the tenant id": {
+    "message": "Failed to get Fabric workspaces for tenant '{0} ({1})'.",
+    "comment": [
+      "{0} is the tenant name",
+      "{1} is the tenant id"
+    ]
+  },
+  "Listing Fabric capacities for tenant '{0}'/{0} is the tenant ID": {
+    "message": "Listing Fabric capacities for tenant '{0}'",
+    "comment": [
+      "{0} is the tenant ID"
+    ]
+  },
+  "Listing Fabric workspaces for tenant '{0}'/{0} is the tenant ID": {
+    "message": "Listing Fabric workspaces for tenant '{0}'",
+    "comment": [
+      "{0} is the tenant ID"
+    ]
+  },
+  "Getting Fabric workspace '{0}'/{0} is the workspace ID": {
+    "message": "Getting Fabric workspace '{0}'",
+    "comment": [
+      "{0} is the workspace ID"
+    ]
+  },
+  "Listing Fabric SQL Databases for workspace '{0}'/{0} is the workspace ID": {
+    "message": "Listing Fabric SQL Databases for workspace '{0}'",
+    "comment": [
+      "{0} is the workspace ID"
+    ]
+  },
+  "Listing Fabric SQL Endpoints for workspace '{0}'/{0} is the workspace ID": {
+    "message": "Listing Fabric SQL Endpoints for workspace '{0}'",
+    "comment": [
+      "{0} is the workspace ID"
+    ]
+  },
+  "Getting connection string for SQL Endpoint '{0}' in workspace '{1}'/{0} is the SQL endpoint ID{1} is the workspace ID": {
+    "message": "Getting connection string for SQL Endpoint '{0}' in workspace '{1}'",
+    "comment": [
+      "{0} is the SQL endpoint ID",
+      "{1} is the workspace ID"
+    ]
+  },
+  "Creating workspace with capacity {0}/{0} is the capacity ID": {
+    "message": "Creating workspace with capacity {0}",
+    "comment": [
+      "{0} is the capacity ID"
+    ]
+  },
+  "Creating SQL Database for workspace {0}/{0} is the workspace ID": {
+    "message": "Creating SQL Database for workspace {0}",
+    "comment": [
+      "{0} is the workspace ID"
     ]
   },
   "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again./{0} is the number of invalid accounts that have been removed": {

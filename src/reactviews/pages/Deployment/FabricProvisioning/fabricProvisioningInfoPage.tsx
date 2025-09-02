@@ -6,12 +6,12 @@
 import { useContext, useState } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
-import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
 import { DeploymentContext } from "../deploymentStateProvider";
-import { FabricProvisioningStartPage } from "./fabricProvisioningStartPage";
 import { DeploymentType } from "../../../../sharedInterfaces/deployment";
-import { ChooseDeploymentTypePage } from "../chooseDeploymentTypePage";
 import { ChevronLeft20Regular } from "@fluentui/react-icons";
+import { ChooseDeploymentTypePage } from "../chooseDeploymentTypePage";
+import { FabricProvisioningStartPage } from "./fabricProvisioningStartPage";
+import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -40,14 +40,18 @@ const useStyles = makeStyles({
         marginTop: "20px",
         marginBottom: "20px",
     },
+    backButton: {
+        position: "absolute",
+        top: "10px",
+        left: "10px",
+    },
     itemDiv: {
         position: "relative",
         overflow: "auto",
         display: "flex",
         flexDirection: "row",
         height: "fit-content",
-        width: "300px",
-        padding: "20px",
+        padding: "25px",
     },
     textDiv: {
         position: "relative",
@@ -67,18 +71,8 @@ const useStyles = makeStyles({
         height: "75px",
         marginRight: "10px",
     },
-    stepsRow: {
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "left",
-        justifyContent: "center",
-        height: "100%",
-        gap: "20px",
-    },
-    backButton: {
-        position: "absolute",
-        top: "10px",
-        left: "10px",
+    link: {
+        textDecoration: "none",
     },
 });
 
@@ -88,8 +82,11 @@ export const FabricProvisioningInfoPage: React.FC = () => {
     const [showNext, setShowNext] = useState(false);
     const [showPrevious, setShowPrevious] = useState(false);
 
-    if (!state) return;
-
+    // If this passes, container deployment state is guaranteed
+    // to be defined, so we can reference it as non-null
+    if (!state) {
+        return undefined;
+    }
     return showPrevious ? (
         <ChooseDeploymentTypePage />
     ) : showNext ? (
@@ -106,67 +103,44 @@ export const FabricProvisioningInfoPage: React.FC = () => {
             <FabricProvisioningHeader />
             <div className={classes.outerDiv}>
                 <div className={classes.stepsDiv}>
-                    <div className={classes.stepsRow}>
-                        <div className={classes.itemDiv}>
-                            <img
-                                className={classes.icon}
-                                src={instantSetup()}
-                                alt={locConstants.fabricProvisioning.builtOnAzureSQL}
-                            />
-                            <div className={classes.textDiv}>
-                                <div className={classes.titleDiv}>
-                                    {locConstants.fabricProvisioning.builtOnAzureSQL}
-                                </div>
-                                <div>
-                                    {locConstants.fabricProvisioning.builtOnAzureSQLDescription}
-                                </div>
+                    <div className={classes.itemDiv}>
+                        <img
+                            className={classes.icon}
+                            src={builtOnAzureSQL()}
+                            alt={locConstants.fabricProvisioning.builtOnAzureSQL}
+                        />
+                        <div className={classes.textDiv}>
+                            <div className={classes.titleDiv}>
+                                {locConstants.fabricProvisioning.builtOnAzureSQL}
                             </div>
-                        </div>
-                        <div className={classes.itemDiv}>
-                            <img
-                                className={classes.icon}
-                                src={instantSetup()}
-                                alt={locConstants.fabricProvisioning.analyticsReady}
-                            />
-                            <div className={classes.textDiv}>
-                                <div className={classes.titleDiv}>
-                                    {locConstants.fabricProvisioning.analyticsReady}
-                                </div>
-                                <div>
-                                    {locConstants.fabricProvisioning.analyticsReadyDescription}
-                                </div>
-                            </div>
+                            <div>{locConstants.fabricProvisioning.builtOnAzureSQLDescription}</div>
                         </div>
                     </div>
-                    <div className={classes.stepsRow}>
-                        <div className={classes.itemDiv}>
-                            <img
-                                className={classes.icon}
-                                src={instantSetup()}
-                                alt={locConstants.fabricProvisioning.integratedAndSecure}
-                            />
-                            <div className={classes.textDiv}>
-                                <div className={classes.titleDiv}>
-                                    {locConstants.fabricProvisioning.integratedAndSecure}
-                                </div>
-                                <div>
-                                    {locConstants.fabricProvisioning.integratedAndSecureDescription}
-                                </div>
+                    <div className={classes.itemDiv}>
+                        <img
+                            className={classes.icon}
+                            src={analyticsReady()}
+                            alt={locConstants.fabricProvisioning.analyticsReady}
+                        />
+                        <div className={classes.textDiv}>
+                            <div className={classes.titleDiv}>
+                                {locConstants.fabricProvisioning.analyticsReady}
                             </div>
+                            <div>{locConstants.fabricProvisioning.analyticsReadyDescription}</div>
                         </div>
-                        <div className={classes.itemDiv}>
-                            <img
-                                className={classes.icon}
-                                src={instantSetup()}
-                                alt={locConstants.fabricProvisioning.smartPerformance}
-                            />
-                            <div className={classes.textDiv}>
-                                <div className={classes.titleDiv}>
-                                    {locConstants.fabricProvisioning.smartPerformance}
-                                </div>
-                                <div>
-                                    {locConstants.localContainers.instantContainerDescription}
-                                </div>
+                    </div>
+                    <div className={classes.itemDiv}>
+                        <img
+                            className={classes.icon}
+                            src={integratedAndSecure()}
+                            alt={locConstants.fabricProvisioning.integratedAndSecure}
+                        />
+                        <div className={classes.textDiv}>
+                            <div className={classes.titleDiv}>
+                                {locConstants.fabricProvisioning.integratedAndSecure}
+                            </div>
+                            <div>
+                                {locConstants.fabricProvisioning.integratedAndSecureDescription}
                             </div>
                         </div>
                     </div>
@@ -185,6 +159,14 @@ export const FabricProvisioningInfoPage: React.FC = () => {
     );
 };
 
-export const instantSetup = () => {
+export const builtOnAzureSQL = () => {
+    return require(`../../../media/builtOnAzureSql.svg`);
+};
+
+export const analyticsReady = () => {
+    return require(`../../../media/analyticsReady.svg`);
+};
+
+export const integratedAndSecure = () => {
     return require(`../../../media/instantSetup.svg`);
 };

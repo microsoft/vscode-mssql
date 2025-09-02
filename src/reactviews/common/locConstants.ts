@@ -33,6 +33,7 @@ export class LocConstants {
             apply: l10n.t("Apply"),
             next: l10n.t("Next"),
             clearSelection: l10n.t("Clear Selection"),
+            clear: l10n.t("Clear"),
             find: l10n.t("Find"),
             findNext: l10n.t("Find Next"),
             findPrevious: l10n.t("Find Previous"),
@@ -55,6 +56,8 @@ export class LocConstants {
             showPassword: l10n.t("Show password"),
             hidePassword: l10n.t("Hide password"),
             dismiss: l10n.t("Dismiss"),
+            expand: l10n.t("Expand"),
+            collapse: l10n.t("Collapse"),
             error: l10n.t("Error"),
             getStarted: l10n.t("Get Started"),
             back: l10n.t("Back"),
@@ -186,7 +189,6 @@ export class LocConstants {
             signIntoAzureToAddFirewallRule: l10n.t(
                 "Sign into Azure in order to add a firewall rule.",
             ),
-            tenant: l10n.t("Tenant"),
             ruleName: l10n.t("Rule name"),
             addMyClientIp: (ipAddress: string) =>
                 l10n.t({
@@ -200,6 +202,48 @@ export class LocConstants {
 
     public get connectionDialog() {
         return {
+            searchWorkspaces: l10n.t("Search workspaces..."),
+            loadingFabricAccounts: l10n.t("Loading Fabric Accounts"),
+            fabricAccount: l10n.t("Fabric Account"),
+            selectAnAccount: l10n.t("Select an account"),
+            account: l10n.t("Account"),
+            signIn: l10n.t("Sign In"),
+            tenantId: l10n.t("Tenant ID"),
+            authenticationType: l10n.t("Authentication Type"),
+            browseBy: l10n.t("Browse By"),
+            myData: l10n.t("My Data"),
+            recent: l10n.t("Recent"),
+            favorites: l10n.t("Favorites"),
+            fabricWorkspaces: l10n.t("Fabric Workspaces"),
+            signIntoFabric: l10n.t("Sign into Fabric"),
+            filterByKeyword: l10n.t("Filter by keyword"),
+            filter: l10n.t("Filter"),
+            filterByType: l10n.t("Filter by type"),
+            showAll: l10n.t("Show All"),
+            sqlAnalyticsEndpoint: l10n.t("SQL Analytics Endpoint"),
+            sqlDatabase: l10n.t("SQL Database"),
+            noWorkspacesFound: l10n.t("No workspaces found"),
+            nameColumnHeader: l10n.t("Name"),
+            typeColumnHeader: l10n.t("Type"),
+            locationColumnHeader: l10n.t("Location (Workspace)"),
+            expandWorkspaceExplorer: l10n.t("Expand Workspace Explorer"),
+            explorer: l10n.t("Explorer"),
+            collapseWorkspaceExplorer: l10n.t("Collapse Workspace Explorer"),
+            selectAWorkspaceToViewDatabases: l10n.t(
+                "Select a workspace to view the databases in it.",
+            ),
+            noDatabasesFoundInWorkspace: (workspaceName?: string) => {
+                if (workspaceName) {
+                    return l10n.t({
+                        message: "No databases found in workspace '{0}'.",
+                        args: [workspaceName],
+                        comment: ["{0} is the name of the workspace"],
+                    });
+                } else {
+                    return l10n.t("No databases found in the selected workspace.");
+                }
+            },
+            databaseList: l10n.t("Database list"),
             connect: l10n.t("Connect"),
             advancedConnectionSettings: l10n.t("Advanced Connection Settings"),
             advancedSettings: l10n.t("Advanced"),
@@ -214,6 +258,7 @@ export class LocConstants {
             parameters: l10n.t("Parameters"),
             connectionString: l10n.t("Connection String"),
             browseAzure: l10n.t("Browse Azure"),
+            browseFabric: l10n.t("Browse Fabric"),
             loadFromConnectionString: l10n.t("Load from Connection String"),
             savedConnections: l10n.t("Saved Connections"),
             recentConnections: l10n.t("Recent Connections"),
@@ -264,6 +309,24 @@ export class LocConstants {
             signIntoAzureToBrowse: l10n.t(
                 "You must be signed into Azure in order to browse SQL databases.",
             ),
+            signIntoFabricToBrowse: l10n.t(
+                "You must be signed into Fabric in order to browse SQL databases.",
+            ),
+            loadingWorkspaces: l10n.t("Loading workspaces..."),
+            loadingDatabasesInWorkspace: (workspaceName?: string) => {
+                if (workspaceName) {
+                    return l10n.t({
+                        message: "Loading databases in '{0}'...",
+                        args: [workspaceName],
+                        comment: ["{0} is the name of the workspace"],
+                    });
+                } else {
+                    return l10n.t("Loading databases in selected workspace...");
+                }
+            },
+            errorLoadingWorkspaces: l10n.t("Error loading workspaces"),
+            errorLoadingDatabases: l10n.t("Error loading databases"),
+            connectionAuthentication: l10n.t("Connection Authentication"),
             advancedOptions: l10n.t("Advanced Options"),
         };
     }
@@ -283,6 +346,10 @@ export class LocConstants {
                 }),
             clickToSignIntoAnAzureAccount: l10n.t("Click to sign into an Azure account"),
             currentlySignedInAs: l10n.t("Currently signed in as:"),
+            loadingAzureAccounts: l10n.t("Loading Azure Accounts"),
+            tenant: l10n.t("Tenant"),
+            loadingTenants: l10n.t("Loading tenants..."),
+            selectATenant: l10n.t("Select a tenant"),
         };
     }
 
@@ -873,6 +940,12 @@ export class LocConstants {
             previousStepFailed: l10n.t(
                 "Previous step failed. Please check the error message and try again.",
             ),
+        };
+    }
+
+    public get fabric() {
+        return {
+            addFabricAccount: l10n.t("+ Add Fabric Account"),
         };
     }
 
