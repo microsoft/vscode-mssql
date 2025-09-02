@@ -6,7 +6,6 @@
 import {
     List,
     ListItem,
-    Label,
     Spinner,
     Tooltip,
     Text,
