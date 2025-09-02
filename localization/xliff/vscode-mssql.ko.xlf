@@ -35,6 +35,10 @@
         <source xml:lang="en">+ Add Azure Account</source>
         <target state="translated">+ Azure 계정 추가</target>
       </trans-unit>
+      <trans-unit id="++CODE++75aeb47c4c40ae9ea18e7b77776ff62be55ce308e85a64f870e49b056533d5cb">
+        <source xml:lang="en">+ Add Fabric Account</source>
+        <target state="new">+ Add Fabric Account</target>
+      </trans-unit>
       <trans-unit id="++CODE++dbfb6fb3f275d24e8e32113cbbabeffe9d78165e6bdaf5b82c0fede5881451b5">
         <source xml:lang="en">+ Create Connection Group</source>
         <target state="translated">+ 연결 그룹 만들기</target>
@@ -72,6 +76,10 @@
         <note>{0} is the connection id
 {1} is the uri</note>
         <target state="translated">{1} URI와의 {0} 연결에 대한 액세스 토큰이 만료되었습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7e1b0d5641f2640ce9a953ec231eea2c27a2a7633f7d3c273e5735e2b30c10b7">
+        <source xml:lang="en">Account</source>
+        <target state="new">Account</target>
       </trans-unit>
       <trans-unit id="++CODE++08a2ef94ef94039eed728a4a3ab703508a7bfe442d702183ecbd763d5852a232">
         <source xml:lang="en">Account not found</source>
@@ -339,10 +347,6 @@
         <source xml:lang="en">Azure Account</source>
         <target state="translated">Azure 계정</target>
       </trans-unit>
-      <trans-unit id="++CODE++9caca4621a4e79e9eba8871a8b0772c87fe7af38b1e5ce6518083abfd676c241">
-        <source xml:lang="en">Azure Account is required</source>
-        <target state="translated">Azure 계정이 필요합니다.</target>
-      </trans-unit>
       <trans-unit id="++CODE++34ec466979918ed648dd5ae40b41e849fa6398b0d0a5f076ac3b0061d149d168">
         <source xml:lang="en">Azure Code Grant</source>
         <target state="translated">Azure 코드 부여</target>
@@ -399,6 +403,14 @@
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
         <target state="translated">Azure 찾아보기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d2945638af819132af21f6c456f562493e7bf76e6ce1bb782eeef16cbfbeb85b">
+        <source xml:lang="en">Browse By</source>
+        <target state="new">Browse By</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1">
+        <source xml:lang="en">Browse Fabric</source>
+        <target state="new">Browse Fabric</target>
       </trans-unit>
       <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
         <source xml:lang="en">CSV</source>
@@ -681,6 +693,10 @@
         <source xml:lang="en">Collapse All</source>
         <target state="translated">모두 축소</target>
       </trans-unit>
+      <trans-unit id="++CODE++73bdb3fe57af851db2313c3716cc6e6d8584314063030d5262237ad2fa9f8201">
+        <source xml:lang="en">Collapse Workspace Explorer</source>
+        <target state="new">Collapse Workspace Explorer</target>
+      </trans-unit>
       <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
         <source xml:lang="en">Color</source>
         <target state="translated">색</target>
@@ -865,6 +881,10 @@
         <source xml:lang="en">Connecting...</source>
         <target state="translated">연결 중...</target>
       </trans-unit>
+      <trans-unit id="++CODE++6c916d6a3ffb6e0c85ad115ae2e1f277af1bc76f11a7267fd818b798a796b26a">
+        <source xml:lang="en">Connection Authentication</source>
+        <target state="new">Connection Authentication</target>
+      </trans-unit>
       <trans-unit id="++CODE++880cac6e9612c7672ce73c666f54c5f789e7b1ed1b9f0b7f1431fe84a2e59bce">
         <source xml:lang="en">Connection Details</source>
         <target state="new">Connection Details</target>
@@ -1036,9 +1056,19 @@
         <source xml:lang="en">Creating Container</source>
         <target state="translated">컨테이너 만드는 중</target>
       </trans-unit>
+      <trans-unit id="++CODE++f25b28d86db44d028580bac2348b043db0eebc8a41f443aaaa5d22bfd2cb3fd2">
+        <source xml:lang="en">Creating SQL Database for workspace {0}</source>
+        <note>{0} is the workspace ID</note>
+        <target state="new">Creating SQL Database for workspace {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
         <source xml:lang="en">Creating and starting your SQL Server container</source>
         <target state="translated">SQL Server 컨테이너를 만들고 시작하는 중입니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dbfe0a6c5a4cae79965c542e317484c3b53346daa195d3ec31d91c55c92181a3">
+        <source xml:lang="en">Creating workspace with capacity {0}</source>
+        <note>{0} is the capacity ID</note>
+        <target state="new">Creating workspace with capacity {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
@@ -1084,6 +1114,10 @@
       <trans-unit id="++CODE++ec9c37392a809590dbb62879bd1b261c3675552b33d4d8936d539925d774f6a6">
         <source xml:lang="en">Database changed successfully</source>
         <target state="new">Database changed successfully</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4027712bbc416cfc7ec6cf98c5be5578684cd55571f48076e82ea6230a66811e">
+        <source xml:lang="en">Database list</source>
+        <target state="new">Database list</target>
       </trans-unit>
       <trans-unit id="++CODE++e97a0773fb7b656c174155270bd9ded70bc82caa0fc5d65b3ba24871577a5b08">
         <source xml:lang="en">Database name</source>
@@ -1369,6 +1403,10 @@
         <source xml:lang="en">Error loading Azure subscriptions.</source>
         <target state="translated">Azure 구독을 로드하는 동안 오류가 발생했습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++42ae158b81fa6835d984f032a4850d9242fc9551860b90117a5f78c9a76d30a7">
+        <source xml:lang="en">Error loading databases</source>
+        <target state="new">Error loading databases</target>
+      </trans-unit>
       <trans-unit id="++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe">
         <source xml:lang="en">Error loading designer</source>
         <target state="translated">디자이너를 로드하는 동안 오류 발생</target>
@@ -1376,6 +1414,10 @@
       <trans-unit id="++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf">
         <source xml:lang="en">Error loading preview</source>
         <target state="translated">미리 보기를 로드하는 동안 오류 발생</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3ba789024640c6f231695bdf0d82e6845483cf65f092b3c3646910e60c638761">
+        <source xml:lang="en">Error loading workspaces</source>
+        <target state="new">Error loading workspaces</target>
       </trans-unit>
       <trans-unit id="++CODE++2b850d590d607436d4cbf751406a7626e01d0e5c775f26c880ab4fd21e70bb66">
         <source xml:lang="en">Error loading; refresh to try again</source>
@@ -1461,6 +1503,14 @@ Error:
         <source xml:lang="en">Expand All</source>
         <target state="translated">모두 확장</target>
       </trans-unit>
+      <trans-unit id="++CODE++48ad32aba89e3b0bbab4397b56bd23794212fe69606e0b644ff3b543035a048d">
+        <source xml:lang="en">Expand Workspace Explorer</source>
+        <target state="new">Expand Workspace Explorer</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c39d646f10769b078ae82be4da7a0079ca91182b241e749be4276e08c215c654">
+        <source xml:lang="en">Explorer</source>
+        <target state="new">Explorer</target>
+      </trans-unit>
       <trans-unit id="++CODE++3664895579f0a7e68c4aa09c91316e20239bc74499010e6423ece40cad7c28f7">
         <source xml:lang="en">Export</source>
         <target state="translated">내보내기</target>
@@ -1472,6 +1522,14 @@ Error:
       <trans-unit id="++CODE++0556bfb755c73e8c60da1230c38f26ce0eaf79dc7bd5f5368371d561e5eab52f">
         <source xml:lang="en">Extremely likely</source>
         <target state="translated">가능성이 매우 큼</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2669635517c6f110f77148287c814fbb91a8ee9fb366d1113794cf21f767d9a9">
+        <source xml:lang="en">Fabric Account</source>
+        <target state="new">Fabric Account</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
+        <source xml:lang="en">Fabric Workspaces</source>
+        <target state="new">Fabric Workspaces</target>
       </trans-unit>
       <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
         <source xml:lang="en">Failed</source>
@@ -1539,9 +1597,21 @@ Error:
         <note>{0} is the error message returned from the generate script operation</note>
         <target state="translated">'{0}' 스크립트를 생성하지 못했습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++90971b4f986b2a5d6c3d6f32b711a0bbb3f93d8453a9f0006c0a30d1350cdaff">
+        <source xml:lang="en">Failed to get Fabric workspaces for tenant '{0} ({1})'.</source>
+        <note>{0} is the tenant name
+{1} is the tenant id</note>
+        <target state="new">Failed to get Fabric workspaces for tenant '{0} ({1})'.</target>
+      </trans-unit>
       <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
         <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
         <target state="translated">인증 방법을 가져오지 못했습니다. 계정을 제거하고 다시 추가하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++329f218a3e5212fcaa1558fed9984172c9a456980d1c8015ea761b5a017d19b4">
+        <source xml:lang="en">Failed to get tenant '{0}' for account '{1}'.</source>
+        <note>{0} is the tenant id
+{1} is the account name</note>
+        <target state="new">Failed to get tenant '{0}' for account '{1}'.</target>
       </trans-unit>
       <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
@@ -1581,6 +1651,10 @@ Error:
         <note>Failed to stop {0}.</note>
         <target state="translated">{0}을(를) 중지하지 못했습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++7a1f2a83aca9a0819f244d5b4a7a0e7f6b779eb709dd4744136b22e724dbb10b">
+        <source xml:lang="en">Favorites</source>
+        <target state="new">Favorites</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d696d1fc30a43745a483d9bf89065718f6abfcdf8241fe4abb09ef13ec1d5e3">
         <source xml:lang="en">Fetching {0} script...</source>
         <note>{0} is the script type</note>
@@ -1606,6 +1680,14 @@ Error:
       <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
         <source xml:lang="en">Filter Settings</source>
         <target state="translated">필터 설정</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6493eda41425d761de3497b7563b968d07d84a3eebb1844d3f54b76460eee2cb">
+        <source xml:lang="en">Filter by keyword</source>
+        <target state="new">Filter by keyword</target>
+      </trans-unit>
+      <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
+        <source xml:lang="en">Filter by type</source>
+        <target state="new">Filter by type</target>
       </trans-unit>
       <trans-unit id="++CODE++01a0e0d1c3cdcf7bac1e7280e753431937f8773ddd7b6ba85bf7fea4b842ad4e">
         <source xml:lang="en">Filter for any field...</source>
@@ -1754,10 +1836,21 @@ Error:
         <source xml:lang="en">Getting Docker Ready...</source>
         <target state="translated">Docker 준비 중...</target>
       </trans-unit>
+      <trans-unit id="++CODE++4f2809d46e4d5ae64171f0a386b32412184dbf2ea9fb08956f407bed421b7bea">
+        <source xml:lang="en">Getting Fabric workspace '{0}'</source>
+        <note>{0} is the workspace ID</note>
+        <target state="new">Getting Fabric workspace '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++2a8c8cd4e7c7142bffa09b893aaf7ab5886407a22a7ef9b2ee4f60f46fad7bf0">
         <source xml:lang="en">Getting connection details for connection '{0}'</source>
         <note>{0} is the connection ID</note>
         <target state="translated">연결 '{0}'에 대한 세부 정보를 가져오는 중</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7c6ecb13b6127990792bdb4cd61037a4d398bcda0034b4e9d23af714a5785c85">
+        <source xml:lang="en">Getting connection string for SQL Endpoint '{0}' in workspace '{1}'</source>
+        <note>{0} is the SQL endpoint ID
+{1} is the workspace ID</note>
+        <target state="new">Getting connection string for SQL Endpoint '{0}' in workspace '{1}'</target>
       </trans-unit>
       <trans-unit id="++CODE++407c9ce5c11270b1d15836456ad1efdbe70f71f3c845186e535f82f02112be4e">
         <source xml:lang="en">Getting container ready for connections</source>
@@ -2030,6 +2123,26 @@ Error:
         <note>{0} is the connection ID</note>
         <target state="translated">연결 '{0}'의 보기를 나열하시겠습니까?</target>
       </trans-unit>
+      <trans-unit id="++CODE++8043c062698783f821c86c7bc00a285e71f93c8ddf50815cfa601fef33905401">
+        <source xml:lang="en">Listing Fabric SQL Databases for workspace '{0}'</source>
+        <note>{0} is the workspace ID</note>
+        <target state="new">Listing Fabric SQL Databases for workspace '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d63cd16cd7f14f873a95c39ea88cdd895461edd04b9fa7894a5b050274e85b1f">
+        <source xml:lang="en">Listing Fabric SQL Endpoints for workspace '{0}'</source>
+        <note>{0} is the workspace ID</note>
+        <target state="new">Listing Fabric SQL Endpoints for workspace '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a5c14e0446ba987ee1804ac7f75c2cf29a526c5b3efc8ec431eeb50d200ad7f0">
+        <source xml:lang="en">Listing Fabric capacities for tenant '{0}'</source>
+        <note>{0} is the tenant ID</note>
+        <target state="new">Listing Fabric capacities for tenant '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0674831e66235d3d493987bb2f89a42a981be092b9be08a7214438e389b30737">
+        <source xml:lang="en">Listing Fabric workspaces for tenant '{0}'</source>
+        <note>{0} is the tenant ID</note>
+        <target state="new">Listing Fabric workspaces for tenant '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++b96793f36b682b832b59fce2ab2fbfbe394de6c913abd6f389f8c19273f040a5">
         <source xml:lang="en">Listing databases for connection '{0}'</source>
         <note>{0} is the connection ID</note>
@@ -2075,6 +2188,14 @@ Error:
         <source xml:lang="en">Loading</source>
         <target state="translated">로드하는 중</target>
       </trans-unit>
+      <trans-unit id="++CODE++6fa7126ccca3880030902e857b23844499021637082687cfb79725ee3095e087">
+        <source xml:lang="en">Loading Azure Accounts</source>
+        <target state="new">Loading Azure Accounts</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c11efeef9812b5933f66f281e1df758fca0d28ff6c96462aa5caa7a72f0637ed">
+        <source xml:lang="en">Loading Fabric Accounts</source>
+        <target state="new">Loading Fabric Accounts</target>
+      </trans-unit>
       <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
         <source xml:lang="en">Loading Report</source>
         <target state="translated">보고서 로드 중</target>
@@ -2091,6 +2212,15 @@ Error:
         <source xml:lang="en">Loading Table Designer</source>
         <target state="translated">테이블 디자이너 로드 중</target>
       </trans-unit>
+      <trans-unit id="++CODE++f9c9f560fd60d852df849d8b9694f6e56be6ca531ec5366d75812345a7dbf567">
+        <source xml:lang="en">Loading databases in '{0}'...</source>
+        <note>{0} is the name of the workspace</note>
+        <target state="new">Loading databases in '{0}'...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a67a8cf028d055264cd779f840ad3290cb70557277e6fe38ecf976fce921f030">
+        <source xml:lang="en">Loading databases in selected workspace...</source>
+        <target state="new">Loading databases in selected workspace...</target>
+      </trans-unit>
       <trans-unit id="++CODE++02bb7cb27116645ab68671a04d8f35d473c32d981ec5ec784e8aa20e9067c2a2">
         <source xml:lang="en">Loading deployment page...</source>
         <target state="translated">배포 페이지를 로드하는 중...</target>
@@ -2099,9 +2229,17 @@ Error:
         <source xml:lang="en">Loading execution plan...</source>
         <target state="translated">실행 계획을 로드하는 중...</target>
       </trans-unit>
+      <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
+        <source xml:lang="en">Loading tenants...</source>
+        <target state="new">Loading tenants...</target>
+      </trans-unit>
       <trans-unit id="++CODE++136a37d2ee433b1eb4302a84ebee86659922e34ca61c2383bc863191b5aeeafa">
         <source xml:lang="en">Loading text view...</source>
         <target state="translated">텍스트 뷰 로드 중...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3f9adb0f75f8f08022d5289c54dae461204356f0f718404bf22c0d08214ab34a">
+        <source xml:lang="en">Loading workspaces...</source>
+        <target state="new">Loading workspaces...</target>
       </trans-unit>
       <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
         <source xml:lang="en">Loading...</source>
@@ -2114,6 +2252,10 @@ Error:
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
         <target state="translated">위치</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ac93cb35e24190764d9718b44e0c847f9e06a22105b20e4f8ca8ef96ed959775">
+        <source xml:lang="en">Location (Workspace)</source>
+        <target state="new">Location (Workspace)</target>
       </trans-unit>
       <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
         <source xml:lang="en">MSSQL</source>
@@ -2171,6 +2313,14 @@ Error:
         <source xml:lang="en">Metric</source>
         <target state="translated">메트릭</target>
       </trans-unit>
+      <trans-unit id="++CODE++e62105462009615e24c43715b276cc4743f4efd9bfd6e1e4bc108a5f9a328be9">
+        <source xml:lang="en">Microsoft Account</source>
+        <target state="new">Microsoft Account</target>
+      </trans-unit>
+      <trans-unit id="++CODE++871ca3cb96885bd9a333a1d2914f5f4782b9d0477bcfddd603db5e4f98bde56a">
+        <source xml:lang="en">Microsoft Account is required</source>
+        <target state="new">Microsoft Account is required</target>
+      </trans-unit>
       <trans-unit id="++CODE++8055a31cb4833efbf1b76994151d8256bfc8500f2985d3d0ab1cf222dd91a043">
         <source xml:lang="en">Microsoft Corp</source>
         <target state="translated">Microsoft Corp</target>
@@ -2219,6 +2369,10 @@ Error:
       <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
         <source xml:lang="en">Move to Root</source>
         <target state="translated">루트로 이동</target>
+      </trans-unit>
+      <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
+        <source xml:lang="en">My Data</source>
+        <target state="new">My Data</target>
       </trans-unit>
       <trans-unit id="++CODE++fb329000228cc5a24c264c57139de8bf854fc86fc18bf1c04ab61a2b5cb4b921">
         <source xml:lang="en">NULL</source>
@@ -2338,6 +2492,15 @@ Error:
         <note>{0} is the search term</note>
         <target state="new">No database objects found matching '{0}'</target>
       </trans-unit>
+      <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
+        <source xml:lang="en">No databases found in the selected workspace.</source>
+        <target state="new">No databases found in the selected workspace.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++44abb1efd9e1246e7a38688a54d76fd070a07de55884b732dff70f7eff9a0491">
+        <source xml:lang="en">No databases found in workspace '{0}'.</source>
+        <note>{0} is the name of the workspace</note>
+        <target state="new">No databases found in workspace '{0}'.</target>
+      </trans-unit>
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
         <target state="translated">항목 없음</target>
@@ -2383,6 +2546,14 @@ Error:
       <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
         <source xml:lang="en">No tools to process.</source>
         <target state="translated">처리할 도구가 없습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1507d637b267b1f20c1238414d7e51458fe7d6b98b292a8497d9982634fbe83c">
+        <source xml:lang="en">No workspaces found</source>
+        <target state="new">No workspaces found</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f567a09466c3451f2b171ee4b409a52f3aea306cea3bd4ca9ad4cef8669f1856">
+        <source xml:lang="en">No workspaces found. Please change Fabric account or tenant to view available workspaces.</source>
+        <target state="new">No workspaces found. Please change Fabric account or tenant to view available workspaces.</target>
       </trans-unit>
       <trans-unit id="++CODE++522f7c01e016bd0f95cd3b404ebb0751a2b6db89a57ff1c7e5110b39e1f136e0">
         <source xml:lang="en">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</source>
@@ -2738,6 +2909,10 @@ Error:
         <source xml:lang="en">Readying container for connections...</source>
         <target state="translated">연결에 대한 컨테이너를 준비하는 중입니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++690dbe9dc0993c4256683738fc3fd541cfa96f60d299be33343615dd58179d93">
+        <source xml:lang="en">Recent</source>
+        <target state="new">Recent</target>
+      </trans-unit>
       <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
         <source xml:lang="en">Recent Connections</source>
         <target state="translated">최신 연결</target>
@@ -2865,6 +3040,14 @@ Query: {1}</source>
         <source xml:lang="en">Running query on connection '{0}'</source>
         <note>{0} is the connection ID</note>
         <target state="translated">연결 '{0}'에서 쿼리 실행 중</target>
+      </trans-unit>
+      <trans-unit id="++CODE++59b151f69d83edf3eb174ff38c0f77aebf28c9195c785f2003a1cd708de0dc77">
+        <source xml:lang="en">SQL Analytics Endpoint</source>
+        <target state="new">SQL Analytics Endpoint</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7f779b8a3477b9909716127bf4ed2ef8e07e7f5fae134f7ad1506a7f267de247">
+        <source xml:lang="en">SQL Database</source>
+        <target state="new">SQL Database</target>
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
@@ -3030,6 +3213,10 @@ Query: {1}</source>
         <source xml:lang="en">Search term cannot be empty</source>
         <target state="new">Search term cannot be empty</target>
       </trans-unit>
+      <trans-unit id="++CODE++5c192a3e6f23b125cfaa70c46f6fcd47a2081fa7270e7687687ea8596d2e012f">
+        <source xml:lang="en">Search workspaces...</source>
+        <target state="new">Search workspaces...</target>
+      </trans-unit>
       <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
         <source xml:lang="en">Search...</source>
         <target state="translated">검색...</target>
@@ -3074,6 +3261,10 @@ Query: {1}</source>
         <source xml:lang="en">Select a valid {0} from the dropdown</source>
         <note>{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'</note>
         <target state="translated">드롭다운에서 유효한 {0} 선택</target>
+      </trans-unit>
+      <trans-unit id="++CODE++903e816918c1b2835c9186eed7375ce85cc0f6230c48afbaa979177517e8545d">
+        <source xml:lang="en">Select a workspace to view the databases in it.</source>
+        <target state="new">Select a workspace to view the databases in it.</target>
       </trans-unit>
       <trans-unit id="++CODE++a1205265db328a59a52187387e01e37a0e1d2b28210aa2e663f750eb8b7c8dcf">
         <source xml:lang="en">Select a {0} for filtering</source>
@@ -3192,6 +3383,10 @@ Query: {1}</source>
         <source xml:lang="en">Severity</source>
         <target state="translated">심각도</target>
       </trans-unit>
+      <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
+        <source xml:lang="en">Show All</source>
+        <target state="new">Show All</target>
+      </trans-unit>
       <trans-unit id="++CODE++a89fead964a8515cf74f4e5fcfbc0aaa029cee9744df340c6853e59a944de7ad">
         <source xml:lang="en">Show Filter</source>
         <target state="translated">필터 표시</target>
@@ -3230,6 +3425,10 @@ Query: {1}</source>
         <source xml:lang="en">Showplan XML</source>
         <target state="translated">실행 계획 XML</target>
       </trans-unit>
+      <trans-unit id="++CODE++bcc0bcc9140b0c97a6440ce56966a07a05e85bddd509ddc5e2ab98755f319af1">
+        <source xml:lang="en">Sign In</source>
+        <target state="new">Sign In</target>
+      </trans-unit>
       <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
         <source xml:lang="en">Sign in</source>
         <target state="translated">로그인</target>
@@ -3257,6 +3456,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++cdc182077e173c86c2831fe9995d41691b9bc1182fe44519a292ea2b814eb17a">
         <source xml:lang="en">Sign into Azure in order to add a firewall rule.</source>
         <target state="translated">방화벽 규칙을 추가하려면 Azure에 로그인합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8fb63cdc9270808c8b3dab6531000afcfd2e8bd1550fa5fd1981b82d28859ad8">
+        <source xml:lang="en">Sign into Fabric</source>
+        <target state="new">Sign into Fabric</target>
       </trans-unit>
       <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
         <source xml:lang="en">Signing in to Azure...</source>
@@ -3772,6 +3975,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
         <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
         <target state="translated">SQL 데이터베이스를 탐색하려면 Azure에 로그인해야 합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bb5b6644dc612a69a27fc4eb9b11f3e54901055b75fe7fb9bb754f28693a574f">
+        <source xml:lang="en">You must be signed into Fabric in order to browse SQL databases.</source>
+        <target state="new">You must be signed into Fabric in order to browse SQL databases.</target>
       </trans-unit>
       <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
         <source xml:lang="en">You must review and accept the terms to proceed</source>
