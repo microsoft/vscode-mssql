@@ -14,6 +14,8 @@ import {
 } from "../sharedInterfaces/fabric";
 import { HttpHelper } from "../http/httpHelper";
 import { AxiosResponse } from "axios";
+import { getErrorMessage } from "../utils/utils";
+import { Fabric as Loc } from "../constants/locConstants";
 
 export class FabricHelper {
     static readonly fabricUriBase = vscode.Uri.parse("https://api.fabric.microsoft.com/v1/");
@@ -35,7 +37,7 @@ export class FabricHelper {
     public static async getFabricCapacities(tenantId: string): Promise<ICapacity[]> {
         const response = await this.fetchFromFabric<{ value: ICapacity[] }>(
             "capacities",
-            `listing Fabric capacities for tenant '${tenantId}'`,
+            Loc.listingCapacitiesForTenant(tenantId),
             tenantId,
         );
 
@@ -52,7 +54,7 @@ export class FabricHelper {
     public static async getFabricWorkspaces(tenantId: string): Promise<IWorkspace[]> {
         const response = await this.fetchFromFabric<{ value: IWorkspace[] }>(
             "workspaces",
-            `listing Fabric workspaces for tenant '${tenantId}'`,
+            Loc.listingWorkspacesForTenant(tenantId),
             tenantId,
         );
 
@@ -73,7 +75,7 @@ export class FabricHelper {
     ): Promise<IWorkspace> {
         const response = await this.fetchFromFabric<IWorkspace>(
             `workspaces/${workspaceId}`,
-            `getting Fabric workspace '${workspaceId}'`,
+            Loc.gettingWorkspace(workspaceId),
             tenantId,
         );
 
@@ -105,7 +107,7 @@ export class FabricHelper {
         try {
             const response = await this.fetchFromFabric<{ value: ISqlDbArtifact[] }>(
                 `workspaces/${workspaceId}/sqlDatabases`,
-                `Listing Fabric SQL Databases for workspace '${workspaceId}'`,
+                Loc.listingSqlDatabasesForWorkspace(workspaceId),
                 tenantId,
             );
 
@@ -151,7 +153,7 @@ export class FabricHelper {
         try {
             const response = await this.fetchFromFabric<{ value: ISqlEndpointArtifact[] }>(
                 `workspaces/${workspaceId}/sqlEndpoints`,
-                `Listing Fabric SQL Endpoints for workspace '${workspaceId}'`,
+                Loc.listingSqlEndpointsForWorkspace(workspaceId),
                 tenantId,
             );
 
@@ -161,7 +163,7 @@ export class FabricHelper {
                 ...response.value.map((endpoint) => {
                     return {
                         id: endpoint.id,
-                        server: undefined, // requires a second Fabric API call to populate; fill later to avoid throttling
+                        server: undefined, // requires a second Fabric API call to populate; fill later to avoid rate-limiting (50/API/user/minute)
                         displayName: endpoint.displayName,
                         database: "TO VALIDATE", // TODO: validate that warehouses don't have a database
                         workspaceName: resolvedWorkspace.displayName,
@@ -175,6 +177,28 @@ export class FabricHelper {
         }
 
         return result;
+    }
+
+    public static async getFabricSqlEndpointServerUri(
+        sqlEndpointId: string,
+        workspaceId: string,
+        tenantId?: string,
+    ): Promise<string> {
+        try {
+            const connectionStringResponse = await this.fetchFromFabric<{
+                connectionString: string;
+            }>(
+                `workspaces/${workspaceId}/sqlEndpoints/${sqlEndpointId}/connectionString`,
+                Loc.gettingConnectionStringForSqlEndpoint(sqlEndpointId, workspaceId),
+                tenantId,
+            );
+
+            // Server URL is returned as the connectionString field.
+            return connectionStringResponse.connectionString;
+        } catch (error) {
+            console.error(`Error fetching server URL for SQL Endpoints: ${getErrorMessage(error)}`);
+            throw error;
+        }
     }
 
     /**
@@ -202,7 +226,7 @@ export class FabricHelper {
                 capacityId: capacityId,
                 description: description,
             },
-            `Create workspace with capacity ${capacityId}`,
+            Loc.createWorkspaceWithCapacity(capacityId),
             tenantId,
         );
 
@@ -235,7 +259,7 @@ export class FabricHelper {
                 displayName: displayName,
                 description: description,
             },
-            `Create SQL Database for workspace ${workspaceId}`,
+            Loc.createSqlDatabaseForWorkspace(workspaceId),
             tenantId,
         );
 
