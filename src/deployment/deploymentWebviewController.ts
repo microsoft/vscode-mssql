@@ -74,6 +74,8 @@ export class DeploymentWebviewController extends FormWebviewController<
             state.deploymentType = payload.deploymentType;
             state.deploymentTypeState.loadState = ApiStatus.Loading;
             this.updateState(state);
+
+            // Initialize the appropriate deployment type state
             if (payload.deploymentType === DeploymentType.LocalContainers) {
                 newDeploymentTypeState = await localContainers.initializeLocalContainersState(
                     state.connectionGroupOptions,
@@ -85,10 +87,11 @@ export class DeploymentWebviewController extends FormWebviewController<
                     this.logger,
                 );
             }
+
+            // Capture the initial deployment specific state in the overall controller's state
             state.deploymentTypeState = newDeploymentTypeState;
             state.formState = newDeploymentTypeState.formState;
             state.formComponents = newDeploymentTypeState.formComponents as any;
-            this.updateState(state);
             return state;
         });
 
@@ -132,7 +135,6 @@ export class DeploymentWebviewController extends FormWebviewController<
             state.dialog = undefined;
             state.deploymentTypeState.dialog = state.dialog;
 
-            this.updateState(state);
             return state;
         });
 
@@ -200,28 +202,30 @@ export class DeploymentWebviewController extends FormWebviewController<
 
     public async validateDeploymentForm(
         propertyName?: keyof DeploymentFormState,
+        deploymentTypeState?: DeploymentTypeState,
     ): Promise<string[]> {
+        const state = deploymentTypeState || this.state.deploymentTypeState;
         let errors: string[] = [];
         if (propertyName) {
-            const component = this.state.deploymentTypeState.formComponents[propertyName];
+            const component = state.formComponents[propertyName];
             if (!component.validate) return errors;
             const componentValidation = component.validate(
-                this.state.deploymentTypeState as any,
-                this.state.deploymentTypeState.formState[propertyName],
+                state as any,
+                state.formState[propertyName],
             );
-            if (!componentValidation) {
+            if (!componentValidation.isValid) {
                 errors.push(propertyName);
             }
             component.validation = componentValidation;
         } else {
-            for (const componentKey of Object.keys(this.state.deploymentTypeState.formState)) {
-                const component = this.state.deploymentTypeState.formComponents[componentKey];
+            for (const componentKey of Object.keys(state.formState)) {
+                const component = state.formComponents[componentKey];
                 if (!component.validate) continue;
                 const componentValidation = component.validate(
-                    this.state.deploymentTypeState as any,
-                    this.state.deploymentTypeState.formState[componentKey],
+                    state as any,
+                    state.formState[componentKey],
                 );
-                if (!componentValidation) {
+                if (!componentValidation.isValid) {
                     errors.push(componentKey);
                 }
                 component.validation = componentValidation;

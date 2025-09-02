@@ -112,7 +112,7 @@ export interface FormItemOptions {
      */
     description?: string;
     /**
-     * Option Icon
+     * Option Fluent UI Icon. Should be the name of a Fluent UI React Icon: https://react.fluentui.dev/?path=/docs/icons-catalog--docs
      */
     icon?: string;
     /**

@@ -39,7 +39,7 @@ import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 
-export const workspaceRoleRequestLimit = 20;
+export const WORKSPACE_ROLE_REQUEST_LIMIT = 20;
 
 export async function initializeFabricProvisioningState(
     deploymentController: DeploymentWebviewController,
@@ -48,6 +48,8 @@ export async function initializeFabricProvisioningState(
 ): Promise<fp.FabricProvisioningState> {
     const startTime = Date.now();
     const state = new fp.FabricProvisioningState();
+
+    // Azure context
     const azureAccountOptions = await getAccounts(
         deploymentController.mainController.azureAccountService,
         logger,
@@ -58,6 +60,7 @@ export async function initializeFabricProvisioningState(
         defaultAccountId,
         logger,
     );
+
     state.formState = {
         accountId: defaultAccountId,
         groupId: groupOptions[0].value,
@@ -67,7 +70,7 @@ export async function initializeFabricProvisioningState(
         databaseDescription: "",
     } as fp.FabricProvisioningFormState;
 
-    // set context
+    // Form Context
     deploymentController.state.deploymentTypeState = state;
     const azureActionButtons = await getAzureActionButtons(deploymentController, logger);
     state.formComponents = setFabricProvisioningFormComponents(
@@ -85,7 +88,10 @@ export async function initializeFabricProvisioningState(
             localContainersInitTimeInMs: Date.now() - startTime,
         },
     );
+
+    // Load workspaces
     getWorkspaces(deploymentController);
+
     return state;
 }
 
@@ -111,18 +117,27 @@ export function registerFabricProvisioningReducers(
     });
     deploymentController.registerReducer("createDatabase", async (state, _payload) => {
         let fabricProvisioningState = state.deploymentTypeState as fp.FabricProvisioningState;
-        fabricProvisioningState.formValidationLoadState = ApiStatus.Loading;
 
-        updatefabricProvisioningState(deploymentController, fabricProvisioningState);
+        // Workspaces haven't loaded yet
+        if (fabricProvisioningState.workspaces.length === 0) return;
+
+        // Update validation load state of form
+        fabricProvisioningState.formValidationLoadState = ApiStatus.Loading;
+        updateFabricProvisioningState(deploymentController, fabricProvisioningState);
+
+        // Handle case where the workspace permissions are not loaded
         fabricProvisioningState = await handleWorkspaceFormAction(
             fabricProvisioningState,
             fabricProvisioningState.formState.workspace,
         );
-        updatefabricProvisioningState(deploymentController, fabricProvisioningState);
+        updateFabricProvisioningState(deploymentController, fabricProvisioningState);
+
         fabricProvisioningState.formErrors = await deploymentController.validateDeploymentForm();
         if (fabricProvisioningState.formErrors.length === 0) {
             provisionDatabase(deploymentController);
             fabricProvisioningState.deploymentStartTime = new Date().toUTCString();
+
+            // Set tenant and workspace names to display later
             fabricProvisioningState.tenantName =
                 fabricProvisioningState.formComponents.tenantId.options.find(
                     (option) => option.value === fabricProvisioningState.formState.tenantId,
@@ -300,7 +315,7 @@ export async function getAzureActionButtons(
             state.formState.accountId = account.key.id;
             logger.verbose(`Selecting '${account.key.id}'`);
 
-            updatefabricProvisioningState(deploymentController, state);
+            updateFabricProvisioningState(deploymentController, state);
             await loadComponentsAfterSignIn(deploymentController, logger);
         },
     });
@@ -396,7 +411,7 @@ export async function reloadFabricComponents(
     state.userGroupIds = new Set<string>();
     state.workspaces = [];
     state.databaseNamesInWorkspace = [];
-    updatefabricProvisioningState(deploymentController, state);
+    updateFabricProvisioningState(deploymentController, state);
     getWorkspaces(deploymentController, tenantId);
     return state;
 }
@@ -454,7 +469,7 @@ export function getWorkspaces(
             state.formComponents.workspace.options = workspaceOptions;
             state.formState.workspace =
                 workspaceOptions.length > 0 ? workspaceOptions[0].value : "";
-            updatefabricProvisioningState(deploymentController, state);
+            updateFabricProvisioningState(deploymentController, state);
             sendActionEvent(
                 TelemetryViews.FabricProvisioning,
                 TelemetryActions.GetWorkspaces,
@@ -490,7 +505,7 @@ export async function getCapacities(
             tenantId || state.formState.tenantId,
         );
         state.capacityIds = new Set(capacities.map((capacities) => capacities.id));
-        updatefabricProvisioningState(deploymentController, state);
+        updateFabricProvisioningState(deploymentController, state);
         sendActionEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.GetWorkspaces,
@@ -585,7 +600,7 @@ export async function sortWorkspacesByPermission(
 
     const startTime = Date.now();
     // Fetch all roles in parallel if it won't hit rate limits
-    if (Object.keys(workspacesWithValidOrUnknownCapacities).length < workspaceRoleRequestLimit) {
+    if (Object.keys(workspacesWithValidOrUnknownCapacities).length < WORKSPACE_ROLE_REQUEST_LIMIT) {
         const workspacesWithRoles = await Promise.all(
             Object.values(workspacesWithValidOrUnknownCapacities).map(async (workspace) => {
                 return await getRoleForWorkspace(state, workspace, tenantId);
@@ -613,7 +628,7 @@ export async function sortWorkspacesByPermission(
         state.workspacesWithPermissions = workspacesWithValidOrUnknownCapacities;
     }
 
-    updatefabricProvisioningState(deploymentController, state);
+    updateFabricProvisioningState(deploymentController, state);
 
     // Merge both
     return [
@@ -688,7 +703,7 @@ export function provisionDatabase(
     if (state.formState.tenantId === "" && !tenantId) return;
     const startTime = Date.now();
     state.provisionLoadState = ApiStatus.Loading;
-    updatefabricProvisioningState(deploymentController, state);
+    updateFabricProvisioningState(deploymentController, state);
     FabricHelper.createFabricSqlDatabase(
         state.formState.workspace,
         state.formState.databaseName,
@@ -698,7 +713,7 @@ export function provisionDatabase(
         .then((database) => {
             state.database = database;
             state.provisionLoadState = ApiStatus.Loaded;
-            updatefabricProvisioningState(deploymentController, state);
+            updateFabricProvisioningState(deploymentController, state);
             sendActionEvent(
                 TelemetryViews.FabricProvisioning,
                 TelemetryActions.ProvisionFabricDatabase,
@@ -713,7 +728,7 @@ export function provisionDatabase(
             console.error("Failed to create database", err);
             state.errorMessage = getErrorMessage(err);
             state.provisionLoadState = ApiStatus.Error;
-            updatefabricProvisioningState(deploymentController, state);
+            updateFabricProvisioningState(deploymentController, state);
             sendErrorEvent(
                 TelemetryViews.FabricProvisioning,
                 TelemetryActions.ProvisionFabricDatabase,
@@ -728,7 +743,7 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
     if (!state.database) return;
     const startTime = Date.now();
     state.connectionLoadState = ApiStatus.Loading;
-    updatefabricProvisioningState(deploymentController, state);
+    updateFabricProvisioningState(deploymentController, state);
     try {
         const databaseDetails = await FabricHelper.getFabricDatabase(
             state.formState.workspace,
@@ -772,7 +787,7 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
             true,
         );
     }
-    updatefabricProvisioningState(deploymentController, state);
+    updateFabricProvisioningState(deploymentController, state);
 }
 
 export function sendFabricProvisioningCloseEventTelemetry(state: fp.FabricProvisioningState): void {
@@ -789,7 +804,7 @@ export function sendFabricProvisioningCloseEventTelemetry(state: fp.FabricProvis
     );
 }
 
-export function updatefabricProvisioningState(
+export function updateFabricProvisioningState(
     deploymentController: DeploymentWebviewController,
     newState: fp.FabricProvisioningState,
 ) {
