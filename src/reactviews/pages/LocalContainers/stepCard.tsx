@@ -12,10 +12,10 @@ import {
     Dismiss20Regular,
 } from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
-import { ApiStatus } from "../../../../sharedInterfaces/webview";
-import { DockerStep } from "../../../../sharedInterfaces/localContainers";
-import { locConstants } from "../../../common/locConstants";
-import { DeploymentContext } from "../deploymentStateProvider";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { DockerStep } from "../../../sharedInterfaces/localContainers";
+import { locConstants } from "../../common/locConstants";
+import { DeploymentContext } from "../Deployment/deploymentStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {

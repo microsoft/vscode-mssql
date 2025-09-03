@@ -5,7 +5,7 @@
 
 import { useContext } from "react";
 import { makeStyles } from "@fluentui/react-components";
-import { DeploymentContext } from "../deploymentStateProvider";
+import { DeploymentContext } from "../Deployment/deploymentStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -59,5 +59,5 @@ export const LocalContainersHeader: React.FC<HeaderProps> = ({ headerText, paddi
 };
 
 export const dockerIcon = () => {
-    return require(`../../../media/docker.svg`);
+    return require(`../../media/docker.svg`);
 };

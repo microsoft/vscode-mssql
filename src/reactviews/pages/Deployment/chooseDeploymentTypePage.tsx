@@ -7,8 +7,8 @@ import { useContext, useState } from "react";
 import { Card, makeStyles, tokens, Text } from "@fluentui/react-components";
 import { DeploymentContext } from "./deploymentStateProvider";
 import { DeploymentType } from "../../../sharedInterfaces/deployment";
-import { FabricProvisioningInfoPage } from "./FabricProvisioning/fabricProvisioningInfoPage";
-import { LocalContainersInfoPage } from "./LocalContainers/localContainersInfoPage";
+import { FabricProvisioningInfoPage } from "../FabricProvisioning/fabricProvisioningInfoPage";
+import { LocalContainersInfoPage } from "../LocalContainers/localContainersInfoPage";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({

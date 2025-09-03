@@ -12,26 +12,26 @@ import {
     Spinner,
     tokens,
 } from "@fluentui/react-components";
-import { FormField } from "../../../common/forms/form.component";
+import { FormField } from "../../common/forms/form.component";
 import {
     FabricProvisioningContextProps,
     FabricProvisioningFormItemSpec,
     FabricProvisioningState,
     FabricProvisioningFormState,
-} from "../../../../sharedInterfaces/fabricProvisioning";
-import { ApiStatus } from "../../../../sharedInterfaces/webview";
+} from "../../../sharedInterfaces/fabricProvisioning";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
-import { locConstants } from "../../../common/locConstants";
+import { locConstants } from "../../common/locConstants";
 import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
-} from "../../../../sharedInterfaces/connectionGroup";
-import { SearchableDropdownOptions } from "../../../common/searchableDropdown.component";
-import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
-import { FormItemOptions } from "../../../../sharedInterfaces/form";
+} from "../../../sharedInterfaces/connectionGroup";
+import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
+import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
+import { FormItemOptions } from "../../../sharedInterfaces/form";
 import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
 import { ProvisionFabricDatabasePage } from "./provisionFabricDatabasePage";
-import { DeploymentContext } from "../deploymentStateProvider";
+import { DeploymentContext } from "../Deployment/deploymentStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {

@@ -5,9 +5,9 @@
 
 import { useContext } from "react";
 import { makeStyles, Text } from "@fluentui/react-components";
-import { locConstants } from "../../../common/locConstants";
-import { DeploymentContext } from "../deploymentStateProvider";
-import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
+import { locConstants } from "../../common/locConstants";
+import { DeploymentContext } from "../Deployment/deploymentStateProvider";
+import { FabricProvisioningState } from "../../../sharedInterfaces/fabricProvisioning";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -58,5 +58,5 @@ export const FabricProvisioningHeader: React.FC<HeaderProps> = ({ paddingLeft })
 };
 
 export const sqlInFabricIcon = () => {
-    return require(`../../../media/sqlDbInFabric.svg`);
+    return require(`../../media/sqlDbInFabric.svg`);
 };

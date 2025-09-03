@@ -5,25 +5,25 @@
 
 import { useContext, useEffect, useState } from "react";
 import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
-import { FormField } from "../../../common/forms/form.component";
+import { FormField } from "../../common/forms/form.component";
 import { LocalContainersSetupStepsPage } from "./localContainersSetupStepsPage";
 import {
     LocalContainersContextProps,
     LocalContainersFormItemSpec,
     LocalContainersState,
     DockerConnectionProfile,
-} from "../../../../sharedInterfaces/localContainers";
+} from "../../../sharedInterfaces/localContainers";
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
 import { LocalContainersHeader } from "./localContainersHeader";
-import { locConstants } from "../../../common/locConstants";
-import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
+import { locConstants } from "../../common/locConstants";
+import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
 import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
-} from "../../../../sharedInterfaces/connectionGroup";
-import { SearchableDropdownOptions } from "../../../common/searchableDropdown.component";
-import { ApiStatus } from "../../../../sharedInterfaces/webview";
-import { DeploymentContext } from "../deploymentStateProvider";
+} from "../../../sharedInterfaces/connectionGroup";
+import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { DeploymentContext } from "../Deployment/deploymentStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {

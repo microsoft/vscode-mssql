@@ -11,14 +11,11 @@ import {
     isLastStepLoaded,
     runDockerStep,
 } from "./localContainersDeploymentUtils";
-import {
-    DockerStepOrder,
-    LocalContainersState,
-} from "../../../../sharedInterfaces/localContainers";
+import { DockerStepOrder, LocalContainersState } from "../../../sharedInterfaces/localContainers";
 import { LocalContainersHeader } from "./localContainersHeader";
-import { locConstants } from "../../../common/locConstants";
+import { locConstants } from "../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
-import { DeploymentContext } from "../deploymentStateProvider";
+import { DeploymentContext } from "../Deployment/deploymentStateProvider";
 
 export const LocalContainersSetupStepsPage: React.FC = () => {
     const classes = stepPageStyles();

@@ -7,10 +7,10 @@ import { useContext, useEffect } from "react";
 import { Button, Card, makeStyles, Spinner, tokens } from "@fluentui/react-components";
 import { Checkmark20Regular, Circle20Regular, Dismiss20Regular } from "@fluentui/react-icons";
 import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
-import { ApiStatus } from "../../../../sharedInterfaces/webview";
-import { locConstants } from "../../../common/locConstants";
-import { DeploymentContext } from "../deploymentStateProvider";
-import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { locConstants } from "../../common/locConstants";
+import { DeploymentContext } from "../Deployment/deploymentStateProvider";
+import { FabricProvisioningState } from "../../../sharedInterfaces/fabricProvisioning";
 
 const useStyles = makeStyles({
     outerDiv: {
