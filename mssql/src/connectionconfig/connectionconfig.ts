@@ -351,7 +351,6 @@ export class ConnectionConfig implements IConnectionConfig {
         // Get all connections and groups from both user and workspace
         const userConnections = this.getConnectionsFromSettings(ConfigurationTarget.Global);
         const workspaceConnections = this.getConnectionsFromSettings(ConfigurationTarget.Workspace);
-        const allConnections = [...userConnections, ...workspaceConnections];
         const groups = this.getAllConnectionGroups();
         const rootGroup = this.getRootGroup();
 
