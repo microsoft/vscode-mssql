@@ -37,22 +37,24 @@ suite("Azure Helpers", () => {
 
     suite("VsCodeAzureHelpers", () => {
         test("getAccounts", async () => {
+            const notSignedInEmail = "notSignedIn@notSignedInDomain.com";
             sandbox.stub(vscode.authentication, "getAccounts").resolves([
                 ...mockAccounts,
                 {
                     id: "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA.BBBBBBBB-BBBB-BBBB-BBBB-BBBBBBBBBBBB",
-                    label: "notSignedIn@notSignedInDomain.com",
+                    label: notSignedInEmail,
                 },
             ]);
 
-            sandbox.stub(MssqlVSCodeAzureSubscriptionProvider, "getInstance").returns({
-                getTenants: (account) => {
-                    if (account.id === mockAccounts[0].id) {
-                        return Promise.resolve(mockTenants);
-                    }
-                    return Promise.reject("Not signed in");
-                },
-            } as MssqlVSCodeAzureSubscriptionProvider);
+            sandbox
+                .stub(vscode.authentication, "getSession")
+                .callsFake(
+                    async (_provider, _scope, options: vscode.AuthenticationGetSessionOptions) => {
+                        return options.account.label === notSignedInEmail
+                            ? undefined
+                            : ({} as vscode.AuthenticationSession);
+                    },
+                );
 
             const accounts = await azureHelpers.VsCodeAzureHelper.getAccounts(
                 true /* onlyAllowedForExtension */,
