@@ -179,6 +179,9 @@ export class FabricHelper {
         return result;
     }
 
+    /**
+     * Gets the server URL for a Fabric SQL Endpoint
+     */
     public static async getFabricSqlEndpointServerUri(
         sqlEndpointId: string,
         workspaceId: string,
@@ -188,6 +191,8 @@ export class FabricHelper {
             const connectionStringResponse = await this.fetchFromFabric<{
                 connectionString: string;
             }>(
+                // Note: the current API response returns only the server URL,
+                // despite the API endpoint suggesting it returns a full connection string
                 `workspaces/${workspaceId}/sqlEndpoints/${sqlEndpointId}/connectionString`,
                 Loc.gettingConnectionStringForSqlEndpoint(sqlEndpointId, workspaceId),
                 tenantId,
@@ -360,6 +365,7 @@ export class FabricHelper {
         location: string,
         httpHelper: HttpHelper,
         token?: string,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ): Promise<AxiosResponse<TResponse, any>> {
         const retryAfterInMs = parseInt(retryAfter, 10) || this.defaultRetryInMs;
 
