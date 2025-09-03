@@ -225,9 +225,9 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdClearPooledConnections, async () => {
                 await this.onClearPooledConnections();
             });
-            this.registerCommand(Constants.cmdNewDeployment);
-            this._event.on(Constants.cmdNewDeployment, () => {
-                this.onNewDeployment();
+            this.registerCommand(Constants.cmdDeployNewDatabase);
+            this._event.on(Constants.cmdDeployNewDatabase, () => {
+                this.onDeployNewDatabase();
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -2078,7 +2078,7 @@ export default class MainController implements vscode.Disposable {
         return false;
     }
 
-    public onNewDeployment(): void {
+    public onDeployNewDatabase(): void {
         sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
         const reactPanel = new DeploymentWebviewController(

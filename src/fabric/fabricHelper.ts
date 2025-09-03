@@ -22,10 +22,12 @@ import { Fabric as Loc } from "../constants/locConstants";
 
 export class FabricHelper {
     static readonly fabricUriBase = vscode.Uri.parse("https://api.fabric.microsoft.com/v1/");
-    static readonly fabricTokenRequestUriBase = vscode.Uri.parse(
+    static readonly fabricScopeUriBase = vscode.Uri.parse(
         "https://analysis.windows.net/powerbi/api/",
     );
     static readonly longRunningOperationCode = 202;
+    static readonly defaultRetryInMs = 30;
+    static readonly defaultScope = ".default";
     constructor() {}
 
     public static async getFabricCapacities(tenantId: string): Promise<ICapacity[]> {
@@ -188,19 +190,19 @@ export class FabricHelper {
         }
     }
 
-    public static async getRoleForWorkspace(
+    public static async getRolesForWorkspace(
         workspaceId: string,
         tenantId?: string,
     ): Promise<IWorkspaceRoleAssignment[] | undefined> {
         try {
             const response = await this.fetchFromFabric<{ value: IWorkspaceRoleAssignment[] }>(
                 `workspaces/${workspaceId}/roleAssignments`,
-                `listing role assignements for workspace '${workspaceId}'`,
+                Loc.listingRoleAssignmentsForWorkspace(workspaceId),
                 tenantId,
             );
             return response.value;
         } catch (err) {
-            console.log(err);
+            console.error(err);
         }
     }
 
@@ -211,7 +213,7 @@ export class FabricHelper {
     ): Promise<ISqlDbArtifact> {
         const response = await this.fetchFromFabric<ISqlDbArtifact>(
             `workspaces/${workspaceId}/sqlDatabases/${databaseId}`,
-            `getting Fabric database '${databaseId}'`,
+            Loc.gettingFabricDatabase(databaseId),
             tenantId,
         );
 
@@ -233,8 +235,7 @@ export class FabricHelper {
         const result = response.data;
 
         if (isFabricError(result)) {
-            const errorMessage = `Fabric API error occurred (${result.errorCode}): ${result.message}`;
-            throw new Error(errorMessage);
+            throw new Error(Loc.fabricApiError(result.errorCode, result.message));
         }
 
         return result;
@@ -335,7 +336,7 @@ export class FabricHelper {
         httpHelper: HttpHelper,
         token?: string,
     ): Promise<AxiosResponse<TResponse, any>> {
-        const retryAfterInMs = parseInt(retryAfter, 10) || 30;
+        const retryAfterInMs = parseInt(retryAfter, 10) || this.defaultRetryInMs;
 
         let longRunningResponse;
         while (
@@ -374,7 +375,7 @@ export class FabricHelper {
         reason: string,
         fabricScopes: string[] = [".default"],
     ): Promise<vscode.AuthenticationSession> {
-        let scopes = fabricScopes.map((scope) => `${this.fabricTokenRequestUriBase}${scope}`);
+        let scopes = fabricScopes.map((scope) => `${this.fabricScopeUriBase}${scope}`);
 
         if (tenantId) {
             scopes.push(`VSCODE_TENANT:${tenantId}`);

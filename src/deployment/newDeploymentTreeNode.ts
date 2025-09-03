@@ -13,7 +13,7 @@ export class NewDeploymentTreeNode extends vscode.TreeItem {
         super(LocalizedConstants.newDeployment, vscode.TreeItemCollapsibleState.None);
         this.command = {
             title: LocalizedConstants.newDeployment,
-            command: Constants.cmdNewDeployment,
+            command: Constants.cmdDeployNewDatabase,
         };
         this.iconPath = {
             light: ObjectExplorerUtils.iconPath("add_light"),

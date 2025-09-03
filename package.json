@@ -483,7 +483,7 @@
                     "group": "navigation"
                 },
                 {
-                    "command": "mssql.newDeployment",
+                    "command": "mssql.deployNewDatabase",
                     "when": "config.mssql.enableRichExperiences && view == objectExplorer",
                     "title": "%mssql.newDeployment%",
                     "group": "navigation"
@@ -1177,7 +1177,7 @@
                 "icon": "$(trash)"
             },
             {
-                "command": "mssql.newDeployment",
+                "command": "mssql.deployNewDatabase",
                 "title": "%mssql.newDeployment%",
                 "category": "MS SQL",
                 "icon": {

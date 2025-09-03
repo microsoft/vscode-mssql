@@ -848,6 +848,30 @@ export class Fabric {
         });
     };
 
+    public static listingRoleAssignmentsForWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Listing role assignments for workspace '${workspaceId}'",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
+    public static gettingFabricDatabase = (databaseId: string) => {
+        return l10n.t({
+            message: "Getting Fabric database '{0}'",
+            args: [databaseId],
+            comment: ["{0} is the database ID"],
+        });
+    };
+
+    public static fabricApiError = (resultCode: string, resultMessage: string) => {
+        return l10n.t({
+            message: "Fabric API error occurred ({0}): {1}",
+            args: [resultCode, resultMessage],
+            comment: ["{0} is the error code", "{1} is the error message"],
+        });
+    };
+
     public static fabricAccount = l10n.t("Fabric Account");
     public static fabricAccountIsRequired = l10n.t("Fabric Account is required");
     public static workspace = l10n.t("Workspace");

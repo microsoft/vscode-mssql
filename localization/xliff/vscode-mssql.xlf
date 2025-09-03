@@ -1229,17 +1229,19 @@
     <trans-unit id="++CODE++0556bfb755c73e8c60da1230c38f26ce0eaf79dc7bd5f5368371d561e5eab52f">
       <source xml:lang="en">Extremely likely</source>
     </trans-unit>
-    <trans-unit id="++CODE++2669635517c6f110f77148287c814fbb91a8ee9fb366d1113794cf21f767d9a9">
-      <source xml:lang="en">Fabric Account</source>
-    </trans-unit>
-    <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
-      <source xml:lang="en">Fabric Workspaces</source>
+    <trans-unit id="++CODE++ce973c12f6c3371202fc82770629424f5dff2aeaf8fda4b6a5e2f91156c13af3">
+      <source xml:lang="en">Fabric API error occurred ({0}): {1}</source>
+      <note>{0} is the error code
+{1} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++2669635517c6f110f77148287c814fbb91a8ee9fb366d1113794cf21f767d9a9">
       <source xml:lang="en">Fabric Account</source>
     </trans-unit>
     <trans-unit id="++CODE++c7869b25e42d5683ca7cf9fc6cc3bbe5c8c39dab0ee1f2938b5570714350d0bb">
       <source xml:lang="en">Fabric Account is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
+      <source xml:lang="en">Fabric Workspaces</source>
     </trans-unit>
     <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
       <source xml:lang="en">Failed</source>
@@ -1479,6 +1481,10 @@
     </trans-unit>
     <trans-unit id="++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc">
       <source xml:lang="en">Getting Docker Ready...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d6d1dc00ba08494d29eb2fb1a62a7b312e2a89c23b818493f1f3eec3167d54b9">
+      <source xml:lang="en">Getting Fabric database &apos;{0}&apos;</source>
+      <note>{0} is the database ID</note>
     </trans-unit>
     <trans-unit id="++CODE++4f2809d46e4d5ae64171f0a386b32412184dbf2ea9fb08956f407bed421b7bea">
       <source xml:lang="en">Getting Fabric workspace &apos;{0}&apos;</source>
@@ -1733,6 +1739,10 @@
       <source xml:lang="en">Listing functions for connection &apos;{0}&apos;</source>
       <note>{0} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++df15d83efd9fc637dc083e4165d14496ddd68c309ef41be96ddf930de86fa600">
+      <source xml:lang="en">Listing role assignments for workspace &apos;${workspaceId}&apos;</source>
+      <note>{0} is the workspace ID</note>
+    </trans-unit>
     <trans-unit id="++CODE++33ed9f224eba0860b9cfb0063fdbd1680208c1e358cecb479c7bd8c46236000e">
       <source xml:lang="en">Listing schemas for connection &apos;{0}&apos;</source>
       <note>{0} is the connection ID</note>
@@ -1791,23 +1801,23 @@
     <trans-unit id="++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb">
       <source xml:lang="en">Loading execution plan...</source>
     </trans-unit>
-    <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
-      <source xml:lang="en">Loading tenants...</source>
-    </trans-unit>
     <trans-unit id="++CODE++5aa7a4eb1f103858e56dc2f529435ff221afa8e7ff280a24ec6bbd810dd5b163">
       <source xml:lang="en">Loading fabric provisioning...</source>
     </trans-unit>
     <trans-unit id="++CODE++934bbb16d95b8f72c6353bba1afc96aee3975ae50aaca4b3abe9389f292b4987">
       <source xml:lang="en">Loading local containers...</source>
     </trans-unit>
+    <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
+      <source xml:lang="en">Loading tenants...</source>
+    </trans-unit>
     <trans-unit id="++CODE++136a37d2ee433b1eb4302a84ebee86659922e34ca61c2383bc863191b5aeeafa">
       <source xml:lang="en">Loading text view...</source>
     </trans-unit>
-    <trans-unit id="++CODE++3f9adb0f75f8f08022d5289c54dae461204356f0f718404bf22c0d08214ab34a">
-      <source xml:lang="en">Loading workspaces...</source>
-    </trans-unit>
     <trans-unit id="++CODE++58878f300e53ea741b29ea101504537639f39f997791a5950d225f8353fad887">
       <source xml:lang="en">Loading workspaces</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3f9adb0f75f8f08022d5289c54dae461204356f0f718404bf22c0d08214ab34a">
+      <source xml:lang="en">Loading workspaces...</source>
     </trans-unit>
     <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
       <source xml:lang="en">Loading...</source>
