@@ -295,7 +295,7 @@ export function generateFormComponent<
                             <Option
                                 key={(component.propertyName as string) + idx}
                                 value={option.value}
-                                style={option.style}>
+                                color={option.color}>
                                 {option.displayName}
                             </Option>
                         );
@@ -314,7 +314,7 @@ export function generateFormComponent<
                     options={component.options.map((opt) => ({
                         value: opt.value,
                         text: opt.displayName,
-                        style: opt.style,
+                        color: opt.color,
                         description: opt.description,
                         icon: opt.icon,
                     }))}
