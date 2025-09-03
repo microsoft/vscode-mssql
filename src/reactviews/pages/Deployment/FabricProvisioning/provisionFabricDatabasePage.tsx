@@ -119,10 +119,10 @@ const useStyles = makeStyles({
 
 export const ProvisionFabricDatabasePage: React.FC = () => {
     const classes = useStyles();
-    const state = useContext(DeploymentContext);
-    const fabricProvisioningState = state?.state.deploymentTypeState as FabricProvisioningState;
+    const context = useContext(DeploymentContext);
+    const fabricProvisioningState = context?.state.deploymentTypeState as FabricProvisioningState;
 
-    if (!state || !fabricProvisioningState) return undefined;
+    if (!context || !fabricProvisioningState) return undefined;
 
     useEffect(() => {}, [
         fabricProvisioningState.provisionLoadState,
@@ -228,7 +228,7 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
                     <div className={classes.buttonDiv}>
                         <Button
                             className={classes.button}
-                            onClick={() => state.dispose()}
+                            onClick={() => context.dispose()}
                             appearance={
                                 fabricProvisioningState.connectionLoadState === ApiStatus.Loaded
                                     ? "primary"

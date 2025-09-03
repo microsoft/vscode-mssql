@@ -36,8 +36,8 @@ const useStyles = makeStyles({
 
 export const DeploymentStartPage = () => {
     const classes = useStyles();
-    const state = useContext(DeploymentContext);
-    const deploymentState = state?.state;
+    const context = useContext(DeploymentContext);
+    const deploymentState = context?.state;
     const renderMainContent = () => {
         switch (deploymentState?.loadState) {
             case ApiStatus.Loading:

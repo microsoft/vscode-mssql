@@ -69,10 +69,10 @@ const useStyles = makeStyles({
 
 export const FabricProvisioningInputForm: React.FC = () => {
     const classes = useStyles();
-    const state = useContext(DeploymentContext);
-    const fabricProvisioningState = state?.state.deploymentTypeState as FabricProvisioningState;
+    const context = useContext(DeploymentContext);
+    const fabricProvisioningState = context?.state.deploymentTypeState as FabricProvisioningState;
 
-    if (!state || !fabricProvisioningState) return undefined;
+    if (!context || !fabricProvisioningState) return undefined;
 
     const { formComponents } = fabricProvisioningState;
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
@@ -107,7 +107,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                         FabricProvisioningFormItemSpec,
                         FabricProvisioningContextProps
                     >
-                        context={state}
+                        context={context}
                         component={component}
                         idx={index}
                     />
@@ -115,7 +115,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
             ));
 
     const handleSubmit = async () => {
-        await state.createDatabase();
+        await context.createDatabase();
     };
 
     useEffect(() => {
@@ -138,8 +138,8 @@ export const FabricProvisioningInputForm: React.FC = () => {
                                 (fabricProvisioningState.dialog as CreateConnectionGroupDialogProps)
                                     .props
                             }
-                            saveConnectionGroup={state.createConnectionGroup}
-                            closeDialog={() => state.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
+                            saveConnectionGroup={context.createConnectionGroup}
+                            closeDialog={() => context.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
                         />
                     )}
                     {renderFormFields(false)}
@@ -149,7 +149,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                         FabricProvisioningFormItemSpec,
                         FabricProvisioningContextProps
                     >
-                        context={state}
+                        context={context}
                         component={
                             fabricProvisioningState.formComponents[
                                 "groupId"
@@ -159,9 +159,9 @@ export const FabricProvisioningInputForm: React.FC = () => {
                         componentProps={{
                             onSelect: (option: SearchableDropdownOptions) => {
                                 if (option.value === CREATE_NEW_GROUP_ID) {
-                                    state.setConnectionGroupDialogState(true); // shouldOpen is true when opening the dialog
+                                    context.setConnectionGroupDialogState(true); // shouldOpen is true when opening the dialog
                                 } else {
-                                    state.formAction({
+                                    context.formAction({
                                         propertyName: "groupId",
                                         isAction: false,
                                         value: option.value,
@@ -177,7 +177,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                             FabricProvisioningFormItemSpec,
                             FabricProvisioningContextProps
                         >
-                            context={state}
+                            context={context}
                             component={
                                 fabricProvisioningState.formComponents[
                                     "tenantId"
@@ -189,12 +189,12 @@ export const FabricProvisioningInputForm: React.FC = () => {
                                     _event: SelectionEvents,
                                     data: OptionOnSelectData,
                                 ) => {
-                                    state.formAction({
+                                    context.formAction({
                                         propertyName: "tenantId",
                                         isAction: false,
                                         value: data.optionValue as string,
                                     });
-                                    state.reloadFabricEnvironment(data.optionValue as string);
+                                    context.reloadFabricEnvironment(data.optionValue as string);
                                 },
                             }}
                         />
@@ -206,7 +206,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                             FabricProvisioningFormItemSpec,
                             FabricProvisioningContextProps
                         >
-                            context={state}
+                            context={context}
                             component={
                                 fabricProvisioningState.formComponents[
                                     "workspace"
@@ -215,7 +215,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                             idx={0}
                             componentProps={{
                                 onSelect: async (option: FormItemOptions) => {
-                                    await state.handleWorkspaceFormAction(option.value);
+                                    await context.handleWorkspaceFormAction(option.value);
                                 },
                             }}
                         />

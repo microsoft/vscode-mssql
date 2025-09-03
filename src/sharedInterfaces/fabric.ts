@@ -79,6 +79,7 @@ export interface IWorkspaceRoleAssignment {
 
 /**
  * The possible workspace roles within a Fabric workspace, matching API response strings.
+ * https://learn.microsoft.com/en-us/fabric/data-warehouse/workspace-roles
  */
 export enum WorkspaceRole {
     Viewer = "Viewer",

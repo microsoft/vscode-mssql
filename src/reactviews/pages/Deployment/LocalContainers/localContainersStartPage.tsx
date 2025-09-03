@@ -36,8 +36,9 @@ const useStyles = makeStyles({
 
 export const LocalContainersStartPage = () => {
     const classes = useStyles();
-    const state = useContext(DeploymentContext);
-    const localContainersState = state?.state.deploymentTypeState;
+    const context = useContext(DeploymentContext);
+    const localContainersState = context?.state.deploymentTypeState;
+
     const renderMainContent = () => {
         switch (localContainersState?.loadState) {
             case ApiStatus.Loading:

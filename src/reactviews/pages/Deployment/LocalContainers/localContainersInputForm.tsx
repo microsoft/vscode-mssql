@@ -61,13 +61,13 @@ const useStyles = makeStyles({
 
 export const LocalContainersInputForm: React.FC = () => {
     const classes = useStyles();
-    const state = useContext(DeploymentContext);
+    const context = useContext(DeploymentContext);
     const [showNext, setShowNext] = useState(false);
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
-    const deploymentState = state?.state;
+    const deploymentState = context?.state;
     const localContainersState = deploymentState?.deploymentTypeState as LocalContainersState;
 
-    if (!state || !deploymentState || !localContainersState) return undefined;
+    if (!context || !deploymentState || !localContainersState) return undefined;
 
     const { formComponents } = localContainersState;
     const eulaComponent = Object.values(formComponents).find(
@@ -102,7 +102,7 @@ export const LocalContainersInputForm: React.FC = () => {
                         LocalContainersFormItemSpec,
                         LocalContainersContextProps
                     >
-                        context={state}
+                        context={context}
                         component={component}
                         idx={index}
                     />
@@ -110,7 +110,7 @@ export const LocalContainersInputForm: React.FC = () => {
             ));
 
     const handleSubmit = async () => {
-        await state.checkDockerProfile();
+        await context.checkDockerProfile();
     };
 
     useEffect(() => {
@@ -132,8 +132,8 @@ export const LocalContainersInputForm: React.FC = () => {
                             state={
                                 (deploymentState.dialog as CreateConnectionGroupDialogProps).props
                             }
-                            saveConnectionGroup={state.createConnectionGroup}
-                            closeDialog={() => state.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
+                            saveConnectionGroup={context.createConnectionGroup}
+                            closeDialog={() => context.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
                         />
                     )}
                     {renderFormFields(false)}
@@ -143,7 +143,7 @@ export const LocalContainersInputForm: React.FC = () => {
                         LocalContainersFormItemSpec,
                         LocalContainersContextProps
                     >
-                        context={state}
+                        context={context}
                         component={
                             localContainersState.formComponents[
                                 "groupId"
@@ -153,9 +153,9 @@ export const LocalContainersInputForm: React.FC = () => {
                         componentProps={{
                             onSelect: (option: SearchableDropdownOptions) => {
                                 if (option.value === CREATE_NEW_GROUP_ID) {
-                                    state.setConnectionGroupDialogState(true); // shouldOpen is true when opening the dialog
+                                    context.setConnectionGroupDialogState(true); // shouldOpen is true when opening the dialog
                                 } else {
-                                    state.formAction({
+                                    context.formAction({
                                         propertyName: "groupId",
                                         isAction: false,
                                         value: option.value,
@@ -199,7 +199,7 @@ export const LocalContainersInputForm: React.FC = () => {
                             LocalContainersContextProps
                         >
                             key={eulaComponent.propertyName}
-                            context={state}
+                            context={context}
                             component={eulaComponent}
                             idx={0}
                         />

@@ -42,10 +42,10 @@ interface HeaderProps {
 
 export const FabricProvisioningHeader: React.FC<HeaderProps> = ({ paddingLeft }) => {
     const classes = useStyles();
-    const state = useContext(DeploymentContext);
-    const fabricProvisioningState = state?.state.deploymentTypeState as FabricProvisioningState;
+    const context = useContext(DeploymentContext);
+    const fabricProvisioningState = context?.state.deploymentTypeState as FabricProvisioningState;
 
-    if (!state || !fabricProvisioningState) return undefined;
+    if (!context || !fabricProvisioningState) return undefined;
 
     return (
         <div className={classes.outerDiv} style={{ paddingLeft: paddingLeft ?? "70px" }}>

@@ -27,8 +27,7 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
     return (
         <DeploymentContext.Provider
             value={{
-                // @ts-ignore
-                state: webviewState?.state,
+                state: webviewState?.state as any,
                 themeKind: webviewState?.themeKind,
                 ...getCoreRPCs(webviewState),
                 //#region Common Reducers

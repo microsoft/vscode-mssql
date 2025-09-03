@@ -23,8 +23,8 @@ import { DeploymentContext } from "../deploymentStateProvider";
 
 export const LocalContainersPrereqPage: React.FC = () => {
     const classes = stepPageStyles();
-    const state = useContext(DeploymentContext);
-    const localContainersState = state?.state.deploymentTypeState as LocalContainersState;
+    const context = useContext(DeploymentContext);
+    const localContainersState = context?.state.deploymentTypeState as LocalContainersState;
     const [showNext, setShowNext] = useState(false);
     const [stepsLoaded, setStepsLoaded] = useState(false);
     const [stepsErrored, setStepsErrored] = useState(false);
@@ -32,25 +32,19 @@ export const LocalContainersPrereqPage: React.FC = () => {
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!state || !localContainersState) {
+    if (!context || !localContainersState) {
         return undefined;
     }
 
     useEffect(() => {
-        void runDockerStep(state, lastStep);
-    }, [state.state]);
-
-    useEffect(() => {
-        setStepsLoaded(isLastStepLoaded(state, lastStep));
-    }, [state.state]);
-
-    useEffect(() => {
-        setStepsErrored(checkStepErrored(state));
-    }, [state.state]);
+        void runDockerStep(context, lastStep);
+        setStepsLoaded(isLastStepLoaded(context, lastStep));
+        setStepsErrored(checkStepErrored(context));
+    }, [context.state]);
 
     const handleRetry = async () => {
         // reset step states
-        await state.resetDockerStepState();
+        await context.resetDockerStepState();
     };
 
     return showNext ? (
@@ -97,7 +91,7 @@ export const LocalContainersPrereqPage: React.FC = () => {
                             <Button
                                 className={classes.button}
                                 onClick={() => {
-                                    state.dispose();
+                                    context.dispose();
                                 }}>
                                 {locConstants.common.cancel}
                             </Button>

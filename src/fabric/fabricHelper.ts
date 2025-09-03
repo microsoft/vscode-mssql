@@ -373,7 +373,7 @@ export class FabricHelper {
     private static async createScopedFabricSession(
         tenantId: string | undefined,
         reason: string,
-        fabricScopes: string[] = [".default"],
+        fabricScopes: string[] = [this.defaultScope],
     ): Promise<vscode.AuthenticationSession> {
         let scopes = fabricScopes.map((scope) => `${this.fabricScopeUriBase}${scope}`);
 
