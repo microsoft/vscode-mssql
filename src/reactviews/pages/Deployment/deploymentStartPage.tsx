@@ -9,7 +9,6 @@ import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
-import { ChooseDeploymentTypePage } from "./chooseDeploymentTypePage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -50,7 +49,7 @@ export const DeploymentStartPage = () => {
                     </div>
                 );
             case ApiStatus.Loaded:
-                return <ChooseDeploymentTypePage />;
+                return <div>Hello</div>;
             case ApiStatus.Error:
                 return (
                     <div className={classes.spinnerDiv}>
