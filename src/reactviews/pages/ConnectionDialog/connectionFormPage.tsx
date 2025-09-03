@@ -31,9 +31,12 @@ export const ConnectionFormPage = () => {
         return undefined;
     }
 
-    // Helper to flatten group hierarchy for dropdown
+    // Helper to flatten group hierarchy for dropdown, excluding ROOT group
     function getGroupOptions(): SearchableDropdownOptions[] {
         if (!context?.state?.connectionGroups) return [];
+        // Find the root group id (assuming name is "ROOT")
+        const rootGroup = context.state.connectionGroups.find((g) => g.name === "ROOT");
+        const rootGroupId = rootGroup?.id;
         // Recursively build hierarchical options, skipping ROOT
         function buildOptions(
             groups: IConnectionGroup[],
@@ -41,7 +44,7 @@ export const ConnectionFormPage = () => {
             prefix: string = "",
         ): SearchableDropdownOptions[] {
             return groups
-                .filter((g) => g.parentId === parentId && g.name !== "ROOT")
+                .filter((g) => g.parentId === parentId && g.id !== rootGroupId && g.name !== "ROOT")
                 .flatMap((g) => {
                     const label = prefix ? `${prefix} / ${g.name}` : g.name;
                     const children = buildOptions(groups, g.id, label);
@@ -49,7 +52,8 @@ export const ConnectionFormPage = () => {
                 });
         }
 
-        return buildOptions(context.state.connectionGroups);
+        // Start from rootGroupId if available, otherwise undefined
+        return buildOptions(context.state.connectionGroups, rootGroupId ?? undefined);
     }
 
     // Selected group state
@@ -58,7 +62,7 @@ export const ConnectionFormPage = () => {
     return (
         <div>
             {/* Connection Group Dropdown */}
-            <div style={{ marginBottom: 16 }}>
+            {/* <div style={{ marginBottom: 16 }}>
                 <label
                     htmlFor="connection-group-dropdown"
                     style={{ fontWeight: 500, marginRight: 8 }}>
@@ -71,7 +75,7 @@ export const ConnectionFormPage = () => {
                     onSelect={(option: SearchableDropdownOptions) => setSelectedGroup(option.value)}
                     placeholder="Select a group"
                 />
-            </div>
+            </div> */}
             {/* Existing connection form fields */}
             {context.state.connectionComponents.mainOptions.map((inputName, idx) => {
                 const component =
