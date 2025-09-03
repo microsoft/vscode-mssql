@@ -225,20 +225,16 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
                             )}
                         </div>
                     </Card>
-                    <div className={classes.buttonDiv}>
-                        <Button
-                            className={classes.button}
-                            onClick={() => context.dispose()}
-                            appearance={
-                                fabricProvisioningState.connectionLoadState === ApiStatus.Loaded
-                                    ? "primary"
-                                    : "secondary"
-                            }>
-                            {fabricProvisioningState.connectionLoadState === ApiStatus.Loaded
-                                ? locConstants.common.finish
-                                : locConstants.common.cancel}
-                        </Button>
-                    </div>
+                    {fabricProvisioningState.connectionLoadState === ApiStatus.Loaded && (
+                        <div className={classes.buttonDiv}>
+                            <Button
+                                className={classes.button}
+                                onClick={() => context.dispose()}
+                                appearance="primary">
+                                {locConstants.common.finish}
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
