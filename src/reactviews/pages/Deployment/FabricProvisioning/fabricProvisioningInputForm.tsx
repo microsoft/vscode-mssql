@@ -231,41 +231,41 @@ export const FabricProvisioningInputForm: React.FC = () => {
                         />
                     )}
                     {fabricProvisioningState.formState.accountId &&
-                    fabricProvisioningState.workspaces.length > 0 ? (
-                        <FormField<
-                            FabricProvisioningFormState,
-                            FabricProvisioningState,
-                            FabricProvisioningFormItemSpec,
-                            FabricProvisioningContextProps
-                        >
-                            context={context}
-                            component={
-                                fabricProvisioningState.formComponents[
-                                    "workspace"
-                                ] as FabricProvisioningFormItemSpec
-                            }
-                            idx={0}
-                            componentProps={{
-                                onSelect: async (option: FormItemOptions) => {
-                                    await context.handleWorkspaceFormAction(option.value);
-                                },
-                            }}
-                        />
-                    ) : fabricProvisioningState.isWorkspacesErrored ? (
-                        <div
-                            className={classes.buttonContent}
-                            style={{ marginTop: "20px", marginBottom: "20px" }}>
-                            <Dismiss20Regular color={tokens.colorStatusDangerBackground3} />
-                            {locConstants.fabricProvisioning.errorLoadingWorkspaces}
-                        </div>
-                    ) : (
-                        <div
-                            className={classes.buttonContent}
-                            style={{ marginTop: "20px", marginBottom: "20px" }}>
-                            <Spinner size="tiny" />
-                            {locConstants.fabricProvisioning.loadingWorkspaces}...
-                        </div>
-                    )}
+                        (fabricProvisioningState.workspaces.length > 0 ? (
+                            <FormField<
+                                FabricProvisioningFormState,
+                                FabricProvisioningState,
+                                FabricProvisioningFormItemSpec,
+                                FabricProvisioningContextProps
+                            >
+                                context={context}
+                                component={
+                                    fabricProvisioningState.formComponents[
+                                        "workspace"
+                                    ] as FabricProvisioningFormItemSpec
+                                }
+                                idx={0}
+                                componentProps={{
+                                    onSelect: async (option: FormItemOptions) => {
+                                        await context.handleWorkspaceFormAction(option.value);
+                                    },
+                                }}
+                            />
+                        ) : fabricProvisioningState.isWorkspacesErrored ? (
+                            <div
+                                className={classes.buttonContent}
+                                style={{ marginTop: "20px", marginBottom: "20px" }}>
+                                <Dismiss20Regular color={tokens.colorStatusDangerBackground3} />
+                                {locConstants.fabricProvisioning.errorLoadingWorkspaces}
+                            </div>
+                        ) : (
+                            <div
+                                className={classes.buttonContent}
+                                style={{ marginTop: "20px", marginBottom: "20px" }}>
+                                <Spinner size="tiny" />
+                                {locConstants.fabricProvisioning.loadingWorkspaces}...
+                            </div>
+                        ))}
 
                     <div>
                         <Button
