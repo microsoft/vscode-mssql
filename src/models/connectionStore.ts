@@ -24,7 +24,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { Logger } from "./logger";
 import { Deferred } from "../protocol";
-import { ConnInfoMatcher, MatchLevel } from "../models/utils";
+import { ConnInfoMatcher, MatchScore } from "../models/utils";
 
 /**
  * Manages the connections list including saved profiles and the most recently used connections
@@ -627,11 +627,11 @@ export class ConnectionStore {
 
     public async findMatchingProfile(
         connProfile: IConnectionProfile,
-    ): Promise<IConnectionProfile | undefined> {
+    ): Promise<{ profile: IConnectionProfile; score: MatchScore } | undefined> {
         const savedConnections = await this.readAllConnections();
 
         let bestMatch: IConnectionProfile | undefined;
-        let bestMatchScore = MatchLevel.NotMatch;
+        let bestMatchScore = MatchScore.NotMatch;
 
         for (const savedConn of savedConnections) {
             const matchLevel = ConnInfoMatcher.isMatchingConnectionInfo(savedConn, connProfile);
@@ -642,7 +642,7 @@ export class ConnectionStore {
             }
         }
 
-        return bestMatch;
+        return { profile: bestMatch, score: bestMatchScore };
     }
 
     /** Gets the groupId for connections  */

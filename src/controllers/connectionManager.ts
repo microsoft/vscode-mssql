@@ -378,7 +378,7 @@ export default class ConnectionManager {
 
     public async findMatchingProfile(
         connProfile: IConnectionProfile,
-    ): Promise<IConnectionProfile | undefined> {
+    ): Promise<{ profile: IConnectionProfile; score: Utils.MatchScore } | undefined> {
         return this.connectionStore.findMatchingProfile(connProfile);
     }
 

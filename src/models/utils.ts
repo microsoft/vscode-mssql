@@ -299,78 +299,119 @@ export function isSameProfile(
     );
 }
 
-export enum MatchLevel {
+export enum MatchScore {
     /**
      * Not a match on core connection properties
      */
     NotMatch = 0,
 
     /**
-     * Matches on core connection properties; others may be different
+     * Matches on the server URL only.  Other properties may be different.
      */
-    ConnectionInfo = 1,
+    Server = 1,
 
     /**
-     * Match on core connection properties, as well as all available additional properties
+     * Matches on the server URL and database name only.  Other properties may be different.
      */
-    AllAvailableProps = 2,
+    ServerAndDatabase = 2,
+
+    /**
+     * Matches on core connection properties (server, database, and auth).  Other properties may be different.
+     */
+    ServerDatabaseAndAuth = 3,
+
+    /**
+     * Match on core connection properties, as well as all available additional properties.
+     * If a property is specified in the partial profile, it must match.  If a property is not specified
+     * in the partial profile, it is ignored for matching purposes.
+     *
+     * If either connection uses a connection string, the connection strings must match exactly and all other properties are ignored.
+     */
+    AllAvailableProps = 4,
 
     /**
      * Matches on connection ID GUID.  Other properties are assumed to be the same.
      */
-    Id = 3,
+    Id = 5,
 }
 
 export class ConnInfoMatcher {
     /**
      * Returns the highest match level for the given connection profiles
-     * @param current the current connection profile; treated as the partial profile when evaluating `MatchLevel.AllAvailableProps`.
-     * @param expected the expected connection profile; generally expected to be a complete profile.
+     * @param current the saved connection profile that's being checked as a match; generally expected to be a complete profile.
+     * @param expected the connection info that you're looking for a match for; treated as the partial profile when evaluating `MatchLevel.AllAvailableProps`.
      */
     public static isMatchingConnectionInfo(
         current: IConnectionProfile,
         expected: IConnectionProfile,
-    ): MatchLevel {
+    ): MatchScore {
         // Check for ID match first (highest priority)
         if (current.id && expected.id && current.id === expected.id) {
-            return MatchLevel.Id;
+            return MatchScore.Id;
         }
 
         // Check for connection string match - all-or-nothing when connection strings are involved
         if (current.connectionString || expected.connectionString) {
             if (current.connectionString === expected.connectionString) {
-                return MatchLevel.ConnectionInfo;
+                return MatchScore.AllAvailableProps;
             } else {
-                return MatchLevel.NotMatch;
+                return MatchScore.NotMatch;
             }
         }
 
         // Check for connection information match (server, database, authentication info)
-        if (
-            ConnInfoMatcher.connectionTargetMatches(current, expected) &&
-            ConnInfoMatcher.authenticationMatches(current, expected)
-        ) {
-            // Check if all available properties also match
-            if (ConnInfoMatcher.additionalPropertiesMatch(current, expected)) {
-                return MatchLevel.AllAvailableProps;
+        if (ConnInfoMatcher.serverMatches(current, expected)) {
+            if (expected.database && ConnInfoMatcher.databaseMatches(current, expected)) {
+                if (
+                    expected.authenticationType &&
+                    ConnInfoMatcher.authenticationMatches(current, expected)
+                ) {
+                    if (ConnInfoMatcher.additionalPropertiesMatch(current, expected)) {
+                        return MatchScore.AllAvailableProps;
+                    }
+                    return MatchScore.ServerDatabaseAndAuth;
+                }
+                return MatchScore.ServerAndDatabase;
             }
-            return MatchLevel.ConnectionInfo;
+            return MatchScore.Server;
         }
 
-        return MatchLevel.NotMatch;
+        return MatchScore.NotMatch;
     }
 
-    public static connectionTargetMatches(
+    /**
+     * Checks if the server names match.  Normalizes "." to "localhost" for comparison purposes.  Case-sensitive.
+     */
+    public static serverMatches(
         current: IConnectionProfile,
         expected: IConnectionProfile,
     ): boolean {
-        // Check if the server and database match
-        return (
-            current.server === expected.server &&
-            isSameDatabase(current.database, expected.database)
-        );
+        function normalizeServerName(server: string): string {
+            if (server === ".") {
+                return "localhost";
+            }
+            return server;
+        }
+
+        const currentServer = normalizeServerName(current.server);
+        const expectedServer = normalizeServerName(expected.server);
+
+        return currentServer === expectedServer;
     }
 
+    /**
+     * Checks if the database names match.  Case-sensitive.
+     */
+    public static databaseMatches(
+        current: IConnectionProfile,
+        expected: IConnectionProfile,
+    ): boolean {
+        return isSameDatabase(current.database, expected.database);
+    }
+
+    /**
+     * Checks if the authentication information matches, including authentication type and user/account.  Does not compare passwords.
+     */
     public static authenticationMatches(
         current: IConnectionProfile,
         expected: IConnectionProfile,
@@ -387,7 +428,10 @@ export class ConnInfoMatcher {
         if (current.authenticationType === Constants.sqlAuthentication) {
             result &&= current.user === expected.user;
         } else if (current.authenticationType === Constants.azureMfa) {
-            result &&= isSameAccountKey(current.accountId, expected.accountId);
+            if (current.accountId && expected.accountId) {
+                // If both account IDs are defined, then require those to match as well
+                result &&= isSameAccountKey(current.accountId, expected.accountId);
+            }
         }
 
         return result;
@@ -410,7 +454,8 @@ export class ConnInfoMatcher {
             "id",
         ]);
 
-        for (const key in Object.keys(current).filter(
+        // TODO: this is broken and results in all property reads being undefined.
+        for (const key in Object.keys(expected).filter(
             (k) => !coreKeys.has(k as keyof IConnectionProfile),
         )) {
             if (current[key] !== expected[key]) {

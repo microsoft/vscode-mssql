@@ -550,9 +550,7 @@ export default class MainController implements vscode.Disposable {
                         self._connectionMgr.client,
                     );
 
-                    const connectionInfo = await mssqlProtocolHandler.handleUri(uri);
-
-                    vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, connectionInfo);
+                    await mssqlProtocolHandler.handleUri(uri);
                 },
             };
             vscode.window.registerUriHandler(uriHandler);
