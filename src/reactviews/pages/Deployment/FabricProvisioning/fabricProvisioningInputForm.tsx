@@ -256,8 +256,10 @@ export const FabricProvisioningInputForm: React.FC = () => {
                             appearance="secondary"
                             disabled>
                             <div className={classes.buttonContent}>
-                                <Spinner size="extra-tiny" />
-                                {locConstants.fabricProvisioning.createDatabase}
+                                <Spinner
+                                    size="extra-tiny"
+                                    label={locConstants.fabricProvisioning.createDatabase}
+                                />
                             </div>
                         </Button>
                     ) : (

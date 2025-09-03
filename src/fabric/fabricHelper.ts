@@ -220,27 +220,6 @@ export class FabricHelper {
         return response;
     }
 
-    public static async fetchFromFabric<TResponse>(
-        api: string,
-        reason: string,
-        tenantId: string | undefined,
-    ): Promise<TResponse> {
-        const uri = vscode.Uri.joinPath(this.fabricUriBase, api);
-        const httpHelper = new HttpHelper();
-
-        const session = await this.createScopedFabricSession(tenantId, reason);
-        let token = session?.accessToken;
-
-        const response = await httpHelper.makeGetRequest<TResponse>(uri.toString(), token);
-        const result = response.data;
-
-        if (isFabricError(result)) {
-            throw new Error(Loc.fabricApiError(result.errorCode, result.message));
-        }
-
-        return result;
-    }
-
     public static async createWorkspace(
         capacityId: string,
         displayName: string,
@@ -284,6 +263,27 @@ export class FabricHelper {
         );
 
         return response;
+    }
+
+    public static async fetchFromFabric<TResponse>(
+        api: string,
+        reason: string,
+        tenantId: string | undefined,
+    ): Promise<TResponse> {
+        const uri = vscode.Uri.joinPath(this.fabricUriBase, api);
+        const httpHelper = new HttpHelper();
+
+        const session = await this.createScopedFabricSession(tenantId, reason);
+        let token = session?.accessToken;
+
+        const response = await httpHelper.makeGetRequest<TResponse>(uri.toString(), token);
+        const result = response.data;
+
+        if (isFabricError(result)) {
+            throw new Error(Loc.fabricApiError(result.errorCode, result.message));
+        }
+
+        return result;
     }
 
     public static async postToFabric<TResponse, TPayload>(

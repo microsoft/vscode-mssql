@@ -79,7 +79,7 @@ export interface IWorkspaceRoleAssignment {
 
 /**
  * The possible workspace roles within a Fabric workspace, matching API response strings.
- * https://learn.microsoft.com/en-us/fabric/data-warehouse/workspace-roles
+ * https://learn.microsoft.com/en-us/rest/api/fabric/core/workspaces/list-workspace-role-assignments?tabs=HTTP#workspacerole
  */
 export enum WorkspaceRole {
     Viewer = "Viewer",
@@ -91,6 +91,7 @@ export enum WorkspaceRole {
 /**
  * Defines the hierarchy of roles for permission checks.
  * Higher numbers mean higher privileges.
+ * https://learn.microsoft.com/en-us/rest/api/fabric/core/workspaces/list-workspace-role-assignments?tabs=HTTP#workspacerole
  */
 export const WorkspaceRoleRank: Record<WorkspaceRole, number> = {
     [WorkspaceRole.Viewer]: 0,

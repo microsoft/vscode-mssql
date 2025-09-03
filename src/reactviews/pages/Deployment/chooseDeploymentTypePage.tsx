@@ -114,12 +114,12 @@ const useStyles = makeStyles({
 
 export const ChooseDeploymentTypePage: React.FC = () => {
     const classes = useStyles();
-    const state = useContext(DeploymentContext);
+    const context = useContext(DeploymentContext);
     const [deploymentType, setDeploymentType] = useState<DeploymentType>();
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!state) {
+    if (!context) {
         return undefined;
     }
 

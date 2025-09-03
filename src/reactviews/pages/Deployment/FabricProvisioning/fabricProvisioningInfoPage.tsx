@@ -78,13 +78,13 @@ const useStyles = makeStyles({
 
 export const FabricProvisioningInfoPage: React.FC = () => {
     const classes = useStyles();
-    const state = useContext(DeploymentContext);
+    const context = useContext(DeploymentContext);
     const [showNext, setShowNext] = useState(false);
     const [showPrevious, setShowPrevious] = useState(false);
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!state) {
+    if (!context) {
         return undefined;
     }
     return showPrevious ? (
@@ -147,7 +147,9 @@ export const FabricProvisioningInfoPage: React.FC = () => {
                     <Button
                         className={classes.button}
                         onClick={() => {
-                            state.initializeDeploymentSpecifics(DeploymentType.FabricProvisioning);
+                            context.initializeDeploymentSpecifics(
+                                DeploymentType.FabricProvisioning,
+                            );
                             setShowNext(true);
                         }}
                         appearance={"primary"}>
