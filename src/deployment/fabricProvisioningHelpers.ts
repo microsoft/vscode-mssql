@@ -544,7 +544,9 @@ export async function sortWorkspacesByPermission(
     if (state.userGroupIds.length === 0) {
         const userId = state.formState.accountId.split(".")[0];
         const userGroups = await fetchUserGroups(userId);
-        state.userGroupIds = userGroups.map((userGroup) => userGroup.id);
+        if (userGroups.length > 0) {
+            state.userGroupIds = userGroups.map((userGroup) => userGroup.id);
+        }
         state.userGroupIds.push(userId);
     }
 
