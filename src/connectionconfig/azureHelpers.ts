@@ -41,7 +41,7 @@ export class VsCodeAzureHelper {
     public static async getAccounts(
         onlyAllowedForExtension: boolean = true,
     ): Promise<vscode.AuthenticationSessionAccountInformation[]> {
-        let accounts = [];
+        let accounts: vscode.AuthenticationSessionAccountInformation[] = [];
 
         try {
             accounts = Array.from(
@@ -56,21 +56,26 @@ export class VsCodeAzureHelper {
             const filteredAccounts = [];
             for (const account of accounts) {
                 try {
-                    const tenants =
-                        await MssqlVSCodeAzureSubscriptionProvider.getInstance().getTenants(
-                            account,
-                        );
-                    if (tenants.length > 0) {
+                    const session = await vscode.authentication.getSession(
+                        getConfiguredAuthProviderId(),
+                        [],
+                        {
+                            account: account,
+                            createIfNone: false,
+                        },
+                    );
+
+                    if (session) {
                         filteredAccounts.push(account);
                     } else {
                         console.warn(
-                            `No tenants found for account ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account.`,
+                            `No session found for account ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account.`,
                         );
                     }
                 } catch (error) {
-                    // no-op; failure to get tenants means that the account is not accessible by this extension
+                    // no-op if failure occurs
                     console.warn(
-                        `Error fetching tenants for ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account.  Error: ${getErrorMessage(error)}`,
+                        `Error checking MSSQL access for ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account.  Error: ${getErrorMessage(error)}`,
                     );
                 }
             }
