@@ -7,8 +7,6 @@ import { useContext, useState } from "react";
 import { Card, makeStyles, tokens, Text } from "@fluentui/react-components";
 import { DeploymentContext } from "./deploymentStateProvider";
 import { DeploymentType } from "../../../sharedInterfaces/deployment";
-import { FabricProvisioningInfoPage } from "../FabricProvisioning/fabricProvisioningInfoPage";
-import { LocalContainersInfoPage } from "../LocalContainers/localContainersInfoPage";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -125,9 +123,9 @@ export const ChooseDeploymentTypePage: React.FC = () => {
 
     const getDeploymentStartPage = () => {
         if (deploymentType === DeploymentType.LocalContainers) {
-            return <LocalContainersInfoPage />;
+            return <div>Hello</div>;
         } else if (deploymentType === DeploymentType.FabricProvisioning) {
-            return <FabricProvisioningInfoPage />;
+            return <div>Hello</div>;
         }
         return null;
     };
