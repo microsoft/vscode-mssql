@@ -16,7 +16,7 @@ import {
     Text,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
-import { createElement, CSSProperties, useEffect, useId, useRef, useState } from "react";
+import { CSSProperties, useEffect, useId, useRef, useState } from "react";
 import { locConstants } from "./locConstants";
 
 export interface SearchableDropdownOptions {
@@ -35,7 +35,7 @@ export interface SearchableDropdownOptions {
     /**
      * Option Icon- Fluent UI icon component to display for the option
      */
-    icon?: string;
+    icon?: keyof typeof FluentOptionIcons;
     /**
      * Optional styling for the option
      */
@@ -92,6 +92,13 @@ export interface SearchableDropdownProps {
      */
     clearable?: boolean;
 }
+
+/**
+ * Icon Map for options in the searchable dropdown. Add more icons here if you need a specific icon
+ */
+export const FluentOptionIcons: Record<string, JSX.Element> = {
+    Warning20Regular: <FluentIcons.Warning20Regular />,
+};
 
 const getOptionDisplayText = (option: SearchableDropdownOptions, placeholder?: string): string => {
     const optionText = option.text || option.value;
@@ -237,7 +244,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     <span>{getOptionDisplayText(option)}</span>
                     <span style={{ display: "flex", gap: "4px", marginRight: "12px" }}>
                         {option.description && <Text>{option.description}</Text>}
-                        {option.icon && createElement((FluentIcons as any)[option.icon])}
+                        {option.icon && FluentOptionIcons[option.icon]}
                     </span>
                 </div>
             </MenuItemRadio>
