@@ -82,13 +82,13 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
 
     const getStatusIcon = () => {
         if (step.loadState === ApiStatus.NotStarted) {
-            return <Circle20Regular style={{ color: "gray" }} />;
+            return <Circle20Regular style={{ color: tokens.colorNeutralStroke1Pressed }} />;
         }
         if (step.loadState === ApiStatus.Loaded) {
-            return <Checkmark20Regular style={{ color: "green" }} />;
+            return <Checkmark20Regular style={{ color: tokens.colorStatusSuccessBackground3 }} />;
         }
         if (step.loadState === ApiStatus.Error) {
-            return <Dismiss20Regular style={{ color: "red" }} />;
+            return <Dismiss20Regular style={{ color: tokens.colorStatusDangerBackground3 }} />;
         }
         return <Spinner size="tiny" />;
     };

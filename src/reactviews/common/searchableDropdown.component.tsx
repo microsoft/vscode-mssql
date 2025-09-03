@@ -236,7 +236,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     }}>
                     <span>{getOptionDisplayText(option)}</span>
                     <span style={{ display: "flex", gap: "4px", marginRight: "12px" }}>
-                        {option.description && <div>{option.description}</div>}
+                        {option.description && <Text>{option.description}</Text>}
                         {option.icon && createElement((FluentIcons as any)[option.icon])}
                     </span>
                 </div>

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext } from "react";
-import { makeStyles } from "@fluentui/react-components";
+import { makeStyles, Text } from "@fluentui/react-components";
 import { locConstants } from "../../../common/locConstants";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
@@ -50,9 +50,9 @@ export const FabricProvisioningHeader: React.FC<HeaderProps> = ({ paddingLeft })
     return (
         <div className={classes.outerDiv} style={{ paddingLeft: paddingLeft ?? "70px" }}>
             <img className={classes.icon} src={sqlInFabricIcon()} />
-            <div className={classes.titleDiv}>
+            <Text className={classes.titleDiv}>
                 {locConstants.fabricProvisioning.sqlDatabaseInFabric}
-            </div>
+            </Text>
         </div>
     );
 };

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState } from "react";
-import { Card, makeStyles, tokens } from "@fluentui/react-components";
+import { Card, makeStyles, tokens, Text } from "@fluentui/react-components";
 import { DeploymentContext } from "./deploymentStateProvider";
 import { DeploymentType } from "../../../sharedInterfaces/deployment";
 import { FabricProvisioningInfoPage } from "./FabricProvisioning/fabricProvisioningInfoPage";
@@ -138,11 +138,11 @@ export const ChooseDeploymentTypePage: React.FC = () => {
         <div>
             <div className={classes.outerHeaderDiv}>
                 <img className={classes.headerIcon} src={deploymentIcon()} />
-                <div className={classes.titleDiv}>{locConstants.deployment.deploymentHeader}</div>
+                <Text className={classes.titleDiv}>{locConstants.deployment.deploymentHeader}</Text>
             </div>
-            <div className={classes.subtitleDiv}>
+            <Text className={classes.subtitleDiv}>
                 {locConstants.deployment.deploymentDescription}
-            </div>
+            </Text>
 
             <div className={classes.outerDiv}>
                 <div className={classes.cardRow}>
@@ -154,12 +154,12 @@ export const ChooseDeploymentTypePage: React.FC = () => {
                             src={dockerIcon()}
                             alt={locConstants.deployment.dockerSqlServerHeader}
                         />
-                        <span className={classes.cardHeader}>
+                        <Text className={classes.cardHeader}>
                             {locConstants.deployment.dockerSqlServerHeader}
-                        </span>
-                        <span className={classes.cardDescription}>
+                        </Text>
+                        <Text className={classes.cardDescription}>
                             {locConstants.deployment.dockerSqlServerDescription}
-                        </span>
+                        </Text>
                     </Card>
                     <Card
                         className={classes.cardDiv}
@@ -169,12 +169,12 @@ export const ChooseDeploymentTypePage: React.FC = () => {
                             src={sqlDbInFabricIcon()}
                             alt={locConstants.deployment.fabricProvisioningHeader}
                         />
-                        <span className={classes.cardHeader}>
+                        <Text className={classes.cardHeader}>
                             {locConstants.deployment.fabricProvisioningHeader}
-                        </span>
-                        <span className={classes.cardDescription}>
+                        </Text>
+                        <Text className={classes.cardDescription}>
                             {locConstants.deployment.fabricProvisioningDescription}
-                        </span>
+                        </Text>
                     </Card>
                 </div>
             </div>

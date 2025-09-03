@@ -4,16 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { tokens } from "@fluentui/react-components";
-import { AzureController } from "../azure/azureController";
-import { getAccounts, getTenants } from "../connectionconfig/azureHelpers";
+import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
-import {
-    ConnectionDialog,
-    Fabric,
-    FabricProvisioning,
-    refreshTokenLabel,
-} from "../constants/locConstants";
-import VscodeWrapper from "../controllers/vscodeWrapper";
+import { ConnectionDialog, Fabric, FabricProvisioning } from "../constants/locConstants";
 import { FabricHelper } from "../fabric/fabricHelper";
 import { Logger } from "../models/logger";
 import {
@@ -38,6 +31,7 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { tenantDisplayName } from "../constants/constants";
 
 export const WORKSPACE_ROLE_REQUEST_LIMIT = 20;
 
@@ -50,16 +44,14 @@ export async function initializeFabricProvisioningState(
     const state = new fp.FabricProvisioningState();
 
     // Azure context
-    const azureAccountOptions = await getAccounts(
-        deploymentController.mainController.azureAccountService,
-        logger,
-    );
+    const azureAccounts = await VsCodeAzureHelper.getAccounts();
+    const azureAccountOptions = azureAccounts.map((account) => ({
+        displayName: account.label,
+        value: account.id,
+    }));
+
     const defaultAccountId = azureAccountOptions.length > 0 ? azureAccountOptions[0].value : "";
-    const tenantOptions = await getTenants(
-        deploymentController.mainController.azureAccountService,
-        defaultAccountId,
-        logger,
-    );
+    const tenantOptions = await getTenantOptions(defaultAccountId);
 
     state.formState = {
         accountId: defaultAccountId,
@@ -72,7 +64,7 @@ export async function initializeFabricProvisioningState(
 
     // Form Context
     deploymentController.state.deploymentTypeState = state;
-    const azureActionButtons = await getAzureActionButtons(deploymentController, logger);
+    const azureActionButtons = await getAzureActionButton(deploymentController, logger);
     state.formComponents = setFabricProvisioningFormComponents(
         azureAccountOptions,
         azureActionButtons,
@@ -281,12 +273,11 @@ export function setFabricProvisioningFormComponents(
     };
 }
 
-export async function getAzureActionButtons(
+export async function getAzureActionButton(
     deploymentController: DeploymentWebviewController,
     logger: Logger,
 ): Promise<FormItemActionButton[]> {
     const accountFormComponentId = "accountId";
-    const azureAccountService = deploymentController.mainController.azureAccountService;
     const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
 
     const actionButtons: FormItemActionButton[] = [];
@@ -297,10 +288,8 @@ export async function getAzureActionButtons(
                 : ConnectionDialog.addAccount,
         id: "azureSignIn",
         callback: async () => {
-            const account = await azureAccountService.addAccount();
-            logger.verbose(
-                `Added Azure account '${account.displayInfo?.displayName}', ${account.key.id}`,
-            );
+            // Force sign in prompt
+            await VsCodeAzureHelper.signIn(true);
 
             const accountsComponent = state.formComponents[accountFormComponentId];
             if (!accountsComponent) {
@@ -308,69 +297,23 @@ export async function getAzureActionButtons(
                 return;
             }
 
-            accountsComponent.options = await getAccounts(azureAccountService, logger);
+            const azureAccounts = await VsCodeAzureHelper.getAccounts();
+            accountsComponent.options = azureAccounts.map((account) => ({
+                displayName: account.label,
+                value: account.id,
+            }));
 
             logger.verbose(
                 `Read ${accountsComponent.options.length} Azure accounts: ${accountsComponent.options.map((a) => a.value).join(", ")}`,
             );
 
-            state.formState.accountId = account.key.id;
-            logger.verbose(`Selecting '${account.key.id}'`);
+            state.formState.accountId = azureAccounts.length > 0 ? azureAccounts[0].id : "";
+            logger.verbose(`Selecting '${azureAccounts[0].id}'`);
 
             updateFabricProvisioningState(deploymentController, state);
             await loadComponentsAfterSignIn(deploymentController, logger);
         },
     });
-
-    if (state.formState.accountId) {
-        const account = (await azureAccountService.getAccounts()).find(
-            (account) => account.displayInfo.userId === state.formState.accountId,
-        );
-
-        if (account) {
-            let isTokenExpired = false;
-            try {
-                const session = await azureAccountService.getAccountSecurityToken(
-                    account,
-                    undefined,
-                );
-                isTokenExpired = !AzureController.isTokenValid(session.token, session.expiresOn);
-            } catch (err) {
-                logger.verbose(
-                    `Error getting token or checking validity; prompting for refresh. Error: ${getErrorMessage(err)}`,
-                );
-
-                new VscodeWrapper().showErrorMessage(
-                    "Error validating Entra authentication token; you may need to refresh your token.",
-                );
-
-                isTokenExpired = true;
-            }
-
-            if (isTokenExpired) {
-                actionButtons.push({
-                    label: refreshTokenLabel,
-                    id: "refreshToken",
-                    callback: async () => {
-                        const account = (await azureAccountService.getAccounts()).find(
-                            (account) => account.displayInfo.userId === state.formState.accountId,
-                        );
-                        if (account) {
-                            try {
-                                const session = await azureAccountService.getAccountSecurityToken(
-                                    account,
-                                    undefined,
-                                );
-                                logger.log("Token refreshed", session.expiresOn);
-                            } catch (err) {
-                                logger.error(`Error refreshing token: ${getErrorMessage(err)}`);
-                            }
-                        }
-                    },
-                });
-            }
-        }
-    }
     return actionButtons;
 }
 
@@ -379,15 +322,10 @@ export async function loadComponentsAfterSignIn(
     logger: Logger,
 ) {
     const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
-    const accountComponent = state.formComponents["accountId"];
 
     // Reload tenant options
     const tenantComponent = state.formComponents["tenantId"];
-    const tenants = await getTenants(
-        deploymentController.mainController.azureAccountService,
-        state.formState.accountId,
-        logger,
-    );
+    const tenants = await getTenantOptions(state.formState.accountId);
     if (tenantComponent) {
         tenantComponent.options = tenants;
         if (tenants.length > 0 && !tenants.find((t) => t.value === state.formState.tenantId)) {
@@ -399,7 +337,8 @@ export async function loadComponentsAfterSignIn(
             }
         }
     }
-    accountComponent.actionButtons = await getAzureActionButtons(deploymentController, logger);
+    const accountComponent = state.formComponents["accountId"];
+    accountComponent.actionButtons = await getAzureActionButton(deploymentController, logger);
 
     await reloadFabricComponents(deploymentController);
 }
@@ -409,10 +348,11 @@ export async function reloadFabricComponents(
     tenantId?: string,
 ): Promise<fp.FabricProvisioningState> {
     const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
-    state.capacityIds = new Set<string>();
-    state.userGroupIds = new Set<string>();
+    state.capacityIds = [];
+    state.userGroupIds = [];
     state.workspaces = [];
     state.databaseNamesInWorkspace = [];
+    state.errorMessage = "";
     updateFabricProvisioningState(deploymentController, state);
     void getWorkspaces(deploymentController, tenantId);
     return state;
@@ -494,14 +434,14 @@ export async function getCapacities(
 ): Promise<void> {
     const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
     if (state.formState.tenantId === "" && !tenantId) return;
-    if (state.capacityIds.size !== 0) return;
+    if (state.capacityIds.length !== 0) return;
 
     const startTime = Date.now();
     try {
         const capacities = await FabricHelper.getFabricCapacities(
             tenantId || state.formState.tenantId,
         );
-        state.capacityIds = new Set(capacities.map((capacities) => capacities.id));
+        state.capacityIds = capacities.map((capacity) => capacity.id);
         updateFabricProvisioningState(deploymentController, state);
         sendActionEvent(
             TelemetryViews.FabricProvisioning,
@@ -519,6 +459,7 @@ export async function getCapacities(
             err,
             true,
         );
+        throw err;
     }
 }
 
@@ -540,7 +481,7 @@ export async function getRoleForWorkspace(
         for (const role of roles) {
             if (
                 WorkspaceRoleRank[role.role] >= WorkspaceRoleRank[workspace.role] &&
-                state.userGroupIds.has(role.id)
+                state.userGroupIds.includes(role.id)
             ) {
                 workspace.role = role.role;
             }
@@ -574,11 +515,11 @@ export async function sortWorkspacesByPermission(
     const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
 
     // Ensure userGroupIds are loaded
-    if (state.userGroupIds.size === 0) {
+    if (state.userGroupIds.length === 0) {
         const userId = state.formState.accountId.split(".")[0];
         const userGroups = await fetchUserGroups(userId);
-        state.userGroupIds = new Set(userGroups.map((userGroup) => userGroup.id));
-        state.userGroupIds.add(userId);
+        state.userGroupIds = userGroups.map((userGroup) => userGroup.id);
+        state.userGroupIds.push(userId);
     }
 
     const workspacesWithValidOrUnknownCapacities: Record<string, IWorkspace> = {};
@@ -587,7 +528,7 @@ export async function sortWorkspacesByPermission(
         // Track all workspaces in the global map
         state.workspaces[workspace.id] = workspace;
 
-        if (workspace.capacityId && !state.capacityIds.has(workspace.capacityId)) {
+        if (workspace.capacityId && !state.capacityIds.includes(workspace.capacityId)) {
             workspace.hasCapacityPermissionsForProvisioning = false;
             state.workspacesWithoutPermissions[workspace.id] = workspace;
         } else {
@@ -824,4 +765,19 @@ export function updateFabricProvisioningState(
 ) {
     deploymentController.state.deploymentTypeState = newState;
     deploymentController.updateState(deploymentController.state);
+}
+
+export async function getTenantOptions(accountId: string): Promise<FormItemOptions[]> {
+    const tenants = await VsCodeAzureHelper.getTenantsForAccount(accountId);
+
+    return tenants
+        .map((tenant) => ({
+            displayName: tenant.displayName,
+            value: tenant.tenantId,
+        }))
+        .sort((a, b) => {
+            if (a.displayName === tenantDisplayName) return -1;
+            if (b.displayName === tenantDisplayName) return 1;
+            return 0;
+        });
 }

@@ -27,8 +27,8 @@ export class FabricProvisioningState
     dialog: IDialogProps | undefined;
     workspacesWithPermissions: Record<string, IWorkspace> = {};
     workspacesWithoutPermissions: Record<string, IWorkspace> = {};
-    capacityIds: Set<string> = new Set<string>();
-    userGroupIds: Set<string> = new Set<string>();
+    capacityIds: string[] = [];
+    userGroupIds: string[] = [];
     deploymentStartTime: string = "";
     workspaces: IWorkspace[] = [];
     databaseNamesInWorkspace: string[] = [];

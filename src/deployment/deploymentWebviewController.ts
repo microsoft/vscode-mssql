@@ -28,6 +28,10 @@ import * as fabricProvisioning from "./fabricProvisioningHelpers";
 import { newDeployment } from "../constants/locConstants";
 import { FabricProvisioningState } from "../sharedInterfaces/fabricProvisioning";
 
+/*
+ Since there's one overarching controller for all deployment types, but each deployment type has differently typed form states + webview states,
+ there are two form states- one with the overall controller (required because it extends FormWebviewController), and one with each specific deployment state
+*/
 export class DeploymentWebviewController extends FormWebviewController<
     DeploymentFormState,
     DeploymentWebviewState,
@@ -115,6 +119,7 @@ export class DeploymentWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("createConnectionGroup", async (state, payload) => {
+            console.log("Creating connection group with spec:", payload.connectionGroupSpec);
             const createConnectionGroupResult: IConnectionGroup | string =
                 await createConnectionGroup(
                     payload.connectionGroupSpec,

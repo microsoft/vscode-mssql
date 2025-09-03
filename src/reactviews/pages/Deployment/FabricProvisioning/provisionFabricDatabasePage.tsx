@@ -137,13 +137,13 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
             status = fabricProvisioningState.connectionLoadState;
         }
         if (status === ApiStatus.NotStarted) {
-            return <Circle20Regular style={{ color: "gray" }} />;
+            return <Circle20Regular style={{ color: tokens.colorNeutralStroke1Pressed }} />;
         }
         if (status === ApiStatus.Loaded) {
-            return <Checkmark20Regular style={{ color: "green" }} />;
+            return <Checkmark20Regular style={{ color: tokens.colorStatusSuccessBackground3 }} />;
         }
         if (status === ApiStatus.Error) {
-            return <Dismiss20Regular style={{ color: "red" }} />;
+            return <Dismiss20Regular style={{ color: tokens.colorStatusDangerBackground3 }} />;
         }
         return <Spinner size="tiny" />;
     };
