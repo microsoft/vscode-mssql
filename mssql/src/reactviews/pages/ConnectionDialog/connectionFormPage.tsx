@@ -13,11 +13,8 @@ import {
     ConnectionDialogWebviewState,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
-import {
-    SearchableDropdown,
-    SearchableDropdownOptions,
-} from "../../common/searchableDropdown.component";
-import { IConnectionGroup } from "../../../sharedInterfaces/connectionGroup";
+// import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
+// import { IConnectionGroup } from "../../../sharedInterfaces/connectionGroup";
 import { ConnectButton } from "./components/connectButton.component";
 import { locConstants } from "../../common/locConstants";
 import { AdvancedOptionsDrawer } from "./components/advancedOptionsDrawer.component";
@@ -32,32 +29,32 @@ export const ConnectionFormPage = () => {
     }
 
     // Helper to flatten group hierarchy for dropdown, excluding ROOT group
-    function getGroupOptions(): SearchableDropdownOptions[] {
-        if (!context?.state?.connectionGroups) return [];
-        // Find the root group id (assuming name is "ROOT")
-        const rootGroup = context.state.connectionGroups.find((g) => g.name === "ROOT");
-        const rootGroupId = rootGroup?.id;
-        // Recursively build hierarchical options, skipping ROOT
-        function buildOptions(
-            groups: IConnectionGroup[],
-            parentId?: string,
-            prefix: string = "",
-        ): SearchableDropdownOptions[] {
-            return groups
-                .filter((g) => g.parentId === parentId && g.id !== rootGroupId && g.name !== "ROOT")
-                .flatMap((g) => {
-                    const label = prefix ? `${prefix} / ${g.name}` : g.name;
-                    const children = buildOptions(groups, g.id, label);
-                    return [{ key: g.id, text: label, value: g.id }, ...children];
-                });
-        }
+    // function getGroupOptions(): SearchableDropdownOptions[] {
+    //     if (!context?.state?.connectionGroups) return [];
+    //     // Find the root group id (assuming name is "ROOT")
+    //     const rootGroup = context.state.connectionGroups.find((g) => g.name === "ROOT");
+    //     const rootGroupId = rootGroup?.id;
+    //     // Recursively build hierarchical options, skipping ROOT
+    //     function buildOptions(
+    //         groups: IConnectionGroup[],
+    //         parentId?: string,
+    //         prefix: string = "",
+    //     ): SearchableDropdownOptions[] {
+    //         return groups
+    //             .filter((g) => g.parentId === parentId && g.id !== rootGroupId && g.name !== "ROOT")
+    //             .flatMap((g) => {
+    //                 const label = prefix ? `${prefix} / ${g.name}` : g.name;
+    //                 const children = buildOptions(groups, g.id, label);
+    //                 return [{ key: g.id, text: label, value: g.id }, ...children];
+    //             });
+    //     }
 
-        // Start from rootGroupId if available, otherwise undefined
-        return buildOptions(context.state.connectionGroups, rootGroupId ?? undefined);
-    }
+    //     // Start from rootGroupId if available, otherwise undefined
+    //     return buildOptions(context.state.connectionGroups, rootGroupId ?? undefined);
+    // }
 
     // Selected group state
-    const [selectedGroup, setSelectedGroup] = useState<string>(getGroupOptions()[0]?.value ?? "");
+    // const [selectedGroup, setSelectedGroup] = useState<string>(getGroupOptions()[0]?.value ?? "");
 
     return (
         <div>
