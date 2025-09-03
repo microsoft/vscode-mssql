@@ -5,7 +5,7 @@
 
 import * as assert from "assert";
 import * as sinon from "sinon";
-import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
+import { VsCodeAzureHelper } from "../../src/connectionconfig/azureHelpers";
 import { AzureController } from "../../src/azure/azureController";
 import * as fabricHelpers from "../../src/deployment/fabricProvisioningHelpers";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
@@ -19,15 +19,15 @@ suite("Fabric Provisioning logic", () => {
     let deploymentController: any;
     let logger: any;
     let sendActionEvent: sinon.SinonStub;
-    let accountOptions: FormItemOptions[] = [{ displayName: "acct1", value: "account1" }];
-    let tenantOptions: FormItemOptions[] = [{ displayName: "tenant1", value: "tenant1" }];
+    let accountOptions = [{ label: "acct1", id: "account1" }];
+    let tenantOptions = [{ displayName: "tenant1", tenantId: "tenant1" }];
     let groupOptions: FormItemOptions[] = [{ displayName: "Default Group", value: "default" }];
     let updateStateStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        sandbox.stub(azureHelpers, "getAccounts").resolves(accountOptions);
-        sandbox.stub(azureHelpers, "getTenants").resolves(tenantOptions);
+        sandbox.stub(VsCodeAzureHelper, "getAccounts").resolves(accountOptions);
+        sandbox.stub(VsCodeAzureHelper, "getTenantsForAccount").resolves(tenantOptions as any);
         sandbox.stub(AzureController, "isTokenValid").resolves(true);
         updateStateStub = sandbox.stub();
 
@@ -203,6 +203,7 @@ suite("Fabric Provisioning logic", () => {
 
         // Call the function
         await fabricHelpers.loadComponentsAfterSignIn(deploymentController, logger);
+        const tenantOptions = [{ displayName: "tenant1", value: "tenant1" }];
 
         assert.deepStrictEqual(state.formComponents.tenantId.options, tenantOptions);
         assert.strictEqual(state.formState.tenantId, "tenant1");
@@ -260,7 +261,7 @@ suite("Fabric Provisioning logic", () => {
 
         // ws1 has permission
         assert.strictEqual(options[0].value, "ws1");
-        assert.deepStrictEqual(options[0].style, {});
+        assert.deepStrictEqual(options[0].color, "");
         assert.strictEqual(options[0].description, "");
 
         // ws2 has no workspace permission

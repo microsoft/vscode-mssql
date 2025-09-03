@@ -116,9 +116,9 @@ export interface FormItemOptions {
      */
     icon?: string;
     /**
-     * Optional styling for the option
+     * Optional text color for the option
      */
-    style?: any;
+    color?: string;
 }
 
 /**

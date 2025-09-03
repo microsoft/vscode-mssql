@@ -14,6 +14,7 @@ import {
     InputOnChangeData,
     SearchBoxChangeEvent,
     Text,
+    tokens,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { CSSProperties, useEffect, useId, useRef, useState } from "react";
@@ -37,9 +38,9 @@ export interface SearchableDropdownOptions {
      */
     icon?: keyof typeof FluentOptionIcons;
     /**
-     * Optional styling for the option
+     * Optional text color for the option
      */
-    style?: any;
+    color?: keyof typeof tokens;
 }
 
 export interface SearchableDropdownProps {
@@ -221,7 +222,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     maxWidth: `${popoverWidth - 10}px`,
                     padding: "5px 0px",
                     margin: "2px",
-                    ...option.style,
+                    ...(option.color ? { color: tokens[option.color] } : {}),
                 }}
                 name={"dropdown-options"}
                 value={option.value}

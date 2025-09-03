@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { tokens } from "@fluentui/react-components";
 import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { ConnectionDialog, Fabric, FabricProvisioning } from "../constants/locConstants";
@@ -400,7 +399,7 @@ export function getWorkspaceOptions(state: fp.FabricProvisioningState): FormItem
         return {
             displayName: workspace.displayName,
             value: workspace.id,
-            style: hasPermission ? {} : { color: tokens.colorNeutralForegroundDisabled },
+            color: hasPermission ? "" : "colorNeutralForegroundDisabled",
             description: description,
             icon: hasPermission ? undefined : "Warning20Regular",
         };
