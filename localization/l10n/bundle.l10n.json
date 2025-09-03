@@ -780,6 +780,7 @@
   "SQL Database in Fabric": "SQL Database in Fabric",
   "Create Database": "Create Database",
   "Loading workspaces": "Loading workspaces",
+  "Error loading workspaces. Please try choosing a different account or tenant.": "Error loading workspaces. Please try choosing a different account or tenant.",
   "Finished Deployment": "Finished Deployment",
   "Deployment in progress": "Deployment in progress",
   "Deployment Name": "Deployment Name",

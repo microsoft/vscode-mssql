@@ -955,6 +955,9 @@ export class LocConstants {
             sqlDatabaseInFabric: l10n.t("SQL Database in Fabric"),
             createDatabase: l10n.t("Create Database"),
             loadingWorkspaces: l10n.t("Loading workspaces"),
+            errorLoadingWorkspaces: l10n.t(
+                "Error loading workspaces. Please try choosing a different account or tenant.",
+            ),
             finishedDeployment: l10n.t("Finished Deployment"),
             deploymentInProgress: l10n.t("Deployment in progress"),
             deploymentName: l10n.t("Deployment Name"),

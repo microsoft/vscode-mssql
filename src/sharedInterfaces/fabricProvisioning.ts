@@ -27,6 +27,7 @@ export class FabricProvisioningState
     dialog: IDialogProps | undefined;
     workspacesWithPermissions: Record<string, IWorkspace> = {};
     workspacesWithoutPermissions: Record<string, IWorkspace> = {};
+    isWorkspacesErrored: boolean = false;
     capacityIds: string[] = [];
     userGroupIds: string[] = [];
     deploymentStartTime: string = "";
@@ -81,7 +82,7 @@ export interface FabricProvisioningContextProps
      * Reload fabric environment
      * Used when account/ tenant is changed
      */
-    reloadFabricEnvironment(newTenant: string): void;
+    reloadFabricEnvironment(newTenant?: string): void;
     /**
      * Handle workspace form action
      */
@@ -97,7 +98,7 @@ export interface FabricProvisioningReducers extends FormReducers<FabricProvision
      * Reload fabric environment
      * Used when account/ tenant is changed
      */
-    reloadFabricEnvironment: { newTenant: string };
+    reloadFabricEnvironment: { newTenant?: string };
     /**
      * Handle workspace form action
      */

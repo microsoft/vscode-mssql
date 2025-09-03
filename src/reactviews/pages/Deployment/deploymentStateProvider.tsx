@@ -69,7 +69,7 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                 },
                 //#endregion
                 //#region Fabric Provisioning Reducers
-                reloadFabricEnvironment: function (newTenant: string): void {
+                reloadFabricEnvironment: function (newTenant?: string): void {
                     webviewState?.extensionRpc.action("reloadFabricEnvironment", {
                         newTenant: newTenant,
                     });

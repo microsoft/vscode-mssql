@@ -20,7 +20,11 @@ import {
     FabricProvisioningFormState,
 } from "../../../../sharedInterfaces/fabricProvisioning";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
-import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
+import {
+    ChevronDown20Regular,
+    ChevronRight20Regular,
+    Dismiss20Regular,
+} from "@fluentui/react-icons";
 import { locConstants } from "../../../common/locConstants";
 import {
     CREATE_NEW_GROUP_ID,
@@ -74,6 +78,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
 
     if (!context || !fabricProvisioningState) return undefined;
 
+    const fabricComponents = ["accountId", "workspace", "tenantId"];
     const { formComponents } = fabricProvisioningState;
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
     const [showNext, setShowNext] = useState(false);
@@ -84,8 +89,7 @@ export const FabricProvisioningInputForm: React.FC = () => {
                 (component) =>
                     component.isAdvancedOption === isAdvanced &&
                     component.propertyName !== "groupId" &&
-                    component.propertyName !== "workspace" &&
-                    component.propertyName !== "tenantId",
+                    !fabricComponents.includes(component.propertyName),
             )
             .map((component, index) => (
                 <div
@@ -123,7 +127,10 @@ export const FabricProvisioningInputForm: React.FC = () => {
         setShowNext(fabricProvisioningState.formValidationLoadState === ApiStatus.Loaded);
     }, [fabricProvisioningState.formValidationLoadState]);
 
-    useEffect(() => {}, [fabricProvisioningState.workspaces]);
+    useEffect(() => {}, [
+        fabricProvisioningState.workspaces,
+        fabricProvisioningState.isWorkspacesErrored,
+    ]);
 
     return showNext ? (
         <ProvisionFabricDatabasePage />
@@ -142,6 +149,30 @@ export const FabricProvisioningInputForm: React.FC = () => {
                             closeDialog={() => context.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
                         />
                     )}
+                    <FormField<
+                        FabricProvisioningFormState,
+                        FabricProvisioningState,
+                        FabricProvisioningFormItemSpec,
+                        FabricProvisioningContextProps
+                    >
+                        context={context}
+                        component={
+                            fabricProvisioningState.formComponents[
+                                "accountId"
+                            ] as FabricProvisioningFormItemSpec
+                        }
+                        idx={0}
+                        componentProps={{
+                            onOptionSelect: (_event: SelectionEvents, data: OptionOnSelectData) => {
+                                context.formAction({
+                                    propertyName: "accountId",
+                                    isAction: false,
+                                    value: data.optionValue as string,
+                                });
+                                context.reloadFabricEnvironment();
+                            },
+                        }}
+                    />
                     {renderFormFields(false)}
                     <FormField<
                         FabricProvisioningFormState,
@@ -199,7 +230,8 @@ export const FabricProvisioningInputForm: React.FC = () => {
                             }}
                         />
                     )}
-                    {fabricProvisioningState.workspaces.length > 0 ? (
+                    {fabricProvisioningState.formState.accountId &&
+                    fabricProvisioningState.workspaces.length > 0 ? (
                         <FormField<
                             FabricProvisioningFormState,
                             FabricProvisioningState,
@@ -219,6 +251,13 @@ export const FabricProvisioningInputForm: React.FC = () => {
                                 },
                             }}
                         />
+                    ) : fabricProvisioningState.isWorkspacesErrored ? (
+                        <div
+                            className={classes.buttonContent}
+                            style={{ marginTop: "20px", marginBottom: "20px" }}>
+                            <Dismiss20Regular color={tokens.colorStatusDangerBackground3} />
+                            {locConstants.fabricProvisioning.errorLoadingWorkspaces}
+                        </div>
                     ) : (
                         <div
                             className={classes.buttonContent}

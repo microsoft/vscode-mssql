@@ -33,7 +33,7 @@ export interface SearchableDropdownOptions {
      */
     description?: string;
     /**
-     * Option Icon
+     * Option Icon- Fluent UI icon component to display for the option
      */
     icon?: string;
     /**

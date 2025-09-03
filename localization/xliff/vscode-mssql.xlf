@@ -1152,6 +1152,9 @@
     <trans-unit id="++CODE++3ba789024640c6f231695bdf0d82e6845483cf65f092b3c3646910e60c638761">
       <source xml:lang="en">Error loading workspaces</source>
     </trans-unit>
+    <trans-unit id="++CODE++b154b77abde300c955ebf8ac540930618d871899cd631bf8a90e9efb66a9323e">
+      <source xml:lang="en">Error loading workspaces. Please try choosing a different account or tenant.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2b850d590d607436d4cbf751406a7626e01d0e5c775f26c880ab4fd21e70bb66">
       <source xml:lang="en">Error loading; refresh to try again</source>
     </trans-unit>

@@ -31,7 +31,6 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
-import { tenantDisplayName } from "../constants/constants";
 
 export const WORKSPACE_ROLE_REQUEST_LIMIT = 20;
 
@@ -51,7 +50,12 @@ export async function initializeFabricProvisioningState(
     }));
 
     const defaultAccountId = azureAccountOptions.length > 0 ? azureAccountOptions[0].value : "";
-    const tenantOptions = await getTenantOptions(defaultAccountId);
+    const tenantOptions = (await VsCodeAzureHelper.getTenantsForAccount(defaultAccountId)).map(
+        (tenant) => ({
+            displayName: tenant.displayName,
+            value: tenant.tenantId,
+        }),
+    );
 
     state.formState = {
         accountId: defaultAccountId,
@@ -307,8 +311,11 @@ export async function getAzureActionButton(
                 `Read ${accountsComponent.options.length} Azure accounts: ${accountsComponent.options.map((a) => a.value).join(", ")}`,
             );
 
-            state.formState.accountId = azureAccounts.length > 0 ? azureAccounts[0].id : "";
-            logger.verbose(`Selecting '${azureAccounts[0].id}'`);
+            // There should always be at least one account, because the user just went through the sign in workflow
+            if (azureAccounts.length !== 0) {
+                state.formState.accountId = azureAccounts[0].id;
+                logger.verbose(`Selecting '${azureAccounts[0].id}'`);
+            }
 
             updateFabricProvisioningState(deploymentController, state);
             await loadComponentsAfterSignIn(deploymentController, logger);
@@ -325,7 +332,12 @@ export async function loadComponentsAfterSignIn(
 
     // Reload tenant options
     const tenantComponent = state.formComponents["tenantId"];
-    const tenants = await getTenantOptions(state.formState.accountId);
+    const tenants = (await VsCodeAzureHelper.getTenantsForAccount(state.formState.accountId)).map(
+        (tenant) => ({
+            displayName: tenant.displayName,
+            value: tenant.tenantId,
+        }),
+    );
     if (tenantComponent) {
         tenantComponent.options = tenants;
         if (tenants.length > 0 && !tenants.find((t) => t.value === state.formState.tenantId)) {
@@ -348,11 +360,23 @@ export async function reloadFabricComponents(
     tenantId?: string,
 ): Promise<fp.FabricProvisioningState> {
     const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
+    const accountId = state.formState.accountId;
+    if (accountId && !tenantId) {
+        const tenantOptions = (await VsCodeAzureHelper.getTenantsForAccount(accountId)).map(
+            (tenant) => ({
+                displayName: tenant.displayName,
+                value: tenant.tenantId,
+            }),
+        );
+        state.formState.tenantId = tenantOptions.length > 0 ? tenantOptions[0].value : "";
+        state.formComponents.tenantId.options = tenantOptions;
+    }
     state.capacityIds = [];
     state.userGroupIds = [];
     state.workspaces = [];
     state.databaseNamesInWorkspace = [];
     state.errorMessage = "";
+    state.isWorkspacesErrored = false;
     updateFabricProvisioningState(deploymentController, state);
     void getWorkspaces(deploymentController, tenantId);
     return state;
@@ -418,13 +442,15 @@ export async function getWorkspaces(
             },
         );
     } catch (err) {
-        state.errorMessage = getErrorMessage(err);
+        console.log(err);
+        state.isWorkspacesErrored = true;
         sendErrorEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.GetWorkspaces,
             err,
             false,
         );
+        updateFabricProvisioningState(deploymentController, state);
     }
 }
 
@@ -581,7 +607,7 @@ export async function handleWorkspaceFormAction(
 ): Promise<fp.FabricProvisioningState> {
     const workspace = state.workspacesWithPermissions[workspaceId];
 
-    // Check if the workspacce has a role
+    // Check if the workspace has a role
     if (workspace && !workspace.role) {
         // By default, workspace is in the permissions list
         delete state.workspacesWithPermissions[workspace.id];
@@ -765,19 +791,4 @@ export function updateFabricProvisioningState(
 ) {
     deploymentController.state.deploymentTypeState = newState;
     deploymentController.updateState(deploymentController.state);
-}
-
-export async function getTenantOptions(accountId: string): Promise<FormItemOptions[]> {
-    const tenants = await VsCodeAzureHelper.getTenantsForAccount(accountId);
-
-    return tenants
-        .map((tenant) => ({
-            displayName: tenant.displayName,
-            value: tenant.tenantId,
-        }))
-        .sort((a, b) => {
-            if (a.displayName === tenantDisplayName) return -1;
-            if (b.displayName === tenantDisplayName) return 1;
-            return 0;
-        });
 }
