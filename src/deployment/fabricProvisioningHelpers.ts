@@ -423,7 +423,7 @@ export async function getWorkspaces(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.GetWorkspaces,
             err,
-            true,
+            false,
         );
     }
 }
@@ -457,7 +457,7 @@ export async function getCapacities(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.LoadCapacities,
             err,
-            true,
+            false,
         );
         throw err;
     }
@@ -500,7 +500,7 @@ export async function getRoleForWorkspace(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.GetWorkspaceRole,
             err,
-            true,
+            false,
         );
     }
     return workspace;
@@ -683,7 +683,7 @@ export async function provisionDatabase(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ProvisionFabricDatabase,
             err,
-            true,
+            false,
         );
     }
 }
@@ -739,7 +739,7 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ConnectToFabricDatabase,
             err,
-            true,
+            false,
         );
     }
     updateFabricProvisioningState(deploymentController, state);
