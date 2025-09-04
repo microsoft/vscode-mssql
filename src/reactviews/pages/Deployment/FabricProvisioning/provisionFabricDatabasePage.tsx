@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { Button, Card, makeStyles, Spinner, tokens } from "@fluentui/react-components";
 import { Checkmark20Regular, Circle20Regular, Dismiss20Regular } from "@fluentui/react-icons";
 import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
@@ -123,11 +123,6 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
     const fabricProvisioningState = context?.state.deploymentTypeState as FabricProvisioningState;
 
     if (!context || !fabricProvisioningState) return undefined;
-
-    useEffect(() => {}, [
-        fabricProvisioningState.provisionLoadState,
-        fabricProvisioningState.connectionLoadState,
-    ]);
 
     const getStatusIcon = () => {
         let status: ApiStatus;

@@ -140,9 +140,9 @@ export async function fetchUserGroups(userId: string): Promise<UserGroup[]> {
     }
 
     let groups: UserGroup[] = [];
-    try {
-        let nextUrl: string | undefined = uri.toString();
-        while (nextUrl) {
+    let nextUrl: string | undefined = uri.toString();
+    while (nextUrl) {
+        try {
             const response = await httpHelper.makeGetRequest<{
                 value: UserGroup[];
                 "@odata.nextLink"?: string;
@@ -156,9 +156,9 @@ export async function fetchUserGroups(userId: string): Promise<UserGroup[]> {
 
             // Update nextUrl for the next iteration
             nextUrl = response.data["@odata.nextLink"];
+        } catch (error) {
+            console.error("Error fetching user groups:", error);
         }
-    } catch (error) {
-        console.error("Error fetching user groups:", error);
     }
 
     return groups;

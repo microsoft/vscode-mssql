@@ -123,14 +123,8 @@ export const FabricProvisioningInputForm: React.FC = () => {
     };
 
     useEffect(() => {
-        console.log(fabricProvisioningState.formValidationLoadState);
         setShowNext(fabricProvisioningState.formValidationLoadState === ApiStatus.Loaded);
     }, [fabricProvisioningState.formValidationLoadState]);
-
-    useEffect(() => {}, [
-        fabricProvisioningState.workspaces,
-        fabricProvisioningState.isWorkspacesErrored,
-    ]);
 
     return showNext ? (
         <ProvisionFabricDatabasePage />

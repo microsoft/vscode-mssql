@@ -49,12 +49,15 @@ export async function initializeFabricProvisioningState(
     }));
 
     const defaultAccountId = azureAccountOptions.length > 0 ? azureAccountOptions[0].value : "";
-    const tenantOptions = (await VsCodeAzureHelper.getTenantsForAccount(defaultAccountId)).map(
-        (tenant) => ({
-            displayName: tenant.displayName,
-            value: tenant.tenantId,
-        }),
-    );
+    let tenantOptions: FormItemOptions[] = [];
+    if (defaultAccountId !== "") {
+        tenantOptions = (await VsCodeAzureHelper.getTenantsForAccount(defaultAccountId)).map(
+            (tenant) => ({
+                displayName: tenant.displayName,
+                value: tenant.tenantId,
+            }),
+        );
+    }
 
     state.formState = {
         accountId: defaultAccountId,
