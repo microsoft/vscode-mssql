@@ -49,10 +49,20 @@ export class CredentialStore implements ICredentialStore {
             return cred;
         }
 
-        const stsCred = await this._client!.sendRequest(Contracts.ReadCredentialRequest.type, cred);
-
         // Migrate credentials from sts to vscode secret storage
-        if (vscodeCodeCred === undefined && stsCred.password) {
+        if (vscodeCodeCred === undefined) {
+            const stsCred = await this._client!.sendRequest(
+                Contracts.ReadCredentialRequest.type,
+                cred,
+            );
+
+            if (stsCred === undefined) {
+                this._logger.info(
+                    `No credential found for id ${credentialId} in either STS or VS Code Secret Storage.`,
+                );
+                return cred;
+            }
+
             this._logger.info(
                 `Migrating credential for id ${credentialId} from STS to VS Code Secret Storage.`,
             );
