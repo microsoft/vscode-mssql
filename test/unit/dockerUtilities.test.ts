@@ -7,8 +7,8 @@ import * as assert from "assert";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as os from "os";
-import * as dockerUtils from "../../src/containerDeployment/dockerUtils";
-import { ContainerDeployment } from "../../src/constants/locConstants";
+import * as dockerUtils from "../../src/deployment/dockerUtils";
+import { LocalContainers } from "../../src/constants/locConstants";
 import * as childProcess from "child_process";
 import { defaultContainerName, Platform } from "../../src/constants/constants";
 import * as path from "path";
@@ -47,31 +47,31 @@ suite("Docker Utilities", () => {
 
         assert.strictEqual(steps.length, 7, "Should return 7 steps");
 
-        assert.strictEqual(steps[0].headerText, ContainerDeployment.dockerInstallHeader);
-        assert.strictEqual(steps[0].bodyText, ContainerDeployment.dockerInstallBody);
+        assert.strictEqual(steps[0].headerText, LocalContainers.dockerInstallHeader);
+        assert.strictEqual(steps[0].bodyText, LocalContainers.dockerInstallBody);
         assert.strictEqual(steps[0].errorLink, "https://www.docker.com/products/docker-desktop/");
-        assert.strictEqual(steps[0].errorLinkText, ContainerDeployment.installDocker);
+        assert.strictEqual(steps[0].errorLinkText, LocalContainers.installDocker);
         assert.strictEqual(
             typeof steps[0].stepAction,
             "function",
             "stepAction should be a function",
         );
 
-        assert.strictEqual(steps[1].headerText, ContainerDeployment.startDockerHeader);
-        assert.strictEqual(steps[1].bodyText, ContainerDeployment.startDockerBody);
+        assert.strictEqual(steps[1].headerText, LocalContainers.startDockerHeader);
+        assert.strictEqual(steps[1].bodyText, LocalContainers.startDockerBody);
         assert.strictEqual(typeof steps[1].stepAction, "function");
 
-        assert.strictEqual(steps[2].headerText, ContainerDeployment.startDockerEngineHeader);
-        assert.strictEqual(steps[2].bodyText, ContainerDeployment.startDockerEngineBody);
+        assert.strictEqual(steps[2].headerText, LocalContainers.startDockerEngineHeader);
+        assert.strictEqual(steps[2].bodyText, LocalContainers.startDockerEngineBody);
         assert.strictEqual(typeof steps[2].stepAction, "function");
 
-        assert.strictEqual(steps[3].headerText, ContainerDeployment.pullImageHeader);
-        assert.strictEqual(steps[3].bodyText, ContainerDeployment.pullImageBody);
+        assert.strictEqual(steps[3].headerText, LocalContainers.pullImageHeader);
+        assert.strictEqual(steps[3].bodyText, LocalContainers.pullImageBody);
         assert.deepStrictEqual(steps[3].argNames, ["version"]);
         assert.strictEqual(typeof steps[3].stepAction, "function");
 
-        assert.strictEqual(steps[4].headerText, ContainerDeployment.creatingContainerHeader);
-        assert.strictEqual(steps[4].bodyText, ContainerDeployment.creatingContainerBody);
+        assert.strictEqual(steps[4].headerText, LocalContainers.creatingContainerHeader);
+        assert.strictEqual(steps[4].bodyText, LocalContainers.creatingContainerBody);
         assert.deepStrictEqual(steps[4].argNames, [
             "containerName",
             "password",
@@ -81,13 +81,13 @@ suite("Docker Utilities", () => {
         ]);
         assert.strictEqual(typeof steps[4].stepAction, "function");
 
-        assert.strictEqual(steps[5].headerText, ContainerDeployment.settingUpContainerHeader);
-        assert.strictEqual(steps[5].bodyText, ContainerDeployment.settingUpContainerBody);
+        assert.strictEqual(steps[5].headerText, LocalContainers.settingUpContainerHeader);
+        assert.strictEqual(steps[5].bodyText, LocalContainers.settingUpContainerBody);
         assert.deepStrictEqual(steps[5].argNames, ["containerName"]);
         assert.strictEqual(typeof steps[5].stepAction, "function");
 
-        assert.strictEqual(steps[6].headerText, ContainerDeployment.connectingToContainerHeader);
-        assert.strictEqual(steps[6].bodyText, ContainerDeployment.connectingToContainerBody);
+        assert.strictEqual(steps[6].headerText, LocalContainers.connectingToContainerHeader);
+        assert.strictEqual(steps[6].bodyText, LocalContainers.connectingToContainerBody);
         assert.strictEqual(steps[6].stepAction, undefined);
     });
     test("sanitizeErrorText: should truncate long error messages and sanitize SA_PASSWORD", () => {
@@ -106,7 +106,7 @@ suite("Docker Utilities", () => {
         const shortResult = dockerUtils.validateSqlServerPassword("<0>");
         assert.strictEqual(
             shortResult,
-            ContainerDeployment.passwordLengthError,
+            LocalContainers.passwordLengthError,
             "Should return length error",
         );
 
@@ -114,7 +114,7 @@ suite("Docker Utilities", () => {
         const longResult = dockerUtils.validateSqlServerPassword("<0>".repeat(129));
         assert.strictEqual(
             longResult,
-            ContainerDeployment.passwordLengthError,
+            LocalContainers.passwordLengthError,
             "Should return length error",
         );
 
@@ -122,7 +122,7 @@ suite("Docker Utilities", () => {
         const lowComplexityResult = dockerUtils.validateSqlServerPassword("<placeholder>");
         assert.strictEqual(
             lowComplexityResult,
-            ContainerDeployment.passwordComplexityError,
+            LocalContainers.passwordComplexityError,
             "Should return complexity error",
         );
 
@@ -138,7 +138,7 @@ suite("Docker Utilities", () => {
         const invalidCategoryResult = dockerUtils.validateSqlServerPassword("<hidden>");
         assert.strictEqual(
             invalidCategoryResult,
-            ContainerDeployment.passwordComplexityError,
+            LocalContainers.passwordComplexityError,
             "Should return complexity error",
         );
     });
@@ -164,7 +164,7 @@ suite("Docker Utilities", () => {
 
         sinon.assert.calledOnce(execErrorStub);
         assert.ok(!result.success);
-        assert.strictEqual(result.error, ContainerDeployment.dockerInstallError);
+        assert.strictEqual(result.error, LocalContainers.dockerInstallError);
         assert.strictEqual(result.fullErrorText, "Docker is not installed");
 
         execErrorStub.restore();
@@ -206,19 +206,13 @@ suite("Docker Utilities", () => {
 
         result = await dockerUtils.checkEngine();
         assert.ok(!result.success, "User cancels engine switch");
-        assert.strictEqual(
-            result.fullErrorText,
-            ContainerDeployment.switchToLinuxContainersCanceled,
-        );
+        assert.strictEqual(result.fullErrorText, LocalContainers.switchToLinuxContainersCanceled);
 
         // 4. Windows- arm architecture, should gracefully error
         archStub.returns("arm");
         result = await dockerUtils.checkEngine();
         assert.ok(!result.success, "Should fail on unsupported architecture");
-        assert.strictEqual(
-            result.error,
-            ContainerDeployment.unsupportedDockerArchitectureError("arm"),
-        );
+        assert.strictEqual(result.error, LocalContainers.unsupportedDockerArchitectureError("arm"));
 
         // 5. Unsupported platform
         archStub.returns("x64");
@@ -228,7 +222,7 @@ suite("Docker Utilities", () => {
         assert.ok(!result.success);
         assert.strictEqual(
             result.error,
-            ContainerDeployment.unsupportedDockerPlatformError("fakePlatform"),
+            LocalContainers.unsupportedDockerPlatformError("fakePlatform"),
         );
 
         // 6. Command fails on Linux (e.g., permissions error)
@@ -239,7 +233,7 @@ suite("Docker Utilities", () => {
         result = await dockerUtils.checkEngine();
         assert.ok(!result.success);
         assert.strictEqual(result.fullErrorText, "Permission denied");
-        assert.strictEqual(result.error, ContainerDeployment.linuxDockerPermissionsError);
+        assert.strictEqual(result.error, LocalContainers.linuxDockerPermissionsError);
 
         // 7. Command fails on Mac (e.g., permissions error)
         platformStub.returns(Platform.Mac);
@@ -250,7 +244,7 @@ suite("Docker Utilities", () => {
         result = await dockerUtils.checkEngine();
         assert.ok(!result.success);
         assert.strictEqual(result.fullErrorText, "Rosetta not Enabled");
-        assert.strictEqual(result.error, ContainerDeployment.rosettaError);
+        assert.strictEqual(result.error, LocalContainers.rosettaError);
 
         // 8. Intel Mac, command succeeds
         archStub.returns("x64");
@@ -367,9 +361,7 @@ suite("Docker Utilities", () => {
         execStub.resetHistory();
 
         // Failure case: exec yields (error, null stdout)
-        execStub
-            .onCall(0)
-            .yields(new Error(ContainerDeployment.startSqlServerContainerError), null);
+        execStub.onCall(0).yields(new Error(LocalContainers.startSqlServerContainerError), null);
 
         const resultFailure = await dockerUtils.startSqlServerDockerContainer(
             containerName,
@@ -381,10 +373,10 @@ suite("Docker Utilities", () => {
 
         sinon.assert.calledOnce(execStub);
         assert.strictEqual(resultFailure.success, false);
-        assert.strictEqual(resultFailure.error, ContainerDeployment.startSqlServerContainerError);
+        assert.strictEqual(resultFailure.error, LocalContainers.startSqlServerContainerError);
         assert.strictEqual(
             resultFailure.fullErrorText,
-            ContainerDeployment.startSqlServerContainerError,
+            LocalContainers.startSqlServerContainerError,
         );
         assert.strictEqual(resultFailure.port, undefined);
     });
@@ -461,7 +453,7 @@ suite("Docker Utilities", () => {
         assert.ok(!result.success, "Should not succeed on unsupported platform");
         assert.strictEqual(
             result.error,
-            ContainerDeployment.unsupportedDockerPlatformError("fakePlatform"),
+            LocalContainers.unsupportedDockerPlatformError("fakePlatform"),
         );
         execStub.resetBehavior();
         platformStub.resetBehavior();
@@ -473,7 +465,7 @@ suite("Docker Utilities", () => {
         execStub.onSecondCall().yields(new Error("Docker not installed"), null); // GET_DOCKER_PATH
         result = await dockerUtils.startDocker();
         assert.ok(!result.success, "Should fail if Docker is not installed");
-        assert.strictEqual(result.error, ContainerDeployment.dockerDesktopPathError);
+        assert.strictEqual(result.error, LocalContainers.dockerDesktopPathError);
         execStub.resetBehavior();
         platformStub.resetBehavior();
     });
@@ -650,7 +642,7 @@ suite("Docker Utilities", () => {
             mockObjectExplorerService,
         );
         assert.ok(!result.success, "Should return false if container does not exist");
-        assert.strictEqual(result.error, ContainerDeployment.containerDoesNotExistError);
+        assert.strictEqual(result.error, LocalContainers.containerDoesNotExistError);
         assert.strictEqual(
             showInformationMessageStub.callCount,
             1,
@@ -669,7 +661,7 @@ suite("Docker Utilities", () => {
             mockObjectExplorerService,
         );
         assert.ok(!result.success, "Should return false if container does not exist");
-        assert.strictEqual(result.error, ContainerDeployment.containerDoesNotExistError);
+        assert.strictEqual(result.error, LocalContainers.containerDoesNotExistError);
         execStub.resetBehavior();
     });
 
@@ -765,7 +757,7 @@ suite("Docker Utilities", () => {
         );
         assert.strictEqual(
             errorLinkText,
-            ContainerDeployment.configureLinuxContainers,
+            LocalContainers.configureLinuxContainers,
             "Error link text should match",
         );
         platformStub.resetBehavior();
@@ -780,7 +772,7 @@ suite("Docker Utilities", () => {
         assert.strictEqual(errorLink, dockerUtils.rosettaErrorLink, "Error link should match");
         assert.strictEqual(
             errorLinkText,
-            ContainerDeployment.configureRosetta,
+            LocalContainers.configureRosetta,
             "Error link text should match",
         );
         platformStub.resetBehavior();

@@ -124,6 +124,8 @@
   "Hide password": "Hide password",
   "Dismiss": "Dismiss",
   "Error": "Error",
+  "Get Started": "Get Started",
+  "Back": "Back",
   "Clear All": "Clear All",
   "OK": "OK",
   "And": "And",
@@ -747,8 +749,15 @@
   "Hue": "Hue",
   "Saturation": "Saturation",
   "Brightness": "Brightness",
-  "Loading deployment page...": "Loading deployment page...",
+  "Loading deployment": "Loading deployment",
+  "New SQL Database": "New SQL Database",
+  "Choose an option to provision a database": "Choose an option to provision a database",
   "Local SQL Server database container": "Local SQL Server database container",
+  "Create a Local Docker SQL Server": "Create a Local Docker SQL Server",
+  "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!": "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
+  "Create a SQL Database in Fabric": "Create a SQL Database in Fabric",
+  "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services": "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
+  "Loading local containers...": "Loading local containers...",
   "Instant Container Setup": "Instant Container Setup",
   "Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.": "Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.",
   "Simple Container Management": "Simple Container Management",
@@ -758,7 +767,6 @@
   "Learn more about SQL Server 2025 features": "Learn more about SQL Server 2025 features",
   "Compare SQL Server editions": "Compare SQL Server editions",
   "Configure and customize SQL Server containers": "Configure and customize SQL Server containers",
-  "Get Started": "Get Started",
   "Getting Docker Ready...": "Getting Docker Ready...",
   "Checking pre-requisites": "Checking pre-requisites",
   "Create Container": "Create Container",
@@ -768,6 +776,28 @@
   "Show full error message": "Show full error message",
   "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
   "+ Add Fabric Account": "+ Add Fabric Account",
+  "Loading fabric provisioning...": "Loading fabric provisioning...",
+  "SQL Database in Fabric": "SQL Database in Fabric",
+  "Create Database": "Create Database",
+  "Loading workspaces": "Loading workspaces",
+  "Error loading workspaces. Please try choosing a different account or tenant.": "Error loading workspaces. Please try choosing a different account or tenant.",
+  "Finished Deployment": "Finished Deployment",
+  "Deployment in progress": "Deployment in progress",
+  "Deployment Name": "Deployment Name",
+  "Workspace": "Workspace",
+  "Start Time": "Start Time",
+  "Provisioning": "Provisioning",
+  "Deployment Failed": "Deployment Failed",
+  "Connection Failed": "Connection Failed",
+  "Connecting to Database": "Connecting to Database",
+  "OLTP, built on Azure SQL": "OLTP, built on Azure SQL",
+  "Developer-friendly transactional database using the Azure SQL Database Engine.": "Developer-friendly transactional database using the Azure SQL Database Engine.",
+  "Analytics-ready by default": "Analytics-ready by default",
+  "Data automatically replicated to OneLake in real time with a SQL analytics endpoint.": "Data automatically replicated to OneLake in real time with a SQL analytics endpoint.",
+  "Integrated & secure": "Integrated & secure",
+  "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.": "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.",
+  "Smart performance": "Smart performance",
+  "Automatic tuning features like automatic index creation enabled by default.": "Automatic tuning features like automatic index creation enabled by default.",
   "Object Explorer Filter": "Object Explorer Filter",
   "{0} (filtered)": "{0} (filtered)",
   "Remind Me Later": "Remind Me Later",
@@ -913,7 +943,6 @@
   "Password (SQL Login)": "Password (SQL Login)",
   "Save Password? If 'No', password will be required each time you connect": "Save Password? If 'No', password will be required each time you connect",
   "Profile Name": "Profile Name",
-  "[Optional] Enter a display name for this connection profile": "[Optional] Enter a display name for this connection profile",
   "Error occurred opening content in editor.": "Error occurred opening content in editor.",
   "Started saving results to ": "Started saving results to ",
   "Failed to save results. ": "Failed to save results. ",
@@ -1216,6 +1245,7 @@
     ]
   },
   "Enable Experiences & Reload": "Enable Experiences & Reload",
+  "New Deployment": "New Deployment",
   "Error loading; refresh to try again": "Error loading; refresh to try again",
   "No items": "No items",
   "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
@@ -1256,8 +1286,11 @@
   "Connection Dialog": "Connection Dialog",
   "Microsoft Account": "Microsoft Account",
   "Microsoft Account is required": "Microsoft Account is required",
+  "Add account": "Add account",
   "Save Password": "Save Password",
   "Tenant ID is required": "Tenant ID is required",
+  "Enter profile name": "Enter profile name",
+  "[Optional] Enter a display name for this connection profile": "[Optional] Enter a display name for this connection profile",
   "Connection Group": "Connection Group",
   "Server is required": "Server is required",
   "User name is required": "User name is required",
@@ -1379,12 +1412,51 @@
       "{0} is the workspace ID"
     ]
   },
+  "Listing role assignments for workspace '${workspaceId}'/{0} is the workspace ID": {
+    "message": "Listing role assignments for workspace '${workspaceId}'",
+    "comment": [
+      "{0} is the workspace ID"
+    ]
+  },
+  "Getting Fabric database '{0}'/{0} is the database ID": {
+    "message": "Getting Fabric database '{0}'",
+    "comment": [
+      "{0} is the database ID"
+    ]
+  },
+  "Fabric API error occurred ({0}): {1}/{0} is the error code{1} is the error message": {
+    "message": "Fabric API error occurred ({0}): {1}",
+    "comment": [
+      "{0} is the error code",
+      "{1} is the error message"
+    ]
+  },
+  "Fabric long-running API error with error code '{0}': {1}/{0} is the error code{1} is the error message": {
+    "message": "Fabric long-running API error with error code '{0}': {1}",
+    "comment": [
+      "{0} is the error code",
+      "{1} is the error message"
+    ]
+  },
+  "Fabric Account is required": "Fabric Account is required",
+  "Select a Workspace": "Select a Workspace",
+  "Search Workspaces": "Search Workspaces",
+  "Workspace is required": "Workspace is required",
+  "Insufficient Worskpace Permissions": "Insufficient Worskpace Permissions",
+  "Insufficient Capacity Permissions": "Insufficient Capacity Permissions",
   "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again./{0} is the number of invalid accounts that have been removed": {
     "message": "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.",
     "comment": [
       "{0} is the number of invalid accounts that have been removed"
     ]
   },
+  "Database Name": "Database Name",
+  "Enter Database Name": "Enter Database Name",
+  "Database Name is required": "Database Name is required",
+  "Database Description": "Database Description",
+  "Enter Database Description": "Enter Database Description",
+  "Please select a workspace where you have sufficient permissions (Contributor or higher)": "Please select a workspace where you have sufficient permissions (Contributor or higher)",
+  "This database name is already in use. Please choose a different name.": "This database name is already in use. Please choose a different name.",
   "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
     "message": "Count: {0}  Distinct Count: {1}  Null Count: {2}",
     "comment": [
@@ -1403,7 +1475,6 @@
       "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum"
     ]
   },
-  "Create Local SQL Container": "Create Local SQL Container",
   "{0} stopped successfully./{0} stopped successfully.": {
     "message": "{0} stopped successfully.",
     "comment": [
@@ -1505,6 +1576,7 @@
   "Container failed to start within the timeout period. Please wait a few minutes and try again.": "Container failed to start within the timeout period. Please wait a few minutes and try again.",
   "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.": "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.",
   "Install Docker": "Install Docker",
+  "Create Local SQL Container": "Create Local SQL Container",
   "Starting Docker...": "Starting Docker...",
   "Starting Container...": "Starting Container...",
   "Readying container for connections...": "Readying container for connections...",
@@ -1526,7 +1598,6 @@
   "Enter container name": "Enter container name",
   "Enter port": "Enter port",
   "Enter hostname": "Enter hostname",
-  "Enter profile name": "Enter profile name",
   "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
   "What can we do to improve?": "What can we do to improve?",
   "Take Survey": "Take Survey",

@@ -4,78 +4,72 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { StepCard } from "./stepCard";
 import { Button } from "@fluentui/react-components";
-import { ContainerInputForm } from "./containerInputForm";
-import { checkStepErrored, isLastStepLoaded, runDockerStep } from "./deploymentUtils";
-import { DockerStepOrder } from "../../../sharedInterfaces/containerDeployment";
-import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
-import { locConstants } from "../../common/locConstants";
+import { LocalContainersInputForm } from "./localContainersInputForm";
+import {
+    checkStepErrored,
+    isLastStepLoaded,
+    runDockerStep,
+} from "./localContainersDeploymentUtils";
+import {
+    DockerStepOrder,
+    LocalContainersState,
+} from "../../../../sharedInterfaces/localContainers";
+import { LocalContainersHeader } from "./localContainersHeader";
+import { locConstants } from "../../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
+import { DeploymentContext } from "../deploymentStateProvider";
 
-export const PrereqCheckPage: React.FC = () => {
+export const LocalContainersPrereqPage: React.FC = () => {
     const classes = stepPageStyles();
-    const state = useContext(ContainerDeploymentContext);
+    const context = useContext(DeploymentContext);
+    const localContainersState = context?.state.deploymentTypeState as LocalContainersState;
     const [showNext, setShowNext] = useState(false);
     const [stepsLoaded, setStepsLoaded] = useState(false);
     const [stepsErrored, setStepsErrored] = useState(false);
     const lastStep = DockerStepOrder.checkDockerEngine;
 
-    const containerDeploymentState = state?.state;
-
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!state || !containerDeploymentState) {
+    if (!context || !localContainersState) {
         return undefined;
     }
 
     useEffect(() => {
-        void runDockerStep(state, lastStep);
-    }, [containerDeploymentState]);
-
-    useEffect(() => {
-        setStepsLoaded(isLastStepLoaded(state, lastStep));
-    }, [containerDeploymentState]);
-
-    useEffect(() => {
-        setStepsErrored(checkStepErrored(state));
-    }, [containerDeploymentState]);
+        void runDockerStep(context, lastStep);
+        setStepsLoaded(isLastStepLoaded(context, lastStep));
+        setStepsErrored(checkStepErrored(context));
+    }, [context.state]);
 
     const handleRetry = async () => {
         // reset step states
-        await state.resetDockerStepState();
+        await context.resetDockerStepState();
     };
 
     return showNext ? (
-        <ContainerInputForm />
+        <LocalContainersInputForm />
     ) : (
         <div>
-            <ContainerDeploymentHeader
-                headerText={locConstants.containerDeployment.sqlServerContainerHeader}
+            <LocalContainersHeader
+                headerText={locConstants.localContainers.sqlServerContainerHeader}
             />
             <div className={classes.outerDiv}>
                 <div className={classes.stepsDiv}>
                     <div className={classes.stepsHeader}>
-                        {locConstants.containerDeployment.gettingDockerReady}
+                        {locConstants.localContainers.gettingDockerReady}
                     </div>
                     <div className={classes.stepsSubheader}>
-                        {locConstants.containerDeployment.checkingPrerequisites}
+                        {locConstants.localContainers.checkingPrerequisites}
                     </div>
                     <StepCard
-                        step={
-                            containerDeploymentState.dockerSteps[DockerStepOrder.dockerInstallation]
-                        }
+                        step={localContainersState.dockerSteps[DockerStepOrder.dockerInstallation]}
                     />
                     <StepCard
-                        step={
-                            containerDeploymentState.dockerSteps[DockerStepOrder.startDockerDesktop]
-                        }
+                        step={localContainersState.dockerSteps[DockerStepOrder.startDockerDesktop]}
                     />
                     <StepCard
-                        step={
-                            containerDeploymentState.dockerSteps[DockerStepOrder.checkDockerEngine]
-                        }
+                        step={localContainersState.dockerSteps[DockerStepOrder.checkDockerEngine]}
                     />
                     <div className={classes.buttonDiv}>
                         {stepsErrored && (
@@ -97,7 +91,7 @@ export const PrereqCheckPage: React.FC = () => {
                             <Button
                                 className={classes.button}
                                 onClick={() => {
-                                    state.dispose();
+                                    context.dispose();
                                 }}>
                                 {locConstants.common.cancel}
                             </Button>

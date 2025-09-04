@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext } from "react";
-import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { makeStyles } from "@fluentui/react-components";
+import { DeploymentContext } from "../deploymentStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -39,14 +39,14 @@ interface HeaderProps {
     paddingLeft?: string;
 }
 
-export const ContainerDeploymentHeader: React.FC<HeaderProps> = ({ headerText, paddingLeft }) => {
+export const LocalContainersHeader: React.FC<HeaderProps> = ({ headerText, paddingLeft }) => {
     const classes = useStyles();
-    const state = useContext(ContainerDeploymentContext);
-    const containerDeploymentState = state?.state;
+    const context = useContext(DeploymentContext);
+    const localContainersState = context?.state.deploymentTypeState;
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!state || !containerDeploymentState) {
+    if (!context || !localContainersState) {
         return undefined;
     }
 
@@ -59,5 +59,5 @@ export const ContainerDeploymentHeader: React.FC<HeaderProps> = ({ headerText, p
 };
 
 export const dockerIcon = () => {
-    return require(`../../media/docker.svg`);
+    return require(`../../../media/docker.svg`);
 };

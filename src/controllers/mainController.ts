@@ -84,12 +84,12 @@ import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
-import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
+import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
 import {
     deleteContainer,
     prepareForDockerContainerCommand,
     stopContainer,
-} from "../containerDeployment/dockerUtils";
+} from "../deployment/dockerUtils";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 
 /**
@@ -225,9 +225,9 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdClearPooledConnections, async () => {
                 await this.onClearPooledConnections();
             });
-            this.registerCommand(Constants.cmdDeployLocalDockerContainer);
-            this._event.on(Constants.cmdDeployLocalDockerContainer, () => {
-                this.onDeployContainer();
+            this.registerCommand(Constants.cmdDeployNewDatabase);
+            this._event.on(Constants.cmdDeployNewDatabase, () => {
+                this.onDeployNewDatabase();
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -1741,7 +1741,7 @@ export default class MainController implements vscode.Disposable {
                             });
                     } catch {
                         vscode.window.showErrorMessage(
-                            LocalizedConstants.ContainerDeployment.failStartContainer(
+                            LocalizedConstants.LocalContainers.failStartContainer(
                                 node.connectionProfile.containerName,
                             ),
                         );
@@ -1765,14 +1765,14 @@ export default class MainController implements vscode.Disposable {
 
                     const containerName = node.connectionProfile.containerName;
                     node.loadingLabel =
-                        LocalizedConstants.ContainerDeployment.stoppingContainerLoadingLabel;
+                        LocalizedConstants.LocalContainers.stoppingContainerLoadingLabel;
                     await this._objectExplorerProvider.setNodeLoading(node);
                     this._objectExplorerProvider.refresh(node);
 
                     await stopContainer(containerName).then(async (stoppedSuccessfully) => {
                         if (stoppedSuccessfully) {
                             node.loadingLabel =
-                                LocalizedConstants.ContainerDeployment.startingContainerLoadingLabel;
+                                LocalizedConstants.LocalContainers.startingContainerLoadingLabel;
 
                             await this._objectExplorerProvider
                                 .disconnectNode(node as ConnectionNode)
@@ -1781,10 +1781,10 @@ export default class MainController implements vscode.Disposable {
 
                         vscode.window.showInformationMessage(
                             stoppedSuccessfully
-                                ? LocalizedConstants.ContainerDeployment.stoppedContainerSucessfully(
+                                ? LocalizedConstants.LocalContainers.stoppedContainerSucessfully(
                                       containerName,
                                   )
-                                : LocalizedConstants.ContainerDeployment.failStopContainer(
+                                : LocalizedConstants.LocalContainers.failStopContainer(
                                       containerName,
                                   ),
                         );
@@ -1806,7 +1806,7 @@ export default class MainController implements vscode.Disposable {
                     }
 
                     const confirmation = await vscode.window.showInformationMessage(
-                        LocalizedConstants.ContainerDeployment.deleteContainerConfirmation(
+                        LocalizedConstants.LocalContainers.deleteContainerConfirmation(
                             node.connectionProfile.containerName,
                         ),
                         { modal: true },
@@ -1815,7 +1815,7 @@ export default class MainController implements vscode.Disposable {
 
                     if (confirmation === LocalizedConstants.Common.delete) {
                         node.loadingLabel =
-                            LocalizedConstants.ContainerDeployment.deletingContainerLoadingLabel;
+                            LocalizedConstants.LocalContainers.deletingContainerLoadingLabel;
                         await this._objectExplorerProvider.setNodeLoading(node);
                         this._objectExplorerProvider.refresh(node);
 
@@ -1823,15 +1823,15 @@ export default class MainController implements vscode.Disposable {
                         const deletedSuccessfully = await deleteContainer(containerName);
                         vscode.window.showInformationMessage(
                             deletedSuccessfully
-                                ? LocalizedConstants.ContainerDeployment.deletedContainerSucessfully(
+                                ? LocalizedConstants.LocalContainers.deletedContainerSucessfully(
                                       containerName,
                                   )
-                                : LocalizedConstants.ContainerDeployment.failDeleteContainer(
+                                : LocalizedConstants.LocalContainers.failDeleteContainer(
                                       containerName,
                                   ),
                         );
                         node.loadingLabel =
-                            LocalizedConstants.ContainerDeployment.startingContainerLoadingLabel;
+                            LocalizedConstants.LocalContainers.startingContainerLoadingLabel;
                         if (deletedSuccessfully) {
                             // Delete node from tree
                             await this._objectExplorerProvider.removeNode(
@@ -2078,13 +2078,10 @@ export default class MainController implements vscode.Disposable {
         return false;
     }
 
-    public onDeployContainer(): void {
-        sendActionEvent(
-            TelemetryViews.ContainerDeployment,
-            TelemetryActions.OpenContainerDeployment,
-        );
+    public onDeployNewDatabase(): void {
+        sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
-        const reactPanel = new ContainerDeploymentWebviewController(
+        const reactPanel = new DeploymentWebviewController(
             this._context,
             this._vscodeWrapper,
             this,

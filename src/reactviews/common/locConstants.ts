@@ -58,12 +58,14 @@ export class LocConstants {
             dismiss: l10n.t("Dismiss"),
             expand: l10n.t("Expand"),
             collapse: l10n.t("Collapse"),
+            error: l10n.t("Error"),
+            getStarted: l10n.t("Get Started"),
+            back: l10n.t("Back"),
         };
     }
 
     public get objectExplorerFiltering() {
         return {
-            error: l10n.t("Error"),
             clearAll: l10n.t("Clear All"),
             ok: l10n.t("OK"),
             and: l10n.t("And"),
@@ -325,6 +327,7 @@ export class LocConstants {
             errorLoadingWorkspaces: l10n.t("Error loading workspaces"),
             errorLoadingDatabases: l10n.t("Error loading databases"),
             connectionAuthentication: l10n.t("Connection Authentication"),
+            advancedOptions: l10n.t("Advanced Options"),
         };
     }
 
@@ -891,9 +894,26 @@ export class LocConstants {
         };
     }
 
-    public get containerDeployment() {
+    public get deployment() {
         return {
-            loadingDeploymentPage: l10n.t("Loading deployment page..."),
+            loadingDeploymentPage: l10n.t("Loading deployment"),
+            deploymentHeader: l10n.t("New SQL Database"),
+            deploymentDescription: l10n.t("Choose an option to provision a database"),
+            sqlServerContainerHeader: l10n.t("Local SQL Server database container"),
+            dockerSqlServerHeader: l10n.t("Create a Local Docker SQL Server"),
+            dockerSqlServerDescription: l10n.t(
+                "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
+            ),
+            fabricProvisioningHeader: l10n.t("Create a SQL Database in Fabric"),
+            fabricProvisioningDescription: l10n.t(
+                "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
+            ),
+        };
+    }
+
+    public get localContainers() {
+        return {
+            loadingLocalContainers: l10n.t("Loading local containers..."),
             sqlServerContainerHeader: l10n.t("Local SQL Server database container"),
             instantContainerSetup: l10n.t("Instant Container Setup"),
             instantContainerDescription: l10n.t(
@@ -910,10 +930,8 @@ export class LocConstants {
             learnMoreAboutSqlServer2025: l10n.t("Learn more about SQL Server 2025 features"),
             sqlServerEditionsComparison: l10n.t("Compare SQL Server editions"),
             configureAndCustomizeSqlServer: l10n.t("Configure and customize SQL Server containers"),
-            getStarted: l10n.t("Get Started"),
             gettingDockerReady: l10n.t("Getting Docker Ready..."),
             checkingPrerequisites: l10n.t("Checking pre-requisites"),
-            advancedOptions: l10n.t("Advanced Options"),
             createContainer: l10n.t("Create Container"),
             settingUp: l10n.t("Setting up"),
             gettingContainerReadyForConnection: l10n.t("Getting container ready for connections"),
@@ -928,6 +946,43 @@ export class LocConstants {
     public get fabric() {
         return {
             addFabricAccount: l10n.t("+ Add Fabric Account"),
+        };
+    }
+
+    public get fabricProvisioning() {
+        return {
+            loadingFabricProvisioning: l10n.t("Loading fabric provisioning..."),
+            sqlDatabaseInFabric: l10n.t("SQL Database in Fabric"),
+            createDatabase: l10n.t("Create Database"),
+            loadingWorkspaces: l10n.t("Loading workspaces"),
+            errorLoadingWorkspaces: l10n.t(
+                "Error loading workspaces. Please try choosing a different account or tenant.",
+            ),
+            finishedDeployment: l10n.t("Finished Deployment"),
+            deploymentInProgress: l10n.t("Deployment in progress"),
+            deploymentName: l10n.t("Deployment Name"),
+            workspace: l10n.t("Workspace"),
+            startTime: l10n.t("Start Time"),
+            provisioning: l10n.t("Provisioning"),
+            deploymentFailed: l10n.t("Deployment Failed"),
+            connectionFailed: l10n.t("Connection Failed"),
+            connectingToDatabase: l10n.t("Connecting to Database"),
+            builtOnAzureSQL: l10n.t("OLTP, built on Azure SQL"),
+            builtOnAzureSQLDescription: l10n.t(
+                "Developer-friendly transactional database using the Azure SQL Database Engine.",
+            ),
+            analyticsReady: l10n.t("Analytics-ready by default"),
+            analyticsReadyDescription: l10n.t(
+                "Data automatically replicated to OneLake in real time with a SQL analytics endpoint.",
+            ),
+            integratedAndSecure: l10n.t("Integrated & secure"),
+            integratedAndSecureDescription: l10n.t(
+                "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.",
+            ),
+            smartPerformance: l10n.t("Smart performance"),
+            smartPerformanceDescription: l10n.t(
+                "Automatic tuning features like automatic index creation enabled by default.",
+            ),
         };
     }
 }

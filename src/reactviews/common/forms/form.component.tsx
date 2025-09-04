@@ -278,19 +278,24 @@ export function generateFormComponent<
                         )?.displayName ?? ""
                     }
                     selectedOptions={[formState[component.propertyName] as string]}
-                    onOptionSelect={(_event, data) => {
-                        context?.formAction({
-                            propertyName: component.propertyName,
-                            isAction: false,
-                            value: data.optionValue as string,
-                        });
+                    onOptionSelect={(event, data) => {
+                        if (props && props.onOptionSelect) {
+                            props.onOptionSelect(event, data);
+                        } else {
+                            context?.formAction({
+                                propertyName: component.propertyName,
+                                isAction: false,
+                                value: data.optionValue as string,
+                            });
+                        }
                     }}
                     {...props}>
                     {component.options?.map((option, idx) => {
                         return (
                             <Option
                                 key={(component.propertyName as string) + idx}
-                                value={option.value}>
+                                value={option.value}
+                                color={option.color}>
                                 {option.displayName}
                             </Option>
                         );
@@ -309,6 +314,9 @@ export function generateFormComponent<
                     options={component.options.map((opt) => ({
                         value: opt.value,
                         text: opt.displayName,
+                        color: opt.color,
+                        description: opt.description,
+                        icon: opt.icon,
                     }))}
                     placeholder={component.placeholder}
                     searchBoxPlaceholder={component.searchBoxPlaceholder}
