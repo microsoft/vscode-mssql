@@ -226,8 +226,77 @@
                 "id": "mssql.agent",
                 "name": "mssql",
                 "description": "Azure SQL Copilot agent",
-                "commands": [],
-                "isSticky": true
+                "isSticky": true,
+                "commands": [
+                    {
+                        "name": "runQuery",
+                        "description": "Execute a SQL query in the currently connected database and return results."
+                    },
+                    {
+                        "name": "explain",
+                        "description": "Provide natural language explanations for SQL/ORM code, queries, functions, or stored procedures."
+                    },
+                    {
+                        "name": "fix",
+                        "description": "Detect and correct syntax issues or missing constraints in SQL/ORM code.."
+                    },
+                    {
+                        "name": "optimize",
+                        "description": "Analyze query performance and suggest improvements (e.g., indexing, restructuring)."
+                    },
+                    {
+                        "name": "getConnectionDetails",
+                        "description": "Shows a complete breakdown of the active connection: server name, database, version, authentication type."
+                    },
+                    {
+                        "name": "changeDatabase",
+                        "description": "Switch to a different database within the current server."
+                    },
+                    {
+                        "name": "disconnect",
+                        "description": "Disconnect from the currently connected database."
+                    },
+                    {
+                        "name": "connect",
+                        "description": "Connect to a database."
+                    },
+                    {
+                        "name": "showSchema",
+                        "description": "Visualize the structure of the current database schema, including tables, relationships, and keys."
+                    },
+                    {
+                        "name": "showDefinition",
+                        "description": "Display structure of a specific table, view, function, or stored procedure."
+                    },
+                    {
+                        "name": "listServers",
+                        "description": "List all available database servers in OE."
+                    },
+                    {
+                        "name": "listDatabases",
+                        "description": "List all databases on the current server."
+                    },
+                    {
+                        "name": "listSchemas",
+                        "description": "List all schemas in the current database."
+                    },
+                    {
+                        "name": "listTables",
+                        "description": "List all tables in the current database."
+                    },
+                    {
+                        "name": "listViews",
+                        "description": "List all views in the current database."
+                    },
+                    {
+                        "name": "listFunctions",
+                        "description": "List all functions in the current database."
+                    },
+                    {
+                        "name": "listProcedures",
+                        "description": "List all procedures in the current database."
+                    }
+                ]
             }
         ],
         "customEditors": [
@@ -414,9 +483,9 @@
                     "group": "navigation"
                 },
                 {
-                    "command": "mssql.deployLocalDockerContainer",
+                    "command": "mssql.deployNewDatabase",
                     "when": "config.mssql.enableRichExperiences && view == objectExplorer",
-                    "title": "%mssql.deployLocalDockerContainer%",
+                    "title": "%mssql.newDeployment%",
                     "group": "navigation"
                 }
             ],
@@ -466,6 +535,11 @@
                     "command": "mssql.schemaCompare",
                     "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "2_MSSQL_serverDbActions@2"
+                },
+                {
+                    "command": "mssql.searchObjects",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/",
+                    "group": "2_MSSQL_serverDbActions@3"
                 },
                 {
                     "command": "mssql.scriptSelect",
@@ -579,9 +653,14 @@
                     "group": "inline@1"
                 },
                 {
+                    "command": "mssql.disconnectObjectExplorerNode",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server)\\b/",
+                    "group": "inline@2"
+                },
+                {
                     "command": "mssql.clearFilters",
                     "when": "view == objectExplorer && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
-                    "group": "inline@2"
+                    "group": "inline@3"
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
@@ -899,7 +978,14 @@
             {
                 "command": "mssql.disconnectObjectExplorerNode",
                 "title": "%mssql.disconnect%",
-                "category": "MS SQL"
+                "category": "MS SQL",
+                "icon": "$(debug-disconnect)"
+            },
+            {
+                "command": "mssql.searchObjects",
+                "title": "%mssql.searchObjects%",
+                "category": "MS SQL",
+                "icon": "$(search)"
             },
             {
                 "command": "mssql.scriptSelect",
@@ -1091,9 +1177,8 @@
                 "icon": "$(trash)"
             },
             {
-                "command": "mssql.deployLocalDockerContainer",
-                "title": "%mssql.deployLocalDockerContainer%",
-                "when": "mssql.enableRichExperiences",
+                "command": "mssql.deployNewDatabase",
+                "title": "%mssql.newDeployment%",
                 "category": "MS SQL",
                 "icon": {
                     "dark": "media/newContainer_dark.svg",

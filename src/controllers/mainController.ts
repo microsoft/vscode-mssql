@@ -7,7 +7,7 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { IConnectionInfo } from "vscode-mssql";
+import { IConnectionInfo, IScriptingObject } from "vscode-mssql";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -48,6 +48,10 @@ import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
+import {
+    DatabaseObjectSearchService,
+    DatabaseObject,
+} from "../services/databaseObjectSearchService";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
@@ -80,12 +84,12 @@ import { ListFunctionsTool } from "../copilot/tools/listFunctionsTool";
 import { RunQueryTool } from "../copilot/tools/runQueryTool";
 import { ConnectionGroupNode } from "../objectExplorer/nodes/connectionGroupNode";
 import { ConnectionGroupWebviewController } from "./connectionGroupWebviewController";
-import { ContainerDeploymentWebviewController } from "../containerDeployment/containerDeploymentWebviewController";
+import { DeploymentWebviewController } from "../deployment/deploymentWebviewController";
 import {
     deleteContainer,
     prepareForDockerContainerCommand,
     stopContainer,
-} from "../containerDeployment/dockerUtils";
+} from "../deployment/dockerUtils";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 
 /**
@@ -221,9 +225,9 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdClearPooledConnections, async () => {
                 await this.onClearPooledConnections();
             });
-            this.registerCommand(Constants.cmdDeployLocalDockerContainer);
-            this._event.on(Constants.cmdDeployLocalDockerContainer, () => {
-                this.onDeployContainer();
+            this.registerCommand(Constants.cmdDeployNewDatabase);
+            this._event.on(Constants.cmdDeployNewDatabase, () => {
+                this.onDeployNewDatabase();
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -842,6 +846,10 @@ export default class MainController implements vscode.Disposable {
         return this._initialized;
     }
 
+    public get context(): vscode.ExtensionContext {
+        return this._context;
+    }
+
     /**
      * Initializes the extension
      */
@@ -997,6 +1005,263 @@ export default class MainController implements vscode.Disposable {
             }
         }
         return undefined;
+    }
+
+    /**
+     * Handles the search objects command
+     * @param node Optional connection node to search within
+     */
+    public async onSearchObjects(node?: ConnectionNode): Promise<void> {
+        try {
+            // Get the connection URI and database name
+            let connectionUri: string;
+            let databaseName: string | undefined;
+
+            if (node && node.connectionProfile) {
+                // Called from Object Explorer context menu
+                connectionUri = ObjectExplorerUtils.getNodeUri(node);
+                databaseName = node.connectionProfile.database;
+
+                // Ensure we have an active connection for this URI
+                if (!this.connectionManager.isConnected(connectionUri)) {
+                    let connectionCreds = node.connectionProfile;
+                    const nodeDatabaseName = ObjectExplorerUtils.getDatabaseName(node);
+                    if (nodeDatabaseName !== connectionCreds.database) {
+                        connectionCreds.database = nodeDatabaseName;
+                        databaseName = nodeDatabaseName;
+                    }
+
+                    if (!this.connectionManager.isConnecting(connectionUri)) {
+                        const promise = new Deferred<boolean>();
+                        await this.connectionManager.connect(
+                            connectionUri,
+                            connectionCreds,
+                            promise,
+                        );
+                        await promise;
+                    }
+                }
+            } else {
+                // Called from command palette - use active connection
+                const activeUri = this._vscodeWrapper.activeTextEditorUri;
+                if (!activeUri) {
+                    void vscode.window.showErrorMessage(
+                        LocalizedConstants.searchObjectsNoConnection,
+                    );
+                    return;
+                }
+                const connection = this._connectionMgr.getConnectionInfo(activeUri);
+                if (!connection) {
+                    void vscode.window.showErrorMessage(
+                        LocalizedConstants.searchObjectsNoConnection,
+                    );
+                    return;
+                }
+                connectionUri = activeUri;
+                databaseName = connection.credentials.database;
+            }
+
+            // Validate the connection URI before proceeding
+            if (!connectionUri || connectionUri.trim() === "") {
+                void vscode.window.showErrorMessage(
+                    LocalizedConstants.searchObjectsInvalidConnectionUri,
+                );
+                return;
+            }
+
+            // Live, debounced QuickPick search using cached metadata
+            const searchService = new DatabaseObjectSearchService(this._connectionMgr.client);
+            await searchService.warmCache(connectionUri).catch(() => undefined);
+
+            type SearchPick = vscode.QuickPickItem & { object?: DatabaseObject };
+            const qp = vscode.window.createQuickPick<SearchPick>();
+            qp.placeholder = LocalizedConstants.searchObjectsPlaceholder;
+            qp.matchOnDescription = true;
+            qp.matchOnDetail = true;
+            qp.ignoreFocusOut = true;
+            qp.items = [];
+
+            let lastToken = 0;
+            let debounceHandle: NodeJS.Timeout | undefined;
+
+            const runSearch = async (value: string, token: number) => {
+                const term = value?.trim();
+                if (!term) {
+                    qp.items = [];
+                    return;
+                }
+                const result = await searchService.searchObjects(connectionUri, term, databaseName);
+                if (token !== lastToken) {
+                    return; // stale response
+                }
+                if (!result.success) {
+                    qp.items = [
+                        {
+                            label: LocalizedConstants.searchObjectsErrorWithDetail(result.error),
+                            description: "",
+                            detail: "",
+                        },
+                    ];
+                    return;
+                }
+                if (result.objects.length === 0) {
+                    const msg = LocalizedConstants.searchObjectsNoResultsMessage(term);
+                    qp.items = [
+                        {
+                            label: msg,
+                            description: "",
+                            detail: "",
+                        },
+                    ];
+                    return;
+                }
+                qp.items = result.objects.map((r) => ({
+                    label: r.name,
+                    description: r.type,
+                    detail: r.schema ? `${r.schema}.${r.name}` : r.name,
+                    object: r,
+                }));
+            };
+
+            const onChangeDisp = qp.onDidChangeValue((value) => {
+                lastToken++;
+                const current = lastToken;
+                if (debounceHandle) {
+                    clearTimeout(debounceHandle);
+                }
+                qp.busy = true;
+                debounceHandle = setTimeout(() => {
+                    void runSearch(value, current).finally(() => {
+                        if (current === lastToken) {
+                            qp.busy = false;
+                        }
+                    });
+                }, 200);
+            });
+
+            let selectedItem: SearchPick | undefined;
+            const onAcceptDisp = qp.onDidAccept(() => {
+                selectedItem = qp.selectedItems?.[0];
+                qp.hide();
+            });
+            const onHide = new Promise<void>((resolve) => {
+                const d = qp.onDidHide(() => {
+                    d.dispose();
+                    resolve();
+                });
+            });
+            qp.show();
+            await onHide;
+            onChangeDisp.dispose();
+            onAcceptDisp.dispose();
+            qp.dispose();
+
+            if (!selectedItem || !selectedItem.object) {
+                return; // cancelled or picked an info row
+            }
+
+            // Let user pick what kind of script to generate based on object type
+            const objType = selectedItem.object.type;
+            const operations: { label: string; op: ScriptOperation }[] = [];
+            if (objType === "Table" || objType === "View") {
+                operations.push(
+                    {
+                        label: LocalizedConstants.ObjectExplorer.ScriptSelectLabel,
+                        op: ScriptOperation.Select,
+                    },
+                    {
+                        label: LocalizedConstants.ObjectExplorer.ScriptCreateLabel,
+                        op: ScriptOperation.Create,
+                    },
+                );
+            } else if (objType === "Stored Procedure") {
+                operations.push(
+                    {
+                        label: LocalizedConstants.ObjectExplorer.ScriptExecuteLabel,
+                        op: ScriptOperation.Execute,
+                    },
+                    {
+                        label: LocalizedConstants.ObjectExplorer.ScriptAlterLabel,
+                        op: ScriptOperation.Alter,
+                    },
+                );
+            } else if (objType === "Scalar Function" || objType === "Table-valued Function") {
+                operations.push(
+                    {
+                        label: LocalizedConstants.ObjectExplorer.ScriptSelectLabel,
+                        op: ScriptOperation.Select,
+                    },
+                    {
+                        label: LocalizedConstants.ObjectExplorer.ScriptAlterLabel,
+                        op: ScriptOperation.Alter,
+                    },
+                );
+            } else {
+                operations.push({
+                    label: LocalizedConstants.ObjectExplorer.ScriptSelectLabel,
+                    op: ScriptOperation.Select,
+                });
+            }
+
+            const selectedOp = await vscode.window.showQuickPick(
+                operations.map((o) => o.label),
+                {
+                    placeHolder: LocalizedConstants.ObjectExplorer.FetchingScriptLabel("…"),
+                    ignoreFocusOut: true,
+                },
+            );
+            if (!selectedOp) {
+                return;
+            }
+            const op = operations.find((o) => o.label === selectedOp)?.op ?? ScriptOperation.Select;
+
+            // Use ScriptingService to generate script and open connected untitled doc
+            const connection = this._connectionMgr.getConnectionInfo(connectionUri);
+            const serverInfo = this._connectionMgr.getServerInfo(connection?.credentials);
+            // Map friendly type to metadata type name used by scripting
+            const mapType = (t: string): string => {
+                switch (t) {
+                    case "Table":
+                        return "Table";
+                    case "View":
+                        return "View";
+                    case "Stored Procedure":
+                        return "StoredProcedure";
+                    case "Scalar Function":
+                        return "ScalarValuedFunction";
+                    case "Table-valued Function":
+                        return "TableValuedFunction";
+                    default:
+                        return t;
+                }
+            };
+            // Build an IScriptingObject from search result
+            const scriptingObject: IScriptingObject = {
+                type: mapType(objType),
+                schema: selectedItem.object.schema,
+                name: selectedItem.object.name,
+            };
+
+            const scriptingParams = this._scriptingService.createScriptingParams(
+                serverInfo,
+                scriptingObject,
+                connectionUri,
+                op,
+            );
+            const script = await this._scriptingService.script(scriptingParams);
+
+            const editor = await this._untitledSqlDocumentService.newQuery(script);
+            const newDocUri = editor.document.uri.toString(true);
+            const promise = new Deferred<boolean>();
+            await this.connectionManager.connect(newDocUri, connection?.credentials, promise);
+            await promise;
+            this._statusview.languageFlavorChanged(newDocUri, Constants.mssqlProviderName);
+            this._statusview.sqlCmdModeChanged(newDocUri, false);
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                LocalizedConstants.searchObjectsErrorWithDetail(getErrorMessage(error)),
+            );
+        }
     }
 
     /**
@@ -1159,6 +1424,16 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdDisconnectObjectExplorerNode,
                 async (node: ConnectionNode) => {
                     await this._objectExplorerProvider.disconnectNode(node);
+                },
+            ),
+        );
+
+        // Search Objects in Database
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdSearchObjects,
+                async (node?: ConnectionNode) => {
+                    await this.onSearchObjects(node);
                 },
             ),
         );
@@ -1466,7 +1741,7 @@ export default class MainController implements vscode.Disposable {
                             });
                     } catch {
                         vscode.window.showErrorMessage(
-                            LocalizedConstants.ContainerDeployment.failStartContainer(
+                            LocalizedConstants.LocalContainers.failStartContainer(
                                 node.connectionProfile.containerName,
                             ),
                         );
@@ -1490,14 +1765,14 @@ export default class MainController implements vscode.Disposable {
 
                     const containerName = node.connectionProfile.containerName;
                     node.loadingLabel =
-                        LocalizedConstants.ContainerDeployment.stoppingContainerLoadingLabel;
+                        LocalizedConstants.LocalContainers.stoppingContainerLoadingLabel;
                     await this._objectExplorerProvider.setNodeLoading(node);
                     this._objectExplorerProvider.refresh(node);
 
                     await stopContainer(containerName).then(async (stoppedSuccessfully) => {
                         if (stoppedSuccessfully) {
                             node.loadingLabel =
-                                LocalizedConstants.ContainerDeployment.startingContainerLoadingLabel;
+                                LocalizedConstants.LocalContainers.startingContainerLoadingLabel;
 
                             await this._objectExplorerProvider
                                 .disconnectNode(node as ConnectionNode)
@@ -1506,10 +1781,10 @@ export default class MainController implements vscode.Disposable {
 
                         vscode.window.showInformationMessage(
                             stoppedSuccessfully
-                                ? LocalizedConstants.ContainerDeployment.stoppedContainerSucessfully(
+                                ? LocalizedConstants.LocalContainers.stoppedContainerSucessfully(
                                       containerName,
                                   )
-                                : LocalizedConstants.ContainerDeployment.failStopContainer(
+                                : LocalizedConstants.LocalContainers.failStopContainer(
                                       containerName,
                                   ),
                         );
@@ -1531,7 +1806,7 @@ export default class MainController implements vscode.Disposable {
                     }
 
                     const confirmation = await vscode.window.showInformationMessage(
-                        LocalizedConstants.ContainerDeployment.deleteContainerConfirmation(
+                        LocalizedConstants.LocalContainers.deleteContainerConfirmation(
                             node.connectionProfile.containerName,
                         ),
                         { modal: true },
@@ -1540,7 +1815,7 @@ export default class MainController implements vscode.Disposable {
 
                     if (confirmation === LocalizedConstants.Common.delete) {
                         node.loadingLabel =
-                            LocalizedConstants.ContainerDeployment.deletingContainerLoadingLabel;
+                            LocalizedConstants.LocalContainers.deletingContainerLoadingLabel;
                         await this._objectExplorerProvider.setNodeLoading(node);
                         this._objectExplorerProvider.refresh(node);
 
@@ -1548,15 +1823,15 @@ export default class MainController implements vscode.Disposable {
                         const deletedSuccessfully = await deleteContainer(containerName);
                         vscode.window.showInformationMessage(
                             deletedSuccessfully
-                                ? LocalizedConstants.ContainerDeployment.deletedContainerSucessfully(
+                                ? LocalizedConstants.LocalContainers.deletedContainerSucessfully(
                                       containerName,
                                   )
-                                : LocalizedConstants.ContainerDeployment.failDeleteContainer(
+                                : LocalizedConstants.LocalContainers.failDeleteContainer(
                                       containerName,
                                   ),
                         );
                         node.loadingLabel =
-                            LocalizedConstants.ContainerDeployment.startingContainerLoadingLabel;
+                            LocalizedConstants.LocalContainers.startingContainerLoadingLabel;
                         if (deletedSuccessfully) {
                             // Delete node from tree
                             await this._objectExplorerProvider.removeNode(
@@ -1725,7 +2000,7 @@ export default class MainController implements vscode.Disposable {
     /**
      * Choose a new database from the current server
      */
-    private async onChooseDatabase(): Promise<boolean> {
+    public async onChooseDatabase(): Promise<boolean> {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
             const success = await this._connectionMgr.onChooseDatabase();
             return success;
@@ -1803,13 +2078,10 @@ export default class MainController implements vscode.Disposable {
         return false;
     }
 
-    public onDeployContainer(): void {
-        sendActionEvent(
-            TelemetryViews.ContainerDeployment,
-            TelemetryActions.OpenContainerDeployment,
-        );
+    public onDeployNewDatabase(): void {
+        sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
-        const reactPanel = new ContainerDeploymentWebviewController(
+        const reactPanel = new DeploymentWebviewController(
             this._context,
             this._vscodeWrapper,
             this,

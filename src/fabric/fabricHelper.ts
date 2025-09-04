@@ -4,36 +4,82 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { FabricSqlDbInfo, IWorkspace, IFabricError } from "../sharedInterfaces/connectionDialog";
+import {
+    FabricSqlDbInfo,
+    IWorkspace,
+    IFabricError,
+    ICapacity,
+    IOperationState,
+    IOperationStatus,
+    ISqlDbArtifact,
+    ISqlEndpointArtifact,
+    IWorkspaceRoleAssignment,
+} from "../sharedInterfaces/fabric";
 import { HttpHelper } from "../http/httpHelper";
+import { AxiosResponse } from "axios";
+import { getErrorMessage } from "../utils/utils";
+import { Fabric as Loc } from "../constants/locConstants";
 
 export class FabricHelper {
     static readonly fabricUriBase = vscode.Uri.parse("https://api.fabric.microsoft.com/v1/");
+    static readonly fabricScopeUriBase = vscode.Uri.parse(
+        "https://analysis.windows.net/powerbi/api/",
+    );
+    static readonly longRunningOperationCode = 202;
+    static readonly defaultRetryInMs = 30;
+    static readonly defaultScope = ".default";
     constructor() {}
 
-    public static async getFabricWorkspaces(tenantId: string): Promise<IWorkspace[]> {
-        const response = await this.fetchFromFabric<{ value: IWorkspace[] }>(
-            "workspaces",
-            `listing Fabric workspaces for tenant '${tenantId}'`,
+    public static async getFabricCapacities(tenantId: string): Promise<ICapacity[]> {
+        const response = await this.fetchFromFabric<{ value: ICapacity[] }>(
+            "capacities",
+            Loc.listingCapacitiesForTenant(tenantId),
             tenantId,
         );
 
         return response.value;
     }
 
+    public static async getFabricWorkspaces(tenantId: string): Promise<IWorkspace[]> {
+        const response = await this.fetchFromFabric<{ value: IWorkspace[] }>(
+            "workspaces",
+            Loc.listingWorkspacesForTenant(tenantId),
+            tenantId,
+        );
+
+        return response.value;
+    }
+
+    /**
+     * Retrieves a specific Fabric workspace by its ID for a given tenant.
+     *
+     * @param workspaceId The ID of the workspace to fetch.
+     * @param tenantId The ID of the tenant that owns the workspace.
+     * @returns A promise that resolves to the `IWorkspace` object.
+     * @throws {Error} Throws an error if the underlying Fabric API request fails.
+     */
     public static async getFabricWorkspace(
         workspaceId: string,
         tenantId: string,
     ): Promise<IWorkspace> {
         const response = await this.fetchFromFabric<IWorkspace>(
             `workspaces/${workspaceId}`,
-            `getting Fabric workspace '${workspaceId}'`,
+            Loc.gettingWorkspace(workspaceId),
             tenantId,
         );
 
         return response;
     }
 
+    /**
+     * Retrieves the list of Fabric SQL databases for a given workspace.
+     *
+     * @param workspace The workspace object or workspace ID for which to fetch databases.
+     * @param tenantId Optional tenant ID for scoping the request.
+     * @returns A promise that resolves to an array of `FabricSqlDbInfo` objects
+     * @throws {Error} Throws an error if the underlying Fabric API request fails or if database
+     *         processing encounters an error.
+     */
     public static async getFabricDatabases(
         workspace: IWorkspace | string,
         tenantId?: string,
@@ -50,7 +96,7 @@ export class FabricHelper {
         try {
             const response = await this.fetchFromFabric<{ value: ISqlDbArtifact[] }>(
                 `workspaces/${workspaceId}/sqlDatabases`,
-                `Listing Fabric SQL Databases for workspace '${workspaceId}'`,
+                Loc.listingSqlDatabasesForWorkspace(workspaceId),
                 tenantId,
             );
 
@@ -76,6 +122,13 @@ export class FabricHelper {
         return result;
     }
 
+    /**
+     * Retrieves the list of Fabric SQL endpoints for a given workspace.
+     *
+     * @param workspace The workspace object or workspace ID to fetch SQL endpoints from.
+     * @param tenantId Optional tenant ID for scoping the request.
+     * @returns A promise that resolves to an array of `FabricSqlDbInfo` objects.
+     */
     public static async getFabricSqlEndpoints(workspace: IWorkspace | string, tenantId?: string) {
         const workspacePromise =
             typeof workspace === "string"
@@ -89,7 +142,7 @@ export class FabricHelper {
         try {
             const response = await this.fetchFromFabric<{ value: ISqlEndpointArtifact[] }>(
                 `workspaces/${workspaceId}/sqlEndpoints`,
-                `Listing Fabric SQL Endpoints for workspace '${workspaceId}'`,
+                Loc.listingSqlEndpointsForWorkspace(workspaceId),
                 tenantId,
             );
 
@@ -99,7 +152,7 @@ export class FabricHelper {
                 ...response.value.map((endpoint) => {
                     return {
                         id: endpoint.id,
-                        server: undefined, // requires a second Fabric API call to populate; fill later to avoid throttling
+                        server: undefined, // requires a second Fabric API call to populate; fill later to avoid rate-limiting (50/API/user/minute)
                         displayName: endpoint.displayName,
                         database: "TO VALIDATE", // TODO: validate that warehouses don't have a database
                         workspaceName: resolvedWorkspace.displayName,
@@ -115,35 +168,221 @@ export class FabricHelper {
         return result;
     }
 
+    public static async getFabricSqlEndpointServerUri(
+        sqlEndpointId: string,
+        workspaceId: string,
+        tenantId?: string,
+    ): Promise<string> {
+        try {
+            const connectionStringResponse = await this.fetchFromFabric<{
+                connectionString: string;
+            }>(
+                `workspaces/${workspaceId}/sqlEndpoints/${sqlEndpointId}/connectionString`,
+                Loc.gettingConnectionStringForSqlEndpoint(sqlEndpointId, workspaceId),
+                tenantId,
+            );
+
+            // Server URL is returned as the connectionString field.
+            return connectionStringResponse.connectionString;
+        } catch (error) {
+            console.error(`Error fetching server URL for SQL Endpoints: ${getErrorMessage(error)}`);
+            throw error;
+        }
+    }
+
+    public static async getRolesForWorkspace(
+        workspaceId: string,
+        tenantId?: string,
+    ): Promise<IWorkspaceRoleAssignment[] | undefined> {
+        try {
+            const response = await this.fetchFromFabric<{ value: IWorkspaceRoleAssignment[] }>(
+                `workspaces/${workspaceId}/roleAssignments`,
+                Loc.listingRoleAssignmentsForWorkspace(workspaceId),
+                tenantId,
+            );
+            return response.value;
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    public static async getFabricDatabase(
+        workspaceId: string,
+        databaseId: string,
+        tenantId?: string,
+    ): Promise<ISqlDbArtifact> {
+        const response = await this.fetchFromFabric<ISqlDbArtifact>(
+            `workspaces/${workspaceId}/sqlDatabases/${databaseId}`,
+            Loc.gettingFabricDatabase(databaseId),
+            tenantId,
+        );
+
+        return response;
+    }
+
+    public static async createWorkspace(
+        capacityId: string,
+        displayName: string,
+        description: string,
+        tenantId?: string,
+    ) {
+        const response = await this.postToFabric<
+            IWorkspace,
+            { displayName: string; capacityId: string; description: string }
+        >(
+            `workspaces`,
+            {
+                displayName: displayName,
+                capacityId: capacityId,
+                description: description,
+            },
+            Loc.createWorkspaceWithCapacity(capacityId),
+            tenantId,
+        );
+
+        return response;
+    }
+
+    public static async createFabricSqlDatabase(
+        workspaceId: string,
+        displayName: string,
+        description: string,
+        tenantId?: string,
+    ) {
+        const response = await this.postToFabric<
+            ISqlDbArtifact,
+            { displayName: string; description: string }
+        >(
+            `workspaces/${workspaceId}/sqlDatabases`,
+            {
+                displayName: displayName,
+                description: description,
+            },
+            Loc.createSqlDatabaseForWorkspace(workspaceId),
+            tenantId,
+        );
+
+        return response;
+    }
+
     public static async fetchFromFabric<TResponse>(
         api: string,
         reason: string,
-        tenantId: string,
+        tenantId: string | undefined,
     ): Promise<TResponse> {
         const uri = vscode.Uri.joinPath(this.fabricUriBase, api);
         const httpHelper = new HttpHelper();
 
-        const scopes = ["https://analysis.windows.net/powerbi/api/.default"];
-
-        if (tenantId) {
-            scopes.push(`VSCODE_TENANT:${tenantId}`);
-        }
-
-        const session = await this.getSession("microsoft", scopes, {
-            createIfNone: true,
-            requestReason: reason,
-        });
+        const session = await this.createScopedFabricSession(tenantId, reason);
         let token = session?.accessToken;
 
         const response = await httpHelper.makeGetRequest<TResponse>(uri.toString(), token);
         const result = response.data;
 
         if (isFabricError(result)) {
-            const errorMessage = `Fabric API error occurred (${result.errorCode}): ${result.message}`;
-            throw new Error(errorMessage);
+            throw new Error(Loc.fabricApiError(result.errorCode, result.message));
         }
 
         return result;
+    }
+
+    public static async postToFabric<TResponse, TPayload>(
+        api: string,
+        payload: TPayload,
+        reason: string,
+        tenantId?: string,
+        scopes?: string[],
+    ): Promise<TResponse> {
+        const uri = vscode.Uri.joinPath(this.fabricUriBase, api);
+        const httpHelper = new HttpHelper();
+
+        const session = await this.createScopedFabricSession(tenantId, reason, scopes);
+        const token = session?.accessToken;
+
+        let response = await httpHelper.makePostRequest<TResponse, TPayload>(
+            uri.toString(),
+            token,
+            payload,
+        );
+
+        if (response.status === this.longRunningOperationCode) {
+            response = await this.handleLongRunningOperation(
+                response.headers["retry-after"] as string,
+                response.headers["location"],
+                httpHelper,
+                token,
+            );
+        }
+
+        const result = response.data;
+        if (isFabricError(result)) {
+            throw new Error(Loc.fabricApiError(result.errorCode, result.message));
+        }
+
+        return result;
+    }
+
+    /**
+     * Polls a long-running Fabric API operation until it completes, then fetches the final result.
+     */
+    private static async handleLongRunningOperation<TResponse>(
+        retryAfter: string,
+        location: string,
+        httpHelper: HttpHelper,
+        token?: string,
+    ): Promise<AxiosResponse<TResponse, any>> {
+        const retryAfterInMs = parseInt(retryAfter, 10) || this.defaultRetryInMs;
+
+        let longRunningResponse: AxiosResponse<IOperationState> | undefined;
+        while (
+            !longRunningResponse ||
+            longRunningResponse.data.status === IOperationStatus.Running ||
+            longRunningResponse.data.status === IOperationStatus.NotStarted
+        ) {
+            await new Promise((resolve) => setTimeout(resolve, retryAfterInMs * 1000));
+            longRunningResponse = await httpHelper.makeGetRequest<IOperationState>(location, token);
+        }
+
+        if (longRunningResponse.data.status === IOperationStatus.Failed) {
+            throw new Error(
+                Loc.fabricLongRunningApiError(
+                    longRunningResponse.status.toString(),
+                    longRunningResponse.data.error,
+                ),
+            );
+        }
+
+        return await httpHelper.makeGetRequest<TResponse>(
+            longRunningResponse.headers["location"],
+            token,
+        );
+    }
+
+    /**
+     * Creates or retrieves a Fabric authentication session with the given scopes.
+     *
+     * Always requests the `.default` scope to ensure baseline permissions
+     *
+     * @param tenantId - Optional tenant ID to scope the session to a specific tenant.
+     * @param reason - A user-facing string explaining why the session is requested.
+     * @param fabricScopes - Additional Fabric scopes to request.
+     * @returns A VS Code AuthenticationSession with the requested scopes.
+     */
+    private static async createScopedFabricSession(
+        tenantId: string | undefined,
+        reason: string,
+        fabricScopes: string[] = [this.defaultScope],
+    ): Promise<vscode.AuthenticationSession> {
+        let scopes = fabricScopes.map((scope) => `${this.fabricScopeUriBase}${scope}`);
+
+        if (tenantId) {
+            scopes.push(`VSCODE_TENANT:${tenantId}`);
+        }
+
+        return await this.getSession("microsoft", scopes, {
+            createIfNone: true,
+            requestReason: reason,
+        });
     }
 
     // Logic copied from vscode-fabric's TokenService
@@ -151,7 +390,7 @@ export class FabricHelper {
         providerId: string,
         scopes: string[],
         options: TokenRequestOptions,
-    ) {
+    ): Promise<vscode.AuthenticationSession> {
         if (!options || !options.requestReason.trim()) {
             throw new Error("RequestReason required in TokenRequestOptions");
         }
@@ -200,26 +439,3 @@ function isFabricError(obj: any): obj is IFabricError {
         typeof obj.message === "string"
     );
 }
-
-/**
- * IArtifact as seen in api responses
- */
-export interface IArtifact {
-    id: string;
-    type: string;
-    displayName: string;
-    description: string | undefined;
-    workspaceId: string;
-    properties: unknown;
-}
-
-export interface ISqlDbArtifact extends IArtifact {
-    properties: {
-        connectionInfo: string;
-        connectionString: string;
-        databaseName: string;
-        serverFqdn: string;
-    };
-}
-
-export interface ISqlEndpointArtifact extends IArtifact {}

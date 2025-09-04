@@ -21,16 +21,13 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import * as qr from "../sharedInterfaces/queryResult";
 import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { ExecutionPlanService } from "../services/executionPlanService";
-import { isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
-import { StateChangeNotification } from "../sharedInterfaces/webview";
+import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
+import { ApiStatus, StateChangeNotification } from "../sharedInterfaces/webview";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 
-const MESSAGE_INTERVAL_IN_MS = 300;
-
 // holds information about the state of a query runner
 export class QueryRunnerState {
-    timeout: NodeJS.Timer;
     listeners: vscode.Disposable[];
     constructor(public queryRunner: QueryRunner) {
         this.listeners = [];
@@ -47,8 +44,9 @@ class ResultsConfig implements Interfaces.IResultsConfig {
 export class SqlOutputContentProvider {
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
     private _queryResultWebviewController: QueryResultWebviewController;
-    private _lastSendMessageTime: number;
     private _actualPlanStatuses: string[] = [];
+    // Throttle timers for state updates per result URI (messages, results, etc.)
+    private _stateUpdateTimers: Map<string, NodeJS.Timeout> = new Map();
 
     constructor(
         private _context: vscode.ExtensionContext,
@@ -74,14 +72,12 @@ export class SqlOutputContentProvider {
             this,
         );
 
-        if (!isOpenQueryResultsInTabByDefaultEnabled()) {
-            this._context.subscriptions.push(
-                vscode.window.registerWebviewViewProvider(
-                    "queryResult",
-                    this._queryResultWebviewController,
-                ),
-            );
-        }
+        this._context.subscriptions.push(
+            vscode.window.registerWebviewViewProvider(
+                "queryResult",
+                this._queryResultWebviewController,
+            ),
+        );
 
         /**
          * Command to copy all messages to clipboard for the active query result
@@ -346,21 +342,38 @@ export class SqlOutputContentProvider {
             queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
 
             const startListener = queryRunner.onStart(async (_panelUri) => {
-                this._lastSendMessageTime = Date.now();
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
                 resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
+                resultWebviewState.isExecutionPlan = false;
                 if (isOpenQueryResultsInTabByDefaultEnabled()) {
                     await this._queryResultWebviewController.createPanelController(queryRunner.uri);
                 }
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                this.revealQueryResult(queryRunner.uri);
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });
             });
-            const resultSetListener = queryRunner.onResultSet(
+            const resultSetAvailableListener = queryRunner.onResultSetAvailable(
+                async (resultSet: ResultSetSummary) => {
+                    const resultWebviewState =
+                        this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                    const batchId = resultSet.batchId;
+                    const resultId = resultSet.id;
+                    if (!resultWebviewState.resultSetSummaries[batchId]) {
+                        resultWebviewState.resultSetSummaries[batchId] = {};
+                    }
+                    resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
+                    // Switch to results tab for the first result set
+                    if (countResultSets(resultWebviewState.resultSetSummaries) === 1) {
+                        resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Results;
+                    }
+                    this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                },
+            );
+
+            const resultSetUpdatedListener = queryRunner.onResultSetUpdated(
                 async (resultSet: ResultSetSummary) => {
                     const resultWebviewState =
                         this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
@@ -373,6 +386,22 @@ export class SqlOutputContentProvider {
                     this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 },
             );
+
+            const resultSetCompleteListener = queryRunner.onResultSetComplete(
+                async (resultSet: ResultSetSummary) => {
+                    const resultWebviewState =
+                        this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                    const batchId = resultSet.batchId;
+                    const resultId = resultSet.id;
+                    if (!resultWebviewState.resultSetSummaries[batchId]) {
+                        resultWebviewState.resultSetSummaries[batchId] = {};
+                    }
+                    resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
+
+                    this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                },
+            );
+
             const batchStartListener = queryRunner.onBatchStart(async (batch) => {
                 let time = new Date().toLocaleTimeString();
                 if (batch.executionElapsed && batch.executionEnd) {
@@ -398,9 +427,7 @@ export class SqlOutputContentProvider {
                     queryRunner.uri,
                 );
                 resultWebviewState.messages.push(message);
-                resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
-                this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                this.revealQueryResult(queryRunner.uri);
+                this.scheduleThrottledUpdate(queryRunner.uri);
             });
             const onMessageListener = queryRunner.onMessage(async (message) => {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
@@ -409,13 +436,7 @@ export class SqlOutputContentProvider {
 
                 resultWebviewState.messages.push(message);
 
-                // Set state for messages at fixed intervals to avoid spamming the webview
-                if (this._lastSendMessageTime < Date.now() - MESSAGE_INTERVAL_IN_MS) {
-                    resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
-                    this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                    this.revealQueryResult(queryRunner.uri);
-                    this._lastSendMessageTime = Date.now();
-                }
+                this.scheduleThrottledUpdate(queryRunner.uri);
             });
             const onCompleteListener = queryRunner.onComplete(async (e) => {
                 const { totalMilliseconds, hasError, isRefresh } = e;
@@ -440,23 +461,61 @@ export class SqlOutputContentProvider {
                 if (hasError) {
                     tabState = QueryResultPaneTabs.Messages;
                 } else {
-                    tabState =
-                        Object.keys(resultWebviewState.resultSetSummaries).length > 0
-                            ? QueryResultPaneTabs.Results
-                            : QueryResultPaneTabs.Messages;
+                    if (resultWebviewState.isExecutionPlan) {
+                        tabState = QueryResultPaneTabs.ExecutionPlan;
+                    } else {
+                        if (Object.keys(resultWebviewState.resultSetSummaries)?.length > 0) {
+                            tabState = QueryResultPaneTabs.Results;
+                        } else {
+                            tabState = QueryResultPaneTabs.Messages;
+                        }
+                    }
                 }
                 resultWebviewState.tabStates.resultPaneTab = tabState;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                this.revealQueryResult(queryRunner.uri);
+            });
+
+            const onExecutionPlanListener = queryRunner.onExecutionPlan(async (e) => {
+                const planGraphs = await this._executionPlanService.getExecutionPlan({
+                    graphFileContent: e.xml,
+                    graphFileType: "xml",
+                });
+
+                const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
+                    e.uri,
+                );
+
+                const existingGraphs = resultWebviewState.executionPlanState.executionPlanGraphs;
+                existingGraphs.push(...planGraphs.graphs);
+
+                const xmlPlans = resultWebviewState.executionPlanState.xmlPlans;
+                xmlPlans[`${e.batchId},${e.resultId}`] = e.xml;
+
+                resultWebviewState.isExecutionPlan = true;
+                resultWebviewState.executionPlanState = {
+                    errorMessage: planGraphs.errorMessage,
+                    executionPlanGraphs: existingGraphs,
+                    loadState: ApiStatus.Loaded,
+                    totalCost: existingGraphs.reduce(
+                        (acc, graph) => acc + graph.root.cost + graph.root.subTreeCost,
+                        0,
+                    ),
+                    xmlPlans: xmlPlans,
+                };
+
+                this.updateWebviewState(queryRunner.uri, resultWebviewState);
             });
 
             const queryRunnerState = new QueryRunnerState(queryRunner);
             queryRunnerState.listeners.push(
                 startListener,
-                resultSetListener,
+                resultSetAvailableListener,
+                resultSetUpdatedListener,
+                resultSetCompleteListener,
                 batchStartListener,
                 onMessageListener,
                 onCompleteListener,
+                onExecutionPlanListener,
             );
 
             this._queryResultsMap.set(uri, queryRunnerState);
@@ -496,6 +555,25 @@ export class SqlOutputContentProvider {
                 );
             },
         );
+    }
+
+    /**
+     * Schedule a throttled state update for a given URI.
+     * Coalesces rapid updates (messages/results) into a single update.
+     */
+    private scheduleThrottledUpdate(uri: string, delayMs: number = 100): void {
+        if (this._stateUpdateTimers.has(uri)) {
+            return; // already scheduled
+        }
+        const timer = setTimeout(() => {
+            try {
+                const state = this._queryResultWebviewController.getQueryResultState(uri);
+                this.updateWebviewState(uri, state);
+            } finally {
+                this._stateUpdateTimers.delete(uri);
+            }
+        }, delayMs);
+        this._stateUpdateTimers.set(uri, timer);
     }
 
     /**
@@ -589,6 +667,12 @@ export class SqlOutputContentProvider {
     public cleanupRunner(uri: string): void {
         let queryRunnerState = this._queryResultsMap.get(uri);
         if (queryRunnerState) {
+            // Clear any pending throttled state update for this URI
+            const timer = this._stateUpdateTimers.get(uri);
+            if (timer) {
+                clearTimeout(timer);
+                this._stateUpdateTimers.delete(uri);
+            }
             this._queryResultsMap.delete(uri);
             queryRunnerState.listeners?.forEach((listener) => listener.dispose());
             if (queryRunnerState.queryRunner.isExecutingQuery) {

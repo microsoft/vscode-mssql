@@ -10,6 +10,8 @@ import { ExecutionPlanGraph } from "./executionPlanGraph";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
+import { useExecutionPlanSelector } from "./executionPlanSelector";
+import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -37,7 +39,9 @@ const useStyles = makeStyles({
 export const ExecutionPlanPage = () => {
     const classes = useStyles();
     const context = useContext(ExecutionPlanContext);
-    const executionPlanState = context?.state?.executionPlanState;
+    const executionPlanState = useExecutionPlanSelector<ExecutionPlanState>(
+        (s) => s.executionPlanState,
+    );
     const loadState = executionPlanState?.loadState ?? ApiStatus.Loading;
     useEffect(() => {
         if (

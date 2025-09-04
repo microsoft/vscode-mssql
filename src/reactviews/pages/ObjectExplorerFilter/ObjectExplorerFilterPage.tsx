@@ -517,9 +517,7 @@ export const ObjectExplorerFilterPage = () => {
             {errorMessage && errorMessage !== "" && (
                 <MessageBar intent={"error"}>
                     <MessageBarBody>
-                        <MessageBarTitle>
-                            {locConstants.objectExplorerFiltering.error}
-                        </MessageBarTitle>
+                        <MessageBarTitle>{locConstants.common.error}</MessageBarTitle>
                         {errorMessage}
                     </MessageBarBody>
                 </MessageBar>

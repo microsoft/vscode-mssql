@@ -14,6 +14,7 @@ import {
     InputOnChangeData,
     SearchBoxChangeEvent,
     Text,
+    tokens,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { CSSProperties, useEffect, useId, useRef, useState } from "react";
@@ -28,6 +29,18 @@ export interface SearchableDropdownOptions {
      * Display text for the option. If not provided, the value will be used as the display text.
      */
     text?: string;
+    /**
+     * Option description
+     */
+    description?: string;
+    /**
+     * Option Icon- Fluent UI icon component to display for the option
+     */
+    icon?: keyof typeof FluentOptionIcons;
+    /**
+     * Optional text color for the option
+     */
+    color?: keyof typeof tokens;
 }
 
 export interface SearchableDropdownProps {
@@ -80,6 +93,13 @@ export interface SearchableDropdownProps {
      */
     clearable?: boolean;
 }
+
+/**
+ * Icon Map for options in the searchable dropdown. Add more icons here if you need a specific icon
+ */
+export const FluentOptionIcons: Record<string, JSX.Element> = {
+    Warning20Regular: <FluentIcons.Warning20Regular />,
+};
 
 const getOptionDisplayText = (option: SearchableDropdownOptions, placeholder?: string): string => {
     const optionText = option.text || option.value;
@@ -202,6 +222,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     maxWidth: `${popoverWidth - 10}px`,
                     padding: "5px 0px",
                     margin: "2px",
+                    ...(option.color ? { color: tokens[option.color] } : {}),
                 }}
                 name={"dropdown-options"}
                 value={option.value}
@@ -216,7 +237,17 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                         setIsSearchFocused(false);
                     }
                 }}>
-                {getOptionDisplayText(option)}
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                    }}>
+                    <span>{getOptionDisplayText(option)}</span>
+                    <span style={{ display: "flex", gap: "4px", marginRight: "12px" }}>
+                        {option.description && <Text>{option.description}</Text>}
+                        {option.icon && FluentOptionIcons[option.icon]}
+                    </span>
+                </div>
             </MenuItemRadio>
         ));
     };

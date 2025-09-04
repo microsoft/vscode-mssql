@@ -204,9 +204,6 @@ export let msgSavePassword = l10n.t(
     "Save Password? If 'No', password will be required each time you connect",
 );
 export let profileNamePrompt = l10n.t("Profile Name");
-export let profileNameTooltip = l10n.t(
-    "[Optional] Enter a display name for this connection profile",
-);
 export let msgCannotOpenContent = l10n.t("Error occurred opening content in editor.");
 export let msgSaveStarted = l10n.t("Started saving results to ");
 export let msgSaveFailed = l10n.t("Failed to save results. ");
@@ -548,6 +545,36 @@ export let reloadChoice = l10n.t("Reload Visual Studio Code");
 export let switchToMsal = l10n.t("Switch to MSAL");
 export let dismiss = l10n.t("Dismiss");
 export let querySuccess = l10n.t("Query succeeded");
+export let searchObjectsPlaceholder = l10n.t("Search for database objects...");
+export let searchObjectsPrompt = l10n.t("Enter part of an object name to search for");
+export function searchObjectsNoResultsMessage(term: string) {
+    return l10n.t({
+        message: "No database objects found matching '{0}'",
+        args: [term],
+        comment: ["{0} is the search term"],
+    });
+}
+export let searchObjectsError = l10n.t("An error occurred while searching database objects");
+export function searchObjectsErrorWithDetail(detail: string) {
+    return l10n.t({
+        message: "An error occurred while searching database objects: {0}",
+        args: [detail],
+        comment: ["{0} is the error detail returned from the search operation"],
+    });
+}
+export let searchObjectsNoConnection = l10n.t(
+    "No active database connection. Please connect to a database first.",
+);
+export function searchObjectsSelectPrompt(count: string | number) {
+    return l10n.t({
+        message: "Select an object to view its definition ({0} results)",
+        args: [count],
+        comment: ["{0} is the number of results"],
+    });
+}
+export let searchObjectsInvalidConnectionUri = l10n.t(
+    "Invalid connection URI. Please ensure you have an active database connection.",
+);
 export let queryFailed = l10n.t("Query failed");
 
 export let parameters = l10n.t("Parameters");
@@ -575,6 +602,7 @@ export function enableRichExperiencesPrompt(learnMoreUrl: string) {
     });
 }
 export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
+export let newDeployment = l10n.t("New Deployment");
 
 export class ObjectExplorer {
     public static ErrorLoadingRefreshToTryAgain = l10n.t("Error loading; refresh to try again");
@@ -634,14 +662,19 @@ export class ObjectExplorer {
 
 export class ConnectionDialog {
     public static connectionDialog = l10n.t("Connection Dialog");
-    public static azureAccount = l10n.t("Azure Account");
-    public static azureAccountIsRequired = l10n.t("Azure Account is required");
+    public static microsoftAccount = l10n.t("Microsoft Account");
+    public static microsoftAccountIsRequired = l10n.t("Microsoft Account is required");
     public static selectAnAccount = l10n.t("Select an account");
+    public static addAccount = l10n.t("Add account");
     public static savePassword = l10n.t("Save Password");
     public static tenantId = l10n.t("Tenant ID");
     public static selectATenant = l10n.t("Select a tenant");
     public static tenantIdIsRequired = l10n.t("Tenant ID is required");
     public static profileName = l10n.t("Profile Name");
+    public static profileNamePlaceholder = l10n.t("Enter profile name");
+    public static profileNameTooltip = l10n.t(
+        "[Optional] Enter a display name for this connection profile",
+    );
     public static connectionGroup = l10n.t("Connection Group");
     public static serverIsRequired = l10n.t("Server is required");
     public static usernameIsRequired = l10n.t("User name is required");
@@ -684,6 +717,10 @@ export class ConnectionDialog {
         });
     }
     public static ClearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
+
+    public static noWorkspacesFound = l10n.t(
+        "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+    );
 }
 
 export class FirewallRule {
@@ -725,6 +762,132 @@ export class Azure {
             ],
         });
     };
+
+    public static failedToGetTenantForAccount = (tenantId: string, accountName: string) => {
+        return l10n.t({
+            message: "Failed to get tenant '{0}' for account '{1}'.",
+            args: [tenantId, accountName],
+            comment: ["{0} is the tenant id", "{1} is the account name"],
+        });
+    };
+}
+
+export class Fabric {
+    public static failedToGetWorkspacesForTenant = (tenantName: string, tenantId: string) => {
+        return l10n.t({
+            message: "Failed to get Fabric workspaces for tenant '{0} ({1})'.",
+            args: [tenantName, tenantId],
+            comment: ["{0} is the tenant name", "{1} is the tenant id"],
+        });
+    };
+
+    public static listingCapacitiesForTenant = (tenantId: string) => {
+        return l10n.t({
+            message: "Listing Fabric capacities for tenant '{0}'",
+            args: [tenantId],
+            comment: ["{0} is the tenant ID"],
+        });
+    };
+
+    public static listingWorkspacesForTenant = (tenantId: string) => {
+        return l10n.t({
+            message: "Listing Fabric workspaces for tenant '{0}'",
+            args: [tenantId],
+            comment: ["{0} is the tenant ID"],
+        });
+    };
+
+    public static gettingWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Getting Fabric workspace '{0}'",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
+    public static listingSqlDatabasesForWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Listing Fabric SQL Databases for workspace '{0}'",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
+    public static listingSqlEndpointsForWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Listing Fabric SQL Endpoints for workspace '{0}'",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
+    public static gettingConnectionStringForSqlEndpoint = (
+        sqlEndpointId: string,
+        workspaceId: string,
+    ) => {
+        return l10n.t({
+            message: "Getting connection string for SQL Endpoint '{0}' in workspace '{1}'",
+            args: [sqlEndpointId, workspaceId],
+            comment: ["{0} is the SQL endpoint ID", "{1} is the workspace ID"],
+        });
+    };
+
+    public static createWorkspaceWithCapacity = (capacityId: string) => {
+        return l10n.t({
+            message: "Creating workspace with capacity {0}",
+            args: [capacityId],
+            comment: ["{0} is the capacity ID"],
+        });
+    };
+
+    public static createSqlDatabaseForWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Creating SQL Database for workspace {0}",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
+    public static listingRoleAssignmentsForWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Listing role assignments for workspace '${workspaceId}'",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
+    public static gettingFabricDatabase = (databaseId: string) => {
+        return l10n.t({
+            message: "Getting Fabric database '{0}'",
+            args: [databaseId],
+            comment: ["{0} is the database ID"],
+        });
+    };
+
+    public static fabricApiError = (resultCode: string, resultMessage: string) => {
+        return l10n.t({
+            message: "Fabric API error occurred ({0}): {1}",
+            args: [resultCode, resultMessage],
+            comment: ["{0} is the error code", "{1} is the error message"],
+        });
+    };
+
+    public static fabricLongRunningApiError = (resultCode: string, error: string) => {
+        return l10n.t({
+            message: "Fabric long-running API error with error code '{0}': {1}",
+            args: [resultCode, error],
+            comment: ["{0} is the error code", "{1} is the error message"],
+        });
+    };
+
+    public static fabricAccount = l10n.t("Fabric Account");
+    public static fabricAccountIsRequired = l10n.t("Fabric Account is required");
+    public static workspace = l10n.t("Workspace");
+    public static selectAWorkspace = l10n.t("Select a Workspace");
+    public static searchWorkspaces = l10n.t("Search Workspaces");
+    public static workspaceIsRequired = l10n.t("Workspace is required");
+    public static insufficientWorkspacePermissions = l10n.t("Insufficient Worskpace Permissions");
+    public static insufficientCapacityPermissions = l10n.t("Insufficient Capacity Permissions");
 }
 
 export class Accounts {
@@ -736,6 +899,20 @@ export class Accounts {
             comment: ["{0} is the number of invalid accounts that have been removed"],
         });
     };
+}
+
+export class FabricProvisioning {
+    public static databaseName = l10n.t("Database Name");
+    public static enterDatabaseName = l10n.t("Enter Database Name");
+    public static databaseNameIsRequired = l10n.t("Database Name is required");
+    public static databaseDescription = l10n.t("Database Description");
+    public static enterDatabaseDescription = l10n.t("Enter Database Description");
+    public static workspacePermissionsError = l10n.t(
+        "Please select a workspace where you have sufficient permissions (Contributor or higher)",
+    );
+    public static databaseNameError = l10n.t(
+        "This database name is already in use. Please choose a different name.",
+    );
 }
 
 export class QueryResult {
@@ -774,8 +951,7 @@ export class QueryResult {
         });
 }
 
-export class ContainerDeployment {
-    public static createLocalSqlContainer = l10n.t("Create Local SQL Container");
+export class LocalContainers {
     public static stoppedContainerSucessfully = (name: string) =>
         l10n.t({
             message: "{0} stopped successfully.",
@@ -948,7 +1124,6 @@ export class ContainerDeployment {
     public static containerNamePlaceholder = l10n.t("Enter container name");
     public static portPlaceholder = l10n.t("Enter port");
     public static hostnamePlaceholder = l10n.t("Enter hostname");
-    public static profileNamePlaceholder = l10n.t("Enter profile name");
 }
 
 export class UserSurvey {
@@ -1492,6 +1667,61 @@ export class MssqlChatAgent {
             comment: ["{0} is the connection ID"],
         });
     };
+
+    // Chat Commands localization strings
+    public static connectedSuccessfully = l10n.t("Connected successfully");
+    public static failedToConnect = l10n.t("Failed to connect");
+    public static disconnectedSuccessfully = l10n.t("Disconnected successfully");
+    public static databaseChangedSuccessfully = l10n.t("Database changed successfully");
+    public static failedToChangeDatabase = l10n.t("Failed to change database");
+    public static noActiveConnectionForDatabaseChange = l10n.t(
+        "No active connection for database change",
+    );
+    public static connectionDetails = l10n.t("Connection Details");
+    public static serverLabel = l10n.t("Server");
+    public static databaseLabel = l10n.t("Database");
+    public static authentication = l10n.t("Authentication");
+    public static sqlLogin = l10n.t("SQL Login");
+    public static serverVersion = l10n.t("Server Version");
+    public static serverEdition = l10n.t("Server Edition");
+    public static cloud = l10n.t("Cloud");
+    public static yes = l10n.t("Yes");
+    public static no = l10n.t("No");
+    public static user = l10n.t("User");
+    public static noConnectionInformationFound = l10n.t("No connection information found");
+    public static noActiveConnection = l10n.t("No active connection");
+    public static openingSchemaDesigner = l10n.t("Opening schema designer...");
+    public static noConnectionCredentialsFound = l10n.t("No connection credentials found");
+    public static noActiveConnectionForSchemaView = l10n.t("No active connection for schema view");
+    public static availableServers = l10n.t("Available Servers");
+    public static noSavedConnectionProfilesFound = l10n.t("No saved connection profiles found.");
+    public static useConnectToCreateNewConnection = (connectCommand: string) => {
+        return l10n.t({
+            message: "Use {0} to create a new connection.",
+            args: [connectCommand],
+            comment: ["{0} is the connect command"],
+        });
+    };
+    public static unnamedProfile = l10n.t("Unnamed Profile");
+    public static default = l10n.t("Default");
+    public static foundSavedConnectionProfiles = (count: number) => {
+        return l10n.t({
+            message: "Found {0} saved connection profile(s).",
+            args: [count],
+            comment: ["{0} is the number of connection profiles"],
+        });
+    };
+    public static errorRetrievingServerList = (errorMessage: string) => {
+        return l10n.t({
+            message: "Error retrieving server list: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+    };
+    public static unknownError = l10n.t("Unknown error");
+    public static noActiveDatabaseConnection = l10n.t(
+        "No active database connection in the current editor. Please establish a connection to continue.",
+    );
 }
 
 export class QueryEditor {
@@ -1551,6 +1781,41 @@ export class ConnectionSharing {
     public static AllPermissionsCleared = l10n.t(
         "All permissions for extensions to access your connections have been cleared.",
     );
+    public static noActiveEditorError = l10n.t(
+        "No active text editor found. Please open a file with an active database connection.",
+    );
+    public static connectionNotFoundError(connectionId: string) {
+        return l10n.t({
+            message: `Connection with ID "{0}" not found. Please verify the connection ID exists.`,
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    }
+    public static failedToEstablishConnectionError(connectionId: string) {
+        return l10n.t({
+            message: `Failed to establish connection with ID "{0}". Please check connection details and network connectivity.`,
+            args: [connectionId],
+            comment: ["{0} is the connection ID"],
+        });
+    }
+    public static invalidConnectionUri = l10n.t("Invalid connection URI provided.");
+    public static connectionNotActive = l10n.t(
+        "Connection is not active. Please establish a connection before performing this action.",
+    );
+    public static permissionDenied(extensionId: string) {
+        return l10n.t({
+            message: `Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.`,
+            args: [extensionId],
+            comment: ["{0} is the extension ID"],
+        });
+    }
+    public static permissionRequired(extensionId: string) {
+        return l10n.t({
+            message: `Connection sharing permission is required for extension: '{0}'`,
+            args: [extensionId],
+            comment: ["{0} is the extension ID"],
+        });
+    }
 }
 
 export class ConnectionGroup {

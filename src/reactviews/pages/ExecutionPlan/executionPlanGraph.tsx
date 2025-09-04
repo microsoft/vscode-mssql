@@ -12,15 +12,17 @@ import * as utils from "./queryPlanSetup";
 
 import { Button, Input, Popover, makeStyles, tokens } from "@fluentui/react-components";
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { ExecutionPlanView } from "./executionPlanView";
 import { FindNode } from "./findNodes";
 import { HighlightExpensiveOperations } from "./highlightExpensiveOperations";
 import { IconStack } from "./iconMenu";
 import { PropertiesPane } from "./properties";
 import { locConstants } from "../../common/locConstants";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useExecutionPlanSelector } from "./executionPlanSelector";
+import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
 
 const useStyles = makeStyles({
     panelContainer: {
@@ -91,8 +93,10 @@ interface ExecutionPlanGraphProps {
 
 export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphIndex }) => {
     const classes = useStyles();
-    const context = useContext(ExecutionPlanContext);
-    const executionPlanState = context?.state.executionPlanState;
+    const { themeKind } = useVscodeWebview2();
+    const executionPlanState = useExecutionPlanSelector<ExecutionPlanState>(
+        (s) => s.executionPlanState,
+    );
     const [isExecutionPlanLoaded, setIsExecutionPlanLoaded] = useState(false);
     const [query, setQuery] = useState("");
     const [xml, setXml] = useState("");
@@ -146,7 +150,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                     queryPlanGraph: executionPlanGraph,
                     iconPaths: utils.getIconPaths(),
                     badgeIconPaths: utils.getBadgePaths(),
-                    expandCollapsePaths: utils.getCollapseExpandPaths(context.themeKind),
+                    expandCollapsePaths: utils.getCollapseExpandPaths(themeKind),
                     showTooltipOnClick: true,
                 };
                 const pen = new mxClient.azdataQueryPlan(queryPlanConfiguration);

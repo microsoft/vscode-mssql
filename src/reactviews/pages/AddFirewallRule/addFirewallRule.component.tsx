@@ -34,6 +34,7 @@ import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
 import { AddFirewallRuleState } from "../../../sharedInterfaces/addFirewallRule";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { IMssqlAzureTenant } from "../../../sharedInterfaces/azureAccountManagement";
+import { addNewMicrosoftAccount } from "../../common/constants";
 
 enum IpSelectionMode {
     SpecificIp = "specificIp",
@@ -47,8 +48,6 @@ const useStyles = makeStyles({
         width: "120px",
     },
 });
-
-const addNewAzureAccount = "##_addNewAzureAccount_##";
 
 export const AddFirewallRuleDialog = ({
     state,
@@ -122,7 +121,7 @@ export const AddFirewallRuleDialog = ({
     const [endIp, setEndIp] = useState(replaceLastOctet(state.clientIp, 255));
 
     const onAccountOptionSelect = (_: SelectionEvents, data: OptionOnSelectData) => {
-        if (data.optionValue === addNewAzureAccount) {
+        if (data.optionValue === addNewMicrosoftAccount) {
             signIntoAzure();
         }
 
@@ -192,8 +191,8 @@ export const AddFirewallRuleDialog = ({
                                                 onOptionSelect={onAccountOptionSelect}>
                                                 <Option
                                                     text={Loc.azure.addAzureAccount}
-                                                    key={addNewAzureAccount}
-                                                    value={addNewAzureAccount}>
+                                                    key={addNewMicrosoftAccount}
+                                                    value={addNewMicrosoftAccount}>
                                                     {Loc.azure.addAzureAccount}
                                                 </Option>
                                                 {state.accounts.map((account) => {
@@ -209,7 +208,7 @@ export const AddFirewallRuleDialog = ({
                                             </Dropdown>
                                         </Field>
                                         <Field
-                                            label={Loc.firewallRules.tenant}
+                                            label={Loc.azure.tenant}
                                             className={formStyles.formComponentDiv}>
                                             <Dropdown
                                                 value={tenantDisplayText}

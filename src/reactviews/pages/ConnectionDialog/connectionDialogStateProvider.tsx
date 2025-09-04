@@ -3,21 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { createContext } from "react";
 import {
     ConnectionDialogContextProps,
     ConnectionDialogReducers,
     ConnectionDialogWebviewState,
     ConnectionInputMode,
     GetConnectionDisplayNameRequest,
+    GetSqlAnalyticsEndpointUriFromFabricRequest,
     IConnectionDialogProfile,
 } from "../../../sharedInterfaces/connectionDialog";
-
 import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
-
-import { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
 import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
+import { FabricSqlDbInfo } from "../../../sharedInterfaces/fabric";
 
 const ConnectionDialogContext = createContext<ConnectionDialogContextProps | undefined>(undefined);
 
@@ -103,6 +103,33 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                 openConnectionStringDialog: function (): void {
                     webviewContext.extensionRpc.action("openConnectionStringDialog");
                 },
+                signIntoAzureForFirewallRule: function (): void {
+                    webviewContext.extensionRpc.action("signIntoAzureForFirewallRule");
+                },
+                signIntoAzureForBrowse: function (
+                    browseTarget:
+                        | ConnectionInputMode.AzureBrowse
+                        | ConnectionInputMode.FabricBrowse,
+                ): void {
+                    webviewContext.extensionRpc.action("signIntoAzureForBrowse", {
+                        browseTarget,
+                    });
+                },
+                selectAzureAccount: (accountId: string) => {
+                    webviewContext.extensionRpc.action("selectAzureAccount", {
+                        accountId,
+                    });
+                },
+                selectAzureTenant: (tenantId: string) => {
+                    webviewContext.extensionRpc.action("selectAzureTenant", {
+                        tenantId,
+                    });
+                },
+                selectFabricWorkspace: (workspaceId: string) => {
+                    webviewContext.extensionRpc.action("selectFabricWorkspace", {
+                        workspaceId,
+                    });
+                },
                 getConnectionDisplayName: async function (
                     connectionProfile: IConnectionDialogProfile,
                 ): Promise<string> {
@@ -111,11 +138,13 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                         connectionProfile,
                     );
                 },
-                signIntoAzureForFirewallRule: function (): void {
-                    webviewContext.extensionRpc.action("signIntoAzureForFirewallRule");
-                },
-                signIntoAzureForBrowse: function (): void {
-                    webviewContext.extensionRpc.action("signIntoAzureForBrowse");
+                getSqlAnalyticsEndpointUriFromFabric: async function (
+                    sqlDb: FabricSqlDbInfo,
+                ): Promise<string> {
+                    return await webviewContext.extensionRpc.sendRequest(
+                        GetSqlAnalyticsEndpointUriFromFabricRequest.type,
+                        sqlDb,
+                    );
                 },
             }}>
             {children}
