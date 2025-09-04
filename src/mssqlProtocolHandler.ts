@@ -54,7 +54,8 @@ export class MssqlProtocolHandler {
                 this._logger.info(`connect: ${uri.path}`);
                 const connProfile = await this.readProfileFromArgs(uri.query);
 
-                // find most similar connection profile.  Just the
+                // Just the server and database are required to match, but it will also consider other factors
+                // like auth and auxiliary settings to pick the best one.
                 const { profile } =
                     await this.mainController.connectionManager.findMatchingProfile(connProfile);
 
