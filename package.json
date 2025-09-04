@@ -483,9 +483,9 @@
                     "group": "navigation"
                 },
                 {
-                    "command": "mssql.deployLocalDockerContainer",
+                    "command": "mssql.deployNewDatabase",
                     "when": "config.mssql.enableRichExperiences && view == objectExplorer",
-                    "title": "%mssql.deployLocalDockerContainer%",
+                    "title": "%mssql.newDeployment%",
                     "group": "navigation"
                 }
             ],
@@ -1177,9 +1177,8 @@
                 "icon": "$(trash)"
             },
             {
-                "command": "mssql.deployLocalDockerContainer",
-                "title": "%mssql.deployLocalDockerContainer%",
-                "when": "mssql.enableRichExperiences",
+                "command": "mssql.deployNewDatabase",
+                "title": "%mssql.newDeployment%",
                 "category": "MS SQL",
                 "icon": {
                     "dark": "media/newContainer_dark.svg",

@@ -238,3 +238,8 @@ export namespace SecurityTokenRequest {
         void
     >("account/securityTokenRequest");
 }
+
+export interface UserGroup {
+    id: string;
+    displayName: string;
+}

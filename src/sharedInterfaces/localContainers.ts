@@ -4,26 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ApiStatus } from "./webview";
-import { FormContextProps, FormEvent, FormItemSpec, FormState } from "./form";
+import { FormContextProps, FormItemSpec, FormState } from "./form";
 import { IConnectionDialogProfile, IDialogProps } from "./connectionDialog";
-import { ConnectionGroupSpec } from "./connectionGroup";
 
-export class ContainerDeploymentWebviewState
+export class LocalContainersState
     implements
-        FormState<
-            DockerConnectionProfile,
-            ContainerDeploymentWebviewState,
-            ContainerDeploymentFormItemSpec
-        >
+        FormState<DockerConnectionProfile, LocalContainersState, LocalContainersFormItemSpec>
 {
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
     public dockerSteps: DockerStep[] = [];
     // @ts-ignore
     formState: DockerConnectionProfile = undefined;
-    formComponents: Partial<
-        Record<keyof DockerConnectionProfile, ContainerDeploymentFormItemSpec>
-    > = {};
+    formComponents: Partial<Record<keyof DockerConnectionProfile, LocalContainersFormItemSpec>> =
+        {};
     formErrors: string[] = [];
     platform: string = "";
     dialog: IDialogProps | undefined;
@@ -37,12 +31,12 @@ export class ContainerDeploymentWebviewState
     formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
     /** Used to track the current step in the Docker deployment process */
     currentDockerStep: DockerStepOrder = DockerStepOrder.dockerInstallation;
-    constructor(params?: Partial<ContainerDeploymentWebviewState>) {
+    constructor(params?: Partial<LocalContainersState>) {
         for (const key in params) {
             if (key in this) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- safe due to key in this check being a Partial of the class
-                (this as any)[key as keyof ContainerDeploymentWebviewState] =
-                    params[key as keyof ContainerDeploymentWebviewState]!;
+                (this as any)[key as keyof LocalContainersState] =
+                    params[key as keyof LocalContainersState]!;
             }
         }
     }
@@ -56,21 +50,21 @@ export interface DockerConnectionProfile extends IConnectionDialogProfile {
     acceptEula: boolean;
 }
 
-export interface ContainerDeploymentFormItemSpec
+export interface LocalContainersFormItemSpec
     extends FormItemSpec<
         DockerConnectionProfile,
-        ContainerDeploymentWebviewState,
-        ContainerDeploymentFormItemSpec
+        LocalContainersState,
+        LocalContainersFormItemSpec
     > {
     componentWidth: string;
     isAdvancedOption: boolean;
 }
 
-export interface ContainerDeploymentContextProps
+export interface LocalContainersContextProps
     extends FormContextProps<
         DockerConnectionProfile,
-        ContainerDeploymentWebviewState,
-        ContainerDeploymentFormItemSpec
+        LocalContainersState,
+        LocalContainersFormItemSpec
     > {
     /**
      * Checks the selected Docker profile's availability and configuration.
@@ -86,25 +80,9 @@ export interface ContainerDeploymentContextProps
      * Resets the states of the current Docker step to NotStarted.
      */
     resetDockerStepState(): void;
-
-    /**
-     * Creates a connection group based on the provided spec.
-     */
-    createConnectionGroup(connectionGroupSpec: ConnectionGroupSpec): void;
-
-    /**
-     * Sets the visibility of the connection group dialog based on the provided state.
-     * @param shouldOpen - A boolean indicating whether the dialog should be open or closed.
-     */
-    setConnectionGroupDialogState(shouldOpen: boolean): void;
-
-    /**
-     * Cleans up and disposes of resources used by the deployment context.
-     */
-    dispose(): void;
 }
 
-export interface ContainerDeploymentReducers {
+export interface LocalContainersReducers {
     /**
      * Reducer for completing the current Docker step.
      */
@@ -120,30 +98,6 @@ export interface ContainerDeploymentReducers {
      * Reducer for Docker profile validation.
      */
     checkDockerProfile: {};
-
-    /**
-     * Handles form-related actions and state updates.
-     */
-    formAction: {
-        event: FormEvent<DockerConnectionProfile>;
-    };
-
-    /**
-     * Handles the action of creating a connection group.
-     */
-    createConnectionGroup: {
-        connectionGroupSpec: ConnectionGroupSpec;
-    };
-
-    /**
-     * Handles the action of opening/closing the connection group dialog.
-     */
-    setConnectionGroupDialogState: { shouldOpen: boolean };
-
-    /**
-     * Reducer for cleanup and disposal logic.
-     */
-    dispose: {};
 }
 
 /**

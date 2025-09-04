@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext } from "react";
-import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { GetStartedPage } from "./getStartedPage";
-import { locConstants } from "../../common/locConstants";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { locConstants } from "../../../common/locConstants";
+import { DeploymentContext } from "../deploymentStateProvider";
+import { LocalContainersPrereqPage } from "./localContainersPrereqPage";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -34,28 +34,29 @@ const useStyles = makeStyles({
     },
 });
 
-export const ContainerDeploymentStartPage = () => {
+export const LocalContainersStartPage = () => {
     const classes = useStyles();
-    const state = useContext(ContainerDeploymentContext);
-    const containerDeploymentState = state?.state;
+    const context = useContext(DeploymentContext);
+    const localContainersState = context?.state.deploymentTypeState;
+
     const renderMainContent = () => {
-        switch (containerDeploymentState?.loadState) {
+        switch (localContainersState?.loadState) {
             case ApiStatus.Loading:
                 return (
                     <div className={classes.spinnerDiv}>
                         <Spinner
-                            label={locConstants.containerDeployment.loadingDeploymentPage}
+                            label={locConstants.localContainers.loadingLocalContainers}
                             labelPosition="below"
                         />
                     </div>
                 );
             case ApiStatus.Loaded:
-                return <GetStartedPage />;
+                return <LocalContainersPrereqPage />;
             case ApiStatus.Error:
                 return (
                     <div className={classes.spinnerDiv}>
                         <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>{containerDeploymentState?.errorMessage ?? ""}</Text>
+                        <Text size={400}>{localContainersState?.errorMessage ?? ""}</Text>
                     </div>
                 );
         }

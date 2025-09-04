@@ -53,16 +53,13 @@ import {
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import {
-    checkIfConnectionIsDockerContainer,
-    restartContainer,
-} from "../containerDeployment/dockerUtils";
+import { checkIfConnectionIsDockerContainer, restartContainer } from "../deployment/dockerUtils";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
 import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
 import { getConnectionDisplayName } from "../models/connectionInfo";
-import { AddLocalContainerConnectionTreeNode } from "../containerDeployment/addLocalContainerConnectionTreeNode";
+import { NewDeploymentTreeNode } from "../deployment/newDeploymentTreeNode";
 import { getErrorMessage } from "../utils/utils";
 
 export interface CreateSessionResult {
@@ -346,7 +343,7 @@ export class ObjectExplorerService {
     private getAddConnectionNodes(): AddConnectionTreeNode[] {
         let nodeList = [new AddConnectionTreeNode()];
         if (this._isRichExperienceEnabled) {
-            nodeList.push(new AddLocalContainerConnectionTreeNode());
+            nodeList.push(new NewDeploymentTreeNode());
         }
 
         return nodeList;
@@ -741,6 +738,7 @@ export class ObjectExplorerService {
             if (containerName) {
                 connectionProfile.containerName = containerName;
             }
+
             // if the connnection is a docker container, make sure to set the container name for future use
             await this._connectionManager.connectionStore.saveProfile(connectionProfile);
         }
@@ -751,10 +749,7 @@ export class ObjectExplorerService {
 
         // Local container, ensure it is started
         if (connectionProfile.containerName) {
-            sendActionEvent(
-                TelemetryViews.ContainerDeployment,
-                TelemetryActions.ConnectToContainer,
-            );
+            sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.ConnectToContainer);
             try {
                 const containerNode = this.getConnectionNodeFromProfile(connectionProfile);
                 // start docker and docker container

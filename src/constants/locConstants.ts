@@ -204,9 +204,6 @@ export let msgSavePassword = l10n.t(
     "Save Password? If 'No', password will be required each time you connect",
 );
 export let profileNamePrompt = l10n.t("Profile Name");
-export let profileNameTooltip = l10n.t(
-    "[Optional] Enter a display name for this connection profile",
-);
 export let msgCannotOpenContent = l10n.t("Error occurred opening content in editor.");
 export let msgSaveStarted = l10n.t("Started saving results to ");
 export let msgSaveFailed = l10n.t("Failed to save results. ");
@@ -605,6 +602,7 @@ export function enableRichExperiencesPrompt(learnMoreUrl: string) {
     });
 }
 export let enableRichExperiences = l10n.t("Enable Experiences & Reload");
+export let newDeployment = l10n.t("New Deployment");
 
 export class ObjectExplorer {
     public static ErrorLoadingRefreshToTryAgain = l10n.t("Error loading; refresh to try again");
@@ -667,11 +665,16 @@ export class ConnectionDialog {
     public static microsoftAccount = l10n.t("Microsoft Account");
     public static microsoftAccountIsRequired = l10n.t("Microsoft Account is required");
     public static selectAnAccount = l10n.t("Select an account");
+    public static addAccount = l10n.t("Add account");
     public static savePassword = l10n.t("Save Password");
     public static tenantId = l10n.t("Tenant ID");
     public static selectATenant = l10n.t("Select a tenant");
     public static tenantIdIsRequired = l10n.t("Tenant ID is required");
     public static profileName = l10n.t("Profile Name");
+    public static profileNamePlaceholder = l10n.t("Enter profile name");
+    public static profileNameTooltip = l10n.t(
+        "[Optional] Enter a display name for this connection profile",
+    );
     public static connectionGroup = l10n.t("Connection Group");
     public static serverIsRequired = l10n.t("Server is required");
     public static usernameIsRequired = l10n.t("User name is required");
@@ -844,6 +847,47 @@ export class Fabric {
             comment: ["{0} is the workspace ID"],
         });
     };
+
+    public static listingRoleAssignmentsForWorkspace = (workspaceId: string) => {
+        return l10n.t({
+            message: "Listing role assignments for workspace '${workspaceId}'",
+            args: [workspaceId],
+            comment: ["{0} is the workspace ID"],
+        });
+    };
+
+    public static gettingFabricDatabase = (databaseId: string) => {
+        return l10n.t({
+            message: "Getting Fabric database '{0}'",
+            args: [databaseId],
+            comment: ["{0} is the database ID"],
+        });
+    };
+
+    public static fabricApiError = (resultCode: string, resultMessage: string) => {
+        return l10n.t({
+            message: "Fabric API error occurred ({0}): {1}",
+            args: [resultCode, resultMessage],
+            comment: ["{0} is the error code", "{1} is the error message"],
+        });
+    };
+
+    public static fabricLongRunningApiError = (resultCode: string, error: string) => {
+        return l10n.t({
+            message: "Fabric long-running API error with error code '{0}': {1}",
+            args: [resultCode, error],
+            comment: ["{0} is the error code", "{1} is the error message"],
+        });
+    };
+
+    public static fabricAccount = l10n.t("Fabric Account");
+    public static fabricAccountIsRequired = l10n.t("Fabric Account is required");
+    public static workspace = l10n.t("Workspace");
+    public static selectAWorkspace = l10n.t("Select a Workspace");
+    public static searchWorkspaces = l10n.t("Search Workspaces");
+    public static workspaceIsRequired = l10n.t("Workspace is required");
+    public static insufficientWorkspacePermissions = l10n.t("Insufficient Worskpace Permissions");
+    public static insufficientCapacityPermissions = l10n.t("Insufficient Capacity Permissions");
 }
 
 export class Accounts {
@@ -855,6 +899,20 @@ export class Accounts {
             comment: ["{0} is the number of invalid accounts that have been removed"],
         });
     };
+}
+
+export class FabricProvisioning {
+    public static databaseName = l10n.t("Database Name");
+    public static enterDatabaseName = l10n.t("Enter Database Name");
+    public static databaseNameIsRequired = l10n.t("Database Name is required");
+    public static databaseDescription = l10n.t("Database Description");
+    public static enterDatabaseDescription = l10n.t("Enter Database Description");
+    public static workspacePermissionsError = l10n.t(
+        "Please select a workspace where you have sufficient permissions (Contributor or higher)",
+    );
+    public static databaseNameError = l10n.t(
+        "This database name is already in use. Please choose a different name.",
+    );
 }
 
 export class QueryResult {
@@ -893,8 +951,7 @@ export class QueryResult {
         });
 }
 
-export class ContainerDeployment {
-    public static createLocalSqlContainer = l10n.t("Create Local SQL Container");
+export class LocalContainers {
     public static stoppedContainerSucessfully = (name: string) =>
         l10n.t({
             message: "{0} stopped successfully.",
@@ -1067,7 +1124,6 @@ export class ContainerDeployment {
     public static containerNamePlaceholder = l10n.t("Enter container name");
     public static portPlaceholder = l10n.t("Enter port");
     public static hostnamePlaceholder = l10n.t("Enter hostname");
-    public static profileNamePlaceholder = l10n.t("Enter profile name");
 }
 
 export class UserSurvey {

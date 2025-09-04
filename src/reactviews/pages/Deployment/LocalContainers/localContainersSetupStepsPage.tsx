@@ -4,73 +4,68 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { StepCard } from "./stepCard";
 import { Button } from "@fluentui/react-components";
-import { checkStepErrored, isLastStepLoaded, runDockerStep } from "./deploymentUtils";
-import { DockerStepOrder } from "../../../sharedInterfaces/containerDeployment";
-import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
-import { locConstants } from "../../common/locConstants";
+import {
+    checkStepErrored,
+    isLastStepLoaded,
+    runDockerStep,
+} from "./localContainersDeploymentUtils";
+import {
+    DockerStepOrder,
+    LocalContainersState,
+} from "../../../../sharedInterfaces/localContainers";
+import { LocalContainersHeader } from "./localContainersHeader";
+import { locConstants } from "../../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
+import { DeploymentContext } from "../deploymentStateProvider";
 
-export const ContainerSetupStepsPage: React.FC = () => {
+export const LocalContainersSetupStepsPage: React.FC = () => {
     const classes = stepPageStyles();
-    const state = useContext(ContainerDeploymentContext);
-    const containerDeploymentState = state?.state;
+    const context = useContext(DeploymentContext);
+    const localContainersState = context?.state.deploymentTypeState as LocalContainersState;
     const [stepsLoaded, setStepsLoaded] = useState(false);
     const [stepsErrored, setStepsErrored] = useState(false);
     const lastStep = DockerStepOrder.connectToContainer;
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!containerDeploymentState || !containerDeploymentState.formState.containerName) {
+    if (!context || !localContainersState || !localContainersState.formState.containerName) {
         return undefined;
     }
 
     useEffect(() => {
-        void runDockerStep(state, lastStep);
-    }, [containerDeploymentState]);
-
-    useEffect(() => {
-        setStepsLoaded(isLastStepLoaded(state, lastStep));
-    }, [containerDeploymentState]);
-
-    useEffect(() => {
-        setStepsErrored(checkStepErrored(state));
-    }, [containerDeploymentState]);
+        void runDockerStep(context, lastStep);
+        setStepsLoaded(isLastStepLoaded(context, lastStep));
+        setStepsErrored(checkStepErrored(context));
+    }, [context.state]);
 
     const handleRetry = async () => {
         // reset step states
-        await state.resetDockerStepState();
+        await context.resetDockerStepState();
     };
 
     return (
         <div>
-            <ContainerDeploymentHeader
-                headerText={containerDeploymentState.formState.containerName}
-            />
+            <LocalContainersHeader headerText={localContainersState.formState.containerName} />
             <div className={classes.outerDiv}>
                 <div className={classes.stepsDiv}>
                     <div className={classes.stepsHeader}>
-                        {locConstants.containerDeployment.settingUp}{" "}
-                        {containerDeploymentState.formState.containerName}...
+                        {locConstants.localContainers.settingUp}{" "}
+                        {localContainersState.formState.containerName}...
                     </div>
                     <div className={classes.stepsSubheader}>
-                        {locConstants.containerDeployment.gettingContainerReadyForConnection}
+                        {locConstants.localContainers.gettingContainerReadyForConnection}
                     </div>
+                    <StepCard step={localContainersState.dockerSteps[DockerStepOrder.pullImage]} />
                     <StepCard
-                        step={containerDeploymentState.dockerSteps[DockerStepOrder.pullImage]}
+                        step={localContainersState.dockerSteps[DockerStepOrder.startContainer]}
                     />
                     <StepCard
-                        step={containerDeploymentState.dockerSteps[DockerStepOrder.startContainer]}
+                        step={localContainersState.dockerSteps[DockerStepOrder.checkContainer]}
                     />
                     <StepCard
-                        step={containerDeploymentState.dockerSteps[DockerStepOrder.checkContainer]}
-                    />
-                    <StepCard
-                        step={
-                            containerDeploymentState.dockerSteps[DockerStepOrder.connectToContainer]
-                        }
+                        step={localContainersState.dockerSteps[DockerStepOrder.connectToContainer]}
                     />
                     {(stepsErrored || stepsLoaded) && (
                         <div className={classes.buttonDiv}>
@@ -84,7 +79,7 @@ export const ContainerSetupStepsPage: React.FC = () => {
                             )}
                             <Button
                                 className={classes.button}
-                                onClick={() => state.dispose()}
+                                onClick={() => context.dispose()}
                                 appearance={stepsLoaded ? "primary" : "secondary"}>
                                 {stepsLoaded
                                     ? locConstants.common.finish

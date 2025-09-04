@@ -12,10 +12,10 @@ import {
     Dismiss20Regular,
 } from "@fluentui/react-icons";
 import { useContext, useEffect, useState } from "react";
-import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
-import { DockerStep } from "../../../sharedInterfaces/containerDeployment";
-import { locConstants } from "../../common/locConstants";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { DockerStep } from "../../../../sharedInterfaces/localContainers";
+import { locConstants } from "../../../common/locConstants";
+import { DeploymentContext } from "../deploymentStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -61,7 +61,7 @@ interface StepCardProps {
 
 export const StepCard: React.FC<StepCardProps> = ({ step }) => {
     const classes = useStyles();
-    const state = useContext(ContainerDeploymentContext);
+    const context = useContext(DeploymentContext);
     const [expanded, setExpanded] = useState(true);
     // This state is used to track if the step has just errored, and expand then
     const [isNewlyErrored, setIsNewlyErrored] = useState(false);
@@ -69,7 +69,7 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
 
     // If this passes, container deployment state is guaranteed
     // to be defined, so we can reference it as non-null
-    if (!state) {
+    if (!context) {
         return undefined;
     }
 
@@ -78,17 +78,17 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
             setExpanded(true);
             setIsNewlyErrored(true);
         }
-    }, [state.state]);
+    }, [context.state]);
 
     const getStatusIcon = () => {
         if (step.loadState === ApiStatus.NotStarted) {
-            return <Circle20Regular style={{ color: "gray" }} />;
+            return <Circle20Regular style={{ color: tokens.colorNeutralStroke1Pressed }} />;
         }
         if (step.loadState === ApiStatus.Loaded) {
-            return <Checkmark20Regular style={{ color: "green" }} />;
+            return <Checkmark20Regular style={{ color: tokens.colorStatusSuccessBackground3 }} />;
         }
         if (step.loadState === ApiStatus.Error) {
-            return <Dismiss20Regular style={{ color: "red" }} />;
+            return <Dismiss20Regular style={{ color: tokens.colorStatusDangerBackground3 }} />;
         }
         return <Spinner size="tiny" />;
     };
@@ -133,8 +133,8 @@ export const StepCard: React.FC<StepCardProps> = ({ step }) => {
                         {step.fullErrorText && (
                             <a onClick={() => setShowFullErrorText(!showFullErrorText)}>
                                 {showFullErrorText
-                                    ? locConstants.containerDeployment.hideFullErrorMessage
-                                    : locConstants.containerDeployment.showFullErrorMessage}
+                                    ? locConstants.localContainers.hideFullErrorMessage
+                                    : locConstants.localContainers.showFullErrorMessage}
                             </a>
                         )}
                     </div>

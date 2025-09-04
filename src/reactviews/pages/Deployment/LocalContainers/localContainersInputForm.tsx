@@ -4,26 +4,26 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect, useState } from "react";
-import { ContainerDeploymentContext } from "./containerDeploymentStateProvider";
 import { Button, makeStyles, Spinner, tokens } from "@fluentui/react-components";
-import { FormField } from "../../common/forms/form.component";
-import { ContainerSetupStepsPage } from "./containerSetupStepsPage";
+import { FormField } from "../../../common/forms/form.component";
+import { LocalContainersSetupStepsPage } from "./localContainersSetupStepsPage";
 import {
-    ContainerDeploymentContextProps,
-    ContainerDeploymentFormItemSpec,
-    ContainerDeploymentWebviewState,
+    LocalContainersContextProps,
+    LocalContainersFormItemSpec,
+    LocalContainersState,
     DockerConnectionProfile,
-} from "../../../sharedInterfaces/containerDeployment";
+} from "../../../../sharedInterfaces/localContainers";
 import { ChevronDown20Regular, ChevronRight20Regular } from "@fluentui/react-icons";
-import { ContainerDeploymentHeader } from "./containerDeploymentHeader";
-import { locConstants } from "../../common/locConstants";
-import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
+import { LocalContainersHeader } from "./localContainersHeader";
+import { locConstants } from "../../../common/locConstants";
+import { ConnectionGroupDialog } from "../../ConnectionGroup/connectionGroup.component";
 import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
-} from "../../../sharedInterfaces/connectionGroup";
-import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
-import { ApiStatus } from "../../../sharedInterfaces/webview";
+} from "../../../../sharedInterfaces/connectionGroup";
+import { SearchableDropdownOptions } from "../../../common/searchableDropdown.component";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { DeploymentContext } from "../deploymentStateProvider";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -59,15 +59,17 @@ const useStyles = makeStyles({
     },
 });
 
-export const ContainerInputForm: React.FC = () => {
+export const LocalContainersInputForm: React.FC = () => {
     const classes = useStyles();
-    const state = useContext(ContainerDeploymentContext);
+    const context = useContext(DeploymentContext);
     const [showNext, setShowNext] = useState(false);
     const [showAdvancedOptions, setShowAdvanced] = useState(false);
+    const deploymentState = context?.state;
+    const localContainersState = deploymentState?.deploymentTypeState as LocalContainersState;
 
-    if (!state) return undefined;
+    if (!context || !deploymentState || !localContainersState) return undefined;
 
-    const { formComponents } = state.state;
+    const { formComponents } = localContainersState;
     const eulaComponent = Object.values(formComponents).find(
         (component) => component.propertyName === "acceptEula",
     )!;
@@ -96,11 +98,11 @@ export const ContainerInputForm: React.FC = () => {
                     }>
                     <FormField<
                         DockerConnectionProfile,
-                        ContainerDeploymentWebviewState,
-                        ContainerDeploymentFormItemSpec,
-                        ContainerDeploymentContextProps
+                        LocalContainersState,
+                        LocalContainersFormItemSpec,
+                        LocalContainersContextProps
                     >
-                        context={state}
+                        context={context}
                         component={component}
                         idx={index}
                     />
@@ -108,48 +110,52 @@ export const ContainerInputForm: React.FC = () => {
             ));
 
     const handleSubmit = async () => {
-        await state.checkDockerProfile();
+        await context.checkDockerProfile();
     };
 
     useEffect(() => {
-        setShowNext(state.state.isDockerProfileValid);
-    }, [state]);
+        setShowNext(localContainersState.isDockerProfileValid);
+    }, [localContainersState.isDockerProfileValid]);
 
     return showNext ? (
-        <ContainerSetupStepsPage />
+        <LocalContainersSetupStepsPage />
     ) : (
         <div>
-            <ContainerDeploymentHeader
-                headerText={locConstants.containerDeployment.sqlServerContainerHeader}
+            <LocalContainersHeader
+                headerText={locConstants.localContainers.sqlServerContainerHeader}
                 paddingLeft="20px"
             />
             <div className={classes.outerDiv}>
                 <div className={classes.formDiv}>
-                    {state.state.dialog?.type === "createConnectionGroup" && (
+                    {deploymentState.dialog?.type === "createConnectionGroup" && (
                         <ConnectionGroupDialog
-                            state={(state.state.dialog as CreateConnectionGroupDialogProps).props}
-                            saveConnectionGroup={state.createConnectionGroup}
-                            closeDialog={() => state.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
+                            state={
+                                (deploymentState.dialog as CreateConnectionGroupDialogProps).props
+                            }
+                            saveConnectionGroup={context.createConnectionGroup}
+                            closeDialog={() => context.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
                         />
                     )}
                     {renderFormFields(false)}
                     <FormField<
                         DockerConnectionProfile,
-                        ContainerDeploymentWebviewState,
-                        ContainerDeploymentFormItemSpec,
-                        ContainerDeploymentContextProps
+                        LocalContainersState,
+                        LocalContainersFormItemSpec,
+                        LocalContainersContextProps
                     >
-                        context={state}
+                        context={context}
                         component={
-                            state.state.formComponents["groupId"] as ContainerDeploymentFormItemSpec
+                            localContainersState.formComponents[
+                                "groupId"
+                            ] as LocalContainersFormItemSpec
                         }
                         idx={0}
                         componentProps={{
                             onSelect: (option: SearchableDropdownOptions) => {
                                 if (option.value === CREATE_NEW_GROUP_ID) {
-                                    state.setConnectionGroupDialogState(true); // shouldOpen is true when opening the dialog
+                                    context.setConnectionGroupDialogState(true); // shouldOpen is true when opening the dialog
                                 } else {
-                                    state.formAction({
+                                    context.formAction({
                                         propertyName: "groupId",
                                         isAction: false,
                                         value: option.value,
@@ -170,7 +176,7 @@ export const ContainerInputForm: React.FC = () => {
                             appearance="subtle"
                             onClick={() => setShowAdvanced(!showAdvancedOptions)}
                         />
-                        {locConstants.containerDeployment.advancedOptions}
+                        {locConstants.connectionDialog.advancedOptions}
                     </div>
 
                     {showAdvancedOptions && (
@@ -188,17 +194,17 @@ export const ContainerInputForm: React.FC = () => {
                         }}>
                         <FormField<
                             DockerConnectionProfile,
-                            ContainerDeploymentWebviewState,
-                            ContainerDeploymentFormItemSpec,
-                            ContainerDeploymentContextProps
+                            LocalContainersState,
+                            LocalContainersFormItemSpec,
+                            LocalContainersContextProps
                         >
                             key={eulaComponent.propertyName}
-                            context={state}
+                            context={context}
                             component={eulaComponent}
                             idx={0}
                         />
                     </div>
-                    {state.state?.formValidationLoadState === ApiStatus.Loading ? (
+                    {localContainersState.formValidationLoadState === ApiStatus.Loading ? (
                         <Button
                             className={classes.button}
                             type="submit"
@@ -206,7 +212,7 @@ export const ContainerInputForm: React.FC = () => {
                             disabled>
                             <div className={classes.buttonContent}>
                                 <Spinner size="extra-tiny" />
-                                {locConstants.containerDeployment.createContainer}
+                                {locConstants.localContainers.createContainer}
                             </div>
                         </Button>
                     ) : (
@@ -215,7 +221,7 @@ export const ContainerInputForm: React.FC = () => {
                             type="submit"
                             onClick={() => handleSubmit()}
                             appearance="primary">
-                            {locConstants.containerDeployment.createContainer}
+                            {locConstants.localContainers.createContainer}
                         </Button>
                     )}
                 </div>
