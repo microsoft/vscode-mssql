@@ -17,6 +17,7 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { TestExtensionContext } from "./stubs";
 import { activateExtension } from "./utils";
 import StatusView from "../../src/views/statusView";
+import { SchemaCompareEndpointInfo } from "vscode-mssql";
 
 suite("MainController Tests", function () {
     let document: vscode.TextDocument;
@@ -412,6 +413,34 @@ suite("MainController Tests", function () {
                 x.copyConnectionToFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             TypeMoq.Times.never(),
         );
+    });
+
+    test("runComparison command should call onSchemaCompareRunComparison on the controller", async () => {
+        let called = false;
+        let gotSource: SchemaCompareEndpointInfo = undefined;
+        let gotTarget: SchemaCompareEndpointInfo = undefined;
+
+        const originalHandler = (mainController as any).onSchemaCompareRunComparison;
+        (mainController as any).onSchemaCompareRunComparison = async (
+            source?: SchemaCompareEndpointInfo,
+            target?: SchemaCompareEndpointInfo,
+        ) => {
+            called = true;
+            gotSource = source;
+            gotTarget = target;
+        };
+
+        const src = { endpointType: 1, serverName: "srcServer", databaseName: "srcDb" };
+        const tgt = { endpointType: 1, serverName: "tgtServer", databaseName: "tgtDb" };
+
+        await vscode.commands.executeCommand(Constants.cmdSchemaCompareRunComparison, src, tgt);
+
+        assert.equal(called, true, "Expected onSchemaCompareRunComparison to be called");
+        assert.deepStrictEqual(gotSource, src, "Expected source passed through to handler");
+        assert.deepStrictEqual(gotTarget, tgt, "Expected target passed through to handler");
+
+        // restore original handler so the test doesn't leak state and to use the captured originalHandler
+        (mainController as any).onSchemaCompareRunComparison = originalHandler;
     });
 
     function setupConnectionManagerMocks(

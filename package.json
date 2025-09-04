@@ -37,6 +37,7 @@
     ],
     "activationEvents": [
         "onUri",
+        "onCommand:mssql.schemaCompare.runComparison",
         "onCommand:mssql.loadCompletionExtension"
     ],
     "main": "./dist/extension",
@@ -901,6 +902,11 @@
             {
                 "command": "mssql.schemaCompareOpenFromCommandPalette",
                 "title": "%mssql.schemaCompare%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.schemaCompare.runComparison",
+                "title": "Run Schema Comparison",
                 "category": "MS SQL"
             },
             {

@@ -7,7 +7,7 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { IConnectionInfo, IScriptingObject } from "vscode-mssql";
+import { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -1517,6 +1517,19 @@ export default class MainController implements vscode.Disposable {
                 ),
             );
 
+            // Register command to launch schema compare and immediately run comparison (callable by ADS)
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdSchemaCompareRunComparison,
+                    async (
+                        source?: SchemaCompareEndpointInfo,
+                        target?: SchemaCompareEndpointInfo,
+                    ) => {
+                        await this.onSchemaCompareRunComparison(source, target);
+                    },
+                ),
+            );
+
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdEditConnection,
@@ -2609,6 +2622,27 @@ export default class MainController implements vscode.Disposable {
             result,
             SchemaCompare.Title,
         );
+
+        schemaCompareWebView.revealToForeground();
+    }
+
+    public async onSchemaCompareRunComparison(
+        source?: SchemaCompareEndpointInfo,
+        target?: SchemaCompareEndpointInfo,
+    ): Promise<void> {
+        const result = await this.schemaCompareService.schemaCompareGetDefaultOptions();
+        const schemaCompareWebView = new SchemaCompareWebViewController(
+            this._context,
+            this._vscodeWrapper,
+            undefined,
+            this.schemaCompareService,
+            this._connectionMgr,
+            result,
+            SchemaCompare.Title,
+        );
+
+        // Launch with runComparison=true to immediately start the comparison
+        await schemaCompareWebView.launch(source, target, true, undefined);
 
         schemaCompareWebView.revealToForeground();
     }
