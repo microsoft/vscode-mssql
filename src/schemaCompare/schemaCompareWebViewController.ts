@@ -61,7 +61,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
-        node: any,
+        sourceNode: any,
+        targetNode: any,
         private readonly schemaCompareService: mssql.ISchemaCompareService,
         private readonly connectionMgr: ConnectionManager,
         schemaCompareOptionsResult: mssql.SchemaCompareOptionsResult,
@@ -123,11 +124,14 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             `SchemaCompareWebViewController created with operation ID: ${this.operationId} - OperationId: ${this.operationId}`,
         );
 
-        if (node && !this.isTreeNodeInfoType(node)) {
-            node = this.getFullSqlProjectsPathFromNode(node);
+        if (sourceNode && !this.isTreeNodeInfoType(sourceNode)) {
+            sourceNode = this.getFullSqlProjectsPathFromNode(sourceNode);
+        }
+        if (targetNode && !this.isTreeNodeInfoType(targetNode)) {
+            targetNode = this.getFullSqlProjectsPathFromNode(targetNode);
         }
 
-        void this.start(node);
+        void this.start(sourceNode, targetNode);
         this.registerRpcHandlers();
 
         this.registerDisposable(
@@ -171,24 +175,28 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
      * 3. Dacpac
      * 4. Project
      * @param sourceContext can be undefined, connection profile, dacpac, or project.
+     * @param targetContext can be undefined, connection profile, dacpac, or project.
      * @param comparisonResult Result of a previous comparison, if available.
      */
     public async start(
         sourceContext: any,
+        targetContext: any,
         comparisonResult: mssql.SchemaCompareResult = undefined,
     ): Promise<void> {
         this.logger.info(
             `Starting schema comparison with sourceContext type: ${sourceContext ? typeof sourceContext : "undefined"} - OperationId: ${this.operationId}`,
         );
-        let source: mssql.SchemaCompareEndpointInfo;
 
-        const node = sourceContext as TreeNodeInfo;
-        if (node.connectionProfile) {
+        let source: mssql.SchemaCompareEndpointInfo | undefined;
+        let target: mssql.SchemaCompareEndpointInfo | undefined;
+
+        const sourceNode = sourceContext as TreeNodeInfo;
+        if (sourceNode?.connectionProfile) {
             this.logger.verbose(
-                `Using connection profile as source: ${node.connectionProfile.server} - OperationId: ${this.operationId}`,
+                `Using connection profile as source: ${sourceNode.connectionProfile.server} - OperationId: ${this.operationId}`,
             );
             source = await this.getEndpointInfoFromConnectionProfile(
-                node.connectionProfile,
+                sourceNode.connectionProfile,
                 sourceContext,
             );
         } else if (
@@ -209,7 +217,35 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             this.logger.verbose(`No source context provided - OperationId: ${this.operationId}`);
         }
 
-        await this.launch(source, undefined, false, comparisonResult);
+        // Resolve target (same rules as source)
+        const targetNode = targetContext as TreeNodeInfo;
+        if (targetNode?.connectionProfile) {
+            this.logger.verbose(
+                `Using connection profile as target: ${targetNode.connectionProfile.server} - OperationId: ${this.operationId}`,
+            );
+            target = await this.getEndpointInfoFromConnectionProfile(
+                targetNode.connectionProfile,
+                targetContext,
+            );
+        } else if (
+            targetContext &&
+            (targetContext as string) &&
+            (targetContext as string).endsWith(".dacpac")
+        ) {
+            this.logger.verbose(
+                `Using dacpac as target: ${targetContext} - OperationId: ${this.operationId}`,
+            );
+            target = this.getEndpointInfoFromDacpac(targetContext as string);
+        } else if (targetContext) {
+            this.logger.verbose(
+                `Using project as target: ${targetContext} - OperationId: ${this.operationId}`,
+            );
+            target = await this.getEndpointInfoFromProject(targetContext as string);
+        } else {
+            this.logger.verbose(`No target context provided - OperationId: ${this.operationId}`);
+        }
+
+        await this.launch(source, target, false, comparisonResult);
     }
 
     /**
@@ -1552,7 +1588,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                         },
                     );
 
-                    let message: string = "";
+                    let message = "";
                     if (blockingDependencyNames.length > 0) {
                         message = payload.includeRequest
                             ? locConstants.SchemaCompare.cannotIncludeEntryWithBlockingDependency(

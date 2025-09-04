@@ -7,7 +7,7 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
+import { IConnectionInfo, IScriptingObject } from "vscode-mssql";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -1503,8 +1503,18 @@ export default class MainController implements vscode.Disposable {
 
         if (this.isRichExperiencesEnabled) {
             this._context.subscriptions.push(
-                vscode.commands.registerCommand(Constants.cmdSchemaCompare, async (node: any) =>
-                    this.onSchemaCompare(node),
+                vscode.commands.registerCommand(
+                    Constants.cmdSchemaCompare,
+                    async (sourceNode: any, targetNode?: any) => {
+                        // If two args were supplied, wrap into object form so onSchemaCompare(endpoints) receives { source, target }
+                        if (targetNode !== undefined) {
+                            return this.onSchemaCompare({ source: sourceNode, target: targetNode });
+                        }
+
+                        // Otherwise pass through the single argument (it may already be the { source, target } shape,
+                        // a legacy TreeNodeInfo, or undefined).
+                        return this.onSchemaCompare(sourceNode);
+                    },
                 ),
             );
 
@@ -1513,19 +1523,6 @@ export default class MainController implements vscode.Disposable {
                     Constants.cmdSchemaCompareOpenFromCommandPalette,
                     async () => {
                         await this.onSchemaCompare();
-                    },
-                ),
-            );
-
-            // Register command to launch schema compare and immediately run comparison (callable by ADS)
-            this._context.subscriptions.push(
-                vscode.commands.registerCommand(
-                    Constants.cmdSchemaCompareRunComparison,
-                    async (
-                        source?: SchemaCompareEndpointInfo,
-                        target?: SchemaCompareEndpointInfo,
-                    ) => {
-                        await this.onSchemaCompareRunComparison(source, target);
                     },
                 ),
             );
@@ -2611,38 +2608,34 @@ export default class MainController implements vscode.Disposable {
         return await this.newQueryFromPrompt(newDocUri);
     }
 
-    public async onSchemaCompare(node?: any): Promise<void> {
-        const result = await this.schemaCompareService.schemaCompareGetDefaultOptions();
-        const schemaCompareWebView = new SchemaCompareWebViewController(
-            this._context,
-            this._vscodeWrapper,
-            node,
-            this.schemaCompareService,
-            this._connectionMgr,
-            result,
-            SchemaCompare.Title,
-        );
-
-        schemaCompareWebView.revealToForeground();
-    }
-
-    public async onSchemaCompareRunComparison(
-        source?: SchemaCompareEndpointInfo,
-        target?: SchemaCompareEndpointInfo,
+    public async onSchemaCompare(
+        endpoints?: TreeNodeInfo | { source?: any; target?: any },
     ): Promise<void> {
+        // Normalize inputs to sourceNode / targetNode for the controller
+        let sourceNode: any;
+        let targetNode: any;
+
+        if (endpoints && ("source" in endpoints || "target" in endpoints)) {
+            // object-style invocation: allow source/target to be tree node, dacpac, project, or undefined
+            sourceNode = (endpoints as { source?: any }).source;
+            targetNode = (endpoints as { target?: any }).target;
+        } else {
+            // legacy invocation where a TreeNodeInfo (or undefined) is passed directly
+            sourceNode = endpoints as TreeNodeInfo | undefined;
+            targetNode = undefined;
+        }
+
         const result = await this.schemaCompareService.schemaCompareGetDefaultOptions();
         const schemaCompareWebView = new SchemaCompareWebViewController(
             this._context,
             this._vscodeWrapper,
-            undefined,
+            sourceNode,
+            targetNode,
             this.schemaCompareService,
             this._connectionMgr,
             result,
             SchemaCompare.Title,
         );
-
-        // Launch with runComparison=true to immediately start the comparison
-        await schemaCompareWebView.launch(source, target, true, undefined);
 
         schemaCompareWebView.revealToForeground();
     }

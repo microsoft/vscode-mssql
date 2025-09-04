@@ -415,32 +415,43 @@ suite("MainController Tests", function () {
         );
     });
 
-    test("runComparison command should call onSchemaCompareRunComparison on the controller", async () => {
+    test("runComparison command should call onSchemaCompare on the controller", async () => {
         let called = false;
-        let gotSource: SchemaCompareEndpointInfo = undefined;
-        let gotTarget: SchemaCompareEndpointInfo = undefined;
+        let gotMaybeSource: any = undefined;
+        let gotMaybeTarget: any = undefined;
 
-        const originalHandler = (mainController as any).onSchemaCompareRunComparison;
-        (mainController as any).onSchemaCompareRunComparison = async (
-            source?: SchemaCompareEndpointInfo,
-            target?: SchemaCompareEndpointInfo,
+        const originalHandler = (mainController as any).onSchemaCompare;
+        (mainController as any).onSchemaCompare = async (
+            maybeSource?: SchemaCompareEndpointInfo,
+            maybeTarget?: SchemaCompareEndpointInfo,
         ) => {
             called = true;
-            gotSource = source;
-            gotTarget = target;
+            gotMaybeSource = maybeSource;
+            gotMaybeTarget = maybeTarget;
         };
 
         const src = { endpointType: 1, serverName: "srcServer", databaseName: "srcDb" };
         const tgt = { endpointType: 1, serverName: "tgtServer", databaseName: "tgtDb" };
 
-        await vscode.commands.executeCommand(Constants.cmdSchemaCompareRunComparison, src, tgt);
+        await vscode.commands.executeCommand(Constants.cmdSchemaCompare, src, tgt);
 
-        assert.equal(called, true, "Expected onSchemaCompareRunComparison to be called");
-        assert.deepStrictEqual(gotSource, src, "Expected source passed through to handler");
-        assert.deepStrictEqual(gotTarget, tgt, "Expected target passed through to handler");
+        // Normalize in-case the command forwarded a single object { source, target }
+        if (
+            gotMaybeSource &&
+            typeof gotMaybeSource === "object" &&
+            ("source" in gotMaybeSource || "target" in gotMaybeSource)
+        ) {
+            const wrapped = gotMaybeSource as any;
+            gotMaybeSource = wrapped.source;
+            gotMaybeTarget = wrapped.target;
+        }
 
-        // restore original handler so the test doesn't leak state and to use the captured originalHandler
-        (mainController as any).onSchemaCompareRunComparison = originalHandler;
+        assert.equal(called, true, "Expected onSchemaCompare to be called");
+        assert.deepStrictEqual(gotMaybeSource, src, "Expected source passed through to handler");
+        assert.deepStrictEqual(gotMaybeTarget, tgt, "Expected target passed through to handler");
+
+        // restore original handler so the test doesn't leak state
+        (mainController as any).onSchemaCompare = originalHandler;
     });
 
     function setupConnectionManagerMocks(
