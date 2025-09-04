@@ -872,6 +872,14 @@ export class Fabric {
         });
     };
 
+    public static fabricLongRunningApiError = (resultCode: string, error: string) => {
+        return l10n.t({
+            message: "Fabric long-running API error with error code '{0}': {1}",
+            args: [resultCode, error],
+            comment: ["{0} is the error code", "{1} is the error message"],
+        });
+    };
+
     public static fabricAccount = l10n.t("Fabric Account");
     public static fabricAccountIsRequired = l10n.t("Fabric Account is required");
     public static workspace = l10n.t("Workspace");

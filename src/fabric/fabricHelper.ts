@@ -316,19 +316,14 @@ export class FabricHelper {
 
         const result = response.data;
         if (isFabricError(result)) {
-            throw new Error(`Fabric API error occurred (${result.errorCode}): ${result.message}`);
+            throw new Error(Loc.fabricApiError(result.errorCode, result.message));
         }
+
         return result;
     }
 
     /**
      * Polls a long-running Fabric API operation until it completes, then fetches the final result.
-     *
-     * @param retryAfter - Initial retry interval in seconds from the POST response.
-     * @param location - The URL to poll for operation status.
-     * @param httpHelper - HttpHelper instance used to make requests.
-     * @param token - Optional authentication token.
-     * @returns The final response containing the completed operation’s result.
      */
     private static async handleLongRunningOperation<TResponse>(
         retryAfter: string,
@@ -338,7 +333,7 @@ export class FabricHelper {
     ): Promise<AxiosResponse<TResponse, any>> {
         const retryAfterInMs = parseInt(retryAfter, 10) || this.defaultRetryInMs;
 
-        let longRunningResponse;
+        let longRunningResponse: AxiosResponse<IOperationState> | undefined;
         while (
             !longRunningResponse ||
             longRunningResponse.data.status === IOperationStatus.Running ||
@@ -350,7 +345,10 @@ export class FabricHelper {
 
         if (longRunningResponse.data.status === IOperationStatus.Failed) {
             throw new Error(
-                `Fabric API error occurred (${longRunningResponse.status}): ${longRunningResponse.data.error}`,
+                Loc.fabricLongRunningApiError(
+                    longRunningResponse.status.toString(),
+                    longRunningResponse.data.error,
+                ),
             );
         }
 
