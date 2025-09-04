@@ -3773,6 +3773,9 @@
     <trans-unit id="mssql.selectedAzureSubscriptions">
       <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
     </trans-unit>
+    <trans-unit id="mssql.resultsMissingValueColor">
+      <source xml:lang="en">Set the background color to display for missing results (Null)</source>
+    </trans-unit>
     <trans-unit id="mssql.resultsFontFamily">
       <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
     </trans-unit>
