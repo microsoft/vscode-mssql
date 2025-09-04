@@ -44,11 +44,6 @@ export class CredentialStore implements ICredentialStore {
 
         const vscodeCodeCred = await this._secretStorage.get(credentialId);
 
-        if (Utils.isLinux) {
-            cred.password = vscodeCodeCred;
-            return cred;
-        }
-
         // Migrate credentials from sts to vscode secret storage
         if (vscodeCodeCred === undefined) {
             const stsCred = await this._client!.sendRequest(
