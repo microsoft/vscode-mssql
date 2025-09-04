@@ -119,7 +119,7 @@ suite("localContainers logic", () => {
             formState: {
                 containerName: "goodName",
                 port: 1433,
-                password: generateUUID(),
+                password: "Test" + generateUUID(),
                 acceptEula: true,
             } as any,
             formErrors: [] as string[],
