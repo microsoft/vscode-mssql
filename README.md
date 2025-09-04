@@ -161,7 +161,7 @@ The following Visual Studio Code settings are available for the mssql extension.
 {
   "mssql.resultsFontFamily": null,
   "mssql.resultsFontSize": null,
-  "mssql.resultsMissingValueColor": null,
+  "mssql.resultsMissingValueColor": #df85f1ff,
   "mssql.copyIncludeHeaders": false,
   "mssql.copyRemoveNewLine": true,
   "mssql.saveAsCsv.includeHeaders": true,

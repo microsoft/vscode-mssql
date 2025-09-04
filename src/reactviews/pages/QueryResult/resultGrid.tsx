@@ -42,6 +42,7 @@ export interface ResultGridProps {
     gridParentRef?: React.RefObject<HTMLDivElement>;
     linkHandler: (fileContent: string, fileType: string) => void;
     gridId: string;
+    resultsMissingValueColorSetting?: string;
 }
 
 export interface ResultGridHandle {
@@ -215,6 +216,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
                                           DBCellValue.isDBCellValue(value) && value.isNull
                                               ? NULL_CELL_CSS_CLASS
                                               : undefined,
+                                          props.resultsMissingValueColorSetting,
                                       );
                                   }
                               },

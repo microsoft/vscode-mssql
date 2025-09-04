@@ -210,7 +210,7 @@ export const TextView: React.FC<TextViewProps> = ({
     return (
         <div
             className={classes.textViewContainer}
-            style={{ backgroundColor: resultsMissingValueColorSetting || "transparent" }}>
+            style={{ color: resultsMissingValueColorSetting || "inherit" }}>
             {textContent ? (
                 <div className={classes.editorContainer}>
                     <Editor

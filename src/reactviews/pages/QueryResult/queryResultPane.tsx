@@ -352,6 +352,7 @@ export const QueryResultPane = () => {
                         uri={uri}
                         linkHandler={linkHandler}
                         gridId={gridId}
+                        resultsMissingValueColorSetting={resultsMissingValueColor}
                     />
                 )}
 
