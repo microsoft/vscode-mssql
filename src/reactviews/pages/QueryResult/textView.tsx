@@ -42,9 +42,15 @@ export interface TextViewProps {
     uri?: string;
     resultSetSummaries?: { [batchId: number]: { [resultId: number]: qr.ResultSetSummary } };
     fontSettings: qr.FontSettings;
+    resultsMissingValueColorSetting: string | undefined;
 }
 
-export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fontSettings }) => {
+export const TextView: React.FC<TextViewProps> = ({
+    uri,
+    resultSetSummaries,
+    fontSettings,
+    resultsMissingValueColorSetting,
+}) => {
     const classes = useStyles();
     const context = useContext(QueryResultCommandsContext);
     const [textContent, setTextContent] = useState<string>("");
@@ -202,7 +208,9 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
     }
 
     return (
-        <div className={classes.textViewContainer}>
+        <div
+            className={classes.textViewContainer}
+            style={{ backgroundColor: resultsMissingValueColorSetting || "transparent" }}>
             {textContent ? (
                 <div className={classes.editorContainer}>
                     <Editor

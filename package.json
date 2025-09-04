@@ -1607,6 +1607,15 @@
                     "default": null,
                     "scope": "resource"
                 },
+                "mssql.resultsMissingValueColor": {
+                    "type": "string",
+                    "format": "color-hex",
+                    "default": "#00AACC",
+                    "pattern": "^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})$",
+                    "patternErrorMessage": "Use a valid hex like #3498db or #fff.",
+                    "description": "%mssql.resultsMissingValueColor%",
+                    "scope": "resource"
+                },
                 "mssql.saveAsCsv.includeHeaders": {
                     "type": "boolean",
                     "description": "%mssql.saveAsCsv.includeHeaders%",

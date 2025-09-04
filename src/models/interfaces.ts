@@ -166,6 +166,7 @@ export interface IResultsConfig {
     messagesDefaultOpen: boolean;
     resultsFontSize: number;
     resultsFontFamily: string;
+    resultsMissingValueColor: string;
 }
 
 export interface ILogger {
