@@ -56,7 +56,7 @@ export class CredentialStore implements ICredentialStore {
                 cred,
             );
 
-            if (stsCred === undefined) {
+            if (!stsCred?.password) {
                 this._logger.info(
                     `No credential found for id ${credentialId} in either STS or VS Code Secret Storage.`,
                 );
