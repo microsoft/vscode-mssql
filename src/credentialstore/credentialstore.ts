@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as Contracts from "../models/contracts";
-import * as Utils from "../models/utils";
 import { ICredentialStore } from "./icredentialstore";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
