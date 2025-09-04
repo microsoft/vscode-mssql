@@ -159,7 +159,7 @@ export default class ConnectionManager {
         }
 
         if (!this._credentialStore) {
-            this._credentialStore = new CredentialStore(context);
+            this._credentialStore = new CredentialStore(context, this._vscodeWrapper);
         }
 
         if (!this._connectionStore) {

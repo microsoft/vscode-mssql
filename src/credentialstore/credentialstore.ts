@@ -10,6 +10,8 @@ import * as Utils from "../models/utils";
 import { ICredentialStore } from "./icredentialstore";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { Logger } from "../models/logger";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 
 /**
  * Implements a credential storage for Windows, Mac (darwin), or Linux.
@@ -17,15 +19,18 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
  */
 export class CredentialStore implements ICredentialStore {
     private _secretStorage: vscode.SecretStorage;
+    private _logger: Logger;
 
     constructor(
         private _context: vscode.ExtensionContext,
+        private _vscodeWrapper: VscodeWrapper,
         private _client?: SqlToolsServerClient,
     ) {
         if (!this._client) {
             this._client = SqlToolsServerClient.instance;
         }
         this._secretStorage = this._context.secrets;
+        this._logger = Logger.create(this._vscodeWrapper.outputChannel, "CredentialStore");
     }
 
     /**
@@ -48,6 +53,9 @@ export class CredentialStore implements ICredentialStore {
 
         // Migrate credentials from sts to vscode secret storage
         if (vscodeCodeCred === undefined && stsCred.password) {
+            this._logger.info(
+                `Migrating credential for id ${credentialId} from STS to VS Code Secret Storage.`,
+            );
             sendActionEvent(TelemetryViews.Credential, TelemetryActions.ReadCredential, {
                 migrated: "true",
             });
@@ -55,7 +63,9 @@ export class CredentialStore implements ICredentialStore {
             await this._client!.sendRequest(Contracts.DeleteCredentialRequest.type, cred);
             return stsCred;
         }
-
+        this._logger.info(
+            `Retrieved credential for id ${credentialId} from VS Code Secret Storage.`,
+        );
         cred.password = vscodeCodeCred;
         return cred;
     }

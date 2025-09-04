@@ -9,6 +9,7 @@ import * as Contracts from "../../src/models/contracts";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import { ICredentialStore } from "../../src/credentialstore/icredentialstore";
+import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 suite("Credential Store Tests", () => {
     let client: TypeMoq.IMock<SqlToolsServiceClient>;
@@ -27,7 +28,11 @@ suite("Credential Store Tests", () => {
         client
             .setup((c) => c.sendRequest(Contracts.DeleteCredentialRequest.type, TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(undefined));
-        credentialStore = new CredentialStore(mockContext.object, client.object);
+        credentialStore = new CredentialStore(
+            mockContext.object,
+            TypeMoq.Mock.ofType<VscodeWrapper>().object,
+            client.object,
+        );
     });
 
     test("Read credential should send a ReadCredentialRequest", () => {
