@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import { NotificationHandler, RequestType } from "vscode-languageclient";
-import { ConnectionDetails, IConnectionInfo, IServerInfo } from "vscode-mssql";
+import { ConnectionDetails, IConnectionInfo, IServerInfo, IToken } from "vscode-mssql";
 import { AccountService } from "../azure/accountService";
 import { AccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
@@ -19,7 +19,12 @@ import SqlToolsServerClient from "../languageservice/serviceclient";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { ConnectionStore } from "../models/connectionStore";
-import { IAccount } from "../models/contracts/azure";
+import {
+    IAccount,
+    RequestSecurityTokenParams,
+    RequestSecurityTokenResponse,
+    SecurityTokenRequest,
+} from "../models/contracts/azure";
 import * as ConnectionContracts from "../models/contracts/connection";
 import { ClearPooledConnectionsRequest, ConnectionSummary } from "../models/contracts/connection";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
@@ -33,6 +38,7 @@ import StatusView from "../views/statusView";
 import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { DatabaseObjectSearchService } from "../services/databaseObjectSearchService";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
@@ -107,6 +113,7 @@ export default class ConnectionManager {
     >;
     private _failedUriToFirewallIpMap: Map<string, ConnectionContracts.ConnectionCompleteParams>;
     private _failedUriToSSLMap: Map<string, string>;
+    private _keyVaultTokenCache: Map<string, IToken> = new Map<string, IToken>();
     private _accountService: AccountService;
     private _firewallService: FirewallService;
     public azureController: AzureController;
@@ -160,7 +167,7 @@ export default class ConnectionManager {
         }
 
         if (!this._accountStore) {
-            this._accountStore = new AccountStore(context, this._logger);
+            this._accountStore = new AccountStore(context, this.vscodeWrapper);
         }
 
         if (!this._connectionUI) {
@@ -215,8 +222,11 @@ export default class ConnectionManager {
                 LanguageServiceContracts.NonTSqlNotification.type,
                 this.handleNonTSqlNotification(),
             );
+            this.client.onRequest(
+                SecurityTokenRequest.type,
+                this.handleSecurityTokenRequest.bind(this),
+            );
         }
-
         void this.initialize();
     }
 
@@ -575,16 +585,7 @@ export default class ConnectionManager {
             let connection = self.getConnectionInfo(fileUri);
             connection.connecting = false;
 
-            let mruConnection: IConnectionInfo = <any>{};
-
             if (Utils.isNotEmpty(result.connectionId)) {
-                // Use the original connection information to save the MRU connection.
-                // for connections that a database is not provided, the database information will be updated
-                // to the default database name, if we use the new information as the MRU connection,
-                // the connection information will be different from the saved connections (saved connection's database property is empty).
-                // When deleting the saved connection, we won't be able to find its corresponding recent connection,
-                // and the saved connection credentials will become orphaned.
-                mruConnection = Utils.deepClone(connection.credentials);
                 // Convert to credentials if it's a connection string based connection
                 if (connection.credentials.connectionString) {
                     connection.credentials = await this.populateCredentialsFromConnectionString(
@@ -606,9 +607,13 @@ export default class ConnectionManager {
                 );
                 if (result.connectionSummary && result.connectionSummary.databaseName) {
                     newCredentials.database = result.connectionSummary.databaseName;
-                    mruConnection.database = result.connectionSummary.databaseName;
                 }
                 self.handleConnectionSuccess(fileUri, connection, newCredentials, result);
+
+                await this.handlePasswordStorageOnConnect(
+                    connection.credentials as IConnectionProfile,
+                );
+
                 const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
                 if (promise) {
                     promise.resolve(true);
@@ -620,7 +625,6 @@ export default class ConnectionManager {
                     self._uriToConnectionCompleteParamsMap.delete(result.ownerUri);
                 }
             } else {
-                mruConnection = undefined;
                 const promise = self._uriToConnectionPromiseMap.get(result.ownerUri);
                 if (promise) {
                     if (result.errorMessage) {
@@ -640,7 +644,7 @@ export default class ConnectionManager {
                 await self.handleConnectionErrors(fileUri, connection, result);
             }
 
-            await self.tryAddMruConnection(connection, mruConnection);
+            await self.tryAddMruConnection(connection);
         };
     }
 
@@ -832,12 +836,13 @@ export default class ConnectionManager {
         return updatedConn;
     }
 
-    private async tryAddMruConnection(
-        connection: ConnectionInfo,
-        newConnection: IConnectionInfo,
-    ): Promise<void> {
-        if (newConnection) {
-            let connectionToSave: IConnectionInfo = Object.assign({}, newConnection);
+    /**
+     * Tries to add a connection to the list of most recently used connections. It saves the original credentials used to create the connection.
+     * @param connection The original connection returned from the connect operation. It could be null if the connection operation was not successful.
+     */
+    private async tryAddMruConnection(connection: ConnectionInfo): Promise<void> {
+        if (connection?.credentials) {
+            let connectionToSave: IConnectionInfo = Object.assign({}, connection.credentials);
             try {
                 await this._connectionStore.addRecentlyUsed(connectionToSave);
                 connection.connectHandler(true);
@@ -1036,6 +1041,13 @@ export default class ConnectionManager {
                 this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgDisconnected(fileUri));
             }
 
+            // Free any search metadata cached for this connection
+            try {
+                DatabaseObjectSearchService.clearCache(fileUri);
+            } catch {
+                // best-effort cleanup; ignore errors
+            }
+
             this.removeActiveConnection(fileUri);
             vscode.commands.executeCommand("setContext", "mssql.connections", this._connections);
             return result;
@@ -1210,7 +1222,7 @@ export default class ConnectionManager {
         let profile: ConnectionProfile;
 
         if (connectionInfo.accountId) {
-            account = this.accountStore.getAccount(connectionInfo.accountId);
+            account = await this.accountStore.getAccount(connectionInfo.accountId);
             profile = new ConnectionProfile(connectionInfo);
         } else {
             throw new Error(LocalizedConstants.cannotConnect);
@@ -1268,10 +1280,7 @@ export default class ConnectionManager {
             // show password prompt if SQL Login and password isn't saved
             let password = connectionCreds.password;
             if (Utils.isEmpty(password)) {
-                if ((connectionCreds as IConnectionProfile).savePassword) {
-                    password = await this.connectionStore.lookupPassword(connectionCreds);
-                }
-
+                password = await this.connectionStore.lookupPassword(connectionCreds);
                 if (!password) {
                     password = await this.connectionUI.promptForPassword();
                     if (!password) {
@@ -1286,6 +1295,15 @@ export default class ConnectionManager {
             }
         }
         return true;
+    }
+
+    /**
+     * Saves password for the connection profile on successful connection.
+     * NOTE: To be only called when the connection is successful.
+     * @param profile Profile to save password for
+     */
+    public async handlePasswordStorageOnConnect(profile: IConnectionProfile): Promise<void> {
+        await this.connectionStore.saveProfilePasswordIfNeeded(profile);
     }
 
     /**
@@ -1635,7 +1653,7 @@ export default class ConnectionManager {
     public async removeAccount(prompter: IPrompter): Promise<void> {
         // list options for accounts to remove
         let questions: IQuestion[] = [];
-        let azureAccountChoices = ConnectionProfile.getAccountChoices(this._accountStore);
+        let azureAccountChoices = await ConnectionProfile.getAccountChoices(this._accountStore);
 
         if (azureAccountChoices.length > 0) {
             questions.push({
@@ -1649,9 +1667,9 @@ export default class ConnectionManager {
                 if (answers?.account) {
                     try {
                         if (answers.account.key) {
-                            this._accountStore.removeAccount(answers.account.key.id);
+                            await this._accountStore.removeAccount(answers.account.key.id);
                         } else {
-                            await this._accountStore.pruneAccounts();
+                            await this._accountStore.pruneInvalidAccounts();
                         }
                         void this.azureController.removeAccount(answers.account);
                         this.vscodeWrapper.showInformationMessage(
@@ -1780,4 +1798,170 @@ export default class ConnectionManager {
             return "error";
         }
     }
+
+    /**
+     * Get the connection info for a given file URI
+     * @param uri The file URI
+     * @returns The connection info or undefined if not found
+     */
+    public getConnectionInfoFromUri(uri: string): IConnectionInfo | undefined {
+        if (this._connections[uri]) {
+            return this._connections[uri].credentials;
+        }
+        return undefined;
+    }
+
+    private async handleSecurityTokenRequest(
+        params: RequestSecurityTokenParams,
+    ): Promise<RequestSecurityTokenResponse> {
+        if (this._keyVaultTokenCache.has(JSON.stringify(params))) {
+            const token = this._keyVaultTokenCache.get(JSON.stringify(params));
+            const isExpired = AzureController.isTokenExpired(token.expiresOn);
+            if (!isExpired) {
+                return {
+                    accountKey: token.key,
+                    token: token.token,
+                };
+            } else {
+                this._keyVaultTokenCache.delete(JSON.stringify(params));
+            }
+        }
+        const account = await this.selectAccount();
+        const tenant = await this.selectTenantId(account);
+
+        const token = await this.azureController.getAccountSecurityToken(
+            account,
+            tenant,
+            providerSettings.resources.azureKeyVaultResource,
+        );
+
+        this._keyVaultTokenCache.set(JSON.stringify(params), token);
+
+        return {
+            accountKey: token.key,
+            token: token.token,
+        };
+    }
+
+    private async selectAccount(): Promise<IAccount> {
+        const activeEditorConnection =
+            this._connections[this._vscodeWrapper.activeTextEditorUri]?.credentials;
+        const currentAccountId = activeEditorConnection?.accountId;
+        const accounts = await this._accountStore.getAccounts();
+
+        const quickPickItems = this.createAccountQuickPickItems(accounts, currentAccountId);
+        const selectedAccount = await this.showAccountQuickPick(quickPickItems);
+
+        if (!selectedAccount) {
+            throw new Error(LocalizedConstants.Connection.noAccountSelected);
+        }
+
+        return selectedAccount;
+    }
+
+    private createAccountQuickPickItems(
+        accounts: IAccount[],
+        currentAccountId?: string,
+    ): AccountQuickPickItem[] {
+        const accountItems: AccountQuickPickItem[] = accounts.map((account) => ({
+            label:
+                account.key.id === currentAccountId
+                    ? LocalizedConstants.Connection.currentAccount(account.displayInfo.name)
+                    : account.displayInfo.name,
+            description: account.displayInfo.email,
+            account,
+        }));
+
+        accountItems.push({
+            label: LocalizedConstants.Connection.signInToAzure,
+            description: LocalizedConstants.Connection.signInToAzure,
+            account: undefined,
+        });
+
+        return accountItems;
+    }
+
+    private async showAccountQuickPick(
+        items: AccountQuickPickItem[],
+    ): Promise<IAccount | undefined> {
+        const account = await new Promise<IAccount | undefined>((resolve, reject) => {
+            const quickPick = vscode.window.createQuickPick<AccountQuickPickItem>();
+            quickPick.items = items;
+            quickPick.placeholder = LocalizedConstants.Connection.SelectAccountForKeyVault;
+
+            quickPick.onDidAccept(async () => {
+                try {
+                    const selectedItem = quickPick.selectedItems[0];
+                    if (!selectedItem) {
+                        resolve(undefined);
+                        return;
+                    }
+
+                    const account = selectedItem.account;
+                    quickPick.dispose();
+                    resolve(account);
+                } catch (error) {
+                    quickPick.dispose();
+                    reject(error);
+                }
+            });
+            quickPick.show();
+        });
+        return account;
+    }
+
+    private async selectTenantId(account: IAccount): Promise<string> {
+        if (account.properties?.tenants?.length === 1) {
+            return account.properties.tenants[0].id;
+        }
+        const tenantItems = account.properties.tenants.map((tenant) => ({
+            label: tenant.displayName,
+            description: tenant.id,
+            tenant: tenant.id,
+        }));
+
+        const selectedTenant = await this.showTenantQuickPick(tenantItems);
+        if (!selectedTenant) {
+            throw new Error(LocalizedConstants.Connection.NoTenantSelected);
+        }
+
+        return selectedTenant;
+    }
+
+    private async showTenantQuickPick(items: TenantQuickPickItem[]): Promise<string | undefined> {
+        return new Promise((resolve, reject) => {
+            const quickPick = vscode.window.createQuickPick<TenantQuickPickItem>();
+            quickPick.items = items;
+            quickPick.placeholder = LocalizedConstants.Connection.SelectTenant;
+
+            quickPick.onDidAccept(() => {
+                const selectedItem = quickPick.selectedItems[0];
+                if (selectedItem) {
+                    quickPick.dispose();
+                    resolve(selectedItem.tenant);
+                } else {
+                    quickPick.dispose();
+                    resolve(undefined);
+                }
+            });
+
+            quickPick.onDidHide(() => {
+                quickPick.dispose();
+            });
+
+            quickPick.show();
+        });
+    }
+}
+
+interface AccountQuickPickItem {
+    label: string;
+    description: string;
+    account?: IAccount;
+}
+
+interface TenantQuickPickItem {
+    label: string;
+    description: string;
+    tenant: string; // Replace with proper tenant type
 }

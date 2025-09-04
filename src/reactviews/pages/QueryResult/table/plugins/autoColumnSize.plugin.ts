@@ -5,14 +5,10 @@
 
 // Adapted from https://github.com/naresh-n/slickgrid-column-data-autosize/blob/master/src/slick.autocolumnsize.js
 
-import {
-    QueryResultWebviewState,
-    QueryResultReducers,
-} from "../../../../../sharedInterfaces/queryResult";
 import { TelemetryActions, TelemetryViews } from "../../../../../sharedInterfaces/telemetry";
 import { WebviewTelemetryActionEvent } from "../../../../../sharedInterfaces/webview";
 import { deepClone } from "../../../../common/utils";
-import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
+import { QueryResultReactProvider } from "../../queryResultStateProvider";
 import { mixin } from "../objects";
 import { MAX_COLUMN_WIDTH_PX } from "../table";
 
@@ -39,10 +35,9 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
 
     constructor(
         options: IAutoColumnSizeOptions = defaultOptions,
-        private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>,
+        private _qrContext: QueryResultReactProvider,
     ) {
         this._options = mixin(options, defaultOptions, false);
-        this.webViewState = webViewState;
     }
 
     public init(grid: Slick.Grid<T>) {
@@ -187,13 +182,24 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
         if (end < NUM_COLUMNS_TO_SCAN) {
             end = Math.min(NUM_COLUMNS_TO_SCAN, dataLength);
         }
+
+        // Early return if no data available in the range
+        if (start >= end || dataLength === 0) {
+            return columnDefs.map(() => 100); // Return default width
+        }
+
         let allTexts: Array<string>[] = [];
         let rowElements: JQuery[] = [];
 
         columnDefs.forEach((columnDef) => {
             let texts: Array<string> = [];
             for (let i = start; i < end; i++) {
-                texts.push(data.getItem(i)[columnDef.field!]);
+                const item = data.getItem(i);
+                if (item && columnDef.field) {
+                    texts.push(item[columnDef.field] || "");
+                } else {
+                    texts.push("");
+                }
             }
             allTexts.push(texts);
             let rowEl = this.createRow();
@@ -228,7 +234,12 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
         let start = Math.max(0, viewPort.top);
         let end = Math.min(dataLength, viewPort.bottom);
         for (let i = start; i < end; i++) {
-            texts.push(data.getItem(i)[columnDef.field!]);
+            const item = data.getItem(i);
+            if (item && columnDef.field) {
+                texts.push(item[columnDef.field] || "");
+            } else {
+                texts.push("");
+            }
         }
         // adding -1 for column since this is a single column resize
         let template = this.getMaxTextTemplate(texts, columnDef, colIndex, data, rowEl, -1);
@@ -289,12 +300,17 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
         texts.forEach((text, index) => {
             let template;
             if (formatFun) {
-                template = jQuery(
-                    "<span>" +
-                        formatFun(index, colIndex, text, columnDef, data.getItem(index)) +
-                        "</span>",
-                );
-                text = template.text() || text;
+                const item = data.getItem(index);
+                if (item) {
+                    template = jQuery(
+                        "<span>" + formatFun(index, colIndex, text, columnDef, item) + "</span>",
+                    );
+                    text = template.text() || text;
+                } else {
+                    // If item is undefined, use the raw text
+                    template = jQuery("<span>" + (text || "") + "</span>");
+                    text = template.text() || text;
+                }
             }
             let length = text ? this.getElementWidthUsingCanvas(rowEl, text) : 0;
             if (length > max) {
@@ -313,7 +329,7 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
                 columns: numColumns,
             },
         };
-        this.webViewState.extensionRpc.sendActionEvent(telemetryEvent);
+        this._qrContext.sendActionEvent(telemetryEvent);
         return maxTemplate!;
     }
 

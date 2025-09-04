@@ -1,5 +1,39 @@
 # Change Log
 
+## Version 1.35.0
+* Release date: August 20, 2025
+* Release status: GA
+### What’s new in 1.35.0
+* Released general availability of Schema Designer, Schema Compare, and Local SQL Server Container
+* Fixed an issue where Microsoft Entra ID sign-in in the Connection Dialog could result in empty account or tenant dropdowns
+* Improved performance and usability of query results grid, including fixes for export and display bugs
+* Added Text View mode for result sets to display results as plain text.
+* Added support to temporarily remember SQL Auth passwords for the session until VS Code is restarted
+* Improved localization in Object Explorer and other UI components
+* Fixed multiple accessibility issues affecting error messages and visual feedback across the UI
+* Fixed edge case issues where GitHub Copilot Agent responses could misbehave when switching database connections
+
+## Version 1.34.1
+* Release date: August 13, 2025
+* Release status: GA
+### What’s new in 1.34.1
+* Fixed bug in GitHub Copilot Ask Mode related to explicit GPT-4o model selection
+* Fixed bug in Local Container Deployment where Apple Silicon Mac users may be unable to pull SQL Server images
+
+## Version 1.34.0
+* Release date: July 23, 2025
+* Release status: GA
+### What’s new in 1.34.0
+* Expanded GitHub Copilot Agent Mode to support running T-SQL queries, listing database objects, switching databases, and retrieving connection details
+* Fixed GitHub Copilot chat participant repeating previous prompts when switching database connections
+* Added connection group support to Local SQL Server container wizard
+* Fixed missing key icons for foreign keys and improved filter behavior to reflect table relationships in Schema Designer
+* Enhanced connection status bar with optional group-based coloring and configurable length — Thanks to @bathetrade for the configurable length contribution!
+* Added connection-sharing permissions API for other VS Code extensions that wish to use MSSQL connections
+* Added support for multiple Azure account sign-in to browsing Azure and firewall rule management dialogs
+* Fixed an issue where Always Encrypted columns protected by AKV-based master keys could not be queried
+* Fixed several accessibility issues in the connection dialog, schema designer, and schema compare features
+
 ## Version 1.33.0
 * Release date: June 18, 2025
 * Release status: GA

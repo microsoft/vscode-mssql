@@ -29,7 +29,7 @@ import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { locConstants as loc } from "../../../common/locConstants";
 import {
     SchemaCompareEndpointType,
-    SharedExtractTarget,
+    ExtractTarget,
 } from "../../../../sharedInterfaces/schemaCompare";
 
 const useStyles = makeStyles({
@@ -79,15 +79,15 @@ function extractTargetTypeToString(extractTarget: number | undefined): string {
     }
 
     switch (extractTarget) {
-        case SharedExtractTarget.file:
+        case ExtractTarget.file:
             return "File";
-        case SharedExtractTarget.flat:
+        case ExtractTarget.flat:
             return "Flat";
-        case SharedExtractTarget.objectType:
+        case ExtractTarget.objectType:
             return "Object Type";
-        case SharedExtractTarget.schema:
+        case ExtractTarget.schema:
             return "Schema";
-        case SharedExtractTarget.schemaObjectType:
+        case ExtractTarget.schemaObjectType:
         default:
             return "Schema/Object Type";
     }
@@ -119,9 +119,7 @@ const SchemaSelectorDrawer = (props: Props) => {
     );
     const [databaseName, setDatabaseName] = useState(currentEndpoint?.databaseName || "");
     const [folderStructure, setFolderStructure] = useState(
-        extractTargetTypeToString(
-            currentEndpoint?.extractTarget || SharedExtractTarget.schemaObjectType,
-        ),
+        extractTargetTypeToString(currentEndpoint?.extractTarget || ExtractTarget.schemaObjectType),
     );
 
     const fileId = useId("file");
@@ -149,6 +147,25 @@ const SchemaSelectorDrawer = (props: Props) => {
     useEffect(() => {
         updateOkButtonState(schemaType);
     }, [context.state.auxiliaryEndpointInfo, serverConnectionUri, databaseName]);
+
+    // Handle auto-selection of newly created connections
+    useEffect(() => {
+        if (currentEndpoint?.ownerUri && currentEndpoint?.databaseName) {
+            // Update local state when endpoint info changes (e.g., from auto-selection)
+            if (serverConnectionUri !== currentEndpoint.ownerUri) {
+                setServerConnectionUri(currentEndpoint.ownerUri);
+                setServerName(currentEndpoint.connectionName || currentEndpoint.serverName || "");
+            }
+            if (databaseName !== currentEndpoint.databaseName) {
+                setDatabaseName(currentEndpoint.databaseName);
+            }
+        }
+    }, [
+        currentEndpoint?.ownerUri,
+        currentEndpoint?.databaseName,
+        currentEndpoint?.connectionName,
+        currentEndpoint?.serverName,
+    ]);
 
     const drawerTitle =
         props.endpointType === "source"
@@ -295,9 +312,10 @@ const SchemaSelectorDrawer = (props: Props) => {
                             <Button
                                 className={classes.buttonLeftMargin}
                                 size="large"
+                                aria-label={loc.schemaCompare.addServerConnection}
                                 icon={<PlugDisconnectedRegular />}
                                 onClick={() => {
-                                    context.openAddNewConnectionDialog();
+                                    context.openAddNewConnectionDialog(props.endpointType);
                                 }}
                             />
                         </div>

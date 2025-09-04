@@ -222,7 +222,7 @@ export async function completeFormComponents(
 
     components["accountId"] = {
         propertyName: "accountId",
-        label: Loc.azureAccount,
+        label: Loc.microsoftAccount,
         required: true,
         type: FormItemType.Dropdown,
         options: azureAccountOptions,
@@ -235,7 +235,7 @@ export async function completeFormComponents(
             ) {
                 return {
                     isValid: false,
-                    validationMessage: Loc.azureAccountIsRequired,
+                    validationMessage: Loc.microsoftAccountIsRequired,
                 };
             }
             return {
@@ -282,7 +282,7 @@ export async function completeFormComponents(
 
     // add missing validation functions for generated components
     components["server"].validate = (state: ConnectionDialogWebviewState, value: string) => {
-        if (state.connectionProfile.authenticationType === AuthenticationType.SqlLogin && !value) {
+        if (!value) {
             return {
                 isValid: false,
                 validationMessage: Loc.serverIsRequired,

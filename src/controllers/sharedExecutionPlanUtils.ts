@@ -9,7 +9,7 @@ import {
     ExecutionPlanGraphInfo,
     ExecutionPlanReducers,
     ExecutionPlanWebviewState,
-} from "../sharedInterfaces/executionPlanInterfaces";
+} from "../sharedInterfaces/executionPlan";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
 import * as vscode from "vscode";
@@ -36,7 +36,10 @@ export async function saveExecutionPlan(
 
     if (saveUri) {
         // Write the content to the new file
-        void vscode.workspace.fs.writeFile(saveUri, Buffer.from(payload.sqlPlanContent));
+        void vscode.workspace.fs.writeFile(
+            saveUri,
+            new TextEncoder().encode(payload.sqlPlanContent),
+        );
         sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.SavePlan);
     }
 

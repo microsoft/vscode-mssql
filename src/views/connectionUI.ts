@@ -121,7 +121,7 @@ export class ConnectionUI {
 
     public promptLanguageFlavor(): Promise<string> {
         const self = this;
-        return new Promise<string>((resolve, reject) => {
+        return new Promise<string>(async (resolve, reject) => {
             let picklist: ISqlProviderItem[] = [
                 {
                     label: LocalizedConstants.mssqlProviderName,
@@ -134,19 +134,18 @@ export class ConnectionUI {
                     providerId: constants.noneProviderName,
                 },
             ];
-            self.promptItemChoice(
+            const selection = await self.promptItemChoice(
                 {
                     placeHolder: LocalizedConstants.flavorChooseLanguage,
                     matchOnDescription: true,
                 },
                 picklist,
-            ).then((selection) => {
-                if (selection) {
-                    resolve(selection.providerId);
-                } else {
-                    resolve(undefined);
-                }
-            });
+            );
+            if (selection) {
+                resolve(selection.providerId);
+            } else {
+                resolve(undefined);
+            }
         });
     }
 
@@ -235,37 +234,22 @@ export class ConnectionUI {
         });
     }
 
-    /**
-     * Prompt the user to change language mode to SQL.
-     * @returns resolves to true if the user changed the language mode to SQL.
-     */
-    public promptToChangeLanguageMode(): Promise<boolean> {
-        const self = this;
-        return new Promise<boolean>((resolve, reject) => {
-            let question: IQuestion = {
-                type: QuestionTypes.confirm,
-                name: LocalizedConstants.msgChangeLanguageMode,
-                message: LocalizedConstants.msgChangeLanguageMode,
-            };
-            self._prompter
-                .promptSingle(question)
-                .then((value) => {
-                    if (value) {
-                        this._vscodeWrapper
-                            .executeCommand("workbench.action.editor.changeLanguageMode")
-                            .then(() => {
-                                self.waitForLanguageModeToBeSql().then((result) => {
-                                    resolve(result);
-                                });
-                            });
-                    } else {
-                        resolve(false);
-                    }
-                })
-                .catch((err) => {
-                    resolve(false);
-                });
-        });
+    public async promptToChangeLanguageMode(): Promise<boolean> {
+        let question: IQuestion = {
+            type: QuestionTypes.confirm,
+            name: LocalizedConstants.msgChangeLanguageMode,
+            message: LocalizedConstants.msgChangeLanguageMode,
+        };
+
+        const value = await this._prompter.promptSingle(question);
+
+        if (value) {
+            await this._vscodeWrapper.executeCommand("workbench.action.editor.changeLanguageMode");
+            const result = await this.waitForLanguageModeToBeSql();
+            return result;
+        } else {
+            return false;
+        }
     }
 
     // Helper to let the user choose a database on the current server
@@ -453,34 +437,34 @@ export class ConnectionUI {
                 name: LocalizedConstants.ManageProfilesPrompt,
                 message: LocalizedConstants.ManageProfilesPrompt,
                 choices: choices,
-                onAnswered: (value) => {
+                onAnswered: async (value) => {
                     switch (value) {
                         case ManageProfileTask.Create:
-                            self.connectionManager.onCreateProfile().then((result) => {
-                                resolve(result);
-                            });
+                            const result = await self.connectionManager.onCreateProfile();
+                            resolve(result);
                             break;
                         case ManageProfileTask.ClearRecentlyUsed:
-                            self.promptToClearRecentConnectionsList().then((result) => {
+                            try {
+                                const result = await self.promptToClearRecentConnectionsList();
                                 if (result) {
-                                    self.connectionManager
-                                        .clearRecentConnectionsList()
-                                        .then((credentialsDeleted) => {
-                                            if (credentialsDeleted) {
-                                                self.vscodeWrapper.showInformationMessage(
-                                                    LocalizedConstants.msgClearedRecentConnections,
-                                                );
-                                            } else {
-                                                self.vscodeWrapper.showWarningMessage(
-                                                    LocalizedConstants.msgClearedRecentConnectionsWithErrors,
-                                                );
-                                            }
-                                            resolve(true);
-                                        });
+                                    const credentialsDeleted =
+                                        await self.connectionManager.clearRecentConnectionsList();
+                                    if (credentialsDeleted) {
+                                        self.vscodeWrapper.showInformationMessage(
+                                            LocalizedConstants.msgClearedRecentConnections,
+                                        );
+                                    } else {
+                                        self.vscodeWrapper.showWarningMessage(
+                                            LocalizedConstants.msgClearedRecentConnectionsWithErrors,
+                                        );
+                                    }
+                                    resolve(true);
                                 } else {
                                     resolve(false);
                                 }
-                            });
+                            } catch (error) {
+                                reject(error);
+                            }
                             break;
                         case ManageProfileTask.Edit:
                             self.vscodeWrapper
@@ -490,9 +474,8 @@ export class ConnectionUI {
                                 });
                             break;
                         case ManageProfileTask.Remove:
-                            self.connectionManager.onRemoveProfile().then((result) => {
-                                resolve(result);
-                            });
+                            const removeProfileResult = self.connectionManager.onRemoveProfile();
+                            resolve(removeProfileResult);
                             break;
                         default:
                             resolve(false);
@@ -501,7 +484,7 @@ export class ConnectionUI {
                 },
             };
 
-            this._prompter.promptSingle(question);
+            void this._prompter.promptSingle(question);
         });
     }
 
@@ -638,7 +621,7 @@ export class ConnectionUI {
             // TODO: Access account which firewall error needs to be added from:
             // Try to match accountId to an account in account storage
             if (profile.accountId) {
-                let account = this._accountStore.getAccount(profile.accountId);
+                let account = await this._accountStore.getAccount(profile.accountId);
                 this.connectionManager.accountService.setAccount(account);
                 // take that account from account storage and refresh tokens and create firewall rule
             } else {
@@ -655,7 +638,7 @@ export class ConnectionUI {
                             providerSettings.resources.azureManagementResource,
                         );
                 }
-                let account = this._accountStore.getAccount(profile.accountId);
+                let account = await this._accountStore.getAccount(profile.accountId);
                 this.connectionManager.accountService.setAccount(account!);
             }
 
@@ -816,7 +799,7 @@ export class ConnectionUI {
             );
         }
 
-        let azureAccountChoices: INameValueChoice[] = ConnectionProfile.getAccountChoices(
+        let azureAccountChoices: INameValueChoice[] = await ConnectionProfile.getAccountChoices(
             this._accountStore,
         );
         let tenantChoices: INameValueChoice[] = [];

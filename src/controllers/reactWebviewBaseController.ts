@@ -10,6 +10,7 @@ import {
     ColorThemeChangeNotification,
     ExecuteCommandParams,
     ExecuteCommandRequest,
+    GetEOLRequest,
     GetLocalizationRequest,
     GetPlatformRequest,
     GetStateRequest,
@@ -46,7 +47,7 @@ import {
     RequestType,
 } from "vscode-jsonrpc/node";
 import { MessageReader } from "vscode-languageclient";
-
+import os from "os";
 class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
     private _disposables: vscode.Disposable[] = [];
@@ -65,8 +66,8 @@ class WebviewControllerMessageReader extends AbstractMessageReader implements Me
 
         if (webview) {
             const disposable = this._webview.onDidReceiveMessage((event) => {
-                this.logger.verbose("Message received from webview", event);
                 const { method, error } = event as any;
+                this.logger.verbose(`Message received from webview: ${method}`);
                 sendActionEvent(
                     TelemetryViews.WebviewController,
                     TelemetryActions.ReceivedFromWebview,
@@ -98,9 +99,9 @@ class WebviewControllerMessageWriter extends AbstractMessageWriter implements Me
     }
     write(msg: Message): Promise<void> {
         if (this._webview) {
-            this.logger.verbose("Sending message to webview", msg);
-            this._webview.postMessage(msg);
             const { method, error } = msg as any;
+            this.logger.verbose(`Sending message to webview: ${method}`);
+            this._webview.postMessage(msg);
             sendActionEvent(TelemetryViews.WebviewController, TelemetryActions.SentToWebview, {
                 messageType: method ? "request" : "response",
                 type: method,
@@ -207,7 +208,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         const nonce = getNonce();
 
         const baseUrl = this._getWebview().asWebviewUri(
-            vscode.Uri.joinPath(this._context.extensionUri, "out", "src", "reactviews", "assets"),
+            vscode.Uri.joinPath(this._context.extensionUri, "dist", "views"),
         );
         const baseUrlString = baseUrl.toString() + "/";
 
@@ -354,6 +355,10 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
                 );
                 throw new Error(`No reducer registered for action ${action.type as string}`);
             }
+        });
+
+        this.onRequest(GetEOLRequest.type, () => {
+            return os.EOL;
         });
     }
 

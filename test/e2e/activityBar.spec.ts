@@ -5,7 +5,7 @@
 
 import { ElectronApplication, Page } from "@playwright/test";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
-import { screenshotOnFailure } from "./utils/screenshotOnError";
+import { screenshotOnFailure } from "./utils/screenshotUtils";
 import { mssqlActivityBarButton } from "./utils/commonSelectors";
 import { test, expect } from "./baseFixtures";
 
@@ -15,7 +15,9 @@ test.describe("MSSQL Extension - Activity Bar", async () => {
 
     test.beforeAll(async () => {
         // Launch with new UI off
-        const { electronApp, page } = await launchVsCodeWithMssqlExtension(true);
+        const { electronApp, page } = await launchVsCodeWithMssqlExtension({
+            useNewUI: false,
+        });
         vsCodeApp = electronApp;
         vsCodePage = page;
     });

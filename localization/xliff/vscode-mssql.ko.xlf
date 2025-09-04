@@ -18,6 +18,27 @@
         <source xml:lang="en">&lt;default&gt;</source>
         <target state="translated">&lt;default&gt;</target>
       </trans-unit>
+      <trans-unit id="++CODE++44db9a12f4699cefd03940639b9675924d76fc9dc7faed967e044f5fbaf7bfb6">
+        <source xml:lang="en">(0 rows affected)</source>
+        <target state="translated">(적용된 행 없음)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++666e175d7e3437548ba8bc1a84d083677a73792a61fa2184e8d6a6675eb8d030">
+        <source xml:lang="en">(1 row affected)</source>
+        <target state="translated">(1개 행 적용됨)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e7784428bb0e21b36bb1248598086656cb640b0fdacf03835a1299416e507237">
+        <source xml:lang="en">({0} rows affected)</source>
+        <note>{0} is the number of rows affected</note>
+        <target state="translated">({0}개 행이 영향을 받음)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71">
+        <source xml:lang="en">+ Add Azure Account</source>
+        <target state="translated">+ Azure 계정 추가</target>
+      </trans-unit>
+      <trans-unit id="++CODE++75aeb47c4c40ae9ea18e7b77776ff62be55ce308e85a64f870e49b056533d5cb">
+        <source xml:lang="en">+ Add Fabric Account</source>
+        <target state="new">+ Add Fabric Account</target>
+      </trans-unit>
       <trans-unit id="++CODE++dbfb6fb3f275d24e8e32113cbbabeffe9d78165e6bdaf5b82c0fede5881451b5">
         <source xml:lang="en">+ Create Connection Group</source>
         <target state="translated">+ 연결 그룹 만들기</target>
@@ -56,6 +77,10 @@
 {1} is the uri</note>
         <target state="translated">{1} URI와의 {0} 연결에 대한 액세스 토큰이 만료되었습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++7e1b0d5641f2640ce9a953ec231eea2c27a2a7633f7d3c273e5735e2b30c10b7">
+        <source xml:lang="en">Account</source>
+        <target state="new">Account</target>
+      </trans-unit>
       <trans-unit id="++CODE++08a2ef94ef94039eed728a4a3ab703508a7bfe442d702183ecbd763d5852a232">
         <source xml:lang="en">Account not found</source>
         <target state="translated">계정을 찾을 수 없음</target>
@@ -80,6 +105,10 @@
         <source xml:lang="en">Add</source>
         <target state="translated">추가</target>
       </trans-unit>
+      <trans-unit id="++CODE++3d0d3f78acca7d0def0c881e924ececb285c1791711ab008ae5a0297e09a717a">
+        <source xml:lang="en">Add Account</source>
+        <target state="translated">계정 추가</target>
+      </trans-unit>
       <trans-unit id="++CODE++c26c65459a782d2065f5a9cda97c098c2e49e5734d5d16c8a8c86d4c177373cc">
         <source xml:lang="en">Add Column</source>
         <target state="translated">열 추가</target>
@@ -96,6 +125,10 @@
         <source xml:lang="en">Add Firewall Rule to {0}</source>
         <note>{0} is the server name</note>
         <target state="translated">{0}에 방화벽 규칙 추가</target>
+      </trans-unit>
+      <trans-unit id="++CODE++937a7b0b3cc8c58a787de5a63bfc07573789ee22a22918957f92651c0edb31f9">
+        <source xml:lang="en">Add Server Connection</source>
+        <target state="translated">서버 연결 추가</target>
       </trans-unit>
       <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
         <source xml:lang="en">Add Table</source>
@@ -134,6 +167,10 @@
         <source xml:lang="en">Advanced Options</source>
         <target state="translated">고급 옵션</target>
       </trans-unit>
+      <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
+        <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
+        <target state="translated">확장에서 연결에 액세스할 수 있는 모든 권한이 지워졌습니다.</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
         <source xml:lang="en">Allow Null</source>
         <target state="translated">Null 허용</target>
@@ -141,6 +178,10 @@
       <trans-unit id="++CODE++ab4db1a876378f718e4073baa75897c34c0e7d2608d68cda6461e01de42fa962">
         <source xml:lang="en">Allow Nulls</source>
         <target state="translated">Null 허용</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5823192e37f38baf2e14f1fba3486615cbfa097b26c05b2a13a6c3473ce11c74">
+        <source xml:lang="en">Allow this extension to access your connections</source>
+        <target state="translated">이 확장에서 연결에 액세스하도록 허용</target>
       </trans-unit>
       <trans-unit id="++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2">
         <source xml:lang="en">Alphabetical</source>
@@ -167,6 +208,15 @@
         <note>{0} is the error message</note>
         <target state="translated">Microsoft Entra 계정을 제거하는 동안 오류가 발생했습니다. {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
+        <source xml:lang="en">An error occurred while searching database objects</source>
+        <target state="new">An error occurred while searching database objects</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fe01cd2e56483272d8d46be5c77c37d6be1aba49dfbe2fa79f68b4740723b758">
+        <source xml:lang="en">An error occurred while searching database objects: {0}</source>
+        <note>{0} is the error detail returned from the search operation</note>
+        <target state="new">An error occurred while searching database objects: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++56f99fbd59570e105fca5070d135f8f86c67f48168d43f8020b70523f06b21bb">
         <source xml:lang="en">An error occurred: {0}</source>
         <note>{0} is the error message</note>
@@ -191,6 +241,10 @@
       <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
         <source xml:lang="en">Apply changes to target</source>
         <target state="translated">대상에 변경 내용 적용</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
+        <source xml:lang="en">Approve</source>
+        <target state="translated">승인</target>
       </trans-unit>
       <trans-unit id="++CODE++9d9d0bfa74aaf1db2f58269ddd7f7e8141a4069574d576aab3174f0f810ad1e0">
         <source xml:lang="en">Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.</source>
@@ -233,6 +287,10 @@
         <source xml:lang="en">Are you sure?</source>
         <target state="translated">계속하시겠어요?</target>
       </trans-unit>
+      <trans-unit id="++CODE++66880d2d8216260d201917a72eb245440ef18ba9b54c070ee39aa4c343ae126f">
+        <source xml:lang="en">Authentication</source>
+        <target state="new">Authentication</target>
+      </trans-unit>
       <trans-unit id="++CODE++eccf8ea40318babf1bd28fa823e0fa905383eed481da5fccb9f54ea4a6152943">
         <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
         <target state="translated">인증 라이브러리가 변경되었습니다. Visual Studio Code를 다시 로드하세요.</target>
@@ -271,6 +329,10 @@
         <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
         <target state="translated">자동 정렬은 최적의 레이아웃 알고리즘에 따라 모든 다이어그램 요소의 위치를 자동으로 재배치합니다. 여러분이 만든 사용자 지정 위치는 손실됩니다. 스키마 다이어그램을 자동 정렬하시겠습니까?</target>
       </trans-unit>
+      <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
+        <source xml:lang="en">Available Servers</source>
+        <target state="new">Available Servers</target>
+      </trans-unit>
       <trans-unit id="++CODE++92eb0b1fb89f1725b3c1fe652164720d7b2d17222e81bd5057f02f645fb24e67">
         <source xml:lang="en">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</source>
         <note>{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum</note>
@@ -285,10 +347,6 @@
         <source xml:lang="en">Azure Account</source>
         <target state="translated">Azure 계정</target>
       </trans-unit>
-      <trans-unit id="++CODE++9caca4621a4e79e9eba8871a8b0772c87fe7af38b1e5ce6518083abfd676c241">
-        <source xml:lang="en">Azure Account is required</source>
-        <target state="translated">Azure 계정이 필요합니다.</target>
-      </trans-unit>
       <trans-unit id="++CODE++34ec466979918ed648dd5ae40b41e849fa6398b0d0a5f076ac3b0061d149d168">
         <source xml:lang="en">Azure Code Grant</source>
         <target state="translated">Azure 코드 부여</target>
@@ -300,10 +358,6 @@
       <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
         <source xml:lang="en">Azure sign in failed.</source>
         <target state="translated">Azure 로그인에 실패했습니다.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++bcfba23612af01d6083c1cbc352807182aa4a2a08665615d5e75206766e035c0">
-        <source xml:lang="en">Azure sign-in failed or was cancelled.</source>
-        <target state="translated">Azure 로그인이 실패했거나 취소되었습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
         <source xml:lang="en">Azure token cache cleared successfully.</source>
@@ -338,6 +392,10 @@
         <source xml:lang="en">Blanks</source>
         <target state="translated">공백</target>
       </trans-unit>
+      <trans-unit id="++CODE++886089b371ee3596c742b0c91467d1b7239b1d7f8f3eb86b88c1304644266abc">
+        <source xml:lang="en">Block this extension from accessing your connections</source>
+        <target state="translated">이 확장이 연결에 액세스하지 못하도록 차단하세요.</target>
+      </trans-unit>
       <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
         <source xml:lang="en">Brightness</source>
         <target state="translated">밝기</target>
@@ -345,6 +403,14 @@
       <trans-unit id="++CODE++221cedb44469e4b0b105f777c771d70c7097c40a4e3e914cec4b6ba266db1970">
         <source xml:lang="en">Browse Azure</source>
         <target state="translated">Azure 찾아보기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d2945638af819132af21f6c456f562493e7bf76e6ce1bb782eeef16cbfbeb85b">
+        <source xml:lang="en">Browse By</source>
+        <target state="new">Browse By</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1">
+        <source xml:lang="en">Browse Fabric</source>
+        <target state="new">Browse Fabric</target>
       </trans-unit>
       <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
         <source xml:lang="en">CSV</source>
@@ -359,6 +425,11 @@
       <trans-unit id="++CODE++19766ed6ccb2f4a32778eed80d1928d2c87a18d7c275ccb163ec6709d3eb2e27">
         <source xml:lang="en">Cancel</source>
         <target state="translated">취소</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a6dab3e65af40b4f3bca5c056278a22a48972adfa26a46fa3cc16aa4e07e86e0">
+        <source xml:lang="en">Cancel failed: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">취소에 실패했습니다: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++d6efd131712ed1115d720d4cfdb68b1819ad1de1587f4c2176c9c055c7c03a67">
         <source xml:lang="en">Cancel schema compare failed: '{0}'</source>
@@ -582,9 +653,17 @@
         <source xml:lang="en">Clear cache and refresh token</source>
         <target state="translated">캐시 지우기 및 토큰 새로 고침</target>
       </trans-unit>
+      <trans-unit id="++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643">
+        <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
+        <target state="translated">모든 확장이 연결에 액세스할 수 있는 권한을 지우세요.</target>
+      </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
         <target state="translated">데이터베이스에 연결하려면 클릭</target>
+      </trans-unit>
+      <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
+        <source xml:lang="en">Click to sign into an Azure account</source>
+        <target state="translated">Azure 계정에 로그인하려면 클릭하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed">
         <source xml:lang="en">Close</source>
@@ -602,6 +681,10 @@
         <source xml:lang="en">Close the current connection</source>
         <target state="translated">현재 연결 닫기</target>
       </trans-unit>
+      <trans-unit id="++CODE++b977b950c1ae31e5aeb9ef778cc20a66fc034eb81e738e0206104b677962c465">
+        <source xml:lang="en">Cloud</source>
+        <target state="new">Cloud</target>
+      </trans-unit>
       <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
         <source xml:lang="en">Collapse</source>
         <target state="translated">축소</target>
@@ -609,6 +692,10 @@
       <trans-unit id="++CODE++55988e28a4e8720a588c5c53fd47616d929a404d3d2af7e6f8ba313dce6dc3e4">
         <source xml:lang="en">Collapse All</source>
         <target state="translated">모두 축소</target>
+      </trans-unit>
+      <trans-unit id="++CODE++73bdb3fe57af851db2313c3716cc6e6d8584314063030d5262237ad2fa9f8201">
+        <source xml:lang="en">Collapse Workspace Explorer</source>
+        <target state="new">Collapse Workspace Explorer</target>
       </trans-unit>
       <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
         <source xml:lang="en">Color</source>
@@ -684,6 +771,10 @@
         <source xml:lang="en">Configure Linux containers</source>
         <target state="translated">Linux 컨테이너 구성</target>
       </trans-unit>
+      <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
+        <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
+        <target state="translated">Docker 데스크톱에서 Rosetta 구성</target>
+      </trans-unit>
       <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
         <source xml:lang="en">Configure and customize SQL Server containers</source>
         <target state="translated">SQL Server 컨테이너 구성 및 사용자 지정</target>
@@ -732,6 +823,10 @@
         <source xml:lang="en">Connect using profile {0}?</source>
         <note>{0} is the profile ID</note>
         <target state="translated">프로필 {0}을(를) 사용하여 연결하시겠습니까?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++28d29898bc769fd6df013da142af60f451953946e641fc2a2bee0e49b235a623">
+        <source xml:lang="en">Connected successfully</source>
+        <target state="new">Connected successfully</target>
       </trans-unit>
       <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>
@@ -786,6 +881,14 @@
         <source xml:lang="en">Connecting...</source>
         <target state="translated">연결 중...</target>
       </trans-unit>
+      <trans-unit id="++CODE++6c916d6a3ffb6e0c85ad115ae2e1f277af1bc76f11a7267fd818b798a796b26a">
+        <source xml:lang="en">Connection Authentication</source>
+        <target state="new">Connection Authentication</target>
+      </trans-unit>
+      <trans-unit id="++CODE++880cac6e9612c7672ce73c666f54c5f789e7b1ed1b9f0b7f1431fe84a2e59bce">
+        <source xml:lang="en">Connection Details</source>
+        <target state="new">Connection Details</target>
+      </trans-unit>
       <trans-unit id="++CODE++dba530f818587a0d79d7bb8f59e07d372d10691f49c560e3e4c3d42d105fe9e7">
         <source xml:lang="en">Connection Dialog</source>
         <target state="translated">연결 대화 상자</target>
@@ -810,6 +913,10 @@
         <source xml:lang="en">Connection error</source>
         <target state="translated">연결 오류</target>
       </trans-unit>
+      <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
+        <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
+        <target state="new">Connection is not active. Please establish a connection before performing this action.</target>
+      </trans-unit>
       <trans-unit id="++CODE++28512f31201abdd26ae93d0caaba3b8a3c77113b9665059a9e1d2ba4e47de64d">
         <source xml:lang="en">Connection not found for uri "{0}".</source>
         <note>{0} is the uri</note>
@@ -820,9 +927,24 @@
         <note>{0} is the profile ID</note>
         <target state="translated">연결 프로필 '{0}'을(를) 찾을 수 없습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8">
+        <source xml:lang="en">Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.</source>
+        <note>{0} is the extension ID</note>
+        <target state="new">Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6fc14523d003cf70290f0110eeafa850232518f52a0d26436b18c1e838cf1c27">
+        <source xml:lang="en">Connection sharing permission is required for extension: '{0}'</source>
+        <note>{0} is the extension ID</note>
+        <target state="new">Connection sharing permission is required for extension: '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
         <target state="translated">연결 문자열이 필요합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6ae8947e98979cbbaeb55a8af448297f63002580ddebd9731fd40ec3ddcdc849">
+        <source xml:lang="en">Connection with ID "{0}" not found. Please verify the connection ID exists.</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Connection with ID "{0}" not found. Please verify the connection ID exists.</target>
       </trans-unit>
       <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
         <source xml:lang="en">Consider adding a name for this foreign key</source>
@@ -934,13 +1056,27 @@
         <source xml:lang="en">Creating Container</source>
         <target state="translated">컨테이너 만드는 중</target>
       </trans-unit>
-      <trans-unit id="++CODE++09af7062beeeeb3b9e2346b91902b8e45ea936c57462ca09e997e7280b8f71dc">
-        <source xml:lang="en">Creating and starting your SQL Server Docker container</source>
-        <target state="translated">SQL Server Docker 컨테이너를 만들고 시작하는 중입니다.</target>
+      <trans-unit id="++CODE++f25b28d86db44d028580bac2348b043db0eebc8a41f443aaaa5d22bfd2cb3fd2">
+        <source xml:lang="en">Creating SQL Database for workspace {0}</source>
+        <note>{0} is the workspace ID</note>
+        <target state="new">Creating SQL Database for workspace {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
+        <source xml:lang="en">Creating and starting your SQL Server container</source>
+        <target state="translated">SQL Server 컨테이너를 만들고 시작하는 중입니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dbfe0a6c5a4cae79965c542e317484c3b53346daa195d3ec31d91c55c92181a3">
+        <source xml:lang="en">Creating workspace with capacity {0}</source>
+        <note>{0} is the capacity ID</note>
+        <target state="new">Creating workspace with capacity {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
         <target state="translated">자격 증명 오류: 계정 자격 증명을 새로 고치는 동안 오류가 발생했습니다. 다시 인증하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++87a66e3c88ffbca47508d5dcd250ebaa992c772a4b9d260c36216d4695e05475">
+        <source xml:lang="en">Currently signed in as:</source>
+        <target state="translated">현재 로그인한 사용자:</target>
       </trans-unit>
       <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
         <source xml:lang="en">Custom Zoom</source>
@@ -974,6 +1110,14 @@
       <trans-unit id="++CODE++667dd91d86c6b574073536489e39f0c5ab034846a63d946e8ef9f7bedeb1f4fb">
         <source xml:lang="en">Database Project</source>
         <target state="translated">데이터베이스 프로젝트</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ec9c37392a809590dbb62879bd1b261c3675552b33d4d8936d539925d774f6a6">
+        <source xml:lang="en">Database changed successfully</source>
+        <target state="new">Database changed successfully</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4027712bbc416cfc7ec6cf98c5be5578684cd55571f48076e82ea6230a66811e">
+        <source xml:lang="en">Database list</source>
+        <target state="new">Database list</target>
       </trans-unit>
       <trans-unit id="++CODE++e97a0773fb7b656c174155270bd9ded70bc82caa0fc5d65b3ba24871577a5b08">
         <source xml:lang="en">Database name</source>
@@ -1019,6 +1163,10 @@
         <source xml:lang="en">Deleting Container...</source>
         <target state="translated">컨테이너를 삭제하는 중...</target>
       </trans-unit>
+      <trans-unit id="++CODE++05a2d7332eb9d8bf164487c743a2e93c21b16bb2061a93e3ee2ceb508eadb753">
+        <source xml:lang="en">Deny</source>
+        <target state="translated">거부</target>
+      </trans-unit>
       <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
         <source xml:lang="en">Description</source>
         <target state="translated">설명</target>
@@ -1048,6 +1196,10 @@
         <source xml:lang="en">Disconnected on document "{0}"</source>
         <note>{0} is the document name</note>
         <target state="translated">문서 "{0}"에서 연결을 끊음</target>
+      </trans-unit>
+      <trans-unit id="++CODE++459c45733e24412e32c08ebea6b6819b4a29ca99ec1b99e5c8036d0165df44b7">
+        <source xml:lang="en">Disconnected successfully</source>
+        <target state="new">Disconnected successfully</target>
       </trans-unit>
       <trans-unit id="++CODE++810e6bf829af848a6ab728e3b8f94dde597f95f47f11b160ca7eaa9f0d21395b">
         <source xml:lang="en">Disconnecting from connection '{0}'</source>
@@ -1164,13 +1316,37 @@
         <source xml:lang="en">Enter connection group name</source>
         <target state="translated">연결 그룹 이름을 입력하세요</target>
       </trans-unit>
+      <trans-unit id="++CODE++524763fd6773ea93d76fa32d9e5974e1667748b114b90fba93f6a4948b0e5c20">
+        <source xml:lang="en">Enter container name</source>
+        <target state="translated">컨테이너 이름 입력</target>
+      </trans-unit>
       <trans-unit id="++CODE++91cf329b31a4b1a6c0bdec6de797b6a90ab9309490bd62ec38f98f2d0f6db423">
         <source xml:lang="en">Enter description (optional)</source>
         <target state="translated">설명 입력(선택 사항)</target>
       </trans-unit>
+      <trans-unit id="++CODE++caaac8aa0d0641aea8406e7f1011aaeab33423fdd4ee9b3354ee88cc1487b0bf">
+        <source xml:lang="en">Enter hostname</source>
+        <target state="translated">호스트 이름 입력</target>
+      </trans-unit>
       <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
         <source xml:lang="en">Enter new column width</source>
         <target state="translated">새 열 너비 입력</target>
+      </trans-unit>
+      <trans-unit id="++CODE++03c72a0dd31428f797eaadef0452b218e6d7cfbfc8b66e7f47e404818a53cda0">
+        <source xml:lang="en">Enter part of an object name to search for</source>
+        <target state="new">Enter part of an object name to search for</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7014aff13517c4071a9de8a8d338ac3ca12ae8ecf6589941d84170aa47cdcac3">
+        <source xml:lang="en">Enter password</source>
+        <target state="translated">암호 입력</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6aa7783e2e2dbd69be673f5f534fa04a7d36683475767069e8030c958e318d47">
+        <source xml:lang="en">Enter port</source>
+        <target state="translated">포트 입력</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0a6b9ae24f863f5d06e0151c62f16b9327fdac6783807dc163e953559aa8287f">
+        <source xml:lang="en">Enter profile name</source>
+        <target state="translated">프로필 이름 입력</target>
       </trans-unit>
       <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
         <source xml:lang="en">Equals</source>
@@ -1204,6 +1380,10 @@
 {1} is the error message</note>
         <target state="translated">방화벽 규칙 {0} 만드는 동안 오류가 발생했습니다.  Azure 계정 설정을 확인하고 다시 시도하세요.  오류: {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++60cc09ec4655851867d21c226d2f49026746cd374b1822a2b46264601219b206">
+        <source xml:lang="en">Error generating text view. Please try switching back to grid view.</source>
+        <target state="translated">텍스트 뷰를 생성하는 중에 오류가 발생했습니다. 표 보기로 다시 전환해 보세요.</target>
+      </trans-unit>
       <trans-unit id="++CODE++8f53a6df59ae589cf0996134e10ad383f8914500648095194f2d16cc2427954b">
         <source xml:lang="en">Error loading Azure account information for tenant ID '{0}'</source>
         <note>{0} is the tenant ID</note>
@@ -1223,6 +1403,10 @@
         <source xml:lang="en">Error loading Azure subscriptions.</source>
         <target state="translated">Azure 구독을 로드하는 동안 오류가 발생했습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++42ae158b81fa6835d984f032a4850d9242fc9551860b90117a5f78c9a76d30a7">
+        <source xml:lang="en">Error loading databases</source>
+        <target state="new">Error loading databases</target>
+      </trans-unit>
       <trans-unit id="++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe">
         <source xml:lang="en">Error loading designer</source>
         <target state="translated">디자이너를 로드하는 동안 오류 발생</target>
@@ -1230,6 +1414,10 @@
       <trans-unit id="++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf">
         <source xml:lang="en">Error loading preview</source>
         <target state="translated">미리 보기를 로드하는 동안 오류 발생</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3ba789024640c6f231695bdf0d82e6845483cf65f092b3c3646910e60c638761">
+        <source xml:lang="en">Error loading workspaces</source>
+        <target state="new">Error loading workspaces</target>
       </trans-unit>
       <trans-unit id="++CODE++2b850d590d607436d4cbf751406a7626e01d0e5c775f26c880ab4fd21e70bb66">
         <source xml:lang="en">Error loading; refresh to try again</source>
@@ -1249,9 +1437,19 @@ Error:
         <source xml:lang="en">Error occurred opening content in editor.</source>
         <target state="translated">편집기에서 콘텐츠를 여는 동안 오류가 발생했습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++7ce810c92d5881cd4638f73772ee57317b503d0f04dbc5cd2f281f77ac1d697d">
+        <source xml:lang="en">Error retrieving server list: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Error retrieving server list: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++2982897442ab8ee74ad10f968e801f2979c59ecc19ae9d2041eeedec219fd8f1">
         <source xml:lang="en">Error running Docker commands. Please make sure Docker is running.</source>
         <target state="translated">Docker 명령을 실행하는 동안 오류가 발생했습니다. Docker가 실행 중인지 확인하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7c03518af7ea8058b9f5444011cc402ee48c86c765dfd6ba8e5ce09ed8d836ca">
+        <source xml:lang="en">Error signing into Azure: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">Azure에 로그인하는 동안 오류가 발생했습니다: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++e3bd07d6d5ddff1c7aefd27f1d3af9d23b97fc19d29d732816ea80fddb08f4dc">
         <source xml:lang="en">Error when refreshing token</source>
@@ -1305,6 +1503,14 @@ Error:
         <source xml:lang="en">Expand All</source>
         <target state="translated">모두 확장</target>
       </trans-unit>
+      <trans-unit id="++CODE++48ad32aba89e3b0bbab4397b56bd23794212fe69606e0b644ff3b543035a048d">
+        <source xml:lang="en">Expand Workspace Explorer</source>
+        <target state="new">Expand Workspace Explorer</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c39d646f10769b078ae82be4da7a0079ca91182b241e749be4276e08c215c654">
+        <source xml:lang="en">Explorer</source>
+        <target state="new">Explorer</target>
+      </trans-unit>
       <trans-unit id="++CODE++3664895579f0a7e68c4aa09c91316e20239bc74499010e6423ece40cad7c28f7">
         <source xml:lang="en">Export</source>
         <target state="translated">내보내기</target>
@@ -1317,14 +1523,35 @@ Error:
         <source xml:lang="en">Extremely likely</source>
         <target state="translated">가능성이 매우 큼</target>
       </trans-unit>
+      <trans-unit id="++CODE++2669635517c6f110f77148287c814fbb91a8ee9fb366d1113794cf21f767d9a9">
+        <source xml:lang="en">Fabric Account</source>
+        <target state="new">Fabric Account</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
+        <source xml:lang="en">Fabric Workspaces</source>
+        <target state="new">Fabric Workspaces</target>
+      </trans-unit>
       <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
         <source xml:lang="en">Failed</source>
         <target state="translated">실패</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2332577de7a1ae1c1fdad89cd3a54570fcafcfcf1e149fda9dc0c42d4f88fbdb">
+        <source xml:lang="en">Failed disposing query: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">쿼리 처리를 실패했습니다: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++65b387854eab2ea5751dfeaf4b61e988e28642ef25dc8c09b8bd4e4ee99f6372">
         <source xml:lang="en">Failed to apply changes: '{0}'</source>
         <note>{0} is the error message returned from the publish changes operation</note>
         <target state="translated">변경 내용을 적용하지 못했습니다. '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0f20f13b4e0c02dbfd1419272fdc0223aea4745a0704daf5f91876a21476bda2">
+        <source xml:lang="en">Failed to change database</source>
+        <target state="new">Failed to change database</target>
+      </trans-unit>
+      <trans-unit id="++CODE++46c9f3b7520fde539ec4452ba821c1b8ad43f18971284f033ab93d32f04c65df">
+        <source xml:lang="en">Failed to connect</source>
+        <target state="new">Failed to connect</target>
       </trans-unit>
       <trans-unit id="++CODE++6e543be4255a8c4362baca16d0850278f1d95a7df9cd38f4b94ecbda4abe57e5">
         <source xml:lang="en">Failed to connect to database: {0}</source>
@@ -1351,6 +1578,11 @@ Error:
         <note>Failed to delete {0}.</note>
         <target state="translated">'{0}'을(를) 삭제하지 못했습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b">
+        <source xml:lang="en">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</source>
+        <note>{0} is the connection ID</note>
+        <target state="new">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</target>
+      </trans-unit>
       <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
         <source xml:lang="en">Failed to fetch user tokens.</source>
         <target state="translated">사용자 토큰을 가져오지 못했습니다.</target>
@@ -1365,14 +1597,30 @@ Error:
         <note>{0} is the error message returned from the generate script operation</note>
         <target state="translated">'{0}' 스크립트를 생성하지 못했습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++90971b4f986b2a5d6c3d6f32b711a0bbb3f93d8453a9f0006c0a30d1350cdaff">
+        <source xml:lang="en">Failed to get Fabric workspaces for tenant '{0} ({1})'.</source>
+        <note>{0} is the tenant name
+{1} is the tenant id</note>
+        <target state="new">Failed to get Fabric workspaces for tenant '{0} ({1})'.</target>
+      </trans-unit>
       <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
         <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
         <target state="translated">인증 방법을 가져오지 못했습니다. 계정을 제거하고 다시 추가하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++329f218a3e5212fcaa1558fed9984172c9a456980d1c8015ea761b5a017d19b4">
+        <source xml:lang="en">Failed to get tenant '{0}' for account '{1}'.</source>
+        <note>{0} is the tenant id
+{1} is the account name</note>
+        <target state="new">Failed to get tenant '{0}' for account '{1}'.</target>
       </trans-unit>
       <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
         <note>{0} is the error message returned from the open scmp operation</note>
         <target state="translated">scmp 파일을 열지 못했습니다. '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
+        <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
+        <target state="translated">SQL Server 이미지를 다운로드하지 못했습니다. 네트워크 연결 상태를 확인하고 다시 시도하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c">
         <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
@@ -1403,6 +1651,10 @@ Error:
         <note>Failed to stop {0}.</note>
         <target state="translated">{0}을(를) 중지하지 못했습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++7a1f2a83aca9a0819f244d5b4a7a0e7f6b779eb709dd4744136b22e724dbb10b">
+        <source xml:lang="en">Favorites</source>
+        <target state="new">Favorites</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d696d1fc30a43745a483d9bf89065718f6abfcdf8241fe4abb09ef13ec1d5e3">
         <source xml:lang="en">Fetching {0} script...</source>
         <note>{0} is the script type</note>
@@ -1428,6 +1680,14 @@ Error:
       <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
         <source xml:lang="en">Filter Settings</source>
         <target state="translated">필터 설정</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6493eda41425d761de3497b7563b968d07d84a3eebb1844d3f54b76460eee2cb">
+        <source xml:lang="en">Filter by keyword</source>
+        <target state="new">Filter by keyword</target>
+      </trans-unit>
+      <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
+        <source xml:lang="en">Filter by type</source>
+        <target state="new">Filter by type</target>
       </trans-unit>
       <trans-unit id="++CODE++01a0e0d1c3cdcf7bac1e7280e753431937f8773ddd7b6ba85bf7fea4b842ad4e">
         <source xml:lang="en">Filter for any field...</source>
@@ -1530,6 +1790,11 @@ Error:
         <note>{0} is the uri</note>
         <target state="translated">{0} URI의 보류 중인 다시 연결 프라미스를 찾았으며, 현재 대기 중입니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++fc70e7e548649aa12095a141703b67943b4437de990082c3646b3ab61884dcf0">
+        <source xml:lang="en">Found {0} saved connection profile(s).</source>
+        <note>{0} is the number of connection profiles</note>
+        <target state="new">Found {0} saved connection profile(s).</target>
+      </trans-unit>
       <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
         <source xml:lang="en">General</source>
         <target state="translated">일반</target>
@@ -1571,10 +1836,21 @@ Error:
         <source xml:lang="en">Getting Docker Ready...</source>
         <target state="translated">Docker 준비 중...</target>
       </trans-unit>
+      <trans-unit id="++CODE++4f2809d46e4d5ae64171f0a386b32412184dbf2ea9fb08956f407bed421b7bea">
+        <source xml:lang="en">Getting Fabric workspace '{0}'</source>
+        <note>{0} is the workspace ID</note>
+        <target state="new">Getting Fabric workspace '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++2a8c8cd4e7c7142bffa09b893aaf7ab5886407a22a7ef9b2ee4f60f46fad7bf0">
         <source xml:lang="en">Getting connection details for connection '{0}'</source>
         <note>{0} is the connection ID</note>
         <target state="translated">연결 '{0}'에 대한 세부 정보를 가져오는 중</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7c6ecb13b6127990792bdb4cd61037a4d398bcda0034b4e9d23af714a5785c85">
+        <source xml:lang="en">Getting connection string for SQL Endpoint '{0}' in workspace '{1}'</source>
+        <note>{0} is the SQL endpoint ID
+{1} is the workspace ID</note>
+        <target state="new">Getting connection string for SQL Endpoint '{0}' in workspace '{1}'</target>
       </trans-unit>
       <trans-unit id="++CODE++407c9ce5c11270b1d15836456ad1efdbe70f71f3c845186e535f82f02112be4e">
         <source xml:lang="en">Getting container ready for connections</source>
@@ -1597,6 +1873,10 @@ Error:
       <trans-unit id="++CODE++0ca098e2022c5054b1ec77c08df3f3b1d5ccecfbf78f232071f644eb71161e8d">
         <source xml:lang="en">Greater Than or Equals</source>
         <target state="translated">크거나 같음</target>
+      </trans-unit>
+      <trans-unit id="++CODE++38ee89c32a2a983a8b02689b35c8cdb60f5d9949c4e128a77cc3e79785c02b51">
+        <source xml:lang="en">Grid View</source>
+        <target state="translated">약식 표 보기</target>
       </trans-unit>
       <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
         <source xml:lang="en">Help</source>
@@ -1663,6 +1943,10 @@ Error:
         <source xml:lang="en">Include Object Types</source>
         <target state="translated">개체 유형 포함</target>
       </trans-unit>
+      <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
+        <source xml:lang="en">Include all object types</source>
+        <target state="translated">모든 개체 유형 포함</target>
+      </trans-unit>
       <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
         <source xml:lang="en">Index</source>
         <target state="translated">인덱스</target>
@@ -1702,6 +1986,14 @@ Error:
       <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
         <source xml:lang="en">Invalid column width</source>
         <target state="translated">잘못된 열 너비</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4ce86c72bcd330160b14a711a925bf6f8e24fdd6b26d4a7abbfa548e510648d5">
+        <source xml:lang="en">Invalid connection URI provided.</source>
+        <target state="new">Invalid connection URI provided.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c61e4661a7417ada5f0b7d34d9c3cd27dcc3aad485b337ea6d58cd077be7c8c">
+        <source xml:lang="en">Invalid connection URI. Please ensure you have an active database connection.</source>
+        <target state="new">Invalid connection URI. Please ensure you have an active database connection.</target>
       </trans-unit>
       <trans-unit id="++CODE++c265d537d7811a1e8fa19df9305f90ad86e0326ad6dd2d585172fcf570023c57">
         <source xml:lang="en">Invalid connection string: {0}</source>
@@ -1786,6 +2078,22 @@ Error:
         <source xml:lang="en">List Databases</source>
         <target state="translated">데이터베이스 목록</target>
       </trans-unit>
+      <trans-unit id="++CODE++e5c4507bf20d72d00bff4c289eb11be5c9a297933beec5db5969eb33b7bc5690">
+        <source xml:lang="en">List Functions</source>
+        <target state="translated">함수 목록</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0b795cd3bad85a0e394c340640be776b2c7765598fd7ac3dc8d2430baf78e77a">
+        <source xml:lang="en">List Schemas</source>
+        <target state="translated">스키마 목록</target>
+      </trans-unit>
+      <trans-unit id="++CODE++00806af7575cfd81acd74e3d602bb671403cbddfdf02754be73db121177d235f">
+        <source xml:lang="en">List Tables</source>
+        <target state="translated">테이블 목록</target>
+      </trans-unit>
+      <trans-unit id="++CODE++68053ffe844804d37eced757d4d0582e750a9b20d8ec5084aaab907846177b86">
+        <source xml:lang="en">List Views</source>
+        <target state="translated">보기 목록</target>
+      </trans-unit>
       <trans-unit id="++CODE++b77fb88f6365c7aa62b75d120b96e1859e449166ac52bd58301306032102daf0">
         <source xml:lang="en">List all connections registered with the mssql extension?</source>
         <target state="translated">mssql 확장에 등록된 모든 연결을 나열하시겠습니까?</target>
@@ -1795,14 +2103,74 @@ Error:
         <note>{0} is the connection ID</note>
         <target state="translated">연결 '{0}'에 대한 데이터베이스를 나열할까요?</target>
       </trans-unit>
+      <trans-unit id="++CODE++b1eb24f69841df721c66f542d63319e22c5d55ea1bee75d7e60c451023e6c3d2">
+        <source xml:lang="en">List functions for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">연결 '{0}'에 대한 함수를 나열하시겠습니까?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f9fdea6ffd1d5c93340eff3cb4b0f75abcada7d160a99fd8f3092b3632661d84">
+        <source xml:lang="en">List schemas for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">연결 '{0}'의 스키마를 나열하시겠습니까?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f6f60c2f7be85c72c70f3e1803f001d9b89cf11c25d82a6a16ddb4835b2bdc3f">
+        <source xml:lang="en">List tables for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">연결 '{0}'의 테이블을 나열하시겠습니까?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a951e5e9bc9076528c081d96624e0a6b73e1ae9034bc9aa4c1e8bd77e9dffcc4">
+        <source xml:lang="en">List views for connection '{0}'?</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">연결 '{0}'의 보기를 나열하시겠습니까?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8043c062698783f821c86c7bc00a285e71f93c8ddf50815cfa601fef33905401">
+        <source xml:lang="en">Listing Fabric SQL Databases for workspace '{0}'</source>
+        <note>{0} is the workspace ID</note>
+        <target state="new">Listing Fabric SQL Databases for workspace '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d63cd16cd7f14f873a95c39ea88cdd895461edd04b9fa7894a5b050274e85b1f">
+        <source xml:lang="en">Listing Fabric SQL Endpoints for workspace '{0}'</source>
+        <note>{0} is the workspace ID</note>
+        <target state="new">Listing Fabric SQL Endpoints for workspace '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a5c14e0446ba987ee1804ac7f75c2cf29a526c5b3efc8ec431eeb50d200ad7f0">
+        <source xml:lang="en">Listing Fabric capacities for tenant '{0}'</source>
+        <note>{0} is the tenant ID</note>
+        <target state="new">Listing Fabric capacities for tenant '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0674831e66235d3d493987bb2f89a42a981be092b9be08a7214438e389b30737">
+        <source xml:lang="en">Listing Fabric workspaces for tenant '{0}'</source>
+        <note>{0} is the tenant ID</note>
+        <target state="new">Listing Fabric workspaces for tenant '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++b96793f36b682b832b59fce2ab2fbfbe394de6c913abd6f389f8c19273f040a5">
         <source xml:lang="en">Listing databases for connection '{0}'</source>
         <note>{0} is the connection ID</note>
         <target state="translated">연결 '{0}'에 대한 데이터베이스를 나열하는 중</target>
       </trans-unit>
+      <trans-unit id="++CODE++6c5a3eebc541922b6846fac5140eecc1c8cca7d49fd516d6d492b823bd080339">
+        <source xml:lang="en">Listing functions for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">연결 '{0}'에 대한 함수를 나열하는 중</target>
+      </trans-unit>
+      <trans-unit id="++CODE++33ed9f224eba0860b9cfb0063fdbd1680208c1e358cecb479c7bd8c46236000e">
+        <source xml:lang="en">Listing schemas for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">연결 '{0}'에 대한 스키마를 나열하는 중</target>
+      </trans-unit>
       <trans-unit id="++CODE++5404755c79ce81c6dba13bc9b7f3cbea8d096f40ff5fb69bfce1a9b2f7a07d4f">
         <source xml:lang="en">Listing server connections</source>
         <target state="translated">서버 연결을 나열하는 중</target>
+      </trans-unit>
+      <trans-unit id="++CODE++22f9095eec94b234a5b2eee74a4c22e23b42d785b67c2027c13fd5b309a93ffa">
+        <source xml:lang="en">Listing tables for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">연결 '{0}'의 테이블을 나열하는 중</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d77ec2c188180112be2e819880b4ea2a8f5f86ec8917db4e18c39bcd02cacc10">
+        <source xml:lang="en">Listing views for connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">연결 '{0}'에 대한 보기를 나열하는 중</target>
       </trans-unit>
       <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
         <source xml:lang="en">Load</source>
@@ -1820,6 +2188,14 @@ Error:
         <source xml:lang="en">Loading</source>
         <target state="translated">로드하는 중</target>
       </trans-unit>
+      <trans-unit id="++CODE++6fa7126ccca3880030902e857b23844499021637082687cfb79725ee3095e087">
+        <source xml:lang="en">Loading Azure Accounts</source>
+        <target state="new">Loading Azure Accounts</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c11efeef9812b5933f66f281e1df758fca0d28ff6c96462aa5caa7a72f0637ed">
+        <source xml:lang="en">Loading Fabric Accounts</source>
+        <target state="new">Loading Fabric Accounts</target>
+      </trans-unit>
       <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
         <source xml:lang="en">Loading Report</source>
         <target state="translated">보고서 로드 중</target>
@@ -1836,6 +2212,15 @@ Error:
         <source xml:lang="en">Loading Table Designer</source>
         <target state="translated">테이블 디자이너 로드 중</target>
       </trans-unit>
+      <trans-unit id="++CODE++f9c9f560fd60d852df849d8b9694f6e56be6ca531ec5366d75812345a7dbf567">
+        <source xml:lang="en">Loading databases in '{0}'...</source>
+        <note>{0} is the name of the workspace</note>
+        <target state="new">Loading databases in '{0}'...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a67a8cf028d055264cd779f840ad3290cb70557277e6fe38ecf976fce921f030">
+        <source xml:lang="en">Loading databases in selected workspace...</source>
+        <target state="new">Loading databases in selected workspace...</target>
+      </trans-unit>
       <trans-unit id="++CODE++02bb7cb27116645ab68671a04d8f35d473c32d981ec5ec784e8aa20e9067c2a2">
         <source xml:lang="en">Loading deployment page...</source>
         <target state="translated">배포 페이지를 로드하는 중...</target>
@@ -1843,6 +2228,18 @@ Error:
       <trans-unit id="++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb">
         <source xml:lang="en">Loading execution plan...</source>
         <target state="translated">실행 계획을 로드하는 중...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
+        <source xml:lang="en">Loading tenants...</source>
+        <target state="new">Loading tenants...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++136a37d2ee433b1eb4302a84ebee86659922e34ca61c2383bc863191b5aeeafa">
+        <source xml:lang="en">Loading text view...</source>
+        <target state="translated">텍스트 뷰 로드 중...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3f9adb0f75f8f08022d5289c54dae461204356f0f718404bf22c0d08214ab34a">
+        <source xml:lang="en">Loading workspaces...</source>
+        <target state="new">Loading workspaces...</target>
       </trans-unit>
       <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
         <source xml:lang="en">Loading...</source>
@@ -1855,6 +2252,10 @@ Error:
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
         <target state="translated">위치</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ac93cb35e24190764d9718b44e0c847f9e06a22105b20e4f8ca8ef96ed959775">
+        <source xml:lang="en">Location (Workspace)</source>
+        <target state="new">Location (Workspace)</target>
       </trans-unit>
       <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
         <source xml:lang="en">MSSQL</source>
@@ -1912,6 +2313,14 @@ Error:
         <source xml:lang="en">Metric</source>
         <target state="translated">메트릭</target>
       </trans-unit>
+      <trans-unit id="++CODE++e62105462009615e24c43715b276cc4743f4efd9bfd6e1e4bc108a5f9a328be9">
+        <source xml:lang="en">Microsoft Account</source>
+        <target state="new">Microsoft Account</target>
+      </trans-unit>
+      <trans-unit id="++CODE++871ca3cb96885bd9a333a1d2914f5f4782b9d0477bcfddd603db5e4f98bde56a">
+        <source xml:lang="en">Microsoft Account is required</source>
+        <target state="new">Microsoft Account is required</target>
+      </trans-unit>
       <trans-unit id="++CODE++8055a31cb4833efbf1b76994151d8256bfc8500f2985d3d0ab1cf222dd91a043">
         <source xml:lang="en">Microsoft Corp</source>
         <target state="translated">Microsoft Corp</target>
@@ -1960,6 +2369,10 @@ Error:
       <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
         <source xml:lang="en">Move to Root</source>
         <target state="translated">루트로 이동</target>
+      </trans-unit>
+      <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
+        <source xml:lang="en">My Data</source>
+        <target state="new">My Data</target>
       </trans-unit>
       <trans-unit id="++CODE++fb329000228cc5a24c264c57139de8bf854fc86fc18bf1c04ab61a2b5cb4b921">
         <source xml:lang="en">NULL</source>
@@ -2021,14 +2434,50 @@ Error:
         <source xml:lang="en">No Queries Available</source>
         <target state="translated">사용 가능한 쿼리 없음</target>
       </trans-unit>
+      <trans-unit id="++CODE++b363e5f44515909e667e5e4b24f9690b87a202de3c6b1f1f7b8b597205461ad6">
+        <source xml:lang="en">No account selected</source>
+        <target state="translated">계정이 선택되지 않음</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9659b767df189a5839c87672cb77cb5c7e5dbe63f59c88712ad34358dda02676">
+        <source xml:lang="en">No active connection</source>
+        <target state="new">No active connection</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fd8753767d0ca74647a1d3b877db12f2a65a06f4c81db6eadd086759df0a5ad1">
+        <source xml:lang="en">No active connection for database change</source>
+        <target state="new">No active connection for database change</target>
+      </trans-unit>
+      <trans-unit id="++CODE++796911143ea8bb8e1ff88271e2618eb63b05d9e04cdf6e9363533b0715ab3574">
+        <source xml:lang="en">No active connection for schema view</source>
+        <target state="new">No active connection for schema view</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d932a05eba0200bedb4b5449ce9e6487525ba3ecfd164e137388fd0833b4121b">
+        <source xml:lang="en">No active database connection in the current editor. Please establish a connection to continue.</source>
+        <target state="new">No active database connection in the current editor. Please establish a connection to continue.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++971d7b9ca9340d6e8e22146855f8ef9cd9576279575ad1f7bd2fb5f40eaaddf9">
+        <source xml:lang="en">No active database connection. Please connect to a database first.</source>
+        <target state="new">No active database connection. Please connect to a database first.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
+        <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
+        <target state="new">No active text editor found. Please open a file with an active database connection.</target>
+      </trans-unit>
       <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
         <source xml:lang="en">No changes detected</source>
         <target state="translated">변경 내용이 없습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d359844ae129bd7d51eda9e3c61dcf5c4036be148cdf783fc11d6454e8ca372b">
+        <source xml:lang="en">No connection credentials found</source>
+        <target state="new">No connection credentials found</target>
       </trans-unit>
       <trans-unit id="++CODE++bb6f0c310647145d31546d24967be9eb8ebae90f640642e9fbb5d7713e6e8550">
         <source xml:lang="en">No connection found for connectionId: {0}</source>
         <note>{0} is the connection ID</note>
         <target state="translated">connectionId {0}에 대한 연결을 찾을 수 없습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3820494b45e56abad074e97c277e6328476da0ec09dacdf18bc5d5d7a6984cb2">
+        <source xml:lang="en">No connection information found</source>
+        <target state="new">No connection information found</target>
       </trans-unit>
       <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
         <source xml:lang="en">No connection profile to remove.</source>
@@ -2037,6 +2486,20 @@ Error:
       <trans-unit id="++CODE++87a122216f22b55fd29964cf75c886ef5da5cd8369e2a6e24c73ec0ad22227ba">
         <source xml:lang="en">No connection was found. Please connect to a server first.</source>
         <target state="translated">연결을 찾을 수 없습니다. 먼저 서버에 연결하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3280128c0901d1323dde9a406ee7d2d6e8e1b98fd30971fa6134b302fec41eca">
+        <source xml:lang="en">No database objects found matching '{0}'</source>
+        <note>{0} is the search term</note>
+        <target state="new">No database objects found matching '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
+        <source xml:lang="en">No databases found in the selected workspace.</source>
+        <target state="new">No databases found in the selected workspace.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++44abb1efd9e1246e7a38688a54d76fd070a07de55884b732dff70f7eff9a0491">
+        <source xml:lang="en">No databases found in workspace '{0}'.</source>
+        <note>{0} is the name of the workspace</note>
+        <target state="new">No databases found in workspace '{0}'.</target>
       </trans-unit>
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
@@ -2052,13 +2515,21 @@ Error:
 {1} is the uri</note>
         <target state="translated">{1} URI와의 {0} 연결에 대한 Microsoft Entra 계정 토큰을 새로 고치지 않아도 됩니다.</target>
       </trans-unit>
-      <trans-unit id="++CODE++758ece29b31b4a752af1a78afe1fe8397bde2b565327c538b1f2fb5912d51418">
-        <source xml:lang="en">No result found for the active editor; please run a query or switch to another editor.</source>
-        <target state="translated">활성 편집기에 대한 결과를 찾을 수 없습니다. 쿼리를 실행하거나 다른 편집기로 전환하세요.</target>
-      </trans-unit>
       <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
         <source xml:lang="en">No results</source>
         <target state="translated">결과 없음</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4dfded12d62e6f18c858be45db4d0f8b07d57a31417037444685fecadb4351d5">
+        <source xml:lang="en">No results for the active editor</source>
+        <target state="translated">활성 편집기에 대한 결과 없음</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ac4f3a6af42834b4d2a24a75250eee26cde1f70bb4bf0359acd6523cafd78d67">
+        <source xml:lang="en">No results to display</source>
+        <target state="translated">표시할 결과가 없음</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
+        <source xml:lang="en">No saved connection profiles found.</source>
+        <target state="new">No saved connection profiles found.</target>
       </trans-unit>
       <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
         <source xml:lang="en">No schema differences were found.</source>
@@ -2068,9 +2539,21 @@ Error:
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
         <target state="translated">해당하는 구독이 없습니다.  구독 필터를 조정하여 다시 시도하세요.</target>
       </trans-unit>
+      <trans-unit id="++CODE++b77c82c64fb4c0907bfdbdcd893ae285b16a8ef67c42e1ecc6ee3d28fe71e708">
+        <source xml:lang="en">No tenant selected</source>
+        <target state="translated">선택한 테넌트 없음</target>
+      </trans-unit>
       <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
         <source xml:lang="en">No tools to process.</source>
         <target state="translated">처리할 도구가 없습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1507d637b267b1f20c1238414d7e51458fe7d6b98b292a8497d9982634fbe83c">
+        <source xml:lang="en">No workspaces found</source>
+        <target state="new">No workspaces found</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f567a09466c3451f2b171ee4b409a52f3aea306cea3bd4ca9ad4cef8669f1856">
+        <source xml:lang="en">No workspaces found. Please change Fabric account or tenant to view available workspaces.</source>
+        <target state="new">No workspaces found. Please change Fabric account or tenant to view available workspaces.</target>
       </trans-unit>
       <trans-unit id="++CODE++522f7c01e016bd0f95cd3b404ebb0751a2b6db89a57ff1c7e5110b39e1f136e0">
         <source xml:lang="en">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</source>
@@ -2103,6 +2586,10 @@ Error:
       <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
         <source xml:lang="en">Not likely at all</source>
         <target state="translated">전혀 가능성이 없음</target>
+      </trans-unit>
+      <trans-unit id="++CODE++491fc91cd76e51571a745d780f0fc91f8ae62622e790cb113828988bba2e3c2c">
+        <source xml:lang="en">Not signed in</source>
+        <target state="translated">로그인되지 않음</target>
       </trans-unit>
       <trans-unit id="++CODE++ba35f0c47d862763dafa955d6716942f79b8bfe1d01d5968520db6f9ba665f6f">
         <source xml:lang="en">Not started</source>
@@ -2192,6 +2679,10 @@ Error:
         <source xml:lang="en">Opening Publish Script. This may take a while...</source>
         <target state="translated">게시 스크립트를 여는 중입니다. 시간이 약간 소요될 수 있습니다...</target>
       </trans-unit>
+      <trans-unit id="++CODE++fe0d6bd1aef549a43c5fca4a838882918bd3a85e9641cb5150f31df976e18e38">
+        <source xml:lang="en">Opening schema designer...</source>
+        <target state="new">Opening schema designer...</target>
+      </trans-unit>
       <trans-unit id="++CODE++291101a07fe980e93b900ae85c9eb824f9e7e93d0d754be7440b9386b615cad7">
         <source xml:lang="en">Operator</source>
         <target state="translated">연산자</target>
@@ -2269,10 +2760,6 @@ Error:
       <trans-unit id="++CODE++aa9bb805dc517bc0164702b53526a013fbfece6dabeb9871e0b9910d23978c5e">
         <source xml:lang="en">Please choose a unique name for the profile</source>
         <target state="translated">프로필에 대한 고유한 이름을 선택하세요</target>
-      </trans-unit>
-      <trans-unit id="++CODE++2048d236cea5afafe8b7e125d9b86eb44250c4ac6f382bc412dca8e4188292fa">
-        <source xml:lang="en">Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.</source>
-        <target state="translated">Rosetta 가상화를 사용하도록 설정했는지 확인하세요. Docker Desktop 설정 내에서 이 작업을 수행할 수 있습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++759058121cf2833fdf5f3228c2d13019bf96166084c277f8fb23c117159cb3a7">
         <source xml:lang="en">Please make sure the port is a number, and choose a port that is not in use</source>
@@ -2380,6 +2867,14 @@ Error:
         <source xml:lang="en">Publishing Changes</source>
         <target state="translated">변경 내용 게시</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7a082f416fcd5289f06b3cda1fdf7b7d3999dabb4209c0d324fdf0c57ff2ee2">
+        <source xml:lang="en">Pulling SQL Server Image</source>
+        <target state="translated">SQL Server 이미지를 가져오는 중입니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0e1d9858f1e51bd313981a0d8da504fb12e0405fc869634ad52babe02eff9e3d">
+        <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
+        <target state="translated">SQL Server 컨테이너 이미지를 다운로드하는 중입니다. 인터넷 연결에 따라 몇 분 정도 소요될 수 있습니다.</target>
+      </trans-unit>
       <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
         <source xml:lang="en">Query Plan</source>
         <target state="translated">쿼리 계획</target>
@@ -2409,6 +2904,14 @@ Error:
       <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
         <source xml:lang="en">Readying container for connections.</source>
         <target state="translated">연결에 대한 컨테이너를 준비하는 중입니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f">
+        <source xml:lang="en">Readying container for connections...</source>
+        <target state="translated">연결에 대한 컨테이너를 준비하는 중입니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++690dbe9dc0993c4256683738fc3fd541cfa96f60d299be33343615dd58179d93">
+        <source xml:lang="en">Recent</source>
+        <target state="new">Recent</target>
       </trans-unit>
       <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
         <source xml:lang="en">Recent Connections</source>
@@ -2477,9 +2980,19 @@ Error:
         <source xml:lang="en">Restore panel size</source>
         <target state="translated">패널 크기 복원</target>
       </trans-unit>
+      <trans-unit id="++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c">
+        <source xml:lang="en">Result Set {0}</source>
+        <note>{0} is the index of the result set</note>
+        <target state="translated">결과 집합 {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
         <source xml:lang="en">Results</source>
         <target state="translated">결과</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ccb11e8d73c1d40ef67b26d9ca77a50ab2987d9ac9af361e065c3c1c6699c116">
+        <source xml:lang="en">Results ({0})</source>
+        <note>{0} is the number of results</note>
+        <target state="translated">결과({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
         <source xml:lang="en">Retry</source>
@@ -2489,17 +3002,52 @@ Error:
         <source xml:lang="en">Reverse Alphabetical</source>
         <target state="translated">사전순 반대로</target>
       </trans-unit>
+      <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
+        <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</source>
+        <target state="translated">Apple Silicon에서 SQL Server 컨테이너 이미지를 실행하려면 Rosetta가 필요합니다. Docker 데스크톱 &gt; 설정 &gt; 일반으로 이동해 "Apple Silicon에서 x86_64/amd64 에뮬레이션에 Rosetta 사용"을 사용하도록 설정합니다.</target>
+      </trans-unit>
       <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
         <source xml:lang="en">Rule name</source>
         <target state="translated">규칙 이름</target>
+      </trans-unit>
+      <trans-unit id="++CODE++826cea94aca7f2bce9e97c214c1df682ea9fa53a85d642e06993064d077eda60">
+        <source xml:lang="en">Run Query</source>
+        <target state="translated">쿼리 실행</target>
       </trans-unit>
       <trans-unit id="++CODE++fa12adeb7bf1db8bea535fb7afc4cdb5121fe19f586fd0996a719007d8c7012c">
         <source xml:lang="en">Run Query History</source>
         <target state="translated">쿼리 기록 실행</target>
       </trans-unit>
+      <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
+        <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
+        <target state="translated">현재 편집기에서 쿼리를 실행하거나 결과가 있는 편집기로 전환하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8c69f23e4bff75d84e54afc088af9057c1b2285242fe96f175cbc395b3a16620">
+        <source xml:lang="en">Run query on connection '{0}'?
+
+Query: {1}</source>
+        <note>{0} is the connection ID
+{1} is the SQL query</note>
+        <target state="translated">연결 '{0}'에서 쿼리를 실행하시겠습니까?
+
+쿼리: {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c">
         <source xml:lang="en">Running query is not supported when the editor is in multiple selection mode.</source>
         <target state="translated">편집기가 다중 선택 모드에 있는 경우 쿼리 실행이 지원되지 않습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b1f11c275b04ef9f8ee2c203bbc9e14168767c3bf289f9915aa1e43adb776cf9">
+        <source xml:lang="en">Running query on connection '{0}'</source>
+        <note>{0} is the connection ID</note>
+        <target state="translated">연결 '{0}'에서 쿼리 실행 중</target>
+      </trans-unit>
+      <trans-unit id="++CODE++59b151f69d83edf3eb174ff38c0f77aebf28c9195c785f2003a1cd708de0dc77">
+        <source xml:lang="en">SQL Analytics Endpoint</source>
+        <target state="new">SQL Analytics Endpoint</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7f779b8a3477b9909716127bf4ed2ef8e07e7f5fae134f7ad1506a7f267de247">
+        <source xml:lang="en">SQL Database</source>
+        <target state="new">SQL Database</target>
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
@@ -2600,9 +3148,9 @@ Error:
         <source xml:lang="en">Schema</source>
         <target state="translated">스키마</target>
       </trans-unit>
-      <trans-unit id="++CODE++becc525b09db5d2c09fe7aa2203290938cd5cb1438f065f216e73957338265e2">
-        <source xml:lang="en">Schema Compare (Preview)</source>
-        <target state="translated">스키마 비교(미리 보기)</target>
+      <trans-unit id="++CODE++154e484fc5e1a7cb4991c071caef673c453eaa7dcfef4321db537c576a5c56cf">
+        <source xml:lang="en">Schema Compare</source>
+        <target state="translated">스키마 비교</target>
       </trans-unit>
       <trans-unit id="++CODE++57232ac852b468be7624e8edcfabbb24ac13076a47e75fb4121be42bc813c881">
         <source xml:lang="en">Schema Compare Options</source>
@@ -2645,6 +3193,10 @@ Error:
         <source xml:lang="en">Search connection groups</source>
         <target state="translated">연결 그룹 검색</target>
       </trans-unit>
+      <trans-unit id="++CODE++448fcd5b80608528b5b492337667acf711f486e31784b41b4bba7066a9527ac4">
+        <source xml:lang="en">Search for database objects...</source>
+        <target state="new">Search for database objects...</target>
+      </trans-unit>
       <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
         <source xml:lang="en">Search options...</source>
         <target state="translated">검색 옵션...</target>
@@ -2656,6 +3208,14 @@ Error:
       <trans-unit id="++CODE++771f5d2c0599dcf4194e3fdddd9a5212d6392f4703d29971575bb455b5287a84">
         <source xml:lang="en">Search tables...</source>
         <target state="translated">테이블 검색...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f0b2ef28c0bec626ad14f56179e18d97cdbfcb4f676c4735f95eae628d079538">
+        <source xml:lang="en">Search term cannot be empty</source>
+        <target state="new">Search term cannot be empty</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c192a3e6f23b125cfaa70c46f6fcd47a2081fa7270e7687687ea8596d2e012f">
+        <source xml:lang="en">Search workspaces...</source>
+        <target state="new">Search workspaces...</target>
       </trans-unit>
       <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
         <source xml:lang="en">Search...</source>
@@ -2669,13 +3229,25 @@ Error:
         <source xml:lang="en">Select All</source>
         <target state="translated">모두 선택</target>
       </trans-unit>
+      <trans-unit id="++CODE++3052f090b2dd0312f6564fb52c1f06b0efbe9fd7c77fdf38dcb96b4521b06b24">
+        <source xml:lang="en">Select Azure account with Key Vault access for column decryption</source>
+        <target state="translated">열 암호 해독을 위한 Key Vault 액세스 권한이 있는 Azure 계정을 선택하세요.</target>
+      </trans-unit>
       <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
         <source xml:lang="en">Select Source</source>
         <target state="translated">원본 선택</target>
       </trans-unit>
+      <trans-unit id="++CODE++5807729000cb38665e918bf3d7ac25f319624d3024eb2760aba5f15f7eb53559">
+        <source xml:lang="en">Select Source Schema</source>
+        <target state="translated">원본 스키마 선택</target>
+      </trans-unit>
       <trans-unit id="++CODE++bdd155896fd28608c15efbc9269fc433a1838ca35f20e4dc656f20ffe2aff773">
         <source xml:lang="en">Select Target</source>
         <target state="translated">대상 선택</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
+        <source xml:lang="en">Select Target Schema</source>
+        <target state="translated">대상 스키마 선택</target>
       </trans-unit>
       <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
         <source xml:lang="en">Select a connection group</source>
@@ -2690,6 +3262,10 @@ Error:
         <note>{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'</note>
         <target state="translated">드롭다운에서 유효한 {0} 선택</target>
       </trans-unit>
+      <trans-unit id="++CODE++903e816918c1b2835c9186eed7375ce85cc0f6230c48afbaa979177517e8545d">
+        <source xml:lang="en">Select a workspace to view the databases in it.</source>
+        <target state="new">Select a workspace to view the databases in it.</target>
+      </trans-unit>
       <trans-unit id="++CODE++a1205265db328a59a52187387e01e37a0e1d2b28210aa2e663f750eb8b7c8dcf">
         <source xml:lang="en">Select a {0} for filtering</source>
         <note>{0} is the type of the dropdown's contents, e.g 'resource group' or 'server'</note>
@@ -2699,13 +3275,31 @@ Error:
         <source xml:lang="en">Select all</source>
         <target state="translated">모두 선택</target>
       </trans-unit>
+      <trans-unit id="++CODE++80a484c3416afd950fcefa87e88b0514e65144c7d45c12bf0bc9809c46837f89">
+        <source xml:lang="en">Select all options</source>
+        <target state="translated">모두 선택 옵션</target>
+      </trans-unit>
       <trans-unit id="++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531">
         <source xml:lang="en">Select an account</source>
         <target state="translated">계정 선택</target>
       </trans-unit>
+      <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
+        <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
+        <target state="translated">연결 공유 권한을 관리할 확장을 선택하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cac9a015dc3356af3f386e840985bfc09d57c0b9cc01a88e26ec67f3501058d8">
+        <source xml:lang="en">Select an object to view its definition ({0} results)</source>
+        <note>{0} is the number of results</note>
+        <target state="new">Select an object to view its definition ({0} results)</target>
+      </trans-unit>
       <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
         <source xml:lang="en">Select image</source>
         <target state="translated">이미지 선택</target>
+      </trans-unit>
+      <trans-unit id="++CODE++154f133b3d7ef488e01090c00b0104ba7bf48bf4368e2ad71333fd3d863fb270">
+        <source xml:lang="en">Select new permission for extension: '{0}'</source>
+        <note>{0} is the extension name</note>
+        <target state="translated">확장에 대한 새 권한 선택: '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
         <source xml:lang="en">Select profile to remove</source>
@@ -2731,6 +3325,14 @@ Error:
         <source xml:lang="en">Server - {0}</source>
         <note>{0} is the server name</note>
         <target state="translated">서버 - {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6b0054dcd0116896729545198c9cdfe9b8f97008d91d39084e5c8808a6784c58">
+        <source xml:lang="en">Server Edition</source>
+        <target state="new">Server Edition</target>
+      </trans-unit>
+      <trans-unit id="++CODE++86c1cd65696eadbc588fd4fe04d8b03ca948befc5a89467c621edf47f885118c">
+        <source xml:lang="en">Server Version</source>
+        <target state="new">Server Version</target>
       </trans-unit>
       <trans-unit id="++CODE++1c53883708ab16a3743793905feb38c8e77c295d846ff276491831e1de69b6e1">
         <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
@@ -2781,6 +3383,10 @@ Error:
         <source xml:lang="en">Severity</source>
         <target state="translated">심각도</target>
       </trans-unit>
+      <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
+        <source xml:lang="en">Show All</source>
+        <target state="new">Show All</target>
+      </trans-unit>
       <trans-unit id="++CODE++a89fead964a8515cf74f4e5fcfbc0aaa029cee9744df340c6853e59a944de7ad">
         <source xml:lang="en">Show Filter</source>
         <target state="translated">필터 표시</target>
@@ -2806,6 +3412,10 @@ Error:
         <note>{0} is the connection ID</note>
         <target state="translated">연결 '{0}'의 스키마를 표시하시겠습니까?</target>
       </trans-unit>
+      <trans-unit id="++CODE++5997c7a016fad02db108f90e8f6bfcc6c127d8221dc5a6ec8cae9da1eff29cb3">
+        <source xml:lang="en">Show table relationships</source>
+        <target state="translated">테이블 관계 표시</target>
+      </trans-unit>
       <trans-unit id="++CODE++9c4229606309838f5e0322bca6f6a2fbfe1c05466547670ccfc1aa1f7f29cde9">
         <source xml:lang="en">Showing schema for connection '{0}'</source>
         <note>{0} is the connection ID</note>
@@ -2815,9 +3425,17 @@ Error:
         <source xml:lang="en">Showplan XML</source>
         <target state="translated">실행 계획 XML</target>
       </trans-unit>
+      <trans-unit id="++CODE++bcc0bcc9140b0c97a6440ce56966a07a05e85bddd509ddc5e2ab98755f319af1">
+        <source xml:lang="en">Sign In</source>
+        <target state="new">Sign In</target>
+      </trans-unit>
       <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
         <source xml:lang="en">Sign in</source>
         <target state="translated">로그인</target>
+      </trans-unit>
+      <trans-unit id="++CODE++83c5252b7cdf6235f1857a1dc56a0ae42ef7d912e938a31e31710c5847884b7c">
+        <source xml:lang="en">Sign in to a new account</source>
+        <target state="translated">새 계정에 로그인하세요</target>
       </trans-unit>
       <trans-unit id="++CODE++09a0ee357e3b34ac30c4ae61fcfbcfde87c6941a213e8e60d146e7942c0d76bc">
         <source xml:lang="en">Sign in to your Azure subscription</source>
@@ -2838,6 +3456,10 @@ Error:
       <trans-unit id="++CODE++cdc182077e173c86c2831fe9995d41691b9bc1182fe44519a292ea2b814eb17a">
         <source xml:lang="en">Sign into Azure in order to add a firewall rule.</source>
         <target state="translated">방화벽 규칙을 추가하려면 Azure에 로그인합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8fb63cdc9270808c8b3dab6531000afcfd2e8bd1550fa5fd1981b82d28859ad8">
+        <source xml:lang="en">Sign into Fabric</source>
+        <target state="new">Sign into Fabric</target>
       </trans-unit>
       <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
         <source xml:lang="en">Signing in to Azure...</source>
@@ -2899,6 +3521,10 @@ Error:
       <trans-unit id="++CODE++184772131710be8ca20d9a4e83be0ab0c86c87c6a6aca01beca9b06c3d71e39b">
         <source xml:lang="en">Starting Container...</source>
         <target state="translated">컨테이너를 시작하는 중...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c9b0e680f0f34168c5e442d010c91fdc75bc18b0de177476b144c47a032b66e">
+        <source xml:lang="en">Starting Docker...</source>
+        <target state="translated">Docker를 시작하고 있습니다...</target>
       </trans-unit>
       <trans-unit id="++CODE++3bd451a10a86c5f3b6edebcde31b6a0e51c4fbcf0b42752066f7496a1ed6077b">
         <source xml:lang="en">Starting {0}...</source>
@@ -2969,9 +3595,17 @@ Error:
         <source xml:lang="en">Switch Source and Target</source>
         <target state="translated">원본과 대상 전환</target>
       </trans-unit>
+      <trans-unit id="++CODE++a8e5ca29d45327e2790dbaef626ac6f467741af4efddd4d0aede688f4612677e">
+        <source xml:lang="en">Switch to Grid View</source>
+        <target state="translated">그리드 보기로 전환</target>
+      </trans-unit>
       <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
         <source xml:lang="en">Switch to MSAL</source>
         <target state="translated">MSAL로 전환</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fe49fbfd86c4792c2bd6cf8b59085cc2d787fa377a2af3ebdcbd88104e556d8c">
+        <source xml:lang="en">Switch to Text View</source>
+        <target state="translated">텍스트 보기로 전환하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
         <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
@@ -3039,6 +3673,10 @@ Error:
         <source xml:lang="en">Testing connection profile...</source>
         <target state="translated">연결 프로필을 테스트하는 중...</target>
       </trans-unit>
+      <trans-unit id="++CODE++6243b7f10cf3bedbbad66a99c0cf540a52e5239c6ccf9db907be70c383d0ce7f">
+        <source xml:lang="en">Text View</source>
+        <target state="translated">텍스트 보기</target>
+      </trans-unit>
       <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
         <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
         <note>{0} is a url to learn more about the new features</note>
@@ -3080,6 +3718,11 @@ Error:
       <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
         <source xml:lang="en">The expression defining the check constraint.</source>
         <target state="translated">CHECK 제약 조건을 정의하는 식입니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dcf10fd537a0660c98f1a3890997024dfebb2ac795ee02dcbc7581ec4a0fe141">
+        <source xml:lang="en">The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.</source>
+        <note>{0} is the extension name</note>
+        <target state="translated">확장 '{0}'이(가) SQL Server 연결에 대한 액세스를 요청하고 있습니다. 이를 통해 쿼리를 실행하고 데이터베이스에 접근할 수 있습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++d160b49baa7c6e4e8b95a21a984b19fda338b9d47a01d61c2d7445ed29cf174e">
         <source xml:lang="en">The first value must be less than the second value for the {0} operator in the {1} filter</source>
@@ -3207,10 +3850,18 @@ Error:
         <source xml:lang="en">Undo</source>
         <target state="translated">실행 취소</target>
       </trans-unit>
+      <trans-unit id="++CODE++27c2ccd962c2b8dccb52fe3688ab236f186f7a41fd57d810478712048e9ad3f8">
+        <source xml:lang="en">Unknown error</source>
+        <target state="new">Unknown error</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e4dd0ac78c7663f350454bad4258d3b6d38971181470082487d131decc61880b">
+        <source xml:lang="en">Unnamed Profile</source>
+        <target state="new">Unnamed Profile</target>
+      </trans-unit>
       <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
         <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
         <note>{0} is the architecture name of the machine</note>
-        <target state="new">Unsupported architecture for Docker: {0}</target>
+        <target state="translated">{0}은(는) Docker에 대해 지원되지 않는 아키텍처입니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++c074b14299b30a8058e3609567b5d799180ac9d267fdf56a931e7bda37b36b29">
         <source xml:lang="en">Unsupported platform for Docker: {0}</source>
@@ -3236,6 +3887,15 @@ Error:
       <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
         <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
         <target state="translated">현재 문서에서 T-SQL IntelliSense 및 구문 오류 검사 사용</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6fa7eeedfe2d3774f7d0d8fbb044c15710f171f58174bf7435ab1757e92d0c27">
+        <source xml:lang="en">Use {0} to create a new connection.</source>
+        <note>{0} is the connect command</note>
+        <target state="new">Use {0} to create a new connection.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b512d97e7cbf97c273e4db073bbb547aa65a84589227f8f3d9e4a72b9372a24d">
+        <source xml:lang="en">User</source>
+        <target state="new">User</target>
       </trans-unit>
       <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
         <source xml:lang="en">User name</source>
@@ -3311,6 +3971,14 @@ Error:
       <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
         <source xml:lang="en">You are not connected to any database.</source>
         <target state="translated">데이터베이스에 연결되어 있지 않습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
+        <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
+        <target state="translated">SQL 데이터베이스를 탐색하려면 Azure에 로그인해야 합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bb5b6644dc612a69a27fc4eb9b11f3e54901055b75fe7fb9bb754f28693a574f">
+        <source xml:lang="en">You must be signed into Fabric in order to browse SQL databases.</source>
+        <target state="new">You must be signed into Fabric in order to browse SQL databases.</target>
       </trans-unit>
       <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
         <source xml:lang="en">You must review and accept the terms to proceed</source>
@@ -3427,14 +4095,19 @@ Error:
         <source xml:lang="en">updatingIntelliSense</source>
         <target state="translated">updatingIntelliSense</target>
       </trans-unit>
-      <trans-unit id="++CODE++54df2bf44f5f0ca3c15695d631b8b81329804f2a5fb01e85d471e8afb9589681">
-        <source xml:lang="en">{0} (Preview)</source>
-        <note>{0} is the database name</note>
-        <target state="translated">{0}(미리 보기)</target>
+      <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
+        <source xml:lang="en">{0} (Current Account)</source>
+        <note>{0} is the account display name</note>
+        <target state="translated">{0} (현재 계정)</target>
       </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
         <target state="translated">{0}(필터링됨)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d26e21ebdede152a58db3c9ae1c87fd29a87b97da434181f5617921d2ba4a284">
+        <source xml:lang="en">{0} accounts</source>
+        <note>{0} is the number of accounts</note>
+        <target state="translated">계정 {0}개</target>
       </trans-unit>
       <trans-unit id="++CODE++682728640d4b8510d70b847b61ea921db8626fc0e0682e33d1f72e59a9d52315">
         <source xml:lang="en">{0} column data</source>
@@ -3455,6 +4128,11 @@ Error:
         <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
         <note>{0} is the webview name</note>
         <target state="translated">{0}이(가) 닫혔습니다. 복원하시겠습니까?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dde734013704b68f0d2d57a1385773d7e4bfbae374a67c150f3f06d8abb95f9d">
+        <source xml:lang="en">{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.</source>
+        <note>{0} is the number of invalid accounts that have been removed</note>
+        <target state="translated">{0}개의 잘못된 Entra 계정이 제거되었습니다. 'MS SQL: Microsoft Entra 계정 토큰 캐시 지우기'를 실행하고 다시 로그인해야 할 수 있습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a">
         <source xml:lang="en">{0} issue</source>
@@ -3527,6 +4205,22 @@ Error:
         <source xml:lang="en">{{put-server-name-here}}</source>
         <target state="translated">{{put-server-name-here}}</target>
       </trans-unit>
+      <trans-unit id="++CODE++097beaf7cff8a2792062a02ba2078dcf76e2166c13dd935fbffcd530d655cdf6">
+        <source xml:lang="en">✅ Grant Access</source>
+        <target state="translated">✅ 액세스 권한 부여</target>
+      </trans-unit>
+      <trans-unit id="++CODE++56034cb01aa84b5c8abe9389abf03d1c9a91ecea712a8711d611abb0ddd1637c">
+        <source xml:lang="en">✅ Grant Access (Current)</source>
+        <target state="translated">✅ 액세스 권한 부여 (현재)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++40609c19f7011fdd42630f286c30982b3d7a2d74640e310c4126b785a384149d">
+        <source xml:lang="en">❌ Deny Access</source>
+        <target state="translated">❌ 액세스 거부</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4d765d766973242c68c5a2d3b20c7164beb22948ceaf7095ce44f901cc2f4052">
+        <source xml:lang="en">❌ Deny Access (Current)</source>
+        <target state="translated">❌ 액세스 거부 (현재)</target>
+      </trans-unit>
     </body>
   </file>
   <file original="package" source-language="en" datatype="plaintext" target-language="ko">
@@ -3582,6 +4276,10 @@ Error:
       <trans-unit id="mssql.chooseAuthMethod">
         <source xml:lang="en">Chooses which Authentication method to use</source>
         <target state="translated">사용할 인증 방법을 선택합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionSharing.clearAllConnectionSharingPermissions">
+        <source xml:lang="en">Clear All Connection Sharing Permissions</source>
+        <target state="translated">모든 연결 공유 권한 지우기</target>
       </trans-unit>
       <trans-unit id="mssql.clearAllQueryHistory">
         <source xml:lang="en">Clear All Query History</source>
@@ -3653,6 +4351,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Create local SQL Container</source>
         <target state="translated">로컬 SQL 컨테이너 만들기</target>
       </trans-unit>
+      <trans-unit id="mssql.defaultQueryResultsViewMode.description">
+        <source xml:lang="en">Default view mode for query results display.</source>
+        <target state="translated">쿼리 결과 표시를 위한 기본 보기 모드입니다.</target>
+      </trans-unit>
       <trans-unit id="mssql.deleteQueryHistory">
         <source xml:lang="en">Delete</source>
         <target state="translated">삭제</target>
@@ -3665,10 +4367,6 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Delete Container</source>
         <target state="translated">컨테이너 삭제</target>
       </trans-unit>
-      <trans-unit id="mssql.designSchema">
-        <source xml:lang="en">Design Schema (Preview)</source>
-        <target state="translated">스키마 디자인(미리 보기)</target>
-      </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
         <source xml:lang="en">Disable Actual Plan</source>
         <target state="translated">실제 계획 사용 안 함</target>
@@ -3680,6 +4378,14 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.disconnect">
         <source xml:lang="en">Disconnect</source>
         <target state="translated">연결 끊기</target>
+      </trans-unit>
+      <trans-unit id="mssql.defaultQueryResultsViewMode.text.description">
+        <source xml:lang="en">Display results in a formatted text format.</source>
+        <target state="translated">결과를 서식이 지정된 텍스트 형식으로 표시합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.defaultQueryResultsViewMode.grid.description">
+        <source xml:lang="en">Display results in a tabular grid format (default)</source>
+        <target state="translated">결과를 표 형식으로 표시합니다(기본값).</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description">
         <source xml:lang="en">Do not show prompts to display query results in a new tab.</source>
@@ -3696,6 +4402,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.connectionGroups.edit">
         <source xml:lang="en">Edit Connection Group</source>
         <target state="translated">연결 그룹 편집</target>
+      </trans-unit>
+      <trans-unit id="mssql.connectionSharing.editConnectionSharingPermissions">
+        <source xml:lang="en">Edit Connection Sharing Permissions</source>
+        <target state="translated">연결 공유 권한 편집</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
         <source xml:lang="en">Edit Table</source>
@@ -3801,6 +4511,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Enable SET XACT_ABORT ON option</source>
         <target state="translated">SET XACT_ABORT ON 옵션 사용</target>
       </trans-unit>
+      <trans-unit id="mssql.schemaDesigner.enableExpandCollapseButtons">
+        <source xml:lang="en">Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns</source>
+        <target state="translated">테이블에 열이 10개 이상인 경우 스키마 디자이너의 테이블 노드에서 확장/축소 버튼을 활성화하세요.</target>
+      </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.altText">
         <source xml:lang="en">Enable modern features in MSSQL</source>
         <target state="translated">MSSQL에서 최신 활성화</target>
@@ -3827,9 +4541,9 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Enables use of the Sql Authentication Provider for 'Microsoft Entra Id Interactive' authentication mode when user selects 'AzureMFA' authentication. This enables Server-side resource endpoint integration when fetching access tokens. This option is only supported for 'MSAL' Authentication Library. Please restart Visual Studio Code after changing this option.</source>
         <target state="translated">사용자가 'AzureMFA' 인증을 선택할 때 'Microsoft Entra ID Interactive' 인증 모드에서 SQL 인증 공급자를 사용하도록 설정합니다. 이를 통해 액세스 토큰을 가져올 때 서버 쪽 리소스 엔드포인트 통합을 사용할 수 있습니다. 이 옵션은 'MSAL' 인증 라이브러리에 대해서만 지원됩니다. 이 옵션을 변경한 후 Visual Studio Code를 다시 시작하세요.</target>
       </trans-unit>
-      <trans-unit id="mssql.showExecutionPlanInResults">
+      <trans-unit id="mssql.showEstimatedPlan">
         <source xml:lang="en">Estimated Plan</source>
-        <target state="translated">예상 플랜</target>
+        <target state="new">Estimated Plan</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>
@@ -3866,10 +4580,6 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.userFeedback">
         <source xml:lang="en">Give Feedback</source>
         <target state="translated">피드백 제공</target>
-      </trans-unit>
-      <trans-unit id="mssql.hasConnections">
-        <source xml:lang="en">Indicates whether the user has defined any connection profiles in 'User Settings'.</source>
-        <target state="translated">사용자가 '사용자 설정'에서 연결 프로필을 정의했는지 여부를 나타냅니다.</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot (Preview)</source>
@@ -4005,9 +4715,9 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Remove Microsoft Entra Account</source>
         <target state="translated">Microsoft Entra 테넌트 제거</target>
       </trans-unit>
-      <trans-unit id="mssql.revealQueryResultPanel">
-        <source xml:lang="en">Reveal Query Result Panel</source>
-        <target state="translated">쿼리 결과 패널 표시</target>
+      <trans-unit id="mssql.revealQueryResult">
+        <source xml:lang="en">Reveal Query Result</source>
+        <target state="translated">쿼리 결과 표시</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.rewriteQuery">
         <source xml:lang="en">Rewrite Query (Preview)</source>
@@ -4022,8 +4732,12 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">SQL 쿼리 실행</target>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
-        <source xml:lang="en">Schema Compare (Preview)</source>
-        <target state="translated">스키마 비교(미리 보기)</target>
+        <source xml:lang="en">Schema Compare</source>
+        <target state="translated">스키마 비교</target>
+      </trans-unit>
+      <trans-unit id="mssql.schemaDesigner">
+        <source xml:lang="en">Schema Designer</source>
+        <target state="translated">스키마 디자이너</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
@@ -4040,6 +4754,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.scriptExecute">
         <source xml:lang="en">Script as Execute</source>
         <target state="translated">Execute로 스크립트</target>
+      </trans-unit>
+      <trans-unit id="mssql.searchObjects">
+        <source xml:lang="en">Search Objects</source>
+        <target state="new">Search Objects</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
@@ -4149,6 +4867,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Table Designer</source>
         <target state="translated">테이블 디자이너</target>
       </trans-unit>
+      <trans-unit id="mssql.connectionManagement.rememberPasswordsUntilRestart">
+        <source xml:lang="en">Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
+        <target state="translated">확장이 다시 시작되기 전까지 '저장된 암호'가 비활성화된 연결에 대한 암호를 일시적으로 저장합니다. 이렇게 하면 동일한 세션 내에서 연결을 재사용할 때 암호 프롬프트가 반복되지 않습니다.</target>
+      </trans-unit>
       <trans-unit id="mssql.connectionGroup.color">
         <source xml:lang="en">The color of the connection group.</source>
         <target state="translated">연결 그룹의 색입니다.</target>
@@ -4156,6 +4878,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.connectionGroup.description">
         <source xml:lang="en">The description of the connection group.</source>
         <target state="translated">연결 그룹의 설명입니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.statusBar.connectionInfoMaxLength.description">
+        <source xml:lang="en">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</source>
+        <target state="translated">상태 막대에 표시할 연결 정보의 최대 문자 수입니다. 제한 없이 표시하려면 -1로 설정하세요.</target>
       </trans-unit>
       <trans-unit id="mssql.maxRecentConnections">
         <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
@@ -4211,10 +4937,6 @@ See the estimated plan without running the query, or view the actual query plan 
         <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
         <target state="translated">최신 환경 대신 레거시 연결 환경을 사용하세요.</target>
       </trans-unit>
-      <trans-unit id="mssql.useLegacyQueryResultExperience.description">
-        <source xml:lang="en">Use the legacy query result experience instead of the modern experience.</source>
-        <target state="translated">최신 환경 대신 레거시 쿼리 결과 환경을 사용하세요.</target>
-      </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
         <target state="translated">쿼리 계획 시각화</target>
@@ -4222,6 +4944,10 @@ See the estimated plan without running the query, or view the actual query plan 
       <trans-unit id="mssql.statusBar.enableConnectionColor">
         <source xml:lang="en">When enabled, colorizes the connection status bar item with the color of the connection group. This setting is disabled by default.  This uses the connection group folder's color directly, and does not alter it in order to ensure contrast with the current VS Code theme. Users should choose connection group colors that work well with their theme.</source>
         <target state="translated">사용하도록 설정하면 연결 상태 표시줄 항목의 색상이 연결 그룹의 색상으로 변경됩니다. 이 설정은 기본적으로 사용하지 않도록 설정되어 있습니다.  연결 그룹 폴더의 색상을 직접 사용하며, 현재 VS Code 테마와의 대비를 보장하기 위해 변경되지 않습니다. 사용자는 테마와 잘 어울리는 연결 그룹 색상을 선택해야 합니다.</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription">
+        <source xml:lang="en">When enabled, connection groups will be collapsed instead of expanded at startup.</source>
+        <target state="new">When enabled, connection groups will be collapsed instead of expanded at startup.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
@@ -4253,10 +4979,6 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <source xml:lang="en">[Optional] Configuration options for copying results from the Results View</source>
         <target state="translated">[옵션] 결과 뷰에서 결과를 복사하기 위한 구성 옵션</target>
       </trans-unit>
-      <trans-unit id="mssql.applyLocalization">
-        <source xml:lang="en">[Optional] Configuration options for localizing into VSCode's configured locale (must restart VSCode for settings to take effect)</source>
-        <target state="translated">[옵션] VSCode의 구성된 로캘로 지역화하기 위한 구성 옵션(설정을 적용하려면 VSCode를 다시 시작해야 함)</target>
-      </trans-unit>
       <trans-unit id="mssql.splitPaneSelection">
         <source xml:lang="en">[Optional] Configuration options for which column new result panes should open in</source>
         <target state="translated">[옵션] 새 결과 창이 열리는 열의 구성 옵션</target>
@@ -4266,16 +4988,16 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <target state="translated">[옵션] SQL Server에 연결할 때 ReadWrite 또는 ReadOnly와 같은 애플리케이션 워크로드 유형을 선언합니다. 자세한 내용은 SQL Server AlwaysOn를 참조하세요.</target>
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.delimiter">
-        <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV</source>
-        <target state="translated">[옵션] 결과를 CSV로 저장할 경우 데이터 항목을 분리하기 위한 구분 기호</target>
+        <source xml:lang="en">[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\t), semicolon (;), or pipe (|)</source>
+        <target state="translated">[옵션] 결과를 CSV로 저장할 경우 데이터 항목을 분리하기 위한 구분 기호. 쉼표(,), 탭(\t), 세미콜론(;) 또는 파이프(|)와 같은 일반적인 구분 기호 중에서 선택하기</target>
       </trans-unit>
       <trans-unit id="mssql.ignorePlatformWarning">
         <source xml:lang="en">[Optional] Do not show unsupported platform warnings</source>
         <target state="translated">[옵션] 지원되지 않는 플랫폼 경고 표시 안 함</target>
       </trans-unit>
       <trans-unit id="mssql.saveAsCsv.encoding">
-        <source xml:lang="en">[Optional] File encoding used when saving results as CSV</source>
-        <target state="translated">[옵션] 결과를 CSV로 저장할 때 사용되는 파일 인코딩</target>
+        <source xml:lang="en">[Optional] File encoding used when saving results as CSV. Choose from UTF-8 (recommended), UTF-16, ASCII, or Latin-1 based on your target application compatibility</source>
+        <target state="translated">[옵션] 결과를 CSV로 저장할 때 사용되는 파일 인코딩. 대상 응용 프로그램의 호환성에 따라 UTF-8(권장), UTF-16, ASCII 또는 Latin-1 중에서 선택하기</target>
       </trans-unit>
       <trans-unit id="mssql.connection.currentLanguage">
         <source xml:lang="en">[Optional] Indicates the SQL Server language settings.</source>

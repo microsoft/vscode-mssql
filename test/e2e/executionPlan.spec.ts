@@ -6,7 +6,7 @@
 import { ElectronApplication, FrameLocator, Locator, Page } from "@playwright/test";
 import { test, expect } from "./baseFixtures";
 import { launchVsCodeWithMssqlExtension } from "./utils/launchVscodeWithMsSqlExt";
-import { screenshotOnFailure } from "./utils/screenshotOnError";
+import { screenshotOnFailure } from "./utils/screenshotUtils";
 import { getWebviewByTitle, waitForCommandPaletteToBeVisible } from "./utils/testHelpers";
 import { writeCoverage } from "./utils/coverageHelpers";
 import path from "path";
@@ -129,7 +129,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const customZoomInput = iframe.locator("#customZoomInputBox");
         await expect(customZoomInput).toBeVisible();
 
-        await customZoomInput.fill("25");
+        await customZoomInput.fill((currentZoom - 5).toString());
         const customZoomApplyButton = iframe.locator(
             '[type="button"][aria-label="Apply"][class*="fui-Button"]',
         );

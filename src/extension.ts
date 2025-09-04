@@ -19,6 +19,7 @@ import { createSqlAgentRequestHandler, ISqlChatResult } from "./copilot/chatAgen
 import { sendActionEvent } from "./telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
+import { IconUtils } from "./utils/iconUtils";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -28,12 +29,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     controller = new MainController(context, undefined, vscodeWrapper);
     context.subscriptions.push(controller);
 
-    // Checking if localization should be applied
-    //let config = vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
-    //let applyLocalization = config[Constants.configApplyLocalization];
-    // if (applyLocalization) {
-    // 	LocalizedConstants.loadLocalizedConstants(vscode.env.language);
-    // }
+    IconUtils.initialize(context.extensionUri);
 
     // Check if GitHub Copilot is installed
     const copilotExtension = vscode.extensions.getExtension("GitHub.copilot");
@@ -143,6 +139,51 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         },
         getServerInfo: (connectionInfo: IConnectionInfo) => {
             return controller.connectionManager.getServerInfo(connectionInfo);
+        },
+        connectionSharing: <vscodeMssql.IConnectionSharingService>{
+            getActiveEditorConnectionId: (extensionId: string) => {
+                return controller.connectionSharingService.getActiveEditorConnectionId(extensionId);
+            },
+            getActiveDatabase: (extensionId: string) => {
+                return controller.connectionSharingService.getActiveDatabase(extensionId);
+            },
+            getDatabaseForConnectionId: (extensionId: string, connectionId: string) => {
+                return controller.connectionSharingService.getDatabaseForConnectionId(
+                    extensionId,
+                    connectionId,
+                );
+            },
+            connect: async (extensionId: string, connectionId: string): Promise<string> => {
+                return controller.connectionSharingService.connect(extensionId, connectionId);
+            },
+            disconnect: (connectionUri: string): void => {
+                return controller.connectionSharingService.disconnect(connectionUri);
+            },
+            isConnected: (connectionUri: string): boolean => {
+                return controller.connectionSharingService.isConnected(connectionUri);
+            },
+            executeSimpleQuery: (
+                connectionUri: string,
+                queryString: string,
+            ): Promise<vscodeMssql.SimpleExecuteResult> => {
+                return controller.connectionSharingService.executeSimpleQuery(
+                    connectionUri,
+                    queryString,
+                );
+            },
+            getServerInfo: (connectionUri: string): vscodeMssql.IServerInfo => {
+                return controller.connectionSharingService.getServerInfo(connectionUri);
+            },
+            listDatabases: (connectionUri: string): Promise<string[]> => {
+                return controller.connectionSharingService.listDatabases(connectionUri);
+            },
+            scriptObject: (connectionUri, operation, scriptingObject) => {
+                return controller.connectionSharingService.scriptObject(
+                    connectionUri,
+                    operation,
+                    scriptingObject,
+                );
+            },
         },
     };
 }

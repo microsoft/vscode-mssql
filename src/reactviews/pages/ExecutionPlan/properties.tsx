@@ -5,7 +5,7 @@
 
 import "./executionPlan.css";
 
-import * as ep from "../../../sharedInterfaces/executionPlanInterfaces";
+import * as ep from "../../../sharedInterfaces/executionPlan";
 import * as utils from "./queryPlanSetup";
 
 import {
@@ -30,11 +30,11 @@ import {
     ChevronRight20Regular,
     Dismiss12Regular,
 } from "@fluentui/react-icons";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { ExecutionPlanContext } from "./executionPlanStateProvider";
 import { ExecutionPlanView } from "./executionPlanView";
 import { locConstants } from "../../common/locConstants";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 
 const useStyles = makeStyles({
     paneContainer: {
@@ -122,9 +122,9 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     setPropertiesClicked,
     inputRef,
 }) => {
+    const { themeKind } = useVscodeWebview2();
     const classes = useStyles();
-    const context = useContext(ExecutionPlanContext);
-    const theme = context!.themeKind;
+    const theme = themeKind;
     const [shownChildren, setShownChildren] = useState<number[]>([]);
     const [openedButtons, setOpenedButtons] = useState<string[]>([]);
     const [name, setName] = useState<string>("");

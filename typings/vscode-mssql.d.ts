@@ -130,6 +130,10 @@ declare module "vscode-mssql" {
          * @returns server information
          */
         getServerInfo(connectionInfo: IConnectionInfo): IServerInfo;
+        /**
+         * APIs for working with mssql connections
+         */
+        connectionSharing: IConnectionSharingService;
     }
 
     /**
@@ -185,36 +189,6 @@ declare module "vscode-mssql" {
          * The Operating System version string of the machine running the SQL Server instance.
          */
         osVersion: string;
-    }
-
-    /**
-     * Well-known Authentication types.
-     */
-    export const enum AuthenticationType {
-        /**
-         * Username and password
-         */
-        SqlLogin = "SqlLogin",
-        /**
-         * Windows Authentication
-         */
-        Integrated = "Integrated",
-        /**
-         * Microsoft Entra Id - Universal with MFA support
-         */
-        AzureMFA = "AzureMFA",
-        /**
-         * Microsoft Entra Id - Password
-         */
-        AzureMFAAndUser = "AzureMFAAndUser",
-        /**
-         * Datacenter Security Token Service Authentication
-         */
-        DSTSAuth = "dstsAuth",
-        /**
-         * No authentication required
-         */
-        None = "None",
     }
 
     /**
@@ -442,16 +416,6 @@ declare module "vscode-mssql" {
          * connection is not hosted by a container
          */
         containerName: string | undefined;
-    }
-
-    // If this enum changes, please update the SharedExtractTarget enum in schemaCompare.ts
-    export const enum ExtractTarget {
-        dacpac = 0,
-        file = 1,
-        flat = 2,
-        objectType = 3,
-        schema = 4,
-        schemaObjectType = 5,
     }
 
     /**
@@ -1231,12 +1195,6 @@ declare module "vscode-mssql" {
         getLocations(session: IAzureAccountSession): Promise<azure.subscription.Location[]>;
     }
 
-    export const enum TaskExecutionMode {
-        execute = 0,
-        script = 1,
-        executeAndScript = 2,
-    }
-
     /**
      * Interface containing deployment options of boolean type
      */
@@ -1349,14 +1307,6 @@ declare module "vscode-mssql" {
         createStreamingJobTsql: string;
     }
 
-    export const enum SchemaCompareEndpointType {
-        Database = 0,
-        Dacpac = 1,
-        Project = 2,
-        // must be kept in-sync with SchemaCompareEndpointType in SQL Tools Service
-        // located at \src\Microsoft.SqlTools.ServiceLayer\SchemaCompare\Contracts\SchemaCompareRequest.cs
-    }
-
     export interface SchemaCompareConnectionInfo {
         options: { [name: string]: any };
     }
@@ -1376,17 +1326,6 @@ declare module "vscode-mssql" {
         dataSchemaProvider: string;
     }
 
-    export const enum SchemaUpdateAction {
-        Delete = 0,
-        Change = 1,
-        Add = 2,
-    }
-
-    export const enum SchemaDifferenceType {
-        Object = 0,
-        Property = 1,
-    }
-
     export interface DiffEntry {
         updateAction: SchemaUpdateAction;
         differenceType: SchemaDifferenceType;
@@ -1397,6 +1336,8 @@ declare module "vscode-mssql" {
         children: DiffEntry[];
         sourceScript: string;
         targetScript: string;
+        sourceObjectType: string;
+        targetObjectType: string;
         included: boolean;
         position?: number;
     }
@@ -2465,5 +2406,177 @@ declare module "vscode-mssql" {
                 readonly actionsRequired?: PrivateLinkServiceConnectionStateActionsRequire;
             }
         }
+    }
+
+    export class DbCellValue {
+        displayValue: string;
+        isNull: boolean;
+    }
+
+    export interface IDbColumn {
+        allowDBNull?: boolean;
+        baseCatalogName: string;
+        baseColumnName: string;
+        baseSchemaName: string;
+        baseServerName: string;
+        baseTableName: string;
+        columnName: string;
+        columnOrdinal?: number;
+        columnSize?: number;
+        isAliased?: boolean;
+        isAutoIncrement?: boolean;
+        isExpression?: boolean;
+        isHidden?: boolean;
+        isIdentity?: boolean;
+        isKey?: boolean;
+        isBytes?: boolean;
+        isChars?: boolean;
+        isSqlVariant?: boolean;
+        isUdt?: boolean;
+        dataType: string;
+        isXml?: boolean;
+        isJson?: boolean;
+        isLong?: boolean;
+        isReadOnly?: boolean;
+        isUnique?: boolean;
+        numericPrecision?: number;
+        numericScale?: number;
+        udtAssemblyQualifiedName: string;
+        dataTypeName: string;
+    }
+
+    export interface SimpleExecuteResult {
+        /**
+         * Count of rows returned by the query.
+         */
+        rowCount: number;
+        /**
+         * Column information for the result set.
+         */
+        columnInfo: IDbColumn[];
+        /**
+         * Rows returned by the query.
+         * Each row is an array of DbCellValue, representing the values of each column in that row.
+         */
+        rows: DbCellValue[][];
+    }
+
+    export interface IScriptingObject {
+        /**
+         * The database object type
+         */
+        type: string;
+
+        /**
+         * The schema of the database object
+         */
+        schema: string;
+
+        /**
+         * The database object name
+         */
+        name: string;
+
+        /**
+         * The parent object name which is needed for scripting subobjects like triggers or indexes
+         */
+        parentName?: string;
+
+        /**
+         * The parent object type name such as Table, View, etc.
+         */
+        parentTypeName?: string;
+    }
+
+    /**
+     * Interface for connection sharing service
+     * This service allows external extensions to use connections established by the mssql extension.
+     */
+    export interface IConnectionSharingService {
+        /**
+         * Get the connection ID for the active editor.
+         * @param extensionId The ID of the extension.
+         * @returns The connection ID if an active editor is connected, or undefined if there is no active editor or the editor is not connected.
+         */
+        getActiveEditorConnectionId(extensionId: string): Promise<string | undefined>;
+        /**
+         * Get the active database name for the connection in the active editor.
+         * @param extensionId The ID of the extension.
+         * @returns The active database name if an active editor is connected, or undefined if there is no active editor or the editor is not connected.
+         */
+        getActiveDatabase(extensionId: string): Promise<string | undefined>;
+        /**
+         * Get the database name for a specific connection ID.
+         * @param extensionId The ID of the extension.
+         * @param connectionId The ID of the connection.
+         * @returns The database name for the connection if found, or undefined if the connection is not found.
+         */
+        getDatabaseForConnectionId(extensionId: string, connectionId: string): Promise<string | undefined>;
+        /**
+         * Connect to an existing connection using the connection ID.
+         * This will return the connection URI if successful.
+         * @param extensionId The ID of the extension.
+         * @param connectionId The ID of the connection.
+         * @param database Optional database name to connect to.
+         * @returns The connection URI if the connection is established successfully.
+         * @throws Error if the connection cannot be established.
+         */
+        connect(
+            extensionId: string,
+            connectionId: string,
+            database?: string,
+        ): Promise<string | undefined>;
+        /**
+         * Disconnect from a connection using the connection URI.
+         * @param connectionUri The URI of the connection to disconnect from.
+         */
+        disconnect(connectionUri: string): void;
+        /**
+         * Check if a connection is currently established using the connection URI.
+         * @param connectionUri The URI of the connection to check.
+         * @returns True if the connection is established, false otherwise.
+         */
+        isConnected(connectionUri: string): boolean;
+        /**
+         * Execute a simple query on the database using the connection URI.
+         * @param connectionUri The URI of the connection to use for executing the query.
+         * @param queryString The SQL query to execute.
+         * @returns A promise that resolves with the result of the query execution.
+         */
+        executeSimpleQuery(
+            connectionUri: string,
+            queryString: string,
+        ): Promise<SimpleExecuteResult>;
+        /**
+         * Get server information using the connection URI.
+         * @param connectionUri The URI of the connection to get server information from.
+         * @returns A promise that resolves with the server information.
+         */
+        getServerInfo(connectionUri: string): IServerInfo;
+        /**
+         * Edit the connection sharing permissions for a specific extension.
+         * @param extensionId The ID of the extension to edit permissions for.
+         * @returns A promise that resolves with the updated connection sharing approval, or undefined if the operation failed.
+         */
+        editConnectionSharingPermissions(
+            extensionId: string,
+        ): Promise<ConnectionSharingApproval | undefined>;
+        /**
+         * List all databases available in the server for the given connection URI.
+         * @param connectionUri The URI of the connection to list databases for.
+         */
+        listDatabases(connectionUri: string): Promise<string[]>;
+        /**
+         * Script an object from the database using the connection URI.
+         * @param connectionUri The URI of the connection to use for scripting.
+         * @param operation The operation to perform (e.g., ScriptCreate, ScriptDrop, etc.).
+         * @param scriptingObject The object to script, containing its type, schema, name, and parent information.
+         * @return A promise that resolves with the scripted SQL string, or undefined if the operation failed.
+         */
+        scriptObject(
+            connectionUri: string,
+            operation: ScriptOperation,
+            scriptingObject: IScriptingObject,
+        ): Promise<string | undefined>;
     }
 }

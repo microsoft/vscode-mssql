@@ -5,10 +5,12 @@
 
 import {
     ColorThemeKind,
+    CoreRPCs,
     LoggerLevel,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../../sharedInterfaces/webview";
+import { WebviewRpc } from "./rpc";
 import { VscodeWebviewContext } from "./vscodeWebviewProvider";
 
 /**
@@ -75,17 +77,21 @@ export function deepClone<T>(obj: T): T {
 }
 
 export function getCoreRPCs<TState, TReducers>(
-    webviewState: VscodeWebviewContext<TState, TReducers>,
-): any {
+    webviewContext: VscodeWebviewContext<TState, TReducers>,
+): CoreRPCs {
+    return getCoreRPCs2(webviewContext.extensionRpc);
+}
+
+export function getCoreRPCs2<TReducers>(extensionRpc: WebviewRpc<TReducers>): CoreRPCs {
     return {
         log(message: string, level?: LoggerLevel) {
-            webviewState.extensionRpc.log(message, level);
+            extensionRpc.log(message, level);
         },
         sendActionEvent(event: WebviewTelemetryActionEvent) {
-            webviewState.extensionRpc.sendActionEvent(event);
+            extensionRpc.sendActionEvent(event);
         },
         sendErrorEvent(event: WebviewTelemetryErrorEvent) {
-            webviewState.extensionRpc.sendErrorEvent(event);
+            extensionRpc.sendErrorEvent(event);
         },
     };
 }
@@ -94,4 +100,21 @@ export enum MouseButton {
     LeftClick = 0,
     Middle = 1,
     RightClick = 2,
+}
+
+/**
+ * Get the end of line character(s) based on the user's OS.
+ */
+export function getEOL(): string {
+    var linebreaks = {
+        Windows: "\r\n",
+        Mac: "\n",
+        Linux: "\n",
+    };
+    for (const key in linebreaks) {
+        if (navigator.userAgent.indexOf(key) != -1) {
+            return linebreaks[key as keyof typeof linebreaks];
+        }
+    }
+    return "\n";
 }

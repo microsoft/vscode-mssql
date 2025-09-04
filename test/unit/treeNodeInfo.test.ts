@@ -5,8 +5,12 @@
 
 import { expect } from "chai";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import { initializeIconUtils } from "./utils";
 
 suite("TreeNodeInfo", () => {
+    setup(() => {
+        initializeIconUtils();
+    });
     test("When creating multiple TreeNodeInfo in quick succession, the nodePath should be unique", () => {
         const node1 = new TreeNodeInfo(
             "node_label",

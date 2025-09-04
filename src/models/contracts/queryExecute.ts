@@ -55,7 +55,32 @@ export namespace QueryExecuteBatchCompleteNotification {
     );
 }
 
-// Query ResultSet Complete Notification -----------------------------------------------------------
+// ------------------------------- < Query ResultSet Available Notification > ------------------------------------
+export namespace QueryExecuteResultSetAvailableNotification {
+    export const type = new NotificationType<
+        QueryExecuteResultSetAvailableNotificationParams,
+        void
+    >("query/resultSetAvailable");
+}
+
+export class QueryExecuteResultSetAvailableNotificationParams {
+    resultSetSummary: ResultSetSummary;
+    ownerUri: string;
+}
+
+// ------------------------------- < Query ResultSet Updated Notification > ------------------------------------
+export namespace QueryExecuteResultSetUpdatedNotification {
+    export const type = new NotificationType<QueryExecuteResultSetUpdatedNotificationParams, void>(
+        "query/resultSetUpdated",
+    );
+}
+
+export class QueryExecuteResultSetUpdatedNotificationParams {
+    resultSetSummary: ResultSetSummary;
+    ownerUri: string;
+}
+
+// ------------------------------- < Query ResultSet Complete Notification > ------------------------------------
 export namespace QueryExecuteResultSetCompleteNotification {
     export const type = new NotificationType<QueryExecuteResultSetCompleteNotificationParams, void>(
         "query/resultSetComplete",

@@ -8,9 +8,9 @@ import * as assert from "assert";
 import ServiceDownloadProvider from "../../src/languageservice/serviceDownloadProvider";
 import ServerProvider from "../../src/languageservice/server";
 import { ServerStatusView } from "../../src/languageservice/serverStatus";
-import Config from "../../src/configurations/config";
+import ConfigUtils from "../../src/configurations/configUtils";
 import { Runtime } from "../../src/models/platform";
-import { IConfig, IStatusView } from "../../src/languageservice/interfaces";
+import { IConfigUtils, IStatusView } from "../../src/languageservice/interfaces";
 
 interface IFixture {
     executableFileName: string;
@@ -22,7 +22,7 @@ interface IFixture {
 suite("Server tests", () => {
     let testDownloadProvider: TypeMoq.IMock<ServiceDownloadProvider>;
     let testStatusView: TypeMoq.IMock<IStatusView>;
-    let testConfig: TypeMoq.IMock<IConfig>;
+    let testConfig: TypeMoq.IMock<IConfigUtils>;
 
     setup(() => {
         testDownloadProvider = TypeMoq.Mock.ofType(
@@ -30,7 +30,7 @@ suite("Server tests", () => {
             TypeMoq.MockBehavior.Strict,
         );
         testStatusView = TypeMoq.Mock.ofType(ServerStatusView, TypeMoq.MockBehavior.Strict);
-        testConfig = TypeMoq.Mock.ofType(Config, TypeMoq.MockBehavior.Strict);
+        testConfig = TypeMoq.Mock.ofType(ConfigUtils, TypeMoq.MockBehavior.Strict);
     });
 
     function setupMocks(fixture: IFixture): void {

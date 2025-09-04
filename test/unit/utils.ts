@@ -8,8 +8,10 @@ import * as sinon from "sinon";
 import * as telemetry from "../../src/telemetry/telemetry";
 import * as vscode from "vscode";
 import { IExtension } from "vscode-mssql";
+import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import * as path from "path";
 
-// Launches and activates the extension.
+// Launches and activates the extension
 export async function activateExtension(): Promise<IExtension> {
     const extension = vscode.extensions.getExtension<IExtension>(constants.extensionId);
     return await extension.activate();
@@ -20,15 +22,32 @@ export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
     sendActionEvent: sinon.SinonStub;
     sendErrorEvent: sinon.SinonStub;
 } {
-    if (sandbox) {
-        return {
-            sendActionEvent: sandbox.stub(telemetry, "sendActionEvent").callsFake(() => {}),
-            sendErrorEvent: sandbox.stub(telemetry, "sendErrorEvent").callsFake(() => {}),
-        };
-    } else {
-        return {
-            sendActionEvent: sinon.stub(telemetry, "sendActionEvent").callsFake(() => {}),
-            sendErrorEvent: sinon.stub(telemetry, "sendErrorEvent").callsFake(() => {}),
-        };
-    }
+    const stubber = sandbox || sinon;
+    return {
+        sendActionEvent: stubber.stub(telemetry, "sendActionEvent").callsFake(() => {}),
+        sendErrorEvent: stubber.stub(telemetry, "sendErrorEvent").callsFake(() => {}),
+    };
+}
+
+export function stubVscodeWrapper(
+    sandbox?: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<VscodeWrapper> {
+    const stubber = sandbox || sinon;
+
+    const vscodeWrapper = stubber.createStubInstance(VscodeWrapper);
+    const outputChannel = stubber.stub({
+        append: () => stubber.stub(),
+        appendLine: () => stubber.stub(),
+    }) as unknown as vscode.OutputChannel;
+
+    stubber.stub(vscodeWrapper, "outputChannel").get(() => {
+        return outputChannel;
+    });
+
+    return vscodeWrapper;
+}
+
+export function initializeIconUtils(): void {
+    const { IconUtils } = require("../../src/utils/iconUtils");
+    IconUtils.initialize(vscode.Uri.file(path.join(__dirname, "..", "..")));
 }

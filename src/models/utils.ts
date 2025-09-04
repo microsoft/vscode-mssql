@@ -3,11 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as getmac from "getmac";
-import * as crypto from "crypto";
 import * as os from "os";
 import * as path from "path";
-import * as findRemoveSync from "find-remove";
+import findRemoveSync from "find-remove";
 import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import { IAzureSignInQuickPickItem, IConnectionProfile, AuthenticationTypes } from "./interfaces";
@@ -89,28 +87,6 @@ export function generateGuid(): string {
         oct.substr(19, 12)
     );
     /* tslint:enable:no-bitwise */
-}
-
-// Generate a unique, deterministic ID for the current user of the extension
-export function generateUserId(): Promise<string> {
-    return new Promise<string>((resolve) => {
-        try {
-            getmac.getMac((error, macAddress) => {
-                if (!error) {
-                    resolve(
-                        crypto
-                            .createHash("sha256")
-                            .update(macAddress + os.homedir(), "utf8")
-                            .digest("hex"),
-                    );
-                } else {
-                    resolve(generateGuid()); // fallback
-                }
-            });
-        } catch (err) {
-            resolve(generateGuid()); // fallback
-        }
-    });
 }
 
 // Return 'true' if the active editor window has a .sql file, false otherwise
@@ -690,10 +666,11 @@ export function getConfigLogRetentionSeconds(): number {
     }
 }
 
-export function removeOldLogFiles(logPath: string, prefix: string): JSON {
+export function removeOldLogFiles(logPath: string, prefix: string): Record<string, any> | number {
     return findRemoveSync(logPath, {
         age: { seconds: getConfigLogRetentionSeconds() },
         limit: getConfigLogFilesRemovalLimit(),
+        prefix: prefix,
     });
 }
 

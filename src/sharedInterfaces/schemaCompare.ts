@@ -4,8 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    ExtractTarget,
-    TaskExecutionMode,
     SchemaCompareEndpointInfo,
     DiffEntry,
     DeploymentOptions,
@@ -34,7 +32,7 @@ export const enum SchemaCompareEndpointType {
 }
 
 // If this enum changes, then please update the ExtractTarget enum in vscode-mssql.d.ts.
-export const enum SharedExtractTarget {
+export const enum ExtractTarget {
     dacpac = 0,
     file = 1,
     flat = 2,
@@ -43,6 +41,16 @@ export const enum SharedExtractTarget {
     schemaObjectType = 5,
 }
 
+export const enum TaskExecutionMode {
+    execute = 0,
+    script = 1,
+    executeAndScript = 2,
+}
+
+export const enum SchemaDifferenceType {
+    Object = 0,
+    Property = 1,
+}
 export interface SchemaCompareWebViewState {
     isSqlProjectExtensionInstalled: boolean;
     isComparisonInProgress: boolean;
@@ -68,6 +76,8 @@ export interface SchemaCompareWebViewState {
     schemaCompareOpenScmpResult: SchemaCompareOpenScmpResult;
     saveScmpResultStatus: ResultStatus;
     cancelResultStatus: ResultStatus;
+    waitingForNewConnection: boolean;
+    pendingConnectionEndpointType: "source" | "target" | null;
 }
 
 export interface SchemaCompareReducers {
@@ -77,7 +87,7 @@ export interface SchemaCompareReducers {
 
     listDatabasesForActiveServer: { connectionUri: string };
 
-    openAddNewConnectionDialog: {};
+    openAddNewConnectionDialog: { endpointType: "source" | "target" };
 
     selectFile: {
         endpoint: SchemaCompareEndpointInfo;
@@ -100,7 +110,11 @@ export interface SchemaCompareReducers {
 
     intermediaryGeneralOptionsChanged: { key: string };
 
+    intermediaryGeneralOptionsBulkChanged: { keys: string[]; checked: boolean };
+
     intermediaryIncludeObjectTypesOptionsChanged: { key: string };
+
+    intermediaryIncludeObjectTypesBulkChanged: { keys: string[]; checked: boolean };
 
     resetSchemaOptions: {};
 
@@ -167,7 +181,7 @@ export interface SchemaCompareContextProps {
 
     listDatabasesForActiveServer: (connectionUri: string) => void;
 
-    openAddNewConnectionDialog: () => void;
+    openAddNewConnectionDialog: (endpointType: "source" | "target") => void;
 
     selectFile: (
         endpoint: SchemaCompareEndpointInfo,
@@ -187,7 +201,11 @@ export interface SchemaCompareContextProps {
 
     intermediaryGeneralOptionsChanged: (key: string) => void;
 
+    intermediaryGeneralOptionsBulkChanged: (keys: string[], checked: boolean) => void;
+
     intermediaryIncludeObjectTypesOptionsChanged: (key: string) => void;
+
+    intermediaryIncludeObjectTypesBulkChanged: (keys: string[], checked: boolean) => void;
 
     confirmSchemaOptions: (optionsChanged: boolean) => void;
 

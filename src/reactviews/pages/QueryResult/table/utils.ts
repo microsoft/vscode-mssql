@@ -73,3 +73,19 @@ export function tryCombineSelections(selections: ISlickRange[]): ISlickRange[] {
     }
     return [unifiedSelection];
 }
+
+export function selectEntireGrid<T extends Slick.SlickData>(grid: Slick.Grid<T>): ISlickRange[] {
+    const data = grid.getData() as T[];
+    const totalRows = data.length;
+    const totalColumns = grid.getColumns().length;
+
+    // Create a selection for the entire grid
+    return [
+        {
+            fromRow: 0,
+            toRow: totalRows - 1,
+            fromCell: 0,
+            toCell: totalColumns - 2, // Subtract 2 to account for row number column and 0-based indexing
+        },
+    ];
+}

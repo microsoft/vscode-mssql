@@ -3,8 +3,11 @@
     "compilerOptions": {
         "outDir": "out",
         "module": "CommonJS",
-        "target": "ES6",
-        "lib": ["es6", "ES2020", "dom"],
+        "target": "ES2024",
+        "lib": [
+            "ES2024",
+            "dom"
+        ],
         "sourceMap": true,
         "allowUnusedLabels": false,
         "allowSyntheticDefaultImports": true,
@@ -15,5 +18,14 @@
         "noUnusedLocals": true,
         "skipLibCheck": true
     },
-    "exclude": ["node_modules", "src/reactviews"]
+    "include": [
+        "src",
+        "test",
+        "typings",
+    ],
+    "exclude": [
+        "node_modules",
+        "src/reactviews",
+        "samples"
+    ]
 }

@@ -3,13 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestType } from "vscode-jsonrpc/browser";
+import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 import {
-    ExecutionPlanProvider,
     ExecutionPlanReducers,
     ExecutionPlanState,
     ExecutionPlanWebviewState,
-} from "./executionPlanInterfaces";
+} from "./executionPlan";
 
 export interface ISlickRange {
     fromCell: number;
@@ -29,26 +28,15 @@ export enum QueryResultSaveAsTrigger {
     Toolbar = "Toolbar",
 }
 
-export interface QueryResultReactProvider extends Omit<ExecutionPlanProvider, "getExecutionPlan"> {
-    setResultTab: (tabId: QueryResultPaneTabs) => void;
-    /**
-     * Gets the execution plan graph from the provider for a result set
-     * @param uri the uri of the query result state this request is associated with
-     */
-    getExecutionPlan(uri: string): void;
-
-    /**
-     * Opens a file of type with with specified content
-     * @param content the content of the file
-     * @param type the type of file to open
-     */
-    openFileThroughLink(content: string, type: string): void;
-}
-
 export enum QueryResultPaneTabs {
     Results = "results",
     Messages = "messages",
     ExecutionPlan = "executionPlan",
+}
+
+export enum QueryResultViewMode {
+    Grid = "grid",
+    Text = "text",
 }
 
 export enum QueryResultWebviewLocation {
@@ -58,6 +46,7 @@ export enum QueryResultWebviewLocation {
 
 export interface QueryResultTabStates {
     resultPaneTab: QueryResultPaneTabs;
+    resultViewMode?: QueryResultViewMode;
 }
 
 export interface FontSettings {
@@ -72,7 +61,6 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     messages: IMessage[];
     tabStates?: QueryResultTabStates;
     isExecutionPlan?: boolean;
-    actualPlanEnabled?: boolean;
     selection?: ISlickRange[];
     executionPlanState: ExecutionPlanState;
     fontSettings: FontSettings;
@@ -83,6 +71,9 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
 export interface QueryResultReducers extends Omit<ExecutionPlanReducers, "getExecutionPlan"> {
     setResultTab: {
         tabId: QueryResultPaneTabs;
+    };
+    setResultViewMode: {
+        viewMode: QueryResultViewMode;
     };
     /**
      * Gets the execution plan graph from the provider for given uri
@@ -223,12 +214,12 @@ export namespace SetFiltersRequest {
     export const type = new RequestType<SetFiltersParams, void, void>("setFilters");
 }
 
-export interface getColumnWidthsParams {
+export interface GetColumnWidthsParams {
     uri: string;
 }
 
 export namespace GetColumnWidthsRequest {
-    export const type = new RequestType<getColumnWidthsParams, number[], void>("getColumnWidths");
+    export const type = new RequestType<GetColumnWidthsParams, number[], void>("getColumnWidths");
 }
 
 export interface SetColumnWidthsParams {
@@ -279,6 +270,30 @@ export namespace CopyHeadersRequest {
 export interface CopyWithHeadersParams extends CopyHeadersParams {}
 export namespace CopyWithHeadersRequest {
     export const type = new RequestType<CopyWithHeadersParams, void, void>("copyWithHeaders");
+}
+
+export interface CopyAsCsvRequest {
+    uri: string;
+    batchId: number;
+    resultId: number;
+    selection: ISlickRange[];
+    includeHeaders: boolean;
+}
+
+export namespace CopyAsCsvRequest {
+    export const type = new RequestType<CopyAsCsvRequest, void, void>("copyAsCsv");
+}
+
+export interface CopyAsJsonRequest {
+    uri: string;
+    batchId: number;
+    resultId: number;
+    selection: ISlickRange[];
+    includeHeaders: boolean;
+}
+
+export namespace CopyAsJsonRequest {
+    export const type = new RequestType<CopyAsJsonRequest, void, void>("copyAsJson");
 }
 
 export interface SetSelectionSummary {
@@ -333,4 +348,67 @@ export interface GetRowsParams {
 }
 export namespace GetRowsRequest {
     export const type = new RequestType<GetRowsParams, ResultSetSubset, void>("getRows");
+}
+
+/**
+ * Sets the scroll position for a grid in the webview
+ */
+export interface SetGridScrollPositionParams {
+    uri: string;
+    gridId: string;
+    scrollTop: number;
+    scrollLeft: number;
+}
+
+/**
+ * Sets the scroll position for a grid in the webview
+ * @param uri The URI of the query result state this request is associated with
+ */
+export namespace SetGridScrollPositionNotification {
+    export const type = new NotificationType<SetGridScrollPositionParams>("setGridScrollPosition");
+}
+
+export interface GetGridScrollPositionParams {
+    uri: string;
+    gridId: string;
+}
+
+export interface GetGridScrollPositionResponse {
+    scrollTop: number;
+    scrollLeft: number;
+}
+
+export namespace GetGridScrollPositionRequest {
+    export const type = new RequestType<
+        GetGridScrollPositionParams,
+        GetGridScrollPositionResponse,
+        void
+    >("getGridScrollPosition");
+}
+
+export interface SetGridPaneScrollPositionParams {
+    uri: string;
+    scrollTop: number;
+}
+
+export namespace SetGridPaneScrollPositionNotification {
+    export const type = new NotificationType<SetGridPaneScrollPositionParams>(
+        "setPaneScrollPosition",
+    );
+}
+
+export interface GetGridPaneScrollPositionParams {
+    uri: string;
+}
+
+export interface GetGridPaneScrollPositionResponse {
+    scrollTop: number;
+}
+
+export namespace GetGridPaneScrollPositionRequest {
+    export const type = new RequestType<
+        GetGridPaneScrollPositionParams,
+        GetGridPaneScrollPositionResponse,
+        void
+    >("getGridPaneScrollPosition");
 }

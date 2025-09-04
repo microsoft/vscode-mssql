@@ -38,12 +38,14 @@ export const FormInput = <
     value,
     target,
     type,
+    placeholder,
     props,
 }: {
     context: TContext;
     value: string;
     target: keyof TForm;
     type: "input" | "password" | "textarea";
+    placeholder: string;
     props?: any;
 }) => {
     const [formInputValue, setFormInputValue] = useState(value);
@@ -80,6 +82,7 @@ export const FormInput = <
                     onChange={(_value, data) => handleChange(data.value)}
                     onBlur={handleBlur}
                     size="small"
+                    placeholder={placeholder}
                     {...props}
                 />
             )}
@@ -89,6 +92,7 @@ export const FormInput = <
                     value={formInputValue}
                     onChange={(_value, data) => handleChange(data.value)}
                     onBlur={handleBlur}
+                    placeholder={placeholder}
                     size="small"
                     contentAfter={
                         <Button
@@ -234,6 +238,7 @@ export function generateFormComponent<
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
                     type="input"
+                    placeholder={component.placeholder ?? ""}
                     props={props}
                 />
             );
@@ -244,6 +249,7 @@ export function generateFormComponent<
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
                     type="textarea"
+                    placeholder={component.placeholder ?? ""}
                     props={props}
                 />
             );
@@ -253,6 +259,7 @@ export function generateFormComponent<
                     context={context}
                     value={(formState[component.propertyName] as string) ?? ""}
                     target={component.propertyName}
+                    placeholder={component.placeholder ?? ""}
                     type="password"
                     props={props}
                 />
@@ -271,19 +278,24 @@ export function generateFormComponent<
                         )?.displayName ?? ""
                     }
                     selectedOptions={[formState[component.propertyName] as string]}
-                    onOptionSelect={(_event, data) => {
-                        context?.formAction({
-                            propertyName: component.propertyName,
-                            isAction: false,
-                            value: data.optionValue as string,
-                        });
+                    onOptionSelect={(event, data) => {
+                        if (props && props.onOptionSelect) {
+                            props.onOptionSelect(event, data);
+                        } else {
+                            context?.formAction({
+                                propertyName: component.propertyName,
+                                isAction: false,
+                                value: data.optionValue as string,
+                            });
+                        }
                     }}
                     {...props}>
                     {component.options?.map((option, idx) => {
                         return (
                             <Option
                                 key={(component.propertyName as string) + idx}
-                                value={option.value}>
+                                value={option.value}
+                                color={option.color}>
                                 {option.displayName}
                             </Option>
                         );
@@ -302,6 +314,9 @@ export function generateFormComponent<
                     options={component.options.map((opt) => ({
                         value: opt.value,
                         text: opt.displayName,
+                        color: opt.color,
+                        description: opt.description,
+                        icon: opt.icon,
                     }))}
                     placeholder={component.placeholder}
                     searchBoxPlaceholder={component.searchBoxPlaceholder}
@@ -355,7 +370,7 @@ export const useFormStyles = makeStyles({
     },
     formDiv: {
         padding: "10px",
-        maxWidth: "600px",
+        maxWidth: "650px",
         display: "flex",
         flexDirection: "column",
         "> *": {

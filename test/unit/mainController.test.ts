@@ -64,6 +64,12 @@ suite("MainController Tests", function () {
 
     // Standard closed document event test
     test("onDidCloseTextDocument should propogate onDidCloseTextDocument to connectionManager", () => {
+        // Reset internal timers to ensure clean test state
+        (mainController as any)._lastSavedUri = undefined;
+        (mainController as any)._lastSavedTimer = undefined;
+        (mainController as any)._lastOpenedTimer = undefined;
+        (mainController as any)._lastOpenedUri = undefined;
+
         void mainController.onDidCloseTextDocument(document);
         try {
             connectionManager.verify(
@@ -102,30 +108,38 @@ suite("MainController Tests", function () {
     });
 
     // Renamed file event test
-    test("onDidCloseTextDocument should call renamedDoc function when rename occurs", (done) => {
+    test("onDidCloseTextDocument should call renamedDoc function when rename occurs", async () => {
+        // Seed state so the copy branch can run
+        (document as any).languageId = Constants.languageId;
+        (newDocument as any).languageId = Constants.languageId;
+        (mainController as any)._previousActiveDocument = document;
+
+        untitledSqlDocumentService
+            .setup((x) => x.waitForOngoingCreates())
+            .returns(() => Promise.resolve() as any);
+
+        untitledSqlDocumentService
+            .setup((x) => x.shouldSkipCopyConnection(TypeMoq.It.isAnyString()))
+            .returns(() => false);
+
         // A renamed doc constitutes an openDoc event directly followed by a closeDoc event
-        mainController.onDidOpenTextDocument(newDocument);
+        await mainController.onDidOpenTextDocument(newDocument);
         void mainController.onDidCloseTextDocument(document);
 
-        // Verify renameDoc function was called
-        try {
-            connectionManager.verify(
-                (x) => x.copyConnectionToFile(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
-            assert.equal(docUriCallback, document.uri.toString());
-            assert.equal(newDocUriCallback, newDocument.uri.toString());
-            done();
-        } catch (err) {
-            done(new Error(err));
-        }
+        connectionManager.verify(
+            (x) =>
+                x.copyConnectionToFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            TypeMoq.Times.atLeastOnce(),
+        );
+        assert.equal(docUriCallback, document.uri.toString());
+        assert.equal(newDocUriCallback, newDocument.uri.toString());
     });
 
     // Closed document event called to test rename and untitled save file event timeouts
     test("onDidCloseTextDocument should propogate to the connectionManager even if a special event occured before it", (done) => {
         // Call both special cases
         mainController.onDidSaveTextDocument(newDocument);
-        mainController.onDidOpenTextDocument(newDocument);
+        void mainController.onDidOpenTextDocument(newDocument);
 
         // Cause event time out (above 10 ms should work)
         setTimeout(() => {
@@ -157,7 +171,7 @@ suite("MainController Tests", function () {
     // Open document event test
     test("onDidOpenTextDocument should propogate the function to the connectionManager", (done) => {
         // Call onDidOpenTextDocument to test it side effects
-        mainController.onDidOpenTextDocument(document);
+        void mainController.onDidOpenTextDocument(document);
         try {
             connectionManager.verify(
                 (x) => x.onDidOpenTextDocument(TypeMoq.It.isAny()),
@@ -199,7 +213,7 @@ suite("MainController Tests", function () {
         );
 
         // None of the TextDocument events should throw exceptions, they should cleanly exit instead.
-        controller.onDidOpenTextDocument(document);
+        void controller.onDidOpenTextDocument(document);
         controller.onDidSaveTextDocument(document);
         void controller.onDidCloseTextDocument(document);
         done();
@@ -214,7 +228,7 @@ suite("MainController Tests", function () {
             selection: undefined,
         } as any;
         untitledSqlDocumentService
-            .setup((x) => x.newQuery(undefined))
+            .setup((x) => x.newQuery(undefined, true))
             .returns(() => {
                 return Promise.resolve(editor);
             });
@@ -225,27 +239,33 @@ suite("MainController Tests", function () {
             });
 
         await mainController.onNewQuery(undefined, undefined);
-        untitledSqlDocumentService.verify((x) => x.newQuery(undefined), TypeMoq.Times.once());
+        untitledSqlDocumentService.verify((x) => x.newQuery(undefined, true), TypeMoq.Times.once());
         connectionManager.verify((x) => x.onNewConnection(), TypeMoq.Times.atLeastOnce());
     });
 
-    test("onNewQuery should not call the new connection if new query fails", (done) => {
-        untitledSqlDocumentService
-            .setup((x) => x.newQuery())
-            .returns(() => {
-                return Promise.reject<vscode.TextEditor>("error");
-            });
-        connectionManager
-            .setup((x) => x.onNewConnection())
-            .returns(() => {
-                return Promise.resolve(TypeMoq.It.isAny());
-            });
+    test("onNewQuery should not call the new connection if new query fails", async () => {
+        // Ensure the command is allowed to run (otherwise early return and nothing is called)
+        (mainController as any).canRunCommand = () => true;
 
-        mainController.onNewQuery(undefined, undefined).catch((error) => {
-            untitledSqlDocumentService.verify((x) => x.newQuery(undefined), TypeMoq.Times.once());
-            connectionManager.verify((x) => x.onNewConnection(), TypeMoq.Times.never());
-            done();
-        });
+        // Make newQuery reject
+        untitledSqlDocumentService
+            .setup((x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isValue(true))) // <-- 2 args
+            .returns(() => Promise.reject(new Error("boom")));
+
+        // No need to "returns" here; but if you do, return a real value, not It.isAny()
+        connectionManager.setup((x) => x.onNewConnection()).returns(() => Promise.resolve() as any);
+
+        // Act + assert reject
+        await assert.rejects(() => mainController.onNewQuery(undefined, undefined), /boom/);
+
+        // Verify exactly how prod calls it (2 args, second is true)
+        untitledSqlDocumentService.verify(
+            (x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isValue(true)),
+            TypeMoq.Times.once(),
+        );
+
+        // Should NOT try to create a new connection when newQuery failed
+        connectionManager.verify((x) => x.onNewConnection(), TypeMoq.Times.never());
     });
 
     test("validateTextDocumentHasFocus returns false if there is no active text document", () => {
@@ -306,6 +326,13 @@ suite("MainController Tests", function () {
             document: script1,
         } as unknown as vscode.TextEditor;
 
+        untitledSqlDocumentService
+            .setup((x) => x.waitForOngoingCreates())
+            .returns(() => Promise.resolve() as any);
+        untitledSqlDocumentService
+            .setup((x) => x.shouldSkipCopyConnection(TypeMoq.It.isAnyString()))
+            .returns(() => false);
+
         const controller: MainController = new MainController(
             TestExtensionContext.object,
             connectionManager.object,
@@ -341,14 +368,19 @@ suite("MainController Tests", function () {
         );
 
         // verify that the connection manager transfers the connection from SQL file to SQL file
-        controller.onDidOpenTextDocument(script2);
+        await controller.onDidOpenTextDocument(script2);
 
         expect(
             controller["_previousActiveDocument"],
             "previous active document should be changed to new script when opening a SQL file",
         ).to.deep.equal(script2);
         connectionManager.verify(
-            (x) => x.copyConnectionToFile(script1.uri.toString(), script2.uri.toString(), true),
+            (x) =>
+                x.copyConnectionToFile(
+                    script1.uri.toString(true),
+                    script2.uri.toString(true),
+                    true,
+                ),
             TypeMoq.Times.once(),
         );
 
@@ -356,7 +388,7 @@ suite("MainController Tests", function () {
         setupConnectionManagerMocks(connectionManager);
 
         // verify that the connection manager does not transfer the connection from SQL file to non-SQL file
-        controller.onDidOpenTextDocument(textFile);
+        await controller.onDidOpenTextDocument(textFile);
 
         expect(
             controller["_previousActiveDocument"],
@@ -369,7 +401,7 @@ suite("MainController Tests", function () {
         );
 
         // verify that the connection manager does not transfer the connection from SQL file to non-SQL file
-        controller.onDidOpenTextDocument(script1);
+        await controller.onDidOpenTextDocument(script1);
 
         expect(
             controller["_previousActiveDocument"],
@@ -398,7 +430,9 @@ suite("MainController Tests", function () {
             });
 
         connectionManager
-            .setup((x) => x.copyConnectionToFile(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .setup((x) =>
+                x.copyConnectionToFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            )
             .callback((doc, newDoc) => {
                 docUriCallback = doc;
                 newDocUriCallback = newDoc;

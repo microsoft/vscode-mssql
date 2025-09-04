@@ -74,7 +74,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             profile.authenticationType = authOptions[0].value;
         }
         let azureAccountChoices: INameValueChoice[] =
-            ConnectionProfile.getAccountChoices(accountStore);
+            await ConnectionProfile.getAccountChoices(accountStore);
         let accountAnswer: IAccount;
         azureAccountChoices.unshift({
             name: LocalizedConstants.azureAddAccount,
@@ -171,7 +171,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                 type: QuestionTypes.input,
                 name: LocalizedConstants.profileNamePrompt,
                 message: LocalizedConstants.profileNamePrompt,
-                placeHolder: LocalizedConstants.profileNamePlaceholder,
+                placeHolder: LocalizedConstants.ConnectionDialog.profileNameTooltip,
                 default: defaultProfileValues ? defaultProfileValues.profileName : undefined,
                 onAnswered: (value) => {
                     // Fall back to a default name if none specified
@@ -248,8 +248,8 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
         return choices;
     }
 
-    public static getAccountChoices(accountStore: AccountStore): INameValueChoice[] {
-        let accounts = accountStore.getAccounts();
+    public static async getAccountChoices(accountStore: AccountStore): Promise<INameValueChoice[]> {
+        let accounts = await accountStore.getAccounts();
         let choices: Array<INameValueChoice> = [];
 
         if (accounts.length > 0) {

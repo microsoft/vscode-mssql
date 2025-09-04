@@ -356,7 +356,9 @@ export namespace SchemaDesigner {
         onSchemaReady(listener: (model: SchemaDesignerSession) => void): void;
     }
 
-    export interface SchemaDesignerWebviewState {}
+    export interface SchemaDesignerWebviewState {
+        enableExpandCollapseButtons?: boolean;
+    }
 
     export interface ExportFileOptions {
         format: string;
@@ -416,7 +418,7 @@ export namespace SchemaDesigner {
     }
 
     export namespace OpenInEditorWithConnectionNotification {
-        export const type = new NotificationType<OpenInEditorParams>("openInEditorWithConnection");
+        export const type = new NotificationType<void>("openInEditorWithConnection");
     }
     export namespace OpenInEditorNotification {
         export const type = new NotificationType<OpenInEditorOptions>("openInEditor");

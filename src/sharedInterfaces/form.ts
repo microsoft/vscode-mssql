@@ -107,6 +107,18 @@ export interface FormItemActionButton {
 export interface FormItemOptions {
     displayName: string;
     value: string;
+    /**
+     * Option description
+     */
+    description?: string;
+    /**
+     * Option Fluent UI Icon. Should be the name of a Fluent UI React Icon: https://react.fluentui.dev/?path=/docs/icons-catalog--docs
+     */
+    icon?: string;
+    /**
+     * Optional text color for the option
+     */
+    color?: string;
 }
 
 /**

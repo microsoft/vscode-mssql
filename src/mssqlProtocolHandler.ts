@@ -4,14 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { AuthenticationType, IConnectionInfo } from "vscode-mssql";
+import { IConnectionInfo } from "vscode-mssql";
 import SqlToolsServiceClient from "./languageservice/serviceclient";
 import { CapabilitiesResult, GetCapabilitiesRequest } from "./models/contracts/connection";
 import { IConnectionProfile } from "./models/interfaces";
-import VscodeWrapper from "./controllers/vscodeWrapper";
+import { AuthenticationType } from "./sharedInterfaces/connectionDialog";
 import { Logger } from "./models/logger";
-import { cmdAddObjectExplorer } from "./constants/constants";
+import VscodeWrapper from "./controllers/vscodeWrapper";
 import MainController from "./controllers/mainController";
+import { cmdAddObjectExplorer } from "./constants/constants";
 
 enum Command {
     connect = "/connect",

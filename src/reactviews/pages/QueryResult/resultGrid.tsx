@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import $ from "jquery";
-import { forwardRef, useContext, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useContext, useEffect, useImperativeHandle, useRef } from "react";
 import "../../media/slickgrid.css";
 import { ACTIONBAR_WIDTH_PX, range, Table } from "./table/table";
 import { defaultTableStyles } from "./table/interfaces";
@@ -12,17 +12,13 @@ import { RowNumberColumn } from "./table/plugins/rowNumberColumn.plugin";
 import { VirtualizedCollection } from "./table/asyncDataView";
 import { HybridDataProvider } from "./table/hybridDataProvider";
 import { hyperLinkFormatter, textFormatter, DBCellValue, escape } from "./table/formatters";
-import {
-    DbCellValue,
-    QueryResultReducers,
-    QueryResultWebviewState,
-    ResultSetSummary,
-} from "../../../sharedInterfaces/queryResult";
+import { DbCellValue, ResultSetSummary } from "../../../sharedInterfaces/queryResult";
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
-import { VscodeWebviewContext } from "../../common/vscodeWebviewProvider";
-import { QueryResultContext } from "./queryResultStateProvider";
+import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { LogCallback } from "../../../sharedInterfaces/webview";
+import { useQueryResultSelector } from "./queryResultSelector";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -43,7 +39,6 @@ export interface ResultGridProps {
     resultSetSummary?: ResultSetSummary;
     divId?: string;
     uri?: string;
-    webViewState?: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>;
     gridParentRef?: React.RefObject<HTMLDivElement>;
     linkHandler: (fileContent: string, fileType: string) => void;
     gridId: string;
@@ -57,14 +52,22 @@ export interface ResultGridHandle {
 }
 
 const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultGridProps, ref) => {
-    let table: Table<any>;
+    const tableRef = useRef<Table<any> | null>(null);
 
-    const context = useContext(QueryResultContext);
+    const context = useContext(QueryResultCommandsContext);
     if (!context) {
         return undefined;
     }
+
+    const inMemoryDataProcessingThreshold = useQueryResultSelector<number | undefined>(
+        (state) => state.inMemoryDataProcessingThreshold,
+    );
+    const fontSettings = useQueryResultSelector((state) => state.fontSettings);
+    const autoSizeColumns = useQueryResultSelector((state) => state.autoSizeColumns);
+    const { themeKind } = useVscodeWebview2();
+
     const gridContainerRef = useRef<HTMLDivElement>(null);
-    const [refreshKey, setRefreshKey] = useState(0);
+    const isTableCreated = useRef<boolean>(false);
     if (!props.gridParentRef) {
         return undefined;
     }
@@ -74,12 +77,15 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
                 gridContainerRef.current.removeChild(gridContainerRef.current.firstChild);
             }
         }
+        isTableCreated.current = false;
+        tableRef.current = null;
     };
+
     const resizeGrid = (width: number, height: number) => {
-        if (!table) {
-            context.log("resizeGrid - table is not initialized");
-            refreshGrid();
-            setRefreshKey(refreshKey + 1);
+        if (!tableRef.current) {
+            context.log("resizeGrid - table is not initialized, creating table");
+            createTableIfNeeded();
+            return;
         }
         let gridParent: HTMLElement | null;
         if (!props.resultSetSummary) {
@@ -92,7 +98,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             gridParent.style.height = `${height}px`;
         }
         const dimension = new DOM.Dimension(width, height);
-        table?.layout(dimension);
+        tableRef.current?.layout(dimension);
     };
 
     const hideGrid = () => {
@@ -121,23 +127,37 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         }
     };
 
-    const createTable = () => {
-        const setupState = async () => {
-            await table.setupFilterState();
-            await table.restoreColumnWidths();
-            table.headerFilter.enabled =
-                table.grid.getDataLength() < context.state.inMemoryDataProcessingThreshold!;
+    const updateRowCountOnly = () => {
+        if (tableRef.current && props.resultSetSummary) {
+            // Update the data provider with new row count
+            const dataProvider = tableRef.current.getData() as HybridDataProvider<any>;
+            if (dataProvider && "length" in dataProvider) {
+                dataProvider.length = props.resultSetSummary.rowCount;
+            }
+            tableRef.current.updateRowCount();
+        }
+    };
 
-            table.rerenderGrid();
+    const createTableIfNeeded = () => {
+        if (isTableCreated.current && tableRef.current) {
+            // Table already exists, just update row count
+            updateRowCountOnly();
+            return;
+        }
+        const setupState = async () => {
+            if (!tableRef.current) return;
+            await tableRef.current.setupFilterState();
+            await tableRef.current.restoreColumnWidths();
+            await tableRef.current.setupScrollPosition();
+            tableRef.current.headerFilter.enabled =
+                tableRef.current.grid.getDataLength() < inMemoryDataProcessingThreshold!;
+
+            tableRef.current.rerenderGrid();
         };
         const DEFAULT_FONT_SIZE = 12;
-        context?.log(`resultGrid: ${context.state.fontSettings.fontSize}`);
 
-        const ROW_HEIGHT = context.state.fontSettings.fontSize! + 12; // 12 px is the padding
-        const COLUMN_WIDTH = Math.max(
-            (context.state.fontSettings.fontSize! / DEFAULT_FONT_SIZE) * 120,
-            120,
-        ); // Scale width with font size, but keep a minimum of 120px
+        const ROW_HEIGHT = fontSettings.fontSize! + 12; // 12 px is the padding
+        const COLUMN_WIDTH = Math.max((fontSettings.fontSize! / DEFAULT_FONT_SIZE) * 120, 120); // Scale width with font size, but keep a minimum of 120px
         if (!props.resultSetSummary || !props.linkHandler) {
             return;
         }
@@ -245,43 +265,46 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             },
             {
                 inMemoryDataProcessing: true,
-                inMemoryDataCountThreshold: context.state.inMemoryDataProcessingThreshold,
+                inMemoryDataCountThreshold: inMemoryDataProcessingThreshold,
             },
             undefined,
             undefined,
         );
-        table = new Table(
+        tableRef.current = new Table(
             div,
             defaultTableStyles,
             props.uri!,
             props.resultSetSummary!,
-            props.webViewState!,
             context,
             props.linkHandler!,
             props.gridId,
             { dataProvider: dataProvider, columns: columns },
             tableOptions,
             props.gridParentRef,
+            autoSizeColumns,
+            themeKind,
         );
         void setupState();
         collection.setCollectionChangedCallback((startIndex, count) => {
             let refreshedRows = range(startIndex, startIndex + count);
-            table.invalidateRows(refreshedRows, true);
+            tableRef.current?.invalidateRows(refreshedRows, true);
         });
-        table.updateRowCount();
+        tableRef.current.updateRowCount();
         gridContainerRef.current?.appendChild(div);
         if (
             props.gridParentRef &&
             props.gridParentRef.current &&
             props.gridParentRef.current.clientWidth
         ) {
-            table.layout(
+            tableRef.current.layout(
                 new DOM.Dimension(
                     props.gridParentRef.current.clientWidth - ACTIONBAR_WIDTH_PX,
                     props.gridParentRef.current.clientHeight,
                 ),
             );
         }
+
+        isTableCreated.current = true;
     };
 
     useImperativeHandle(ref, () => ({
@@ -292,8 +315,8 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
     }));
 
     useEffect(() => {
-        createTable();
-    }, [refreshKey]);
+        createTableIfNeeded();
+    }, [props.resultSetSummary?.rowCount]);
 
     return <div id="gridContainter" ref={gridContainerRef}></div>;
 });

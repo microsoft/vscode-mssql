@@ -12,29 +12,77 @@ import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 import * as assert from "assert";
 import { ISelectionData } from "../../src/models/interfaces";
+import UntitledSqlDocumentService from "../../src/controllers/untitledSqlDocumentService";
+import { ExecutionPlanService } from "../../src/services/executionPlanService";
+import * as sinon from "sinon";
 
 suite("SqlOutputProvider Tests using mocks", () => {
     const testUri = "Test_URI";
 
+    let sandbox: sinon.SinonSandbox;
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
     let contentProvider: SqlOutputContentProvider;
     let mockContentProvider: TypeMoq.IMock<SqlOutputContentProvider>;
-    let context: TypeMoq.IMock<vscode.ExtensionContext> = stubs.TestExtensionContext;
+    let context: TypeMoq.IMock<vscode.ExtensionContext>;
     let statusView: TypeMoq.IMock<StatusView>;
+    let untitledSqlDocumentService: TypeMoq.IMock<UntitledSqlDocumentService>;
+    let executionPlanService: TypeMoq.IMock<ExecutionPlanService>;
     let mockMap: Map<string, any> = new Map<string, any>();
     let setSplitPaneSelectionConfig: (value: string) => void;
     let setCurrentEditorColumn: (column: number) => void;
 
     setup(() => {
+        sandbox = sinon.createSandbox();
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
         statusView = TypeMoq.Mock.ofType(StatusView);
+        untitledSqlDocumentService = TypeMoq.Mock.ofType(UntitledSqlDocumentService);
+        executionPlanService = TypeMoq.Mock.ofType(ExecutionPlanService);
+        context = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
+
+        // Mock the onDidOpenTextDocument event
+        vscodeWrapper
+            .setup((v) => v.onDidOpenTextDocument)
+            .returns(() => {
+                return (_listener: (e: vscode.TextDocument) => any) => {
+                    return {
+                        dispose: () => {},
+                    } as vscode.Disposable;
+                };
+            });
+        // Mock the onDidChangeConfiguration event
+        vscodeWrapper
+            .setup((v) => v.onDidChangeConfiguration)
+            .returns(() => {
+                return (_listener: (e: vscode.ConfigurationChangeEvent) => any) => {
+                    return {
+                        dispose: () => {},
+                    } as vscode.Disposable;
+                };
+            });
+
+        sandbox.stub(vscode.window, "registerWebviewViewProvider").callsFake(() => {
+            return {
+                dispose: () => {},
+            } as vscode.Disposable;
+        });
+
+        sandbox.stub(vscode.commands, "registerCommand").callsFake(() => {
+            return {
+                dispose: () => {},
+            } as vscode.Disposable;
+        });
+
         statusView.setup((x) => x.cancelingQuery(TypeMoq.It.isAny()));
         statusView.setup((x) => x.executedQuery(TypeMoq.It.isAny()));
         context.setup((c) => c.extensionPath).returns(() => "test_uri");
+        const subscriptions: vscode.Disposable[] = [];
+        context.setup((c) => c.subscriptions).returns(() => subscriptions);
         contentProvider = new SqlOutputContentProvider(
             context.object,
             statusView.object,
             vscodeWrapper.object,
+            untitledSqlDocumentService.object,
+            executionPlanService.object,
         );
         contentProvider.setVscodeWrapper = vscodeWrapper.object;
         setSplitPaneSelectionConfig = function (value: string): void {
@@ -55,6 +103,11 @@ suite("SqlOutputProvider Tests using mocks", () => {
         mockContentProvider = TypeMoq.Mock.ofType(
             SqlOutputContentProvider,
             TypeMoq.MockBehavior.Loose,
+            context.object,
+            statusView.object,
+            vscodeWrapper.object,
+            untitledSqlDocumentService.object,
+            executionPlanService.object,
         );
         mockContentProvider.setup((p) => p.getResultsMap).returns(() => mockMap);
         mockContentProvider
@@ -132,6 +185,10 @@ suite("SqlOutputProvider Tests using mocks", () => {
             .returns(() => {
                 return mockMap.get(testUri);
             });
+    });
+
+    teardown(() => {
+        sandbox.restore();
     });
 
     test("Correctly outputs the new result pane view column", (done) => {
@@ -428,7 +485,6 @@ suite("SqlOutputProvider Tests using mocks", () => {
             .returns(() => {
                 let configResult: { [key: string]: any } = {};
                 configResult[Constants.configPersistQueryResultTabs] = false;
-                configResult[Constants.configUseLegacyQueryResultExperience] = true;
                 let config = stubs.createWorkspaceConfiguration(configResult);
                 return config;
             });

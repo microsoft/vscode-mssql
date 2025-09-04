@@ -5,11 +5,15 @@
 
 import * as vscode from "vscode";
 import { l10n } from "vscode";
-import { Azure as Loc } from "../constants/locConstants";
-
-import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
+import {
+    AzureSubscription,
+    AzureTenant,
+    getConfiguredAuthProviderId,
+} from "@microsoft/vscode-azext-azureauth";
 import { GenericResourceExpanded, ResourceManagementClient } from "@azure/arm-resources";
 
+import { Azure as Loc } from "../constants/locConstants";
+import providerSettings from "../azure/providerSettings";
 import { IAccount, ITenant } from "../models/contracts/azure";
 import { FormItemOptions } from "../sharedInterfaces/form";
 import { AzureAccountService } from "../services/azureAccountService";
@@ -23,36 +27,208 @@ import { getErrorMessage, listAllIterator } from "../utils/utils";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureSubscriptionProvider";
 import { configSelectedAzureSubscriptions } from "../constants/constants";
 import { Logger } from "../models/logger";
+import { IMssqlAzureSubscription } from "../sharedInterfaces/azureAccountManagement";
+import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
+
+export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 
 //#region VS Code integration
 
-/**
- * Checks to see if the user is signed into VS Code with an Azure account
- * @returns true if the user is signed in, false otherwise
- */
-export async function isSignedIn(): Promise<boolean> {
-    const auth: MssqlVSCodeAzureSubscriptionProvider = new MssqlVSCodeAzureSubscriptionProvider();
-    return await auth.isSignedIn();
-}
+export class VsCodeAzureHelper {
+    /**
+     * Retrieves the list of Azure accounts available to MSSQL in the current VS Code session.
+     */
+    public static async getAccounts(
+        onlyAllowedForExtension: boolean = true,
+    ): Promise<vscode.AuthenticationSessionAccountInformation[]> {
+        let accounts = [];
 
-/**
- * Prompts the user to sign in to Azure if they are not already signed in
- * @returns auth object if the user signs in or is already signed in, undefined if the user cancels sign-in.
- */
-export async function confirmVscodeAzureSignin(): Promise<
-    MssqlVSCodeAzureSubscriptionProvider | undefined
-> {
-    const auth: MssqlVSCodeAzureSubscriptionProvider = new MssqlVSCodeAzureSubscriptionProvider();
+        try {
+            accounts = Array.from(
+                await vscode.authentication.getAccounts(getConfiguredAuthProviderId()),
+            ).sort((a, b) => a.label.localeCompare(b.label));
+        } catch (error) {
+            console.error(`Error fetching VS Code accounts: ${getErrorMessage(error)}`);
+        }
 
-    if (!(await auth.isSignedIn())) {
-        const result = await auth.signIn();
-
-        if (!result) {
-            return undefined;
+        if (onlyAllowedForExtension) {
+            // Filter out accounts that throw when fetching tenants, which indicates that the user hasn't given the MSSQL extension access to this account
+            const filteredAccounts = [];
+            for (const account of accounts) {
+                try {
+                    const tenants =
+                        await MssqlVSCodeAzureSubscriptionProvider.getInstance().getTenants(
+                            account,
+                        );
+                    if (tenants.length > 0) {
+                        filteredAccounts.push(account);
+                    } else {
+                        console.warn(
+                            `No tenants found for account ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account.`,
+                        );
+                    }
+                } catch (error) {
+                    // no-op; failure to get tenants means that the account is not accessible by this extension
+                    console.warn(
+                        `Error fetching tenants for ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account.  Error: ${getErrorMessage(error)}`,
+                    );
+                }
+            }
+            return filteredAccounts;
+        } else {
+            return accounts;
         }
     }
 
-    return auth;
+    public static async getAccountById(
+        accountId: string,
+    ): Promise<vscode.AuthenticationSessionAccountInformation> {
+        const accounts = await this.getAccounts();
+        return accounts.find((a) => a.id === accountId);
+    }
+
+    public static async getAccountByName(
+        accountName: string,
+    ): Promise<vscode.AuthenticationSessionAccountInformation> {
+        const accounts = await this.getAccounts();
+        return accounts.find((a) => a.label === accountName);
+    }
+
+    /**
+     * Checks to see if the user is signed into VS Code with an Azure account
+     * @returns true if the user is signed in, false otherwise
+     */
+    public static async isSignedIn(): Promise<boolean> {
+        const auth: MssqlVSCodeAzureSubscriptionProvider =
+            MssqlVSCodeAzureSubscriptionProvider.getInstance();
+        return await auth.isSignedIn();
+    }
+
+    /**
+     * Prompts the user to sign in to Azure if they are not already signed in
+     * @param forceSignInPrompt - If true, the user will be prompted, even if they are already signed in to an account. Defaults to false.
+     * @returns auth object if the user signs in or is already signed in.
+     * @throws Error if the sign-in is canceled or fails.
+     */
+    public static async signIn(
+        forceSignInPrompt: boolean = false,
+    ): Promise<MssqlVSCodeAzureSubscriptionProvider> {
+        const auth: MssqlVSCodeAzureSubscriptionProvider =
+            MssqlVSCodeAzureSubscriptionProvider.getInstance();
+
+        if (forceSignInPrompt || !(await auth.isSignedIn())) {
+            const result = await auth.signIn();
+            if (!result) {
+                throw new Error("Azure sign-in was canceled or failed.");
+            }
+        }
+
+        return auth;
+    }
+
+    public static getHomeTenantIdForAccount(
+        account: vscode.AuthenticationSessionAccountInformation | string,
+    ): string | undefined {
+        const accountId = typeof account === "string" ? account : account.id;
+
+        if (accountId?.includes(".")) {
+            return accountId.split(".")[1]; // account ID takes the format <accountID>.<homeTenantID>
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Gets the tenants available for a specific Azure account
+     * @param account The account to get tenants for
+     * @returns Array of tenant information
+     */
+    public static async getTenantsForAccount(
+        account: vscode.AuthenticationSessionAccountInformation | string,
+    ): Promise<AzureTenant[]> {
+        try {
+            account = typeof account === "string" ? await this.getAccountById(account) : account;
+
+            const auth: MssqlVSCodeAzureSubscriptionProvider =
+                MssqlVSCodeAzureSubscriptionProvider.getInstance();
+            const tenants = [...(await auth.getTenants(account))]; // spread operator to create a new array since sort() mutates the array
+
+            return tenants.sort((a, b) => a.displayName.localeCompare(b.displayName));
+        } catch (error) {
+            console.error("Error fetching tenants for account:", error);
+            return [];
+        }
+    }
+
+    public static async getTenant(
+        account: vscode.AuthenticationSessionAccountInformation | string,
+        tenantId: string,
+    ): Promise<AzureTenant> {
+        const tenants = await this.getTenantsForAccount(account);
+        return tenants.find((t) => t.tenantId === tenantId);
+    }
+
+    /**
+     * Gets the subscriptions available for a specific Azure tenant
+     * @param tenant The tenant to get subscriptions for
+     * @returns Array of subscription information
+     */
+    public static async getSubscriptionsForTenant(
+        tenant: AzureTenant,
+    ): Promise<IMssqlAzureSubscription[]> {
+        const auth = MssqlVSCodeAzureSubscriptionProvider.getInstance();
+        const allSubs = await auth.getSubscriptions(false);
+        // Filter subscriptions by tenant
+        const subs = allSubs.filter((sub) => sub.tenantId === tenant.tenantId);
+        return subs.map((sub) => ({
+            subscriptionId: sub.subscriptionId,
+            displayName: sub.name,
+        }));
+    }
+
+    public static async fetchResourcesForSubscription(
+        sub: AzureSubscription,
+    ): Promise<GenericResourceExpanded[]> {
+        const client = new ResourceManagementClient(sub.credential, sub.subscriptionId);
+        const resources = await listAllIterator<GenericResourceExpanded>(client.resources.list());
+        return resources;
+    }
+
+    public static async fetchServersFromAzure(
+        sub: AzureSubscription,
+    ): Promise<AzureSqlServerInfo[]> {
+        const result: AzureSqlServerInfo[] = [];
+
+        const resources = await this.fetchResourcesForSubscription(sub);
+
+        // for some subscriptions, supplying a `resourceType eq 'Microsoft.Sql/servers/databases'` filter to list() causes an error:
+        // > invalid filter in query string 'resourceType eq "Microsoft.Sql/servers/databases"'
+        // no idea why, so we're fetching all resources and filtering them ourselves
+
+        const servers = resources.filter((r) => r.type === serverResourceType);
+        const databases = resources.filter((r) => r.type === databaseResourceType);
+
+        for (const server of servers) {
+            result.push({
+                server: server.name,
+                databases: [],
+                location: server.location,
+                resourceGroup: extractFromResourceId(server.id, "resourceGroups"),
+                subscription: `${sub.name} (${sub.subscriptionId})`,
+                uri: buildServerUri(server),
+            });
+        }
+
+        for (const database of databases) {
+            const serverName = extractFromResourceId(database.id, "servers");
+            const server = result.find((s) => s.server === serverName);
+            if (server) {
+                server.databases.push(database.name.substring(serverName.length + 1)); // database.name is in the form 'serverName/databaseName', so we need to remove the server name and slash
+            }
+        }
+
+        return result;
+    }
 }
 
 /**
@@ -63,7 +239,7 @@ export async function promptForAzureSubscriptionFilter(
     logger: Logger,
 ): Promise<boolean> {
     try {
-        const auth = await confirmVscodeAzureSignin();
+        const auth = await VsCodeAzureHelper.signIn();
 
         if (!auth) {
             state.formError = l10n.t("Azure sign in failed.");
@@ -97,7 +273,7 @@ export async function promptForAzureSubscriptionFilter(
     }
 }
 
-export interface SubscriptionPickItem extends vscode.QuickPickItem {
+export interface SubscriptionPickItem extends MssqlQuickPickItem {
     tenantId: string;
     subscriptionId: string;
 }
@@ -117,60 +293,21 @@ export async function getSubscriptionQuickPickItems(
     const quickPickItems: SubscriptionPickItem[] = allSubs
         .map((sub) => {
             return {
-                label: `${sub.name} (${sub.subscriptionId})`,
+                label: sub.name,
+                description: sub.subscriptionId,
                 tenantId: sub.tenantId,
                 subscriptionId: sub.subscriptionId,
                 picked: prevSelectedSubs ? prevSelectedSubs.includes(sub.subscriptionId) : true,
+                group: sub.account.label,
             };
         })
         .sort((a, b) => a.label.localeCompare(b.label));
 
-    return quickPickItems;
+    return groupQuickPickItems(quickPickItems);
 }
 
 const serverResourceType = "Microsoft.Sql/servers";
 const databaseResourceType = "Microsoft.Sql/servers/databases";
-
-export async function fetchResourcesForSubscription(
-    sub: AzureSubscription,
-): Promise<GenericResourceExpanded[]> {
-    const client = new ResourceManagementClient(sub.credential, sub.subscriptionId);
-    const resources = await listAllIterator<GenericResourceExpanded>(client.resources.list());
-    return resources;
-}
-
-export async function fetchServersFromAzure(sub: AzureSubscription): Promise<AzureSqlServerInfo[]> {
-    const result: AzureSqlServerInfo[] = [];
-
-    const resources = await fetchResourcesForSubscription(sub);
-
-    // for some subscriptions, supplying a `resourceType eq 'Microsoft.Sql/servers/databases'` filter to list() causes an error:
-    // > invalid filter in query string 'resourceType eq "Microsoft.Sql/servers/databases'"
-    // no idea why, so we're fetching all resources and filtering them ourselves
-
-    const servers = resources.filter((r) => r.type === serverResourceType);
-    const databases = resources.filter((r) => r.type === databaseResourceType);
-
-    for (const server of servers) {
-        result.push({
-            server: server.name,
-            databases: [],
-            location: server.location,
-            resourceGroup: extractFromResourceId(server.id, "resourceGroups"),
-            subscription: `${sub.name} (${sub.subscriptionId})`,
-        });
-    }
-
-    for (const database of databases) {
-        const serverName = extractFromResourceId(database.id, "servers");
-        const server = result.find((s) => s.server === serverName);
-        if (server) {
-            server.databases.push(database.name.substring(serverName.length + 1)); // database.name is in the form 'serverName/databaseName', so we need to remove the server name and slash
-        }
-    }
-
-    return result;
-}
 
 //#endregion
 
@@ -185,8 +322,8 @@ export async function getAccounts(
         accounts = await azureAccountService.getAccounts();
         return accounts.map((account) => {
             return {
-                displayName: account.displayInfo.displayName,
-                value: account.displayInfo.userId,
+                displayName: account.displayInfo?.displayName,
+                value: account.key.id,
             };
         });
     } catch (error) {
@@ -213,16 +350,24 @@ export async function getAccounts(
     }
 }
 
+/**
+ * Retrieves the tenants for a given Azure account.
+ * @param accountId The ID of the account to retrieve tenants for.  Recommended to be `IAccount.key.id`.
+ */
 export async function getTenants(
     azureAccountService: AzureAccountService,
     accountId: string,
     logger: Logger,
 ): Promise<FormItemOptions[]> {
     let tenants: ITenant[] = [];
+
+    if (!accountId) {
+        logger.error("getTenants(): undefined accountId passed.");
+        return [];
+    }
+
     try {
-        const account = (await azureAccountService.getAccounts()).find(
-            (account) => account.displayInfo?.userId === accountId,
-        );
+        const account = await azureAccountService.getAccount(accountId);
 
         if (!account?.properties?.tenants) {
             const missingProp = !account
@@ -274,15 +419,20 @@ export async function getTenants(
     }
 }
 
-export async function constructAzureAccountForTenant(
-    tenantId: string,
-): Promise<{ account: IAccount; tokenMappings: {} }> {
-    const auth = await confirmVscodeAzureSignin();
-    const subs = await auth.getSubscriptions(false /* filter */);
-    const sub = subs.filter((s) => s.tenantId === tenantId)[0];
+export async function constructAzureAccountForTenant(azureAccountInfo: {
+    accountId: string;
+    tenantId: string;
+}): Promise<{ account: IAccount; tokenMappings: {} }> {
+    const auth = await VsCodeAzureHelper.signIn();
+    const subs = await auth.getSubscriptions({
+        account: await VsCodeAzureHelper.getAccountById(azureAccountInfo.accountId),
+        tenantId: azureAccountInfo.tenantId,
+    });
+
+    const sub = subs.filter((s) => s.tenantId === azureAccountInfo.tenantId)[0];
 
     if (!sub) {
-        throw new Error(Loc.errorLoadingAzureAccountInfoForTenantId(tenantId));
+        throw new Error(Loc.errorLoadingAzureAccountInfoForTenantId(azureAccountInfo.tenantId));
     }
 
     const token = await sub.credential.getToken(".default");
@@ -349,6 +499,15 @@ export function extractFromResourceId(resourceId: string, property: string): str
     }
 
     return resourceId.substring(startIndex, endIndex);
+}
+
+export function buildServerUri(serverResource: GenericResourceExpanded): string {
+    const suffix = serverResource.kind.includes("analytics")
+        ? providerSettings.resources.databaseResource.analyticsDnsSuffix
+        : providerSettings.resources.databaseResource.dnsSuffix;
+
+    // Construct the URI based on the server kind
+    return `${serverResource.name}.${suffix}`;
 }
 
 //#endregion

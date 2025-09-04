@@ -18,7 +18,7 @@ import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { AccountStore } from "../../src/azure/accountStore";
-import { Logger } from "../../src/models/logger";
+import * as sinon from "sinon";
 
 suite("Connection UI tests", () => {
     // Class being tested
@@ -31,7 +31,6 @@ suite("Connection UI tests", () => {
     let connectionStore: TypeMoq.IMock<ConnectionStore>;
     let connectionManager: TypeMoq.IMock<ConnectionManager>;
     let mockAccountStore: AccountStore;
-    let mockLogger: TypeMoq.IMock<Logger>;
     let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
     let globalstate: TypeMoq.IMock<
         vscode.Memento & { setKeysForSync(keys: readonly string[]): void }
@@ -71,8 +70,7 @@ suite("Connection UI tests", () => {
         globalstate = TypeMoq.Mock.ofType<
             vscode.Memento & { setKeysForSync(keys: readonly string[]): void }
         >();
-        mockLogger = TypeMoq.Mock.ofType<Logger>();
-        mockAccountStore = new AccountStore(mockContext.object, mockLogger.object);
+        mockAccountStore = new AccountStore(mockContext.object, vscodeWrapper.object);
         connectionUI = new ConnectionUI(
             connectionManager.object,
             mockContext.object,
@@ -179,30 +177,37 @@ suite("Connection UI tests", () => {
         });
     });
 
-    test("promptToChangeLanguageMode should prompt for language mode - selection", () => {
+    test("promptToChangeLanguageMode should prompt for language mode - selection", async () => {
         prompter
             .setup((p) => p.promptSingle(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(TypeMoq.It.isAny()));
-        return connectionUI.promptToChangeLanguageMode().then(() => {
-            prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
-            vscodeWrapper.verify(
-                (v) => v.executeCommand(TypeMoq.It.isAnyString()),
-                TypeMoq.Times.once(),
-            );
-        });
+
+        const isLanguageModeSqlStub = sinon.stub();
+        //should return true to simulate the language mode being SQL
+        isLanguageModeSqlStub.returns(Promise.resolve(true));
+        connectionUI["waitForLanguageModeToBeSql"] = isLanguageModeSqlStub;
+
+        await connectionUI.promptToChangeLanguageMode();
+
+        prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
+        vscodeWrapper.verify(
+            (v) => v.executeCommand(TypeMoq.It.isAnyString()),
+            TypeMoq.Times.once(),
+        );
     });
 
-    test("promptToChangeLanguageMode should prompt for language mode - no selection", () => {
+    test("promptToChangeLanguageMode should prompt for language mode - no selection", async () => {
         prompter
             .setup((p) => p.promptSingle(TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(undefined));
-        return connectionUI.promptToChangeLanguageMode().then(() => {
-            prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
-            vscodeWrapper.verify(
-                (v) => v.executeCommand(TypeMoq.It.isAnyString()),
-                TypeMoq.Times.never(),
-            );
-        });
+
+        await connectionUI.promptToChangeLanguageMode();
+
+        prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
+        vscodeWrapper.verify(
+            (v) => v.executeCommand(TypeMoq.It.isAnyString()),
+            TypeMoq.Times.never(),
+        );
     });
 
     test("removeProfile should prompt for a profile and remove it", () => {

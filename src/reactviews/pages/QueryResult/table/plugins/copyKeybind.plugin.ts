@@ -5,17 +5,15 @@
 
 import { KeyboardEvent } from "react";
 import {
-    QueryResultWebviewState,
-    QueryResultReducers,
     ResultSetSummary,
-    CopySelectionRequest,
-    SendToClipboardRequest,
     DbCellValue,
+    SendToClipboardRequest,
+    CopySelectionRequest,
 } from "../../../../../sharedInterfaces/queryResult";
-import { VscodeWebviewContext } from "../../../../common/vscodeWebviewProvider";
-import { selectionToRange, tryCombineSelectionsForResults } from "../utils";
+import { selectEntireGrid, selectionToRange, tryCombineSelectionsForResults } from "../utils";
 import { Keys } from "../../../../common/keys";
 import { IDisposableDataProvider } from "../dataProvider";
+import { QueryResultReactProvider } from "../../queryResultStateProvider";
 import { GetPlatformRequest } from "../../../../../sharedInterfaces/webview";
 
 /**
@@ -26,17 +24,15 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
     private handler = new Slick.EventHandler();
     private uri: string;
     private resultSetSummary: ResultSetSummary;
-    private webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>;
 
     constructor(
         uri: string,
         resultSetSummary: ResultSetSummary,
-        webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>,
+        private _qrContext: QueryResultReactProvider,
         private dataProvider: IDisposableDataProvider<T>,
     ) {
         this.uri = uri;
         this.resultSetSummary = resultSetSummary;
-        this.webViewState = webViewState;
     }
 
     public init(grid: Slick.Grid<T>) {
@@ -52,27 +48,17 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
         let handled = false;
-        let platform = await this.webViewState.extensionRpc.sendRequest(GetPlatformRequest.type);
+        let platform = await this._qrContext.extensionRpc.sendRequest(GetPlatformRequest.type);
         if (platform === "darwin") {
             // Cmd + C
             if (e.metaKey && e.key === Keys.c) {
                 handled = true;
-                await this.handleCopySelection(
-                    this.grid,
-                    this.webViewState,
-                    this.uri,
-                    this.resultSetSummary,
-                );
+                await this.handleCopySelection(this.grid, this.uri, this.resultSetSummary);
             }
         } else {
             if (e.ctrlKey && e.key === Keys.c) {
                 handled = true;
-                await this.handleCopySelection(
-                    this.grid,
-                    this.webViewState,
-                    this.uri,
-                    this.resultSetSummary,
-                );
+                await this.handleCopySelection(this.grid, this.uri, this.resultSetSummary);
             }
         }
 
@@ -83,12 +69,16 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
     }
     public async handleCopySelection(
         grid: Slick.Grid<T>,
-        webViewState: VscodeWebviewContext<QueryResultWebviewState, QueryResultReducers>,
         uri: string,
         resultSetSummary: ResultSetSummary,
     ) {
         let selectedRanges = grid.getSelectionModel().getSelectedRanges();
         let selection = tryCombineSelectionsForResults(selectedRanges);
+
+        // If no selection exists, create a selection for the entire grid
+        if (!selection || selection.length === 0) {
+            selection = selectEntireGrid(grid);
+        }
 
         if (this.dataProvider.isDataInMemory) {
             let range = selectionToRange(selection[0]);
@@ -105,7 +95,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
                         }) as DbCellValue,
                 );
             });
-            await this.webViewState.extensionRpc.sendRequest(SendToClipboardRequest.type, {
+            await this._qrContext.extensionRpc.sendRequest(SendToClipboardRequest.type, {
                 uri: uri,
                 data: dataArray,
                 batchId: resultSetSummary.batchId,
@@ -114,7 +104,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
                 headersFlag: false, // Assuming headers are not needed for in-memory data
             });
         } else {
-            await webViewState.extensionRpc.sendRequest(CopySelectionRequest.type, {
+            await this._qrContext.extensionRpc.sendRequest(CopySelectionRequest.type, {
                 uri: uri,
                 batchId: resultSetSummary.batchId,
                 resultId: resultSetSummary.id,

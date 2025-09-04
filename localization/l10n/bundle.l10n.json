@@ -57,6 +57,7 @@
   "Check Constraint": "Check Constraint",
   "New Check Constraint": "New Check Constraint",
   "Advanced Options": "Advanced Options",
+  "Search term cannot be empty": "Search term cannot be empty",
   "{0} issue/{0} is the number of issues": {
     "message": "{0} issue",
     "comment": [
@@ -86,6 +87,8 @@
   "Move Up": "Move Up",
   "Move Down": "Move Down",
   "Delete": "Delete",
+  "Expand": "Expand",
+  "Collapse": "Collapse",
   "Filter Settings": "Filter Settings",
   "Cancel": "Cancel",
   "Are you sure?": "Are you sure?",
@@ -99,6 +102,7 @@
   "Apply": "Apply",
   "Next": "Next",
   "Clear Selection": "Clear Selection",
+  "Clear": "Clear",
   "Find": "Find",
   "Find Next": "Find Next",
   "Find Previous": "Find Previous",
@@ -115,9 +119,13 @@
   "Select": "Select",
   "Finish": "Finish",
   "Retry": "Retry",
+  "Refresh": "Refresh",
   "Show password": "Show password",
   "Hide password": "Hide password",
+  "Dismiss": "Dismiss",
   "Error": "Error",
+  "Get Started": "Get Started",
+  "Back": "Back",
   "Clear All": "Clear All",
   "OK": "OK",
   "And": "And",
@@ -165,7 +173,6 @@
   "Property": "Property",
   "Operator": "Operator",
   "Value": "Value",
-  "Clear": "Clear",
   "Publishing Changes": "Publishing Changes",
   "Changes published successfully": "Changes published successfully",
   "Close Designer": "Close Designer",
@@ -218,8 +225,6 @@
   "A firewall rule is required to access this server.": "A firewall rule is required to access this server.",
   "Add Firewall Rule": "Add Firewall Rule",
   "Sign into Azure in order to add a firewall rule.": "Sign into Azure in order to add a firewall rule.",
-  "Sign into Azure": "Sign into Azure",
-  "Tenant": "Tenant",
   "Rule name": "Rule name",
   "Add my client IP ({0})/{0} is the IP address of the client": {
     "message": "Add my client IP ({0})",
@@ -227,6 +232,40 @@
       "{0} is the IP address of the client"
     ]
   },
+  "Search workspaces...": "Search workspaces...",
+  "Loading Fabric Accounts": "Loading Fabric Accounts",
+  "Fabric Account": "Fabric Account",
+  "Select an account": "Select an account",
+  "Account": "Account",
+  "Sign In": "Sign In",
+  "Tenant ID": "Tenant ID",
+  "Authentication Type": "Authentication Type",
+  "Browse By": "Browse By",
+  "My Data": "My Data",
+  "Recent": "Recent",
+  "Favorites": "Favorites",
+  "Fabric Workspaces": "Fabric Workspaces",
+  "Sign into Fabric": "Sign into Fabric",
+  "Filter by keyword": "Filter by keyword",
+  "Filter": "Filter",
+  "Filter by type": "Filter by type",
+  "Show All": "Show All",
+  "SQL Analytics Endpoint": "SQL Analytics Endpoint",
+  "SQL Database": "SQL Database",
+  "No workspaces found": "No workspaces found",
+  "Location (Workspace)": "Location (Workspace)",
+  "Expand Workspace Explorer": "Expand Workspace Explorer",
+  "Explorer": "Explorer",
+  "Collapse Workspace Explorer": "Collapse Workspace Explorer",
+  "Select a workspace to view the databases in it.": "Select a workspace to view the databases in it.",
+  "No databases found in workspace '{0}'./{0} is the name of the workspace": {
+    "message": "No databases found in workspace '{0}'.",
+    "comment": [
+      "{0} is the name of the workspace"
+    ]
+  },
+  "No databases found in the selected workspace.": "No databases found in the selected workspace.",
+  "Database list": "Database list",
   "Connect": "Connect",
   "Advanced Connection Settings": "Advanced Connection Settings",
   "Advanced": "Advanced",
@@ -241,6 +280,7 @@
   "Parameters": "Parameters",
   "Connection String": "Connection String",
   "Browse Azure": "Browse Azure",
+  "Browse Fabric": "Browse Fabric",
   "Load from Connection String": "Load from Connection String",
   "Saved Connections": "Saved Connections",
   "Recent Connections": "Recent Connections",
@@ -279,7 +319,36 @@
   "Paste connection string from clipboard": "Paste connection string from clipboard",
   "Paste": "Paste",
   "Search settings...": "Search settings...",
-  "Refresh": "Refresh",
+  "You must be signed into Azure in order to browse SQL databases.": "You must be signed into Azure in order to browse SQL databases.",
+  "You must be signed into Fabric in order to browse SQL databases.": "You must be signed into Fabric in order to browse SQL databases.",
+  "Loading workspaces...": "Loading workspaces...",
+  "Loading databases in '{0}'.../{0} is the name of the workspace": {
+    "message": "Loading databases in '{0}'...",
+    "comment": [
+      "{0} is the name of the workspace"
+    ]
+  },
+  "Loading databases in selected workspace...": "Loading databases in selected workspace...",
+  "Error loading workspaces": "Error loading workspaces",
+  "Error loading databases": "Error loading databases",
+  "Connection Authentication": "Connection Authentication",
+  "Sign into Azure": "Sign into Azure",
+  "Not signed in": "Not signed in",
+  "Azure Account": "Azure Account",
+  "Add Account": "Add Account",
+  "+ Add Azure Account": "+ Add Azure Account",
+  "{0} accounts/{0} is the number of accounts": {
+    "message": "{0} accounts",
+    "comment": [
+      "{0} is the number of accounts"
+    ]
+  },
+  "Click to sign into an Azure account": "Click to sign into an Azure account",
+  "Currently signed in as:": "Currently signed in as:",
+  "Loading Azure Accounts": "Loading Azure Accounts",
+  "Tenant": "Tenant",
+  "Loading tenants...": "Loading tenants...",
+  "Select a tenant": "Select a tenant",
   "Loading execution plan...": "Loading execution plan...",
   "Query {0}:  Query cost (relative to the script):  {1}%/{0} is the query number{1} is the query cost": {
     "message": "Query {0}:  Query cost (relative to the script):  {1}%",
@@ -315,8 +384,6 @@
   "Collapse All": "Collapse All",
   "Filter for any field...": "Filter for any field...",
   "Previous": "Previous",
-  "Expand": "Expand",
-  "Collapse": "Collapse",
   "Microsoft would like your feedback": "Microsoft would like your feedback",
   "Overall, how satisfied are you with the MSSQL extension?": "Overall, how satisfied are you with the MSSQL extension?",
   "Very Satisfied": "Very Satisfied",
@@ -329,7 +396,12 @@
   "Privacy Statement": "Privacy Statement",
   "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...": "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...",
   "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.": "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.",
-  "Results": "Results",
+  "Results ({0})/{0} is the number of results": {
+    "message": "Results ({0})",
+    "comment": [
+      "{0} is the number of results"
+    ]
+  },
   "Messages": "Messages",
   "Timestamp": "Timestamp",
   "Message": "Message",
@@ -342,7 +414,6 @@
   "Save as CSV": "Save as CSV",
   "Save as Excel": "Save as Excel",
   "Save as JSON": "Save as JSON",
-  "No result found for the active editor; please run a query or switch to another editor.": "No result found for the active editor; please run a query or switch to another editor.",
   "Hide this panel": "Hide this panel",
   "Query Plan": "Query Plan",
   "Select All": "Select All",
@@ -353,6 +424,29 @@
   "Search...": "Search...",
   "Maximize": "Maximize",
   "Restore": "Restore",
+  "Grid View": "Grid View",
+  "Text View": "Text View",
+  "Switch to Grid View": "Switch to Grid View",
+  "Switch to Text View": "Switch to Text View",
+  "No results to display": "No results to display",
+  "Error generating text view. Please try switching back to grid view.": "Error generating text view. Please try switching back to grid view.",
+  "(0 rows affected)": "(0 rows affected)",
+  "(1 row affected)": "(1 row affected)",
+  "({0} rows affected)/{0} is the number of rows affected": {
+    "message": "({0} rows affected)",
+    "comment": [
+      "{0} is the number of rows affected"
+    ]
+  },
+  "Result Set {0}/{0} is the index of the result set": {
+    "message": "Result Set {0}",
+    "comment": [
+      "{0} is the index of the result set"
+    ]
+  },
+  "Loading text view...": "Loading text view...",
+  "No results for the active editor": "No results for the active editor",
+  "Run a query in the current editor, or switch to an editor that has results.": "Run a query in the current editor, or switch to an editor that has results.",
   "Add new column": "Add new column",
   "Table": "Table",
   "Save": "Save",
@@ -371,7 +465,6 @@
   "Auto Arrange": "Auto Arrange",
   "Auto Arrange Confirmation": "Auto Arrange Confirmation",
   "Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?": "Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?",
-  "Filter": "Filter",
   "Filter ({0})/{0} is the number of selected tables": {
     "message": "Filter ({0})",
     "comment": [
@@ -387,7 +480,6 @@
   "Script": "Script",
   "New column mapping": "New column mapping",
   "Column Name": "Column Name",
-  "Dismiss": "Dismiss",
   "Table '{0}' already exists/{0} is the table name": {
     "message": "Table '{0}' already exists",
     "comment": [
@@ -550,7 +642,11 @@
   "Undo": "Undo",
   "Redo": "Redo",
   "Search tables...": "Search tables...",
+  "Show table relationships": "Show table relationships",
   "To compare two schemas, first select a source schema and target schema, then press compare.": "To compare two schemas, first select a source schema and target schema, then press compare.",
+  "Select Source Schema": "Select Source Schema",
+  "Select Target Schema": "Select Target Schema",
+  "Add Server Connection": "Add Server Connection",
   "No schema differences were found.": "No schema differences were found.",
   "Initializing comparison, this might take a while...": "Initializing comparison, this might take a while...",
   "default": "default",
@@ -565,6 +661,8 @@
   "Search options...": "Search options...",
   "General Options": "General Options",
   "Include Object Types": "Include Object Types",
+  "Select all options": "Select all options",
+  "Include all object types": "Include all object types",
   "Option Description": "Option Description",
   "Reset": "Reset",
   "Stop": "Stop",
@@ -651,8 +749,15 @@
   "Hue": "Hue",
   "Saturation": "Saturation",
   "Brightness": "Brightness",
-  "Loading deployment page...": "Loading deployment page...",
+  "Loading deployment": "Loading deployment",
+  "New SQL Database": "New SQL Database",
+  "Choose an option to provision a database": "Choose an option to provision a database",
   "Local SQL Server database container": "Local SQL Server database container",
+  "Create a Local Docker SQL Server": "Create a Local Docker SQL Server",
+  "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!": "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
+  "Create a SQL Database in Fabric": "Create a SQL Database in Fabric",
+  "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services": "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
+  "Loading local containers...": "Loading local containers...",
   "Instant Container Setup": "Instant Container Setup",
   "Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.": "Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.",
   "Simple Container Management": "Simple Container Management",
@@ -662,7 +767,6 @@
   "Learn more about SQL Server 2025 features": "Learn more about SQL Server 2025 features",
   "Compare SQL Server editions": "Compare SQL Server editions",
   "Configure and customize SQL Server containers": "Configure and customize SQL Server containers",
-  "Get Started": "Get Started",
   "Getting Docker Ready...": "Getting Docker Ready...",
   "Checking pre-requisites": "Checking pre-requisites",
   "Create Container": "Create Container",
@@ -671,6 +775,29 @@
   "Hide full error message": "Hide full error message",
   "Show full error message": "Show full error message",
   "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
+  "+ Add Fabric Account": "+ Add Fabric Account",
+  "Loading fabric provisioning...": "Loading fabric provisioning...",
+  "SQL Database in Fabric": "SQL Database in Fabric",
+  "Create Database": "Create Database",
+  "Loading workspaces": "Loading workspaces",
+  "Error loading workspaces. Please try choosing a different account or tenant.": "Error loading workspaces. Please try choosing a different account or tenant.",
+  "Finished Deployment": "Finished Deployment",
+  "Deployment in progress": "Deployment in progress",
+  "Deployment Name": "Deployment Name",
+  "Workspace": "Workspace",
+  "Start Time": "Start Time",
+  "Provisioning": "Provisioning",
+  "Deployment Failed": "Deployment Failed",
+  "Connection Failed": "Connection Failed",
+  "Connecting to Database": "Connecting to Database",
+  "OLTP, built on Azure SQL": "OLTP, built on Azure SQL",
+  "Developer-friendly transactional database using the Azure SQL Database Engine.": "Developer-friendly transactional database using the Azure SQL Database Engine.",
+  "Analytics-ready by default": "Analytics-ready by default",
+  "Data automatically replicated to OneLake in real time with a SQL analytics endpoint.": "Data automatically replicated to OneLake in real time with a SQL analytics endpoint.",
+  "Integrated & secure": "Integrated & secure",
+  "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.": "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.",
+  "Smart performance": "Smart performance",
+  "Automatic tuning features like automatic index creation enabled by default.": "Automatic tuning features like automatic index creation enabled by default.",
   "Object Explorer Filter": "Object Explorer Filter",
   "{0} (filtered)": "{0} (filtered)",
   "Remind Me Later": "Remind Me Later",
@@ -747,7 +874,6 @@
   "End IP Address": "End IP Address",
   "Firewall rule name": "Firewall rule name",
   "[Optional] Database to connect (press Enter to connect to <default> database)": "[Optional] Database to connect (press Enter to connect to <default> database)",
-  "Authentication Type": "Authentication Type",
   "authenticationType": "authenticationType",
   "Integrated": "Integrated",
   "SQL Login": "SQL Login",
@@ -817,7 +943,6 @@
   "Password (SQL Login)": "Password (SQL Login)",
   "Save Password? If 'No', password will be required each time you connect": "Save Password? If 'No', password will be required each time you connect",
   "Profile Name": "Profile Name",
-  "[Optional] Enter a display name for this connection profile": "[Optional] Enter a display name for this connection profile",
   "Error occurred opening content in editor.": "Error occurred opening content in editor.",
   "Started saving results to ": "Started saving results to ",
   "Failed to save results. ": "Failed to save results. ",
@@ -1006,6 +1131,7 @@
   "CSV": "CSV",
   "JSON": "JSON",
   "Excel": "Excel",
+  "Results": "Results",
   "Select all": "Select all",
   "Executing query...": "Executing query...",
   "Query executed": "Query executed",
@@ -1079,6 +1205,29 @@
   "Reload Visual Studio Code": "Reload Visual Studio Code",
   "Switch to MSAL": "Switch to MSAL",
   "Query succeeded": "Query succeeded",
+  "Search for database objects...": "Search for database objects...",
+  "Enter part of an object name to search for": "Enter part of an object name to search for",
+  "No database objects found matching '{0}'/{0} is the search term": {
+    "message": "No database objects found matching '{0}'",
+    "comment": [
+      "{0} is the search term"
+    ]
+  },
+  "An error occurred while searching database objects": "An error occurred while searching database objects",
+  "An error occurred while searching database objects: {0}/{0} is the error detail returned from the search operation": {
+    "message": "An error occurred while searching database objects: {0}",
+    "comment": [
+      "{0} is the error detail returned from the search operation"
+    ]
+  },
+  "No active database connection. Please connect to a database first.": "No active database connection. Please connect to a database first.",
+  "Select an object to view its definition ({0} results)/{0} is the number of results": {
+    "message": "Select an object to view its definition ({0} results)",
+    "comment": [
+      "{0} is the number of results"
+    ]
+  },
+  "Invalid connection URI. Please ensure you have an active database connection.": "Invalid connection URI. Please ensure you have an active database connection.",
   "Query failed": "Query failed",
   "Loading": "Loading",
   "Execution Plan": "Execution Plan",
@@ -1096,6 +1245,7 @@
     ]
   },
   "Enable Experiences & Reload": "Enable Experiences & Reload",
+  "New Deployment": "New Deployment",
   "Error loading; refresh to try again": "Error loading; refresh to try again",
   "No items": "No items",
   "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?": "We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?",
@@ -1134,13 +1284,13 @@
     ]
   },
   "Connection Dialog": "Connection Dialog",
-  "Azure Account": "Azure Account",
-  "Azure Account is required": "Azure Account is required",
-  "Select an account": "Select an account",
+  "Microsoft Account": "Microsoft Account",
+  "Microsoft Account is required": "Microsoft Account is required",
+  "Add account": "Add account",
   "Save Password": "Save Password",
-  "Tenant ID": "Tenant ID",
-  "Select a tenant": "Select a tenant",
   "Tenant ID is required": "Tenant ID is required",
+  "Enter profile name": "Enter profile name",
+  "[Optional] Enter a display name for this connection profile": "[Optional] Enter a display name for this connection profile",
   "Connection Group": "Connection Group",
   "Server is required": "Server is required",
   "User name is required": "User name is required",
@@ -1173,13 +1323,19 @@
     ]
   },
   "Clear cache and refresh token": "Clear cache and refresh token",
+  "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
   "Add Firewall Rule to {0}/{0} is the server name": {
     "message": "Add Firewall Rule to {0}",
     "comment": [
       "{0} is the server name"
     ]
   },
-  "Azure sign-in failed or was cancelled.": "Azure sign-in failed or was cancelled.",
+  "Error signing into Azure: {0}/{0} is the error message": {
+    "message": "Error signing into Azure: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
   "Error loading Azure account information for tenant ID '{0}'/{0} is the tenant ID": {
     "message": "Error loading Azure account information for tenant ID '{0}'",
     "comment": [
@@ -1193,6 +1349,114 @@
       "{1} is the error message"
     ]
   },
+  "Failed to get tenant '{0}' for account '{1}'./{0} is the tenant id{1} is the account name": {
+    "message": "Failed to get tenant '{0}' for account '{1}'.",
+    "comment": [
+      "{0} is the tenant id",
+      "{1} is the account name"
+    ]
+  },
+  "Failed to get Fabric workspaces for tenant '{0} ({1})'./{0} is the tenant name{1} is the tenant id": {
+    "message": "Failed to get Fabric workspaces for tenant '{0} ({1})'.",
+    "comment": [
+      "{0} is the tenant name",
+      "{1} is the tenant id"
+    ]
+  },
+  "Listing Fabric capacities for tenant '{0}'/{0} is the tenant ID": {
+    "message": "Listing Fabric capacities for tenant '{0}'",
+    "comment": [
+      "{0} is the tenant ID"
+    ]
+  },
+  "Listing Fabric workspaces for tenant '{0}'/{0} is the tenant ID": {
+    "message": "Listing Fabric workspaces for tenant '{0}'",
+    "comment": [
+      "{0} is the tenant ID"
+    ]
+  },
+  "Getting Fabric workspace '{0}'/{0} is the workspace ID": {
+    "message": "Getting Fabric workspace '{0}'",
+    "comment": [
+      "{0} is the workspace ID"
+    ]
+  },
+  "Listing Fabric SQL Databases for workspace '{0}'/{0} is the workspace ID": {
+    "message": "Listing Fabric SQL Databases for workspace '{0}'",
+    "comment": [
+      "{0} is the workspace ID"
+    ]
+  },
+  "Listing Fabric SQL Endpoints for workspace '{0}'/{0} is the workspace ID": {
+    "message": "Listing Fabric SQL Endpoints for workspace '{0}'",
+    "comment": [
+      "{0} is the workspace ID"
+    ]
+  },
+  "Getting connection string for SQL Endpoint '{0}' in workspace '{1}'/{0} is the SQL endpoint ID{1} is the workspace ID": {
+    "message": "Getting connection string for SQL Endpoint '{0}' in workspace '{1}'",
+    "comment": [
+      "{0} is the SQL endpoint ID",
+      "{1} is the workspace ID"
+    ]
+  },
+  "Creating workspace with capacity {0}/{0} is the capacity ID": {
+    "message": "Creating workspace with capacity {0}",
+    "comment": [
+      "{0} is the capacity ID"
+    ]
+  },
+  "Creating SQL Database for workspace {0}/{0} is the workspace ID": {
+    "message": "Creating SQL Database for workspace {0}",
+    "comment": [
+      "{0} is the workspace ID"
+    ]
+  },
+  "Listing role assignments for workspace '${workspaceId}'/{0} is the workspace ID": {
+    "message": "Listing role assignments for workspace '${workspaceId}'",
+    "comment": [
+      "{0} is the workspace ID"
+    ]
+  },
+  "Getting Fabric database '{0}'/{0} is the database ID": {
+    "message": "Getting Fabric database '{0}'",
+    "comment": [
+      "{0} is the database ID"
+    ]
+  },
+  "Fabric API error occurred ({0}): {1}/{0} is the error code{1} is the error message": {
+    "message": "Fabric API error occurred ({0}): {1}",
+    "comment": [
+      "{0} is the error code",
+      "{1} is the error message"
+    ]
+  },
+  "Fabric long-running API error with error code '{0}': {1}/{0} is the error code{1} is the error message": {
+    "message": "Fabric long-running API error with error code '{0}': {1}",
+    "comment": [
+      "{0} is the error code",
+      "{1} is the error message"
+    ]
+  },
+  "Fabric Account is required": "Fabric Account is required",
+  "Select a Workspace": "Select a Workspace",
+  "Search Workspaces": "Search Workspaces",
+  "Workspace is required": "Workspace is required",
+  "Insufficient Worskpace Permissions": "Insufficient Worskpace Permissions",
+  "Insufficient Capacity Permissions": "Insufficient Capacity Permissions",
+  "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again./{0} is the number of invalid accounts that have been removed": {
+    "message": "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.",
+    "comment": [
+      "{0} is the number of invalid accounts that have been removed"
+    ]
+  },
+  "Database Name": "Database Name",
+  "Enter Database Name": "Enter Database Name",
+  "Database Name is required": "Database Name is required",
+  "Database Description": "Database Description",
+  "Enter Database Description": "Enter Database Description",
+  "Please select a workspace where you have sufficient permissions (Contributor or higher)": "Please select a workspace where you have sufficient permissions (Contributor or higher)",
+  "This database name is already in use. Please choose a different name.": "This database name is already in use. Please choose a different name.",
   "Count: {0}  Distinct Count: {1}  Null Count: {2}/{0} is the count, {1} is the distinct count, and {2} is the null count": {
     "message": "Count: {0}  Distinct Count: {1}  Null Count: {2}",
     "comment": [
@@ -1211,7 +1475,6 @@
       "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum"
     ]
   },
-  "Create Local SQL Container": "Create Local SQL Container",
   "{0} stopped successfully./{0} stopped successfully.": {
     "message": "{0} stopped successfully.",
     "comment": [
@@ -1283,14 +1546,17 @@
   "Error running Docker commands. Please make sure Docker is running.": "Error running Docker commands. Please make sure Docker is running.",
   "Checking Docker Engine Configuration": "Checking Docker Engine Configuration",
   "Checking if the Docker Engine is configured correctly on your machine.": "Checking if the Docker Engine is configured correctly on your machine.",
+  "Pulling SQL Server Image": "Pulling SQL Server Image",
+  "Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.": "Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.",
   "Creating Container": "Creating Container",
-  "Creating and starting your SQL Server Docker container": "Creating and starting your SQL Server Docker container",
+  "Creating and starting your SQL Server container": "Creating and starting your SQL Server container",
   "Setting up container": "Setting up container",
   "Readying container for connections.": "Readying container for connections.",
   "Connecting to Container": "Connecting to Container",
   "Connecting to your SQL Server Docker container": "Connecting to your SQL Server Docker container",
   "Please make your password 8-128 characters long.": "Please make your password 8-128 characters long.",
   "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).": "Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).",
+  "Failed to pull SQL Server image. Please check your network connection and try again.": "Failed to pull SQL Server image. Please check your network connection and try again.",
   "Unsupported platform for Docker: {0}/{0} is the platform name of the machine": {
     "message": "Unsupported platform for Docker: {0}",
     "comment": [
@@ -1303,14 +1569,17 @@
       "{0} is the architecture name of the machine"
     ]
   },
-  "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.": "Please make sure Rosetta Virtualization is enabled. You can do this within your Docker Desktop settings.",
+  "Rosetta is required to run SQL Server container images on Apple Silicon. Enable \"Use Rosetta for x86_64/amd64 emulation on Apple Silicon\" in Docker Desktop > Settings > General.": "Rosetta is required to run SQL Server container images on Apple Silicon. Enable \"Use Rosetta for x86_64/amd64 emulation on Apple Silicon\" in Docker Desktop > Settings > General.",
   "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.": "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.",
   "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.": "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.",
   "Docker failed to start within the timeout period. Please manually start Docker and try again.": "Docker failed to start within the timeout period. Please manually start Docker and try again.",
   "Container failed to start within the timeout period. Please wait a few minutes and try again.": "Container failed to start within the timeout period. Please wait a few minutes and try again.",
   "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.": "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.",
   "Install Docker": "Install Docker",
+  "Create Local SQL Container": "Create Local SQL Container",
+  "Starting Docker...": "Starting Docker...",
   "Starting Container...": "Starting Container...",
+  "Readying container for connections...": "Readying container for connections...",
   "Stopping Container...": "Stopping Container...",
   "Deleting Container...": "Deleting Container...",
   "Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code./{0} is the container name": {
@@ -1320,10 +1589,15 @@
     ]
   },
   "Configure Linux containers": "Configure Linux containers",
+  "Configure Rosetta in Docker Desktop": "Configure Rosetta in Docker Desktop",
   "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?": "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?",
   "Switching to Linux containers was canceled. SQL Server only supports Linux containers.": "Switching to Linux containers was canceled. SQL Server only supports Linux containers.",
   "Failed to start SQL Server container. Please check the error message for more details, and then try again.": "Failed to start SQL Server container. Please check the error message for more details, and then try again.",
   "Container does not exist. Would you like to remove the connection?": "Container does not exist. Would you like to remove the connection?",
+  "Enter password": "Enter password",
+  "Enter container name": "Enter container name",
+  "Enter port": "Enter port",
+  "Enter hostname": "Enter hostname",
   "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
   "What can we do to improve?": "What can we do to improve?",
   "Take Survey": "Take Survey",
@@ -1351,7 +1625,7 @@
     ]
   },
   "General": "General",
-  "Schema Compare (Preview)": "Schema Compare (Preview)",
+  "Schema Compare": "Schema Compare",
   "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
   "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
     "message": "Failed to generate script: '{0}'",
@@ -1375,12 +1649,6 @@
   "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
   "Save As": "Save As",
   "Schema Designer": "Schema Designer",
-  "{0} (Preview)/{0} is the database name": {
-    "message": "{0} (Preview)",
-    "comment": [
-      "{0} is the database name"
-    ]
-  },
   "Opening Publish Script. This may take a while...": "Opening Publish Script. This may take a while...",
   "Generating Report. This may take a while...": "Generating Report. This may take a while...",
   "Failed to generate publish script: '{0}'/{0} is the error message returned from the generate script operation": {
@@ -1412,6 +1680,16 @@
       "{1} is the error message"
     ]
   },
+  "No account selected": "No account selected",
+  "{0} (Current Account)/{0} is the account display name": {
+    "message": "{0} (Current Account)",
+    "comment": [
+      "{0} is the account display name"
+    ]
+  },
+  "Sign in to a new account": "Sign in to a new account",
+  "Select Azure account with Key Vault access for column decryption": "Select Azure account with Key Vault access for column decryption",
+  "No tenant selected": "No tenant selected",
   "No model found.": "No model found.",
   "No tools to process.": "No tools to process.",
   "You are not connected to any database.": "You are not connected to any database.",
@@ -1618,7 +1896,175 @@
       "{0} is the database name"
     ]
   },
+  "List Tables": "List Tables",
+  "List tables for connection '{0}'?/{0} is the connection ID": {
+    "message": "List tables for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Listing tables for connection '{0}'/{0} is the connection ID": {
+    "message": "Listing tables for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "List Schemas": "List Schemas",
+  "List schemas for connection '{0}'?/{0} is the connection ID": {
+    "message": "List schemas for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Listing schemas for connection '{0}'/{0} is the connection ID": {
+    "message": "Listing schemas for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "List Views": "List Views",
+  "List views for connection '{0}'?/{0} is the connection ID": {
+    "message": "List views for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Listing views for connection '{0}'/{0} is the connection ID": {
+    "message": "Listing views for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "List Functions": "List Functions",
+  "List functions for connection '{0}'?/{0} is the connection ID": {
+    "message": "List functions for connection '{0}'?",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Listing functions for connection '{0}'/{0} is the connection ID": {
+    "message": "Listing functions for connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Run Query": "Run Query",
+  "Run query on connection '{0}'?\n\nQuery: {1}/{0} is the connection ID{1} is the SQL query": {
+    "message": "Run query on connection '{0}'?\n\nQuery: {1}",
+    "comment": [
+      "{0} is the connection ID",
+      "{1} is the SQL query"
+    ]
+  },
+  "Running query on connection '{0}'/{0} is the connection ID": {
+    "message": "Running query on connection '{0}'",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Connected successfully": "Connected successfully",
+  "Failed to connect": "Failed to connect",
+  "Disconnected successfully": "Disconnected successfully",
+  "Database changed successfully": "Database changed successfully",
+  "Failed to change database": "Failed to change database",
+  "No active connection for database change": "No active connection for database change",
+  "Connection Details": "Connection Details",
+  "Authentication": "Authentication",
+  "Server Version": "Server Version",
+  "Server Edition": "Server Edition",
+  "Cloud": "Cloud",
+  "User": "User",
+  "No connection information found": "No connection information found",
+  "No active connection": "No active connection",
+  "Opening schema designer...": "Opening schema designer...",
+  "No connection credentials found": "No connection credentials found",
+  "No active connection for schema view": "No active connection for schema view",
+  "Available Servers": "Available Servers",
+  "No saved connection profiles found.": "No saved connection profiles found.",
+  "Use {0} to create a new connection./{0} is the connect command": {
+    "message": "Use {0} to create a new connection.",
+    "comment": [
+      "{0} is the connect command"
+    ]
+  },
+  "Unnamed Profile": "Unnamed Profile",
+  "Found {0} saved connection profile(s)./{0} is the number of connection profiles": {
+    "message": "Found {0} saved connection profile(s).",
+    "comment": [
+      "{0} is the number of connection profiles"
+    ]
+  },
+  "Error retrieving server list: {0}/{0} is the error message": {
+    "message": "Error retrieving server list: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "Unknown error": "Unknown error",
+  "No active database connection in the current editor. Please establish a connection to continue.": "No active database connection in the current editor. Please establish a connection to continue.",
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
+  "Cancel failed: {0}/{0} is the error message": {
+    "message": "Cancel failed: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "Failed disposing query: {0}/{0} is the error message": {
+    "message": "Failed disposing query: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database./{0} is the extension name": {
+    "message": "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
+    "comment": [
+      "{0} is the extension name"
+    ]
+  },
+  "Approve": "Approve",
+  "Deny": "Deny",
+  "✅ Grant Access": "✅ Grant Access",
+  "✅ Grant Access (Current)": "✅ Grant Access (Current)",
+  "❌ Deny Access": "❌ Deny Access",
+  "❌ Deny Access (Current)": "❌ Deny Access (Current)",
+  "Allow this extension to access your connections": "Allow this extension to access your connections",
+  "Block this extension from accessing your connections": "Block this extension from accessing your connections",
+  "Select an extension to manage connection sharing permissions": "Select an extension to manage connection sharing permissions",
+  "Select new permission for extension: '{0}'/{0} is the extension name": {
+    "message": "Select new permission for extension: '{0}'",
+    "comment": [
+      "{0} is the extension name"
+    ]
+  },
+  "Clear permissions for all extensions to access your connections": "Clear permissions for all extensions to access your connections",
+  "All permissions for extensions to access your connections have been cleared.": "All permissions for extensions to access your connections have been cleared.",
+  "No active text editor found. Please open a file with an active database connection.": "No active text editor found. Please open a file with an active database connection.",
+  "Connection with ID \"{0}\" not found. Please verify the connection ID exists./{0} is the connection ID": {
+    "message": "Connection with ID \"{0}\" not found. Please verify the connection ID exists.",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Failed to establish connection with ID \"{0}\". Please check connection details and network connectivity./{0} is the connection ID": {
+    "message": "Failed to establish connection with ID \"{0}\". Please check connection details and network connectivity.",
+    "comment": [
+      "{0} is the connection ID"
+    ]
+  },
+  "Invalid connection URI provided.": "Invalid connection URI provided.",
+  "Connection is not active. Please establish a connection before performing this action.": "Connection is not active. Please establish a connection before performing this action.",
+  "Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this./{0} is the extension ID": {
+    "message": "Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.",
+    "comment": [
+      "{0} is the extension ID"
+    ]
+  },
+  "Connection sharing permission is required for extension: '{0}'/{0} is the extension ID": {
+    "message": "Connection sharing permission is required for extension: '{0}'",
+    "comment": [
+      "{0} is the extension ID"
+    ]
+  },
   "Create Connection Group": "Create Connection Group",
   "Edit Connection Group - {0}/{0} is the connection group name": {
     "message": "Edit Connection Group - {0}",

@@ -6,10 +6,11 @@
 import * as vscodeMssql from "vscode-mssql";
 import { FormItemSpec, FormContextProps, FormState, FormReducers } from "./form";
 import { FirewallRuleSpec } from "./firewallRule";
-import { ApiStatus } from "./webview";
+import { ApiStatus, Status } from "./webview";
 import { AddFirewallRuleState } from "./addFirewallRule";
 import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
 import { RequestType } from "vscode-jsonrpc/browser";
+import { FabricSqlDbInfo, FabricWorkspaceInfo } from "./fabric";
 
 export class ConnectionDialogWebviewState
     implements
@@ -37,16 +38,25 @@ export class ConnectionDialogWebviewState
         mainOptions: [],
         groupedAdvancedOptions: [],
     };
+    public azureAccounts: IAzureAccount[] = [];
+    public loadingAzureAccountsStatus: ApiStatus = ApiStatus.NotStarted;
+    public loadingAzureTenantsStatus: ApiStatus = ApiStatus.NotStarted;
     public azureSubscriptions: AzureSubscriptionInfo[] = [];
+    public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
     public azureServers: AzureSqlServerInfo[] = [];
+    public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
     public savedConnections: IConnectionDialogProfile[] = [];
     public recentConnections: IConnectionDialogProfile[] = [];
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
     public readyToConnect: boolean = false;
     public formError: string = "";
-    public loadingAzureSubscriptionsStatus: ApiStatus = ApiStatus.NotStarted;
-    public loadingAzureServersStatus: ApiStatus = ApiStatus.NotStarted;
     public dialog: IDialogProps | undefined;
+
+    public selectedAccountId: string | undefined;
+    public azureTenants: IAzureTenant[] = [];
+    public selectedTenantId: string | undefined;
+    public fabricWorkspacesLoadStatus: Status = { status: ApiStatus.NotStarted };
+    public fabricWorkspaces: FabricWorkspaceInfo[] = [];
 
     constructor(params?: Partial<ConnectionDialogWebviewState>) {
         for (const key in params) {
@@ -57,6 +67,16 @@ export class ConnectionDialogWebviewState
             }
         }
     }
+}
+
+export interface IAzureAccount {
+    id: string;
+    name: string;
+}
+
+export interface IAzureTenant {
+    id: string;
+    name: string;
 }
 
 export interface IDialogProps {
@@ -99,6 +119,7 @@ export interface AzureSqlServerInfo {
     location: string;
     resourceGroup: string;
     subscription: string;
+    uri: string;
 }
 
 export interface ConnectionComponentsInfo {
@@ -125,6 +146,7 @@ export interface ConnectionDialogFormItemSpec
 export enum ConnectionInputMode {
     Parameters = "parameters",
     AzureBrowse = "azureBrowse",
+    FabricBrowse = "fabricBrowse",
 }
 
 // A Connection Profile contains all the properties of connection credentials, with additional
@@ -136,6 +158,33 @@ export interface IConnectionDialogProfile extends vscodeMssql.IConnectionInfo {
     emptyPasswordInput?: boolean;
     azureAuthType?: vscodeMssql.AzureAuthType;
     id?: string;
+}
+
+export enum AuthenticationType {
+    /**
+     * Username and password
+     */
+    SqlLogin = "SqlLogin",
+    /**
+     * Windows Authentication
+     */
+    Integrated = "Integrated",
+    /**
+     * Microsoft Entra Id - Universal with MFA support
+     */
+    AzureMFA = "AzureMFA",
+    /**
+     * Microsoft Entra Id - Password
+     */
+    AzureMFAAndUser = "AzureMFAAndUser",
+    /**
+     * Datacenter Security Token Service Authentication
+     */
+    DSTSAuth = "dstsAuth",
+    /**
+     * No authentication required
+     */
+    None = "None",
 }
 
 export interface ConnectionDialogContextProps
@@ -150,6 +199,7 @@ export interface ConnectionDialogContextProps
     connect: () => void;
     loadAzureServers: (subscriptionId: string) => void;
     closeDialog: () => void;
+    closeMessage: () => void;
     addFirewallRule: (firewallRuleSpec: FirewallRuleSpec) => void;
     openCreateConnectionGroupDialog: () => void;
     createConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
@@ -160,15 +210,16 @@ export interface ConnectionDialogContextProps
     loadFromConnectionString: (connectionString: string) => void;
     openConnectionStringDialog: () => void;
     signIntoAzureForFirewallRule: () => void;
+    signIntoAzureForBrowse: (
+        browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse,
+    ) => void;
+    selectAzureAccount: (accountId: string) => void;
+    selectAzureTenant: (tenantId: string) => void;
+    selectFabricWorkspace: (workspaceId: string) => void;
 
     // Request handlers
     getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
-}
-
-export enum AuthenticationType {
-    SqlLogin = "SqlLogin",
-    Integrated = "Integrated",
-    AzureMFA = "AzureMFA",
+    getSqlAnalyticsEndpointUriFromFabric: (sqlEndpoint: FabricSqlDbInfo) => Promise<string>;
 }
 
 export interface ConnectionDialogReducers extends FormReducers<IConnectionDialogProfile> {
@@ -190,6 +241,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     };
     openCreateConnectionGroupDialog: {};
     closeDialog: {};
+    closeMessage: {};
     filterAzureSubscriptions: {};
     refreshConnectionsList: {};
     deleteSavedConnection: {
@@ -201,10 +253,22 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     loadFromConnectionString: { connectionString: string };
     openConnectionStringDialog: {};
     signIntoAzureForFirewallRule: {};
+    signIntoAzureForBrowse: {
+        browseTarget: ConnectionInputMode.AzureBrowse | ConnectionInputMode.FabricBrowse;
+    };
+    selectAzureAccount: { accountId: string };
+    selectAzureTenant: { tenantId: string };
+    selectFabricWorkspace: { workspaceId: string };
 }
 
 export namespace GetConnectionDisplayNameRequest {
     export const type = new RequestType<IConnectionDialogProfile, string, void>(
         "getConnectionDisplayName",
+    );
+}
+
+export namespace GetSqlAnalyticsEndpointUriFromFabricRequest {
+    export const type = new RequestType<FabricSqlDbInfo, string, void>(
+        "getSqlAnalyticsEndpointUriFromFabric",
     );
 }

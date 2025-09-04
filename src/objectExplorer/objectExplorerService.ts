@@ -53,16 +53,13 @@ import {
 } from "../models/contracts/objectExplorer/getSessionIdRequest";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import {
-    checkIfConnectionIsDockerContainer,
-    restartContainer,
-} from "../containerDeployment/dockerUtils";
+import { checkIfConnectionIsDockerContainer, restartContainer } from "../deployment/dockerUtils";
 import { ExpandErrorNode } from "./nodes/expandErrorNode";
 import { NoItemsNode } from "./nodes/noItemNode";
 import { ConnectionNode } from "./nodes/connectionNode";
 import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
 import { getConnectionDisplayName } from "../models/connectionInfo";
-import { AddLocalContainerConnectionTreeNode } from "../containerDeployment/addLocalContainerConnectionTreeNode";
+import { NewDeploymentTreeNode } from "../deployment/newDeploymentTreeNode";
 import { getErrorMessage } from "../utils/utils";
 
 export interface CreateSessionResult {
@@ -346,7 +343,7 @@ export class ObjectExplorerService {
     private getAddConnectionNodes(): AddConnectionTreeNode[] {
         let nodeList = [new AddConnectionTreeNode()];
         if (this._isRichExperienceEnabled) {
-            nodeList.push(new AddLocalContainerConnectionTreeNode());
+            nodeList.push(new NewDeploymentTreeNode());
         }
 
         return nodeList;
@@ -412,15 +409,20 @@ export class ObjectExplorerService {
         const newConnectionGroupNodes = new Map<string, ConnectionGroupNode>();
         const newConnectionNodes = new Map<string, ConnectionNode>();
 
-        void vscode.commands.executeCommand(
-            "setContext",
-            "mssql.hasConnections",
-            savedConnections.length > 0,
+        // Add all group nodes from settings first
+        // Read the user setting for collapsed/expanded state
+        const config = vscode.workspace.getConfiguration(Constants.extensionName);
+        const collapseGroups = config.get<boolean>(
+            Constants.cmdObjectExplorerCollapseOrExpandByDefault,
+            false,
         );
 
-        // Add all group nodes from settings first
         for (const group of serverGroups) {
-            const groupNode = new ConnectionGroupNode(group);
+            // Pass the desired collapsible state to the ConnectionGroupNode constructor
+            const initialState = collapseGroups
+                ? vscode.TreeItemCollapsibleState.Collapsed
+                : vscode.TreeItemCollapsibleState.Expanded;
+            const groupNode = new ConnectionGroupNode(group, initialState);
 
             if (this._connectionGroupNodes.has(group.id)) {
                 groupNode.id = this._connectionGroupNodes.get(group.id).id;
@@ -538,6 +540,7 @@ export class ObjectExplorerService {
         );
         loadingNode.iconPath = new vscode.ThemeIcon("loading~spin");
         this._treeNodeToChildrenMap.set(element, [loadingNode]);
+        this._refreshCallback(element);
 
         return this._treeNodeToChildrenMap.get(element);
     }
@@ -735,6 +738,7 @@ export class ObjectExplorerService {
             if (containerName) {
                 connectionProfile.containerName = containerName;
             }
+
             // if the connnection is a docker container, make sure to set the container name for future use
             await this._connectionManager.connectionStore.saveProfile(connectionProfile);
         }
@@ -745,16 +749,18 @@ export class ObjectExplorerService {
 
         // Local container, ensure it is started
         if (connectionProfile.containerName) {
-            sendActionEvent(
-                TelemetryViews.ContainerDeployment,
-                TelemetryActions.ConnectToContainer,
-            );
+            sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.ConnectToContainer);
             try {
+                const containerNode = this.getConnectionNodeFromProfile(connectionProfile);
                 // start docker and docker container
-                const alreadyRunning = await restartContainer(connectionProfile.containerName);
+                const successfullyRunning = await restartContainer(
+                    connectionProfile.containerName,
+                    containerNode,
+                    this,
+                );
                 this._logger.verbose(
-                    alreadyRunning
-                        ? `Docker container "${connectionProfile.containerName}" is already running.`
+                    successfullyRunning
+                        ? `Failed to restart Docker container "${connectionProfile.containerName}".`
                         : `Docker container "${connectionProfile.containerName}" has been restarted.`,
                 );
             } catch (error) {
@@ -777,30 +783,10 @@ export class ObjectExplorerService {
             }
         }
 
-        if (ConnectionCredentials.isPasswordBasedCredential(connectionProfile)) {
-            // show password prompt if SQL Login and password isn't saved
-            let password = connectionProfile.password;
-            if (Utils.isEmpty(password)) {
-                if (connectionProfile.savePassword) {
-                    password =
-                        await this._connectionManager.connectionStore.lookupPassword(
-                            connectionProfile,
-                        );
-                }
-
-                if (!password) {
-                    password = await this._connectionManager.connectionUI.promptForPassword();
-                    if (!password) {
-                        return undefined;
-                    }
-                }
-
-                if (connectionProfile.authenticationType !== Constants.azureMfa) {
-                    connectionProfile.azureAccountToken = undefined;
-                }
-                connectionProfile.password = password;
-            }
-            return connectionProfile;
+        const isPasswordHandled =
+            await this._connectionManager.handlePasswordBasedCredentials(connectionProfile);
+        if (!isPasswordHandled) {
+            return undefined;
         }
 
         if (
@@ -813,7 +799,7 @@ export class ObjectExplorerService {
 
         if (connectionProfile.authenticationType === Constants.azureMfa) {
             let azureController = this._connectionManager.azureController;
-            let account = this._connectionManager.accountStore.getAccount(
+            let account = await this._connectionManager.accountStore.getAccount(
                 connectionProfile.accountId,
             );
             let needsRefresh = false;
@@ -887,6 +873,9 @@ export class ObjectExplorerService {
         if (isNewConnection) {
             this.addConnectionNode(connectionNode);
         }
+
+        await this._connectionManager.handlePasswordStorageOnConnect(connectionProfile);
+
         // remove the sign in node once the session is created
         if (this._treeNodeToChildrenMap.has(connectionNode)) {
             this._treeNodeToChildrenMap.delete(connectionNode);
@@ -981,7 +970,7 @@ export class ObjectExplorerService {
             this.needsAccountRefresh(failureResponse, connectionProfile.user)
         ) {
             this._logger.verbose(`Refreshing account token for ${connectionProfile.accountId}}`);
-            let account = this._connectionManager.accountStore.getAccount(
+            let account = await this._connectionManager.accountStore.getAccount(
                 connectionProfile.accountId,
             );
 
@@ -1052,7 +1041,7 @@ export class ObjectExplorerService {
             }
         };
 
-        return await new Promise<boolean>((resolve, reject) => {
+        return await new Promise<boolean>((resolve) => {
             vscode.window.withProgress(
                 {
                     location: vscode.ProgressLocation.Notification,

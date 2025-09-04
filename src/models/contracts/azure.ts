@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { RequestType } from "vscode-languageclient";
+
 /**
  * Represents a tenant information for an account.
  */
@@ -134,7 +136,7 @@ export interface IProviderResources {
     windowsManagementResource: IAADResource;
     azureManagementResource: IAADResource;
     graphResource?: IAADResource;
-    databaseResource?: IAADResource;
+    databaseResource?: IAADResource & { analyticsDnsSuffix?: string };
     ossRdbmsResource?: IAADResource;
     azureKeyVaultResource?: IAADResource;
     azureDevopsResource?: IAADResource;
@@ -144,7 +146,9 @@ export interface IAADResource {
     id: string;
     resource: string;
     endpoint: string;
+    dnsSuffix?: string;
 }
+
 /**
  * Error to be used when the user has cancelled the prompt or refresh methods. When
  * AccountProvider.refresh or AccountProvider.prompt are rejected with this error, the error
@@ -211,4 +215,31 @@ export interface ITokenClaims {
     unique_name: string;
     uti: string;
     ver: string;
+}
+
+// ------------------------------- < Security Token Request > ------------------------------------------
+export interface RequestSecurityTokenParams {
+    provider: string;
+    authority: string;
+    resource: string;
+    scopes: string[];
+}
+
+export interface RequestSecurityTokenResponse {
+    accountKey: string;
+    token: string;
+}
+
+export namespace SecurityTokenRequest {
+    export const type = new RequestType<
+        RequestSecurityTokenParams,
+        RequestSecurityTokenResponse,
+        void,
+        void
+    >("account/securityTokenRequest");
+}
+
+export interface UserGroup {
+    id: string;
+    displayName: string;
 }

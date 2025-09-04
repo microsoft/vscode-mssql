@@ -9,7 +9,7 @@ import * as vscode from "vscode";
 import { ExecutionPlanWebviewController } from "../../src/controllers/executionPlanWebviewController";
 import UntitledSqlDocumentService from "../../src/controllers/untitledSqlDocumentService";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
-import * as ep from "../../src/sharedInterfaces/executionPlanInterfaces";
+import * as ep from "../../src/sharedInterfaces/executionPlan";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import * as epUtils from "../../src/controllers/sharedExecutionPlanUtils";
 import { contents } from "../resources/testsqlplan";
@@ -295,7 +295,7 @@ suite("Execution Plan Utilities", () => {
     });
 
     test("showXml: should call showXml and return the state", async () => {
-        const openDocumentStub = sinon.stub(vscode.workspace, "openTextDocument");
+        const openDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
 
         const mockPayload = { sqlPlanContent: executionPlanContents };
 

@@ -28,13 +28,9 @@ export interface SchemaDesignerContextProps
         edges: Edge<SchemaDesigner.ForeignKey>[];
     }>;
     saveAsFile: (fileProps: SchemaDesigner.ExportFileOptions) => void;
-    getReport: () => Promise<{
-        report: SchemaDesigner.GetReportResponse;
-        error?: string;
-    }>;
+    getReport: () => Promise<SchemaDesigner.GetReportWebviewResponse | undefined>;
     openInEditor: (text: string) => void;
     openInEditorWithConnection: () => void;
-    setSelectedTable: (selectedTable: SchemaDesigner.Table) => void;
     copyToClipboard: (text: string) => void;
     extractSchema: () => SchemaDesigner.Schema;
     addTable: (table: SchemaDesigner.Table) => Promise<boolean>;
@@ -54,6 +50,8 @@ export interface SchemaDesignerContextProps
     isInitialized: boolean;
     renderOnlyVisibleTables: boolean;
     setRenderOnlyVisibleTables: (value: boolean) => void;
+    isExporting: boolean;
+    setIsExporting: (value: boolean) => void;
 }
 
 const SchemaDesignerContext = createContext<SchemaDesignerContextProps>(
@@ -83,6 +81,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
     const [isInitialized, setIsInitialized] = useState(false);
     const [findTableText, setFindTableText] = useState<string>("");
     const [renderOnlyVisibleTables, setRenderOnlyVisibleTables] = useState<boolean>(true);
+    const [isExporting, setIsExporting] = useState<boolean>(false);
 
     useEffect(() => {
         const handleScript = () => {
@@ -196,18 +195,13 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         });
     };
 
-    const openInEditor = (text: string) => {
-        void extensionRpc.sendNotification(SchemaDesigner.OpenInEditorNotification.type, {
-            text: text,
-        });
+    const openInEditor = () => {
+        void extensionRpc.sendNotification(SchemaDesigner.OpenInEditorNotification.type);
     };
 
-    const openInEditorWithConnection = (text: string) => {
+    const openInEditorWithConnection = () => {
         void extensionRpc.sendNotification(
             SchemaDesigner.OpenInEditorWithConnectionNotification.type,
-            {
-                text: text,
-            },
         );
     };
 
@@ -363,6 +357,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         }
         void reactFlow.deleteElements({ nodes: [node] });
         eventBus.emit("pushState");
+        return true;
     };
 
     /**
@@ -484,6 +479,8 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 resetView,
                 renderOnlyVisibleTables,
                 setRenderOnlyVisibleTables,
+                isExporting,
+                setIsExporting,
             }}>
             {children}
         </SchemaDesignerContext.Provider>
