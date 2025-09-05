@@ -436,26 +436,37 @@ suite("MainController Tests", function () {
         const src = { endpointType: 1, serverName: "srcServer", databaseName: "srcDb" };
         const tgt = { endpointType: 1, serverName: "tgtServer", databaseName: "tgtDb" };
 
-        await vscode.commands.executeCommand(Constants.cmdSchemaCompare, src, tgt);
+        try {
+            await vscode.commands.executeCommand(Constants.cmdSchemaCompare, src, tgt);
 
-        // Normalize in-case the command forwarded a single object { source, target }
-        if (
-            gotMaybeSource &&
-            typeof gotMaybeSource === "object" &&
-            ("source" in gotMaybeSource || "target" in gotMaybeSource)
-        ) {
-            const wrapped = gotMaybeSource as any;
-            gotMaybeSource = wrapped.source;
-            gotMaybeTarget = wrapped.target;
-            gotRunComparison = wrapped.runComparison ?? false;
+            // Normalize in-case the command forwarded a single object { source, target }
+            if (
+                gotMaybeSource &&
+                typeof gotMaybeSource === "object" &&
+                ("source" in gotMaybeSource || "target" in gotMaybeSource)
+            ) {
+                const wrapped = gotMaybeSource as any;
+                gotMaybeSource = wrapped.source;
+                gotMaybeTarget = wrapped.target;
+                gotRunComparison = wrapped.runComparison ?? false;
+            }
+
+            assert.equal(called, true, "Expected onSchemaCompare to be called");
+            assert.deepStrictEqual(
+                gotMaybeSource,
+                src,
+                "Expected source passed through to handler",
+            );
+            assert.deepStrictEqual(
+                gotMaybeTarget,
+                tgt,
+                "Expected target passed through to handler",
+            );
+            assert.equal(gotRunComparison, false, "Expected runComparison to be false");
+        } finally {
+            // restore original handler so the test doesn't leak state
+            (mainController as any).onSchemaCompare = originalHandler;
         }
-
-        assert.equal(called, true, "Expected onSchemaCompare to be called");
-        assert.deepStrictEqual(gotMaybeSource, src, "Expected source passed through to handler");
-        assert.deepStrictEqual(gotMaybeTarget, tgt, "Expected target passed through to handler");
-        assert.equal(gotRunComparison, false, "Expected runComparison to be false");
-        // restore original handler so the test doesn't leak state
-        (mainController as any).onSchemaCompare = originalHandler;
     });
 
     function setupConnectionManagerMocks(

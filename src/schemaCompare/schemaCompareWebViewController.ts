@@ -125,16 +125,10 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             `SchemaCompareWebViewController created with operation ID: ${this.operationId} - OperationId: ${this.operationId}`,
         );
 
-        if (sourceNode && !this.isTreeNodeInfoType(sourceNode) && sourceNode.projectFilePath) {
+        if (this.isSqlProjectNodeWithFilePath(sourceNode)) {
             sourceNode = this.getFullSqlProjectsPathFromNode(sourceNode);
         }
-        if (
-            targetNode &&
-            !this.isTreeNodeInfoType(targetNode) &&
-            targetNode.projectFilePath &&
-            targetNode.treeDataProvider?.roots?.length > 0 &&
-            targetNode.treeDataProvider.roots[0]?.projectFileUri?.fsPath
-        ) {
+        if (this.isSqlProjectNodeWithFilePath(targetNode)) {
             targetNode = this.getFullSqlProjectsPathFromNode(targetNode);
         }
 
@@ -176,6 +170,21 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     }
 
     /**
+     * Checks if the given node is a SQL project node with a valid project file path.
+     * Returns true if the node is not a TreeNodeInfo, has a projectFilePath property,
+     * and its treeDataProvider contains a root with a valid projectFileUri.fsPath.
+     */
+    private isSqlProjectNodeWithFilePath(node: any): boolean {
+        return (
+            node &&
+            !this.isTreeNodeInfoType(node) &&
+            node.projectFilePath &&
+            node.treeDataProvider?.roots?.length > 0 &&
+            node.treeDataProvider.roots[0]?.projectFileUri?.fsPath
+        );
+    }
+
+    /**
      * Starts the schema comparison process. Schema compare can get started with four contexts for the source:
      * 1. undefined
      * 2. Connection profile
@@ -195,74 +204,43 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             `Starting schema comparison with sourceContext type: ${sourceContext ? typeof sourceContext : "undefined"} - OperationId: ${this.operationId}`,
         );
 
-        let source: mssql.SchemaCompareEndpointInfo | undefined;
-        let target: mssql.SchemaCompareEndpointInfo | undefined;
-
-        // Resolve source
-        if (this.isTreeNodeInfoType(sourceContext)) {
-            const sourceNode = sourceContext as TreeNodeInfo;
-            if (sourceNode?.connectionProfile) {
-                this.logger.verbose(
-                    `Using connection profile as source: ${sourceNode.connectionProfile.server} - OperationId: ${this.operationId}`,
-                );
-                source = await this.getEndpointInfoFromConnectionProfile(
-                    sourceNode.connectionProfile,
-                    sourceContext,
-                );
-            }
-        } else if (sourceContext && (sourceContext as mssql.SchemaCompareEndpointInfo)) {
-            source = sourceContext as mssql.SchemaCompareEndpointInfo;
-        } else if (
-            sourceContext &&
-            (sourceContext as string) &&
-            (sourceContext as string).endsWith(".dacpac")
-        ) {
-            this.logger.verbose(
-                `Using dacpac as source: ${sourceContext} - OperationId: ${this.operationId}`,
-            );
-            source = this.getEndpointInfoFromDacpac(sourceContext as string);
-        } else if (sourceContext) {
-            this.logger.verbose(
-                `Using project as source: ${sourceContext} - OperationId: ${this.operationId}`,
-            );
-            source = await this.getEndpointInfoFromProject(sourceContext as string);
-        } else {
-            this.logger.verbose(`No source context provided - OperationId: ${this.operationId}`);
-        }
-
-        // Resolve target (same rules as source)
-        if (this.isTreeNodeInfoType(targetContext)) {
-            const targetNode = targetContext as TreeNodeInfo;
-            if (targetNode?.connectionProfile) {
-                this.logger.verbose(
-                    `Using connection profile as target: ${targetNode.connectionProfile.server} - OperationId: ${this.operationId}`,
-                );
-                target = await this.getEndpointInfoFromConnectionProfile(
-                    targetNode.connectionProfile,
-                    targetContext,
-                );
-            }
-        } else if (targetContext && (targetContext as mssql.SchemaCompareEndpointInfo)) {
-            target = targetContext as mssql.SchemaCompareEndpointInfo;
-        } else if (
-            targetContext &&
-            (targetContext as string) &&
-            (targetContext as string).endsWith(".dacpac")
-        ) {
-            this.logger.verbose(
-                `Using dacpac as target: ${targetContext} - OperationId: ${this.operationId}`,
-            );
-            target = this.getEndpointInfoFromDacpac(targetContext as string);
-        } else if (targetContext) {
-            this.logger.verbose(
-                `Using project as target: ${targetContext} - OperationId: ${this.operationId}`,
-            );
-            target = await this.getEndpointInfoFromProject(targetContext as string);
-        } else {
-            this.logger.verbose(`No target context provided - OperationId: ${this.operationId}`);
-        }
+        // Resolve source and target endpoints
+        const source = await this.resolveEndpointInfo(sourceContext);
+        const target = await this.resolveEndpointInfo(targetContext);
 
         await this.launch(source, target, runComparison, comparisonResult);
+    }
+
+    /**
+     * Resolves the schema compare endpoint info from the given context.
+     * Handles TreeNodeInfo, SchemaCompareEndpointInfo, dacpac path, and project path.
+     */
+    private async resolveEndpointInfo(
+        context: any,
+    ): Promise<mssql.SchemaCompareEndpointInfo | undefined> {
+        if (this.isTreeNodeInfoType(context)) {
+            const node = context as TreeNodeInfo;
+            if (node?.connectionProfile) {
+                this.logger.verbose(
+                    `Using connection profile: ${node.connectionProfile.server} - OperationId: ${this.operationId}`,
+                );
+                return await this.getEndpointInfoFromConnectionProfile(
+                    node.connectionProfile,
+                    context,
+                );
+            }
+        } else if (context && (context as mssql.SchemaCompareEndpointInfo)) {
+            return context as mssql.SchemaCompareEndpointInfo;
+        } else if (context && typeof context === "string" && context.endsWith(".dacpac")) {
+            this.logger.verbose(`Using dacpac: ${context} - OperationId: ${this.operationId}`);
+            return this.getEndpointInfoFromDacpac(context as string);
+        } else if (context) {
+            this.logger.verbose(`Using project: ${context} - OperationId: ${this.operationId}`);
+            return await this.getEndpointInfoFromProject(context as string);
+        } else {
+            this.logger.verbose(`No context provided - OperationId: ${this.operationId}`);
+            return undefined;
+        }
     }
 
     /**
