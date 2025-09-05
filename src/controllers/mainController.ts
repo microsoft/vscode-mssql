@@ -7,7 +7,7 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { IConnectionInfo, IScriptingObject } from "vscode-mssql";
+import { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -1506,7 +1506,15 @@ export default class MainController implements vscode.Disposable {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdSchemaCompare,
-                    async (...args: any[]) => {
+                    async (
+                        ...args: (
+                            | ConnectionNode
+                            | TreeNodeInfo
+                            | SchemaCompareEndpointInfo
+                            | boolean
+                            | undefined
+                        )[]
+                    ) => {
                         await this.onSchemaCompare(...args);
                     },
                 ),
@@ -2610,9 +2618,11 @@ export default class MainController implements vscode.Disposable {
      *   - [] when invoked from the command palette.
      * This method normalizes the arguments and launches the Schema Compare UI.
      */
-    public async onSchemaCompare(...args: any[]): Promise<void> {
-        let sourceNode: any;
-        let targetNode: any;
+    public async onSchemaCompare(
+        ...args: (ConnectionNode | TreeNodeInfo | SchemaCompareEndpointInfo | boolean | undefined)[]
+    ): Promise<void> {
+        let sourceNode = undefined;
+        let targetNode = undefined;
         let runComparison: boolean | undefined;
 
         if (args.length === 2 && args[1] === undefined) {
@@ -2622,7 +2632,7 @@ export default class MainController implements vscode.Disposable {
             // Positional arguments: [sourceNode, targetNode, runComparison]
             sourceNode = args[0];
             targetNode = args[1];
-            runComparison = args[2];
+            runComparison = typeof args[2] === "boolean" ? args[2] : undefined;
         }
 
         const result = await this.schemaCompareService.schemaCompareGetDefaultOptions();
