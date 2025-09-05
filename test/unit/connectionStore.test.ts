@@ -12,6 +12,9 @@ import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { expect } from "chai";
 import * as sinon from "sinon";
+import { azureAuthConn, sqlAuthConn, connStringConn } from "./utils.test";
+import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
+import { MatchScore } from "../../src/models/utils";
 
 suite("ConnectionStore Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -95,5 +98,39 @@ suite("ConnectionStore Tests", () => {
         credentialId = ConnectionStore.formatCredentialId(testServer);
 
         expect(credentialId).to.equal("Microsoft.SqlTools|itemtype:Profile|server:localhost");
+    });
+
+    test("findMatchingProfile", async () => {
+        connectionStore = new ConnectionStore(
+            mockContext.object,
+            mockCredentialStore.object,
+            mockLogger.object,
+            mockConnectionConfig.object,
+            mockVscodeWrapper.object,
+        );
+
+        await connectionStore.initialized;
+
+        sandbox
+            .stub(connectionStore, "readAllConnections")
+            .resolves([
+                sqlAuthConn as IConnectionProfileWithSource,
+                azureAuthConn as IConnectionProfileWithSource,
+                connStringConn as IConnectionProfileWithSource,
+            ]);
+
+        let match = await connectionStore.findMatchingProfile(azureAuthConn);
+        expect(match).to.deep.equal({
+            profile: azureAuthConn,
+            score: MatchScore.AllAvailableProps,
+        });
+
+        match = await connectionStore.findMatchingProfile({
+            server: "noMatch",
+        } as IConnectionProfile);
+        expect(match).to.deep.equal({
+            profile: undefined,
+            score: MatchScore.NotMatch,
+        });
     });
 });

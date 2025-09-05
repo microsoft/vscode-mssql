@@ -51,6 +51,10 @@
         <source xml:lang="en">A firewall rule is required to access this server.</source>
         <target state="translated">需要防火牆規則才能存取此伺服器。</target>
       </trans-unit>
+      <trans-unit id="++CODE++6b262b5e3f3a492b857cb857bded5d039fa91cbc72a121ef398ef5676b2be947">
+        <source xml:lang="en">A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services</source>
+        <target state="new">A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services</target>
+      </trans-unit>
       <trans-unit id="++CODE++880a0618dd92395efe1446e54fe5d50854c148586fdc14f5da8aecda61c827ae">
         <source xml:lang="en">A predefined global default value for the column or binding.</source>
         <target state="translated">資料行或繫結的預先定義全域預設值。</target>
@@ -138,6 +142,10 @@
         <source xml:lang="en">Add a Microsoft Entra account...</source>
         <target state="translated">新增 Microsoft Entra 帳戶...</target>
       </trans-unit>
+      <trans-unit id="++CODE++ee7ee5830f091690030fed013c05a7073f6cb971891c3fc6f16e928bd6d69e61">
+        <source xml:lang="en">Add account</source>
+        <target state="new">Add account</target>
+      </trans-unit>
       <trans-unit id="++CODE++7c0d6c25e58caa429d8df44b1266a82eff13a7fe9f477b164863aea8a9acc658">
         <source xml:lang="en">Add my client IP ({0})</source>
         <note>{0} is the IP address of the client</note>
@@ -210,12 +218,12 @@
       </trans-unit>
       <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
         <source xml:lang="en">An error occurred while searching database objects</source>
-        <target state="new">An error occurred while searching database objects</target>
+        <target state="translated">搜尋資料庫物件時發生錯誤</target>
       </trans-unit>
       <trans-unit id="++CODE++fe01cd2e56483272d8d46be5c77c37d6be1aba49dfbe2fa79f68b4740723b758">
         <source xml:lang="en">An error occurred while searching database objects: {0}</source>
         <note>{0} is the error detail returned from the search operation</note>
-        <target state="new">An error occurred while searching database objects: {0}</target>
+        <target state="translated">搜尋資料庫物件時發生錯誤: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++56f99fbd59570e105fca5070d135f8f86c67f48168d43f8020b70523f06b21bb">
         <source xml:lang="en">An error occurred: {0}</source>
@@ -229,6 +237,10 @@
       <trans-unit id="++CODE++82fcdad573baa3443513b5c61196ed142a07d6b967afc2778c8932549a5ad455">
         <source xml:lang="en">An unknown error occurred. Please try again.</source>
         <target state="translated">發生未知的錯誤。請再試一次。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6ca0797fa56ecdc7f5f08c99504d70d93a42ccbe0e904e273144c6fd9efdc21c">
+        <source xml:lang="en">Analytics-ready by default</source>
+        <target state="new">Analytics-ready by default</target>
       </trans-unit>
       <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
         <source xml:lang="en">And</source>
@@ -329,6 +341,10 @@
         <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
         <target state="translated">[自動排列] 將根據最佳版面配置演算法，自動重新排列所有圖表元素。您所建立的任何自訂位置將會遺失。您要繼續自動排列您的結構描述圖表嗎?</target>
       </trans-unit>
+      <trans-unit id="++CODE++0b88b412b158e1648835456305f857b2228f04cdd61b08afc1924ea48fcee4c0">
+        <source xml:lang="en">Automatic tuning features like automatic index creation enabled by default.</source>
+        <target state="new">Automatic tuning features like automatic index creation enabled by default.</target>
+      </trans-unit>
       <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
         <source xml:lang="en">Available Servers</source>
         <target state="new">Available Servers</target>
@@ -374,6 +390,10 @@
       <trans-unit id="++CODE++29852e83a6613ccf439cb69654f96550fd0ce1de27609b5167992cef02a9ea55">
         <source xml:lang="en">Azure: Sign In with Device Code</source>
         <target state="translated">Azure: 使用裝置程式碼登入</target>
+      </trans-unit>
+      <trans-unit id="++CODE++76900f1bfd16c8d4dd3d25e6f46638d7165aee23883ccea6bfe071c514421769">
+        <source xml:lang="en">Back</source>
+        <target state="new">Back</target>
       </trans-unit>
       <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
         <source xml:lang="en">Back to preview</source>
@@ -615,6 +635,10 @@
         <source xml:lang="en">Choose a port to host the SQL Server Docker Container</source>
         <target state="translated">選擇要裝載 SQL Server Docker 容器的連接埠</target>
       </trans-unit>
+      <trans-unit id="++CODE++8dc22bcccf1fa2165bc27bcd3af9d5979985733f54896c185307a1ccd0e0d134">
+        <source xml:lang="en">Choose an option to provision a database</source>
+        <target state="new">Choose an option to provision a database</target>
+      </trans-unit>
       <trans-unit id="++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0">
         <source xml:lang="en">Choose color</source>
         <target state="translated">選擇色彩</target>
@@ -847,6 +871,10 @@
         <source xml:lang="en">Connecting to Container</source>
         <target state="translated">正在連接到容器</target>
       </trans-unit>
+      <trans-unit id="++CODE++bd02214c7799ec6a69018761f76fed82a6516c170ddbc3fdbf6f0c2a7b566d9f">
+        <source xml:lang="en">Connecting to Database</source>
+        <target state="new">Connecting to Database</target>
+      </trans-unit>
       <trans-unit id="++CODE++4f7403da68117c9595b82a6c264837910b1421a60537bcfa77a004a58b0a4c7a">
         <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source>
         <note>{0} is the server name
@@ -897,6 +925,10 @@
         <source xml:lang="en">Connection Error</source>
         <target state="translated">連線錯誤</target>
       </trans-unit>
+      <trans-unit id="++CODE++42aa4e7bc5d2c21a58bb8444c81129c26ccb652e805a73266e8737c55981a6a3">
+        <source xml:lang="en">Connection Failed</source>
+        <target state="new">Connection Failed</target>
+      </trans-unit>
       <trans-unit id="++CODE++fea70af0cad96e7c97f889724e5dfe0e2d28cbf958e905f5e51ba2584c3d9458">
         <source xml:lang="en">Connection Group</source>
         <target state="translated">連線群組</target>
@@ -915,7 +947,7 @@
       </trans-unit>
       <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
         <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
-        <target state="new">Connection is not active. Please establish a connection before performing this action.</target>
+        <target state="translated">連線未處於使用中。在執行此動作前，請先建立連線。</target>
       </trans-unit>
       <trans-unit id="++CODE++28512f31201abdd26ae93d0caaba3b8a3c77113b9665059a9e1d2ba4e47de64d">
         <source xml:lang="en">Connection not found for uri "{0}".</source>
@@ -930,12 +962,12 @@
       <trans-unit id="++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8">
         <source xml:lang="en">Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.</source>
         <note>{0} is the extension ID</note>
-        <target state="new">Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.</target>
+        <target state="translated">已拒絕延伸模組的連線共用權限: '{0}'。請使用權限管理命令進行變更。</target>
       </trans-unit>
       <trans-unit id="++CODE++6fc14523d003cf70290f0110eeafa850232518f52a0d26436b18c1e838cf1c27">
         <source xml:lang="en">Connection sharing permission is required for extension: '{0}'</source>
         <note>{0} is the extension ID</note>
-        <target state="new">Connection sharing permission is required for extension: '{0}'</target>
+        <target state="translated">延伸模組需要連線共用權限: '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
@@ -944,7 +976,7 @@
       <trans-unit id="++CODE++6ae8947e98979cbbaeb55a8af448297f63002580ddebd9731fd40ec3ddcdc849">
         <source xml:lang="en">Connection with ID "{0}" not found. Please verify the connection ID exists.</source>
         <note>{0} is the connection ID</note>
-        <target state="new">Connection with ID "{0}" not found. Please verify the connection ID exists.</target>
+        <target state="translated">找不到識別碼為 "{0}" 的連線。請驗證連線識別碼存是否在。</target>
       </trans-unit>
       <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
         <source xml:lang="en">Consider adding a name for this foreign key</source>
@@ -1027,6 +1059,10 @@
         <source xml:lang="en">Create Container</source>
         <target state="translated">建立容器應用程式</target>
       </trans-unit>
+      <trans-unit id="++CODE++a4772bd4c2a746f4bf95ffea1f8e9f44d3a8db72e301280d2bba6338c61724b6">
+        <source xml:lang="en">Create Database</source>
+        <target state="new">Create Database</target>
+      </trans-unit>
       <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
         <source xml:lang="en">Create Firewall Rule</source>
         <target state="translated">建立防火牆規則</target>
@@ -1038,6 +1074,14 @@
       <trans-unit id="++CODE++037da908d1a0194c30554abfd678cc6ecc4762a021237b597c1205add3de7a4f">
         <source xml:lang="en">Create New Connection Group</source>
         <target state="translated">建立新連線群組</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2491afdca82a92663822feb8cd1ef045295b05178959965f47eb4d8b41058e47">
+        <source xml:lang="en">Create a Local Docker SQL Server</source>
+        <target state="new">Create a Local Docker SQL Server</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9a7e5fd0bc07cda4a2566f5511731060a3ea3c0ba1e458357c673faf73ac7ca4">
+        <source xml:lang="en">Create a SQL Database in Fabric</source>
+        <target state="new">Create a SQL Database in Fabric</target>
       </trans-unit>
       <trans-unit id="++CODE++1c67dff33030f48bfc399c9c9c43fb0c67e6986d741c12604cfd9cdf6f03bcb9">
         <source xml:lang="en">Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.</source>
@@ -1086,6 +1130,10 @@
         <source xml:lang="en">Data Type</source>
         <target state="translated">資料類型</target>
       </trans-unit>
+      <trans-unit id="++CODE++e3a5d47b33a0d2d672730f3278c43f30e8a43b8c973534f001e775f9dc5135bf">
+        <source xml:lang="en">Data automatically replicated to OneLake in real time with a SQL analytics endpoint.</source>
+        <target state="new">Data automatically replicated to OneLake in real time with a SQL analytics endpoint.</target>
+      </trans-unit>
       <trans-unit id="++CODE++002d75dcd5ce57695a446308e181eaf59edc9236246aa29a124ecb72409a65d7">
         <source xml:lang="en">Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'</source>
         <note>{0} is source data type
@@ -1106,6 +1154,18 @@
         <source xml:lang="en">Database - {0}</source>
         <note>{0} is the database name</note>
         <target state="translated">資料庫 - {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cc2bc1468b131fa8c46d376dd879592e78af283343403eb011206e52450a7ad3">
+        <source xml:lang="en">Database Description</source>
+        <target state="new">Database Description</target>
+      </trans-unit>
+      <trans-unit id="++CODE++15f0fd55dd5c59cd5dabc0966ac7d02f83e3303b36ad6f692da47a8778eb4186">
+        <source xml:lang="en">Database Name</source>
+        <target state="new">Database Name</target>
+      </trans-unit>
+      <trans-unit id="++CODE++11fc4c8107afd167c617e0099298c647d423931e67c1257d1f4eb7811b2512fd">
+        <source xml:lang="en">Database Name is required</source>
+        <target state="new">Database Name is required</target>
       </trans-unit>
       <trans-unit id="++CODE++667dd91d86c6b574073536489e39f0c5ab034846a63d946e8ef9f7bedeb1f4fb">
         <source xml:lang="en">Database Project</source>
@@ -1167,6 +1227,18 @@
         <source xml:lang="en">Deny</source>
         <target state="translated">拒絕</target>
       </trans-unit>
+      <trans-unit id="++CODE++05081f14d114ed28b2997927154de0eb554e2938d0254935df8bf9b4a129769f">
+        <source xml:lang="en">Deployment Failed</source>
+        <target state="new">Deployment Failed</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d88868890471c6cc2ac101b2e2d848718a71936be8158d3c57ec81840fbefa54">
+        <source xml:lang="en">Deployment Name</source>
+        <target state="new">Deployment Name</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cc51187ae9dbe9ccc606865c0177000cdeca2af5bca1c36c7f3065882c6ee18b">
+        <source xml:lang="en">Deployment in progress</source>
+        <target state="new">Deployment in progress</target>
+      </trans-unit>
       <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
         <source xml:lang="en">Description</source>
         <target state="translated">描述</target>
@@ -1178,6 +1250,10 @@
       <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
         <source xml:lang="en">Details</source>
         <target state="translated">詳細資料</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707">
+        <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine.</source>
+        <target state="new">Developer-friendly transactional database using the Azure SQL Database Engine.</target>
       </trans-unit>
       <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
         <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
@@ -1250,6 +1326,10 @@
         <source xml:lang="en">Don't Show Again</source>
         <target state="translated">不要再顯示</target>
       </trans-unit>
+      <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
+        <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
+        <target state="new">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</target>
+      </trans-unit>
       <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
         <source xml:lang="en">Edit</source>
         <target state="translated">編輯</target>
@@ -1312,6 +1392,14 @@
         <source xml:lang="en">Ends With</source>
         <target state="translated">結束於</target>
       </trans-unit>
+      <trans-unit id="++CODE++b8a643021b4a76524ae2ef4dad6de2ec180e23fd99ca204282cca599d43792f3">
+        <source xml:lang="en">Enter Database Description</source>
+        <target state="new">Enter Database Description</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9fe6b769c35efbcf43d8dcbfced2ae4a84372d540d787211cc31759ad50838f2">
+        <source xml:lang="en">Enter Database Name</source>
+        <target state="new">Enter Database Name</target>
+      </trans-unit>
       <trans-unit id="++CODE++cad17aa68a83418367684821ea4734c877707d1f340846dc7b17b04a8a04c1c0">
         <source xml:lang="en">Enter connection group name</source>
         <target state="translated">輸入連線群組名稱</target>
@@ -1334,7 +1422,7 @@
       </trans-unit>
       <trans-unit id="++CODE++03c72a0dd31428f797eaadef0452b218e6d7cfbfc8b66e7f47e404818a53cda0">
         <source xml:lang="en">Enter part of an object name to search for</source>
-        <target state="new">Enter part of an object name to search for</target>
+        <target state="translated">請輸入物件名稱的一部分以進行搜尋</target>
       </trans-unit>
       <trans-unit id="++CODE++7014aff13517c4071a9de8a8d338ac3ca12ae8ecf6589941d84170aa47cdcac3">
         <source xml:lang="en">Enter password</source>
@@ -1418,6 +1506,10 @@
       <trans-unit id="++CODE++3ba789024640c6f231695bdf0d82e6845483cf65f092b3c3646910e60c638761">
         <source xml:lang="en">Error loading workspaces</source>
         <target state="new">Error loading workspaces</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b154b77abde300c955ebf8ac540930618d871899cd631bf8a90e9efb66a9323e">
+        <source xml:lang="en">Error loading workspaces. Please try choosing a different account or tenant.</source>
+        <target state="new">Error loading workspaces. Please try choosing a different account or tenant.</target>
       </trans-unit>
       <trans-unit id="++CODE++2b850d590d607436d4cbf751406a7626e01d0e5c775f26c880ab4fd21e70bb66">
         <source xml:lang="en">Error loading; refresh to try again</source>
@@ -1523,13 +1615,29 @@ Error:
         <source xml:lang="en">Extremely likely</source>
         <target state="translated">非常有可能</target>
       </trans-unit>
+      <trans-unit id="++CODE++ce973c12f6c3371202fc82770629424f5dff2aeaf8fda4b6a5e2f91156c13af3">
+        <source xml:lang="en">Fabric API error occurred ({0}): {1}</source>
+        <note>{0} is the error code
+{1} is the error message</note>
+        <target state="new">Fabric API error occurred ({0}): {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++2669635517c6f110f77148287c814fbb91a8ee9fb366d1113794cf21f767d9a9">
         <source xml:lang="en">Fabric Account</source>
         <target state="new">Fabric Account</target>
       </trans-unit>
+      <trans-unit id="++CODE++c7869b25e42d5683ca7cf9fc6cc3bbe5c8c39dab0ee1f2938b5570714350d0bb">
+        <source xml:lang="en">Fabric Account is required</source>
+        <target state="new">Fabric Account is required</target>
+      </trans-unit>
       <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
         <source xml:lang="en">Fabric Workspaces</source>
         <target state="new">Fabric Workspaces</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3db198c251ac68aeafbdfbb134d03b8be7bca7a5b2f612addb78f72b2da67a90">
+        <source xml:lang="en">Fabric long-running API error with error code '{0}': {1}</source>
+        <note>{0} is the error code
+{1} is the error message</note>
+        <target state="new">Fabric long-running API error with error code '{0}': {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
         <source xml:lang="en">Failed</source>
@@ -1581,7 +1689,7 @@ Error:
       <trans-unit id="++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b">
         <source xml:lang="en">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</source>
         <note>{0} is the connection ID</note>
-        <target state="new">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</target>
+        <target state="translated">無法建立識別碼為 "{0}" 的連線。請檢查連線詳細資料與網路連線能力。</target>
       </trans-unit>
       <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
         <source xml:lang="en">Failed to fetch user tokens.</source>
@@ -1717,6 +1825,10 @@ Error:
         <source xml:lang="en">Finish</source>
         <target state="translated">完成</target>
       </trans-unit>
+      <trans-unit id="++CODE++1b301aefb6d539ae0f9ad9d0a548549459322b5271d33f2b041df5c096e996b6">
+        <source xml:lang="en">Finished Deployment</source>
+        <target state="new">Finished Deployment</target>
+      </trans-unit>
       <trans-unit id="++CODE++b9ab95c28bb1c6c21592e63cc03daacec4bb7be9774e47ec9a1c6f8721e26b08">
         <source xml:lang="en">Finished query execution for document "{0}"</source>
         <note>{0} is the document name</note>
@@ -1835,6 +1947,11 @@ Error:
       <trans-unit id="++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc">
         <source xml:lang="en">Getting Docker Ready...</source>
         <target state="translated">正在準備 Docker...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d6d1dc00ba08494d29eb2fb1a62a7b312e2a89c23b818493f1f3eec3167d54b9">
+        <source xml:lang="en">Getting Fabric database '{0}'</source>
+        <note>{0} is the database ID</note>
+        <target state="new">Getting Fabric database '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++4f2809d46e4d5ae64171f0a386b32412184dbf2ea9fb08956f407bed421b7bea">
         <source xml:lang="en">Getting Fabric workspace '{0}'</source>
@@ -1971,9 +2088,21 @@ Error:
         <source xml:lang="en">Instant Container Setup</source>
         <target state="translated">即時容器設定</target>
       </trans-unit>
+      <trans-unit id="++CODE++07fe70d13a25b3d4c4f7d4e64e1aaa9b9d80952a1478fb7e2da36209ccbf549f">
+        <source xml:lang="en">Insufficient Capacity Permissions</source>
+        <target state="new">Insufficient Capacity Permissions</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ece3ecedb5f57c84cc9749995b62f69213c0cb04b1578a713fda486ff04f8fdb">
+        <source xml:lang="en">Insufficient Worskpace Permissions</source>
+        <target state="new">Insufficient Worskpace Permissions</target>
+      </trans-unit>
       <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
         <source xml:lang="en">Integrated</source>
         <target state="translated">已整合</target>
+      </trans-unit>
+      <trans-unit id="++CODE++aca9e581f935a7772af49f14b1bc37305d26449df47ba4a8ecea51c758d4814f">
+        <source xml:lang="en">Integrated &amp; secure</source>
+        <target state="new">Integrated &amp; secure</target>
       </trans-unit>
       <trans-unit id="++CODE++eced7daa046aa47caa62c3306d8114cb2f558fd2f53ebd2cc4d3b802857d200b">
         <source xml:lang="en">Invalid Firewall rule name</source>
@@ -1989,11 +2118,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++4ce86c72bcd330160b14a711a925bf6f8e24fdd6b26d4a7abbfa548e510648d5">
         <source xml:lang="en">Invalid connection URI provided.</source>
-        <target state="new">Invalid connection URI provided.</target>
+        <target state="translated">提供的連線 URI 無效。</target>
       </trans-unit>
       <trans-unit id="++CODE++5c61e4661a7417ada5f0b7d34d9c3cd27dcc3aad485b337ea6d58cd077be7c8c">
         <source xml:lang="en">Invalid connection URI. Please ensure you have an active database connection.</source>
-        <target state="new">Invalid connection URI. Please ensure you have an active database connection.</target>
+        <target state="translated">連線 URI 無效。請確保具有使用中的資料庫連線。</target>
       </trans-unit>
       <trans-unit id="++CODE++c265d537d7811a1e8fa19df9305f90ad86e0326ad6dd2d585172fcf570023c57">
         <source xml:lang="en">Invalid connection string: {0}</source>
@@ -2153,6 +2282,11 @@ Error:
         <note>{0} is the connection ID</note>
         <target state="translated">正在列出連線 '{0}' 的函數</target>
       </trans-unit>
+      <trans-unit id="++CODE++df15d83efd9fc637dc083e4165d14496ddd68c309ef41be96ddf930de86fa600">
+        <source xml:lang="en">Listing role assignments for workspace '${workspaceId}'</source>
+        <note>{0} is the workspace ID</note>
+        <target state="new">Listing role assignments for workspace '${workspaceId}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++33ed9f224eba0860b9cfb0063fdbd1680208c1e358cecb479c7bd8c46236000e">
         <source xml:lang="en">Listing schemas for connection '{0}'</source>
         <note>{0} is the connection ID</note>
@@ -2221,13 +2355,21 @@ Error:
         <source xml:lang="en">Loading databases in selected workspace...</source>
         <target state="new">Loading databases in selected workspace...</target>
       </trans-unit>
-      <trans-unit id="++CODE++02bb7cb27116645ab68671a04d8f35d473c32d981ec5ec784e8aa20e9067c2a2">
-        <source xml:lang="en">Loading deployment page...</source>
-        <target state="translated">正在載入部署頁面...</target>
+      <trans-unit id="++CODE++d1fdc252fab1c642cc1b487dbb6658fd77d5831e03b3d391b4c73b01226d75ff">
+        <source xml:lang="en">Loading deployment</source>
+        <target state="new">Loading deployment</target>
       </trans-unit>
       <trans-unit id="++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb">
         <source xml:lang="en">Loading execution plan...</source>
         <target state="translated">正在載入執行計畫...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5aa7a4eb1f103858e56dc2f529435ff221afa8e7ff280a24ec6bbd810dd5b163">
+        <source xml:lang="en">Loading fabric provisioning...</source>
+        <target state="new">Loading fabric provisioning...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++934bbb16d95b8f72c6353bba1afc96aee3975ae50aaca4b3abe9389f292b4987">
+        <source xml:lang="en">Loading local containers...</source>
+        <target state="new">Loading local containers...</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -2236,6 +2378,10 @@ Error:
       <trans-unit id="++CODE++136a37d2ee433b1eb4302a84ebee86659922e34ca61c2383bc863191b5aeeafa">
         <source xml:lang="en">Loading text view...</source>
         <target state="translated">正在載入文字檢視...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++58878f300e53ea741b29ea101504537639f39f997791a5950d225f8353fad887">
+        <source xml:lang="en">Loading workspaces</source>
+        <target state="new">Loading workspaces</target>
       </trans-unit>
       <trans-unit id="++CODE++3f9adb0f75f8f08022d5289c54dae461204356f0f718404bf22c0d08214ab34a">
         <source xml:lang="en">Loading workspaces...</source>
@@ -2398,6 +2544,10 @@ Error:
         <source xml:lang="en">New Column Mapping</source>
         <target state="translated">資料行對應</target>
       </trans-unit>
+      <trans-unit id="++CODE++ab23a59c68316fe4f3a53c610bdf6d7a43090ced0e69ce60895361f176ce93f6">
+        <source xml:lang="en">New Deployment</source>
+        <target state="new">New Deployment</target>
+      </trans-unit>
       <trans-unit id="++CODE++b71586503f1694b5328fa16ed600eb0d20d4d9608dfb54f44ae97fe4ac43f0bf">
         <source xml:lang="en">New Foreign Key</source>
         <target state="translated">新增外部索引鍵</target>
@@ -2409,6 +2559,10 @@ Error:
       <trans-unit id="++CODE++6334507f512e52b67d0a5a0fb392e35e5d3acc29acdce7218f66b6199150f589">
         <source xml:lang="en">New Microsoft Entra account could not be added.</source>
         <target state="translated">無法新增 Microsoft Entra 帳戶。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b4c5f1e4a0aa7e76ff536db2405a1dc104afa4d291f29eb04656cae55facd5bd">
+        <source xml:lang="en">New SQL Database</source>
+        <target state="new">New SQL Database</target>
       </trans-unit>
       <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
         <source xml:lang="en">New column mapping</source>
@@ -2456,11 +2610,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++971d7b9ca9340d6e8e22146855f8ef9cd9576279575ad1f7bd2fb5f40eaaddf9">
         <source xml:lang="en">No active database connection. Please connect to a database first.</source>
-        <target state="new">No active database connection. Please connect to a database first.</target>
+        <target state="translated">沒有使用中的資料庫連線。請先連線至資料庫。</target>
       </trans-unit>
       <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
         <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
-        <target state="new">No active text editor found. Please open a file with an active database connection.</target>
+        <target state="translated">找不到使用中的文字編輯器。請開啟具有使用中資料庫連線的檔案。</target>
       </trans-unit>
       <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
         <source xml:lang="en">No changes detected</source>
@@ -2490,7 +2644,7 @@ Error:
       <trans-unit id="++CODE++3280128c0901d1323dde9a406ee7d2d6e8e1b98fd30971fa6134b302fec41eca">
         <source xml:lang="en">No database objects found matching '{0}'</source>
         <note>{0} is the search term</note>
-        <target state="new">No database objects found matching '{0}'</target>
+        <target state="translated">找不到符合 '{0}' 的資料庫物件</target>
       </trans-unit>
       <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
         <source xml:lang="en">No databases found in the selected workspace.</source>
@@ -2606,6 +2760,10 @@ Error:
       <trans-unit id="++CODE++565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3">
         <source xml:lang="en">OK</source>
         <target state="translated">確定</target>
+      </trans-unit>
+      <trans-unit id="++CODE++17353b3f8f54bed0a811ad1ed6fb9f3505a0e039df3b934afb3e8bc11976a2ca">
+        <source xml:lang="en">OLTP, built on Azure SQL</source>
+        <target state="new">OLTP, built on Azure SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
         <source xml:lang="en">Object Explorer Filter</source>
@@ -2769,6 +2927,10 @@ Error:
         <source xml:lang="en">Please make your password 8-128 characters long.</source>
         <target state="translated">請將您的密碼設定為 8-128 個字元長。</target>
       </trans-unit>
+      <trans-unit id="++CODE++2e0422920bb9bd61c1c7edf3554564e5ca37f4f0bc5d5a96b0402fb3a4c00155">
+        <source xml:lang="en">Please select a workspace where you have sufficient permissions (Contributor or higher)</source>
+        <target state="new">Please select a workspace where you have sufficient permissions (Contributor or higher)</target>
+      </trans-unit>
       <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
         <source xml:lang="en">Port</source>
         <target state="translated">連接埠</target>
@@ -2854,6 +3016,10 @@ Error:
         <source xml:lang="en">Provider '{0}' does not have a Microsoft resource endpoint defined.</source>
         <note>{0} is the provider</note>
         <target state="translated">提供者 '{0}' 未定義 Microsoft 資源端點。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7">
+        <source xml:lang="en">Provisioning</source>
+        <target state="new">Provisioning</target>
       </trans-unit>
       <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
         <source xml:lang="en">Publish</source>
@@ -3049,6 +3215,10 @@ Query: {1}</source>
         <source xml:lang="en">SQL Database</source>
         <target state="new">SQL Database</target>
       </trans-unit>
+      <trans-unit id="++CODE++af3833fe6e68c2d9413baff794c0d8ec52a7765ca4d16410bfafa0ab528ee269">
+        <source xml:lang="en">SQL Database in Fabric</source>
+        <target state="new">SQL Database in Fabric</target>
+      </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
         <target state="translated">SQL 登入</target>
@@ -3189,13 +3359,17 @@ Query: {1}</source>
         <source xml:lang="en">Script copied to clipboard</source>
         <target state="translated">指令碼已複製到剪貼簿</target>
       </trans-unit>
+      <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
+        <source xml:lang="en">Search Workspaces</source>
+        <target state="new">Search Workspaces</target>
+      </trans-unit>
       <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
         <source xml:lang="en">Search connection groups</source>
         <target state="translated">搜尋連線群組</target>
       </trans-unit>
       <trans-unit id="++CODE++448fcd5b80608528b5b492337667acf711f486e31784b41b4bba7066a9527ac4">
         <source xml:lang="en">Search for database objects...</source>
-        <target state="new">Search for database objects...</target>
+        <target state="translated">搜尋資料庫物件...</target>
       </trans-unit>
       <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
         <source xml:lang="en">Search options...</source>
@@ -3211,7 +3385,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++f0b2ef28c0bec626ad14f56179e18d97cdbfcb4f676c4735f95eae628d079538">
         <source xml:lang="en">Search term cannot be empty</source>
-        <target state="new">Search term cannot be empty</target>
+        <target state="translated">搜尋字詞不可為空白</target>
       </trans-unit>
       <trans-unit id="++CODE++5c192a3e6f23b125cfaa70c46f6fcd47a2081fa7270e7687687ea8596d2e012f">
         <source xml:lang="en">Search workspaces...</source>
@@ -3248,6 +3422,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
         <source xml:lang="en">Select Target Schema</source>
         <target state="translated">選取目標結構描述</target>
+      </trans-unit>
+      <trans-unit id="++CODE++35ce1fefb3478f2ba328f46db9deb60e08786a3f825f64dd5f9804459c6b8b4c">
+        <source xml:lang="en">Select a Workspace</source>
+        <target state="new">Select a Workspace</target>
       </trans-unit>
       <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
         <source xml:lang="en">Select a connection group</source>
@@ -3290,7 +3468,7 @@ Query: {1}</source>
       <trans-unit id="++CODE++cac9a015dc3356af3f386e840985bfc09d57c0b9cc01a88e26ec67f3501058d8">
         <source xml:lang="en">Select an object to view its definition ({0} results)</source>
         <note>{0} is the number of results</note>
-        <target state="new">Select an object to view its definition ({0} results)</target>
+        <target state="translated">選取物件以檢視其定義 ({0} 個結果)</target>
       </trans-unit>
       <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
         <source xml:lang="en">Select image</source>
@@ -3469,6 +3647,10 @@ Query: {1}</source>
         <source xml:lang="en">Simple Container Management</source>
         <target state="translated">簡單容器管理</target>
       </trans-unit>
+      <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
+        <source xml:lang="en">Smart performance</source>
+        <target state="new">Smart performance</target>
+      </trans-unit>
       <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
         <source xml:lang="en">Sort Ascending</source>
         <target state="translated">遞增排序</target>
@@ -3500,6 +3682,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
         <source xml:lang="en">Start IP Address</source>
         <target state="translated">起始 IP 位址</target>
+      </trans-unit>
+      <trans-unit id="++CODE++271189ae389a39d79c24cd43cee7e86f57b7543bd1aebe14817ea8981cfdfcde">
+        <source xml:lang="en">Start Time</source>
+        <target state="new">Start Time</target>
       </trans-unit>
       <trans-unit id="++CODE++bdc02a6178825493234ef2190acba2fe15e3fb76a37fb9a740ea4e5b7b843961">
         <source xml:lang="en">Start, stop, and remove containers directly from the extension.</source>
@@ -3799,6 +3985,10 @@ Query: {1}</source>
         <source xml:lang="en">There was an error updating the project</source>
         <target state="translated">更新專案時發生錯誤</target>
       </trans-unit>
+      <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
+        <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
+        <target state="new">This database name is already in use. Please choose a different name.</target>
+      </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
         <target state="translated">時間戳記</target>
@@ -3963,6 +4153,18 @@ Query: {1}</source>
       <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
         <source xml:lang="en">Width cannot be 0 or negative</source>
         <target state="translated">寬度不能是 0 或負數</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
+        <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>
+        <target state="new">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++87bb59ba2f92f2a5a9f13e021fd58dd14ae5c065b1046146875e6e68d5ebc8b7">
+        <source xml:lang="en">Workspace</source>
+        <target state="new">Workspace</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d53a5854df209c578705bfaec402128f2a44624d1e435ae700ef0f56c958c15e">
+        <source xml:lang="en">Workspace is required</source>
+        <target state="new">Workspace is required</target>
       </trans-unit>
       <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
         <source xml:lang="en">Yes</source>
@@ -4347,10 +4549,6 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">在您的資料庫中建立新資料表，或使用資料表設計工具編輯現有的資料表。
 完成變更後，請按一下「發佈」按鈕，將變更傳送到您的資料庫。</target>
       </trans-unit>
-      <trans-unit id="mssql.deployLocalDockerContainer">
-        <source xml:lang="en">Create local SQL Container</source>
-        <target state="translated">建立本機 SQL 容器</target>
-      </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.description">
         <source xml:lang="en">Default view mode for query results display.</source>
         <target state="translated">查詢結果顯示的預設檢視模式。</target>
@@ -4543,7 +4741,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.showEstimatedPlan">
         <source xml:lang="en">Estimated Plan</source>
-        <target state="new">Estimated Plan</target>
+        <target state="translated">預估計劃</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>
@@ -4620,6 +4818,10 @@ You can connect to a database by entering your connection information, using a c
       <trans-unit id="mssql.query.textSize">
         <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
         <target state="translated">SELECT 陳述式所傳回 text 與 Ntext 資料的大小上限</target>
+      </trans-unit>
+      <trans-unit id="mssql.newDeployment">
+        <source xml:lang="en">New Deployment</source>
+        <target state="new">New Deployment</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerNewQuery">
         <source xml:lang="en">New Query</source>
@@ -4757,7 +4959,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.searchObjects">
         <source xml:lang="en">Search Objects</source>
-        <target state="new">Search Objects</target>
+        <target state="translated">搜尋物件</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
@@ -4947,7 +5149,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription">
         <source xml:lang="en">When enabled, connection groups will be collapsed instead of expanded at startup.</source>
-        <target state="new">When enabled, connection groups will be collapsed instead of expanded at startup.</target>
+        <target state="translated">啟用時，連線群組會於啟動時摺疊而非展開。</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>

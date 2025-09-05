@@ -325,13 +325,13 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         }
     }
 
-    public removePanel(uri: string): void {
+    public async removePanel(uri: string): Promise<void> {
         if (this._queryResultWebviewPanelControllerMap.has(uri)) {
             this._queryResultWebviewPanelControllerMap.delete(uri);
             /**
              * Remove the corresponding query runner on panel closed
              */
-            this._sqlOutputContentProvider.cleanupRunner(uri);
+            await this._sqlOutputContentProvider.cleanupRunner(uri);
         }
     }
 

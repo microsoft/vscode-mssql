@@ -92,6 +92,7 @@
         "@playwright/test": "^1.45.0",
         "@stylistic/eslint-plugin": "^2.8.0",
         "@types/azdata": "^1.46.6",
+        "@types/chai": "^5.2.2",
         "@types/jquery": "^3.3.31",
         "@types/lockfile": "^1.0.2",
         "@types/mocha": "^5.2.7",
@@ -100,6 +101,7 @@
         "@types/react-dom": "^18.3.0",
         "@types/react-resizable": "^3.0.8",
         "@types/sinon": "^10.0.12",
+        "@types/sinon-chai": "^4.0.0",
         "@types/tmp": "0.0.28",
         "@types/tunnel": "0.0.1",
         "@types/vscode": "1.98.0",
@@ -114,7 +116,7 @@
         "@xyflow/react": "^12.4.4",
         "assert": "^1.4.1",
         "azdataGraph": "github:Microsoft/azdataGraph#0.0.137",
-        "chai": "^3.5.0",
+        "chai": "^5.3.3",
         "cli-color": "^2.0.4",
         "del": "^2.2.1",
         "esbuild": "^0.25.0",
@@ -137,6 +139,7 @@
         "react-resizable": "^3.0.5",
         "react-resizable-panels": "^3.0.2",
         "sinon": "^14.0.0",
+        "sinon-chai": "^4.0.1",
         "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.49",
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
@@ -666,10 +669,6 @@
                     "command": "mssql.refreshObjectExplorerNode",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
                     "group": "inline@9999"
-                },
-                {
-                    "command": "mssql.schemaCompare",
-                    "when": "view == dataworkspace.views.main && config.mssql.enableRichExperiences && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/"
                 },
                 {
                     "command": "mssql.openQueryHistory",

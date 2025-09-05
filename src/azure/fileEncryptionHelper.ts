@@ -170,8 +170,8 @@ export class FileEncryptionHelper {
         this._keyBuffer = undefined;
     }
 
-    protected async deleteEncryptionKey(credentialId: string): Promise<boolean> {
-        return await this._credentialStore.deleteCredential(credentialId);
+    protected async deleteEncryptionKey(credentialId: string): Promise<void> {
+        await this._credentialStore.deleteCredential(credentialId);
     }
 
     private async showCredSaveErrorOnWindows(): Promise<void> {

@@ -250,8 +250,8 @@ export default class MainController implements vscode.Disposable {
                 await UserSurvey.getInstance().launchSurvey("nps", getStandardNPSQuestions());
             });
             this.registerCommand(Constants.cmdCancelQuery);
-            this._event.on(Constants.cmdCancelQuery, () => {
-                this.onCancelQuery();
+            this._event.on(Constants.cmdCancelQuery, async () => {
+                await this.onCancelQuery();
             });
             this.registerCommand(Constants.cmdShowGettingStarted);
             this._event.on(Constants.cmdShowGettingStarted, async () => {
@@ -538,12 +538,12 @@ export default class MainController implements vscode.Disposable {
             const uriHandler: vscode.UriHandler = {
                 async handleUri(uri: vscode.Uri): Promise<void> {
                     const mssqlProtocolHandler = new MssqlProtocolHandler(
+                        self._vscodeWrapper,
+                        self,
                         self._connectionMgr.client,
                     );
 
-                    const connectionInfo = await mssqlProtocolHandler.handleUri(uri);
-
-                    vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, connectionInfo);
+                    await mssqlProtocolHandler.handleUri(uri);
                 },
             };
             vscode.window.registerUriHandler(uriHandler);
@@ -1997,13 +1997,13 @@ export default class MainController implements vscode.Disposable {
     /**
      * Handles the command to cancel queries
      */
-    private onCancelQuery(): void {
+    private async onCancelQuery(): Promise<void> {
         if (!this.canRunCommand() || !this.validateTextDocumentHasFocus()) {
             return;
         }
         try {
             let uri = this._vscodeWrapper.activeTextEditorUri;
-            this._outputContentProvider.cancelQuery(uri);
+            await this._outputContentProvider.cancelQuery(uri);
         } catch (err) {
             console.warn(`Unexpected error cancelling query : ${getErrorMessage(err)}`);
         }
@@ -2044,7 +2044,7 @@ export default class MainController implements vscode.Disposable {
             let fileUri = this._vscodeWrapper.activeTextEditorUri;
             let queryRunner = this._outputContentProvider.getQueryRunner(fileUri);
             if (queryRunner && queryRunner.isExecutingQuery) {
-                this._outputContentProvider.cancelQuery(fileUri);
+                await this._outputContentProvider.cancelQuery(fileUri);
             }
             const success = await this._connectionMgr.onDisconnect();
             if (success) {
@@ -2719,8 +2719,8 @@ export default class MainController implements vscode.Disposable {
             await this.updateUri(closedDocumentUri, this._lastOpenedUri);
         } else {
             // Pass along the close event to the other handlers for a normal closed file
+            await this._outputContentProvider.onDidCloseTextDocument(doc);
             await this._connectionMgr.onDidCloseTextDocument(doc);
-            this._outputContentProvider.onDidCloseTextDocument(doc);
         }
 
         // Reset special case timers and events

@@ -159,7 +159,7 @@ export default class ConnectionManager {
         }
 
         if (!this._credentialStore) {
-            this._credentialStore = new CredentialStore(context);
+            this._credentialStore = new CredentialStore(context, this._vscodeWrapper);
         }
 
         if (!this._connectionStore) {
@@ -384,6 +384,12 @@ export default class ConnectionManager {
 
     public isConnecting(fileUri: string): boolean {
         return fileUri in this._connections && this._connections[fileUri].connecting;
+    }
+
+    public async findMatchingProfile(
+        connProfile: IConnectionProfile,
+    ): Promise<{ profile: IConnectionProfile; score: Utils.MatchScore } | undefined> {
+        return this.connectionStore.findMatchingProfile(connProfile);
     }
 
     /**
@@ -1168,8 +1174,8 @@ export default class ConnectionManager {
     /**
      * Delete a credential from the credential store
      */
-    public async deleteCredential(profile: IConnectionProfile): Promise<boolean> {
-        return await this._connectionStore.deleteCredential(profile);
+    public async deleteCredential(profile: IConnectionProfile): Promise<void> {
+        await this._connectionStore.deleteCredential(profile);
     }
 
     /**

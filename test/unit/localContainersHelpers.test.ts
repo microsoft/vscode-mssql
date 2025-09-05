@@ -13,6 +13,7 @@ import * as lc from "../../src/sharedInterfaces/localContainers";
 import { DeploymentWebviewController } from "../../src/deployment/deploymentWebviewController";
 import MainController from "../../src/controllers/mainController";
 import { stubTelemetry } from "./utils";
+import { generateUUID } from "../e2e/baseFixtures";
 
 suite("localContainers logic", () => {
     let sandbox: sinon.SinonSandbox;
@@ -118,7 +119,7 @@ suite("localContainers logic", () => {
             formState: {
                 containerName: "goodName",
                 port: 1433,
-                password: "password123!",
+                password: "Test" + generateUUID(),
                 acceptEula: true,
             } as any,
             formErrors: [] as string[],
