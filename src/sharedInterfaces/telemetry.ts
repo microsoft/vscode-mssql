@@ -147,7 +147,7 @@ export enum TelemetryActions {
     GetDefinition = "GetDefinition",
     LookupPassword = "LookupPassword",
     ChatCommand = "ChatCommand",
-    ReadCredential = "readCredential",
+    ReadCredential = "ReadCredential",
 }
 
 /**
