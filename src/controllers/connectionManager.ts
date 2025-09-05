@@ -386,6 +386,12 @@ export default class ConnectionManager {
         return fileUri in this._connections && this._connections[fileUri].connecting;
     }
 
+    public async findMatchingProfile(
+        connProfile: IConnectionProfile,
+    ): Promise<{ profile: IConnectionProfile; score: Utils.MatchScore } | undefined> {
+        return this.connectionStore.findMatchingProfile(connProfile);
+    }
+
     /**
      * Get the connection string for the provided connection Uri or ConnectionDetails.
      * @param connectionUriOrDetails Either the connection Uri for the connection or the connection details for the connection is required.
