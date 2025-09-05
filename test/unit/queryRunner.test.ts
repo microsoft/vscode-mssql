@@ -981,25 +981,9 @@ suite("Query Runner tests", () => {
         };
 
         setup(() => {
-            testSqlToolsServerClient
-                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                .callback(() => {
-                    // testing
-                })
-                .returns(() => {
-                    return Promise.resolve(testresult);
-                });
             testStatusView.setup((x) => x.executingQuery(TypeMoq.It.isAnyString()));
             testStatusView.setup((x) => x.executedQuery(TypeMoq.It.isAnyString()));
             testVscodeWrapper.setup((x) => x.logToOutputChannel(TypeMoq.It.isAnyString()));
-            testVscodeWrapper
-                .setup((x) => x.clipboardWriteText(TypeMoq.It.isAnyString()))
-                .callback(() => {
-                    // testing
-                })
-                .returns(() => {
-                    return Promise.resolve();
-                });
         });
 
         function setupMockConfig(): void {
@@ -1012,6 +996,11 @@ suite("Query Runner tests", () => {
 
         // ------ Copy tests with multiple selections  -------
         test("Correctly copy pastes a selection", async () => {
+            testSqlToolsServerClient
+                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => {
+                    return Promise.resolve(testresult);
+                });
             setupMockConfig();
             let queryRunner = new QueryRunner(
                 testuri,
@@ -1041,6 +1030,11 @@ suite("Query Runner tests", () => {
         });
 
         test("Copies selection with column headers set in user config", async () => {
+            testSqlToolsServerClient
+                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => {
+                    return Promise.resolve(testresult);
+                });
             setupMockConfig();
             // Set column headers in the user config settings
             let queryRunner = new QueryRunner(
@@ -1072,6 +1066,11 @@ suite("Query Runner tests", () => {
         });
 
         test("Copies selection with headers when true passed as parameter", async () => {
+            testSqlToolsServerClient
+                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => {
+                    return Promise.resolve(testresult);
+                });
             setupMockConfig();
             // Do not set column config in user settings
             let queryRunner = new QueryRunner(
@@ -1104,6 +1103,11 @@ suite("Query Runner tests", () => {
         });
 
         test("Copies selection without headers when false passed as parameter", async () => {
+            testSqlToolsServerClient
+                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => {
+                    return Promise.resolve(testresult);
+                });
             setupMockConfig();
             // Set column config in user settings
             let queryRunner = new QueryRunner(
@@ -1136,6 +1140,11 @@ suite("Query Runner tests", () => {
         });
 
         test("Copies selection as CSV with headers", async () => {
+            testSqlToolsServerClient
+                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => {
+                    return Promise.resolve(testresult);
+                });
             setupMockConfig();
             let configResult: { [key: string]: any } = {};
             configResult[Constants.configSaveAsCsv] = {
@@ -1163,7 +1172,6 @@ suite("Query Runner tests", () => {
         });
 
         test("Copies selection as CSV with null values", async () => {
-            setupMockConfig();
             let configResult: { [key: string]: any } = {};
             configResult[Constants.configSaveAsCsv] = {
                 delimiter: ",",
@@ -1171,7 +1179,7 @@ suite("Query Runner tests", () => {
                 lineSeperator: "\n",
             };
 
-            // Create test data with null values
+            // Create test data with null values for CSV export
             let testResultWithNulls: QueryExecuteSubsetResult = {
                 resultSubset: {
                     rowCount: 3,
@@ -1195,41 +1203,30 @@ suite("Query Runner tests", () => {
                 },
             };
 
-            let resultWithNulls: QueryExecuteCompleteNotificationResult = {
-                ownerUri: testuri,
-                batchSummaries: [
-                    {
-                        hasError: false,
-                        id: 0,
-                        selection: {
-                            startLine: 0,
-                            endLine: 0,
-                            startColumn: 3,
-                            endColumn: 3,
-                        },
-                        resultSetSummaries: <ResultSetSummary[]>[
-                            {
-                                id: 0,
-                                rowCount: 3,
-                                columnInfo: [
-                                    { columnName: "Col1" },
-                                    { columnName: "Col2" },
-                                    { columnName: "Col3" },
-                                ],
-                            },
-                        ],
-                        executionElapsed: undefined,
-                        executionStart: new Date().toISOString(),
-                        executionEnd: new Date().toISOString(),
-                    },
-                ],
-            };
-
             let testRangeWithNulls: ISlickRange[] = [
                 { fromCell: 0, fromRow: 0, toCell: 2, toRow: 2 },
             ];
 
-            // Setup mock to capture the actual CSV content
+            // Setup testSqlToolsServerClient to return null data
+            testSqlToolsServerClient
+                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => Promise.resolve(testResultWithNulls));
+
+            // Setup configuration mock
+            let mockConfig = TypeMoq.Mock.ofType<vscode.WorkspaceConfiguration>();
+            mockConfig
+                .setup((c) => c.get(TypeMoq.It.isAnyString()))
+                .returns((key: string) => {
+                    return configResult[key] || false;
+                });
+            testVscodeWrapper
+                .setup((x) => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => mockConfig.object);
+            testVscodeWrapper
+                .setup((x) => x.getConfiguration(TypeMoq.It.isAny()))
+                .returns(() => mockConfig.object);
+
+            // Capture the CSV content
             let capturedCsvContent: string = "";
             testVscodeWrapper
                 .setup((x) => x.clipboardWriteText(TypeMoq.It.isAnyString()))
@@ -1237,10 +1234,6 @@ suite("Query Runner tests", () => {
                     capturedCsvContent = text;
                 })
                 .returns(() => Promise.resolve());
-
-            testSqlToolsServerClient
-                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                .returns(() => Promise.resolve(testResultWithNulls));
 
             let queryRunner = new QueryRunner(
                 testuri,
@@ -1251,7 +1244,7 @@ suite("Query Runner tests", () => {
                 testVscodeWrapper.object,
             );
             queryRunner.uri = testuri;
-            queryRunner.handleQueryComplete(resultWithNulls);
+            queryRunner.handleQueryComplete(result);
 
             await queryRunner.copyResultsAsCsv(testRangeWithNulls, 0, 0, true);
 
@@ -1261,10 +1254,11 @@ suite("Query Runner tests", () => {
             );
 
             // Verify that null values are exported as empty strings, not "null"
-            // Expected CSV: Col1,Col2,Col3\n1,,3\n,5,\n7,8,9
+            console.log("Captured CSV content:", JSON.stringify(capturedCsvContent));
             assert.ok(
                 capturedCsvContent.includes("1,,3"),
-                "First row should have empty value for null cell",
+                "First row should have empty value for null cell. Actual content: " +
+                    capturedCsvContent,
             );
             assert.ok(
                 capturedCsvContent.includes(",5,"),
@@ -1277,6 +1271,11 @@ suite("Query Runner tests", () => {
         });
 
         test("Copies selection as JSON with headers", async () => {
+            testSqlToolsServerClient
+                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => {
+                    return Promise.resolve(testresult);
+                });
             setupMockConfig();
             let queryRunner = new QueryRunner(
                 testuri,
