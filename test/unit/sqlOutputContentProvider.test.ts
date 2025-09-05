@@ -303,7 +303,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         done();
     });
 
-    test("onDidCloseTextDocument properly mark the uri for deletion", (done) => {
+    test("onDidCloseTextDocument properly mark the uri for deletion", async () => {
         let title = "Test_Title";
         let uri = testUri;
         let querySelection: ISelectionData = {
@@ -327,13 +327,12 @@ suite("SqlOutputProvider Tests using mocks", () => {
             },
             languageId: "sql",
         };
-        mockContentProvider.object.onDidCloseTextDocument(doc);
+        await mockContentProvider.object.onDidCloseTextDocument(doc);
 
         // This URI should now be flagged for deletion later on
         console.log(mockMap.get(uri));
         assert.equal(mockMap.get(uri).flaggedForDeletion, true);
         mockMap.clear();
-        done();
     });
 
     test("isRunningQuery should return the correct state for the query", (done) => {
@@ -376,7 +375,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         // Setup the function to call base and run it
         void mockContentProvider.object.runQuery(statusView.object, uri, querySelection, title);
-        mockContentProvider.object.cancelQuery(resultUri);
+        void mockContentProvider.object.cancelQuery(resultUri);
 
         // Ensure all side effects occured as intended
         assert.equal(mockMap.has(resultUri), true);
@@ -403,7 +402,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         // Setup the function to call base and run it
         void mockContentProvider.object.runQuery(statusView.object, uri, querySelection, title);
-        mockContentProvider.object.cancelQuery(uri);
+        void mockContentProvider.object.cancelQuery(uri);
 
         // Ensure all side effects occured as intended
         assert.equal(mockMap.has(testUri), true);
@@ -442,7 +441,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         vscodeWrapper
             .setup((v) => v.showInformationMessage(TypeMoq.It.isAnyString()))
             .returns(() => Promise.resolve("error"));
-        contentProvider.cancelQuery("test_input");
+        void contentProvider.cancelQuery("test_input");
         vscodeWrapper.verify(
             (v) => v.showInformationMessage(TypeMoq.It.isAnyString()),
             TypeMoq.Times.once(),
