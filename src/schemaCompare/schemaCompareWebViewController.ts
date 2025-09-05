@@ -63,6 +63,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         vscodeWrapper: VscodeWrapper,
         sourceNode: any,
         targetNode: any,
+        runComparison: boolean | undefined,
         private readonly schemaCompareService: mssql.ISchemaCompareService,
         private readonly connectionMgr: ConnectionManager,
         schemaCompareOptionsResult: mssql.SchemaCompareOptionsResult,
@@ -131,7 +132,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             targetNode = this.getFullSqlProjectsPathFromNode(targetNode);
         }
 
-        void this.start(sourceNode, targetNode);
+        void this.start(sourceNode, targetNode, runComparison || false);
         this.registerRpcHandlers();
 
         this.registerDisposable(
@@ -181,6 +182,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     public async start(
         sourceContext: any,
         targetContext: any,
+        runComparison: boolean,
         comparisonResult: mssql.SchemaCompareResult = undefined,
     ): Promise<void> {
         this.logger.info(
@@ -245,7 +247,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             this.logger.verbose(`No target context provided - OperationId: ${this.operationId}`);
         }
 
-        await this.launch(source, target, false, comparisonResult);
+        await this.launch(source, target, runComparison, comparisonResult);
     }
 
     /**

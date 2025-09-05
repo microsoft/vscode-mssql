@@ -419,15 +419,18 @@ suite("MainController Tests", function () {
         let called = false;
         let gotMaybeSource: any = undefined;
         let gotMaybeTarget: any = undefined;
+        let gotRunComparison: boolean | undefined;
 
         const originalHandler = (mainController as any).onSchemaCompare;
         (mainController as any).onSchemaCompare = async (
             maybeSource?: SchemaCompareEndpointInfo,
             maybeTarget?: SchemaCompareEndpointInfo,
+            runComparison?: boolean,
         ) => {
             called = true;
             gotMaybeSource = maybeSource;
             gotMaybeTarget = maybeTarget;
+            gotRunComparison = runComparison ?? false;
         };
 
         const src = { endpointType: 1, serverName: "srcServer", databaseName: "srcDb" };
@@ -444,12 +447,13 @@ suite("MainController Tests", function () {
             const wrapped = gotMaybeSource as any;
             gotMaybeSource = wrapped.source;
             gotMaybeTarget = wrapped.target;
+            gotRunComparison = wrapped.runComparison ?? false;
         }
 
         assert.equal(called, true, "Expected onSchemaCompare to be called");
         assert.deepStrictEqual(gotMaybeSource, src, "Expected source passed through to handler");
         assert.deepStrictEqual(gotMaybeTarget, tgt, "Expected target passed through to handler");
-
+        assert.equal(gotRunComparison, false, "Expected runComparison to be false");
         // restore original handler so the test doesn't leak state
         (mainController as any).onSchemaCompare = originalHandler;
     });
