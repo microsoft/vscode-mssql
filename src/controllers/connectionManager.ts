@@ -159,7 +159,7 @@ export default class ConnectionManager {
         }
 
         if (!this._credentialStore) {
-            this._credentialStore = new CredentialStore(context);
+            this._credentialStore = new CredentialStore(context, this._vscodeWrapper);
         }
 
         if (!this._connectionStore) {
@@ -1168,8 +1168,8 @@ export default class ConnectionManager {
     /**
      * Delete a credential from the credential store
      */
-    public async deleteCredential(profile: IConnectionProfile): Promise<boolean> {
-        return await this._connectionStore.deleteCredential(profile);
+    public async deleteCredential(profile: IConnectionProfile): Promise<void> {
+        await this._connectionStore.deleteCredential(profile);
     }
 
     /**
