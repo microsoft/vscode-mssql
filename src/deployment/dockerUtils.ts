@@ -85,7 +85,7 @@ export const COMMANDS = {
     START_DOCKER: (path: string) => ({
         win32: {
             command: "cmd.exe",
-            args: ["/c", "start", "", sanitizeContainerInput(path)],
+            args: ["/c", "start", "", path],
         },
         darwin: {
             command: "open",
@@ -120,7 +120,7 @@ export const COMMANDS = {
     },
     SWITCH_ENGINE: (path: string): DockerCommand => ({
         command: "powershell.exe",
-        args: ["-Command", `& "${sanitizeContainerInput(path)}" -SwitchLinuxEngine`],
+        args: ["-Command", `& "${path}" -SwitchLinuxEngine`],
     }),
     GET_CONTAINERS: (): DockerCommand => ({
         command: "docker",
@@ -136,7 +136,7 @@ export const COMMANDS = {
     }),
     PULL_IMAGE: (versionTag: string): DockerCommand => ({
         command: "docker",
-        args: ["pull", `mcr.microsoft.com/mssql/server:${sanitizeContainerInput(versionTag)}`],
+        args: ["pull", `mcr.microsoft.com/mssql/server:${versionTag}`],
     }),
     START_SQL_SERVER: (
         name: string,
@@ -161,7 +161,7 @@ export const COMMANDS = {
             args.push("--hostname", sanitizeContainerInput(hostname));
         }
 
-        args.push("-d", `mcr.microsoft.com/mssql/server:${sanitizeContainerInput(versionTag)}`);
+        args.push("-d", `mcr.microsoft.com/mssql/server:${versionTag}`);
 
         return { command: "docker", args };
     },
