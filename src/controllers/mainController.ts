@@ -1502,28 +1502,12 @@ export default class MainController implements vscode.Disposable {
         });
 
         if (this.isRichExperiencesEnabled) {
+            // Register the command as async and forward all arguments
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdSchemaCompare,
-                    async (
-                        sourceNode?: any,
-                        targetNode?: any,
-                        runComparison?: boolean | undefined,
-                        comparisonResult?: any,
-                    ) => {
-                        // If two args were supplied, wrap into object form so onSchemaCompare(endpoints) receives { source, target }
-                        if (targetNode !== undefined) {
-                            return this.onSchemaCompare({
-                                source: sourceNode,
-                                target: targetNode,
-                                runComparison: runComparison,
-                                comparisonResult: comparisonResult,
-                            });
-                        }
-
-                        // Otherwise pass through the single argument (it may already be the { source, target } shape,
-                        // a legacy TreeNodeInfo, or undefined).
-                        return this.onSchemaCompare(sourceNode);
+                    async (...args: any[]) => {
+                        await this.onSchemaCompare(...args);
                     },
                 ),
             );
@@ -2618,25 +2602,19 @@ export default class MainController implements vscode.Disposable {
         return await this.newQueryFromPrompt(newDocUri);
     }
 
-    public async onSchemaCompare(
-        endpoints?:
-            | TreeNodeInfo
-            | { source?: any; target?: any; runComparison?: boolean; comparisonResult?: any },
-    ): Promise<void> {
-        // Normalize inputs to sourceNode / targetNode for the controller
+    public async onSchemaCompare(...args: any[]): Promise<void> {
         let sourceNode: any;
         let targetNode: any;
         let runComparison: boolean | undefined;
 
-        if (endpoints && ("source" in endpoints || "target" in endpoints)) {
-            // object-style invocation: allow source/target to be tree node, dacpac, project, or undefined
-            sourceNode = (endpoints as { source?: any }).source;
-            targetNode = (endpoints as { target?: any }).target;
-            runComparison = (endpoints as { runComparison?: boolean }).runComparison;
-        } else {
-            // legacy invocation where a TreeNodeInfo (or undefined) is passed directly
-            sourceNode = endpoints as TreeNodeInfo | undefined;
-            targetNode = undefined;
+        if (args.length === 1) {
+            // Object-style invocation
+            sourceNode = args[0];
+        } else if (args.length >= 2) {
+            // Positional arguments: [sourceNode, targetNode, runComparison]
+            sourceNode = args[0];
+            targetNode = args[1];
+            runComparison = args[2];
         }
 
         const result = await this.schemaCompareService.schemaCompareGetDefaultOptions();

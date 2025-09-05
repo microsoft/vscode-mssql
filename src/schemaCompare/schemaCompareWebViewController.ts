@@ -125,10 +125,16 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             `SchemaCompareWebViewController created with operation ID: ${this.operationId} - OperationId: ${this.operationId}`,
         );
 
-        if (sourceNode && !this.isTreeNodeInfoType(sourceNode)) {
+        if (sourceNode && !this.isTreeNodeInfoType(sourceNode) && sourceNode.projectFilePath) {
             sourceNode = this.getFullSqlProjectsPathFromNode(sourceNode);
         }
-        if (targetNode && !this.isTreeNodeInfoType(targetNode)) {
+        if (
+            targetNode &&
+            !this.isTreeNodeInfoType(targetNode) &&
+            targetNode.projectFilePath &&
+            targetNode.treeDataProvider?.roots?.length > 0 &&
+            targetNode.treeDataProvider.roots[0]?.projectFileUri?.fsPath
+        ) {
             targetNode = this.getFullSqlProjectsPathFromNode(targetNode);
         }
 
@@ -192,15 +198,20 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         let source: mssql.SchemaCompareEndpointInfo | undefined;
         let target: mssql.SchemaCompareEndpointInfo | undefined;
 
-        const sourceNode = sourceContext as TreeNodeInfo;
-        if (sourceNode?.connectionProfile) {
-            this.logger.verbose(
-                `Using connection profile as source: ${sourceNode.connectionProfile.server} - OperationId: ${this.operationId}`,
-            );
-            source = await this.getEndpointInfoFromConnectionProfile(
-                sourceNode.connectionProfile,
-                sourceContext,
-            );
+        // Resolve source
+        if (this.isTreeNodeInfoType(sourceContext)) {
+            const sourceNode = sourceContext as TreeNodeInfo;
+            if (sourceNode?.connectionProfile) {
+                this.logger.verbose(
+                    `Using connection profile as source: ${sourceNode.connectionProfile.server} - OperationId: ${this.operationId}`,
+                );
+                source = await this.getEndpointInfoFromConnectionProfile(
+                    sourceNode.connectionProfile,
+                    sourceContext,
+                );
+            }
+        } else if (sourceContext && (sourceContext as mssql.SchemaCompareEndpointInfo)) {
+            source = sourceContext as mssql.SchemaCompareEndpointInfo;
         } else if (
             sourceContext &&
             (sourceContext as string) &&
@@ -220,15 +231,19 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         }
 
         // Resolve target (same rules as source)
-        const targetNode = targetContext as TreeNodeInfo;
-        if (targetNode?.connectionProfile) {
-            this.logger.verbose(
-                `Using connection profile as target: ${targetNode.connectionProfile.server} - OperationId: ${this.operationId}`,
-            );
-            target = await this.getEndpointInfoFromConnectionProfile(
-                targetNode.connectionProfile,
-                targetContext,
-            );
+        if (this.isTreeNodeInfoType(targetContext)) {
+            const targetNode = targetContext as TreeNodeInfo;
+            if (targetNode?.connectionProfile) {
+                this.logger.verbose(
+                    `Using connection profile as target: ${targetNode.connectionProfile.server} - OperationId: ${this.operationId}`,
+                );
+                target = await this.getEndpointInfoFromConnectionProfile(
+                    targetNode.connectionProfile,
+                    targetContext,
+                );
+            }
+        } else if (targetContext && (targetContext as mssql.SchemaCompareEndpointInfo)) {
+            target = targetContext as mssql.SchemaCompareEndpointInfo;
         } else if (
             targetContext &&
             (targetContext as string) &&
