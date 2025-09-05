@@ -2602,15 +2602,23 @@ export default class MainController implements vscode.Disposable {
         return await this.newQueryFromPrompt(newDocUri);
     }
 
+    /**
+     * Handler for the Schema Compare command.
+     * Accepts variable arguments, typically:
+     *   - [sourceNode, targetNode, runComparison] when invoked from update Project SC or programmatically,
+     *   - [sourceNode, undefined] when invoked from a project tree node/ server / database node,
+     *   - [] when invoked from the command palette.
+     * This method normalizes the arguments and launches the Schema Compare UI.
+     */
     public async onSchemaCompare(...args: any[]): Promise<void> {
         let sourceNode: any;
         let targetNode: any;
         let runComparison: boolean | undefined;
 
-        if (args.length === 1 || (args.length === 2 && args[1] === undefined)) {
+        if (args.length === 2 && args[1] === undefined) {
             // Object-style invocation
             sourceNode = args[0];
-        } else if (args.length >= 2) {
+        } else if (args.length > 2) {
             // Positional arguments: [sourceNode, targetNode, runComparison]
             sourceNode = args[0];
             targetNode = args[1];

@@ -234,9 +234,11 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         } else if (context && typeof context === "string" && context.endsWith(".dacpac")) {
             this.logger.verbose(`Using dacpac: ${context} - OperationId: ${this.operationId}`);
             return this.getEndpointInfoFromDacpac(context as string);
-        } else if (context) {
+        } else if (context && typeof context === "string" && context.endsWith(".sqlproj")) {
             this.logger.verbose(`Using project: ${context} - OperationId: ${this.operationId}`);
             return await this.getEndpointInfoFromProject(context as string);
+        } else if (context && typeof context === "object") {
+            return context as mssql.SchemaCompareEndpointInfo;
         } else {
             this.logger.verbose(`No context provided - OperationId: ${this.operationId}`);
             return undefined;
