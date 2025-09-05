@@ -178,7 +178,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         return (
             node &&
             !this.isTreeNodeInfoType(node) &&
-            node.projectFilePath &&
             node.treeDataProvider?.roots?.length > 0 &&
             node.treeDataProvider.roots[0]?.projectFileUri?.fsPath
         );
@@ -206,14 +205,17 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
         // Resolve source and target endpoints
         const source = await this.resolveEndpointInfo(sourceContext);
-        const target = await this.resolveEndpointInfo(targetContext);
+        let target: any;
+        if (targetContext !== undefined) {
+            target = await this.resolveEndpointInfo(targetContext);
+        }
 
         await this.launch(source, target, runComparison, comparisonResult);
     }
 
     /**
      * Resolves the schema compare endpoint info from the given context.
-     * Handles TreeNodeInfo, SchemaCompareEndpointInfo, dacpac path, and project path.
+     * Handles TreeNodeInfo(from server/database nodes), dacpac path, and project path.
      */
     private async resolveEndpointInfo(
         context: any,
@@ -229,8 +231,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                     context,
                 );
             }
-        } else if (context && (context as mssql.SchemaCompareEndpointInfo)) {
-            return context as mssql.SchemaCompareEndpointInfo;
         } else if (context && typeof context === "string" && context.endsWith(".dacpac")) {
             this.logger.verbose(`Using dacpac: ${context} - OperationId: ${this.operationId}`);
             return this.getEndpointInfoFromDacpac(context as string);
