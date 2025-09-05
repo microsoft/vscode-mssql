@@ -25,6 +25,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { Logger } from "./logger";
 import { Deferred } from "../protocol";
+import { ConnectionMatcher, MatchScore } from "../models/utils";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
@@ -724,6 +725,26 @@ export class ConnectionStore {
         this._logger.logDebug(logMessage);
 
         return connResults;
+    }
+
+    public async findMatchingProfile(
+        connProfile: IConnectionProfile,
+    ): Promise<{ profile: IConnectionProfile; score: MatchScore } | undefined> {
+        const savedConnections = await this.readAllConnections();
+
+        let bestMatch: IConnectionProfile | undefined;
+        let bestMatchScore = MatchScore.NotMatch;
+
+        for (const savedConn of savedConnections) {
+            const matchLevel = ConnectionMatcher.isMatchingConnection(savedConn, connProfile);
+
+            if (matchLevel > bestMatchScore) {
+                bestMatchScore = matchLevel;
+                bestMatch = savedConn;
+            }
+        }
+
+        return { profile: bestMatch, score: bestMatchScore };
     }
 
     /** Gets the groupId for connections  */

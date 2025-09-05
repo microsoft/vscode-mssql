@@ -4,12 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as Utils from "./models/utils";
 import { IConnectionInfo } from "vscode-mssql";
 import SqlToolsServiceClient from "./languageservice/serviceclient";
 import { CapabilitiesResult, GetCapabilitiesRequest } from "./models/contracts/connection";
 import { IConnectionProfile } from "./models/interfaces";
 import { AuthenticationType } from "./sharedInterfaces/connectionDialog";
+import { Logger } from "./models/logger";
+import VscodeWrapper from "./controllers/vscodeWrapper";
+import MainController from "./controllers/mainController";
+import { cmdAddObjectExplorer } from "./constants/constants";
 
 enum Command {
     connect = "/connect",
@@ -25,7 +28,15 @@ interface ConnectionOptionProperty {
  * Handles MSSQL protocol URIs.
  */
 export class MssqlProtocolHandler {
-    constructor(private client: SqlToolsServiceClient) {}
+    private _logger: Logger;
+
+    constructor(
+        vscodeWrapper: VscodeWrapper,
+        private mainController: MainController,
+        private client: SqlToolsServiceClient,
+    ) {
+        this._logger = Logger.create(vscodeWrapper.outputChannel, "MssqlProtocolHandler");
+    }
 
     /**
      * Handles the given URI and returns connection information if applicable. Examples of URIs handled:
@@ -35,35 +46,69 @@ export class MssqlProtocolHandler {
      * @param uri - The URI to handle.
      * @returns The connection information or undefined if not applicable.
      */
-    public handleUri(uri: vscode.Uri): Promise<IConnectionProfile | undefined> {
-        Utils.logDebug(`[MssqlProtocolHandler][handleUri] URI: ${uri.toString()}`);
+    public async handleUri(uri: vscode.Uri): Promise<void> {
+        this._logger.info(`URI: ${uri.toString()}`);
 
         switch (uri.path) {
+            // Attempt to find an existing connection profile based on the provided parameters. If not found, open the connection dialog.
             case Command.connect:
-                Utils.logDebug(`[MssqlProtocolHandler][handleUri] connect: ${uri.path}`);
+                await this.handleConnectCommand(uri);
+                return;
 
-                return this.connect(uri);
-
+            // Open the connection dialog, pre-filled with the provided parameters.
             case Command.openConnectionDialog:
-                return undefined;
+                await this.handleOpenConnectionDialogCommand(uri);
+                return;
 
-            default:
-                Utils.logDebug(
-                    `[MssqlProtocolHandler][handleUri] Unknown URI path, defaulting to connect: ${uri.path}`,
+            // Default behavior for unknown URIs: open the connection dialog with no pre-filled parameters
+            default: {
+                this._logger.warn(
+                    `Unknown URI action '${uri.path}'; defaulting to ${Command.openConnectionDialog}`,
                 );
 
-                return this.connect(uri);
+                this.openConnectionDialog(undefined);
+                return;
+            }
         }
     }
 
-    /**
-     * Connects using the given URI.
-     *
-     * @param uri - The URI containing connection information.
-     * @returns The connection information or undefined if not applicable.
-     */
-    private connect(uri: vscode.Uri): Promise<IConnectionProfile | undefined> {
-        return this.readProfileFromArgs(uri.query);
+    private async handleOpenConnectionDialogCommand(uri: vscode.Uri) {
+        const connProfile = await this.readProfileFromArgs(uri.query);
+        this.openConnectionDialog(connProfile);
+    }
+
+    private async handleConnectCommand(uri: vscode.Uri) {
+        this._logger.info(`connect: ${uri.path}`);
+        const parsedProfile = await this.readProfileFromArgs(uri.query);
+
+        if (!parsedProfile) {
+            this.openConnectionDialog(parsedProfile);
+            return;
+        }
+
+        // Just the server and database are required to match, but it will also consider other factors
+        // like auth and auxiliary settings to pick the best one.
+        const { profile: foundProfile } =
+            await this.mainController.connectionManager.findMatchingProfile(parsedProfile);
+
+        if (foundProfile) {
+            await this.connectProfile(foundProfile);
+        } else {
+            this.openConnectionDialog(parsedProfile);
+        }
+    }
+
+    private async connectProfile(profile: IConnectionProfile): Promise<void> {
+        const node = await this.mainController.createObjectExplorerSession(profile);
+        await this.mainController.objectExplorerTree.reveal(node, {
+            focus: true,
+            select: true,
+            expand: true,
+        });
+    }
+
+    private openConnectionDialog(connProfile: IConnectionProfile | undefined): void {
+        vscode.commands.executeCommand(cmdAddObjectExplorer, connProfile);
     }
 
     /**
@@ -109,7 +154,12 @@ export class MssqlProtocolHandler {
             const propName = property.name as string;
             const propValue: string | undefined = args.get(propName);
 
+            // eslint-disable-next-line no-restricted-syntax
             if (propValue === undefined || propValue === null) {
+                if (propName === "savePassword") {
+                    connectionInfo[propName] = true; // default to saving password if not specified
+                }
+
                 continue;
             }
 
