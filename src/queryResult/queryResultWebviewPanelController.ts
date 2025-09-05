@@ -74,7 +74,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
 
     public override dispose(): void {
         super.dispose();
-        this._queryResultWebviewViewController.removePanel(this._uri);
+        void this._queryResultWebviewViewController.removePanel(this._uri);
     }
 
     public revealToForeground() {
