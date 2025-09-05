@@ -672,7 +672,8 @@
                 },
                 {
                     "command": "mssql.schemaCompare",
-                    "when": "view == dataworkspace.views.main && config.mssql.enableRichExperiences && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/"
+                    "when": "view == dataworkspace.views.main && config.mssql.enableRichExperiences && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
+                    "group": "1_dbProjectsFirst@4"
                 },
                 {
                     "command": "mssql.openQueryHistory",
