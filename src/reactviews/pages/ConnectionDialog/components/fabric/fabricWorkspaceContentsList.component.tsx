@@ -113,7 +113,20 @@ export const FabricWorkspaceContentsList = ({
                 compare: (a, b) => {
                     return a.typeDisplayName.localeCompare(b.typeDisplayName);
                 },
-                renderHeaderCell: () => `${Loc.connectionDialog.typeColumnHeader}`,
+                renderHeaderCell: () => (
+                    <div>
+                        `${Loc.connectionDialog.typeColumnHeader}`
+                        <Button
+                            appearance="subtle"
+                            size="small"
+                            icon={<FilterRegular />}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                // TODO: Add filter functionality
+                            }}
+                        />
+                    </div>
+                ),
                 renderCell: (item) => (
                     <DataGridCell>
                         <Text truncate className={styles.hideTextOverflowCell}>
