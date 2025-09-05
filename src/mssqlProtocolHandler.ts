@@ -51,34 +51,14 @@ export class MssqlProtocolHandler {
 
         switch (uri.path) {
             // Attempt to find an existing connection profile based on the provided parameters. If not found, open the connection dialog.
-            case Command.connect: {
-                this._logger.info(`connect: ${uri.path}`);
-                const connProfile = await this.readProfileFromArgs(uri.query);
+            case Command.connect:
+                await this.handleConnectCommand(uri);
+                return;
 
-                // Just the server and database are required to match, but it will also consider other factors
-                // like auth and auxiliary settings to pick the best one.
-                const { profile } =
-                    await this.mainController.connectionManager.findMatchingProfile(connProfile);
-
-                if (profile) {
-                    const node = await this.mainController.createObjectExplorerSession(profile);
-                    await this.mainController.objectExplorerTree.reveal(node, {
-                        focus: true,
-                        select: true,
-                        expand: true,
-                    });
-                } else {
-                    this.openConnectionDialog(connProfile);
-                }
-
-                break;
-            }
             // Open the connection dialog, pre-filled with the provided parameters.
-            case Command.openConnectionDialog: {
-                const connProfile = await this.readProfileFromArgs(uri.query);
-                this.openConnectionDialog(connProfile);
-                break;
-            }
+            case Command.openConnectionDialog:
+                await this.handleOpenConnectionDialogCommand(uri);
+                return;
 
             // Default behavior for unknown URIs: open the connection dialog with no pre-filled parameters
             default: {
@@ -86,12 +66,48 @@ export class MssqlProtocolHandler {
                     `Unknown URI action '${uri.path}'; defaulting to ${Command.openConnectionDialog}`,
                 );
 
-                this.openConnectionDialog();
+                this.openConnectionDialog(undefined);
+                return;
             }
         }
     }
 
-    private openConnectionDialog(connProfile?: IConnectionProfile): void {
+    private async handleOpenConnectionDialogCommand(uri: vscode.Uri) {
+        const connProfile = await this.readProfileFromArgs(uri.query);
+        this.openConnectionDialog(connProfile);
+    }
+
+    private async handleConnectCommand(uri: vscode.Uri) {
+        this._logger.info(`connect: ${uri.path}`);
+        const parsedProfile = await this.readProfileFromArgs(uri.query);
+
+        if (!parsedProfile) {
+            this.openConnectionDialog(parsedProfile);
+            return;
+        }
+
+        // Just the server and database are required to match, but it will also consider other factors
+        // like auth and auxiliary settings to pick the best one.
+        const { profile: foundProfile } =
+            await this.mainController.connectionManager.findMatchingProfile(parsedProfile);
+
+        if (foundProfile) {
+            await this.connectProfile(foundProfile);
+        } else {
+            this.openConnectionDialog(parsedProfile);
+        }
+    }
+
+    private async connectProfile(profile: IConnectionProfile): Promise<void> {
+        const node = await this.mainController.createObjectExplorerSession(profile);
+        await this.mainController.objectExplorerTree.reveal(node, {
+            focus: true,
+            select: true,
+            expand: true,
+        });
+    }
+
+    private openConnectionDialog(connProfile: IConnectionProfile | undefined): void {
         vscode.commands.executeCommand(cmdAddObjectExplorer, connProfile);
     }
 
@@ -138,7 +154,12 @@ export class MssqlProtocolHandler {
             const propName = property.name as string;
             const propValue: string | undefined = args.get(propName);
 
+            // eslint-disable-next-line no-restricted-syntax
             if (propValue === undefined || propValue === null) {
+                if (propName === "savePassword") {
+                    connectionInfo[propName] = true; // default to saving password if not specified
+                }
+
                 continue;
             }
 

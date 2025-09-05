@@ -14,6 +14,10 @@ import { mockGetCapabilitiesRequest } from "./mocks";
 import { Logger } from "../../src/models/logger";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import MainController from "../../src/controllers/mainController";
+import { generateUUID } from "../e2e/baseFixtures";
+import ConnectionManager from "../../src/controllers/connectionManager";
+import { MatchScore } from "../../src/models/utils";
+import { IConnectionProfile } from "../../src/models/interfaces";
 
 suite("MssqlProtocolHandler Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -23,6 +27,8 @@ suite("MssqlProtocolHandler Tests", () => {
     let mockLogger: sinon.SinonStubbedInstance<Logger>;
     let mockMainController: sinon.SinonStubbedInstance<MainController>;
     let openConnectionDialogStub: sinon.SinonStub;
+    let connectProfileStub: sinon.SinonStub;
+
     setup(() => {
         sandbox = sinon.createSandbox();
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
@@ -54,104 +60,206 @@ suite("MssqlProtocolHandler Tests", () => {
         );
 
         openConnectionDialogStub = sandbox.stub(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             mssqlProtocolHandler as any,
             "openConnectionDialog",
         );
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        connectProfileStub = sandbox.stub(mssqlProtocolHandler as any, "connectProfile").resolves();
     });
 
     teardown(() => {
         sandbox.restore();
     });
 
-    test("handleUri - with no command and empty query - returns undefined", async () => {
+    test("No command", async () => {
         await mssqlProtocolHandler.handleUri(Uri.parse("vscode://ms-mssql.mssql/"));
 
-        expect(openConnectionDialogStub.calledWith(undefined));
+        expect(openConnectionDialogStub.calledOnceWith(undefined)).to.be.true;
     });
 
-    // test("handleUri - with connect command and no query - doesn't parse query and returns undefined", async () => {
-    //     const connInfo = await mssqlProtocolHandler.handleUri(
-    //         Uri.parse("vscode://ms-mssql.mssql/connect"),
-    //     );
+    suite("Connect command", () => {
+        test("Should open connection dialog when no query is provided", async () => {
+            await mssqlProtocolHandler.handleUri(Uri.parse("vscode://ms-mssql.mssql/connect"));
 
-    //     assert.isUndefined(connInfo);
-    // });
+            expect(openConnectionDialogStub.calledOnceWith(undefined)).to.be.true;
+            expect(connectProfileStub.notCalled).to.be.true;
+        });
 
-    // test("handleUri - with connect command and connection string - parses connection string and returns connection info object", async () => {
-    //     const connInfo = await mssqlProtocolHandler.handleUri(
-    //         Uri.parse(
-    //             "vscode://ms-mssql.mssql/connect?connectionString=Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;",
-    //         ),
-    //     );
+        test("Should find matching profile when connection string is provided", async () => {
+            const connString = `Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=${generateUUID()};`;
+            const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
 
-    //     assert.isDefined(connInfo);
-    //     assert.equal(
-    //         connInfo.connectionString,
-    //         "Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;",
-    //     );
-    // });
+            sandbox.stub(mockMainController, "connectionManager").get(() => {
+                return mockConnectionManager;
+            });
 
-    // test("handleUri - with connect command and query - parses query and returns connection info object", async () => {
-    //     let uri =
-    //         "vscode://ms-mssql.mssql/connect?server=myServer&database=dbName&authenticationType=SqlLogin&connectTimeout=15&trustServerCertificate=true&user=testUser";
+            mockConnectionManager.findMatchingProfile.resolves({
+                profile: { connectionString: connString } as IConnectionProfile,
+                score: MatchScore.AllAvailableProps,
+            });
 
-    //     let connInfo = await mssqlProtocolHandler.handleUri(Uri.parse(uri));
+            await mssqlProtocolHandler.handleUri(
+                Uri.parse(
+                    `vscode://ms-mssql.mssql/connect?connectionString=${encodeURIComponent(connString)}`,
+                ),
+            );
 
-    //     assert.isDefined(connInfo);
-    //     assert.equal(connInfo.server, "myServer");
-    //     assert.equal(connInfo.database, "dbName");
-    //     assert.equal(connInfo.authenticationType, "SqlLogin");
-    //     assert.equal(connInfo.connectTimeout, 15);
-    //     assert.equal(connInfo.user, "testUser");
-    //     assert.equal(connInfo.password, undefined);
-    //     assert.isTrue(connInfo.trustServerCertificate);
-    //     assert.isFalse(connInfo.savePassword);
+            expect(
+                connectProfileStub.calledOnceWith({
+                    connectionString: connString,
+                }),
+            ).to.be.true;
 
-    //     uri += "&password=testPassword";
-    //     connInfo = await mssqlProtocolHandler.handleUri(Uri.parse(uri));
+            expect(openConnectionDialogStub.notCalled).to.be.true;
+        });
 
-    //     assert.equal(connInfo.password, "testPassword");
-    //     assert.isTrue(connInfo.savePassword); // automatically set savePassword to true if password is provided
-    // });
+        test("Should find matching profile when parameters are provided", async () => {
+            const params: Record<string, string> = {
+                server: "myServer",
+                database: "dbName",
+                user: "testUser",
+            };
 
-    // test("handleUri - with connect command and query with invalid bool value for trust server cert - trust server cert is false and parses valid params", async () => {
-    //     const connInfo = await mssqlProtocolHandler.handleUri(
-    //         Uri.parse(
-    //             "vscode://ms-mssql.mssql/connect?server=myServer&database=dbName&trustServerCertificate=yes",
-    //         ),
-    //     );
+            const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
 
-    //     assert.isDefined(connInfo);
-    //     assert.equal(connInfo.server, "myServer");
-    //     assert.equal(connInfo.database, "dbName");
-    //     assert.isFalse(connInfo.trustServerCertificate);
-    // });
+            sandbox.stub(mockMainController, "connectionManager").get(() => {
+                return mockConnectionManager;
+            });
 
-    // test("handleUri - with connect command and query with invalid numerical value for connect timeout - timeout is undefined and parses valid params", async () => {
-    //     const connInfo = await mssqlProtocolHandler.handleUri(
-    //         Uri.parse(
-    //             "vscode://ms-mssql.mssql/connect?server=myServer&database=dbName&connectTimeout=twenty",
-    //         ),
-    //     );
+            mockConnectionManager.findMatchingProfile.resolves({
+                profile: {
+                    server: "myServer",
+                    database: "dbName",
+                    user: "testUser",
+                } as IConnectionProfile,
+                score: MatchScore.ServerDatabaseAndAuth,
+            });
 
-    //     assert.isDefined(connInfo);
-    //     assert.equal(connInfo.server, "myServer");
-    //     assert.equal(connInfo.database, "dbName");
-    //     assert.isUndefined(connInfo.connectTimeout);
-    // });
+            await mssqlProtocolHandler.handleUri(
+                Uri.parse(
+                    `vscode://ms-mssql.mssql/connect?${new URLSearchParams(params).toString()}`,
+                ),
+            );
 
-    // test("handleUri - with connect command and query invalid parameter - invalid param is undefined", async () => {
-    //     const connInfo = await mssqlProtocolHandler.handleUri(
-    //         Uri.parse(
-    //             "vscode://ms-mssql.mssql/connect?server=myServer&database=dbName&madeUpParam=great",
-    //         ),
-    //     );
+            expect(connectProfileStub.calledOnceWith(params)).to.be.true;
+            expect(openConnectionDialogStub.notCalled).to.be.true;
+        });
 
-    //     assert.isDefined(connInfo);
-    //     assert.equal(connInfo.server, "myServer");
-    //     assert.equal(connInfo.database, "dbName");
+        test("Should open connection dialog with populated parameters when no matching profile is found", async () => {
+            const params: Record<string, string> = {
+                server: "myServer",
+                database: "dbName",
+                user: "testUser",
+                authenticationType: "SqlLogin",
+                connectTimeout: "15",
+                trustServerCertificate: "true",
+            };
 
-    //     const madeUpParam = "madeUpParam";
-    //     assert.isUndefined(connInfo[madeUpParam]);
-    // });
+            const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+
+            sandbox.stub(mockMainController, "connectionManager").get(() => {
+                return mockConnectionManager;
+            });
+
+            mockConnectionManager.findMatchingProfile.resolves({
+                profile: undefined,
+                score: MatchScore.NotMatch,
+            });
+
+            await mssqlProtocolHandler.handleUri(
+                Uri.parse(
+                    `vscode://ms-mssql.mssql/connect?${new URLSearchParams(params).toString()}`,
+                ),
+            );
+
+            expect(
+                openConnectionDialogStub.calledOnceWith({
+                    ...params,
+                    // savePassword is auto-added, and non-string values are converted
+                    savePassword: true,
+                    connectTimeout: 15,
+                    trustServerCertificate: true,
+                }),
+                "openConnectionDialog should have been called with expected params",
+            ).to.be.true;
+            expect(connectProfileStub.notCalled, "connectProfile should not have been called").to.be
+                .true;
+        });
+    });
+
+    suite("OpenConnectionDialog command", () => {
+        test("Should open blank connection dialog when no parameters are provided", async () => {
+            await mssqlProtocolHandler.handleUri(
+                Uri.parse("vscode://ms-mssql.mssql/openConnectionDialog"),
+            );
+
+            expect(openConnectionDialogStub.calledOnceWith(undefined)).to.be.true;
+            expect(connectProfileStub.notCalled).to.be.true;
+        });
+
+        test("Should open populated connection dialog when parameters are provided", async () => {
+            const params: Record<string, string> = {
+                server: "myServer",
+                database: "dbName",
+                user: "testUser",
+                authenticationType: "SqlLogin",
+                connectTimeout: "15",
+                trustServerCertificate: "true",
+            };
+
+            await mssqlProtocolHandler.handleUri(
+                Uri.parse(
+                    `vscode://ms-mssql.mssql/openConnectionDialog?${new URLSearchParams(params).toString()}`,
+                ),
+            );
+
+            expect(
+                openConnectionDialogStub.calledOnceWith({
+                    ...params,
+                    // savePassword is auto-added, and non-string values are converted
+                    savePassword: true,
+                    connectTimeout: 15,
+                    trustServerCertificate: true,
+                }),
+            ).to.be.true;
+            expect(connectProfileStub.notCalled).to.be.true;
+        });
+    });
+
+    suite("readProfileFromArgs", () => {
+        test("Should ignore invalid values for booleans and numbers", async () => {
+            const connInfo = await mssqlProtocolHandler["readProfileFromArgs"](
+                "server=myServer&database=dbName&trustServerCertificate=yes&connectTimeout=twenty",
+            );
+
+            expect(connInfo).to.be.an("object");
+            expect(connInfo.server).to.equal("myServer");
+            expect(connInfo.database).to.equal("dbName");
+            expect(
+                connInfo.trustServerCertificate,
+                "trustServerCertificate should be false from an invalid value",
+            ).to.be.false;
+            expect(
+                connInfo.connectTimeout,
+                "connectTimeout should be undefined from an invalid value",
+            ).to.be.undefined;
+        });
+
+        test("Should handle invalid parameter by ignoring it", async () => {
+            const connInfo = await mssqlProtocolHandler["readProfileFromArgs"](
+                "server=myServer&database=dbName&madeUpParam=great",
+            );
+
+            expect(connInfo).to.be.an("object");
+            expect(connInfo.server).to.equal("myServer");
+            expect(connInfo.database).to.equal("dbName");
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            expect(
+                (connInfo as any).madeUpParam,
+                "madeUpParam should be undefined from an invalid value",
+            ).to.be.undefined;
+        });
+    });
 });
