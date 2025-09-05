@@ -6,7 +6,9 @@
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
 import { expect } from "chai";
+import * as chai from "chai";
 import { MssqlProtocolHandler } from "../../src/mssqlProtocolHandler";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { Uri } from "vscode";
@@ -18,6 +20,8 @@ import { generateUUID } from "../e2e/baseFixtures";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { MatchScore } from "../../src/models/utils";
 import { IConnectionProfile } from "../../src/models/interfaces";
+
+chai.use(sinonChai);
 
 suite("MssqlProtocolHandler Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -76,15 +80,15 @@ suite("MssqlProtocolHandler Tests", () => {
     test("No command", async () => {
         await mssqlProtocolHandler.handleUri(Uri.parse("vscode://ms-mssql.mssql/"));
 
-        expect(openConnectionDialogStub.calledOnceWith(undefined)).to.be.true;
+        expect(openConnectionDialogStub).to.have.been.calledOnceWith(undefined);
     });
 
     suite("Connect command", () => {
         test("Should open connection dialog when no query is provided", async () => {
             await mssqlProtocolHandler.handleUri(Uri.parse("vscode://ms-mssql.mssql/connect"));
 
-            expect(openConnectionDialogStub.calledOnceWith(undefined)).to.be.true;
-            expect(connectProfileStub.notCalled).to.be.true;
+            expect(openConnectionDialogStub).to.have.been.calledOnceWith(undefined);
+            expect(connectProfileStub).to.not.have.been.called;
         });
 
         test("Should find matching profile when connection string is provided", async () => {
@@ -106,13 +110,11 @@ suite("MssqlProtocolHandler Tests", () => {
                 ),
             );
 
-            expect(
-                connectProfileStub.calledOnceWith({
-                    connectionString: connString,
-                }),
-            ).to.be.true;
+            expect(connectProfileStub).to.have.been.calledOnceWith({
+                connectionString: connString,
+            });
 
-            expect(openConnectionDialogStub.notCalled).to.be.true;
+            expect(openConnectionDialogStub).to.not.have.been.called;
         });
 
         test("Should find matching profile when parameters are provided", async () => {
@@ -143,8 +145,8 @@ suite("MssqlProtocolHandler Tests", () => {
                 ),
             );
 
-            expect(connectProfileStub.calledOnceWith(params)).to.be.true;
-            expect(openConnectionDialogStub.notCalled).to.be.true;
+            expect(connectProfileStub).to.have.been.calledOnceWith(params);
+            expect(openConnectionDialogStub).to.not.have.been.called;
         });
 
         test("Should open connection dialog with populated parameters when no matching profile is found", async () => {
@@ -174,18 +176,14 @@ suite("MssqlProtocolHandler Tests", () => {
                 ),
             );
 
-            expect(
-                openConnectionDialogStub.calledOnceWith({
-                    ...params,
-                    // savePassword is auto-added, and non-string values are converted
-                    savePassword: true,
-                    connectTimeout: 15,
-                    trustServerCertificate: true,
-                }),
-                "openConnectionDialog should have been called with expected params",
-            ).to.be.true;
-            expect(connectProfileStub.notCalled, "connectProfile should not have been called").to.be
-                .true;
+            expect(openConnectionDialogStub).to.have.been.calledOnceWith({
+                ...params,
+                // savePassword is auto-added, and non-string values are converted
+                savePassword: true,
+                connectTimeout: 15,
+                trustServerCertificate: true,
+            });
+            expect(connectProfileStub).to.not.have.been.called;
         });
     });
 
@@ -195,8 +193,8 @@ suite("MssqlProtocolHandler Tests", () => {
                 Uri.parse("vscode://ms-mssql.mssql/openConnectionDialog"),
             );
 
-            expect(openConnectionDialogStub.calledOnceWith(undefined)).to.be.true;
-            expect(connectProfileStub.notCalled).to.be.true;
+            expect(openConnectionDialogStub).to.have.been.calledOnceWith(undefined);
+            expect(connectProfileStub).to.not.have.been.called;
         });
 
         test("Should open populated connection dialog when parameters are provided", async () => {
@@ -215,16 +213,14 @@ suite("MssqlProtocolHandler Tests", () => {
                 ),
             );
 
-            expect(
-                openConnectionDialogStub.calledOnceWith({
-                    ...params,
-                    // savePassword is auto-added, and non-string values are converted
-                    savePassword: true,
-                    connectTimeout: 15,
-                    trustServerCertificate: true,
-                }),
-            ).to.be.true;
-            expect(connectProfileStub.notCalled).to.be.true;
+            expect(openConnectionDialogStub).to.have.been.calledOnceWith({
+                ...params,
+                // savePassword is auto-added, and non-string values are converted
+                savePassword: true,
+                connectTimeout: 15,
+                trustServerCertificate: true,
+            });
+            expect(connectProfileStub).to.not.have.been.called;
         });
     });
 
@@ -255,8 +251,8 @@ suite("MssqlProtocolHandler Tests", () => {
             expect(connInfo).to.be.an("object");
             expect(connInfo.server).to.equal("myServer");
             expect(connInfo.database).to.equal("dbName");
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             expect(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 (connInfo as any).madeUpParam,
                 "madeUpParam should be undefined from an invalid value",
             ).to.be.undefined;
