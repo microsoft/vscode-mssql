@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import { IConnectionInfo } from "vscode-mssql";
+import * as Loc from "./constants/locConstants";
 import SqlToolsServiceClient from "./languageservice/serviceclient";
 import { CapabilitiesResult, GetCapabilitiesRequest } from "./models/contracts/connection";
 import { IConnectionProfile } from "./models/interfaces";
@@ -13,6 +14,7 @@ import { Logger } from "./models/logger";
 import VscodeWrapper from "./controllers/vscodeWrapper";
 import MainController from "./controllers/mainController";
 import { cmdAddObjectExplorer } from "./constants/constants";
+import { getConnectionDisplayName } from "./models/connectionInfo";
 
 enum Command {
     connect = "/connect",
@@ -31,7 +33,7 @@ export class MssqlProtocolHandler {
     private _logger: Logger;
 
     constructor(
-        vscodeWrapper: VscodeWrapper,
+        private vscodeWrapper: VscodeWrapper,
         private mainController: MainController,
         private client: SqlToolsServiceClient,
     ) {
@@ -99,12 +101,23 @@ export class MssqlProtocolHandler {
     }
 
     private async connectProfile(profile: IConnectionProfile): Promise<void> {
-        const node = await this.mainController.createObjectExplorerSession(profile);
-        await this.mainController.objectExplorerTree.reveal(node, {
-            focus: true,
-            select: true,
-            expand: true,
-        });
+        await vscode.window.withProgress(
+            {
+                location: vscode.ProgressLocation.Notification,
+                title: Loc.Connection.connectingToProfile(getConnectionDisplayName(profile)),
+                cancellable: false,
+            },
+            async () => {
+                const node = await this.mainController.createObjectExplorerSession(profile);
+                await this.mainController.objectExplorerTree.reveal(node, {
+                    focus: true,
+                    select: true,
+                    expand: true,
+                });
+
+                await vscode.commands.executeCommand("objectExplorer.focus");
+            },
+        );
     }
 
     private openConnectionDialog(connProfile: IConnectionProfile | undefined): void {
