@@ -7,6 +7,7 @@ import { expect, assert } from "chai";
 import * as Utils from "../../src/models/utils";
 import * as Constants from "../../src/constants/constants";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
+import { IConnectionProfile } from "../../src/models/interfaces";
 
 suite("Utility Tests - parseTimeString", () => {
     test("should return false if nothing passed", () => {
@@ -143,3 +144,190 @@ suite.skip("Utility tests - Timer Class", () => {
         void p.then(() => done());
     });
 });
+
+suite("ConnectionMatcher", () => {
+    test("Should match connections correctly", () => {
+        const testCases: {
+            conn1: IConnectionProfile;
+            conn2: IConnectionProfile;
+            expected: Utils.MatchScore;
+        }[] = [
+            // Test ID match (highest priority)
+            {
+                conn1: sqlAuthConnWithId,
+                conn2: sqlAuthConnWithId,
+                expected: Utils.MatchScore.Id,
+            },
+            // Test different IDs
+            {
+                conn1: sqlAuthConn,
+                conn2: {
+                    ...sqlAuthConn,
+                    id: "77777777-7777-7777-7777-777777777777",
+                } as IConnectionProfile,
+                expected: Utils.MatchScore.AllAvailableProps, // Falls back to property matching
+            },
+            // Test connection string exact match
+            {
+                conn1: connStringConn,
+                conn2: connStringConn,
+                expected: Utils.MatchScore.AllAvailableProps,
+            },
+            // Test connection string mismatch
+            {
+                conn1: connStringConn,
+                conn2: {
+                    connectionString: connStringConn.connectionString + "Connection Timeout=77",
+                } as IConnectionProfile,
+                expected: Utils.MatchScore.NotMatch,
+            },
+            // Test connection string vs regular properties
+            {
+                conn1: sqlAuthConn,
+                conn2: connStringConn,
+                expected: Utils.MatchScore.NotMatch,
+            },
+            // Test server only match
+            {
+                conn1: sqlAuthConn,
+                conn2: {
+                    ...sqlAuthConn,
+                    database: "otherDatabase",
+                },
+                expected: Utils.MatchScore.Server,
+            },
+            // Test server normalization (. -> localhost)
+            {
+                conn1: {
+                    ...sqlAuthConn,
+                    server: "localhost",
+                },
+                conn2: {
+                    ...sqlAuthConn,
+                    server: ".",
+                },
+                expected: Utils.MatchScore.AllAvailableProps,
+            },
+            // Test server and database match, but not auth
+            {
+                conn1: sqlAuthConn,
+                conn2: {
+                    ...sqlAuthConn,
+                    authenticationType: Constants.azureMfa,
+                },
+                expected: Utils.MatchScore.ServerAndDatabase,
+            },
+            // Test server, database, and auth match
+            {
+                conn1: sqlAuthConn,
+                conn2: {
+                    ...sqlAuthConn,
+                    commandTimeout: 77,
+                },
+                expected: Utils.MatchScore.ServerDatabaseAndAuth,
+            },
+            // Test all available properties match
+            {
+                conn1: {
+                    ...sqlAuthConn,
+                    commandTimeout: 77,
+                },
+                conn2: {
+                    ...sqlAuthConn,
+                    commandTimeout: 77,
+                },
+                expected: Utils.MatchScore.AllAvailableProps,
+            },
+            // Test Azure MFA with matching account IDs
+            {
+                conn1: azureAuthConn,
+                conn2: { ...azureAuthConn, commandTimeout: 77 },
+                expected: Utils.MatchScore.ServerDatabaseAndAuth,
+            },
+            // Test Azure MFA with different account IDs
+            {
+                conn1: azureAuthConn,
+                conn2: {
+                    ...azureAuthConn,
+                    accountId: "222222.33333",
+                },
+                expected: Utils.MatchScore.ServerAndDatabase,
+            },
+            // Test integrated auth match
+            {
+                conn1: {
+                    server: "myServer",
+                    database: "myDB",
+                    authenticationType: Constants.integratedauth,
+                } as IConnectionProfile,
+                conn2: {
+                    server: "myServer",
+                    database: "myDB",
+                    authenticationType: Constants.integratedauth,
+                } as IConnectionProfile,
+                expected: Utils.MatchScore.AllAvailableProps,
+            },
+            // Test no match - different servers
+            {
+                conn1: sqlAuthConn,
+                conn2: { ...sqlAuthConn, server: "otherServer" },
+                expected: Utils.MatchScore.NotMatch,
+            },
+            // Test different authentication types
+            {
+                conn1: sqlAuthConn,
+                conn2: {
+                    ...azureAuthConn,
+                    authenticationType: Constants.integratedauth,
+                } as IConnectionProfile,
+                expected: Utils.MatchScore.ServerAndDatabase,
+            },
+            // Test SQL auth with different users
+            {
+                conn1: sqlAuthConn,
+                conn2: {
+                    ...sqlAuthConn,
+                    user: "otherUser",
+                },
+                expected: Utils.MatchScore.ServerAndDatabase,
+            },
+        ];
+
+        for (const testCase of testCases) {
+            let result = Utils.ConnectionMatcher.isMatchingConnection(
+                testCase.conn1,
+                testCase.conn2,
+            );
+            expect(
+                result,
+                `Expected ${JSON.stringify(testCase.conn1)} and ${JSON.stringify(testCase.conn2)} match score to be ${testCase.expected}`,
+            ).to.equal(testCase.expected);
+        }
+    });
+});
+
+export const sqlAuthConn = {
+    server: "server1",
+    database: "db1",
+    authenticationType: Constants.sqlAuthentication,
+    user: "user1",
+} as IConnectionProfile;
+
+export const sqlAuthConnWithId = {
+    id: "55555555-5555-5555-5555-555555555555",
+    server: "server1",
+    database: "db1",
+    authenticationType: Constants.sqlAuthentication,
+    user: "user1",
+} as IConnectionProfile;
+
+export const azureAuthConn = {
+    server: "server1",
+    database: "db1",
+    authenticationType: Constants.azureMfa,
+    accountId: "00000.11111",
+} as IConnectionProfile;
+
+export const connStringConn = {
+    connectionString: "Server=myServer;Database=myDB;Integrated Security=true;",
+} as IConnectionProfile;
