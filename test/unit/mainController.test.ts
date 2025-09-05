@@ -59,18 +59,25 @@ suite("MainController Tests", function () {
         untitledSqlDocumentService = TypeMoq.Mock.ofType(UntitledSqlDocumentService);
         mainController.untitledSqlDocumentService = untitledSqlDocumentService.object;
 
+        // Stub SqlOutputContentProvider methods used during tests to avoid side effects
+        (mainController as any)["_outputContentProvider"] = {
+            onDidCloseTextDocument: async () => Promise.resolve(),
+            updateQueryRunnerUri: async () => Promise.resolve(),
+            onUntitledFileSaved: () => undefined,
+        } as any;
+
         setupConnectionManagerMocks(connectionManager);
     });
 
     // Standard closed document event test
-    test("onDidCloseTextDocument should propogate onDidCloseTextDocument to connectionManager", () => {
+    test("onDidCloseTextDocument should propogate onDidCloseTextDocument to connectionManager", async () => {
         // Reset internal timers to ensure clean test state
         (mainController as any)._lastSavedUri = undefined;
         (mainController as any)._lastSavedTimer = undefined;
         (mainController as any)._lastOpenedTimer = undefined;
         (mainController as any)._lastOpenedUri = undefined;
 
-        void mainController.onDidCloseTextDocument(document);
+        await mainController.onDidCloseTextDocument(document);
         try {
             connectionManager.verify(
                 (x) => x.onDidCloseTextDocument(TypeMoq.It.isAny()),
@@ -84,7 +91,7 @@ suite("MainController Tests", function () {
     });
 
     // Saved Untitled file event test
-    test("onDidCloseTextDocument should call untitledDoc function when an untitled file is saved", (done) => {
+    test("onDidCloseTextDocument should call untitledDoc function when an untitled file is saved", async () => {
         // Scheme of older doc must be untitled
         let document2 = <vscode.TextDocument>{
             uri: vscode.Uri.parse(`${LocalizedConstants.untitledScheme}:${docUri}`),
@@ -93,18 +100,13 @@ suite("MainController Tests", function () {
 
         // A save untitled doc constitutes an saveDoc event directly followed by a closeDoc event
         mainController.onDidSaveTextDocument(newDocument);
-        void mainController.onDidCloseTextDocument(document2);
-        try {
-            connectionManager.verify(
-                (x) => x.copyConnectionToFile(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
-            assert.equal(docUriCallback, document2.uri.toString());
-            assert.equal(newDocUriCallback, newDocument.uri.toString());
-            done();
-        } catch (err) {
-            done(new Error(err));
-        }
+        await mainController.onDidCloseTextDocument(document2);
+        connectionManager.verify(
+            (x) => x.copyConnectionToFile(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            TypeMoq.Times.once(),
+        );
+        assert.equal(docUriCallback, document2.uri.toString());
+        assert.equal(newDocUriCallback, newDocument.uri.toString());
     });
 
     // Renamed file event test
@@ -124,7 +126,7 @@ suite("MainController Tests", function () {
 
         // A renamed doc constitutes an openDoc event directly followed by a closeDoc event
         await mainController.onDidOpenTextDocument(newDocument);
-        void mainController.onDidCloseTextDocument(document);
+        await mainController.onDidCloseTextDocument(document);
 
         connectionManager.verify(
             (x) =>
@@ -142,8 +144,8 @@ suite("MainController Tests", function () {
         void mainController.onDidOpenTextDocument(newDocument);
 
         // Cause event time out (above 10 ms should work)
-        setTimeout(() => {
-            void mainController.onDidCloseTextDocument(document);
+        setTimeout(async () => {
+            await mainController.onDidCloseTextDocument(document);
 
             try {
                 connectionManager.verify(
@@ -445,11 +447,7 @@ function mockTextDocument(
     languageId: string = Constants.languageId,
 ): vscode.TextDocument {
     const document = <vscode.TextDocument>{
-        uri: {
-            toString(_skipEncoding?: boolean): string {
-                return docUri;
-            },
-        },
+        uri: vscode.Uri.parse(docUri),
         languageId: languageId,
     };
 
