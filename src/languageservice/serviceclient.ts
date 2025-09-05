@@ -504,6 +504,11 @@ export default class SqlToolsServiceClient {
             let locale = vscode.env.language;
             serverArgs.push("--locale");
             serverArgs.push(locale);
+
+            // Enable parallel message processing to improve performance
+            serverArgs.push("--parallel-message-processing");
+            serverArgs.push("--parallel-message-processing-limit");
+            serverArgs.push(String(100));
         }
 
         // run the service host using dotnet.exe from the path
