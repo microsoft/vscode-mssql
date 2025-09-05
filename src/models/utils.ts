@@ -311,22 +311,22 @@ export enum MatchScore {
     Id = 5,
 }
 
-export class ConnInfoMatcher {
+export class ConnectionMatcher {
     /**
      * Returns the highest match level for the given connection profiles
      * @param current the saved connection profile that's being checked as a match; generally expected to be a complete profile.
      * @param expected the connection info that you're looking for a match for; treated as the partial profile when evaluating `MatchLevel.AllAvailableProps`.
      */
-    public static isMatchingConnectionInfo(
+    public static isMatchingConnection(
         current: IConnectionProfile,
         expected: IConnectionProfile,
     ): MatchScore {
-        // Check for ID match first (highest priority)
+        // Check for ID match first (highest match confidence)
         if (current.id && expected.id && current.id === expected.id) {
             return MatchScore.Id;
         }
 
-        // Check for connection string match - all-or-nothing when connection strings are involved
+        // Check for connection string match; all-or-nothing when connection strings are involved
         if (current.connectionString || expected.connectionString) {
             if (current.connectionString === expected.connectionString) {
                 return MatchScore.AllAvailableProps;
@@ -336,13 +336,13 @@ export class ConnInfoMatcher {
         }
 
         // Check for connection information match (server, database, authentication info)
-        if (ConnInfoMatcher.serverMatches(current, expected)) {
-            if (expected.database && ConnInfoMatcher.databaseMatches(current, expected)) {
+        if (ConnectionMatcher.serverMatches(current, expected)) {
+            if (expected.database && ConnectionMatcher.databaseMatches(current, expected)) {
                 if (
                     expected.authenticationType &&
-                    ConnInfoMatcher.authenticationMatches(current, expected)
+                    ConnectionMatcher.authenticationMatches(current, expected)
                 ) {
-                    if (ConnInfoMatcher.additionalPropertiesMatch(current, expected)) {
+                    if (ConnectionMatcher.additionalPropertiesMatch(current, expected)) {
                         return MatchScore.AllAvailableProps;
                     }
                     return MatchScore.ServerDatabaseAndAuth;
@@ -430,8 +430,7 @@ export class ConnInfoMatcher {
             "id",
         ]);
 
-        // TODO: this is broken and results in all property reads being undefined.
-        for (const key in Object.keys(expected).filter(
+        for (const key of Object.keys(expected).filter(
             (k) => !coreKeys.has(k as keyof IConnectionProfile),
         )) {
             if (current[key] !== expected[key]) {

@@ -25,7 +25,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { Logger } from "./logger";
 import { Deferred } from "../protocol";
-import { ConnInfoMatcher, MatchScore } from "../models/utils";
+import { ConnectionMatcher, MatchScore } from "../models/utils";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
@@ -737,7 +737,7 @@ export class ConnectionStore {
         let bestMatchScore = MatchScore.NotMatch;
 
         for (const savedConn of savedConnections) {
-            const matchLevel = ConnInfoMatcher.isMatchingConnectionInfo(savedConn, connProfile);
+            const matchLevel = ConnectionMatcher.isMatchingConnection(savedConn, connProfile);
 
             if (matchLevel > bestMatchScore) {
                 bestMatchScore = matchLevel;
