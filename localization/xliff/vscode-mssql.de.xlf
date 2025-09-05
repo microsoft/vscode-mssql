@@ -218,12 +218,12 @@
       </trans-unit>
       <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
         <source xml:lang="en">An error occurred while searching database objects</source>
-        <target state="new">An error occurred while searching database objects</target>
+        <target state="translated">Fehler beim Suchen von Datenbankobjekten</target>
       </trans-unit>
       <trans-unit id="++CODE++fe01cd2e56483272d8d46be5c77c37d6be1aba49dfbe2fa79f68b4740723b758">
         <source xml:lang="en">An error occurred while searching database objects: {0}</source>
         <note>{0} is the error detail returned from the search operation</note>
-        <target state="new">An error occurred while searching database objects: {0}</target>
+        <target state="translated">Fehler beim Suchen von Datenbankobjekten: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++56f99fbd59570e105fca5070d135f8f86c67f48168d43f8020b70523f06b21bb">
         <source xml:lang="en">An error occurred: {0}</source>
@@ -947,7 +947,7 @@
       </trans-unit>
       <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
         <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
-        <target state="new">Connection is not active. Please establish a connection before performing this action.</target>
+        <target state="translated">Die Verbindung ist nicht aktiv. Stellen Sie eine Verbindung her, bevor Sie diese Aktion ausführen.</target>
       </trans-unit>
       <trans-unit id="++CODE++28512f31201abdd26ae93d0caaba3b8a3c77113b9665059a9e1d2ba4e47de64d">
         <source xml:lang="en">Connection not found for uri "{0}".</source>
@@ -962,12 +962,12 @@
       <trans-unit id="++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8">
         <source xml:lang="en">Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.</source>
         <note>{0} is the extension ID</note>
-        <target state="new">Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.</target>
+        <target state="translated">Verbindungsfreigabeberechtigung für die Erweiterung verweigert: „{0}“. Verwenden Sie die Berechtigungsverwaltungsbefehle, um dies zu ändern.</target>
       </trans-unit>
       <trans-unit id="++CODE++6fc14523d003cf70290f0110eeafa850232518f52a0d26436b18c1e838cf1c27">
         <source xml:lang="en">Connection sharing permission is required for extension: '{0}'</source>
         <note>{0} is the extension ID</note>
-        <target state="new">Connection sharing permission is required for extension: '{0}'</target>
+        <target state="translated">Eine Verbindungsfreigabeberechtigung ist für die Erweiterung erforderlich: „{0}“</target>
       </trans-unit>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
@@ -976,7 +976,7 @@
       <trans-unit id="++CODE++6ae8947e98979cbbaeb55a8af448297f63002580ddebd9731fd40ec3ddcdc849">
         <source xml:lang="en">Connection with ID "{0}" not found. Please verify the connection ID exists.</source>
         <note>{0} is the connection ID</note>
-        <target state="new">Connection with ID "{0}" not found. Please verify the connection ID exists.</target>
+        <target state="translated">Die Verbindung mit der ID „{0}“ wurde nicht gefunden. Überprüfen Sie, ob die Verbindungs-ID vorhanden ist.</target>
       </trans-unit>
       <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
         <source xml:lang="en">Consider adding a name for this foreign key</source>
@@ -1422,7 +1422,7 @@
       </trans-unit>
       <trans-unit id="++CODE++03c72a0dd31428f797eaadef0452b218e6d7cfbfc8b66e7f47e404818a53cda0">
         <source xml:lang="en">Enter part of an object name to search for</source>
-        <target state="new">Enter part of an object name to search for</target>
+        <target state="translated">Geben Sie einen Teil eines Objektnamens ein, nach dem gesucht werden soll.</target>
       </trans-unit>
       <trans-unit id="++CODE++7014aff13517c4071a9de8a8d338ac3ca12ae8ecf6589941d84170aa47cdcac3">
         <source xml:lang="en">Enter password</source>
@@ -1689,7 +1689,7 @@ Fehler:
       <trans-unit id="++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b">
         <source xml:lang="en">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</source>
         <note>{0} is the connection ID</note>
-        <target state="new">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</target>
+        <target state="translated">Fehler beim Herstellen einer Verbindung mit der ID „{0}“. Überprüfen Sie die Verbindungsdetails und die Netzwerkkonnektivität.</target>
       </trans-unit>
       <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
         <source xml:lang="en">Failed to fetch user tokens.</source>
@@ -2118,11 +2118,11 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++4ce86c72bcd330160b14a711a925bf6f8e24fdd6b26d4a7abbfa548e510648d5">
         <source xml:lang="en">Invalid connection URI provided.</source>
-        <target state="new">Invalid connection URI provided.</target>
+        <target state="translated">Es wurde ein ungültiger Verbindungs-URI angegeben.</target>
       </trans-unit>
       <trans-unit id="++CODE++5c61e4661a7417ada5f0b7d34d9c3cd27dcc3aad485b337ea6d58cd077be7c8c">
         <source xml:lang="en">Invalid connection URI. Please ensure you have an active database connection.</source>
-        <target state="new">Invalid connection URI. Please ensure you have an active database connection.</target>
+        <target state="translated">Ungültige Verbindungs-URI Stellen Sie sicher, dass Sie über eine aktive Datenbankverbindung verfügen.</target>
       </trans-unit>
       <trans-unit id="++CODE++c265d537d7811a1e8fa19df9305f90ad86e0326ad6dd2d585172fcf570023c57">
         <source xml:lang="en">Invalid connection string: {0}</source>
@@ -2610,11 +2610,11 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++971d7b9ca9340d6e8e22146855f8ef9cd9576279575ad1f7bd2fb5f40eaaddf9">
         <source xml:lang="en">No active database connection. Please connect to a database first.</source>
-        <target state="new">No active database connection. Please connect to a database first.</target>
+        <target state="translated">Keine aktive Datenbankverbindung. Stellen Sie zuerst eine Verbindung mit einer Datenbank her.</target>
       </trans-unit>
       <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
         <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
-        <target state="new">No active text editor found. Please open a file with an active database connection.</target>
+        <target state="translated">Keinen aktiven Text-Editor gefunden. Öffnen Sie eine Datei mit einer aktiven Datenbankverbindung.</target>
       </trans-unit>
       <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
         <source xml:lang="en">No changes detected</source>
@@ -2644,7 +2644,7 @@ Fehler:
       <trans-unit id="++CODE++3280128c0901d1323dde9a406ee7d2d6e8e1b98fd30971fa6134b302fec41eca">
         <source xml:lang="en">No database objects found matching '{0}'</source>
         <note>{0} is the search term</note>
-        <target state="new">No database objects found matching '{0}'</target>
+        <target state="translated">Es wurden keine Datenbankobjekte gefunden, die mit „{0}“ übereinstimmen.</target>
       </trans-unit>
       <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
         <source xml:lang="en">No databases found in the selected workspace.</source>
@@ -3369,7 +3369,7 @@ Abfrage: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++448fcd5b80608528b5b492337667acf711f486e31784b41b4bba7066a9527ac4">
         <source xml:lang="en">Search for database objects...</source>
-        <target state="new">Search for database objects...</target>
+        <target state="translated">Nach Datenbankobjekten suchen...</target>
       </trans-unit>
       <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
         <source xml:lang="en">Search options...</source>
@@ -3385,7 +3385,7 @@ Abfrage: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++f0b2ef28c0bec626ad14f56179e18d97cdbfcb4f676c4735f95eae628d079538">
         <source xml:lang="en">Search term cannot be empty</source>
-        <target state="new">Search term cannot be empty</target>
+        <target state="translated">Der Suchbegriff darf nicht leer sein.</target>
       </trans-unit>
       <trans-unit id="++CODE++5c192a3e6f23b125cfaa70c46f6fcd47a2081fa7270e7687687ea8596d2e012f">
         <source xml:lang="en">Search workspaces...</source>
@@ -3468,7 +3468,7 @@ Abfrage: {1}</target>
       <trans-unit id="++CODE++cac9a015dc3356af3f386e840985bfc09d57c0b9cc01a88e26ec67f3501058d8">
         <source xml:lang="en">Select an object to view its definition ({0} results)</source>
         <note>{0} is the number of results</note>
-        <target state="new">Select an object to view its definition ({0} results)</target>
+        <target state="translated">Wählen Sie ein Objekt aus, um dessen Definition anzuzeigen ({0} Ergebnisse).</target>
       </trans-unit>
       <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
         <source xml:lang="en">Select image</source>
@@ -4741,7 +4741,7 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
       </trans-unit>
       <trans-unit id="mssql.showEstimatedPlan">
         <source xml:lang="en">Estimated Plan</source>
-        <target state="new">Estimated Plan</target>
+        <target state="translated">Geschätzter Plan</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>
@@ -4959,7 +4959,7 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       </trans-unit>
       <trans-unit id="mssql.searchObjects">
         <source xml:lang="en">Search Objects</source>
-        <target state="new">Search Objects</target>
+        <target state="translated">Objekte suchen</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
@@ -5149,7 +5149,7 @@ Zeigen Sie den geschätzten Plan an, ohne die Abfrage auszuführen, oder zeigen 
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription">
         <source xml:lang="en">When enabled, connection groups will be collapsed instead of expanded at startup.</source>
-        <target state="new">When enabled, connection groups will be collapsed instead of expanded at startup.</target>
+        <target state="translated">Wenn diese Option aktiviert ist, werden die Verbindungsgruppen beim Start reduziert und nicht erweitert.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
