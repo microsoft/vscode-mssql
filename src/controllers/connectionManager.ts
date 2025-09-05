@@ -1168,8 +1168,8 @@ export default class ConnectionManager {
     /**
      * Delete a credential from the credential store
      */
-    public async deleteCredential(profile: IConnectionProfile): Promise<boolean> {
-        return await this._connectionStore.deleteCredential(profile);
+    public async deleteCredential(profile: IConnectionProfile): Promise<void> {
+        await this._connectionStore.deleteCredential(profile);
     }
 
     /**

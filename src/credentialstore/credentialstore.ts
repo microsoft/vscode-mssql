@@ -82,14 +82,10 @@ export class CredentialStore implements ICredentialStore {
         return true;
     }
 
-    public async deleteCredential(credentialId: string): Promise<boolean> {
+    public async deleteCredential(credentialId: string): Promise<void> {
         let cred: Contracts.Credential = new Contracts.Credential();
         cred.credentialId = credentialId;
         await this._secretStorage.delete(credentialId);
-        const success = await this._client!.sendRequest(
-            Contracts.DeleteCredentialRequest.type,
-            cred,
-        );
-        return success;
+        await this._client!.sendRequest(Contracts.DeleteCredentialRequest.type, cred);
     }
 }

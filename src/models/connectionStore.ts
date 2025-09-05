@@ -617,13 +617,13 @@ export class ConnectionStore {
      * Deletes the password for a connection from the credential store
      * @param profile Connection profile
      */
-    public async deleteCredential(profile: IConnectionProfile): Promise<boolean> {
+    public async deleteCredential(profile: IConnectionProfile): Promise<void> {
         let credentialId: string;
 
         // Use profile ID if available
 
         credentialId = ConnectionStore.formatCredentialIdForCred(profile);
-        const result = await this._credentialStore.deleteCredential(credentialId);
+        await this._credentialStore.deleteCredential(credentialId);
 
         // Also try to delete legacy format if using profile ID
         if (profile.id) {
@@ -639,7 +639,6 @@ export class ConnectionStore {
                 // Ignore errors for legacy cleanup
             }
         }
-        return result;
     }
 
     /**
