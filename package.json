@@ -536,7 +536,7 @@
                 },
                 {
                     "command": "mssql.schemaCompare",
-                    "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "2_MSSQL_serverDbActions@2"
                 },
                 {
@@ -705,7 +705,7 @@
                 },
                 {
                     "command": "mssql.schemaCompare",
-                    "when": "view == objectExplorer && config.mssql.enableRichExperiences && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/"
                 },
                 {
                     "command": "mssql.removeObjectExplorerNode",
