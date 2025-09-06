@@ -1514,8 +1514,8 @@ export default class MainController implements vscode.Disposable {
                     async (
                         ...args: (
                             | ConnectionNode
-                            | ITreeNodeInfo
                             | SchemaCompareEndpointInfo
+                            | string
                             | boolean
                             | undefined
                         )[]
@@ -2636,8 +2636,8 @@ export default class MainController implements vscode.Disposable {
      * This method normalizes the arguments and launches the Schema Compare UI.
      */
     public async onSchemaCompare(
-        sourceNode?: ConnectionNode | ITreeNodeInfo | SchemaCompareEndpointInfo | undefined,
-        targetNode?: ConnectionNode | ITreeNodeInfo | SchemaCompareEndpointInfo | undefined,
+        sourceNode?: ConnectionNode | SchemaCompareEndpointInfo | string | undefined,
+        targetNode?: ConnectionNode | SchemaCompareEndpointInfo | string | undefined,
         runComparison: boolean = false,
     ): Promise<void> {
         const result = await this.schemaCompareService.schemaCompareGetDefaultOptions();
