@@ -1524,14 +1524,12 @@ export default class MainController implements vscode.Disposable {
                         let targetNode = undefined;
                         let runComparison: boolean | undefined;
 
-                        if (args.length === 2 && args[1] === undefined) {
-                            // Object-style invocation
-                            sourceNode = args[0];
-                        } else if (args.length > 2) {
+                        if (args.length >= 2) {
                             // Positional arguments: [sourceNode, targetNode, runComparison]
                             sourceNode = args[0];
                             targetNode = args[1];
-                            runComparison = typeof args[2] === "boolean" ? args[2] : false;
+                            runComparison =
+                                args.length > 2 && typeof args[2] === "boolean" ? args[2] : false;
                         }
 
                         await this.onSchemaCompare(sourceNode, targetNode, runComparison);
