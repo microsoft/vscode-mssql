@@ -40,7 +40,7 @@ import {
     includeExcludeAllNodes,
 } from "./schemaCompareUtils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { DiffEntry, ITreeNodeInfo } from "vscode-mssql";
+import { DiffEntry } from "vscode-mssql";
 import { sendActionEvent, startActivity, sendErrorEvent } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { deepClone } from "../models/utils";
