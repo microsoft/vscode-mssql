@@ -40,7 +40,7 @@ import {
     includeExcludeAllNodes,
 } from "./schemaCompareUtils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { DiffEntry } from "vscode-mssql";
+import { DiffEntry, ITreeNodeInfo } from "vscode-mssql";
 import { sendActionEvent, startActivity, sendErrorEvent } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { deepClone } from "../models/utils";
@@ -49,6 +49,7 @@ import * as locConstants from "../constants/locConstants";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { cmdAddObjectExplorer } from "../constants/constants";
 import { getErrorMessage } from "../utils/utils";
+import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -61,9 +62,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
-        sourceNode: any,
-        targetNode: any,
-        runComparison: boolean | undefined,
+        sourceNode: ConnectionNode | ITreeNodeInfo | mssql.SchemaCompareEndpointInfo | undefined,
+        targetNode: ConnectionNode | ITreeNodeInfo | mssql.SchemaCompareEndpointInfo | undefined,
+        runComparison: boolean,
         private readonly schemaCompareService: mssql.ISchemaCompareService,
         private readonly connectionMgr: ConnectionManager,
         schemaCompareOptionsResult: mssql.SchemaCompareOptionsResult,
@@ -125,14 +126,20 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             `SchemaCompareWebViewController created with operation ID: ${this.operationId} - OperationId: ${this.operationId}`,
         );
 
+        let source = "";
+        let target = "";
         if (this.isSqlProjectNodeWithFilePath(sourceNode)) {
-            sourceNode = this.getFullSqlProjectsPathFromNode(sourceNode);
+            source = this.getFullSqlProjectsPathFromNode(sourceNode);
         }
         if (this.isSqlProjectNodeWithFilePath(targetNode)) {
-            targetNode = this.getFullSqlProjectsPathFromNode(targetNode);
+            target = this.getFullSqlProjectsPathFromNode(targetNode);
         }
 
-        void this.start(sourceNode, targetNode, runComparison || false);
+        void this.start(
+            source && source.trim() ? source : sourceNode,
+            target && target.trim() ? target : targetNode,
+            runComparison,
+        );
         this.registerRpcHandlers();
 
         this.registerDisposable(
@@ -194,8 +201,18 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
      * @param comparisonResult Result of a previous comparison, if available.
      */
     public async start(
-        sourceContext: any,
-        targetContext: any,
+        sourceContext:
+            | ConnectionNode
+            | ITreeNodeInfo
+            | mssql.SchemaCompareEndpointInfo
+            | string
+            | undefined,
+        targetContext:
+            | ConnectionNode
+            | ITreeNodeInfo
+            | mssql.SchemaCompareEndpointInfo
+            | string
+            | undefined,
         runComparison: boolean,
         comparisonResult: mssql.SchemaCompareResult = undefined,
     ): Promise<void> {
@@ -205,7 +222,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
         // Resolve source and target endpoints
         const source = await this.resolveEndpointInfo(sourceContext);
-        let target: any;
+        let target = undefined;
         if (targetContext !== undefined) {
             target = await this.resolveEndpointInfo(targetContext);
         }

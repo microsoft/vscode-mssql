@@ -351,10 +351,19 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("start - resolves targetContext and calls launch with correct target", async () => {
-        const mockTarget = {
+        const mockTarget: mssql.SchemaCompareEndpointInfo = {
             endpointType: 1,
             serverName: "targetServer",
             databaseName: "targetDb",
+            packageFilePath: "",
+            serverDisplayName: "",
+            ownerUri: "",
+            connectionDetails: undefined,
+            connectionName: "",
+            projectFilePath: "",
+            targetScripts: [],
+            dataSchemaProvider: "",
+            extractTarget: 5,
         };
         controller = new SchemaCompareWebViewController(
             mockContext,
@@ -387,15 +396,33 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("start - calls launch with runComparison true", async () => {
-        const mockSource = {
+        const mockSource: mssql.SchemaCompareEndpointInfo = {
             endpointType: 1,
             serverName: "sourceServer",
             databaseName: "sourceDb",
+            packageFilePath: "",
+            serverDisplayName: "",
+            ownerUri: "",
+            connectionDetails: undefined,
+            connectionName: "",
+            projectFilePath: "",
+            targetScripts: [],
+            dataSchemaProvider: "",
+            extractTarget: 5,
         };
-        const mockTarget = {
+        const mockTarget: mssql.SchemaCompareEndpointInfo = {
             endpointType: 1,
             serverName: "targetServer",
             databaseName: "targetDb",
+            packageFilePath: "",
+            serverDisplayName: "",
+            ownerUri: "",
+            connectionDetails: undefined,
+            connectionName: "",
+            projectFilePath: "",
+            targetScripts: [],
+            dataSchemaProvider: "",
+            extractTarget: 5,
         };
         controller = new SchemaCompareWebViewController(
             mockContext,
@@ -426,16 +453,19 @@ suite("SchemaCompareWebViewController Tests", () => {
 
     // lewissanchez todo: remove async method from constructor and call a seperate async method to "start" the controller with a source endpoint
     test.skip("start - called with sqlproject path - sets sourceEndpointInfo correctly", () => {
-        const mockSqlProjectNode = {
-            treeDataProvider: {
-                roots: [
-                    {
-                        projectFileUri: {
-                            fsPath: "c:\\TestSqlProject\\TestProject.sqlproj",
-                        },
-                    },
-                ],
-            },
+        const mockSqlProjectNode: mssql.SchemaCompareEndpointInfo = {
+            endpointType: 1,
+            serverName: "targetServer",
+            databaseName: "targetDb",
+            packageFilePath: "",
+            serverDisplayName: "",
+            ownerUri: "",
+            connectionDetails: undefined,
+            connectionName: "",
+            projectFilePath: "c:\\TestSqlProject\\TestProject.sqlproj",
+            targetScripts: [],
+            dataSchemaProvider: "",
+            extractTarget: 5,
         };
 
         const scController = new SchemaCompareWebViewController(
