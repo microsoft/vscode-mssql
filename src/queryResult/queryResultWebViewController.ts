@@ -105,6 +105,14 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         this._queryResultStateMap.set(uri, state);
                     }
                 }
+                if (e.affectsConfiguration("mssql.resultsMissingValueColor")) {
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        state.resultsMissingValueColor = this.vscodeWrapper
+                            .getConfiguration(Constants.extensionName)
+                            .get(Constants.extConfigResultKeys.ResultsMissingValueColor);
+                        this._queryResultStateMap.set(uri, state);
+                    }
+                }
                 if (e.affectsConfiguration("mssql.resultsGrid.autoSizeColumns")) {
                     for (const [uri, state] of this._queryResultStateMap) {
                         state.autoSizeColumns = this.getAutoSizeColumnsConfig();

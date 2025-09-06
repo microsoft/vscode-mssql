@@ -159,6 +159,9 @@ export const QueryResultPane = () => {
     const messages = useQueryResultSelector<qr.IMessage[]>((s) => s.messages);
     const uri = useQueryResultSelector<string | undefined>((s) => s.uri);
     const fontSettings = useQueryResultSelector<qr.FontSettings>((s) => s.fontSettings);
+    const resultsMissingValueColor = useQueryResultSelector<string | undefined>(
+        (s) => s.resultsMissingValueColor,
+    );
     const tabStates = useQueryResultSelector<qr.QueryResultTabStates | undefined>(
         (s) => s.tabStates,
     );
@@ -349,6 +352,7 @@ export const QueryResultPane = () => {
                         uri={uri}
                         linkHandler={linkHandler}
                         gridId={gridId}
+                        resultsMissingValueColorSetting={resultsMissingValueColor}
                     />
                 )}
 
@@ -459,6 +463,7 @@ export const QueryResultPane = () => {
                             uri={uri}
                             resultSetSummaries={resultSetSummaries}
                             fontSettings={fontSettings}
+                            resultsMissingValueColorSetting={resultsMissingValueColor}
                         />
                         <CommandBar uri={uri} viewMode={viewMode} />
                     </div>

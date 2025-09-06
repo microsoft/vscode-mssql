@@ -101,6 +101,7 @@ export function textFormatter(
     _columnDef: any | undefined,
     _dataContext: any | undefined,
     addClasses?: string,
+    resultsMissingValueColorSetting?: string,
 ): string | { text: string; addClasses: string } {
     let cellClasses = "grid-cell-value-container";
     let valueToDisplay = "";
@@ -113,6 +114,7 @@ export function textFormatter(
             titleValue = valueToDisplay;
         } else {
             cellClasses += " missing-value";
+            cellStyle += `display: block; background-color: ${resultsMissingValueColorSetting || "transparent"};`;
         }
     } else if (typeof value === "string" || (value && value.text)) {
         if (value.text) {

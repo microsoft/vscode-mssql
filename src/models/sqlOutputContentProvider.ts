@@ -40,6 +40,7 @@ class ResultsConfig implements Interfaces.IResultsConfig {
     messagesDefaultOpen: boolean;
     resultsFontSize: number;
     resultsFontFamily: string;
+    resultsMissingValueColor: string;
 }
 
 export class SqlOutputContentProvider {

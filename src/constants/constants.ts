@@ -207,6 +207,7 @@ export enum extConfigResultKeys {
     MessagesDefaultOpen = "messagesDefaultOpen",
     ResultsFontSize = "resultsFontSize",
     ResultsFontFamily = "resultsFontFamily",
+    ResultsMissingValueColor = "resultsMissingValueColor",
 }
 export const sqlToolsServiceInstallDirConfigKey = "installDir";
 export const sqlToolsServiceExecutableFilesConfigKey = "executableFiles";

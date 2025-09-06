@@ -105,6 +105,7 @@
     "mssql.shortcuts": "Shortcuts related to the results window",
     "mssql.messagesDefaultOpen": "True for the messages pane to be open by default; false for closed",
     "mssql.resultsFontFamily": "Set the font family for the results grid; set to blank to use the editor font",
+    "mssql.resultsMissingValueColor": "Set the background color to display for missing results (Null)",
     "mssql.resultsFontSize": "Set the font size for the results grid; set to blank to use the editor size",
     "mssql.saveAsCsv.includeHeaders": "[Optional] When true, column headers are included when saving results as CSV",
     "mssql.saveAsCsv.delimiter": "[Optional] Delimiter for separating data items when saving results as CSV. Choose from common separators like comma (,), tab (\\t), semicolon (;), or pipe (|)",
