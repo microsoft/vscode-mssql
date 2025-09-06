@@ -28,7 +28,6 @@ suite("SchemaCompareWebViewController Tests", () => {
     let controller: SchemaCompareWebViewController;
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let treeNode: TreeNodeInfo;
     let mockSchemaCompareService: TypeMoq.IMock<mssql.ISchemaCompareService>;
     let mockConnectionManager: TypeMoq.IMock<ConnectionManager>;
     let mockConnectionInfo: TypeMoq.IMock<ConnectionInfo>;
@@ -215,13 +214,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             extensionUri: vscode.Uri.parse("file://test"),
             extensionPath: "path",
         } as unknown as vscode.ExtensionContext;
-
-        let context: mssql.TreeNodeContextValue = {
-            type: "",
-            subType: "",
-            filterable: false,
-            hasFilters: false,
-        };
 
         let connInfo: IConnectionProfile = {
             applicationName: "vscode-msssql",
