@@ -13,7 +13,7 @@ import {
     SelectionEvents,
     makeStyles,
 } from "@fluentui/react-components";
-import { DismissRegular, Search20Regular } from "@fluentui/react-icons";
+import { DismissRegular, SearchRegular } from "@fluentui/react-icons";
 import { ApiStatus, ColorThemeKind } from "../../../../../sharedInterfaces/webview";
 import { themeType } from "../../../../common/utils";
 import { locConstants as Loc } from "../../../../common/locConstants";
@@ -147,25 +147,26 @@ const FabricExplorerHeader = ({
                     className={styles.inputSection}
                     placeholder={Loc.connectionDialog.filterByKeyword}
                     contentBefore={
-                        <Search20Regular aria-label={Loc.connectionDialog.filterByKeyword} />
+                        <SearchRegular aria-label={Loc.connectionDialog.filterByKeyword} />
                     }
                     contentAfter={
-                        <DismissRegular
-                            style={{
-                                cursor: "pointer",
-                                visibility: searchValue ? "visible" : "hidden",
-                            }}
-                            onClick={(e) => handleSearchValueChanged("", e)}
-                            onKeyDown={(e) => {
-                                if (e.key === Keys.Enter) {
-                                    handleSearchValueChanged("", e);
-                                }
-                            }}
-                            aria-label={Loc.common.clear}
-                            title={Loc.common.clear}
-                            role="button"
-                            tabIndex={searchValue ? 0 : -1}
-                        />
+                        searchValue ? (
+                            <DismissRegular
+                                style={{
+                                    cursor: "pointer",
+                                }}
+                                onClick={(e) => handleSearchValueChanged("", e)}
+                                onKeyDown={(e) => {
+                                    if (e.key === Keys.Enter) {
+                                        handleSearchValueChanged("", e);
+                                    }
+                                }}
+                                aria-label={Loc.common.clear}
+                                title={Loc.common.clear}
+                                role="button"
+                                tabIndex={searchValue ? 0 : -1}
+                            />
+                        ) : undefined
                     }
                     onChange={(e, data) => handleSearchValueChanged(data.value, e)}
                     value={searchValue}
