@@ -3,29 +3,29 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ChangeEvent, useEffect, useState } from "react";
+import { BaseSyntheticEvent, useEffect, useState } from "react";
 import {
     Dropdown,
     Input,
-    InputOnChangeData,
     Label,
     Option,
     OptionOnSelectData,
     SelectionEvents,
     makeStyles,
 } from "@fluentui/react-components";
-import { Search20Regular } from "@fluentui/react-icons";
+import { DismissRegular, Search20Regular } from "@fluentui/react-icons";
 import { ApiStatus, ColorThemeKind } from "../../../../../sharedInterfaces/webview";
 import { themeType } from "../../../../common/utils";
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { IAzureAccount, IAzureTenant } from "../../../../../sharedInterfaces/connectionDialog";
 import { addNewMicrosoftAccount } from "../../../../common/constants";
+import { Keys } from "../../../../common/keys";
 
 const FabricExplorerHeader = ({
     onSignIntoMicrosoftAccount,
     onSelectAccountId,
     onSelectTenantId,
-    onSearchInputChanged,
+    onSearchValueChanged,
     searchValue = "",
     selectedTypeFilters: _selectedTypeFilters = [],
     azureAccounts = [],
@@ -86,6 +86,11 @@ const FabricExplorerHeader = ({
         onSelectTenantId(tenantId);
     }
 
+    function handleSearchValueChanged(value: string, e: BaseSyntheticEvent) {
+        onSearchValueChanged(value);
+        e?.stopPropagation();
+    }
+
     return (
         <div className={styles.headerContainer}>
             <div className={styles.dropdownContainer}>
@@ -141,10 +146,28 @@ const FabricExplorerHeader = ({
                 <Input
                     className={styles.inputSection}
                     placeholder={Loc.connectionDialog.filterByKeyword}
-                    contentAfter={
+                    contentBefore={
                         <Search20Regular aria-label={Loc.connectionDialog.filterByKeyword} />
                     }
-                    onChange={onSearchInputChanged}
+                    contentAfter={
+                        <DismissRegular
+                            style={{
+                                cursor: "pointer",
+                                visibility: searchValue ? "visible" : "hidden",
+                            }}
+                            onClick={(e) => handleSearchValueChanged("", e)}
+                            onKeyDown={(e) => {
+                                if (e.key === Keys.Enter) {
+                                    handleSearchValueChanged("", e);
+                                }
+                            }}
+                            aria-label={Loc.common.clear}
+                            title={Loc.common.clear}
+                            role="button"
+                            tabIndex={searchValue ? 0 : -1}
+                        />
+                    }
+                    onChange={(e, data) => handleSearchValueChanged(data.value, e)}
                     value={searchValue}
                 />
             </div>
@@ -158,7 +181,7 @@ interface FabricBrowserHeaderProps {
     onSignIntoMicrosoftAccount: () => void;
     onSelectAccountId: (accountId: string) => void;
     onSelectTenantId: (tenantId: string) => void;
-    onSearchInputChanged: (_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) => void;
+    onSearchValueChanged: (searchValue: string) => void;
     azureAccounts: IAzureAccount[];
     azureTenants: IAzureTenant[];
     selectedAccountId: string | undefined;
@@ -181,15 +204,16 @@ const useStyles = makeStyles({
     headerContainer: {
         display: "flex",
         flexDirection: "row",
-        justifyContent: "space-between",
         alignItems: "flex-end",
         padding: "8px",
+        minWidth: 0,
     },
     dropdownContainer: {
         display: "flex",
         flexDirection: "row",
         gap: "12px",
         alignItems: "flex-start",
+        flexShrink: 0,
     },
     dropdownGroup: {
         display: "flex",
@@ -217,13 +241,17 @@ const useStyles = makeStyles({
         },
     },
     inputSection: {
-        marginRight: "20px",
+        flex: 1,
+        minWidth: 0,
+        width: "100%",
+        fontSize: "12px",
     },
     searchAndFilterSection: {
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
-        flexShrink: 0,
+        flex: 1,
+        minWidth: 0,
         marginLeft: "8px",
     },
     filterLabel: {

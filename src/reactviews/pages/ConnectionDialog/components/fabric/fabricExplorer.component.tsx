@@ -3,12 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ChangeEvent, useContext, useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import { ConnectionDialogContext } from "../../connectionDialogStateProvider";
 import FabricExplorerHeader from "./fabricExplorerHeader.component";
 import { FabricWorkspaceContentsList } from "./fabricWorkspaceContentsList.component";
 import { FabricWorkspacesList } from "./fabricWorkspacesList.component";
-import { InputOnChangeData } from "@fluentui/react-components";
 import { FabricSqlDbInfo, FabricWorkspaceInfo } from "../../../../../sharedInterfaces/fabric";
 import { Status } from "../../../../../sharedInterfaces/webview";
 import { useFabricExplorerStyles } from "./fabricExplorer.styles";
@@ -62,8 +61,8 @@ export const FabricExplorer = ({
     function handleDatabaseSelected(database: FabricSqlDbInfo) {
         onSelectDatabase(database);
     }
-    function handleSearchInputChanged(_: ChangeEvent<HTMLInputElement>, data: InputOnChangeData) {
-        setSearchFilter(data.value);
+    function handleSearchValueChanged(searchValue: string) {
+        setSearchFilter(searchValue);
     }
 
     return (
@@ -78,7 +77,7 @@ export const FabricExplorer = ({
                 onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
                 onSelectAccountId={handleSelectAccountId}
                 onSelectTenantId={handleSelectTenantId}
-                onSearchInputChanged={handleSearchInputChanged}
+                onSearchValueChanged={handleSearchValueChanged}
             />
             <div className={fabricStyles.workspaceExplorer}>
                 <FabricWorkspacesList
