@@ -279,19 +279,19 @@ suite("SchemaCompareWebViewController Tests", () => {
             containerName: undefined,
         };
 
-        treeNode = new TreeNodeInfo(
-            "localhost,1433, <default> (sa)",
-            context,
-            vscode.TreeItemCollapsibleState.None,
-            "localhost,1433",
-            null,
-            "Server",
-            "localhost,1433_NULL_sa_SqlLogin_trustServerCertificate:true_applicationName:vscode-mssql",
-            connInfo,
-            undefined,
-            null,
-            undefined,
-        );
+        const sourceNodeLocalHost: mssql.SchemaCompareEndpointInfo = {
+            endpointType: 2,
+            packageFilePath: "",
+            serverDisplayName: "",
+            serverName: "",
+            databaseName: "",
+            ownerUri: "",
+            connectionDetails: connInfo as any,
+            projectFilePath: "",
+            targetScripts: ["/TestSqlProject/TestProject/Address.sql"],
+            extractTarget: 5,
+            dataSchemaProvider: "",
+        };
 
         mockSchemaCompareService = TypeMoq.Mock.ofType<mssql.ISchemaCompareService>();
 
@@ -326,7 +326,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         controller = new SchemaCompareWebViewController(
             mockContext,
             vscodeWrapper.object,
-            treeNode,
+            sourceNodeLocalHost,
             undefined,
             false,
             mockSchemaCompareService.object,
