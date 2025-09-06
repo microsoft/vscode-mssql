@@ -1661,6 +1661,12 @@
   "Click to connect to a database": "Click to connect to a database",
   "Connecting": "Connecting",
   "Connection error": "Connection error",
+  "Connecting to {0}.../{0} is the connection display name": {
+    "message": "Connecting to {0}...",
+    "comment": [
+      "{0} is the connection display name"
+    ]
+  },
   "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}/{0} is the list of display names for the connections that have been ignored": {
     "message": "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}",
     "comment": [

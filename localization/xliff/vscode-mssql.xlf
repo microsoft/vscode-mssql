@@ -687,6 +687,10 @@
     <trans-unit id="++CODE++03cdf40907b9e95ff338fe3d4fd451910410c1dbddd93e543b590a40755e6744">
       <source xml:lang="en">Connecting to your SQL Server Docker container</source>
     </trans-unit>
+    <trans-unit id="++CODE++9b8df2904fd9e25473fed50a3df04dc0629dec82daa72d6085cab8d1c63e4f65">
+      <source xml:lang="en">Connecting to {0}...</source>
+      <note>{0} is the connection display name</note>
+    </trans-unit>
     <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
       <source xml:lang="en">Connecting to: </source>
     </trans-unit>

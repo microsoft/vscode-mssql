@@ -1290,6 +1290,14 @@ export class StatusBar {
 }
 
 export class Connection {
+    public static connectingToProfile = (profileName: string) => {
+        return l10n.t({
+            message: "Connecting to {0}...",
+            args: [profileName],
+            comment: ["{0} is the connection display name"],
+        });
+    };
+
     public static missingConnectionIdsError = (connectionDisplayNames: string[]) => {
         return l10n.t({
             message:
@@ -1333,6 +1341,7 @@ export class Connection {
     public static NoTenantSelected = l10n.t("No tenant selected");
     public static SelectTenant = l10n.t("Select a tenant");
 }
+
 export class MssqlChatAgent {
     public static noModelFound = l10n.t("No model found.");
     public static noToolsToProcess = l10n.t("No tools to process.");
