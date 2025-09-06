@@ -3,10 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useMemo } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { ConnectButton } from "./components/connectButton.component";
-import { Button, Label, makeStyles } from "@fluentui/react-components";
+import {
+    Button,
+    Label,
+    makeStyles,
+    Accordion,
+    AccordionHeader,
+    AccordionItem,
+    AccordionPanel,
+} from "@fluentui/react-components";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import {
     AuthenticationType,
@@ -27,6 +35,7 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
 import EntraSignInEmpty from "./components/entraSignInEmpty.component";
 import { FabricExplorer } from "./components/fabric/fabricExplorer.component";
 import { getTypeDisplayName } from "./components/fabric/fabricWorkspaceContentsList.component";
+import { useAccordionStyles } from "../../common/styles";
 
 export const FabricBrowsePage = () => {
     const context = useContext(ConnectionDialogContext);
@@ -36,8 +45,16 @@ export const FabricBrowsePage = () => {
 
     const styles = useStyles();
     const formStyles = useFormStyles();
+    const accordionStyles = useAccordionStyles();
 
     const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
+    const [selectedDatabaseName, setSelectedDatabaseName] = useState<string>("");
+
+    const selectedAzureAccountName = useMemo(() => {
+        return context.state.formComponents?.accountId?.options?.find(
+            (opt) => opt.value === context.state.formState.accountId,
+        )?.displayName;
+    }, [context.state.formState.accountId]);
 
     useEffect(() => {
         if (
@@ -79,6 +96,7 @@ export const FabricBrowsePage = () => {
                 setConnectionProperty("server", serverUrl);
                 setConnectionProperty("profileName", generateProfileName(database));
                 setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
+                setSelectedDatabaseName(generateProfileName(database));
 
                 return;
             }
@@ -87,6 +105,7 @@ export const FabricBrowsePage = () => {
                 setConnectionProperty("database", database.database);
                 setConnectionProperty("profileName", generateProfileName(database));
                 setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
+                setSelectedDatabaseName(generateProfileName(database));
 
                 return;
             default:
@@ -108,63 +127,95 @@ export const FabricBrowsePage = () => {
             />
             {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
                 <>
-                    <div className={styles.componentGroupHeader}>
-                        <Label>{Loc.connectionDialog.fabricWorkspaces}</Label>
-                    </div>
-                    <div className={styles.componentGroupContainer}>
-                        <FabricExplorer
-                            fabricWorkspaces={context.state.fabricWorkspaces}
-                            fabricWorkspacesLoadStatus={context.state.fabricWorkspacesLoadStatus}
-                            onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
-                            onSelectAccountId={handleSelectAccountId}
-                            onSelectTenantId={handleSelectTenantId}
-                            onSelectWorkspace={handleSelectWorkspace}
-                            onSelectDatabase={handleDatabaseSelected}
-                        />
-                    </div>
-
-                    {context.state.formState.server && (
-                        <>
-                            <div
-                                className={styles.componentGroupHeader}
-                                style={{ marginTop: "16px" }}>
-                                <Label>{Loc.connectionDialog.connectionAuthentication}</Label>
-                            </div>
-                            <div className={styles.componentGroupContainer}>
-                                {context.state.connectionComponents.mainOptions
-                                    .filter(
-                                        (opt) => fabricAuthOptions.includes(opt), // filter to only necessary auth options
-                                    )
-                                    .map((inputName, idx) => {
-                                        const component =
-                                            context.state.formComponents[
-                                                inputName as keyof IConnectionDialogProfile
-                                            ];
-                                        if (component?.hidden !== false) {
-                                            return undefined;
+                    <Accordion
+                        multiple
+                        collapsible
+                        defaultOpenItems={[
+                            "workspaces",
+                            ...(selectedAzureAccountName ? [] : ["auth"]), // auto-open auth panel if no account is selected
+                        ]}>
+                        <AccordionItem
+                            value="workspaces"
+                            className={accordionStyles.accordionItem}
+                            style={{ marginRight: "0px" }}>
+                            <AccordionHeader>
+                                <Label>{Loc.connectionDialog.fabricWorkspaces}</Label>
+                                {selectedDatabaseName && (
+                                    <>
+                                        <Label style={{ marginLeft: "8px", marginRight: "8px" }}>
+                                            •
+                                        </Label>
+                                        <Label>{selectedDatabaseName}</Label>
+                                    </>
+                                )}
+                            </AccordionHeader>
+                            <AccordionPanel
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                collapseMotion={{ ...({ unmountOnExit: false } as any) }}>
+                                <div className={styles.componentGroupContainer}>
+                                    <FabricExplorer
+                                        fabricWorkspaces={context.state.fabricWorkspaces}
+                                        fabricWorkspacesLoadStatus={
+                                            context.state.fabricWorkspacesLoadStatus
                                         }
+                                        onSignIntoMicrosoftAccount={handleSignIntoMicrosoftAccount}
+                                        onSelectAccountId={handleSelectAccountId}
+                                        onSelectTenantId={handleSelectTenantId}
+                                        onSelectWorkspace={handleSelectWorkspace}
+                                        onSelectDatabase={handleDatabaseSelected}
+                                    />
+                                </div>
+                            </AccordionPanel>
+                        </AccordionItem>
 
-                                        return (
-                                            <FormField<
-                                                IConnectionDialogProfile,
-                                                ConnectionDialogWebviewState,
-                                                ConnectionDialogFormItemSpec,
-                                                ConnectionDialogContextProps
-                                            >
-                                                key={idx}
-                                                context={context}
-                                                component={component}
-                                                idx={idx}
-                                                props={{ orientation: "horizontal" }}
-                                                componentProps={{
-                                                    disabled: inputName === "authenticationType",
-                                                }}
-                                            />
-                                        );
-                                    })}
-                            </div>
-                        </>
-                    )}
+                        <AccordionItem value="auth" className={accordionStyles.accordionItem}>
+                            <AccordionHeader>
+                                <Label>{Loc.connectionDialog.connectionAuthentication}</Label>
+                                {selectedAzureAccountName && (
+                                    <>
+                                        <Label style={{ marginLeft: "8px", marginRight: "8px" }}>
+                                            •
+                                        </Label>
+                                        <Label>{selectedAzureAccountName}</Label>
+                                    </>
+                                )}
+                            </AccordionHeader>
+                            <AccordionPanel>
+                                <div className={styles.componentGroupContainer}>
+                                    {context.state.connectionComponents.mainOptions
+                                        .filter((opt) => fabricAuthOptions.includes(opt))
+                                        .map((inputName, idx) => {
+                                            const component =
+                                                context.state.formComponents[
+                                                    inputName as keyof IConnectionDialogProfile
+                                                ];
+                                            if (component?.hidden !== false) {
+                                                return undefined;
+                                            }
+
+                                            return (
+                                                <FormField<
+                                                    IConnectionDialogProfile,
+                                                    ConnectionDialogWebviewState,
+                                                    ConnectionDialogFormItemSpec,
+                                                    ConnectionDialogContextProps
+                                                >
+                                                    key={idx}
+                                                    context={context}
+                                                    component={component}
+                                                    idx={idx}
+                                                    props={{ orientation: "horizontal" }}
+                                                    componentProps={{
+                                                        disabled:
+                                                            inputName === "authenticationType",
+                                                    }}
+                                                />
+                                            );
+                                        })}
+                                </div>
+                            </AccordionPanel>
+                        </AccordionItem>
+                    </Accordion>
 
                     <AdvancedOptionsDrawer
                         isAdvancedDrawerOpen={isAdvancedDrawerOpen}
@@ -206,9 +257,9 @@ const useStyles = makeStyles({
         marginBottom: "8px",
     },
     componentGroupContainer: {
-        padding: "8px",
-        border: "0.5px solid var(--vscode-editorWidget-border)",
-        borderRadius: "2px",
+        // padding: "8px",
+        // border: "0.5px solid var(--vscode-editorWidget-border)",
+        // borderRadius: "2px",
     },
 });
 

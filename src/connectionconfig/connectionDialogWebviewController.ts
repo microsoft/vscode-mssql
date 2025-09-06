@@ -262,7 +262,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 // Don't port connection information when switching to Fabric Browse
                 state.connectionProfile.server = undefined;
                 state.connectionProfile.database = undefined;
+                state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
                 state.connectionProfile.user = undefined;
+                await this.handleAzureMFAEdits("authenticationType");
+                await this.updateItemVisibility();
 
                 // Also clear old Fabric state
                 state.fabricWorkspacesLoadStatus = { status: ApiStatus.NotStarted };
@@ -648,6 +651,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.azureTenants = [];
             state.selectedTenantId = "";
             state.loadingAzureTenantsStatus = ApiStatus.Loading;
+            state.connectionProfile.server = undefined;
+            state.connectionProfile.database = undefined;
 
             this.updateState(state);
 
@@ -680,6 +685,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.selectedTenantId = payload.tenantId;
             state.fabricWorkspacesLoadStatus = { status: ApiStatus.Loading };
             state.fabricWorkspaces = [];
+            state.connectionProfile.server = undefined;
+            state.connectionProfile.database = undefined;
+
             this.updateState(state);
 
             await this.loadFabricWorkspaces(state, state.selectedAccountId, state.selectedTenantId);
@@ -703,8 +711,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("selectFabricWorkspace", async (state, payload) => {
             const workspace = state.fabricWorkspaces.find((w) => w.id === payload.workspaceId);
-            this.state.connectionProfile.server = "";
-            this.state.connectionProfile.database = "";
+            state.connectionProfile.server = "";
+            state.connectionProfile.database = "";
+
+            this.updateState(state);
 
             if (
                 (workspace && workspace.loadStatus.status === ApiStatus.NotStarted) ||
