@@ -13,6 +13,15 @@ import {
     TableRowData,
     Label,
     TableColumnSizingOptions,
+    Menu,
+    MenuTrigger,
+    Tooltip,
+    MenuButton,
+    MenuList,
+    MenuPopover,
+    MenuItemRadio,
+    MenuCheckedValueChangeEvent,
+    MenuCheckedValueChangeData,
 } from "@fluentui/react-components";
 import {
     DataGridBody,
@@ -42,6 +51,9 @@ export const FabricWorkspaceContentsList = ({
 }: WorkspaceContentsList) => {
     const styles = useFabricExplorerStyles();
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
+    const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>(
+        ArtifactTypeFilter.ShowAll,
+    );
 
     //#region Hooks
 
@@ -61,6 +73,10 @@ export const FabricWorkspaceContentsList = ({
             });
         }
 
+        if (selectedTypeFilter !== ArtifactTypeFilter.ShowAll) {
+            result = result.filter((item) => item.type === selectedTypeFilter);
+        }
+
         if (searchFilter.trim()) {
             const searchTerm = searchFilter.toLowerCase();
             result = result.filter(
@@ -71,7 +87,7 @@ export const FabricWorkspaceContentsList = ({
         }
 
         return result;
-    }, [selectedWorkspace?.id, selectedWorkspace?.loadStatus, searchFilter]);
+    }, [selectedWorkspace?.id, selectedWorkspace?.loadStatus, searchFilter, selectedTypeFilter]);
 
     // Memo for creating the column definitions when the component first mounts
     const columns = useMemo(
@@ -115,16 +131,47 @@ export const FabricWorkspaceContentsList = ({
                 },
                 renderHeaderCell: () => (
                     <div>
-                        `${Loc.connectionDialog.typeColumnHeader}`
-                        <Button
-                            appearance="subtle"
-                            size="small"
-                            icon={<FilterRegular />}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                // TODO: Add filter functionality
-                            }}
-                        />
+                        {Loc.connectionDialog.typeColumnHeader}
+                        <Menu>
+                            <MenuTrigger>
+                                <Tooltip
+                                    content={Loc.connectionDialog.filterByType}
+                                    relationship="label">
+                                    <MenuButton
+                                        icon={
+                                            <img
+                                                src={filterIcon(theme)}
+                                                alt={Loc.connectionDialog.filter}
+                                                className={styles.filterIcon}
+                                            />
+                                        }
+                                        appearance="transparent"
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                </Tooltip>
+                            </MenuTrigger>
+                            <MenuPopover onClick={(e) => e.stopPropagation()}>
+                                <MenuList
+                                    checkedValues={{ sqlType: [selectedTypeFilter] }}
+                                    onCheckedValueChange={handleFilterOptionChanged}>
+                                    <MenuItemRadio
+                                        name="sqlType"
+                                        value={ArtifactTypeFilter.ShowAll}>
+                                        {Loc.connectionDialog.showAll}
+                                    </MenuItemRadio>
+                                    <MenuItemRadio
+                                        name="sqlType"
+                                        value={ArtifactTypeFilter.SqlDatabase}>
+                                        {Loc.connectionDialog.sqlDatabase}
+                                    </MenuItemRadio>
+                                    <MenuItemRadio
+                                        name="sqlType"
+                                        value={ArtifactTypeFilter.SqlAnalyticsEndpoint}>
+                                        {Loc.connectionDialog.sqlAnalyticsEndpoint}
+                                    </MenuItemRadio>
+                                </MenuList>
+                            </MenuPopover>
+                        </Menu>
                     </div>
                 ),
                 renderCell: (item) => (
@@ -136,12 +183,19 @@ export const FabricWorkspaceContentsList = ({
                 ),
             }),
         ],
-        [theme],
+        [theme, selectedTypeFilter],
     );
 
     function handleServerSelected(database: FabricSqlGridItem) {
         setSelectedRowId(database.id);
         onSelectDatabase(database);
+    }
+
+    function handleFilterOptionChanged(
+        _event: MenuCheckedValueChangeEvent,
+        data: MenuCheckedValueChangeData,
+    ) {
+        setSelectedTypeFilter(data.checkedItems[0]);
     }
 
     //#endregion Hooks
@@ -336,6 +390,15 @@ export const FabricWorkspaceContentsList = ({
         return saveIcon;
     }
 
+    function filterIcon(colorTheme: ColorThemeKind) {
+        const theme = themeType(colorTheme);
+        const filterIcon =
+            theme === "dark"
+                ? require("../../../../media/filter_inverse.svg")
+                : require("../../../../media/filter.svg");
+        return filterIcon;
+    }
+
     //#endregion
 
     return <div className={styles.workspaceContentList}>{renderGridContent()}</div>;
@@ -352,6 +415,11 @@ export function getTypeDisplayName(artifactType: string): string {
             return artifactType;
     }
 }
+
+const ArtifactTypeFilter = {
+    ShowAll: "ShowAll",
+    ...SqlArtifactTypes,
+} as const;
 
 interface WorkspaceContentsList {
     onSelectDatabase: (database: FabricSqlDbInfo) => void;
