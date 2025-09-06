@@ -134,10 +134,7 @@ export const FabricBrowsePage = () => {
                             "workspaces",
                             ...(selectedAzureAccountName ? [] : ["auth"]), // auto-open auth panel if no account is selected
                         ]}>
-                        <AccordionItem
-                            value="workspaces"
-                            className={accordionStyles.accordionItem}
-                            style={{ marginRight: "0px" }}>
+                        <AccordionItem value="workspaces" className={accordionStyles.accordionItem}>
                             <AccordionHeader>
                                 <Label>{Loc.connectionDialog.fabricWorkspaces}</Label>
                                 {selectedDatabaseName && (
