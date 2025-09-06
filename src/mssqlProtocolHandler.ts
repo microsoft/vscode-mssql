@@ -33,7 +33,7 @@ export class MssqlProtocolHandler {
     private _logger: Logger;
 
     constructor(
-        private vscodeWrapper: VscodeWrapper,
+        vscodeWrapper: VscodeWrapper,
         private mainController: MainController,
         private client: SqlToolsServiceClient,
     ) {
