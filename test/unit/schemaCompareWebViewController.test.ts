@@ -10,7 +10,6 @@ import * as sinon from "sinon";
 import * as mssql from "vscode-mssql";
 
 import { SchemaCompareWebViewController } from "../../src/schemaCompare/schemaCompareWebViewController";
-import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import {
     ExtractTarget,
