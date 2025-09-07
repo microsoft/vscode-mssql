@@ -2878,11 +2878,11 @@ export default class MainController implements vscode.Disposable {
             public context: vscode.ExtensionContext,
             public vscodeWrapper: VscodeWrapper,
             public executionPlanService: ExecutionPlanService,
-            public untitledSqlService: SqlDocumentService,
+            public sqlDocumentService: SqlDocumentService,
         ) {
             this.context = context;
             this.executionPlanService = executionPlanService;
-            this.untitledSqlService = untitledSqlService;
+            this.sqlDocumentService = sqlDocumentService;
         }
 
         public async resolveCustomTextEditor(document: vscode.TextDocument): Promise<void> {
@@ -2900,7 +2900,7 @@ export default class MainController implements vscode.Disposable {
                 this.context,
                 this.vscodeWrapper,
                 this.executionPlanService,
-                this.untitledSqlService,
+                this.sqlDocumentService,
                 planContents,
                 docName,
             );

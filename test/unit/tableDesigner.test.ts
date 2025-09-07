@@ -24,7 +24,7 @@ suite("TableDesignerWebviewController tests", () => {
     let treeNode: TypeMoq.IMock<TreeNodeInfo>;
     let mockConnectionManager: TypeMoq.IMock<ConnectionManager>;
     let mockTableDesignerService: TableDesignerService;
-    let mockUntitledSqlDocumentService: SqlDocumentService;
+    let mockSqlDocumentService: SqlDocumentService;
     let newQueryStub: sinon.SinonStub;
     const tableName = "TestTable";
     let mockResult: any;
@@ -40,7 +40,7 @@ suite("TableDesignerWebviewController tests", () => {
 
         mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
         mockTableDesignerService = sandbox.createStubInstance(TableDesignerService);
-        mockUntitledSqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
+        mockSqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
         mockConnectionManager = TypeMoq.Mock.ofType<ConnectionManager>();
 
         const mockConnectionDetails = {
@@ -119,7 +119,7 @@ suite("TableDesignerWebviewController tests", () => {
             tableChangeInfo: mockTableChangeInfo,
         };
 
-        newQueryStub = (mockUntitledSqlDocumentService.newQuery as sinon.SinonStub).resolves();
+        newQueryStub = (mockSqlDocumentService.newQuery as sinon.SinonStub).resolves();
 
         (mockTableDesignerService.initializeTableDesigner as sinon.SinonStub).resolves(mockResult);
 
@@ -130,7 +130,7 @@ suite("TableDesignerWebviewController tests", () => {
             mockVscodeWrapper.object,
             mockTableDesignerService,
             mockConnectionManager.object,
-            mockUntitledSqlDocumentService,
+            mockSqlDocumentService,
             treeNode.object,
         );
         controller.revealToForeground();

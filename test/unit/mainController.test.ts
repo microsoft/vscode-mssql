@@ -17,7 +17,7 @@ import { activateExtension } from "./utils";
 suite("MainController Tests", function () {
     let mainController: MainController;
     let connectionManager: TypeMoq.IMock<ConnectionManager>;
-    let untitledSqlDocumentService: TypeMoq.IMock<SqlDocumentService>;
+    let mockSqlDocumentService: TypeMoq.IMock<SqlDocumentService>;
 
     setup(async () => {
         // Need to activate the extension to get the mainController
@@ -37,13 +37,13 @@ suite("MainController Tests", function () {
         mainController.connectionManager = connectionManager.object;
 
         let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
-        untitledSqlDocumentService = TypeMoq.Mock.ofType(
+        mockSqlDocumentService = TypeMoq.Mock.ofType(
             SqlDocumentService,
             TypeMoq.MockBehavior.Loose,
             mockVscodeWrapper.object,
             mainController,
         );
-        mainController.sqlDocumentService = untitledSqlDocumentService.object;
+        mainController.sqlDocumentService = mockSqlDocumentService.object;
     });
 
     test("validateTextDocumentHasFocus returns false if there is no active text document", () => {
@@ -89,7 +89,7 @@ suite("MainController Tests", function () {
             viewColumn: vscode.ViewColumn.One,
             selection: undefined,
         } as any;
-        untitledSqlDocumentService
+        mockSqlDocumentService
             .setup((x) => x.newQuery(undefined, true))
             .returns(() => {
                 return Promise.resolve(editor);
@@ -101,7 +101,7 @@ suite("MainController Tests", function () {
             });
 
         await mainController.onNewQuery(undefined, undefined);
-        untitledSqlDocumentService.verify((x) => x.newQuery(undefined, true), TypeMoq.Times.once());
+        mockSqlDocumentService.verify((x) => x.newQuery(undefined, true), TypeMoq.Times.once());
         connectionManager.verify((x) => x.onNewConnection(), TypeMoq.Times.atLeastOnce());
     });
 
@@ -110,7 +110,7 @@ suite("MainController Tests", function () {
         (mainController as any).canRunCommand = () => true;
 
         // Make newQuery reject
-        untitledSqlDocumentService
+        mockSqlDocumentService
             .setup((x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isValue(true)))
             .returns(() => Promise.reject(new Error("boom")));
 
@@ -120,7 +120,7 @@ suite("MainController Tests", function () {
         await assert.rejects(() => mainController.onNewQuery(undefined, undefined), /boom/);
 
         // Verify exactly how prod calls it (2 args, second is true)
-        untitledSqlDocumentService.verify(
+        mockSqlDocumentService.verify(
             (x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isValue(true)),
             TypeMoq.Times.once(),
         );

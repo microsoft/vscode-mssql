@@ -22,7 +22,7 @@ suite("ExecutionPlanWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let mockExecutionPlanService: ExecutionPlanService;
-    let mockUntitledSqlDocumentService: SqlDocumentService;
+    let mockSqlDocumentService: SqlDocumentService;
     let controller: ExecutionPlanWebviewController;
     let mockInitialState: ep.ExecutionPlanWebviewState;
     let mockResultState: ep.ExecutionPlanWebviewState;
@@ -39,7 +39,7 @@ suite("ExecutionPlanWebviewController", () => {
         } as unknown as vscode.ExtensionContext;
 
         mockExecutionPlanService = sandbox.createStubInstance(ExecutionPlanService);
-        mockUntitledSqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
+        mockSqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
 
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
 
@@ -63,7 +63,7 @@ suite("ExecutionPlanWebviewController", () => {
             mockContext,
             vscodeWrapper.object,
             mockExecutionPlanService,
-            mockUntitledSqlDocumentService,
+            mockSqlDocumentService,
             executionPlanContents,
             xmlPlanFileName,
         );
@@ -230,7 +230,7 @@ suite("ExecutionPlanWebviewController", () => {
 suite("Execution Plan Utilities", () => {
     let sandbox: sinon.SinonSandbox;
     let mockExecutionPlanService: ExecutionPlanService;
-    let mockUntitledSqlDocumentService: SqlDocumentService;
+    let mockSqlDocumentService: SqlDocumentService;
     let executionPlanContents: string;
     let client: TypeMoq.IMock<SqlToolsServiceClient>;
     let mockResult: ep.GetExecutionPlanResult;
@@ -261,7 +261,7 @@ suite("Execution Plan Utilities", () => {
             .returns(() => Promise.resolve(mockResult));
 
         mockExecutionPlanService = new ExecutionPlanService(client.object);
-        mockUntitledSqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
+        mockSqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
     });
 
     teardown(() => {
@@ -305,19 +305,19 @@ suite("Execution Plan Utilities", () => {
     });
 
     test("showQuery: should call newQuery with the correct query and return the state", async () => {
-        (mockUntitledSqlDocumentService.newQuery as sinon.SinonStub).resolves();
+        (mockSqlDocumentService.newQuery as sinon.SinonStub).resolves();
 
         const mockPayload = { query: "SELECT * FROM TestTable" };
 
         const result = await epUtils.showQuery(
             mockInitialState,
             mockPayload,
-            mockUntitledSqlDocumentService,
+            mockSqlDocumentService,
         );
 
         assert.strictEqual(result, mockInitialState, "The state should be returned unchanged.");
         sinon.assert.calledOnceWithExactly(
-            mockUntitledSqlDocumentService.newQuery as sinon.SinonStub,
+            mockSqlDocumentService.newQuery as sinon.SinonStub,
             mockPayload.query,
         );
     });
