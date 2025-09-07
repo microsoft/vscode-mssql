@@ -12,7 +12,7 @@ import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 import * as assert from "assert";
 import { ISelectionData } from "../../src/models/interfaces";
-import UntitledSqlDocumentService from "../../src/controllers/untitledSqlDocumentService";
+import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import * as sinon from "sinon";
 
@@ -25,7 +25,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
     let mockContentProvider: TypeMoq.IMock<SqlOutputContentProvider>;
     let context: TypeMoq.IMock<vscode.ExtensionContext>;
     let statusView: TypeMoq.IMock<StatusView>;
-    let untitledSqlDocumentService: TypeMoq.IMock<UntitledSqlDocumentService>;
+    let untitledSqlDocumentService: TypeMoq.IMock<SqlDocumentService>;
     let executionPlanService: TypeMoq.IMock<ExecutionPlanService>;
     let mockMap: Map<string, any> = new Map<string, any>();
     let setSplitPaneSelectionConfig: (value: string) => void;
@@ -35,7 +35,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         sandbox = sinon.createSandbox();
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
         statusView = TypeMoq.Mock.ofType(StatusView);
-        untitledSqlDocumentService = TypeMoq.Mock.ofType(UntitledSqlDocumentService);
+        untitledSqlDocumentService = TypeMoq.Mock.ofType(SqlDocumentService);
         executionPlanService = TypeMoq.Mock.ofType(ExecutionPlanService);
         context = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 
@@ -81,7 +81,6 @@ suite("SqlOutputProvider Tests using mocks", () => {
             context.object,
             statusView.object,
             vscodeWrapper.object,
-            untitledSqlDocumentService.object,
             executionPlanService.object,
         );
         contentProvider.setVscodeWrapper = vscodeWrapper.object;

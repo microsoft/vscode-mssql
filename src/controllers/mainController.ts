@@ -40,7 +40,7 @@ import { SqlTasksService } from "../services/sqlTasksService";
 import StatusView from "../views/statusView";
 import { IConnectionGroup, IConnectionProfile, ISelectionData } from "./../models/interfaces";
 import ConnectionManager from "./connectionManager";
-import UntitledSqlDocumentService from "./untitledSqlDocumentService";
+import SqlDocumentService from "./sqlDocumentService";
 import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -104,11 +104,7 @@ export default class MainController implements vscode.Disposable {
     private _prompter: IPrompter;
     private _vscodeWrapper: VscodeWrapper;
     private _initialized: boolean = false;
-    private _lastSavedUri: string | undefined;
-    private _lastSavedTimer: Utils.Timer | undefined;
-    private _lastOpenedUri: string | undefined;
-    private _lastOpenedTimer: Utils.Timer | undefined;
-    private _untitledSqlDocumentService: UntitledSqlDocumentService;
+    private _sqlDocumentService: SqlDocumentService;
     private _objectExplorerProvider: ObjectExplorerProvider;
     private _queryHistoryProvider: QueryHistoryProvider;
     private _scriptingService: ScriptingService;
@@ -141,7 +137,6 @@ export default class MainController implements vscode.Disposable {
             this._connectionMgr = connectionManager;
         }
         this._vscodeWrapper = vscodeWrapper ?? new VscodeWrapper();
-        this._untitledSqlDocumentService = new UntitledSqlDocumentService(this._vscodeWrapper);
         this.configuration = vscode.workspace.getConfiguration();
         UserSurvey.createInstance(this._context, this._vscodeWrapper);
     }
@@ -498,7 +493,7 @@ export default class MainController implements vscode.Disposable {
 
             this.sqlTasksService = new SqlTasksService(
                 SqlToolsServerClient.instance,
-                this._untitledSqlDocumentService,
+                this._sqlDocumentService,
             );
             this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
             this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
@@ -530,7 +525,7 @@ export default class MainController implements vscode.Disposable {
                 this._context,
                 this._vscodeWrapper,
                 this.executionPlanService,
-                this._untitledSqlDocumentService,
+                this._sqlDocumentService,
             );
             vscode.window.registerCustomEditorProvider("mssql.executionPlanView", providerInstance);
 
@@ -549,21 +544,6 @@ export default class MainController implements vscode.Disposable {
             vscode.window.registerUriHandler(uriHandler);
 
             // Add handlers for VS Code generated commands
-            this._vscodeWrapper.onDidCloseTextDocument(
-                async (params) => await this.onDidCloseTextDocument(params),
-            );
-
-            this._vscodeWrapper.onDidOpenTextDocument((params) =>
-                this.onDidOpenTextDocument(params),
-            );
-
-            this._vscodeWrapper.onDidChangeActiveTextEditor((params) =>
-                this.onDidChangeActiveTextEditor(params),
-            );
-
-            this._vscodeWrapper.onDidSaveTextDocument((params) =>
-                this.onDidSaveTextDocument(params),
-            );
             this._vscodeWrapper.onDidChangeConfiguration((params) =>
                 this.onDidChangeConfiguration(params),
             );
@@ -720,7 +700,7 @@ export default class MainController implements vscode.Disposable {
                 nodeUri,
                 operation,
             );
-            const editor = await this._untitledSqlDocumentService.newQuery(selectStatement);
+            const editor = await this._sqlDocumentService.newQuery(selectStatement);
             let uri = editor.document.uri.toString(true);
             let scriptingObject = this._scriptingService.getObjectFromNode(node);
             let title = `${scriptingObject.schema}.${scriptingObject.name}`;
@@ -873,7 +853,6 @@ export default class MainController implements vscode.Disposable {
             this._context,
             this._statusview,
             this._vscodeWrapper,
-            this.untitledSqlDocumentService,
             this.executionPlanService,
         );
 
@@ -885,12 +864,17 @@ export default class MainController implements vscode.Disposable {
             this.useLegacyConnectionExperience,
         );
 
+        this._sqlDocumentService = new SqlDocumentService(this);
+
+        this._outputContentProvider.queryResultWebviewController.sqlDocumentService =
+            this._sqlDocumentService;
+
         void this.showOnLaunchPrompts();
 
         // Handle case where SQL file is the 1st opened document
         const activeTextEditor = this._vscodeWrapper.activeTextEditor;
         if (activeTextEditor && this._vscodeWrapper.isEditingSqlFile) {
-            await this.onDidOpenTextDocument(activeTextEditor.document);
+            await this.sqlDocumentService.onDidOpenTextDocument(activeTextEditor.document);
         }
         await this.sanitizeConnectionProfiles();
         await this.loadTokenCache();
@@ -1250,7 +1234,7 @@ export default class MainController implements vscode.Disposable {
             );
             const script = await this._scriptingService.script(scriptingParams);
 
-            const editor = await this._untitledSqlDocumentService.newQuery(script);
+            const editor = await this._sqlDocumentService.newQuery(script);
             const newDocUri = editor.document.uri.toString(true);
             const promise = new Deferred<boolean>();
             await this.connectionManager.connect(newDocUri, connection?.credentials, promise);
@@ -1561,7 +1545,7 @@ export default class MainController implements vscode.Disposable {
                             this._vscodeWrapper,
                             this.tableDesignerService,
                             this._connectionMgr,
-                            this._untitledSqlDocumentService,
+                            this._sqlDocumentService,
                             node,
                             this._objectExplorerProvider,
                             this.objectExplorerTree,
@@ -1580,7 +1564,7 @@ export default class MainController implements vscode.Disposable {
                             this._vscodeWrapper,
                             this.tableDesignerService,
                             this._connectionMgr,
-                            this._untitledSqlDocumentService,
+                            this._sqlDocumentService,
                             node,
                             this._objectExplorerProvider,
                             this.objectExplorerTree,
@@ -1859,7 +1843,7 @@ export default class MainController implements vscode.Disposable {
                 this._connectionMgr,
                 this._outputContentProvider,
                 this._vscodeWrapper,
-                this._untitledSqlDocumentService,
+                this._sqlDocumentService,
                 this._statusview,
                 this._prompter,
             );
@@ -2313,12 +2297,20 @@ export default class MainController implements vscode.Disposable {
         this._connectionMgr = connectionManager;
     }
 
-    public get untitledSqlDocumentService(): UntitledSqlDocumentService {
-        return this._untitledSqlDocumentService;
+    public get outputContentProvider(): SqlOutputContentProvider {
+        return this._outputContentProvider;
     }
 
-    public set untitledSqlDocumentService(untitledSqlDocumentService: UntitledSqlDocumentService) {
-        this._untitledSqlDocumentService = untitledSqlDocumentService;
+    public get statusview(): StatusView {
+        return this._statusview;
+    }
+
+    public get sqlDocumentService(): SqlDocumentService {
+        return this._sqlDocumentService;
+    }
+
+    public set sqlDocumentService(sqlDocumentService: SqlDocumentService) {
+        this._sqlDocumentService = sqlDocumentService;
     }
 
     /**
@@ -2553,7 +2545,7 @@ export default class MainController implements vscode.Disposable {
         const currentDocUri = vscode.window.activeTextEditor
             ? vscode.window.activeTextEditor.document.uri.toString(true)
             : undefined;
-        const newEditor = await this._untitledSqlDocumentService.newQuery(content, true);
+        const newEditor = await this._sqlDocumentService.newQuery(content, true);
         const newDocUri = newEditor.document.uri.toString(true);
 
         // Case 1: User right-clicked on an OE node and selected "New Query"
@@ -2636,162 +2628,6 @@ export default class MainController implements vscode.Disposable {
             }
             return false;
         }
-    }
-
-    /**
-     * Called by VS Code when a text document closes. This will dispatch calls to other
-     * controllers as needed. Determines if this was a normal closed file, a untitled closed file,
-     * or a renamed file
-     * @param doc The document that was closed
-     */
-    public async onDidCloseTextDocument(doc: vscode.TextDocument): Promise<void> {
-        if (this._connectionMgr === undefined || doc === undefined || doc.uri === undefined) {
-            // Avoid processing events before initialization is complete
-            return;
-        }
-        let closedDocumentUri: string = doc.uri.toString(true);
-        let closedDocumentUriScheme: string = doc.uri.scheme;
-
-        // Stop timers if they have been started
-        if (this._lastSavedTimer) {
-            this._lastSavedTimer.end();
-        }
-
-        if (this._lastOpenedTimer) {
-            this._lastOpenedTimer.end();
-        }
-
-        // Determine which event caused this close event
-
-        // If there was a saveTextDoc event just before this closeTextDoc event and it
-        // was untitled then we know it was an untitled save
-        if (
-            this._lastSavedUri &&
-            closedDocumentUriScheme === LocalizedConstants.untitledScheme &&
-            this._lastSavedTimer?.getDuration() < Constants.untitledSaveTimeThreshold
-        ) {
-            // Untitled file was saved and connection will be transfered
-            await this.updateUri(closedDocumentUri, this._lastSavedUri);
-
-            // If there was an openTextDoc event just before this closeTextDoc event then we know it was a rename
-        } else if (
-            this._lastOpenedUri &&
-            this._lastSavedTimer?.getDuration() < Constants.untitledSaveTimeThreshold
-        ) {
-            await this.updateUri(closedDocumentUri, this._lastOpenedUri);
-        } else {
-            // Pass along the close event to the other handlers for a normal closed file
-            await this._outputContentProvider.onDidCloseTextDocument(doc);
-            await this._connectionMgr.onDidCloseTextDocument(doc);
-        }
-
-        // Reset special case timers and events
-        this._lastSavedUri = undefined;
-        this._lastSavedTimer = undefined;
-        this._lastOpenedTimer = undefined;
-        this._lastOpenedUri = undefined;
-
-        // Remove diagnostics for the related file
-        let diagnostics = SqlToolsServerClient.instance.diagnosticCollection;
-        if (diagnostics.has(doc.uri)) {
-            diagnostics.delete(doc.uri);
-        }
-
-        // Delete filters and dimension states for the closed document
-        store.deleteMainKey(closedDocumentUri);
-    }
-
-    private async updateUri(oldUri: string, newUri: string) {
-        // Transfer the connection to the new URI
-        await this._connectionMgr.copyConnectionToFile(oldUri, newUri);
-
-        // Call STS  & Query Runner to update URI
-        await this._outputContentProvider.updateQueryRunnerUri(oldUri, newUri);
-
-        // Update the URI in the output content provider query result map
-        this._outputContentProvider.onUntitledFileSaved(oldUri, newUri);
-    }
-
-    /**
-     * Called by VS Code when a text document is opened. Checks if a SQL file was opened
-     * to enable features of our extension for the document.
-     */
-    public async onDidOpenTextDocument(doc: vscode.TextDocument): Promise<void> {
-        if (this._connectionMgr === undefined) {
-            // Avoid processing events before initialization is complete
-            return;
-        }
-        this._connectionMgr.onDidOpenTextDocument(doc);
-
-        await this.untitledSqlDocumentService.waitForOngoingCreates();
-        const skipCopyConnection = this._untitledSqlDocumentService.shouldSkipCopyConnection(
-            doc.uri.toString(true),
-        );
-
-        if (
-            this._previousActiveDocument &&
-            doc.languageId === Constants.languageId &&
-            !skipCopyConnection
-        ) {
-            void this._connectionMgr.copyConnectionToFile(
-                this._previousActiveDocument.uri.toString(true),
-                doc.uri.toString(true),
-                true /* keepOldConnected */,
-            );
-        }
-
-        if (doc && doc.languageId === Constants.languageId) {
-            // set encoding to false
-            this._statusview.languageFlavorChanged(
-                doc.uri.toString(true),
-                Constants.mssqlProviderName,
-            );
-        }
-
-        // Setup properties incase of rename
-        this._lastOpenedTimer = new Utils.Timer();
-        this._lastOpenedTimer.start();
-
-        if (doc && doc.uri) {
-            this._lastOpenedUri = doc.uri.toString(true);
-
-            // pre-opened tabs won't trigger onDidChangeActiveTextEditor, so set _previousActiveEditor here
-            this._previousActiveDocument =
-                doc.languageId === Constants.languageId ? doc : undefined;
-        }
-    }
-
-    /**
-     * Tracks the previous editor for the purposes of transferring connections to a newly-opened file.
-     * Set to undefined if the previous editor is not a SQL file (languageId === mssql).
-     */
-    private _previousActiveDocument: vscode.TextDocument | undefined;
-
-    public onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
-        if (editor?.document) {
-            this._previousActiveDocument =
-                editor.document.languageId === Constants.languageId ? editor.document : undefined;
-        }
-    }
-
-    /**
-     * Called by VS Code when a text document is saved. Will trigger a timer to
-     * help determine if the file was a file saved from an untitled file.
-     * @param doc The document that was saved
-     */
-    public onDidSaveTextDocument(doc: vscode.TextDocument): void {
-        if (this._connectionMgr === undefined) {
-            // Avoid processing events before initialization is complete
-            return;
-        }
-
-        // Set encoding to false by giving true as argument
-        let savedDocumentUri: string = doc.uri.toString(true);
-
-        // Keep track of which file was last saved and when for detecting the case when we save an untitled document to disk
-        this._lastSavedTimer = new Utils.Timer();
-        this._lastSavedTimer.start();
-        this._lastSavedUri = savedDocumentUri;
     }
 
     private onChangeQueryHistoryConfig(): void {
@@ -3042,7 +2878,7 @@ export default class MainController implements vscode.Disposable {
             public context: vscode.ExtensionContext,
             public vscodeWrapper: VscodeWrapper,
             public executionPlanService: ExecutionPlanService,
-            public untitledSqlService: UntitledSqlDocumentService,
+            public untitledSqlService: SqlDocumentService,
         ) {
             this.context = context;
             this.executionPlanService = executionPlanService;

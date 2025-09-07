@@ -12,7 +12,7 @@ import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { QueryHistoryNode, EmptyHistoryNode } from "./queryHistoryNode";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Constants from "../constants/constants";
-import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
+import SqlDocumentService from "../controllers/sqlDocumentService";
 import { Deferred } from "../protocol";
 import StatusView from "../views/statusView";
 import { IConnectionProfile } from "../models/interfaces";
@@ -33,7 +33,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
         private _connectionManager: ConnectionManager,
         private _outputContentProvider: SqlOutputContentProvider,
         private _vscodeWrapper: VscodeWrapper,
-        private _untitledSqlDocumentService: UntitledSqlDocumentService,
+        private _sqlDocumentService: SqlDocumentService,
         private _statusView: StatusView,
         private _prompter: IPrompter,
     ) {
@@ -143,7 +143,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
         node: QueryHistoryNode,
         isExecute: boolean = false,
     ): Promise<void> {
-        const editor = await this._untitledSqlDocumentService.newQuery(node.queryString);
+        const editor = await this._sqlDocumentService.newQuery(node.queryString);
         let uri = editor.document.uri.toString(true);
         let title = path.basename(editor.document.fileName);
         const queryUriPromise = new Deferred<boolean>();

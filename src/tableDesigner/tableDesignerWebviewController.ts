@@ -8,7 +8,7 @@ import ConnectionManager from "../controllers/connectionManager";
 import { randomUUID } from "crypto";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import * as designer from "../sharedInterfaces/tableDesigner";
-import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
+import SqlDocumentService from "../controllers/sqlDocumentService";
 import { getDesignerView } from "./tableDesignerTabDefinition";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
@@ -31,7 +31,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         vscodeWrapper: VscodeWrapper,
         private _tableDesignerService: designer.ITableDesignerService,
         private _connectionManager: ConnectionManager,
-        private _untitledSqlDocumentService: UntitledSqlDocumentService,
+        private _sqlDocumentService: SqlDocumentService,
         private _targetNode?: TreeNodeInfo,
         private _objectExplorerProvider?: ObjectExplorerProvider,
         private _objectExplorerTree?: vscode.TreeView<TreeNodeInfo>,
@@ -363,7 +363,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     generateScriptState: designer.LoadState.Loaded,
                 },
             };
-            await this._untitledSqlDocumentService.newQuery(script);
+            await this._sqlDocumentService.newQuery(script);
             UserSurvey.getInstance().promptUserForNPSFeedback();
             return state;
         });
@@ -421,7 +421,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("scriptAsCreate", async (state) => {
-            await this._untitledSqlDocumentService.newQuery(
+            await this._sqlDocumentService.newQuery(
                 (state.model["script"] as designer.InputBoxProperties).value ?? "",
             );
             return state;
