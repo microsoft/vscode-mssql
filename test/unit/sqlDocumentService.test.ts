@@ -7,23 +7,13 @@ import * as assert from "assert";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { expect } from "chai";
-import * as Extension from "../../src/extension";
 import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import StatusView from "../../src/views/statusView";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-
-interface IFixture {
-    openDocResult: Promise<vscode.TextDocument>;
-    showDocResult: Promise<vscode.TextEditor>;
-    vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
-    service: SqlDocumentService;
-    textDocuments: vscode.TextDocument[];
-}
 
 suite("SqlDocumentService Tests", () => {
     let document: vscode.TextDocument;
@@ -34,7 +24,6 @@ suite("SqlDocumentService Tests", () => {
     let docUri: string;
     let newDocUri: string;
     let docUriCallback: string;
-    let newDocUriCallback: string;
 
     setup(async () => {
         // Setup a standard document and a new document
@@ -46,7 +35,6 @@ suite("SqlDocumentService Tests", () => {
 
         // Resetting call back variables
         docUriCallback = "";
-        newDocUriCallback = "";
 
         // Create a mock context
         let mockContext = {
@@ -234,17 +222,6 @@ suite("SqlDocumentService Tests", () => {
         mockCreateDocument.restore();
     });
 
-    test.skip("newQuery should handle failures gracefully", async () => {
-        const mockCreateDocument = sinon.stub(sqlDocumentService as any, "createDocument");
-        mockCreateDocument.rejects(new Error("boom"));
-
-        await assert.rejects(() => sqlDocumentService.newQuery(undefined, true), /boom/);
-
-        sinon.assert.calledOnce(mockCreateDocument);
-
-        mockCreateDocument.restore();
-    });
-
     test("connection is transferred when opening a new file and the previous active file is connected", async () => {
         const script1 = mockTextDocument("script_1.sql");
         const script2 = mockTextDocument("script_2.sql");
@@ -332,9 +309,8 @@ suite("SqlDocumentService Tests", () => {
             docUriCallback = doc.uri.toString();
         });
 
-        connectionManager.copyConnectionToFile.callsFake(async (doc, newDoc) => {
+        connectionManager.copyConnectionToFile.callsFake(async (doc, _newDoc) => {
             docUriCallback = doc;
-            newDocUriCallback = newDoc;
         });
     }
     function mockTextDocument(
@@ -348,62 +324,4 @@ suite("SqlDocumentService Tests", () => {
 
         return document;
     }
-
-    function createTextDocumentObject(fileName: string = ""): vscode.TextDocument {
-        return {
-            uri: undefined,
-            eol: undefined,
-            fileName: fileName,
-            getText: undefined,
-            getWordRangeAtPosition: undefined,
-            isClosed: undefined,
-            isDirty: true,
-            isUntitled: true,
-            languageId: "sql",
-            lineAt: undefined,
-            lineCount: undefined,
-            offsetAt: undefined,
-            positionAt: undefined,
-            save: undefined,
-            validatePosition: undefined,
-            validateRange: undefined,
-            version: undefined,
-        };
-    }
-
-    function createUntitledSqlDocumentService(fixture: IFixture): IFixture {
-        let vscodeWrapper = sinon.createStubInstance(VscodeWrapper);
-
-        Object.defineProperty(vscodeWrapper, "textDocuments", {
-            get: sinon.stub().returns(fixture.textDocuments),
-        });
-
-        vscodeWrapper.openMsSqlTextDocument.resolves(createTextDocumentObject());
-        vscodeWrapper.showTextDocument.resolves({} as any);
-
-        fixture.vscodeWrapper = vscodeWrapper;
-        fixture.service = new SqlDocumentService(mainController);
-        return fixture;
-    }
-
-    // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
-    test.skip("newQuery should open a new untitled document and show in new tab (legacy)", () => {
-        let fixture: IFixture = {
-            openDocResult: Promise.resolve(createTextDocumentObject()),
-            showDocResult: Promise.resolve({} as any),
-            service: undefined,
-            vscodeWrapper: undefined,
-            textDocuments: [],
-        };
-        fixture = createUntitledSqlDocumentService(fixture);
-
-        void fixture.service.newQuery().then((_) => {
-            sinon.assert.calledOnce(fixture.vscodeWrapper.openMsSqlTextDocument);
-            sinon.assert.calledOnceWithExactly(
-                fixture.vscodeWrapper.showTextDocument,
-                sinon.match.any,
-                sinon.match.any,
-            );
-        });
-    });
 });
