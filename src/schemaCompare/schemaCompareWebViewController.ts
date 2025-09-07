@@ -62,8 +62,18 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
-        sourceNode: ConnectionNode | ITreeNodeInfo | mssql.SchemaCompareEndpointInfo | undefined,
-        targetNode: ConnectionNode | ITreeNodeInfo | mssql.SchemaCompareEndpointInfo | undefined,
+        sourceNode:
+            | ConnectionNode
+            | ITreeNodeInfo
+            | mssql.SchemaCompareEndpointInfo
+            | string
+            | undefined,
+        targetNode:
+            | ConnectionNode
+            | ITreeNodeInfo
+            | mssql.SchemaCompareEndpointInfo
+            | string
+            | undefined,
         runComparison: boolean,
         private readonly schemaCompareService: mssql.ISchemaCompareService,
         private readonly connectionMgr: ConnectionManager,
@@ -126,20 +136,7 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             `SchemaCompareWebViewController created with operation ID: ${this.operationId} - OperationId: ${this.operationId}`,
         );
 
-        let source = "";
-        let target = "";
-        if (this.isSqlProjectNodeWithFilePath(sourceNode)) {
-            source = this.getFullSqlProjectsPathFromNode(sourceNode);
-        }
-        if (this.isSqlProjectNodeWithFilePath(targetNode)) {
-            target = this.getFullSqlProjectsPathFromNode(targetNode);
-        }
-
-        void this.start(
-            source && source.trim() ? source : sourceNode,
-            target && target.trim() ? target : targetNode,
-            runComparison,
-        );
+        void this.start(sourceNode, targetNode, runComparison);
         this.registerRpcHandlers();
 
         this.registerDisposable(
@@ -173,20 +170,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
 
                 this.updateState();
             }),
-        );
-    }
-
-    /**
-     * Checks if the given node is a SQL project node with a valid project file path.
-     * Returns true if the node is not a TreeNodeInfo, has a projectFilePath property,
-     * and its treeDataProvider contains a root with a valid projectFileUri.fsPath.
-     */
-    private isSqlProjectNodeWithFilePath(node: any): boolean {
-        return (
-            node &&
-            !this.isTreeNodeInfoType(node) &&
-            node.treeDataProvider?.roots?.length > 0 &&
-            node.treeDataProvider.roots[0]?.projectFileUri?.fsPath
         );
     }
 
@@ -454,10 +437,6 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         }
 
         return false;
-    }
-
-    private getFullSqlProjectsPathFromNode(node: any): string {
-        return node.treeDataProvider?.roots[0]?.projectFileUri?.fsPath ?? "";
     }
 
     private registerRpcHandlers(): void {
