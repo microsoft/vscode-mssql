@@ -16,6 +16,7 @@ import StatusView from "../../src/views/statusView";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 
 suite("SqlDocumentService Tests", () => {
+    let sandbox: sinon.SinonSandbox;
     let document: vscode.TextDocument;
     let newDocument: vscode.TextDocument;
     let mainController: MainController;
@@ -26,6 +27,7 @@ suite("SqlDocumentService Tests", () => {
     let docUriCallback: string;
 
     setup(async () => {
+        sandbox = sinon.createSandbox();
         // Setup a standard document and a new document
         docUri = "docURI.sql";
         newDocUri = "newDocURI.sql";
@@ -39,9 +41,9 @@ suite("SqlDocumentService Tests", () => {
         // Create a mock context
         let mockContext = {
             globalState: {
-                get: sinon.stub().callsFake((_key: string, defaultValue?: any) => defaultValue),
-                update: sinon.stub().resolves(),
-                setKeysForSync: sinon.stub(),
+                get: sandbox.stub().callsFake((_key: string, defaultValue?: any) => defaultValue),
+                update: sandbox.stub().resolves(),
+                setKeysForSync: sandbox.stub(),
             },
         } as any;
 
@@ -50,30 +52,29 @@ suite("SqlDocumentService Tests", () => {
 
         // Create main controller
         mainController = new MainController(mockContext);
-        mainController.connectionManager = connectionManager as any;
+        mainController.connectionManager = connectionManager;
 
         sqlDocumentService = new SqlDocumentService(mainController);
         mainController.sqlDocumentService = sqlDocumentService;
 
         // Initialize internal state properly
-        (sqlDocumentService as any)._previousActiveDocument = undefined;
-
+        sqlDocumentService["_previousActiveDocument"] = undefined;
         // Ensure the connection manager is properly set in the service
-        (sqlDocumentService as any)._connectionMgr = connectionManager;
+        sqlDocumentService["_connectionManager"] = connectionManager;
 
         // Stub SqlOutputContentProvider methods used during tests to avoid side effects
-        (mainController as any)["_outputContentProvider"] = {
-            onDidCloseTextDocument: sinon.stub().resolves(),
-            updateQueryRunnerUri: sinon.stub().resolves(),
-            onUntitledFileSaved: sinon.stub(),
+        mainController["_outputContentProvider"] = {
+            onDidCloseTextDocument: sandbox.stub().resolves(),
+            updateQueryRunnerUri: sandbox.stub().resolves(),
+            onUntitledFileSaved: sandbox.stub(),
         } as any;
 
         // Mock SqlToolsServerClient instance
         const mockDiagnosticCollection = {
-            has: sinon.stub().returns(false),
-            delete: sinon.stub(),
+            has: sandbox.stub().returns(false),
+            delete: sandbox.stub(),
         };
-        sinon.stub(SqlToolsServerClient, "instance").value({
+        sandbox.stub(SqlToolsServerClient, "instance").value({
             diagnosticCollection: mockDiagnosticCollection,
         });
 
@@ -81,20 +82,20 @@ suite("SqlDocumentService Tests", () => {
     });
 
     teardown(() => {
-        sinon.restore();
+        sandbox.restore();
     });
 
     // Standard closed document event test
     test("onDidCloseTextDocument should propagate onDidCloseTextDocument to connectionManager", async () => {
         // Reset internal timers to ensure clean test state - this ensures we hit the normal close path
-        (sqlDocumentService as any)._lastSavedUri = undefined;
-        (sqlDocumentService as any)._lastSavedTimer = undefined;
-        (sqlDocumentService as any)._lastOpenedTimer = undefined;
-        (sqlDocumentService as any)._lastOpenedUri = undefined;
+        sqlDocumentService["_lastSavedUri"] = undefined;
+        sqlDocumentService["_lastSavedTimer"] = undefined;
+        sqlDocumentService["_lastOpenedTimer"] = undefined;
+        sqlDocumentService["_lastOpenedUri"] = undefined;
 
         await sqlDocumentService.onDidCloseTextDocument(document);
 
-        sinon.assert.calledOnceWithExactly(connectionManager.onDidCloseTextDocument, document);
+        sandbox.assert.calledOnceWithExactly(connectionManager.onDidCloseTextDocument, document);
         assert.equal(docUriCallback, document.uri.toString());
         docUriCallback = "";
     });
@@ -102,13 +103,13 @@ suite("SqlDocumentService Tests", () => {
     // Saved Untitled file event test
     test("onDidCloseTextDocument should call untitledDoc function when an untitled file is saved", async () => {
         // Scheme of older doc must be untitled
-        let document2 = <vscode.TextDocument>{
+        let document2 = {
             uri: vscode.Uri.parse(`${LocalizedConstants.untitledScheme}:${docUri}`),
             languageId: "sql",
-        };
+        } as vscode.TextDocument;
 
         // Mock the updateUri method which is called for untitled saves
-        const mockUpdateUri = sinon.stub(sqlDocumentService as any, "updateUri");
+        const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri");
         mockUpdateUri.resolves();
 
         // A save untitled doc constitutes a saveDoc event directly followed by a closeDoc event
@@ -116,7 +117,7 @@ suite("SqlDocumentService Tests", () => {
         await sqlDocumentService.onDidCloseTextDocument(document2);
 
         // Check that updateUri was called (which is the path for untitled saves)
-        sinon.assert.calledOnce(mockUpdateUri);
+        sandbox.assert.calledOnce(mockUpdateUri);
 
         mockUpdateUri.restore();
     });
@@ -124,24 +125,24 @@ suite("SqlDocumentService Tests", () => {
     // Renamed file event test
     test("onDidCloseTextDocument should call renamedDoc function when rename occurs", async () => {
         // Mock the updateUri method which is called for renames
-        const mockUpdateUri = sinon.stub(sqlDocumentService as any, "updateUri");
+        const mockUpdateUri = sandbox.stub(sqlDocumentService as any, "updateUri");
         mockUpdateUri.resolves();
 
         // Set up a timer that looks like it was just started (simulating a rename scenario)
         const mockTimer = {
-            getDuration: sinon.stub().returns(5), // Less than threshold
-            end: sinon.stub(),
+            getDuration: sandbox.stub().returns(Constants.renamedOpenTimeThreshold - 5), // Less than threshold
+            end: sandbox.stub(),
         };
 
         // Simulate the rename sequence: open document, then close old document quickly
         sqlDocumentService.onDidSaveTextDocument(newDocument); // This sets _lastSavedTimer
-        (sqlDocumentService as any)._lastSavedTimer = mockTimer;
-        (sqlDocumentService as any)._lastOpenedUri = newDocument.uri.toString();
+        sqlDocumentService["_lastSavedTimer"] = mockTimer as any;
+        sqlDocumentService["_lastOpenedUri"] = newDocument.uri.toString();
 
         await sqlDocumentService.onDidCloseTextDocument(document);
 
         // Check that updateUri was called (which is the path for renames)
-        sinon.assert.calledOnce(mockUpdateUri);
+        sandbox.assert.calledOnce(mockUpdateUri);
 
         mockUpdateUri.restore();
     });
@@ -150,15 +151,15 @@ suite("SqlDocumentService Tests", () => {
     test("onDidCloseTextDocument should propagate to the connectionManager even if a special event occurred before it", (done) => {
         // Set up expired timers that would have been reset
         const expiredTimer = {
-            getDuration: sinon.stub().returns(Constants.untitledSaveTimeThreshold + 10), // Expired
-            end: sinon.stub(),
+            getDuration: sandbox.stub().returns(Constants.untitledSaveTimeThreshold + 10), // Expired
+            end: sandbox.stub(),
         };
 
         // Set up conditions that would normally trigger special behavior but are now expired
-        (sqlDocumentService as any)._lastSavedUri = newDocument.uri.toString();
-        (sqlDocumentService as any)._lastSavedTimer = expiredTimer;
-        (sqlDocumentService as any)._lastOpenedUri = newDocument.uri.toString();
-        (sqlDocumentService as any)._lastOpenedTimer = expiredTimer;
+        sqlDocumentService["_lastSavedUri"] = newDocument.uri.toString();
+        sqlDocumentService["_lastSavedTimer"] = expiredTimer as any;
+        sqlDocumentService["_lastOpenedUri"] = newDocument.uri.toString();
+        sqlDocumentService["_lastOpenedTimer"] = expiredTimer as any;
 
         // This should now follow the normal close path since timers are expired
         sqlDocumentService
@@ -166,7 +167,7 @@ suite("SqlDocumentService Tests", () => {
             .then(() => {
                 try {
                     // Should have called the normal close path
-                    sinon.assert.calledOnceWithExactly(
+                    sandbox.assert.calledOnceWithExactly(
                         connectionManager.onDidCloseTextDocument,
                         document,
                     );
@@ -184,7 +185,7 @@ suite("SqlDocumentService Tests", () => {
         // Call onDidOpenTextDocument to test its side effects
         await sqlDocumentService.onDidOpenTextDocument(document);
 
-        sinon.assert.calledOnceWithExactly(connectionManager.onDidOpenTextDocument, document);
+        sandbox.assert.calledOnceWithExactly(connectionManager.onDidOpenTextDocument, document);
         assert.equal(docUriCallback, document.uri.toString());
     });
 
@@ -194,12 +195,12 @@ suite("SqlDocumentService Tests", () => {
         sqlDocumentService.onDidSaveTextDocument(newDocument);
 
         // Ensure no extraneous function is called (save doesn't directly call connection manager)
-        sinon.assert.notCalled(connectionManager.onDidOpenTextDocument);
-        sinon.assert.notCalled(connectionManager.copyConnectionToFile);
+        sandbox.assert.notCalled(connectionManager.onDidOpenTextDocument);
+        sandbox.assert.notCalled(connectionManager.copyConnectionToFile);
 
         // Check that internal state was set correctly (uses getUriKey internally)
-        assert.equal((sqlDocumentService as any)._lastSavedUri, newDocument.uri.toString());
-        assert.ok((sqlDocumentService as any)._lastSavedTimer);
+        assert.equal(sqlDocumentService["_lastSavedUri"], newDocument.uri.toString());
+        assert.ok(sqlDocumentService["_lastSavedTimer"]);
     });
 
     test("newQuery should call the new query method", async () => {
@@ -211,13 +212,13 @@ suite("SqlDocumentService Tests", () => {
             selection: undefined,
         } as any;
 
-        const mockCreateDocument = sinon.stub(sqlDocumentService as any, "createDocument");
+        const mockCreateDocument = sandbox.stub(sqlDocumentService as any, "createDocument");
         mockCreateDocument.withArgs(undefined, true).resolves(editor);
 
         const result = await sqlDocumentService.newQuery(undefined, true);
 
         assert.equal(result, editor);
-        sinon.assert.calledOnceWithExactly(mockCreateDocument, undefined, true);
+        sandbox.assert.calledOnceWithExactly(mockCreateDocument, undefined, true);
 
         mockCreateDocument.restore();
     });
@@ -231,22 +232,22 @@ suite("SqlDocumentService Tests", () => {
             document: script1,
         } as unknown as vscode.TextEditor;
 
-        const mockWaitForOngoingCreates = sinon.stub(sqlDocumentService, "waitForOngoingCreates");
+        const mockWaitForOngoingCreates = sandbox.stub(sqlDocumentService, "waitForOngoingCreates");
         mockWaitForOngoingCreates.resolves([]);
 
-        const mockShouldSkipCopyConnection = sinon.stub(
+        const mockShouldSkipCopyConnection = sandbox.stub(
             sqlDocumentService,
             "shouldSkipCopyConnection",
         );
         mockShouldSkipCopyConnection.returns(false);
 
-        const mockStatusView = sinon.createStubInstance(StatusView);
-        (sqlDocumentService as any)._statusview = mockStatusView;
+        const mockStatusView = sandbox.createStubInstance(StatusView);
+        sqlDocumentService["_statusview"] = mockStatusView;
         setupConnectionManagerMocks(connectionManager);
 
         // verify initial state
         expect(
-            (sqlDocumentService as any)._previousActiveDocument,
+            sqlDocumentService["_previousActiveDocument"],
             "previous active document should be initially unset",
         ).to.equal(undefined);
 
@@ -254,19 +255,19 @@ suite("SqlDocumentService Tests", () => {
         await sqlDocumentService.onDidChangeActiveTextEditor(editor);
 
         expect(
-            (sqlDocumentService as any)._previousActiveDocument,
+            sqlDocumentService["_previousActiveDocument"],
             "previous active document should be set after opening a SQL file",
         ).to.deep.equal(editor.document);
-        sinon.assert.notCalled(connectionManager.copyConnectionToFile);
+        sandbox.assert.notCalled(connectionManager.copyConnectionToFile);
 
         // verify that the connection manager transfers the connection from SQL file to SQL file
         await sqlDocumentService.onDidOpenTextDocument(script2);
 
         expect(
-            (sqlDocumentService as any)._previousActiveDocument,
+            sqlDocumentService["_previousActiveDocument"],
             "previous active document should be changed to new script when opening a SQL file",
         ).to.deep.equal(script2);
-        sinon.assert.calledOnceWithExactly(
+        sandbox.assert.calledOnceWithExactly(
             connectionManager.copyConnectionToFile,
             script1.uri.toString(true),
             script2.uri.toString(true),
@@ -279,19 +280,19 @@ suite("SqlDocumentService Tests", () => {
         await sqlDocumentService.onDidOpenTextDocument(textFile);
 
         expect(
-            (sqlDocumentService as any)._previousActiveDocument,
+            sqlDocumentService["_previousActiveDocument"],
             "previous active document should be undefined after opening a non-SQL file",
         ).to.deep.equal(undefined);
-        sinon.assert.notCalled(connectionManager.copyConnectionToFile);
+        sandbox.assert.notCalled(connectionManager.copyConnectionToFile);
 
         // verify that the connection manager does not transfer the connection from non-SQL file to SQL file
         await sqlDocumentService.onDidOpenTextDocument(script1);
 
         expect(
-            (sqlDocumentService as any)._previousActiveDocument,
+            sqlDocumentService["_previousActiveDocument"],
             "previous active document should be set after opening a SQL file",
         ).to.deep.equal(script1);
-        sinon.assert.notCalled(connectionManager.copyConnectionToFile);
+        sandbox.assert.notCalled(connectionManager.copyConnectionToFile);
 
         // Restore stubs
         mockWaitForOngoingCreates.restore();
@@ -317,10 +318,10 @@ suite("SqlDocumentService Tests", () => {
         docUri: string,
         languageId: string = Constants.languageId,
     ): vscode.TextDocument {
-        const document = <vscode.TextDocument>{
+        const document = {
             uri: vscode.Uri.parse(docUri),
             languageId: languageId,
-        };
+        } as vscode.TextDocument;
 
         return document;
     }

@@ -255,7 +255,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 updatedSchema: this.schemaDesignerDetails!.schema,
                 sessionId: this._sessionId,
             });
-            await this.mainController.sqlDocumentService.newQuery(definition.script, true);
+            await this.mainController.sqlDocumentService.newQuery(
+                definition.script,
+                true /* should copy last active connection */,
+            );
         });
 
         this.onNotification(SchemaDesigner.OpenInEditorWithConnectionNotification.type, () => {
