@@ -13,6 +13,8 @@ import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { TestExtensionContext } from "./stubs";
 import { activateExtension } from "./utils";
+import { SchemaCompareEndpointInfo } from "vscode-mssql";
+import * as Constants from "../../src/constants/constants";
 
 suite("MainController Tests", function () {
     let mainController: MainController;
@@ -139,5 +141,59 @@ suite("MainController Tests", function () {
         );
         await controller.onManageProfiles();
         connectionManager.verify((c) => c.onManageProfiles(), TypeMoq.Times.once());
+    });
+
+    test("runComparison command should call onSchemaCompare on the controller", async () => {
+        let called = false;
+        let gotMaybeSource: any = undefined;
+        let gotMaybeTarget: any = undefined;
+        let gotRunComparison: boolean | undefined;
+
+        const originalHandler = (mainController as any).onSchemaCompare;
+        (mainController as any).onSchemaCompare = async (
+            maybeSource?: SchemaCompareEndpointInfo,
+            maybeTarget?: SchemaCompareEndpointInfo,
+            runComparison?: boolean,
+        ) => {
+            called = true;
+            gotMaybeSource = maybeSource;
+            gotMaybeTarget = maybeTarget;
+            gotRunComparison = runComparison ?? false;
+        };
+
+        const src = { endpointType: 1, serverName: "srcServer", databaseName: "srcDb" };
+        const tgt = { endpointType: 1, serverName: "tgtServer", databaseName: "tgtDb" };
+
+        try {
+            await vscode.commands.executeCommand(Constants.cmdSchemaCompare, src, tgt);
+
+            // Normalize in-case the command forwarded a single object { source, target }
+            if (
+                gotMaybeSource &&
+                typeof gotMaybeSource === "object" &&
+                ("source" in gotMaybeSource || "target" in gotMaybeSource)
+            ) {
+                const wrapped = gotMaybeSource as any;
+                gotMaybeSource = wrapped.source;
+                gotMaybeTarget = wrapped.target;
+                gotRunComparison = wrapped.runComparison ?? false;
+            }
+
+            assert.equal(called, true, "Expected onSchemaCompare to be called");
+            assert.deepStrictEqual(
+                gotMaybeSource,
+                src,
+                "Expected source passed through to handler",
+            );
+            assert.deepStrictEqual(
+                gotMaybeTarget,
+                tgt,
+                "Expected target passed through to handler",
+            );
+            assert.equal(gotRunComparison, false, "Expected runComparison to be false");
+        } finally {
+            // restore original handler so the test doesn't leak state
+            (mainController as any).onSchemaCompare = originalHandler;
+        }
     });
 });

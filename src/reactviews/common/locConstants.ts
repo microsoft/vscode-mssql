@@ -897,14 +897,14 @@ export class LocConstants {
     public get deployment() {
         return {
             loadingDeploymentPage: l10n.t("Loading deployment"),
-            deploymentHeader: l10n.t("New SQL Database"),
+            deploymentHeader: l10n.t("New SQL database"),
             deploymentDescription: l10n.t("Choose an option to provision a database"),
             sqlServerContainerHeader: l10n.t("Local SQL Server database container"),
             dockerSqlServerHeader: l10n.t("Create a Local Docker SQL Server"),
             dockerSqlServerDescription: l10n.t(
                 "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
             ),
-            fabricProvisioningHeader: l10n.t("Create a SQL Database in Fabric"),
+            fabricProvisioningHeader: l10n.t("Create a SQL database in Fabric (Preview)"),
             fabricProvisioningDescription: l10n.t(
                 "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
             ),
@@ -952,7 +952,7 @@ export class LocConstants {
     public get fabricProvisioning() {
         return {
             loadingFabricProvisioning: l10n.t("Loading fabric provisioning..."),
-            sqlDatabaseInFabric: l10n.t("SQL Database in Fabric"),
+            sqlDatabaseInFabric: l10n.t("SQL database in Fabric (Preview)"),
             createDatabase: l10n.t("Create Database"),
             loadingWorkspaces: l10n.t("Loading workspaces"),
             errorLoadingWorkspaces: l10n.t(

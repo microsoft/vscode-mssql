@@ -273,14 +273,23 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         state.loadingAzureAccountsStatus === ApiStatus.NotStarted ||
                         state.loadingAzureAccountsStatus === ApiStatus.Error
                     ) {
+                        // Indicate we're checking for existing accounts
+                        state.loadingAzureAccountsStatus = ApiStatus.Loading;
+                        this.updateState(state);
+
                         state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
                             return {
                                 id: a.id,
                                 name: a.label,
                             } as IAzureAccount;
                         });
-                        state.selectedAccountId = state.azureAccounts[0].id;
-                        state.loadingAzureAccountsStatus = ApiStatus.Loaded;
+
+                        if (state.azureAccounts.length === 0) {
+                            state.loadingAzureAccountsStatus = ApiStatus.NotStarted;
+                        } else {
+                            state.selectedAccountId = state.azureAccounts[0].id;
+                            state.loadingAzureAccountsStatus = ApiStatus.Loaded;
+                        }
 
                         this.updateState(state);
                     }
@@ -1337,13 +1346,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ): Promise<Map<string, AzureSubscription[]> | undefined> {
         let telemActivity: ActivityObject;
         try {
-            let auth: MssqlVSCodeAzureSubscriptionProvider;
-            try {
-                auth = await VsCodeAzureHelper.signIn();
-            } catch (error) {
-                state.formError = LocAzure.errorSigningIntoAzure(getErrorMessage(error));
-                return undefined;
-            }
+            // Step 1: Check for existing accounts first and show loading while we do
+            state.loadingAzureAccountsStatus = ApiStatus.Loading;
+            state.loadingAzureTenantsStatus = ApiStatus.NotStarted;
+            state.azureTenants = [];
+            this.updateState(state);
 
             state.formError = "";
             state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
@@ -1353,6 +1360,22 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 } as IAzureAccount;
             });
             state.loadingAzureAccountsStatus = ApiStatus.Loaded;
+            this.updateState(state);
+
+            // If there are no accounts, don't proceed to load subscriptions
+            if (!state.azureAccounts || state.azureAccounts.length === 0) {
+                return undefined;
+            }
+
+            // Step 2: We have accounts; initialize provider (should not force prompt)
+            let auth: MssqlVSCodeAzureSubscriptionProvider;
+            try {
+                auth = await VsCodeAzureHelper.signIn();
+            } catch (error) {
+                state.formError = LocAzure.errorSigningIntoAzure(getErrorMessage(error));
+                return undefined;
+            }
+
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loading;
             this.updateState();
 
