@@ -33,12 +33,19 @@ const useStyles = makeStyles({
     root: {
         display: "flex",
         flexDirection: "column",
+        width: "100%",
+        maxHeight: "100vh",
+        overflowY: "auto",
+        padding: "10px",
+    },
+    formContainer: {
+        display: "flex",
+        flexDirection: "column",
         width: "800px",
         maxWidth: "calc(100% - 20px)",
         "> *": {
             marginBottom: "15px",
         },
-        padding: "10px",
     },
     title: {
         marginBottom: "30px",
@@ -95,78 +102,81 @@ export const UserSurveyPage = () => {
 
     return (
         <div className={classes.root}>
-            <h2
-                style={{
-                    marginBottom: "30px",
-                }}>
-                {userSurveryProvider.state.title ??
-                    locConstants.userFeedback.microsoftWouldLikeYourFeedback}
-            </h2>
-            {userSurveryProvider.state.subtitle && <p>{userSurveryProvider.state.subtitle}</p>}
-
-            {userSurveryProvider.state.questions.map((question, index) => {
-                switch (question.type) {
-                    case "nsat":
-                        return (
-                            <NSATQuestion
-                                key={index}
-                                question={question}
-                                onChange={(d) => onAnswerChange(question.id, d)}
-                            />
-                        );
-                    case "nps":
-                        return (
-                            <NPSQuestion
-                                key={index}
-                                question={question}
-                                onChange={(d) => onAnswerChange(question.id, d)}
-                            />
-                        );
-                    case "textarea":
-                        return (
-                            <TextAreaQuestion
-                                key={index}
-                                question={question}
-                                onChange={(d) => onAnswerChange(question.id, d)}
-                            />
-                        );
-                    case "divider":
-                        return <Divider key={index} />;
-                    default:
-                        return undefined;
-                }
-            })}
-            <div className={classes.footer}>
-                <div className={classes.buttonsContainer}>
-                    <Button
-                        appearance="primary"
-                        disabled={isSubmitDisabled}
-                        onClick={() => userSurveryProvider.submit(userAnswers)}>
-                        {userSurveryProvider.state.submitButtonText ??
-                            locConstants.userFeedback.submit}
-                    </Button>
-                    <Button onClick={() => userSurveryProvider.cancel()}>
-                        {userSurveryProvider.state.cancelButtonText ?? locConstants.common.cancel}
-                    </Button>
-                </div>
-            </div>
-            <div className={classes.privacyDisclaimer}>
-                <Popover inline openOnHover positioning={{ coverTarget: true }}>
-                    <PopoverTrigger>
-                        <p>{locConstants.userFeedback.feedbackStatementShort}</p>
-                    </PopoverTrigger>
-                    <PopoverSurface>
-                        <div style={{ width: "600px" }}>
-                            {locConstants.userFeedback.feedbackStatementLong}
-                        </div>
-                    </PopoverSurface>
-                </Popover>
-                <Link
-                    onClick={() => {
-                        userSurveryProvider.openPrivacyStatement();
+            <div className={classes.formContainer}>
+                <h2
+                    style={{
+                        marginBottom: "30px",
                     }}>
-                    {locConstants.userFeedback.privacyStatement}
-                </Link>
+                    {userSurveryProvider.state.title ??
+                        locConstants.userFeedback.microsoftWouldLikeYourFeedback}
+                </h2>
+                {userSurveryProvider.state.subtitle && <p>{userSurveryProvider.state.subtitle}</p>}
+
+                {userSurveryProvider.state.questions.map((question, index) => {
+                    switch (question.type) {
+                        case "nsat":
+                            return (
+                                <NSATQuestion
+                                    key={index}
+                                    question={question}
+                                    onChange={(d) => onAnswerChange(question.id, d)}
+                                />
+                            );
+                        case "nps":
+                            return (
+                                <NPSQuestion
+                                    key={index}
+                                    question={question}
+                                    onChange={(d) => onAnswerChange(question.id, d)}
+                                />
+                            );
+                        case "textarea":
+                            return (
+                                <TextAreaQuestion
+                                    key={index}
+                                    question={question}
+                                    onChange={(d) => onAnswerChange(question.id, d)}
+                                />
+                            );
+                        case "divider":
+                            return <Divider key={index} />;
+                        default:
+                            return undefined;
+                    }
+                })}
+                <div className={classes.footer}>
+                    <div className={classes.buttonsContainer}>
+                        <Button
+                            appearance="primary"
+                            disabled={isSubmitDisabled}
+                            onClick={() => userSurveryProvider.submit(userAnswers)}>
+                            {userSurveryProvider.state.submitButtonText ??
+                                locConstants.userFeedback.submit}
+                        </Button>
+                        <Button onClick={() => userSurveryProvider.cancel()}>
+                            {userSurveryProvider.state.cancelButtonText ??
+                                locConstants.common.cancel}
+                        </Button>
+                    </div>
+                </div>
+                <div className={classes.privacyDisclaimer}>
+                    <Popover inline openOnHover positioning={{ coverTarget: true }}>
+                        <PopoverTrigger>
+                            <p>{locConstants.userFeedback.feedbackStatementShort}</p>
+                        </PopoverTrigger>
+                        <PopoverSurface>
+                            <div style={{ width: "600px" }}>
+                                {locConstants.userFeedback.feedbackStatementLong}
+                            </div>
+                        </PopoverSurface>
+                    </Popover>
+                    <Link
+                        onClick={() => {
+                            userSurveryProvider.openPrivacyStatement();
+                        }}>
+                        {locConstants.userFeedback.privacyStatement}
+                    </Link>
+                </div>
             </div>
         </div>
     );

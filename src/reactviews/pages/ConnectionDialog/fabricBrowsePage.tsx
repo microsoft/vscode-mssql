@@ -113,10 +113,13 @@ export const FabricBrowsePage = () => {
         }
     }
 
+    const hasAccounts = (context.state.azureAccounts?.length ?? 0) > 0;
+
     return (
         <div>
             <EntraSignInEmpty
                 loadAccountStatus={context.state.loadingAzureAccountsStatus}
+                hasAccounts={hasAccounts}
                 brandImageSource={fabricLogoColor()}
                 signInText={Loc.connectionDialog.signIntoFabricToBrowse}
                 linkText={Loc.connectionDialog.signIntoFabric}
@@ -125,7 +128,7 @@ export const FabricBrowsePage = () => {
                     context.signIntoAzureForBrowse(ConnectionInputMode.FabricBrowse);
                 }}
             />
-            {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
+            {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
                 <>
                     <Accordion
                         multiple
