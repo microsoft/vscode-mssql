@@ -250,13 +250,15 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             await vscode.env.clipboard.writeText(params.text);
         });
 
-        this.onNotification(SchemaDesigner.OpenInEditorNotification.type, async (params) => {
-            const document = await this.vscodeWrapper.openMsSqlTextDocument(params.text);
-            // Open the document in the editor
-            await this.vscodeWrapper.showTextDocument(document, {
-                viewColumn: vscode.ViewColumn.Active,
-                preserveFocus: true,
+        this.onNotification(SchemaDesigner.OpenInEditorNotification.type, async () => {
+            const definition = await this.schemaDesignerService.getDefinition({
+                updatedSchema: this.schemaDesignerDetails!.schema,
+                sessionId: this._sessionId,
             });
+            await this.mainController.sqlDocumentService.newQuery(
+                definition.script,
+                true /* should copy last active connection */,
+            );
         });
 
         this.onNotification(SchemaDesigner.OpenInEditorWithConnectionNotification.type, () => {
@@ -287,10 +289,9 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                         if (this.treeNode) {
                             void this.mainController.onNewQuery(this.treeNode, result?.script);
                         } else if (this.connectionUri) {
-                            const editor =
-                                await this.mainController.untitledSqlDocumentService.newQuery(
-                                    result?.script,
-                                );
+                            const editor = await this.mainController.sqlDocumentService.newQuery(
+                                result?.script,
+                            );
                             await this.mainController.connectionManager.connect(
                                 editor.document.uri.toString(true),
                                 this.mainController.connectionManager.getConnectionInfo(

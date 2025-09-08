@@ -13,7 +13,7 @@ import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { randomUUID } from "crypto";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
+import SqlDocumentService from "../controllers/sqlDocumentService";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
@@ -39,12 +39,12 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     private _selectionSummaryStatusBarItem: vscode.StatusBarItem =
         vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 2);
     public actualPlanStatuses: string[] = [];
+    private _sqlDocumentService: SqlDocumentService;
 
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         private executionPlanService: ExecutionPlanService,
-        private untitledSqlDocumentService: UntitledSqlDocumentService,
         private _sqlOutputContentProvider: SqlOutputContentProvider,
     ) {
         super(context, vscodeWrapper, "queryResult", "queryResult", {
@@ -372,12 +372,12 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return this.executionPlanService;
     }
 
-    public setUntitledDocumentService(service: UntitledSqlDocumentService): void {
-        this.untitledSqlDocumentService = service;
+    public set sqlDocumentService(service: SqlDocumentService) {
+        this._sqlDocumentService = service;
     }
 
-    public getUntitledDocumentService(): UntitledSqlDocumentService {
-        return this.untitledSqlDocumentService;
+    public get sqlDocumentService(): SqlDocumentService {
+        return this._sqlDocumentService;
     }
 
     public async copyAllMessagesToClipboard(uri: string): Promise<void> {

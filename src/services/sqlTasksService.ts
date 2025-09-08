@@ -8,7 +8,7 @@ import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { NotificationType, RequestType } from "vscode-languageclient";
 import { Deferred } from "../protocol";
 import * as localizedConstants from "../constants/locConstants";
-import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
+import SqlDocumentService from "../controllers/sqlDocumentService";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 
 export enum TaskStatus {
@@ -74,7 +74,7 @@ export class SqlTasksService {
 
     constructor(
         private _client: SqlToolsServiceClient,
-        private _untitledSqlDocumentService: UntitledSqlDocumentService,
+        private _sqlDocumentService: SqlDocumentService,
     ) {
         this._client.onNotification(TaskCreatedNotification.type, (taskInfo) =>
             this.handleTaskCreatedNotification(taskInfo),
@@ -175,7 +175,7 @@ export class SqlTasksService {
                 taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script &&
                 taskProgressInfo.script
             ) {
-                await this._untitledSqlDocumentService.newQuery(taskProgressInfo.script);
+                await this._sqlDocumentService.newQuery(taskProgressInfo.script);
             }
         } else {
             // Task is still ongoing so just update the progress notification with the latest status

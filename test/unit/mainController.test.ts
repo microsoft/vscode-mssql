@@ -6,44 +6,25 @@
 import * as assert from "assert";
 import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
-import { expect } from "chai";
 import * as Extension from "../../src/extension";
-import * as Constants from "../../src/constants/constants";
-import * as LocalizedConstants from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
-import UntitledSqlDocumentService from "../../src/controllers/untitledSqlDocumentService";
+import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { TestExtensionContext } from "./stubs";
 import { activateExtension } from "./utils";
-import StatusView from "../../src/views/statusView";
 import { SchemaCompareEndpointInfo } from "vscode-mssql";
+import * as Constants from "../../src/constants/constants";
 
 suite("MainController Tests", function () {
-    let document: vscode.TextDocument;
-    let newDocument: vscode.TextDocument;
     let mainController: MainController;
     let connectionManager: TypeMoq.IMock<ConnectionManager>;
-    let untitledSqlDocumentService: TypeMoq.IMock<UntitledSqlDocumentService>;
-    let docUri: string;
-    let newDocUri: string;
-    let docUriCallback: string;
-    let newDocUriCallback: string;
+    let mockSqlDocumentService: TypeMoq.IMock<SqlDocumentService>;
 
     setup(async () => {
         // Need to activate the extension to get the mainController
         await activateExtension();
 
-        // Setup a standard document and a new document
-        docUri = "docURI.sql";
-        newDocUri = "newDocURI.sql";
-
-        document = mockTextDocument(docUri);
-        newDocument = mockTextDocument(newDocUri);
-
-        // Resetting call back variables
-        docUriCallback = "";
-        newDocUriCallback = "";
         // Using the mainController that was instantiated with the extension
         mainController = await Extension.getController();
 
@@ -57,218 +38,14 @@ suite("MainController Tests", function () {
         );
         mainController.connectionManager = connectionManager.object;
 
-        untitledSqlDocumentService = TypeMoq.Mock.ofType(UntitledSqlDocumentService);
-        mainController.untitledSqlDocumentService = untitledSqlDocumentService.object;
-
-        // Stub SqlOutputContentProvider methods used during tests to avoid side effects
-        (mainController as any)["_outputContentProvider"] = {
-            onDidCloseTextDocument: async () => Promise.resolve(),
-            updateQueryRunnerUri: async () => Promise.resolve(),
-            onUntitledFileSaved: () => undefined,
-        } as any;
-
-        setupConnectionManagerMocks(connectionManager);
-    });
-
-    // Standard closed document event test
-    test("onDidCloseTextDocument should propogate onDidCloseTextDocument to connectionManager", async () => {
-        // Reset internal timers to ensure clean test state
-        (mainController as any)._lastSavedUri = undefined;
-        (mainController as any)._lastSavedTimer = undefined;
-        (mainController as any)._lastOpenedTimer = undefined;
-        (mainController as any)._lastOpenedUri = undefined;
-
-        await mainController.onDidCloseTextDocument(document);
-        try {
-            connectionManager.verify(
-                (x) => x.onDidCloseTextDocument(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
-            assert.equal(docUriCallback, document.uri.toString());
-            docUriCallback = "";
-        } catch (err) {
-            throw err;
-        }
-    });
-
-    // Saved Untitled file event test
-    test("onDidCloseTextDocument should call untitledDoc function when an untitled file is saved", async () => {
-        // Scheme of older doc must be untitled
-        let document2 = <vscode.TextDocument>{
-            uri: vscode.Uri.parse(`${LocalizedConstants.untitledScheme}:${docUri}`),
-            languageId: "sql",
-        };
-
-        // A save untitled doc constitutes an saveDoc event directly followed by a closeDoc event
-        mainController.onDidSaveTextDocument(newDocument);
-        await mainController.onDidCloseTextDocument(document2);
-        connectionManager.verify(
-            (x) => x.copyConnectionToFile(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
+        let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
+        mockSqlDocumentService = TypeMoq.Mock.ofType(
+            SqlDocumentService,
+            TypeMoq.MockBehavior.Loose,
+            mockVscodeWrapper.object,
+            mainController,
         );
-        assert.equal(docUriCallback, document2.uri.toString());
-        assert.equal(newDocUriCallback, newDocument.uri.toString());
-    });
-
-    // Renamed file event test
-    test("onDidCloseTextDocument should call renamedDoc function when rename occurs", async () => {
-        // Seed state so the copy branch can run
-        (document as any).languageId = Constants.languageId;
-        (newDocument as any).languageId = Constants.languageId;
-        (mainController as any)._previousActiveDocument = document;
-
-        untitledSqlDocumentService
-            .setup((x) => x.waitForOngoingCreates())
-            .returns(() => Promise.resolve() as any);
-
-        untitledSqlDocumentService
-            .setup((x) => x.shouldSkipCopyConnection(TypeMoq.It.isAnyString()))
-            .returns(() => false);
-
-        // A renamed doc constitutes an openDoc event directly followed by a closeDoc event
-        await mainController.onDidOpenTextDocument(newDocument);
-        await mainController.onDidCloseTextDocument(document);
-
-        connectionManager.verify(
-            (x) =>
-                x.copyConnectionToFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            TypeMoq.Times.atLeastOnce(),
-        );
-        assert.equal(docUriCallback, document.uri.toString());
-        assert.equal(newDocUriCallback, newDocument.uri.toString());
-    });
-
-    // Closed document event called to test rename and untitled save file event timeouts
-    test("onDidCloseTextDocument should propogate to the connectionManager even if a special event occured before it", (done) => {
-        // Call both special cases
-        mainController.onDidSaveTextDocument(newDocument);
-        void mainController.onDidOpenTextDocument(newDocument);
-
-        // Cause event time out (above 10 ms should work)
-        setTimeout(async () => {
-            await mainController.onDidCloseTextDocument(document);
-
-            try {
-                connectionManager.verify(
-                    (x) =>
-                        x.copyConnectionToFile(
-                            // ignore changes to settings.json because MainController setup adds missing mssql connection settings
-                            TypeMoq.It.is((x) => !x.endsWith("settings.json")),
-                            TypeMoq.It.is((x) => !x.endsWith("settings.json")),
-                        ),
-                    TypeMoq.Times.never(),
-                );
-                connectionManager.verify(
-                    (x) => x.onDidCloseTextDocument(TypeMoq.It.isAny()),
-                    TypeMoq.Times.once(),
-                );
-                assert.equal(docUriCallback, document.uri.toString());
-                done();
-            } catch (err) {
-                done(new Error(err));
-            }
-            // Timeout set to the max threshold + 1
-        }, Constants.untitledSaveTimeThreshold + 1);
-    });
-
-    // Open document event test
-    test("onDidOpenTextDocument should propogate the function to the connectionManager", (done) => {
-        // Call onDidOpenTextDocument to test it side effects
-        void mainController.onDidOpenTextDocument(document);
-        try {
-            connectionManager.verify(
-                (x) => x.onDidOpenTextDocument(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
-            assert.equal(docUriCallback, document.uri.toString());
-            done();
-        } catch (err) {
-            done(new Error(err));
-        }
-    });
-
-    // Save document event test
-    test("onDidSaveTextDocument should propogate the function to the connectionManager", (done) => {
-        // Call onDidOpenTextDocument to test it side effects
-        mainController.onDidSaveTextDocument(newDocument);
-        try {
-            // Ensure no extraneous function is called
-            connectionManager.verify(
-                (x) => x.onDidOpenTextDocument(TypeMoq.It.isAny()),
-                TypeMoq.Times.never(),
-            );
-            connectionManager.verify(
-                (x) => x.copyConnectionToFile(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                TypeMoq.Times.never(),
-            );
-            done();
-        } catch (err) {
-            done(new Error(err));
-        }
-    });
-
-    test("TextDocument Events should handle non-initialized connection manager", (done) => {
-        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
-        let controller: MainController = new MainController(
-            TestExtensionContext.object,
-            undefined, // ConnectionManager
-            vscodeWrapperMock.object,
-        );
-
-        // None of the TextDocument events should throw exceptions, they should cleanly exit instead.
-        void controller.onDidOpenTextDocument(document);
-        controller.onDidSaveTextDocument(document);
-        void controller.onDidCloseTextDocument(document);
-        done();
-    });
-
-    test("onNewQuery should call the new query and new connection", async () => {
-        let editor: vscode.TextEditor = {
-            document: {
-                uri: "test_uri",
-            },
-            viewColumn: vscode.ViewColumn.One,
-            selection: undefined,
-        } as any;
-        untitledSqlDocumentService
-            .setup((x) => x.newQuery(undefined, true))
-            .returns(() => {
-                return Promise.resolve(editor);
-            });
-        connectionManager
-            .setup((x) => x.onNewConnection())
-            .returns(() => {
-                return Promise.resolve(undefined);
-            });
-
-        await mainController.onNewQuery(undefined, undefined);
-        untitledSqlDocumentService.verify((x) => x.newQuery(undefined, true), TypeMoq.Times.once());
-        connectionManager.verify((x) => x.onNewConnection(), TypeMoq.Times.atLeastOnce());
-    });
-
-    test("onNewQuery should not call the new connection if new query fails", async () => {
-        // Ensure the command is allowed to run (otherwise early return and nothing is called)
-        (mainController as any).canRunCommand = () => true;
-
-        // Make newQuery reject
-        untitledSqlDocumentService
-            .setup((x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isValue(true))) // <-- 2 args
-            .returns(() => Promise.reject(new Error("boom")));
-
-        // No need to "returns" here; but if you do, return a real value, not It.isAny()
-        connectionManager.setup((x) => x.onNewConnection()).returns(() => Promise.resolve() as any);
-
-        // Act + assert reject
-        await assert.rejects(() => mainController.onNewQuery(undefined, undefined), /boom/);
-
-        // Verify exactly how prod calls it (2 args, second is true)
-        untitledSqlDocumentService.verify(
-            (x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isValue(true)),
-            TypeMoq.Times.once(),
-        );
-
-        // Should NOT try to create a new connection when newQuery failed
-        connectionManager.verify((x) => x.onNewConnection(), TypeMoq.Times.never());
+        mainController.sqlDocumentService = mockSqlDocumentService.object;
     });
 
     test("validateTextDocumentHasFocus returns false if there is no active text document", () => {
@@ -306,7 +83,55 @@ suite("MainController Tests", function () {
         );
     });
 
-    test("onManageProfiles should call the connetion manager to manage profiles", async () => {
+    test("onNewQuery should call the new query and new connection", async () => {
+        let editor: vscode.TextEditor = {
+            document: {
+                uri: "test_uri",
+            },
+            viewColumn: vscode.ViewColumn.One,
+            selection: undefined,
+        } as any;
+        mockSqlDocumentService
+            .setup((x) => x.newQuery(undefined, true))
+            .returns(() => {
+                return Promise.resolve(editor);
+            });
+        connectionManager
+            .setup((x) => x.onNewConnection())
+            .returns(() => {
+                return Promise.resolve(undefined);
+            });
+
+        await mainController.onNewQuery(undefined, undefined);
+        mockSqlDocumentService.verify((x) => x.newQuery(undefined, true), TypeMoq.Times.once());
+        connectionManager.verify((x) => x.onNewConnection(), TypeMoq.Times.atLeastOnce());
+    });
+
+    test("onNewQuery should not call the new connection if new query fails", async () => {
+        // Ensure the command is allowed to run (otherwise early return and nothing is called)
+        (mainController as any).canRunCommand = () => true;
+
+        // Make newQuery reject
+        mockSqlDocumentService
+            .setup((x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isValue(true)))
+            .returns(() => Promise.reject(new Error("boom")));
+
+        connectionManager.setup((x) => x.onNewConnection()).returns(() => Promise.resolve() as any);
+
+        // Act + assert reject
+        await assert.rejects(() => mainController.onNewQuery(undefined, undefined), /boom/);
+
+        // Verify exactly how prod calls it (2 args, second is true)
+        mockSqlDocumentService.verify(
+            (x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isValue(true)),
+            TypeMoq.Times.once(),
+        );
+
+        // Should NOT try to create a new connection when newQuery failed
+        connectionManager.verify((x) => x.onNewConnection(), TypeMoq.Times.never());
+    });
+
+    test("onManageProfiles should call the connection manager to manage profiles", async () => {
         let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
         connectionManager.setup((c) => c.onManageProfiles());
         let controller: MainController = new MainController(
@@ -316,105 +141,6 @@ suite("MainController Tests", function () {
         );
         await controller.onManageProfiles();
         connectionManager.verify((c) => c.onManageProfiles(), TypeMoq.Times.once());
-    });
-
-    test("connection is transferred when opening a new file and the previous active file is connected", async () => {
-        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
-
-        const script1 = mockTextDocument("script_1.sql");
-        const script2 = mockTextDocument("script_2.sql");
-        const textFile = mockTextDocument("text_file.txt", "plaintext");
-
-        const editor: vscode.TextEditor = {
-            document: script1,
-        } as unknown as vscode.TextEditor;
-
-        untitledSqlDocumentService
-            .setup((x) => x.waitForOngoingCreates())
-            .returns(() => Promise.resolve() as any);
-        untitledSqlDocumentService
-            .setup((x) => x.shouldSkipCopyConnection(TypeMoq.It.isAnyString()))
-            .returns(() => false);
-
-        const controller: MainController = new MainController(
-            TestExtensionContext.object,
-            connectionManager.object,
-            vscodeWrapperMock.object,
-        );
-
-        const mockStatusView = TypeMoq.Mock.ofType(StatusView);
-        mockStatusView.setup((x) =>
-            x.languageFlavorChanged(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-        );
-
-        controller["_statusview"] = mockStatusView.object;
-        setupConnectionManagerMocks(connectionManager);
-
-        // verify initial state
-
-        expect(
-            controller["_previousActiveDocument"],
-            "previous active document should be initially unset",
-        ).to.equal(undefined);
-
-        // simulate opening a SQL file
-        controller.onDidChangeActiveTextEditor(editor);
-
-        expect(
-            controller["_previousActiveDocument"],
-            "previous active document should be set after opening a SQL file",
-        ).to.deep.equal(editor.document);
-        connectionManager.verify(
-            (x) =>
-                x.copyConnectionToFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            TypeMoq.Times.never(),
-        );
-
-        // verify that the connection manager transfers the connection from SQL file to SQL file
-        await controller.onDidOpenTextDocument(script2);
-
-        expect(
-            controller["_previousActiveDocument"],
-            "previous active document should be changed to new script when opening a SQL file",
-        ).to.deep.equal(script2);
-        connectionManager.verify(
-            (x) =>
-                x.copyConnectionToFile(
-                    script1.uri.toString(true),
-                    script2.uri.toString(true),
-                    true,
-                ),
-            TypeMoq.Times.once(),
-        );
-
-        connectionManager.reset();
-        setupConnectionManagerMocks(connectionManager);
-
-        // verify that the connection manager does not transfer the connection from SQL file to non-SQL file
-        await controller.onDidOpenTextDocument(textFile);
-
-        expect(
-            controller["_previousActiveDocument"],
-            "previous active document should be undefined after opening a non-SQL file",
-        ).to.deep.equal(undefined);
-        connectionManager.verify(
-            (x) =>
-                x.copyConnectionToFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            TypeMoq.Times.never(),
-        );
-
-        // verify that the connection manager does not transfer the connection from SQL file to non-SQL file
-        await controller.onDidOpenTextDocument(script1);
-
-        expect(
-            controller["_previousActiveDocument"],
-            "previous active document should be set after opening a SQL file",
-        ).to.deep.equal(script1);
-        connectionManager.verify(
-            (x) =>
-                x.copyConnectionToFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            TypeMoq.Times.never(),
-        );
     });
 
     test("runComparison command should call onSchemaCompare on the controller", async () => {
@@ -470,41 +196,4 @@ suite("MainController Tests", function () {
             (mainController as any).onSchemaCompare = originalHandler;
         }
     });
-
-    function setupConnectionManagerMocks(
-        connectionManager: TypeMoq.IMock<ConnectionManager>,
-    ): void {
-        connectionManager
-            .setup((x) => x.onDidOpenTextDocument(TypeMoq.It.isAny()))
-            .callback((doc) => {
-                docUriCallback = doc.uri.toString();
-            });
-
-        connectionManager
-            .setup((x) => x.onDidCloseTextDocument(TypeMoq.It.isAny()))
-            .callback((doc) => {
-                docUriCallback = doc.uri.toString();
-            });
-
-        connectionManager
-            .setup((x) =>
-                x.copyConnectionToFile(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
-            .callback((doc, newDoc) => {
-                docUriCallback = doc;
-                newDocUriCallback = newDoc;
-            });
-    }
 });
-
-function mockTextDocument(
-    docUri: string,
-    languageId: string = Constants.languageId,
-): vscode.TextDocument {
-    const document = <vscode.TextDocument>{
-        uri: vscode.Uri.parse(docUri),
-        languageId: languageId,
-    };
-
-    return document;
-}

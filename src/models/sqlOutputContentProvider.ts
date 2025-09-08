@@ -19,7 +19,6 @@ import { QueryResultWebviewController } from "../queryResult/queryResultWebViewC
 import { IMessage, QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import * as qr from "../sharedInterfaces/queryResult";
-import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
 import { ApiStatus, StateChangeNotification } from "../sharedInterfaces/webview";
@@ -53,7 +52,6 @@ export class SqlOutputContentProvider {
         private _context: vscode.ExtensionContext,
         private _statusView: StatusView,
         private _vscodeWrapper: VscodeWrapper,
-        private _untitledSqlDocumentService: UntitledSqlDocumentService,
         private _executionPlanService: ExecutionPlanService,
     ) {
         if (!_vscodeWrapper) {
@@ -69,7 +67,6 @@ export class SqlOutputContentProvider {
             this._context,
             this._vscodeWrapper,
             this._executionPlanService,
-            this._untitledSqlDocumentService,
             this,
         );
 
@@ -116,6 +113,10 @@ export class SqlOutputContentProvider {
                 this.revealQueryResult(uri.toString(true));
             }),
         );
+    }
+
+    public get queryResultWebviewController(): QueryResultWebviewController {
+        return this._queryResultWebviewController;
     }
 
     public setQueryResultWebviewController(

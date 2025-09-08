@@ -328,7 +328,7 @@ export function registerCommonRequestHandlers(
         return (await showQuery(
             state,
             payload,
-            webviewViewController.getUntitledDocumentService(),
+            webviewViewController.sqlDocumentService,
         )) as qr.QueryResultWebviewState;
     });
     webviewController.registerReducer("updateTotalCost", async (state, payload) => {
