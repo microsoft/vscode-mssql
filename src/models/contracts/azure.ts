@@ -130,6 +130,10 @@ export interface IProviderSettings {
     portalEndpoint: string;
     redirectUri: string;
     resources: IProviderResources;
+    fabric: {
+        sqlDbDnsSuffix: string;
+        dataWarehouseSuffix: string;
+    };
 }
 
 export interface IProviderResources {
