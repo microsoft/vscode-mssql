@@ -830,6 +830,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         cleanedConnection.connectionString = undefined;
 
+        if (cleanedConnection.secureEnclaves !== "Enabled") {
+            cleanedConnection.attestationProtocol = undefined;
+            cleanedConnection.enclaveAttestationUrl = undefined;
+        }
+
         return cleanedConnection;
     }
 

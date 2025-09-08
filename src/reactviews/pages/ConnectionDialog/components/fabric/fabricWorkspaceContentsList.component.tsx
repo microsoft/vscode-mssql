@@ -13,6 +13,15 @@ import {
     TableRowData,
     Label,
     TableColumnSizingOptions,
+    Menu,
+    MenuTrigger,
+    Tooltip,
+    MenuButton,
+    MenuList,
+    MenuPopover,
+    MenuItemRadio,
+    MenuCheckedValueChangeEvent,
+    MenuCheckedValueChangeData,
 } from "@fluentui/react-components";
 import {
     DataGridBody,
@@ -32,6 +41,7 @@ import { Keys } from "../../../../common/keys";
 import { useFabricExplorerStyles } from "./fabricExplorer.styles";
 import { ApiStatus, ColorThemeKind, Status } from "../../../../../sharedInterfaces/webview";
 import { themeType } from "../../../../common/utils";
+import { FilterIcon } from "../../../../common/icons/filter";
 
 export const FabricWorkspaceContentsList = ({
     onSelectDatabase,
@@ -42,6 +52,9 @@ export const FabricWorkspaceContentsList = ({
 }: WorkspaceContentsList) => {
     const styles = useFabricExplorerStyles();
     const [selectedRowId, setSelectedRowId] = useState<string | undefined>(undefined);
+    const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>(
+        ArtifactTypeFilter.ShowAll,
+    );
 
     //#region Hooks
 
@@ -61,6 +74,10 @@ export const FabricWorkspaceContentsList = ({
             });
         }
 
+        if (selectedTypeFilter !== ArtifactTypeFilter.ShowAll) {
+            result = result.filter((item) => item.type === selectedTypeFilter);
+        }
+
         if (searchFilter.trim()) {
             const searchTerm = searchFilter.toLowerCase();
             result = result.filter(
@@ -71,7 +88,7 @@ export const FabricWorkspaceContentsList = ({
         }
 
         return result;
-    }, [selectedWorkspace?.id, selectedWorkspace?.loadStatus, searchFilter]);
+    }, [selectedWorkspace?.id, selectedWorkspace?.loadStatus, searchFilter, selectedTypeFilter]);
 
     // Memo for creating the column definitions when the component first mounts
     const columns = useMemo(
@@ -113,7 +130,45 @@ export const FabricWorkspaceContentsList = ({
                 compare: (a, b) => {
                     return a.typeDisplayName.localeCompare(b.typeDisplayName);
                 },
-                renderHeaderCell: () => `${Loc.connectionDialog.typeColumnHeader}`,
+                renderHeaderCell: () => (
+                    <div>
+                        {Loc.connectionDialog.typeColumnHeader}
+                        <Menu>
+                            <MenuTrigger>
+                                <Tooltip
+                                    content={Loc.connectionDialog.filterByType}
+                                    relationship="label">
+                                    <MenuButton
+                                        icon={<FilterIcon />}
+                                        appearance="transparent"
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                </Tooltip>
+                            </MenuTrigger>
+                            <MenuPopover onClick={(e) => e.stopPropagation()}>
+                                <MenuList
+                                    checkedValues={{ sqlType: [selectedTypeFilter] }}
+                                    onCheckedValueChange={handleFilterOptionChanged}>
+                                    <MenuItemRadio
+                                        name="sqlType"
+                                        value={ArtifactTypeFilter.ShowAll}>
+                                        {Loc.connectionDialog.showAll}
+                                    </MenuItemRadio>
+                                    <MenuItemRadio
+                                        name="sqlType"
+                                        value={ArtifactTypeFilter.SqlDatabase}>
+                                        {Loc.connectionDialog.sqlDatabase}
+                                    </MenuItemRadio>
+                                    <MenuItemRadio
+                                        name="sqlType"
+                                        value={ArtifactTypeFilter.SqlAnalyticsEndpoint}>
+                                        {Loc.connectionDialog.sqlAnalyticsEndpoint}
+                                    </MenuItemRadio>
+                                </MenuList>
+                            </MenuPopover>
+                        </Menu>
+                    </div>
+                ),
                 renderCell: (item) => (
                     <DataGridCell>
                         <Text truncate className={styles.hideTextOverflowCell}>
@@ -123,12 +178,19 @@ export const FabricWorkspaceContentsList = ({
                 ),
             }),
         ],
-        [theme],
+        [theme, selectedTypeFilter],
     );
 
     function handleServerSelected(database: FabricSqlGridItem) {
         setSelectedRowId(database.id);
         onSelectDatabase(database);
+    }
+
+    function handleFilterOptionChanged(
+        _event: MenuCheckedValueChangeEvent,
+        data: MenuCheckedValueChangeData,
+    ) {
+        setSelectedTypeFilter(data.checkedItems[0]);
     }
 
     //#endregion Hooks
@@ -339,6 +401,11 @@ export function getTypeDisplayName(artifactType: string): string {
             return artifactType;
     }
 }
+
+const ArtifactTypeFilter = {
+    ShowAll: "ShowAll",
+    ...SqlArtifactTypes,
+} as const;
 
 interface WorkspaceContentsList {
     onSelectDatabase: (database: FabricSqlDbInfo) => void;
