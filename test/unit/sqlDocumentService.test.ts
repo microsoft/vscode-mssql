@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
 import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import { expect } from "chai";
+import * as chai from "chai";
 import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
@@ -14,6 +15,8 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import StatusView from "../../src/views/statusView";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
+
+chai.use(sinonChai);
 
 suite("SqlDocumentService Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -95,8 +98,10 @@ suite("SqlDocumentService Tests", () => {
 
         await sqlDocumentService.onDidCloseTextDocument(document);
 
-        sandbox.assert.calledOnceWithExactly(connectionManager.onDidCloseTextDocument, document);
-        assert.equal(docUriCallback, document.uri.toString());
+        expect(connectionManager.onDidCloseTextDocument).to.have.been.calledOnceWithExactly(
+            document,
+        );
+        expect(docUriCallback).to.equal(document.uri.toString());
         docUriCallback = "";
     });
 
@@ -117,7 +122,7 @@ suite("SqlDocumentService Tests", () => {
         await sqlDocumentService.onDidCloseTextDocument(document2);
 
         // Check that updateUri was called (which is the path for untitled saves)
-        sandbox.assert.calledOnce(mockUpdateUri);
+        expect(mockUpdateUri).to.have.been.calledOnce;
 
         mockUpdateUri.restore();
     });
@@ -142,7 +147,7 @@ suite("SqlDocumentService Tests", () => {
         await sqlDocumentService.onDidCloseTextDocument(document);
 
         // Check that updateUri was called (which is the path for renames)
-        sandbox.assert.calledOnce(mockUpdateUri);
+        expect(mockUpdateUri).to.have.been.calledOnce;
 
         mockUpdateUri.restore();
     });
@@ -167,11 +172,10 @@ suite("SqlDocumentService Tests", () => {
             .then(() => {
                 try {
                     // Should have called the normal close path
-                    sandbox.assert.calledOnceWithExactly(
+                    expect(
                         connectionManager.onDidCloseTextDocument,
-                        document,
-                    );
-                    assert.equal(docUriCallback, document.uri.toString());
+                    ).to.have.been.calledOnceWithExactly(document);
+                    expect(docUriCallback).to.equal(document.uri.toString());
                     done();
                 } catch (err) {
                     done(new Error(err));
@@ -185,8 +189,10 @@ suite("SqlDocumentService Tests", () => {
         // Call onDidOpenTextDocument to test its side effects
         await sqlDocumentService.onDidOpenTextDocument(document);
 
-        sandbox.assert.calledOnceWithExactly(connectionManager.onDidOpenTextDocument, document);
-        assert.equal(docUriCallback, document.uri.toString());
+        expect(connectionManager.onDidOpenTextDocument).to.have.been.calledOnceWithExactly(
+            document,
+        );
+        expect(docUriCallback).to.equal(document.uri.toString());
     });
 
     // Save document event test
@@ -195,12 +201,12 @@ suite("SqlDocumentService Tests", () => {
         sqlDocumentService.onDidSaveTextDocument(newDocument);
 
         // Ensure no extraneous function is called (save doesn't directly call connection manager)
-        sandbox.assert.notCalled(connectionManager.onDidOpenTextDocument);
-        sandbox.assert.notCalled(connectionManager.copyConnectionToFile);
+        expect(connectionManager.onDidOpenTextDocument).to.not.have.been.called;
+        expect(connectionManager.copyConnectionToFile).to.not.have.been.called;
 
         // Check that internal state was set correctly (uses getUriKey internally)
-        assert.equal(sqlDocumentService["_lastSavedUri"], newDocument.uri.toString());
-        assert.ok(sqlDocumentService["_lastSavedTimer"]);
+        expect(sqlDocumentService["_lastSavedUri"]).to.equal(newDocument.uri.toString());
+        expect(sqlDocumentService["_lastSavedTimer"]).to.be.ok;
     });
 
     test("newQuery should call the new query method", async () => {
@@ -217,8 +223,8 @@ suite("SqlDocumentService Tests", () => {
 
         const result = await sqlDocumentService.newQuery(undefined, true);
 
-        assert.equal(result, editor);
-        sandbox.assert.calledOnceWithExactly(mockCreateDocument, undefined, true);
+        expect(result).to.equal(editor);
+        expect(mockCreateDocument).to.have.been.calledOnceWithExactly(undefined, true);
 
         mockCreateDocument.restore();
     });
@@ -258,7 +264,7 @@ suite("SqlDocumentService Tests", () => {
             sqlDocumentService["_previousActiveDocument"],
             "previous active document should be set after opening a SQL file",
         ).to.deep.equal(editor.document);
-        sandbox.assert.notCalled(connectionManager.copyConnectionToFile);
+        expect(connectionManager.copyConnectionToFile).to.not.have.been.called;
 
         // verify that the connection manager transfers the connection from SQL file to SQL file
         await sqlDocumentService.onDidOpenTextDocument(script2);
@@ -267,8 +273,7 @@ suite("SqlDocumentService Tests", () => {
             sqlDocumentService["_previousActiveDocument"],
             "previous active document should be changed to new script when opening a SQL file",
         ).to.deep.equal(script2);
-        sandbox.assert.calledOnceWithExactly(
-            connectionManager.copyConnectionToFile,
+        expect(connectionManager.copyConnectionToFile).to.have.been.calledOnceWithExactly(
             script1.uri.toString(true),
             script2.uri.toString(true),
             true,
@@ -283,7 +288,7 @@ suite("SqlDocumentService Tests", () => {
             sqlDocumentService["_previousActiveDocument"],
             "previous active document should be undefined after opening a non-SQL file",
         ).to.deep.equal(undefined);
-        sandbox.assert.notCalled(connectionManager.copyConnectionToFile);
+        expect(connectionManager.copyConnectionToFile).to.not.have.been.called;
 
         // verify that the connection manager does not transfer the connection from non-SQL file to SQL file
         await sqlDocumentService.onDidOpenTextDocument(script1);
@@ -292,7 +297,7 @@ suite("SqlDocumentService Tests", () => {
             sqlDocumentService["_previousActiveDocument"],
             "previous active document should be set after opening a SQL file",
         ).to.deep.equal(script1);
-        sandbox.assert.notCalled(connectionManager.copyConnectionToFile);
+        expect(connectionManager.copyConnectionToFile).to.not.have.been.called;
 
         // Restore stubs
         mockWaitForOngoingCreates.restore();
