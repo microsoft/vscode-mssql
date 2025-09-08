@@ -830,11 +830,11 @@
     <trans-unit id="++CODE++2491afdca82a92663822feb8cd1ef045295b05178959965f47eb4d8b41058e47">
       <source xml:lang="en">Create a Local Docker SQL Server</source>
     </trans-unit>
-    <trans-unit id="++CODE++9a7e5fd0bc07cda4a2566f5511731060a3ea3c0ba1e458357c673faf73ac7ca4">
-      <source xml:lang="en">Create a SQL Database in Fabric</source>
-    </trans-unit>
     <trans-unit id="++CODE++1c67dff33030f48bfc399c9c9c43fb0c67e6986d741c12604cfd9cdf6f03bcb9">
       <source xml:lang="en">Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++09fa1b862a69dc1d82e2cce4c5330d7e9769cdcc2c7521f2927aa20b32a0401c">
+      <source xml:lang="en">Create a SQL database in Fabric</source>
     </trans-unit>
     <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
       <source xml:lang="en">Create a new firewall rule</source>

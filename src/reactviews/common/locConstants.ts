@@ -904,7 +904,7 @@ export class LocConstants {
             dockerSqlServerDescription: l10n.t(
                 "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
             ),
-            fabricProvisioningHeader: l10n.t("Create a SQL Database in Fabric"),
+            fabricProvisioningHeader: l10n.t("Create a SQL database in Fabric"),
             fabricProvisioningDescription: l10n.t(
                 "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
             ),
