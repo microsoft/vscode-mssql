@@ -283,9 +283,14 @@ export enum ServerType {
     DataWarehouse = "DataWarehouse",
     Local = "Local",
     Other = "Other",
+    Unknown = "Unknown",
 }
 
 export function getServerTypes(connection: IConnectionInfo): ServerType[] {
+    if (connection?.server === undefined) {
+        return [ServerType.Unknown];
+    }
+
     if (connection.server.includes(providerSettings.resources.databaseResource.dnsSuffix)) {
         return [ServerType.Azure, ServerType.Sql];
     }
