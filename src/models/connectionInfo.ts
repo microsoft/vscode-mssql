@@ -8,6 +8,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { EncryptOptions } from "../models/interfaces";
 import * as Interfaces from "./interfaces";
+import providerSettings from "../azure/providerSettings";
 
 /**
  * Sets sensible defaults for key connection properties, especially
@@ -273,4 +274,45 @@ export function getConnectionDisplayName(connection: IConnectionInfo): string {
         }
         return `${server}, ${database} (${userOrAuthType})`;
     }
+}
+
+export enum ServerType {
+    Azure = "Azure",
+    Fabric = "Fabric",
+    Sql = "SQL",
+    DataWarehouse = "DataWarehouse",
+    Local = "Local",
+    Other = "Other",
+}
+
+export function getServerTypes(connection: IConnectionInfo): ServerType[] {
+    if (connection.server.includes(providerSettings.resources.databaseResource.dnsSuffix)) {
+        return [ServerType.Azure, ServerType.Sql];
+    }
+
+    if (
+        connection.server.includes(providerSettings.resources.databaseResource.analyticsDnsSuffix)
+    ) {
+        return [ServerType.Azure, ServerType.DataWarehouse];
+    }
+
+    if (connection.server.includes(providerSettings.fabric.sqlDbDnsSuffix)) {
+        return [ServerType.Fabric, ServerType.Sql];
+    }
+
+    if (connection.server.includes(providerSettings.fabric.dataWarehouseSuffix)) {
+        return [ServerType.Fabric, ServerType.DataWarehouse];
+    }
+
+    // check if it's a local connection
+    if (
+        connection.server.endsWith("localhost") || // might have http:
+        connection.server.includes("localhost,") || // includes port
+        connection.server === "." ||
+        connection.server.includes(".,") // includes port
+    ) {
+        return [ServerType.Local, ServerType.Sql];
+    }
+
+    return [ServerType.Other];
 }

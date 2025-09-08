@@ -31,6 +31,7 @@ export enum TelemetryViews {
     SchemaDesigner = "SchemaDesigner",
     Connection = "Connection",
     Credential = "Credential",
+    ConnectionManager = "ConnectionManager",
 }
 
 export enum TelemetryActions {
@@ -148,6 +149,10 @@ export enum TelemetryActions {
     LookupPassword = "LookupPassword",
     ChatCommand = "ChatCommand",
     ReadCredential = "ReadCredential",
+    Connect = "Connect",
+    LoadFabricWorkspaces = "LoadFabricWorkspaces",
+    LoadDatabases = "LoadDatabases",
+    GetSqlAnalyticsEndpointUrlFromFabric = "GetSqlAnalyticsEndpointUrlFromFabric",
 }
 
 /**
