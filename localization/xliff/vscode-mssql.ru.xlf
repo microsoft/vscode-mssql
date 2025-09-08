@@ -1015,9 +1015,21 @@
         <source xml:lang="en">Copy</source>
         <target state="translated">Копировать</target>
       </trans-unit>
+      <trans-unit id="++CODE++7644dd0a33ff475c31116e369646b3410ca1463eb32dd1aabf3569f79cc02b4e">
+        <source xml:lang="en">Copy As</source>
+        <target state="new">Copy As</target>
+      </trans-unit>
       <trans-unit id="++CODE++e172d8c5fbb864a5f85d4926588ef06167cdd4a29ddffdf07714bf25336c2269">
         <source xml:lang="en">Copy Headers</source>
         <target state="translated">Копировать заголовки</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ac030299960c4d5cba2b13fa5f358cb7f1b1531ce5f2e5315eff17b7c93a97bf">
+        <source xml:lang="en">Copy as CSV</source>
+        <target state="new">Copy as CSV</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fd4aee4cb3fa5d5963fc78a7261f20700d94a8ddbbb5b963e97a84c441149508">
+        <source xml:lang="en">Copy as JSON</source>
+        <target state="new">Copy as JSON</target>
       </trans-unit>
       <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
         <source xml:lang="en">Copy code and open webpage</source>
