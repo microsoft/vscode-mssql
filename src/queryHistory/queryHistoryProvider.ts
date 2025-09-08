@@ -202,6 +202,9 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
      */
     private getQueryString(ownerUri: string): string {
         const queryRunner = this._outputContentProvider.getQueryRunner(ownerUri);
+        if (!queryRunner) {
+            return undefined;
+        }
         return queryRunner.getQueryString(ownerUri);
     }
 

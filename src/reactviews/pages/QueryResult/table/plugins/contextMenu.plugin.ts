@@ -10,20 +10,18 @@ import {
     CopySelectionRequest,
     CopyWithHeadersRequest,
     DbCellValue,
+    GridContextMenuAction,
     ResultSetSummary,
     SendToClipboardRequest,
 } from "../../../../../sharedInterfaces/queryResult";
-import { locConstants } from "../../../../common/locConstants";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
 import { IDisposableDataProvider } from "../dataProvider";
 import { HybridDataProvider } from "../hybridDataProvider";
 import { selectEntireGrid, selectionToRange, tryCombineSelectionsForResults } from "../utils";
-import "./contextMenu.css";
 
 export class ContextMenu<T extends Slick.SlickData> {
     private grid!: Slick.Grid<T>;
     private handler = new Slick.EventHandler();
-    private activeContextMenu: JQuery<HTMLElement> | null = null;
 
     constructor(
         private uri: string,
@@ -43,57 +41,38 @@ export class ContextMenu<T extends Slick.SlickData> {
 
     public destroy() {
         this.handler.unsubscribeAll();
+        this.queryResultContext.hideGridContextMenu();
     }
 
-    private headerClickHandler(e: Event): void {
-        if (!(jQuery(e.target!) as any).closest("#contextMenu").length) {
-            if (this.activeContextMenu) {
-                this.activeContextMenu.hide();
-            }
-        }
+    private headerClickHandler(_e: Event): void {
+        // Close any active menu when header is clicked
+        this.queryResultContext.hideGridContextMenu();
     }
 
     private handleContextMenu(e: Event): void {
         e.preventDefault();
-        let mouseEvent = e as MouseEvent;
-        const $contextMenu = jQuery(
-            `<ul id="contextMenu">` +
-                `<li data-action="select-all" class="contextMenu">${locConstants.queryResult.selectAll}</li>` +
-                `<li data-action="copy" class="contextMenu">${locConstants.queryResult.copy}</li>` +
-                `<li data-action="copy-with-headers" class="contextMenu">${locConstants.queryResult.copyWithHeaders}</li>` +
-                `<li data-action="copy-headers" class="contextMenu">${locConstants.queryResult.copyHeaders}</li>` +
-                `<li data-action="copy-as-csv" class="contextMenu">Copy as CSV</li>` +
-                `<li data-action="copy-as-json" class="contextMenu">Copy as JSON</li>` +
-                `</ul>`,
+        const mouseEvent = e as MouseEvent;
+        // Calculate adjusted x/y so the menu fits within viewport (with some estimated size)
+        const margin = 8;
+        const estimatedWidth = 260; // approximate width
+        const estimatedHeight = 260; // approximate height
+        const maxX = Math.max(margin, window.innerWidth - estimatedWidth - margin);
+        const maxY = Math.max(margin, window.innerHeight - estimatedHeight - margin);
+        const adjustedX = Math.min(Math.max(mouseEvent.pageX, margin), maxX);
+        const adjustedY = Math.min(Math.max(mouseEvent.pageY, margin), maxY);
+
+        // Ask outer React app to show menu at coordinates
+        this.queryResultContext.showGridContextMenu(
+            adjustedX,
+            adjustedY,
+            async (action: GridContextMenuAction) => {
+                await this.handleMenuAction(action);
+                this.queryResultContext.hideGridContextMenu();
+            },
         );
-        // Remove any existing context menus to avoid duplication
-        jQuery("#contextMenu").remove();
-
-        // Append the menu to the body and set its position
-        jQuery("body").append($contextMenu);
-
-        let cell = this.grid.getCellFromEvent(e);
-        $contextMenu
-            .data("row", cell.row)
-            .css("top", mouseEvent.pageY)
-            .css("left", mouseEvent.pageX)
-            .show();
-
-        this.activeContextMenu = $contextMenu;
-        jQuery("body").one("click", () => {
-            $contextMenu.hide();
-            this.activeContextMenu = null;
-        });
-
-        $contextMenu.on("click", "li", async (event) => {
-            const action = jQuery(event.target).data("action");
-            await this.handleMenuAction(action);
-            $contextMenu.hide(); // Hide the menu after an action is clicked
-            this.activeContextMenu = null;
-        });
     }
 
-    private async handleMenuAction(action: string): Promise<void> {
+    private async handleMenuAction(action: GridContextMenuAction): Promise<void> {
         let selectedRanges = this.grid.getSelectionModel().getSelectedRanges();
         let selection = tryCombineSelectionsForResults(selectedRanges);
 
@@ -103,7 +82,7 @@ export class ContextMenu<T extends Slick.SlickData> {
         }
 
         switch (action) {
-            case "select-all":
+            case GridContextMenuAction.SelectAll:
                 this.queryResultContext.log("Select All action triggered");
                 const data = this.grid.getData() as HybridDataProvider<T>;
                 let selectionModel = this.grid.getSelectionModel();
@@ -111,7 +90,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                     new Slick.Range(0, 0, data.length - 1, this.grid.getColumns().length - 1),
                 ]);
                 break;
-            case "copy":
+            case GridContextMenuAction.CopySelection:
                 this.queryResultContext.log("Copy action triggered");
                 if (this.dataProvider.isDataInMemory) {
                     this.queryResultContext.log(
@@ -154,7 +133,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 }
 
                 break;
-            case "copy-with-headers":
+            case GridContextMenuAction.CopyWithHeaders:
                 this.queryResultContext.log("Copy with headers action triggered");
 
                 if (this.dataProvider.isDataInMemory) {
@@ -199,7 +178,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                 }
 
                 break;
-            case "copy-headers":
+            case GridContextMenuAction.CopyHeaders:
                 this.queryResultContext.log("Copy Headers action triggered");
                 await this.queryResultContext.extensionRpc.sendRequest(CopyHeadersRequest.type, {
                     uri: this.uri,
@@ -208,7 +187,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                     selection: selection,
                 });
                 break;
-            case "copy-as-csv":
+            case GridContextMenuAction.CopyAsCsv:
                 this.queryResultContext.log("Copy as CSV action triggered");
                 await this.queryResultContext.extensionRpc.sendRequest(CopyAsCsvRequest.type, {
                     uri: this.uri,
@@ -218,7 +197,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                     includeHeaders: true, // Default to including headers for CSV
                 });
                 break;
-            case "copy-as-json":
+            case GridContextMenuAction.CopyAsJson:
                 this.queryResultContext.log("Copy as JSON action triggered");
                 await this.queryResultContext.extensionRpc.sendRequest(CopyAsJsonRequest.type, {
                     uri: this.uri,
