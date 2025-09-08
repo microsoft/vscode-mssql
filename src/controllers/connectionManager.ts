@@ -44,6 +44,7 @@ import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
 import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
+import { getServerTypes } from "../models/connectionInfo";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -1388,8 +1389,23 @@ export default class ConnectionManager {
                     ConnectionContracts.ConnectionRequest.type,
                     connectParams,
                 );
-                if (!result) {
+                if (result) {
+                    sendActionEvent(TelemetryViews.ConnectionManager, TelemetryActions.Connect, {
+                        serverTypes: getServerTypes(connectionCreds).join(","),
+                    });
+                } else {
                     // Failed to process connect request
+                    sendErrorEvent(
+                        TelemetryViews.ConnectionManager,
+                        TelemetryActions.Connect,
+                        new Error("Failed to initiate connection"),
+                        true, // includeErrorMessage,
+                        undefined, // errorCode
+                        undefined, // errorType
+                        {
+                            serverTypes: getServerTypes(connectionCreds).join(","),
+                        },
+                    );
                     resolve(false);
                 }
             } catch (error) {

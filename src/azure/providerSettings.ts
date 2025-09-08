@@ -38,6 +38,10 @@ const publicAzureSettings: IProviderSettings = {
             endpoint: "https://vault.azure.net/",
         },
     },
+    fabric: {
+        sqlDbDnsSuffix: "database.fabric.microsoft.com",
+        dataWarehouseSuffix: "datawarehouse.fabric.microsoft.com",
+    },
     scopes: [
         "openid",
         "email",

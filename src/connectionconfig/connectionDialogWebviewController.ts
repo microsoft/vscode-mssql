@@ -53,7 +53,7 @@ import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { UserSurvey } from "../nps/userSurvey";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { getConnectionDisplayName } from "../models/connectionInfo";
+import { getConnectionDisplayName, getServerTypes } from "../models/connectionInfo";
 import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
 import {
@@ -726,11 +726,31 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.onRequest(GetSqlAnalyticsEndpointUriFromFabricRequest.type, async (payload) => {
-            return FabricHelper.getFabricSqlEndpointServerUri(
-                payload.id,
-                payload.workspaceId,
-                payload.tenantId,
+            const getUriActivity = startActivity(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.GetSqlAnalyticsEndpointUrlFromFabric,
             );
+            try {
+                const result = FabricHelper.getFabricSqlEndpointServerUri(
+                    payload.id,
+                    payload.workspaceId,
+                    payload.tenantId,
+                );
+
+                getUriActivity.end(ActivityStatus.Succeeded);
+
+                return result;
+            } catch (err) {
+                this.logger.error(
+                    `Failed to get URL for Fabric SQL Endpoint: ${getErrorMessage(err)}`,
+                );
+
+                getUriActivity.endFailed(
+                    new Error("Failed to get URL for Fabric SQL Endpoint"),
+                    true,
+                );
+                return undefined;
+            }
         });
     }
 
@@ -952,6 +972,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
                 connectionInputType: this.state.selectedInputMode,
                 authMode: this.state.connectionProfile.authenticationType,
+                serverTypes: getServerTypes(this.state.connectionProfile).join(","),
             });
 
             if (this._connectionBeingEdited) {
@@ -1528,6 +1549,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         account: IAzureAccount | string,
         tenantId: string,
     ): Promise<void> {
+        const loadWorkspacesActivity = startActivity(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.LoadFabricWorkspaces,
+        );
+
         try {
             const accountId = typeof account === "string" ? account : account.id;
             const vscodeAccount = await VsCodeAzureHelper.getAccountById(accountId);
@@ -1546,6 +1572,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                 this.logger.error(message);
                 state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message: locMessage };
+
+                loadWorkspacesActivity.endFailed(
+                    new Error(
+                        "Failed to get tenant info from VS Code; may have been user-canceled.",
+                    ),
+                    true, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                );
             }
 
             try {
@@ -1573,6 +1608,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                             ? Loc.noWorkspacesFound
                             : undefined,
                 };
+
+                loadWorkspacesActivity.end(ActivityStatus.Succeeded, undefined, {
+                    workspaceCount: this.state.fabricWorkspaces.length,
+                });
             } catch (err) {
                 const message = `Failed to get Fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`;
                 const locMessage = LocFabric.failedToGetWorkspacesForTenant(
@@ -1582,9 +1621,23 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                 this.logger.error(message);
                 state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message: locMessage };
+
+                loadWorkspacesActivity.endFailed(
+                    new Error("Failed to fetch Fabric workspaces"),
+                    true, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                );
             }
         } catch (err) {
             state.formError = getErrorMessage(err);
+
+            loadWorkspacesActivity.endFailed(
+                new Error("Failure while getting Fabric workspaces"),
+                true, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+            );
         }
     }
 
@@ -1592,6 +1645,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         state: ConnectionDialogWebviewState,
         workspace: FabricWorkspaceInfo,
     ): Promise<void> {
+        const loadDatabasesActivity = startActivity(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.LoadDatabases,
+        );
+
         // 1. Display loading status
         workspace.loadStatus = { status: ApiStatus.Loading };
         this.updateState(state);
@@ -1613,6 +1671,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                 errorMessages.push(errorMessage);
             }
+
+            const sqlDbCount = databases.length;
+            const sqlDbErrored = errorMessages.length > 0;
 
             // 3. Load SQL Analytics endpoints from Fabric
             try {
@@ -1652,12 +1713,33 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             workspace.databases.sort((a, b) => a.displayName.localeCompare(b.displayName));
 
+            loadDatabasesActivity.end(
+                ActivityStatus.Succeeded,
+                {
+                    sqlDbErrored: String(sqlDbErrored),
+                    sqlAnalyticsEndpointErrored: String(
+                        errorMessages.length - (sqlDbErrored ? 1 : 0),
+                    ),
+                },
+                {
+                    sqlDbCount: sqlDbCount,
+                    sqlAnalyticsEndpointCount: workspace.databases.length - sqlDbCount,
+                },
+            );
+
             this.updateState(state);
         } catch (err) {
             const message = `Failed to load Fabric databases for workspace ${workspace.id}: ${getErrorMessage(err)}`;
 
             this.logger.error(message);
             workspace.loadStatus = { status: ApiStatus.Error, message: getErrorMessage(err) };
+
+            loadDatabasesActivity.endFailed(
+                new Error("Failure while getting Fabric databases"),
+                true, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+            );
         }
     }
 
