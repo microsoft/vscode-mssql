@@ -7,7 +7,7 @@ import * as events from "events";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
-import { IConnectionInfo, IScriptingObject } from "vscode-mssql";
+import { IConnectionInfo, IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
 import { AzureResourceController } from "../azure/azureResourceController";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -1502,9 +1502,34 @@ export default class MainController implements vscode.Disposable {
         });
 
         if (this.isRichExperiencesEnabled) {
+            // Register the command as async and forward all arguments
             this._context.subscriptions.push(
-                vscode.commands.registerCommand(Constants.cmdSchemaCompare, async (node: any) =>
-                    this.onSchemaCompare(node),
+                vscode.commands.registerCommand(
+                    Constants.cmdSchemaCompare,
+                    async (
+                        ...args: (
+                            | ConnectionNode
+                            | TreeNodeInfo
+                            | SchemaCompareEndpointInfo
+                            | boolean
+                            | string
+                            | undefined
+                        )[]
+                    ) => {
+                        let sourceNode = undefined;
+                        let targetNode = undefined;
+                        let runComparison: boolean | undefined;
+
+                        if (args.length >= 2) {
+                            // Positional arguments: [sourceNode, targetNode, runComparison]
+                            sourceNode = args[0];
+                            targetNode = args[1];
+                            runComparison =
+                                args.length > 2 && typeof args[2] === "boolean" ? args[2] : false;
+                        }
+
+                        await this.onSchemaCompare(sourceNode, targetNode, runComparison);
+                    },
                 ),
             );
 
@@ -2598,12 +2623,26 @@ export default class MainController implements vscode.Disposable {
         return await this.newQueryFromPrompt(newDocUri);
     }
 
-    public async onSchemaCompare(node?: any): Promise<void> {
+    /**
+     * Handler for the Schema Compare command.
+     * Accepts variable arguments, typically:
+     *   - [sourceNode, targetNode, runComparison] when invoked from update Project SC or programmatically,
+     *   - [sourceNode, undefined] when invoked from a project tree node/ server / database node,
+     *   - [] when invoked from the command palette.
+     * This method normalizes the arguments and launches the Schema Compare UI.
+     */
+    public async onSchemaCompare(
+        sourceNode?: ConnectionNode | TreeNodeInfo | SchemaCompareEndpointInfo | string | undefined,
+        targetNode?: ConnectionNode | TreeNodeInfo | SchemaCompareEndpointInfo | string | undefined,
+        runComparison: boolean = false,
+    ): Promise<void> {
         const result = await this.schemaCompareService.schemaCompareGetDefaultOptions();
         const schemaCompareWebView = new SchemaCompareWebViewController(
             this._context,
             this._vscodeWrapper,
-            node,
+            sourceNode,
+            targetNode,
+            runComparison,
             this.schemaCompareService,
             this._connectionMgr,
             result,

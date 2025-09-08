@@ -35,7 +35,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     let mockServerConnInfo: TypeMoq.IMock<mssql.IConnectionInfo>;
     let mockInitialState: SchemaCompareWebViewState;
     let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
-    const schemaCompareWebViewTitle: string = "Schema Compare";
+    const schemaCompareWebViewTitle = "Schema Compare";
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
     let generateOperationIdStub: sinon.SinonStub<[], string>;
 
@@ -327,6 +327,8 @@ suite("SchemaCompareWebViewController Tests", () => {
             mockContext,
             vscodeWrapper.object,
             treeNode,
+            undefined,
+            false,
             mockSchemaCompareService.object,
             mockConnectionManager.object,
             deploymentOptionsResultMock,
@@ -348,24 +350,130 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
     });
 
+    test("start - resolves targetContext and calls launch with correct target", async () => {
+        const mockTarget: mssql.SchemaCompareEndpointInfo = {
+            endpointType: 1,
+            serverName: "targetServer",
+            databaseName: "targetDb",
+            packageFilePath: "",
+            serverDisplayName: "",
+            ownerUri: "",
+            connectionDetails: undefined,
+            connectionName: "",
+            projectFilePath: "",
+            targetScripts: [],
+            dataSchemaProvider: "",
+            extractTarget: 5,
+        };
+        controller = new SchemaCompareWebViewController(
+            mockContext,
+            vscodeWrapper.object,
+            undefined,
+            mockTarget,
+            false,
+            mockSchemaCompareService.object,
+            mockConnectionManager.object,
+            deploymentOptionsResultMock,
+            schemaCompareWebViewTitle,
+        );
+
+        const launchStub = sinon.stub(controller, "launch").resolves();
+
+        await controller.start(undefined, mockTarget, false);
+
+        sinon.assert.calledTwice(launchStub);
+
+        // First call: from constructor
+        // Second call: from explicit start
+        const [sourceArg2, targetArg2, runComparisonArg2] = launchStub.secondCall.args;
+
+        // You can assert the second call matches your expectations
+        assert.strictEqual(sourceArg2, undefined, "source should be undefined");
+        assert.deepStrictEqual(targetArg2, mockTarget, "target should match mockTarget");
+        assert.strictEqual(runComparisonArg2, false, "runComparison should be false");
+
+        launchStub.restore();
+    });
+
+    test("start - calls launch with runComparison true", async () => {
+        const mockSource: mssql.SchemaCompareEndpointInfo = {
+            endpointType: 1,
+            serverName: "sourceServer",
+            databaseName: "sourceDb",
+            packageFilePath: "",
+            serverDisplayName: "",
+            ownerUri: "",
+            connectionDetails: undefined,
+            connectionName: "",
+            projectFilePath: "",
+            targetScripts: [],
+            dataSchemaProvider: "",
+            extractTarget: 5,
+        };
+        const mockTarget: mssql.SchemaCompareEndpointInfo = {
+            endpointType: 1,
+            serverName: "targetServer",
+            databaseName: "targetDb",
+            packageFilePath: "",
+            serverDisplayName: "",
+            ownerUri: "",
+            connectionDetails: undefined,
+            connectionName: "",
+            projectFilePath: "",
+            targetScripts: [],
+            dataSchemaProvider: "",
+            extractTarget: 5,
+        };
+        controller = new SchemaCompareWebViewController(
+            mockContext,
+            vscodeWrapper.object,
+            mockSource,
+            mockTarget,
+            true,
+            mockSchemaCompareService.object,
+            mockConnectionManager.object,
+            deploymentOptionsResultMock,
+            schemaCompareWebViewTitle,
+        );
+
+        const launchStub = sinon.stub(controller, "launch").resolves();
+
+        await controller.start(mockSource, mockTarget, true);
+
+        sinon.assert.calledTwice(launchStub);
+
+        // Second call: from explicit start
+        const [sourceArg2, targetArg2, runComparisonArg2] = launchStub.secondCall.args;
+        assert.deepStrictEqual(sourceArg2, mockSource, "source should match mockSource");
+        assert.deepStrictEqual(targetArg2, mockTarget, "target should match mockTarget");
+        assert.strictEqual(runComparisonArg2, true, "runComparison should be true");
+
+        launchStub.restore();
+    });
+
     // lewissanchez todo: remove async method from constructor and call a seperate async method to "start" the controller with a source endpoint
     test.skip("start - called with sqlproject path - sets sourceEndpointInfo correctly", () => {
-        const mockSqlProjectNode = {
-            treeDataProvider: {
-                roots: [
-                    {
-                        projectFileUri: {
-                            fsPath: "c:\\TestSqlProject\\TestProject.sqlproj",
-                        },
-                    },
-                ],
-            },
+        const mockSqlProjectNode: mssql.SchemaCompareEndpointInfo = {
+            endpointType: 1,
+            serverName: "targetServer",
+            databaseName: "targetDb",
+            packageFilePath: "",
+            serverDisplayName: "",
+            ownerUri: "",
+            connectionDetails: undefined,
+            connectionName: "",
+            projectFilePath: "c:\\TestSqlProject\\TestProject.sqlproj",
+            targetScripts: [],
+            dataSchemaProvider: "",
+            extractTarget: 5,
         };
 
         const scController = new SchemaCompareWebViewController(
             mockContext,
             vscodeWrapper.object,
             mockSqlProjectNode,
+            undefined,
+            false,
             mockSchemaCompareService.object,
             mockConnectionManager.object,
             deploymentOptionsResultMock,
