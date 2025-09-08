@@ -62,8 +62,18 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
-        sourceNode: ConnectionNode | mssql.SchemaCompareEndpointInfo | string | undefined,
-        targetNode: ConnectionNode | mssql.SchemaCompareEndpointInfo | string | undefined,
+        sourceNode:
+            | ConnectionNode
+            | TreeNodeInfo
+            | mssql.SchemaCompareEndpointInfo
+            | string
+            | undefined,
+        targetNode:
+            | ConnectionNode
+            | TreeNodeInfo
+            | mssql.SchemaCompareEndpointInfo
+            | string
+            | undefined,
         runComparison: boolean,
         private readonly schemaCompareService: mssql.ISchemaCompareService,
         private readonly connectionMgr: ConnectionManager,
@@ -174,8 +184,18 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
      * @param comparisonResult Result of a previous comparison, if available.
      */
     public async start(
-        sourceContext: ConnectionNode | mssql.SchemaCompareEndpointInfo | string | undefined,
-        targetContext: ConnectionNode | mssql.SchemaCompareEndpointInfo | string | undefined,
+        sourceContext:
+            | ConnectionNode
+            | TreeNodeInfo
+            | mssql.SchemaCompareEndpointInfo
+            | string
+            | undefined,
+        targetContext:
+            | ConnectionNode
+            | TreeNodeInfo
+            | mssql.SchemaCompareEndpointInfo
+            | string
+            | undefined,
         runComparison: boolean,
         comparisonResult: mssql.SchemaCompareResult = undefined,
     ): Promise<void> {
