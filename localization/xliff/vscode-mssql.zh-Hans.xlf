@@ -896,6 +896,11 @@
         <source xml:lang="en">Connecting to your SQL Server Docker container</source>
         <target state="translated">正在连接到 SQL Server Docker 容器</target>
       </trans-unit>
+      <trans-unit id="++CODE++9b8df2904fd9e25473fed50a3df04dc0629dec82daa72d6085cab8d1c63e4f65">
+        <source xml:lang="en">Connecting to {0}...</source>
+        <note>{0} is the connection display name</note>
+        <target state="new">Connecting to {0}...</target>
+      </trans-unit>
       <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
         <source xml:lang="en">Connecting to: </source>
         <target state="translated">正在连接至:</target>
