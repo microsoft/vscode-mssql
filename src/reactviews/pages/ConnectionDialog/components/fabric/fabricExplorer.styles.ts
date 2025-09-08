@@ -204,4 +204,8 @@ export const useFabricExplorerStyles = makeStyles({
         whiteSpace: "nowrap",
         textOverflow: "ellipsis",
     },
+    filterIcon: {
+        width: "12px",
+        height: "12px",
+    },
 });
