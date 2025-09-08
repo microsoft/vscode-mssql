@@ -183,7 +183,7 @@ export const ChooseDeploymentTypePage: React.FC = () => {
 };
 
 export const deploymentIcon = () => {
-    return require(`../../media/sqlDatabase.svg`);
+    return require(`../../media/database.svg`);
 };
 
 export const dockerIcon = () => {
