@@ -41,6 +41,7 @@ import { Keys } from "../../../../common/keys";
 import { useFabricExplorerStyles } from "./fabricExplorer.styles";
 import { ApiStatus, ColorThemeKind, Status } from "../../../../../sharedInterfaces/webview";
 import { themeType } from "../../../../common/utils";
+import { FilterIcon } from "../../../../common/icons/filter";
 
 export const FabricWorkspaceContentsList = ({
     onSelectDatabase,
@@ -138,13 +139,7 @@ export const FabricWorkspaceContentsList = ({
                                     content={Loc.connectionDialog.filterByType}
                                     relationship="label">
                                     <MenuButton
-                                        icon={
-                                            <img
-                                                src={filterIcon(theme)}
-                                                alt={Loc.connectionDialog.filter}
-                                                className={styles.filterIcon}
-                                            />
-                                        }
+                                        icon={<FilterIcon />}
                                         appearance="transparent"
                                         onClick={(e) => e.stopPropagation()}
                                     />
@@ -388,15 +383,6 @@ export const FabricWorkspaceContentsList = ({
                 ? require("../../../../media/dataWarehouse-inverse.svg")
                 : require("../../../../media/dataWarehouse.svg");
         return saveIcon;
-    }
-
-    function filterIcon(colorTheme: ColorThemeKind) {
-        const theme = themeType(colorTheme);
-        const filterIcon =
-            theme === "dark"
-                ? require("../../../../media/filter_inverse.svg")
-                : require("../../../../media/filter.svg");
-        return filterIcon;
     }
 
     //#endregion

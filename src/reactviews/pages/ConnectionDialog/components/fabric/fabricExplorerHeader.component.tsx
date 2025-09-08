@@ -14,8 +14,7 @@ import {
     makeStyles,
 } from "@fluentui/react-components";
 import { DismissRegular, SearchRegular } from "@fluentui/react-icons";
-import { ApiStatus, ColorThemeKind } from "../../../../../sharedInterfaces/webview";
-import { themeType } from "../../../../common/utils";
+import { ApiStatus } from "../../../../../sharedInterfaces/webview";
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { IAzureAccount, IAzureTenant } from "../../../../../sharedInterfaces/connectionDialog";
 import { addNewMicrosoftAccount } from "../../../../common/constants";
@@ -192,15 +191,6 @@ interface FabricBrowserHeaderProps {
     selectedTypeFilters?: string[];
 }
 
-export const filterIcon = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const filterIcon =
-        theme === "dark"
-            ? require("../../../../media/filter_inverse.svg")
-            : require("../../../../media/filter.svg");
-    return filterIcon;
-};
-
 const useStyles = makeStyles({
     headerContainer: {
         display: "flex",
@@ -254,15 +244,5 @@ const useStyles = makeStyles({
         flex: 1,
         minWidth: 0,
         marginLeft: "8px",
-    },
-    filterLabel: {
-        marginRight: "5px",
-        fontSize: "12px",
-        marginBottom: "4px",
-        display: "block",
-    },
-    filterIcon: {
-        width: "20px",
-        height: "20px",
     },
 });
