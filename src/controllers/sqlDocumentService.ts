@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import ConnectionManager from "./connectionManager";
+import ConnectionManager, { ConnectionSuccessfulEvent } from "./connectionManager";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import StatusView from "../views/statusView";
 import store from "../queryResult/singletonStore";
@@ -14,7 +14,7 @@ import * as Utils from "../models/utils";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import MainController from "./mainController";
-
+import * as vscodeMssql from "vscode-mssql";
 /**
  * Service for creating untitled documents for SQL query
  */
@@ -28,11 +28,8 @@ export default class SqlDocumentService implements vscode.Disposable {
     private _lastSavedTimer: Utils.Timer | undefined;
     private _lastOpenedUri: string | undefined;
     private _lastOpenedTimer: Utils.Timer | undefined;
-    /**
-     * Tracks the previous editor for the purposes of transferring connections to a newly-opened file.
-     * Set to undefined if the previous editor is not a SQL file (languageId === mssql).
-     */
-    private _previousActiveDocument: vscode.TextDocument | undefined;
+
+    private _lastActiveConnectionInfo: vscodeMssql.IConnectionInfo | undefined;
 
     private _connectionMgr: ConnectionManager | undefined;
     private _outputContentProvider: SqlOutputContentProvider | undefined;
@@ -69,6 +66,12 @@ export default class SqlDocumentService implements vscode.Disposable {
             vscode.workspace.onDidSaveTextDocument((doc) => {
                 this.onDidSaveTextDocument(doc);
             }),
+        );
+
+        this._disposables.push(
+            this._connectionMgr.onSuccessfulConnection((params) =>
+                this.onSuccessfulConnection(params),
+            ),
         );
     }
 
@@ -157,15 +160,11 @@ export default class SqlDocumentService implements vscode.Disposable {
         const skipCopyConnection = this.shouldSkipCopyConnection(getUriKey(doc.uri));
 
         if (
-            this._previousActiveDocument &&
+            this._lastActiveConnectionInfo &&
             doc.languageId === Constants.languageId &&
             !skipCopyConnection
         ) {
-            void this._connectionMgr.copyConnectionToFile(
-                getUriKey(this._previousActiveDocument.uri),
-                getUriKey(doc.uri),
-                true /* keepOldConnected */,
-            );
+            await this._connectionMgr.connect(getUriKey(doc.uri), this._lastActiveConnectionInfo);
         }
 
         if (doc && doc.languageId === Constants.languageId) {
@@ -182,17 +181,20 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         if (doc && doc.uri) {
             this._lastOpenedUri = getUriKey(doc.uri);
-
-            // pre-opened tabs won't trigger onDidChangeActiveTextEditor, so set _previousActiveEditor here
-            this._previousActiveDocument =
-                doc.languageId === Constants.languageId ? doc : undefined;
         }
     }
 
     public async onDidChangeActiveTextEditor(editor: vscode.TextEditor | undefined): Promise<void> {
-        if (editor?.document) {
-            this._previousActiveDocument =
-                editor.document.languageId === Constants.languageId ? editor.document : undefined;
+        if (!editor?.document) {
+            return;
+        }
+
+        const activeDocumentUri = getUriKey(editor.document.uri);
+        const activeConnection =
+            await this._connectionMgr?.getConnectionInfoFromUri(activeDocumentUri);
+
+        if (activeConnection) {
+            this._lastActiveConnectionInfo = activeConnection;
         }
     }
 
@@ -214,6 +216,21 @@ export default class SqlDocumentService implements vscode.Disposable {
         this._lastSavedTimer = new Utils.Timer();
         this._lastSavedTimer.start();
         this._lastSavedUri = savedDocumentUri;
+    }
+
+    private async onSuccessfulConnection(params: ConnectionSuccessfulEvent): Promise<void> {
+        const activeEditorKey = getUriKey(vscode.window.activeTextEditor?.document.uri);
+        const credentials = params?.connection?.credentials;
+        if (!credentials) {
+            return;
+        }
+        if (activeEditorKey === params.fileUri) {
+            // Always update when it's the active editor
+            this._lastActiveConnectionInfo = credentials;
+        } else if (!this._lastActiveConnectionInfo) {
+            // Only set once if not already set
+            this._lastActiveConnectionInfo = credentials;
+        }
     }
 
     /**
