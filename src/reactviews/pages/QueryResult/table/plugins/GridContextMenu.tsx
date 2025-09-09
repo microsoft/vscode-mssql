@@ -88,6 +88,18 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                                         onClick={() => onAction(GridContextMenuAction.CopyAsJson)}>
                                         {locConstants.queryResult.copyAsJson}
                                     </MenuItem>
+                                    <MenuItem
+                                        onClick={() =>
+                                            onAction(GridContextMenuAction.CopyAsInsertInto)
+                                        }>
+                                        {locConstants.queryResult.copyAsInsertInto}
+                                    </MenuItem>
+                                    <MenuItem
+                                        onClick={() =>
+                                            onAction(GridContextMenuAction.CopyAsInClause)
+                                        }>
+                                        {locConstants.queryResult.copyAsInClause}
+                                    </MenuItem>
                                 </MenuList>
                             </MenuPopover>
                         </Menu>

@@ -312,4 +312,66 @@ suite("save results tests", () => {
         let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper);
         saveResults.onSaveResults(testFile, 0, 0, "csv", undefined);
     });
+
+    test("Save as INSERT - test if information message is displayed on success", () => {
+        return testSaveSuccess("insert");
+    });
+
+    test("Save as INSERT - test if error message is displayed on failure to save", () => {
+        return testSaveFailure("insert");
+    });
+
+    test("Save as INSERT - test if correct file extension is used", (done) => {
+        // setup mock to verify correct file extension
+        vscodeWrapper
+            .setup((x) => x.showSaveDialog(TypeMoq.It.isAny()))
+            .callback((options: vscode.SaveDialogOptions) => {
+                try {
+                    // Verify that SQL files filter is available for INSERT format
+                    assert.ok(options.filters["SQL Files"], "Should have SQL Files filter");
+                    assert.deepEqual(
+                        options.filters["SQL Files"],
+                        ["sql"],
+                        "Should use .sql extension",
+                    );
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            })
+            .returns(() => Promise.resolve(fileUri));
+
+        serverClient
+            .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns(() => Promise.resolve({ messages: undefined }));
+
+        let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper.object);
+        saveResults.onSaveResults(testFile, 0, 0, "insert", undefined);
+    });
+
+    test("Save as INSERT - test if correct request type is used", (done) => {
+        // setup mock filepath prompt
+        vscodeWrapper
+            .setup((x) => x.showSaveDialog(TypeMoq.It.isAny()))
+            .returns(() => Promise.resolve(fileUri));
+
+        // setup mock sql tools server client to verify correct request type
+        serverClient
+            .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .callback((type, params) => {
+                try {
+                    // Verify that the request type matches INSERT request
+                    assert.equal(type.method, "query/saveInsert", "Should use INSERT request type");
+                    assert.equal(params.ownerUri, testFile);
+                    assert.equal(params.filePath, fileUri.fsPath);
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            })
+            .returns(() => Promise.resolve({ messages: undefined }));
+
+        let saveResults = new ResultsSerializer(serverClient.object, vscodeWrapper.object);
+        saveResults.onSaveResults(testFile, 0, 0, "insert", undefined);
+    });
 });
