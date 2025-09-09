@@ -1433,16 +1433,17 @@ suite("Query Runner tests", () => {
         });
 
         function setupMockConfig() {
+            // Use the shared workspace configuration stub so config.get(...) works
+            const configItems: { [key: string]: any } = {
+                [Constants.copyIncludeHeaders]: true,
+                [Constants.configCopyRemoveNewLine]: false,
+            };
+            const config = stubs.createWorkspaceConfiguration(configItems);
             testVscodeWrapper
                 .setup((x) =>
                     x.getConfiguration(TypeMoq.It.isAnyString(), TypeMoq.It.isAnyString()),
                 )
-                .returns(() => {
-                    return {
-                        copyIncludeHeaders: true,
-                        copyRemoveNewLine: false,
-                    } as any;
-                });
+                .returns(() => config);
         }
 
         test("Copies selection as IN clause with string values", async () => {
@@ -1686,16 +1687,17 @@ suite("Query Runner tests", () => {
         });
 
         function setupMockConfig() {
+            // Use the shared workspace configuration stub so config.get(...) works
+            const configItems: { [key: string]: any } = {
+                [Constants.copyIncludeHeaders]: true,
+                [Constants.configCopyRemoveNewLine]: false,
+            };
+            const config = stubs.createWorkspaceConfiguration(configItems);
             testVscodeWrapper
                 .setup((x) =>
                     x.getConfiguration(TypeMoq.It.isAnyString(), TypeMoq.It.isAnyString()),
                 )
-                .returns(() => {
-                    return {
-                        copyIncludeHeaders: true,
-                        copyRemoveNewLine: false,
-                    } as any;
-                });
+                .returns(() => config);
         }
 
         test("Copies selection as INSERT INTO statement with small dataset", async () => {
