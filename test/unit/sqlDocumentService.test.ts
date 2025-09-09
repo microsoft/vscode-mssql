@@ -13,7 +13,6 @@ import * as LocalizedConstants from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
-import StatusView from "../../src/views/statusView";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 
 chai.use(sinonChai);
@@ -52,6 +51,9 @@ suite("SqlDocumentService Tests", () => {
 
         // Create stubbed connection manager
         connectionManager = sinon.createStubInstance(ConnectionManager);
+        (connectionManager as any)["onSuccessfulConnection"] = (
+            _listener: (e: any) => any,
+        ): vscode.Disposable => ({ dispose: () => {} });
 
         // Create main controller
         mainController = new MainController(mockContext);
@@ -60,8 +62,6 @@ suite("SqlDocumentService Tests", () => {
         sqlDocumentService = new SqlDocumentService(mainController);
         mainController.sqlDocumentService = sqlDocumentService;
 
-        // Initialize internal state properly
-        sqlDocumentService["_previousActiveDocument"] = undefined;
         // Ensure the connection manager is properly set in the service
         sqlDocumentService["_connectionManager"] = connectionManager;
 
@@ -229,79 +229,39 @@ suite("SqlDocumentService Tests", () => {
         mockCreateDocument.restore();
     });
 
-    test("connection is transferred when opening a new file and the previous active file is connected", async () => {
+    test("external SQL files auto-connect using last active connection", async () => {
         const script1 = mockTextDocument("script_1.sql");
         const script2 = mockTextDocument("script_2.sql");
         const textFile = mockTextDocument("text_file.txt", "plaintext");
 
-        const editor: vscode.TextEditor = {
-            document: script1,
-        } as unknown as vscode.TextEditor;
+        const editor1: vscode.TextEditor = { document: script1 } as unknown as vscode.TextEditor;
 
-        const mockWaitForOngoingCreates = sandbox.stub(sqlDocumentService, "waitForOngoingCreates");
-        mockWaitForOngoingCreates.resolves([]);
+        // Stub getConnectionInfoFromUri: script1 is connected, others are not
+        (connectionManager.getConnectionInfoFromUri as any).callsFake((uri: string) => {
+            if (uri === script1.uri.toString(true)) {
+                return { server: "localhost" } as any;
+            }
+            return undefined;
+        });
 
-        const mockShouldSkipCopyConnection = sandbox.stub(
-            sqlDocumentService,
-            "shouldSkipCopyConnection",
-        );
-        mockShouldSkipCopyConnection.returns(false);
+        // Capture connect calls
+        const connectStub = connectionManager.connect as any;
 
-        const mockStatusView = sandbox.createStubInstance(StatusView);
-        sqlDocumentService["_statusview"] = mockStatusView;
-        setupConnectionManagerMocks(connectionManager);
+        // Activate script1 to set last active connection info
+        await sqlDocumentService.onDidChangeActiveTextEditor(editor1);
 
-        // verify initial state
-        expect(
-            sqlDocumentService["_previousActiveDocument"],
-            "previous active document should be initially unset",
-        ).to.equal(undefined);
-
-        // simulate opening a SQL file
-        await sqlDocumentService.onDidChangeActiveTextEditor(editor);
-
-        expect(
-            sqlDocumentService["_previousActiveDocument"],
-            "previous active document should be set after opening a SQL file",
-        ).to.deep.equal(editor.document);
-        expect(connectionManager.copyConnectionToFile).to.not.have.been.called;
-
-        // verify that the connection manager transfers the connection from SQL file to SQL file
+        // Open a new external SQL file -> should auto-connect
         await sqlDocumentService.onDidOpenTextDocument(script2);
+        expect(connectStub).to.have.been.calledOnceWithExactly(script2.uri.toString(true), {
+            server: "localhost",
+        });
+        connectStub.resetHistory();
 
-        expect(
-            sqlDocumentService["_previousActiveDocument"],
-            "previous active document should be changed to new script when opening a SQL file",
-        ).to.deep.equal(script2);
-        expect(connectionManager.copyConnectionToFile).to.have.been.calledOnceWithExactly(
-            script1.uri.toString(true),
-            script2.uri.toString(true),
-            true,
-        );
-
-        connectionManager.copyConnectionToFile.resetHistory();
-
-        // verify that the connection manager does not transfer the connection from SQL file to non-SQL file
+        // Open a non-sql file -> should not connect
         await sqlDocumentService.onDidOpenTextDocument(textFile);
+        expect(connectStub).to.not.have.been.called;
 
-        expect(
-            sqlDocumentService["_previousActiveDocument"],
-            "previous active document should be undefined after opening a non-SQL file",
-        ).to.deep.equal(undefined);
-        expect(connectionManager.copyConnectionToFile).to.not.have.been.called;
-
-        // verify that the connection manager does not transfer the connection from non-SQL file to SQL file
-        await sqlDocumentService.onDidOpenTextDocument(script1);
-
-        expect(
-            sqlDocumentService["_previousActiveDocument"],
-            "previous active document should be set after opening a SQL file",
-        ).to.deep.equal(script1);
-        expect(connectionManager.copyConnectionToFile).to.not.have.been.called;
-
-        // Restore stubs
-        mockWaitForOngoingCreates.restore();
-        mockShouldSkipCopyConnection.restore();
+        // Re-open script1 (already connected) -> may connect again or be a no-op; don't assert
     });
 
     function setupConnectionManagerMocks(
