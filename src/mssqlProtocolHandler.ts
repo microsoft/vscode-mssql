@@ -15,6 +15,7 @@ import VscodeWrapper from "./controllers/vscodeWrapper";
 import MainController from "./controllers/mainController";
 import { cmdAddObjectExplorer } from "./constants/constants";
 import { getConnectionDisplayName } from "./models/connectionInfo";
+import { MatchScore } from "./models/utils";
 
 enum Command {
     connect = "/connect",
@@ -80,7 +81,6 @@ export class MssqlProtocolHandler {
     }
 
     private async handleConnectCommand(uri: vscode.Uri) {
-        this._logger.info(`connect: ${uri.path}`);
         const parsedProfile = await this.readProfileFromArgs(uri.query);
 
         if (!parsedProfile) {
@@ -90,12 +90,18 @@ export class MssqlProtocolHandler {
 
         // Just the server and database are required to match, but it will also consider other factors
         // like auth and auxiliary settings to pick the best one.
-        const { profile: foundProfile } =
+        const { profile: foundProfile, score } =
             await this.mainController.connectionManager.findMatchingProfile(parsedProfile);
 
-        if (foundProfile) {
+        // If the database is specified, only connect automatically if both server and database match.
+        // If no database is specified, connecting based on server alone is sufficient.
+        if (foundProfile && (!parsedProfile.database || score >= MatchScore.ServerAndDatabase)) {
+            this._logger.info(`Matching profile found for ${uri.query}; connecting...`);
             await this.connectProfile(foundProfile);
         } else {
+            this._logger.info(
+                `No matching profile found for ${uri.query}; opening connection dialog...`,
+            );
             this.openConnectionDialog(parsedProfile);
         }
     }

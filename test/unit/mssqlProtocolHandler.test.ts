@@ -165,9 +165,35 @@ suite("MssqlProtocolHandler Tests", () => {
                 return mockConnectionManager;
             });
 
-            mockConnectionManager.findMatchingProfile.resolves({
+            const findMatchingProfileStub = mockConnectionManager.findMatchingProfile.resolves({
                 profile: undefined,
                 score: MatchScore.NotMatch,
+            });
+
+            await mssqlProtocolHandler.handleUri(
+                Uri.parse(
+                    `vscode://ms-mssql.mssql/connect?${new URLSearchParams(params).toString()}`,
+                ),
+            );
+
+            expect(openConnectionDialogStub).to.have.been.calledOnceWith({
+                ...params,
+                // savePassword is auto-added, and non-string values are converted
+                savePassword: true,
+                connectTimeout: 15,
+                trustServerCertificate: true,
+            });
+            expect(connectProfileStub).to.not.have.been.called;
+
+            // Reset stubs for server-only test case
+
+            findMatchingProfileStub.reset();
+            openConnectionDialogStub.resetHistory();
+            connectProfileStub.resetHistory();
+
+            findMatchingProfileStub.resolves({
+                profile: { server: "myServer", database: "otherDatabase" } as IConnectionProfile,
+                score: MatchScore.Server,
             });
 
             await mssqlProtocolHandler.handleUri(
