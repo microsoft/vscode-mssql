@@ -68,11 +68,13 @@ export default class SqlDocumentService implements vscode.Disposable {
             }),
         );
 
-        this._disposables.push(
-            this._connectionMgr.onSuccessfulConnection((params) =>
-                this.onSuccessfulConnection(params),
-            ),
-        );
+        if (this._connectionMgr) {
+            this._disposables.push(
+                this._connectionMgr.onSuccessfulConnection((params) =>
+                    this.onSuccessfulConnection(params),
+                ),
+            );
+        }
     }
 
     dispose() {
