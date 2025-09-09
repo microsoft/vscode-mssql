@@ -166,7 +166,10 @@ export default class SqlDocumentService implements vscode.Disposable {
             doc.languageId === Constants.languageId &&
             !skipCopyConnection
         ) {
-            await this._connectionMgr.connect(getUriKey(doc.uri), this._lastActiveConnectionInfo);
+            await this._connectionMgr.connect(
+                getUriKey(doc.uri),
+                Utils.deepClone(this._lastActiveConnectionInfo),
+            );
         }
 
         if (doc && doc.languageId === Constants.languageId) {
@@ -196,7 +199,7 @@ export default class SqlDocumentService implements vscode.Disposable {
             await this._connectionMgr?.getConnectionInfoFromUri(activeDocumentUri);
 
         if (activeConnection) {
-            this._lastActiveConnectionInfo = activeConnection;
+            this._lastActiveConnectionInfo = Utils.deepClone(activeConnection);
         }
     }
 
@@ -226,12 +229,16 @@ export default class SqlDocumentService implements vscode.Disposable {
         if (!credentials) {
             return;
         }
-        if (activeEditorKey === params.fileUri) {
-            // Always update when it's the active editor
-            this._lastActiveConnectionInfo = credentials;
-        } else if (!this._lastActiveConnectionInfo) {
-            // Only set once if not already set
-            this._lastActiveConnectionInfo = credentials;
+        /**
+         * Update the last active connection info only if:
+         *   1. The active editor matches the one that just connected, OR
+         *   2. No previous connection info has been stored yet.
+         *
+         * This prevents overwriting the last active connection info with credentials
+         * from a different editor than the one currently active.
+         */
+        if (activeEditorKey === params.fileUri || !this._lastActiveConnectionInfo) {
+            this._lastActiveConnectionInfo = Utils.deepClone(credentials);
         }
     }
 
