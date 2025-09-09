@@ -1428,16 +1428,6 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
-        // Search Objects in Database
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdSearchObjects,
-                async (node?: ConnectionNode) => {
-                    await this.onSearchObjects(node);
-                },
-            ),
-        );
-
         this.registerCommand(Constants.cmdConnectionGroupCreate);
         this._event.on(Constants.cmdConnectionGroupCreate, () => {
             const connGroupDialog = new ConnectionGroupWebviewController(
