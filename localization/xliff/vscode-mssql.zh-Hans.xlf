@@ -4974,10 +4974,6 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Script as Execute</source>
         <target state="translated">撰写为 Execute 的脚本</target>
       </trans-unit>
-      <trans-unit id="mssql.searchObjects">
-        <source xml:lang="en">Search Objects</source>
-        <target state="translated">搜索对象</target>
-      </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
         <target state="translated">选择前 1000 项</target>
