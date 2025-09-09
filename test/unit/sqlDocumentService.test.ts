@@ -245,7 +245,7 @@ suite("SqlDocumentService Tests", () => {
         });
 
         // Capture connect calls
-        const connectStub = connectionManager.connect as any;
+        const connectStub = connectionManager.connect;
 
         // Activate script1 to set last active connection info
         await sqlDocumentService.onDidChangeActiveTextEditor(editor1);
@@ -260,8 +260,6 @@ suite("SqlDocumentService Tests", () => {
         // Open a non-sql file -> should not connect
         await sqlDocumentService.onDidOpenTextDocument(textFile);
         expect(connectStub).to.not.have.been.called;
-
-        // Re-open script1 (already connected) -> may connect again or be a no-op; don't assert
     });
 
     function setupConnectionManagerMocks(
