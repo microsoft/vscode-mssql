@@ -4974,10 +4974,6 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
         <source xml:lang="en">Script as Execute</source>
         <target state="translated">Script como Executar</target>
       </trans-unit>
-      <trans-unit id="mssql.searchObjects">
-        <source xml:lang="en">Search Objects</source>
-        <target state="translated">Pesquisar Objetos</target>
-      </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
         <target state="translated">Selecione Top 1000</target>
