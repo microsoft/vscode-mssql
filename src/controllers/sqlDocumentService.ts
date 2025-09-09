@@ -20,8 +20,9 @@ import * as vscodeMssql from "vscode-mssql";
  */
 export default class SqlDocumentService implements vscode.Disposable {
     private _disposables: vscode.Disposable[] = [];
-
-    public skipCopyConnectionUris: Set<string> = new Set();
+    // Track documents created by this service to avoid auto-connecting them on open.
+    // WeakSet ensures entries are garbage collected with the documents.
+    private _ownedDocuments: WeakSet<vscode.TextDocument> = new WeakSet();
     private _ongoingCreates: Map<string, Promise<vscode.TextEditor>> = new Map();
 
     private _lastSavedUri: string | undefined;
@@ -140,9 +141,6 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         // Delete filters and dimension states for the closed document
         store.deleteMainKey(closedDocumentUri);
-        if (this.skipCopyConnectionUris.has(closedDocumentUri)) {
-            this.skipCopyConnectionUris.delete(closedDocumentUri);
-        }
     }
 
     /**
@@ -155,17 +153,6 @@ export default class SqlDocumentService implements vscode.Disposable {
             return;
         }
         this._connectionMgr.onDidOpenTextDocument(doc);
-
-        await this.waitForOngoingCreates();
-        const skipCopyConnection = this.shouldSkipCopyConnection(getUriKey(doc.uri));
-
-        if (
-            this._lastActiveConnectionInfo &&
-            doc.languageId === Constants.languageId &&
-            !skipCopyConnection
-        ) {
-            await this._connectionMgr.connect(getUriKey(doc.uri), this._lastActiveConnectionInfo);
-        }
 
         if (doc && doc.languageId === Constants.languageId) {
             // set encoding to false
@@ -195,6 +182,16 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         if (activeConnection) {
             this._lastActiveConnectionInfo = activeConnection;
+        }
+        console.log("Auto-connecting to external SQL doc:", activeDocumentUri);
+
+        if (
+            editor.document.languageId === Constants.languageId &&
+            this._lastActiveConnectionInfo &&
+            !this._ownedDocuments.has(editor.document)
+        ) {
+            // Auto-connect external SQL docs when they become active and have no connection yet.
+            await this._connectionMgr?.connect(activeDocumentUri, this._lastActiveConnectionInfo);
         }
     }
 
@@ -273,6 +270,10 @@ export default class SqlDocumentService implements vscode.Disposable {
             language: "sql",
             content: content,
         });
+        console.log("doc created", getUriKey(doc.uri));
+        // Mark as owned as soon as the document is created/opened to cover the
+        // window where onDidOpenTextDocument may fire before showTextDocument resolves.
+        this._ownedDocuments.add(doc);
 
         const editor = await vscode.window.showTextDocument(doc, {
             viewColumn: vscode.ViewColumn.One,
@@ -280,15 +281,15 @@ export default class SqlDocumentService implements vscode.Disposable {
             preview: false,
         });
 
-        if (!shouldCopyLastActiveConnection) {
-            this.skipCopyConnectionUris.add(getUriKey(editor.document.uri));
+        // If requested, explicitly connect this new document to the last active connection.
+        if (shouldCopyLastActiveConnection && this._lastActiveConnectionInfo) {
+            await this._connectionMgr?.connect(
+                getUriKey(editor.document.uri),
+                this._lastActiveConnectionInfo,
+            );
         }
 
         return editor;
-    }
-
-    public shouldSkipCopyConnection(uri: string): boolean {
-        return this.skipCopyConnectionUris.has(uri);
     }
 
     private async updateUri(oldUri: string, newUri: string) {
