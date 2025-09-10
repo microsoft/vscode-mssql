@@ -411,7 +411,7 @@ suite("SqlDocumentService Tests", () => {
 
         test("ConnectionStrategy.None should not establish any connection", async () => {
             const result = await sqlDocumentService.newQuery({
-                connectionStrategy: ConnectionStrategy.None,
+                connectionStrategy: ConnectionStrategy.DoNotConnect,
                 content: "SELECT 1",
             });
 
@@ -575,7 +575,7 @@ suite("SqlDocumentService Tests", () => {
             } as any;
 
             await sqlDocumentService.newQuery({
-                connectionStrategy: ConnectionStrategy.None,
+                connectionStrategy: ConnectionStrategy.DoNotConnect,
                 content: "SELECT 11",
             });
 

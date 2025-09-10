@@ -345,6 +345,13 @@ export default class SqlDocumentService implements vscode.Disposable {
                 const resolvedConnectionInfo = this._connectionMgr.getConnectionInfoFromUri(
                     options.sourceUri,
                 );
+
+                /**
+                 * In case there is no connection info associated with the provided URI,
+                 * we return shouldConnect: false as we don't want to fail but still
+                 * show a new query editor without a connection. The user can then manually
+                 * connect if they want to.
+                 */
                 return resolvedConnectionInfo
                     ? {
                           shouldConnect: true,
@@ -353,6 +360,12 @@ export default class SqlDocumentService implements vscode.Disposable {
                     : { shouldConnect: false };
 
             case ConnectionStrategy.CopyLastActive:
+                /**
+                 * In case there is no connection info associated with the last active document,
+                 * we return shouldConnect: false as we don't want to fail but still
+                 * show a new query editor without a connection. The user can then manually
+                 * connect if they want to.
+                 */
                 return this._lastActiveConnectionInfo
                     ? {
                           shouldConnect: true,
