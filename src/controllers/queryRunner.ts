@@ -70,6 +70,11 @@ export interface ExecutionPlanEvent {
     resultId: number;
 }
 
+export const editorEol =
+    vscode.workspace.getConfiguration("files").get<string>("eol") === "auto"
+        ? os.EOL
+        : vscode.workspace.getConfiguration("files").get<string>("eol");
+
 /*
  * Query Runner class which handles running a query, reports the results to the content manager,
  * and handles getting more rows from the service layer and disposing when the content is closed.
@@ -813,12 +818,12 @@ export default class QueryRunner {
                     copyString += "\t";
                 }
             }
-            copyString += os.EOL;
+            copyString += editorEol;
         }
 
         // Remove the last extra new line
         if (copyString.length > 1) {
-            copyString = copyString.substring(0, copyString.length - os.EOL.length);
+            copyString = copyString.substring(0, copyString.length - editorEol.length);
         }
         return copyString;
     }
@@ -856,7 +861,7 @@ export default class QueryRunner {
         };
         let columnHeaders = this.getColumnHeaders(batchId, resultId, columnRange);
         copyString += columnHeaders.join("\t");
-        copyString += os.EOL;
+        copyString += editorEol;
         return copyString;
     }
 
@@ -891,7 +896,7 @@ export default class QueryRunner {
 
         const delimiter = csvConfig.delimiter || ",";
         const textIdentifier = csvConfig.textIdentifier || '"';
-        const lineSeperator = csvConfig.lineSeperator || os.EOL;
+        const lineSeperator = csvConfig.lineSeperator || editorEol;
 
         let copyString = "";
 
@@ -1289,7 +1294,7 @@ export default class QueryRunner {
             this.escapeCsvValue(header, textIdentifier),
         );
         copyString += escapedHeaders.join(delimiter);
-        copyString += os.EOL;
+        copyString += editorEol;
         return copyString;
     }
 
@@ -1503,7 +1508,7 @@ export default class QueryRunner {
             }
         }
 
-        return `IN\n(\n${values.map((value) => `    ${value}`).join(",\n")}\n)`;
+        return `IN${editorEol}(${editorEol}${values.map((value) => `    ${value}`).join(`,${editorEol}`)}${editorEol})`;
     }
 
     private constructInsertIntoString(
@@ -1514,7 +1519,7 @@ export default class QueryRunner {
     ): string {
         let allRowIds = Array.from(rowIdToRowMap.keys()).sort((a, b) => a - b);
         if (allRowIds.length === 0) {
-            return "INSERT INTO [TableName] VALUES\n();";
+            return `INSERT INTO [TableName] VALUES${editorEol}();`;
         }
 
         // Get column information for headers
@@ -1599,7 +1604,7 @@ export default class QueryRunner {
         if (allRowValues.length <= maxRowsPerInsert) {
             // Use single INSERT INTO ... VALUES statement
             const valueRows = allRowValues.map((values) => `    (${values.join(", ")})`);
-            return `INSERT INTO [TableName] (${columnList})\nVALUES\n${valueRows.join(",\n")};`;
+            return `INSERT INTO [TableName] (${columnList})${editorEol}VALUES${editorEol}${valueRows.join(`,${editorEol}`)};`;
         } else {
             // Break into individual INSERT statements
             const insertStatements: string[] = [];
@@ -1608,11 +1613,11 @@ export default class QueryRunner {
                 const chunk = allRowValues.slice(i, i + maxRowsPerInsert);
                 const valueRows = chunk.map((values) => `    (${values.join(", ")})`);
                 insertStatements.push(
-                    `INSERT INTO [TableName] (${columnList})\nVALUES\n${valueRows.join(",\n")};`,
+                    `INSERT INTO [TableName] (${columnList})${editorEol}VALUES${editorEol}${valueRows.join(`,${editorEol}`)};`,
                 );
             }
 
-            return insertStatements.join("\n\n");
+            return insertStatements.join(`${editorEol}${editorEol}`);
         }
     }
 
