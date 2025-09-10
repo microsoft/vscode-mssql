@@ -64,10 +64,12 @@ export async function showQuery(
     state: QueryResultWebviewState | ExecutionPlanWebviewState,
     payload: ExecutionPlanReducers["showQuery"],
     sqlDocumentService: SqlDocumentService,
+    uri?: string,
 ) {
     void sqlDocumentService.newQuery({
         content: payload.query,
-        copyLastActiveConnection: false,
+        copyLastActiveConnection: !uri, // Only copy last active connection if no URI is provided
+        copyConnectionFromUri: uri,
     });
 
     return state;

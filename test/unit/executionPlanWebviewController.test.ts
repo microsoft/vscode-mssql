@@ -304,7 +304,28 @@ suite("Execution Plan Utilities", () => {
         assert.strictEqual(result, mockInitialState, "The state should be returned unchanged.");
     });
 
-    test("showQuery: should call newQuery with the correct query and return the state", async () => {
+    test("showQuery: should call newQuery with copyConnectionFromUri when URI is provided", async () => {
+        (mockSqlDocumentService.newQuery as sinon.SinonStub).resolves();
+
+        const mockPayload = { query: "SELECT * FROM TestTable" };
+        const mockUri = "file:///test.sql";
+
+        const result = await epUtils.showQuery(
+            mockInitialState,
+            mockPayload,
+            mockSqlDocumentService,
+            mockUri,
+        );
+
+        assert.strictEqual(result, mockInitialState, "The state should be returned unchanged.");
+        sinon.assert.calledOnceWithExactly(mockSqlDocumentService.newQuery as sinon.SinonStub, {
+            content: mockPayload.query,
+            copyLastActiveConnection: false,
+            copyConnectionFromUri: mockUri,
+        });
+    });
+
+    test("showQuery: should fallback to copyLastActiveConnection when no URI is provided", async () => {
         (mockSqlDocumentService.newQuery as sinon.SinonStub).resolves();
 
         const mockPayload = { query: "SELECT * FROM TestTable" };
@@ -318,7 +339,8 @@ suite("Execution Plan Utilities", () => {
         assert.strictEqual(result, mockInitialState, "The state should be returned unchanged.");
         sinon.assert.calledOnceWithExactly(mockSqlDocumentService.newQuery as sinon.SinonStub, {
             content: mockPayload.query,
-            copyLastActiveConnection: false,
+            copyLastActiveConnection: true,
+            copyConnectionFromUri: undefined,
         });
     });
 

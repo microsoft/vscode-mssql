@@ -271,10 +271,28 @@ export default class SqlDocumentService implements vscode.Disposable {
                         copyLastActiveConnection: true,
                     };
 
+                    // Resolve connection info from URI if requested
+                    let resolvedConnectionInfo = normalized.connectionInfo;
+                    let shouldCopyLastActive = normalized.copyLastActiveConnection ?? true;
+
+                    if (
+                        normalized.copyConnectionFromUri &&
+                        !resolvedConnectionInfo &&
+                        this._connectionMgr
+                    ) {
+                        resolvedConnectionInfo = this._connectionMgr.getConnectionInfoFromUri(
+                            normalized.copyConnectionFromUri,
+                        );
+                        // If we got connection info from URI, don't copy last active connection
+                        if (resolvedConnectionInfo) {
+                            shouldCopyLastActive = false;
+                        }
+                    }
+
                     const editor = await this.createDocument(
-                        normalized.copyLastActiveConnection ?? true,
+                        shouldCopyLastActive,
                         normalized.content,
-                        normalized.connectionInfo,
+                        resolvedConnectionInfo,
                     );
 
                     const newDocumentUriKey = getUriKey(editor.document.uri);
@@ -356,10 +374,16 @@ export type NewQueryOptions = {
 
     /**
      * When true, copies the last active connection (if any) to the new document.
-     * Ignored if `connectionInfo` is provided.
+     * Ignored if `connectionInfo` or `copyConnectionFromUri` is provided.
      */
     copyLastActiveConnection?: boolean;
 
     /** Explicit connection to apply to the new document. */
     connectionInfo?: vscodeMssql.IConnectionInfo;
+
+    /**
+     * When provided, copies the connection from the specified URI to the new document.
+     * Takes precedence over `copyLastActiveConnection` but is ignored if `connectionInfo` is provided.
+     */
+    copyConnectionFromUri?: string;
 };

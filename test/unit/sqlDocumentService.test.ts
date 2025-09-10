@@ -229,6 +229,78 @@ suite("SqlDocumentService Tests", () => {
         mockCreateDocument.restore();
     });
 
+    test("newQuery should copy connection from URI when copyConnectionFromUri is provided", async () => {
+        let editor: vscode.TextEditor = {
+            document: {
+                uri: "test_uri",
+            },
+            viewColumn: vscode.ViewColumn.One,
+            selection: undefined,
+        } as any;
+
+        const mockCreateDocument = sandbox.stub(sqlDocumentService as any, "createDocument");
+        mockCreateDocument.resolves(editor);
+
+        const mockConnectionInfo = { server: "localhost", database: "testdb" };
+        const mockGetConnectionInfoFromUri = sandbox.stub();
+        mockGetConnectionInfoFromUri.returns(mockConnectionInfo);
+
+        // Mock the connection manager
+        (sqlDocumentService as any)._connectionMgr = {
+            getConnectionInfoFromUri: mockGetConnectionInfoFromUri,
+        };
+
+        const testUri = "file:///test.sql";
+        const result = await sqlDocumentService.newQuery({
+            copyConnectionFromUri: testUri,
+            content: "SELECT 1",
+        });
+
+        expect(result).to.equal(editor);
+        expect(mockCreateDocument).to.have.been.calledOnceWith(
+            false,
+            "SELECT 1",
+            mockConnectionInfo,
+        );
+        expect(mockGetConnectionInfoFromUri).to.have.been.calledOnceWith(testUri);
+
+        mockCreateDocument.restore();
+    });
+
+    test("newQuery should fallback to copyLastActiveConnection when URI has no connection", async () => {
+        let editor: vscode.TextEditor = {
+            document: {
+                uri: "test_uri",
+            },
+            viewColumn: vscode.ViewColumn.One,
+            selection: undefined,
+        } as any;
+
+        const mockCreateDocument = sandbox.stub(sqlDocumentService as any, "createDocument");
+        mockCreateDocument.resolves(editor);
+
+        const mockGetConnectionInfoFromUri = sandbox.stub();
+        mockGetConnectionInfoFromUri.returns(undefined); // No connection found
+
+        // Mock the connection manager
+        (sqlDocumentService as any)._connectionMgr = {
+            getConnectionInfoFromUri: mockGetConnectionInfoFromUri,
+        };
+
+        const testUri = "file:///test.sql";
+        const result = await sqlDocumentService.newQuery({
+            copyConnectionFromUri: testUri,
+            copyLastActiveConnection: true,
+            content: "SELECT 1",
+        });
+
+        expect(result).to.equal(editor);
+        expect(mockCreateDocument).to.have.been.calledOnceWith(true, "SELECT 1", undefined);
+        expect(mockGetConnectionInfoFromUri).to.have.been.calledOnceWith(testUri);
+
+        mockCreateDocument.restore();
+    });
+
     test("external SQL files auto-connect using last active connection", async () => {
         const script1 = mockTextDocument("script_1.sql");
         const script2 = mockTextDocument("script_2.sql");
