@@ -366,6 +366,12 @@ export class ObjectExplorerService {
         }
 
         if (element instanceof ConnectionGroupNode) {
+            // If the connection group has no children, show the add connection nodes
+            // so users can easily add a new connection under an empty group (same behavior
+            // as when there are no saved connections in the root).
+            if (!element.children || element.children.length === 0) {
+                return this.getAddConnectionNodes();
+            }
             return element.children;
         }
 
