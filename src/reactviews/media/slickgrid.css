@@ -111,6 +111,9 @@
 
 .slick-cell .grid-cell-value-container.missing-value {
     font-style: italic;
+    display: block;
+    background-color: var(--vscode-editor-inactiveSelectionBackground);
+    color: var(--vscode-editor-selectionForeground);
 }
 
 .slick-cell,
