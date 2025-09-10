@@ -280,17 +280,18 @@ export default class SqlDocumentService implements vscode.Disposable {
         // Resolve connection strategy and info
         const connectionConfig = await this.resolveConnectionConfig(options);
 
+        const documentKey = getUriKey(editor.document.uri);
+
         // Establish connection if needed
         if (
             connectionConfig?.shouldConnect &&
             connectionConfig.connectionInfo &&
             this._connectionMgr
         ) {
-            const documentUriKey = getUriKey(editor.document.uri);
             const connectionPromise = new Deferred<boolean>();
 
             await this._connectionMgr.connect(
-                documentUriKey,
+                documentKey,
                 connectionConfig.connectionInfo,
                 connectionPromise,
             );
@@ -301,9 +302,8 @@ export default class SqlDocumentService implements vscode.Disposable {
         }
 
         // Update status views
-        const documentUriKey = getUriKey(editor.document.uri);
-        this._statusview?.languageFlavorChanged(documentUriKey, Constants.mssqlProviderName);
-        this._statusview?.sqlCmdModeChanged(documentUriKey, false);
+        this._statusview?.languageFlavorChanged(documentKey, Constants.mssqlProviderName);
+        this._statusview?.sqlCmdModeChanged(documentKey, false);
 
         return editor;
     }
