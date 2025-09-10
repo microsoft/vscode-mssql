@@ -87,7 +87,6 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
     }
 
     public revealToForeground() {
-        this._viewColumn;
         this.panel.reveal(this._viewColumn, true);
     }
 

@@ -68,7 +68,7 @@ export async function showQuery(
 ) {
     void sqlDocumentService.newQuery({
         content: payload.query,
-        connectionStrategy: uri ? ConnectionStrategy.CopyFromUri : ConnectionStrategy.None,
+        connectionStrategy: uri ? ConnectionStrategy.CopyFromUri : ConnectionStrategy.DoNotConnect,
         sourceUri: uri,
     });
 

@@ -259,7 +259,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
             });
             await this.mainController.sqlDocumentService.newQuery({
                 content: definition.script,
-                connectionStrategy: ConnectionStrategy.None,
+                connectionStrategy: ConnectionStrategy.DoNotConnect,
             });
         });
 

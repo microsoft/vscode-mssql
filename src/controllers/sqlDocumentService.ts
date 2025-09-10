@@ -16,7 +16,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import MainController from "./mainController";
 import * as vscodeMssql from "vscode-mssql";
 import { Deferred } from "../protocol";
-// no-op imports removed after execution flow simplification
+
 /**
  * Service for creating untitled documents for SQL query
  */
@@ -314,7 +314,7 @@ export default class SqlDocumentService implements vscode.Disposable {
         const strategy = options.connectionStrategy ?? ConnectionStrategy.CopyLastActive;
 
         switch (strategy) {
-            case ConnectionStrategy.None:
+            case ConnectionStrategy.DoNotConnect:
                 return { shouldConnect: false };
 
             case ConnectionStrategy.CopyConnectionFromInfo:
@@ -402,7 +402,7 @@ export enum ConnectionStrategy {
     /**
      * No connection will be established.
      */
-    None = "none",
+    DoNotConnect = "doNotConnect",
     /**
      * Copy connection from the last active document
      */

@@ -2508,14 +2508,16 @@ export default class MainController implements vscode.Disposable {
             // Case 2: User triggered "New Query" from command palette and the active document has a connection
             connectionCreds = undefined;
             nodeType = "previousEditor";
-        } else if (this.objectExplorerTree.selection?.length > 0) {
+        } else if (this.objectExplorerTree.selection?.length === 1) {
             // Case 3: User triggered "New Query" from command palette while they have a connected OE node selected
             connectionCreds = this.objectExplorerTree.selection[0].connectionProfile;
             nodeType = this.objectExplorerTree.selection[0].nodeType;
         }
+
         if (connectionCreds) {
             await this.connectionManager.handlePasswordBasedCredentials(connectionCreds);
         }
+
         await this.sqlDocumentService.newQuery({
             content,
             connectionStrategy: connectionCreds
@@ -2525,7 +2527,7 @@ export default class MainController implements vscode.Disposable {
         });
 
         await this.connectionManager.connectionStore.removeRecentlyUsed(
-            <IConnectionProfile>connectionCreds,
+            connectionCreds as IConnectionProfile,
         );
 
         sendActionEvent(

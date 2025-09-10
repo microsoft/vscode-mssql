@@ -427,7 +427,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         this.registerReducer("scriptAsCreate", async (state) => {
             await this._sqlDocumentService.newQuery({
                 content: (state.model["script"] as designer.InputBoxProperties).value ?? "",
-                connectionStrategy: ConnectionStrategy.None,
+                connectionStrategy: ConnectionStrategy.DoNotConnect,
             });
 
             return state;
