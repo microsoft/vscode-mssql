@@ -31,6 +31,8 @@ export interface ITableStyles {
     listInactiveFocusOutline: string | undefined;
     tableHeaderBackground: string | undefined;
     tableHeaderForeground: string | undefined;
+    nullCellBackground: string | undefined;
+    nullCellForeground: string | undefined;
 }
 
 export interface ITableSorter<T extends Slick.SlickData> {
@@ -87,4 +89,6 @@ export const defaultTableStyles: ITableStyles = {
     listInactiveFocusOutline: "var(--vscode-list-inactiveFocusOutline)",
     tableHeaderBackground: "var(--vscode-keybindingTable-headerBackground)",
     tableHeaderForeground: "var(--vscode-foreground)",
+    nullCellBackground: "var(--vscode-editor-inactiveSelectionBackground)",
+    nullCellForeground: "var(--vscode-editor-selectionForeground)",
 };
