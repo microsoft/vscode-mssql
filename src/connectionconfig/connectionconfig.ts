@@ -184,7 +184,7 @@ export class ConnectionConfig implements IConnectionConfig {
         groups = groups.filter((group) => group.name === ConnectionConfig.RootGroupName);
 
         if (groups.length === 0) {
-            this._logger.error(
+            this._logger.verbose(
                 `No root connection group found. This should have been fixed at initialization.`,
             );
             return undefined;
