@@ -4974,10 +4974,6 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Script as Execute</source>
         <target state="translated">Execute로 스크립트</target>
       </trans-unit>
-      <trans-unit id="mssql.searchObjects">
-        <source xml:lang="en">Search Objects</source>
-        <target state="translated">검색 개체</target>
-      </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
         <target state="translated">상위 1,000개 선택</target>

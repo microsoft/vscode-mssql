@@ -3786,9 +3786,6 @@
     <trans-unit id="mssql.scriptExecute">
       <source xml:lang="en">Script as Execute</source>
     </trans-unit>
-    <trans-unit id="mssql.searchObjects">
-      <source xml:lang="en">Search Objects</source>
-    </trans-unit>
     <trans-unit id="mssql.scriptSelect">
       <source xml:lang="en">Select Top 1000</source>
     </trans-unit>

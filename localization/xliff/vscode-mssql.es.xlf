@@ -4974,10 +4974,6 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
         <source xml:lang="en">Script as Execute</source>
         <target state="translated">Script como ejecutar</target>
       </trans-unit>
-      <trans-unit id="mssql.searchObjects">
-        <source xml:lang="en">Search Objects</source>
-        <target state="translated">Buscar objetos</target>
-      </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
         <target state="translated">Seleccionar los primeros 1000</target>

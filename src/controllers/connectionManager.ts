@@ -102,6 +102,11 @@ export interface IReconnectAction {
     (profile: IConnectionProfile | undefined): Promise<void>;
 }
 
+export interface ConnectionSuccessfulEvent {
+    connection: ConnectionInfo;
+    fileUri: string;
+}
+
 // ConnectionManager class is the main controller for connection management
 export default class ConnectionManager {
     private _statusView: StatusView;
@@ -123,6 +128,11 @@ export default class ConnectionManager {
         new vscode.EventEmitter<void>();
     public readonly onConnectionsChanged: vscode.Event<void> =
         this._onConnectionsChangedEmitter.event;
+
+    private _onSuccessfulConnectionEmitter: vscode.EventEmitter<ConnectionSuccessfulEvent> =
+        new vscode.EventEmitter<ConnectionSuccessfulEvent>();
+    public readonly onSuccessfulConnection: vscode.Event<ConnectionSuccessfulEvent> =
+        this._onSuccessfulConnectionEmitter.event;
 
     public initialized: Deferred<void> = new Deferred<void>();
 
@@ -666,6 +676,11 @@ export default class ConnectionManager {
             fileUri,
             LocalizedConstants.updatingIntelliSenseStatus,
         );
+
+        this._onSuccessfulConnectionEmitter.fire({
+            connection,
+            fileUri,
+        });
 
         this._vscodeWrapper.logToOutputChannel(
             LocalizedConstants.msgConnectedServerInfo(
@@ -1572,11 +1587,7 @@ export default class ConnectionManager {
      * @param keepOldConnected Whether to keep the old file connected after copying the connection info.  Defaults to false.
      * @returns
      */
-    public async copyConnectionToFile(
-        oldFileUri: string,
-        newFileUri: string,
-        keepOldConnected: boolean = false,
-    ): Promise<void> {
+    public async copyConnectionToFile(oldFileUri: string, newFileUri: string): Promise<void> {
         // Is the new file connected or the old file not connected?
         if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
             return;
@@ -1584,10 +1595,7 @@ export default class ConnectionManager {
 
         // Connect the saved uri and disconnect the untitled uri on successful connection
         let creds: IConnectionInfo = this._connections[oldFileUri].credentials;
-        let result = await this.connect(newFileUri, creds);
-        if (result && !keepOldConnected) {
-            await this.disconnect(oldFileUri);
-        }
+        await this.connect(newFileUri, creds);
     }
 
     public async refreshAzureAccountToken(uri: string): Promise<void> {
