@@ -296,6 +296,8 @@ export default class SqlDocumentService implements vscode.Disposable {
             );
 
             await connectionPromise.promise;
+
+            await this._mainController.createObjectExplorerSession(connectionConfig.connectionInfo);
         }
 
         // Update status views
