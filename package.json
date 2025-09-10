@@ -370,7 +370,7 @@
                 },
                 {
                     "command": "mssql.revealQueryResult",
-                    "when": "editorLangId == sql && !isInDiffEditor && view.queryResult.visible == false",
+                    "when": "editorLangId == sql && resource in mssql.connections && !isInDiffEditor && view.queryResult.visible == false",
                     "group": "navigation@2"
                 },
                 {
@@ -385,22 +385,22 @@
                 },
                 {
                     "command": "mssql.changeDatabase",
-                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && resourcePath not in mssql.runningQueries",
                     "group": "navigation@4"
                 },
                 {
                     "command": "mssql.showEstimatedPlan",
-                    "when": "editorLangId == sql && !isInDiffEditor && resourcePath not in mssql.runningQueries",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && resourcePath not in mssql.runningQueries",
                     "group": "navigation@4"
                 },
                 {
                     "command": "mssql.enableActualPlan",
-                    "when": "editorLangId == sql && !isInDiffEditor && (resource not in mssql.executionPlan.urisWithActualPlanEnabled) && (resourcePath not in mssql.runningQueries)",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && (resource not in mssql.executionPlan.urisWithActualPlanEnabled) && (resourcePath not in mssql.runningQueries)",
                     "group": "navigation@5"
                 },
                 {
                     "command": "mssql.disableActualPlan",
-                    "when": "editorLangId == sql && !isInDiffEditor && (resource in mssql.executionPlan.urisWithActualPlanEnabled) && (resourcePath not in mssql.runningQueries)",
+                    "when": "editorLangId == sql && !isInDiffEditor && resource in mssql.connections && (resource in mssql.executionPlan.urisWithActualPlanEnabled) && (resourcePath not in mssql.runningQueries)",
                     "group": "navigation@5"
                 }
             ],
@@ -813,16 +813,13 @@
                 "command": "mssql.revealQueryResult",
                 "title": "%mssql.revealQueryResult%",
                 "category": "MS SQL",
-                "icon": "media/revealQueryResult.svg"
+                "icon": "$(table)"
             },
             {
                 "command": "mssql.connect",
                 "title": "%mssql.connect%",
                 "category": "MS SQL",
-                "icon": {
-                    "dark": "media/connect_dark.svg",
-                    "light": "media/connect_light.svg"
-                }
+                "icon": "$(plug)"
             },
             {
                 "command": "mssql.disconnect",
@@ -852,10 +849,7 @@
                 "command": "mssql.changeDatabase",
                 "title": "%mssql.changeDatabase%",
                 "category": "MS SQL",
-                "icon": {
-                    "dark": "media/changeConnection_dark.svg",
-                    "light": "media/changeConnection_light.svg"
-                }
+                "icon": "$(database)"
             },
             {
                 "command": "mssql.manageProfiles",
