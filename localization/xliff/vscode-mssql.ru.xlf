@@ -899,7 +899,7 @@
       <trans-unit id="++CODE++9b8df2904fd9e25473fed50a3df04dc0629dec82daa72d6085cab8d1c63e4f65">
         <source xml:lang="en">Connecting to {0}...</source>
         <note>{0} is the connection display name</note>
-        <target state="new">Connecting to {0}...</target>
+        <target state="translated">Подключение к {0}...</target>
       </trans-unit>
       <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
         <source xml:lang="en">Connecting to: </source>
@@ -1017,7 +1017,7 @@
       </trans-unit>
       <trans-unit id="++CODE++7644dd0a33ff475c31116e369646b3410ca1463eb32dd1aabf3569f79cc02b4e">
         <source xml:lang="en">Copy As</source>
-        <target state="new">Copy As</target>
+        <target state="translated">Копировать как</target>
       </trans-unit>
       <trans-unit id="++CODE++e172d8c5fbb864a5f85d4926588ef06167cdd4a29ddffdf07714bf25336c2269">
         <source xml:lang="en">Copy Headers</source>
@@ -1025,11 +1025,19 @@
       </trans-unit>
       <trans-unit id="++CODE++ac030299960c4d5cba2b13fa5f358cb7f1b1531ce5f2e5315eff17b7c93a97bf">
         <source xml:lang="en">Copy as CSV</source>
-        <target state="new">Copy as CSV</target>
+        <target state="translated">Копировать как CSV</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5f7261cbf4eef17922f168d487b4e92de9bb9b118350254bfff4ea732bf0e1d9">
+        <source xml:lang="en">Copy as IN clause</source>
+        <target state="new">Copy as IN clause</target>
+      </trans-unit>
+      <trans-unit id="++CODE++20e0663f2c175c2d6a5a11120ce06def7ecea5fd1cfb3cb837232bbd0aab34cd">
+        <source xml:lang="en">Copy as INSERT INTO</source>
+        <target state="new">Copy as INSERT INTO</target>
       </trans-unit>
       <trans-unit id="++CODE++fd4aee4cb3fa5d5963fc78a7261f20700d94a8ddbbb5b963e97a84c441149508">
         <source xml:lang="en">Copy as JSON</source>
-        <target state="new">Copy as JSON</target>
+        <target state="translated">Копировать как JSON</target>
       </trans-unit>
       <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
         <source xml:lang="en">Copy code and open webpage</source>
@@ -1102,7 +1110,7 @@
       </trans-unit>
       <trans-unit id="++CODE++76475214b86cde3b17e547c917253368f60ab3fb43eb8f71dca4d4c45535c1c5">
         <source xml:lang="en">Create a SQL database in Fabric (Preview)</source>
-        <target state="new">Create a SQL database in Fabric (Preview)</target>
+        <target state="translated">Создать базу данных SQL в Fabric (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
         <source xml:lang="en">Create a new firewall rule</source>
@@ -2579,7 +2587,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
-        <target state="new">New SQL database</target>
+        <target state="translated">Новая база данных SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
         <source xml:lang="en">New column mapping</source>
@@ -3255,7 +3263,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++c15c5b93db5aa2d000fa6a98f1eaad96beff26347b410388dc524f19a0f0aeee">
         <source xml:lang="en">SQL database in Fabric (Preview)</source>
-        <target state="new">SQL database in Fabric (Preview)</target>
+        <target state="translated">База данных в Fabric (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
         <source xml:lang="en">SVG</source>
@@ -3304,6 +3312,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++40838c73e26d7ae3162bb4250c2c1e261a33fec5478432e6e47ba9ab6649c1ef">
         <source xml:lang="en">Save as Excel</source>
         <target state="translated">Сохранить как файл Excel</target>
+      </trans-unit>
+      <trans-unit id="++CODE++49e889d19cb98b87430fab55b6c5203e191463e874e2d94eb44d43f38395e226">
+        <source xml:lang="en">Save as INSERT</source>
+        <target state="new">Save as INSERT</target>
       </trans-unit>
       <trans-unit id="++CODE++910ed5e0c43df2bc1a2c71f1d5ecd2168b919fd4dc9f6d4b1f13f660cba9c524">
         <source xml:lang="en">Save as JSON</source>

@@ -1027,6 +1027,14 @@
         <source xml:lang="en">Copy as CSV</source>
         <target state="new">Copy as CSV</target>
       </trans-unit>
+      <trans-unit id="++CODE++5f7261cbf4eef17922f168d487b4e92de9bb9b118350254bfff4ea732bf0e1d9">
+        <source xml:lang="en">Copy as IN clause</source>
+        <target state="new">Copy as IN clause</target>
+      </trans-unit>
+      <trans-unit id="++CODE++20e0663f2c175c2d6a5a11120ce06def7ecea5fd1cfb3cb837232bbd0aab34cd">
+        <source xml:lang="en">Copy as INSERT INTO</source>
+        <target state="new">Copy as INSERT INTO</target>
+      </trans-unit>
       <trans-unit id="++CODE++fd4aee4cb3fa5d5963fc78a7261f20700d94a8ddbbb5b963e97a84c441149508">
         <source xml:lang="en">Copy as JSON</source>
         <target state="new">Copy as JSON</target>
@@ -3304,6 +3312,10 @@ Requête : {1}</target>
       <trans-unit id="++CODE++40838c73e26d7ae3162bb4250c2c1e261a33fec5478432e6e47ba9ab6649c1ef">
         <source xml:lang="en">Save as Excel</source>
         <target state="translated">Enregistrer au format Excel</target>
+      </trans-unit>
+      <trans-unit id="++CODE++49e889d19cb98b87430fab55b6c5203e191463e874e2d94eb44d43f38395e226">
+        <source xml:lang="en">Save as INSERT</source>
+        <target state="new">Save as INSERT</target>
       </trans-unit>
       <trans-unit id="++CODE++910ed5e0c43df2bc1a2c71f1d5ecd2168b919fd4dc9f6d4b1f13f660cba9c524">
         <source xml:lang="en">Save as JSON</source>
