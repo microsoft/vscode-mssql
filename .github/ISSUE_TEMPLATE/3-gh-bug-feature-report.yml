@@ -1,7 +1,7 @@
-name: Bug Report / Feature Request - MSSQL + GitHub Copilot
-description: File a bug report / feature request to help us improve GitHub Copilot integration with the MSSQL extension.
-title: "[GitHub Copilot - Bug] / Feature request: "
-labels: ["Bug", "Enhancement", "PrPr", "Area - GitHub Copilot", "Triage: Needed"]
+name: Bug Report | Feature Request (GitHub Copilot Integration)
+description: File a bug report or a feature request to help us improve GitHub Copilot integration with the MSSQL extension.
+title: "[GitHub Copilot - Bug | Feature request]: "
+labels: ["Bug", "Enhancement", "Area - GitHub Copilot", "Triage: Needed"]
 assignees: []
 
 body:
@@ -9,7 +9,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## Thank you for taking the time to report a bug / Feature request!
+        ## Thank you for taking the time to report a bug | Feature request!
         Please provide as much detail as possible (screenshots, screen recordings, logs) to help us reproduce and fix the issue or implement the feature.
 
   # Section for describing the issue
@@ -46,15 +46,13 @@ body:
       label: Affected Area
       description: Select all the areas where you encountered issues.
       options:
-        - label: Chat and inline suggestions
+        - label: Agent mode
+        - label: Ask mode
+        - label: Slash commands
         - label: Code generation
-        - label: Schema Explorer & Designer
-        - label: Smart Query Builder
-        - label: Query Optimizer Assistant
-        - label: Business Logic Explainer
-        - label: Security Analyzer
-        - label: Localization & Formatting Helper
-        - label: Testing and Mocking Data Generator
+        - label: Connection management
+        - label: Schema exploration and object management
+        - label: Query execution and performance advisor
         - label: Other (please describe below)
 
   - type: textarea
