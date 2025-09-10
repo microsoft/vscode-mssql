@@ -224,6 +224,28 @@ export class SqlOutputContentProvider {
             .queryRunner.copyResultsAsJson(selection, batchId, resultId, includeHeaders);
     }
 
+    public copyAsInClauseRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsInClause(selection, batchId, resultId);
+    }
+
+    public copyAsInsertIntoRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsInsertInto(selection, batchId, resultId);
+    }
+
     public editorSelectionRequestHandler(uri: string, selection: ISelectionData): void {
         void this._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection);
     }

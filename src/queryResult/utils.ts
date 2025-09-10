@@ -201,6 +201,36 @@ export function registerCommonRequestHandlers(
             );
     });
 
+    webviewController.onRequest(qr.CopyAsInClauseRequest.type, async (message) => {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            correlationId: correlationId,
+            format: "in-clause",
+        });
+        return await webviewViewController
+            .getSqlOutputContentProvider()
+            .copyAsInClauseRequestHandler(
+                message.uri,
+                message.batchId,
+                message.resultId,
+                message.selection,
+            );
+    });
+
+    webviewController.onRequest(qr.CopyAsInsertIntoRequest.type, async (message) => {
+        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
+            correlationId: correlationId,
+            format: "insert-into",
+        });
+        return await webviewViewController
+            .getSqlOutputContentProvider()
+            .copyAsInsertIntoRequestHandler(
+                message.uri,
+                message.batchId,
+                message.resultId,
+                message.selection,
+            );
+    });
+
     // Register request handlers for query result filters
     webviewController.onRequest(qr.GetFiltersRequest.type, async (message) => {
         return store.get(message.uri, SubKeys.Filter);

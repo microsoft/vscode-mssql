@@ -10,7 +10,12 @@ import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { useQueryResultSelector } from "./queryResultSelector";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
-import { saveAsCsvIcon, saveAsExcelIcon, saveAsJsonIcon } from "./queryResultUtils";
+import {
+    saveAsCsvIcon,
+    saveAsExcelIcon,
+    saveAsJsonIcon,
+    saveAsInsertIcon,
+} from "./queryResultUtils";
 import { QueryResultSaveAsTrigger } from "../../../sharedInterfaces/queryResult";
 import {
     ArrowMaximize16Filled,
@@ -185,6 +190,17 @@ const CommandBar = (props: CommandBarProps) => {
                     icon={<img className={classes.buttonImg} src={saveAsExcelIcon(themeKind)} />}
                     className="codicon saveExcel"
                     title={locConstants.queryResult.saveAsExcel}
+                />
+            </Tooltip>
+            <Tooltip content={locConstants.queryResult.saveAsInsert} relationship="label">
+                <Button
+                    appearance="subtle"
+                    onClick={(_event) => {
+                        saveResults("insert");
+                    }}
+                    icon={<img className={classes.buttonImg} src={saveAsInsertIcon(themeKind)} />}
+                    className="codicon saveInsert"
+                    title={locConstants.queryResult.saveAsInsert}
                 />
             </Tooltip>
         </div>
