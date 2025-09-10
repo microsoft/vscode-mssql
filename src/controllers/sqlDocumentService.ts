@@ -325,7 +325,7 @@ export default class SqlDocumentService implements vscode.Disposable {
                 }
                 return {
                     shouldConnect: true,
-                    connectionInfo: options.connectionInfo,
+                    connectionInfo: Utils.deepClone(options.connectionInfo),
                 };
 
             case ConnectionStrategy.CopyFromUri:
@@ -343,18 +343,24 @@ export default class SqlDocumentService implements vscode.Disposable {
                     options.sourceUri,
                 );
                 return resolvedConnectionInfo
-                    ? { shouldConnect: true, connectionInfo: resolvedConnectionInfo }
+                    ? {
+                          shouldConnect: true,
+                          connectionInfo: Utils.deepClone(resolvedConnectionInfo),
+                      }
                     : { shouldConnect: false };
 
             case ConnectionStrategy.CopyLastActive:
                 return this._lastActiveConnectionInfo
-                    ? { shouldConnect: true, connectionInfo: this._lastActiveConnectionInfo }
+                    ? {
+                          shouldConnect: true,
+                          connectionInfo: Utils.deepClone(this._lastActiveConnectionInfo),
+                      }
                     : { shouldConnect: false };
 
             case ConnectionStrategy.PromptForConnection:
             default:
                 const credentials = await this._connectionMgr.onNewConnection();
-                return { shouldConnect: true, connectionInfo: credentials };
+                return { shouldConnect: true, connectionInfo: Utils.deepClone(credentials) };
         }
     }
 
@@ -393,15 +399,25 @@ export default class SqlDocumentService implements vscode.Disposable {
  * Connection strategy for new SQL documents.
  */
 export enum ConnectionStrategy {
-    /** No connection will be established */
+    /**
+     * No connection will be established.
+     */
     None = "none",
-    /** Copy connection from the last active document */
+    /**
+     * Copy connection from the last active document
+     */
     CopyLastActive = "copyLastActive",
-    /** Use explicitly provided connection info */
+    /**
+     * Copy connection from explicitly provided connection info
+     */
     CopyConnectionFromInfo = "copyConnectionFromInfo",
-    /** Copy connection from a specified URI */
+    /**
+     * Copy connection from another document identified by URI
+     */
     CopyFromUri = "copyFromUri",
-    /** Prompt the user to select a connection */
+    /**
+     * Prompt the user to select a connection
+     */
     PromptForConnection = "promptForConnection",
 }
 
