@@ -33,6 +33,8 @@ export interface ITableStyles {
     tableHeaderForeground: string | undefined;
     nullCellBackground: string | undefined;
     nullCellForeground: string | undefined;
+    nullCellActiveSelectionBackground?: string | undefined;
+    nullCellFocusSelectionBackground?: string | undefined;
 }
 
 export interface ITableSorter<T extends Slick.SlickData> {
@@ -91,4 +93,6 @@ export const defaultTableStyles: ITableStyles = {
     tableHeaderForeground: "var(--vscode-foreground)",
     nullCellBackground: "var(--vscode-editor-inactiveSelectionBackground)",
     nullCellForeground: "var(--vscode-editor-selectionForeground)",
+    nullCellActiveSelectionBackground: "var(--vscode-editor-wordHighlightStrongBackground)",
+    nullCellFocusSelectionBackground: "var(--vscode-editor-linkedEditingBackground)",
 };
