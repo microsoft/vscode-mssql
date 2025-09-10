@@ -28,7 +28,7 @@ import {
 } from "../sharedInterfaces/webview";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 
-import { getNonce } from "../utils/utils";
+import { getEditorEOL, getNonce } from "../utils/utils";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "./vscodeWrapper";
 import {
@@ -47,7 +47,6 @@ import {
     RequestType,
 } from "vscode-jsonrpc/node";
 import { MessageReader } from "vscode-languageclient";
-import os from "os";
 class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
     private _disposables: vscode.Disposable[] = [];
@@ -358,7 +357,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         });
 
         this.onRequest(GetEOLRequest.type, () => {
-            return os.EOL;
+            return getEditorEOL();
         });
     }
 

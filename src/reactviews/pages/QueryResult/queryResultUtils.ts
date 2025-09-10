@@ -24,6 +24,12 @@ export const saveAsExcelIcon = (theme: ColorThemeKind) => {
         : require("../../media/saveExcel_inverse.svg");
 };
 
+export const saveAsInsertIcon = (theme: ColorThemeKind) => {
+    return theme === ColorThemeKind.Light
+        ? require("../../media/saveInsert.svg")
+        : require("../../media/saveInsert_inverse.svg");
+};
+
 export function hasResultsOrMessages(
     resultSetSummaries: Record<number, Record<number, qr.ResultSetSummary>>,
     messages: qr.IMessage[],
