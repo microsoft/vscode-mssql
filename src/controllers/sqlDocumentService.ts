@@ -425,17 +425,23 @@ export enum ConnectionStrategy {
  * Options for creating a new SQL document.
  */
 export type NewQueryOptions = {
-    /** Initial document content. */
+    /**
+     * Initial document content.
+     */
     content?: string;
 
-    /** Connection strategy to use. Defaults to `ConnectionStrategy.PromptForConnection`. */
+    /**
+     * Connection strategy to use (default: CopyLastActive)
+     */
     connectionStrategy?: ConnectionStrategy;
 
-    /** Connection info (required when strategy is CopyConnectionFromInfo) */
+    /**
+     * Connection info to use when connectionStrategy is CopyConnectionFromInfo
+     */
     connectionInfo?: vscodeMssql.IConnectionInfo;
 
     /**
-     * Source URI to copy the connection from.
+     * Source URI to use when connectionStrategy is CopyFromUri
      */
     sourceUri?: string;
 };
