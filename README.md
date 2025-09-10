@@ -77,20 +77,21 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
 
 ## Public Preview Features
 
-- **GitHub Copilot Integration (`Preview`)**: Boost your productivity with AI-assisted SQL development
-  - Get intelligent code completions and suggestions for T-SQL as you type
-  - Build complex queries using natural language prompts
-  - Explain stored procedures, views, and joins to speed up onboarding and debugging
-  - Generate schema objects or test data in seconds
+- **GitHub Copilot Integration (`Preview`)**: Boost your productivity with AI‑assisted SQL development
+  - Intelligent T‑SQL completions and natural‑language prompts
+  - Explain objects and generate schema or test data
   - Identify risky patterns and improve SQL security practices
-- **GitHub Copilot Agent Mode (`Preview`)**
-  - Use chat in Agent mode to connect, disconnect, or switch databases
-  - List servers and view available connections
-  - List all databases, tables, views, functions, and schemas in a connected server
-  - Run SQL queries directly from chat
-  - Get connection details for the current session
-  - Show database schema contextually
-  - Access all available Agent tools from the Agent Tools panel
+- **GitHub Copilot Agent Mode (`Preview`)** Let Copilot perform database tasks on your behalf
+  - Securely executes actions like connecting, switching databases, or running queries directly from chat
+  - Surfaces schema details and connection info without manual navigation
+  - Provides a confirmable, AI-driven assistant for common database workflows
+  - Access all approved Agent tools from the Tools panel
+- **GitHub Copilot Slash Commands (`Preview`)**: Quick, discoverable shortcuts in chat
+  - Type `/` to see commands like `/connect`, `/changeDatabase`, `/runQuery`, `/explain`, `/fix`, `/optimize`
+  - Connection commands open the MSSQL connection panel; query commands accept input and return results in chat
+- **Fabric Integration (`Preview`)**: Browse workspaces and provision SQL databases in Fabric directly from VS Code
+  - Sign in with Microsoft Entra ID, browse workspaces, search, and connect to SQL databases or SQL analytics endpoints from the Connection dialog (includes **Open in MSSQL** from the Fabric extension)
+  - Create a SQL database from the Deployments page; capacity‑aware and **auto‑connects** when complete
 
 ![Demo](https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif)
 

@@ -1,5 +1,18 @@
 # Change Log
 
+## Version 1.36.0
+* Release date: September 11, 2025
+* Release status: GA
+### What’s new in 1.36.0
+* Introduced Fabric Connectivity (Public Preview) to browse Fabric workspaces and connect to SQL databases or SQL analytics endpoints directly from the Connection dialog
+* Introduced SQL database in Fabric provisioning (Public Preview) to create Fabric SQL databases from the Deployments page with capacity awareness and automatic connection on completion
+* Added GitHub Copilot Slash Commands (Public Preview) providing quick chat shortcuts for connection management, schema exploration, and query tasks
+* Enabled Schema Compare to be launched from external extensions and SQL Projects through a new run command, also used to support the Update Project From Database feature
+* Improved query results performance and stability including incremental streaming, smoother tab switching without freezes, honoring `mssql.persistQueryResultTabs` setting, and preventing file‑close race conditions during execution
+* Improved connection reliability when opening via VS Code URIs and resolved authentication issues, including preserving saved passwords after failed connections
+* Fixed an issue where invalid Microsoft Entra ID account entries could result in no accounts or tenants appearing in the Connection dialog
+* Fixed an issue where the Most Recently Used list saved the active database instead of `<Default>`
+
 ## Version 1.35.0
 * Release date: August 20, 2025
 * Release status: GA
