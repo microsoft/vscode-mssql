@@ -69,11 +69,13 @@ export default class SqlDocumentService implements vscode.Disposable {
             }),
         );
 
-        this._disposables.push(
-            this._connectionMgr.onSuccessfulConnection((params) =>
-                this.onSuccessfulConnection(params),
-            ),
-        );
+        if (this._connectionMgr) {
+            this._disposables.push(
+                this._connectionMgr.onSuccessfulConnection((params) =>
+                    this.onSuccessfulConnection(params),
+                ),
+            );
+        }
     }
 
     dispose() {
@@ -154,6 +156,21 @@ export default class SqlDocumentService implements vscode.Disposable {
         }
         this._connectionMgr.onDidOpenTextDocument(doc);
 
+        await this.waitForOngoingCreates();
+
+        const skipCopyConnection = this.shouldSkipCopyConnection(getUriKey(doc.uri));
+
+        if (
+            this._lastActiveConnectionInfo &&
+            doc.languageId === Constants.languageId &&
+            !skipCopyConnection
+        ) {
+            await this._connectionMgr.connect(
+                getUriKey(doc.uri),
+                Utils.deepClone(this._lastActiveConnectionInfo),
+            );
+        }
+
         if (doc && doc.languageId === Constants.languageId) {
             // set encoding to false
             this._statusview?.languageFlavorChanged(
@@ -181,17 +198,7 @@ export default class SqlDocumentService implements vscode.Disposable {
             await this._connectionMgr?.getConnectionInfoFromUri(activeDocumentUri);
 
         if (activeConnection) {
-            this._lastActiveConnectionInfo = activeConnection;
-        }
-        console.log("Auto-connecting to external SQL doc:", activeDocumentUri);
-
-        if (
-            editor.document.languageId === Constants.languageId &&
-            this._lastActiveConnectionInfo &&
-            !this._ownedDocuments.has(editor.document)
-        ) {
-            // Auto-connect external SQL docs when they become active and have no connection yet.
-            await this._connectionMgr?.connect(activeDocumentUri, this._lastActiveConnectionInfo);
+            this._lastActiveConnectionInfo = Utils.deepClone(activeConnection);
         }
     }
 
@@ -221,12 +228,16 @@ export default class SqlDocumentService implements vscode.Disposable {
         if (!credentials) {
             return;
         }
-        if (activeEditorKey === params.fileUri) {
-            // Always update when it's the active editor
-            this._lastActiveConnectionInfo = credentials;
-        } else if (!this._lastActiveConnectionInfo) {
-            // Only set once if not already set
-            this._lastActiveConnectionInfo = credentials;
+        /**
+         * Update the last active connection info only if:
+         *   1. The active editor matches the one that just connected, OR
+         *   2. No previous connection info has been stored yet.
+         *
+         * This prevents overwriting the last active connection info with credentials
+         * from a different editor than the one currently active.
+         */
+        if (activeEditorKey === params.fileUri || !this._lastActiveConnectionInfo) {
+            this._lastActiveConnectionInfo = Utils.deepClone(credentials);
         }
     }
 

@@ -92,10 +92,8 @@ suite("MainController Tests", function () {
             selection: undefined,
         } as any;
         mockSqlDocumentService
-            .setup((x) => x.newQuery(undefined, true))
-            .returns(() => {
-                return Promise.resolve(editor);
-            });
+            .setup((x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns(() => Promise.resolve(editor));
         connectionManager
             .setup((x) => x.onNewConnection())
             .returns(() => {
@@ -103,7 +101,10 @@ suite("MainController Tests", function () {
             });
 
         await mainController.onNewQuery(undefined, undefined);
-        mockSqlDocumentService.verify((x) => x.newQuery(undefined, true), TypeMoq.Times.once());
+        mockSqlDocumentService.verify(
+            (x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            TypeMoq.Times.once(),
+        );
         connectionManager.verify((x) => x.onNewConnection(), TypeMoq.Times.atLeastOnce());
     });
 
@@ -113,7 +114,7 @@ suite("MainController Tests", function () {
 
         // Make newQuery reject
         mockSqlDocumentService
-            .setup((x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isValue(true)))
+            .setup((x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.reject(new Error("boom")));
 
         connectionManager.setup((x) => x.onNewConnection()).returns(() => Promise.resolve() as any);
@@ -121,9 +122,9 @@ suite("MainController Tests", function () {
         // Act + assert reject
         await assert.rejects(() => mainController.onNewQuery(undefined, undefined), /boom/);
 
-        // Verify exactly how prod calls it (2 args, second is true)
+        // Verify prod calls newQuery once
         mockSqlDocumentService.verify(
-            (x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isValue(true)),
+            (x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             TypeMoq.Times.once(),
         );
 

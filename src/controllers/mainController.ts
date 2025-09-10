@@ -1412,16 +1412,6 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
-        // Search Objects in Database
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdSearchObjects,
-                async (node?: ConnectionNode) => {
-                    await this.onSearchObjects(node);
-                },
-            ),
-        );
-
         this.registerCommand(Constants.cmdConnectionGroupCreate);
         this._event.on(Constants.cmdConnectionGroupCreate, () => {
             const connGroupDialog = new ConnectionGroupWebviewController(
@@ -2570,7 +2560,7 @@ export default class MainController implements vscode.Disposable {
         const currentDocUri = vscode.window.activeTextEditor
             ? vscode.window.activeTextEditor.document.uri.toString(true)
             : undefined;
-        const newEditor = await this._sqlDocumentService.newQuery(content, true);
+        const newEditor = await this._sqlDocumentService.newQuery(content);
         const newDocUri = newEditor.document.uri.toString(true);
 
         // Case 1: User right-clicked on an OE node and selected "New Query"
