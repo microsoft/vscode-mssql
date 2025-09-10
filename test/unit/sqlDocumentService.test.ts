@@ -12,7 +12,7 @@ import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
-import SqlDocumentService from "../../src/controllers/sqlDocumentService";
+import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 
 chai.use(sinonChai);
@@ -221,7 +221,9 @@ suite("SqlDocumentService Tests", () => {
         const mockCreateDocument = sandbox.stub(sqlDocumentService as any, "createDocument");
         mockCreateDocument.resolves(editor);
 
-        const result = await sqlDocumentService.newQuery({ copyLastActiveConnection: true });
+        const result = await sqlDocumentService.newQuery({
+            connectionStrategy: ConnectionStrategy.CopyLastActive,
+        });
 
         expect(result).to.equal(editor);
         expect(mockCreateDocument).to.have.been.calledOnce;
@@ -252,7 +254,7 @@ suite("SqlDocumentService Tests", () => {
 
         const testUri = "file:///test.sql";
         const result = await sqlDocumentService.newQuery({
-            copyConnectionFromUri: testUri,
+            sourceUri: testUri,
             content: "SELECT 1",
         });
 
@@ -289,8 +291,8 @@ suite("SqlDocumentService Tests", () => {
 
         const testUri = "file:///test.sql";
         const result = await sqlDocumentService.newQuery({
-            copyConnectionFromUri: testUri,
-            copyLastActiveConnection: true,
+            sourceUri: testUri,
+            connectionStrategy: ConnectionStrategy.CopyFromUri,
             content: "SELECT 1",
         });
 

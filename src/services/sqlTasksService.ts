@@ -8,7 +8,7 @@ import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { NotificationType, RequestType } from "vscode-languageclient";
 import { Deferred } from "../protocol";
 import * as localizedConstants from "../constants/locConstants";
-import SqlDocumentService from "../controllers/sqlDocumentService";
+import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 
 export enum TaskStatus {
@@ -177,7 +177,7 @@ export class SqlTasksService {
             ) {
                 await this._sqlDocumentService.newQuery({
                     content: taskProgressInfo.script,
-                    copyLastActiveConnection: true,
+                    connectionStrategy: ConnectionStrategy.CopyLastActive,
                 });
             }
         } else {

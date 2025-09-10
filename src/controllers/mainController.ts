@@ -40,7 +40,7 @@ import { SqlTasksService } from "../services/sqlTasksService";
 import StatusView from "../views/statusView";
 import { IConnectionGroup, IConnectionProfile, ISelectionData } from "./../models/interfaces";
 import ConnectionManager from "./connectionManager";
-import SqlDocumentService from "./sqlDocumentService";
+import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -703,8 +703,8 @@ export default class MainController implements vscode.Disposable {
             let scriptingObject = this._scriptingService.getObjectFromNode(node);
             let title = `${scriptingObject.schema}.${scriptingObject.name}`;
             const editor = await this._sqlDocumentService.newQuery({
-                copyLastActiveConnection: false,
                 content: selectStatement,
+                connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
                 connectionInfo: connectionCreds,
             });
             if (executeScript) {
@@ -1234,8 +1234,8 @@ export default class MainController implements vscode.Disposable {
             const script = await this._scriptingService.script(scriptingParams);
 
             await this._sqlDocumentService.newQuery({
-                copyLastActiveConnection: false,
                 content: script,
+                connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
                 connectionInfo: connection?.credentials,
             });
         } catch (error) {
@@ -2510,7 +2510,9 @@ export default class MainController implements vscode.Disposable {
         }
         await this.sqlDocumentService.newQuery({
             content,
-            copyLastActiveConnection: connectionCreds ? false : true,
+            connectionStrategy: connectionCreds
+                ? ConnectionStrategy.CopyConnectionFromInfo
+                : ConnectionStrategy.PromptForConnection,
             connectionInfo: connectionCreds,
         });
 

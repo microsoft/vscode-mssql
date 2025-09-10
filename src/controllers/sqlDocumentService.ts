@@ -261,95 +261,117 @@ export default class SqlDocumentService implements vscode.Disposable {
      * @param options Options for creating the new document
      * @returns The newly created text editor
      */
-    public async newQuery(options: NewQueryOptions): Promise<vscode.TextEditor> {
-        // Create a unique key for this operation to handle potential duplicates
-        const operationKey = `${Date.now()}-${Math.random()}`;
+    public async newQuery(options: NewQueryOptions = {}): Promise<vscode.TextEditor> {
+        const operationKey = Utils.generateGuid();
+
         try {
-            const newQueryPromise = new Promise<vscode.TextEditor>(async (resolve, reject) => {
-                try {
-                    const normalized: NewQueryOptions = options ?? {
-                        copyLastActiveConnection: true,
-                    };
-
-                    // Resolve connection info from URI if requested
-                    let resolvedConnectionInfo = normalized.connectionInfo;
-                    let shouldCopyLastActive = normalized.copyLastActiveConnection ?? true;
-
-                    if (
-                        normalized.copyConnectionFromUri &&
-                        !resolvedConnectionInfo &&
-                        this._connectionMgr
-                    ) {
-                        resolvedConnectionInfo = this._connectionMgr.getConnectionInfoFromUri(
-                            normalized.copyConnectionFromUri,
-                        );
-                        // If we got connection info from URI, don't copy last active connection
-                        if (resolvedConnectionInfo) {
-                            shouldCopyLastActive = false;
-                        }
-                    }
-
-                    const editor = await this.createDocument(
-                        shouldCopyLastActive,
-                        normalized.content,
-                        resolvedConnectionInfo,
-                    );
-
-                    const newDocumentUriKey = getUriKey(editor.document.uri);
-                    this._statusview?.languageFlavorChanged(
-                        newDocumentUriKey,
-                        Constants.mssqlProviderName,
-                    );
-                    this._statusview?.sqlCmdModeChanged(newDocumentUriKey, false);
-                    resolve(editor);
-                } catch (err) {
-                    reject(err);
-                }
-            });
+            const newQueryPromise = this.createNewQueryDocument(options);
             this._ongoingCreates.set(operationKey, newQueryPromise);
-
             return await newQueryPromise;
         } finally {
-            // Clean up the pending operation
             this._ongoingCreates.delete(operationKey);
         }
     }
 
-    private async createDocument(
-        copyLastActiveConnection: boolean,
-        content?: string,
-        connectionInfo?: vscodeMssql.IConnectionInfo,
-    ): Promise<vscode.TextEditor> {
+    private async createNewQueryDocument(options: NewQueryOptions): Promise<vscode.TextEditor> {
+        // Create the document
+        const editor = await this.createDocument(options.content);
+
+        // Resolve connection strategy and info
+        const connectionConfig = await this.resolveConnectionConfig(options);
+
+        // Establish connection if needed
+        if (
+            connectionConfig?.shouldConnect &&
+            connectionConfig.connectionInfo &&
+            this._connectionMgr
+        ) {
+            const documentUriKey = getUriKey(editor.document.uri);
+            const connectionPromise = new Deferred<boolean>();
+
+            await this._connectionMgr.connect(
+                documentUriKey,
+                connectionConfig.connectionInfo,
+                connectionPromise,
+            );
+
+            await connectionPromise.promise;
+        }
+
+        // Update status views
+        const documentUriKey = getUriKey(editor.document.uri);
+        this._statusview?.languageFlavorChanged(documentUriKey, Constants.mssqlProviderName);
+        this._statusview?.sqlCmdModeChanged(documentUriKey, false);
+
+        return editor;
+    }
+
+    private async resolveConnectionConfig(
+        options: NewQueryOptions,
+    ): Promise<ResolvedConnectionConfig> {
+        const strategy = options.connectionStrategy ?? ConnectionStrategy.CopyLastActive;
+
+        switch (strategy) {
+            case ConnectionStrategy.None:
+                return { shouldConnect: false };
+
+            case ConnectionStrategy.CopyConnectionFromInfo:
+                if (!options.connectionInfo) {
+                    throw new Error(
+                        "connectionInfo is required when using CopyConnectionFromInfo connection strategy",
+                    );
+                }
+                return {
+                    shouldConnect: true,
+                    connectionInfo: options.connectionInfo,
+                };
+
+            case ConnectionStrategy.CopyFromUri:
+                if (!options.sourceUri) {
+                    throw new Error(
+                        "sourceUri is required when using CopyFromUri connection strategy",
+                    );
+                }
+
+                if (!this._connectionMgr) {
+                    throw new Error("Connection manager is not available");
+                }
+
+                const resolvedConnectionInfo = this._connectionMgr.getConnectionInfoFromUri(
+                    options.sourceUri,
+                );
+                return resolvedConnectionInfo
+                    ? { shouldConnect: true, connectionInfo: resolvedConnectionInfo }
+                    : { shouldConnect: false };
+
+            case ConnectionStrategy.CopyLastActive:
+                return this._lastActiveConnectionInfo
+                    ? { shouldConnect: true, connectionInfo: this._lastActiveConnectionInfo }
+                    : { shouldConnect: false };
+
+            case ConnectionStrategy.PromptForConnection:
+            default:
+                const credentials = await this._connectionMgr.onNewConnection();
+                return { shouldConnect: true, connectionInfo: credentials };
+        }
+    }
+
+    private async createDocument(content?: string): Promise<vscode.TextEditor> {
+        // Create and open the document
         const doc = await vscode.workspace.openTextDocument({
             language: "sql",
             content: content,
         });
-        // Mark as owned as soon as the document is created/opened to cover the
-        // window where onDidOpenTextDocument may fire before showTextDocument resolves.
+
+        // Mark as owned immediately
         this._ownedDocuments.add(doc);
 
+        // Show the document in editor
         const editor = await vscode.window.showTextDocument(doc, {
             viewColumn: vscode.ViewColumn.One,
             preserveFocus: false,
             preview: false,
         });
-
-        const newDocumentUriKey = getUriKey(editor.document.uri);
-        const connectionCreationPromise = new Deferred<boolean>();
-        if (copyLastActiveConnection && this._lastActiveConnectionInfo) {
-            await this._connectionMgr?.connect(
-                newDocumentUriKey,
-                this._lastActiveConnectionInfo,
-                connectionCreationPromise,
-            );
-        } else if (connectionInfo) {
-            await this._connectionMgr?.connect(
-                newDocumentUriKey,
-                connectionInfo,
-                connectionCreationPromise,
-            );
-        }
-        await connectionCreationPromise.promise;
         return editor;
     }
 
@@ -366,24 +388,44 @@ export default class SqlDocumentService implements vscode.Disposable {
 }
 
 /**
+ * Connection strategy for new SQL documents.
+ */
+export enum ConnectionStrategy {
+    /** No connection will be established */
+    None = "none",
+    /** Copy connection from the last active document */
+    CopyLastActive = "copyLastActive",
+    /** Use explicitly provided connection info */
+    CopyConnectionFromInfo = "copyConnectionFromInfo",
+    /** Copy connection from a specified URI */
+    CopyFromUri = "copyFromUri",
+    /** Prompt the user to select a connection */
+    PromptForConnection = "promptForConnection",
+}
+
+/**
  * Options for creating a new SQL document.
  */
 export type NewQueryOptions = {
     /** Initial document content. */
     content?: string;
 
-    /**
-     * When true, copies the last active connection (if any) to the new document.
-     * Ignored if `connectionInfo` or `copyConnectionFromUri` is provided.
-     */
-    copyLastActiveConnection?: boolean;
+    /** Connection strategy to use. Defaults to `ConnectionStrategy.PromptForConnection`. */
+    connectionStrategy?: ConnectionStrategy;
 
-    /** Explicit connection to apply to the new document. */
+    /** Connection info (required when strategy is CopyConnectionFromInfo) */
     connectionInfo?: vscodeMssql.IConnectionInfo;
 
     /**
-     * When provided, copies the connection from the specified URI to the new document.
-     * Takes precedence over `copyLastActiveConnection` but is ignored if `connectionInfo` is provided.
+     * Source URI to copy the connection from.
      */
-    copyConnectionFromUri?: string;
+    sourceUri?: string;
 };
+
+/**
+ * Internal type for resolved connection configuration
+ */
+interface ResolvedConnectionConfig {
+    shouldConnect: boolean;
+    connectionInfo?: vscodeMssql.IConnectionInfo;
+}

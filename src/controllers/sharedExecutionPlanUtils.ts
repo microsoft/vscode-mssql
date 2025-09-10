@@ -13,7 +13,7 @@ import {
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
 import * as vscode from "vscode";
-import SqlDocumentService from "./sqlDocumentService";
+import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
@@ -68,8 +68,8 @@ export async function showQuery(
 ) {
     void sqlDocumentService.newQuery({
         content: payload.query,
-        copyLastActiveConnection: !uri, // Only copy last active connection if no URI is provided
-        copyConnectionFromUri: uri,
+        connectionStrategy: uri ? ConnectionStrategy.CopyFromUri : ConnectionStrategy.None,
+        sourceUri: uri,
     });
 
     return state;

@@ -12,7 +12,7 @@ import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { QueryHistoryNode, EmptyHistoryNode } from "./queryHistoryNode";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Constants from "../constants/constants";
-import SqlDocumentService from "../controllers/sqlDocumentService";
+import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import StatusView from "../views/statusView";
 import { IConnectionProfile } from "../models/interfaces";
 import { IPrompter } from "../prompts/question";
@@ -147,7 +147,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
         const credentials = this._connectionManager.getConnectionInfo(node.ownerUri).credentials;
         const editor = await this._sqlDocumentService.newQuery({
             content: node.queryString,
-            copyLastActiveConnection: false,
+            connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
             connectionInfo: credentials,
         });
         if (isExecute) {
