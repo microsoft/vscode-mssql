@@ -1445,7 +1445,7 @@
   "Select a Workspace": "Select a Workspace",
   "Search Workspaces": "Search Workspaces",
   "Workspace is required": "Workspace is required",
-  "Insufficient Worskpace Permissions": "Insufficient Worskpace Permissions",
+  "Insufficient Workspace Permissions": "Insufficient Workspace Permissions",
   "Insufficient Capacity Permissions": "Insufficient Capacity Permissions",
   "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again./{0} is the number of invalid accounts that have been removed": {
     "message": "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.",
