@@ -13,11 +13,12 @@ import { QueryHistoryNode, EmptyHistoryNode } from "./queryHistoryNode";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Constants from "../constants/constants";
 import SqlDocumentService from "../controllers/sqlDocumentService";
-import { Deferred } from "../protocol";
 import StatusView from "../views/statusView";
 import { IConnectionProfile } from "../models/interfaces";
 import { IPrompter } from "../prompts/question";
 import { QueryHistoryUI, QueryHistoryAction } from "../views/queryHistoryUI";
+import { getUriKey } from "../utils/utils";
+import { Deferred } from "../protocol";
 
 export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
@@ -143,28 +144,29 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
         node: QueryHistoryNode,
         isExecute: boolean = false,
     ): Promise<void> {
-        const editor = await this._sqlDocumentService.newQuery(node.queryString);
-        let uri = editor.document.uri.toString(true);
-        let title = path.basename(editor.document.fileName);
-        const queryUriPromise = new Deferred<boolean>();
-        let credentials = this._connectionManager.getConnectionInfo(node.ownerUri).credentials;
-        await this._connectionManager.connect(uri, credentials, queryUriPromise);
-        await queryUriPromise;
-        this._statusView.languageFlavorChanged(uri, Constants.mssqlProviderName);
-        this._statusView.sqlCmdModeChanged(uri, false);
+        const credentials = this._connectionManager.getConnectionInfo(node.ownerUri).credentials;
+        const editor = await this._sqlDocumentService.newQuery({
+            content: node.queryString,
+            copyLastActiveConnection: false,
+            connectionInfo: credentials,
+        });
         if (isExecute) {
+            const uri = getUriKey(editor.document.uri);
+            const title = path.basename(editor.document.fileName);
             const queryPromise = new Deferred<boolean>();
             await this._outputContentProvider.runQuery(
                 this._statusView,
                 uri,
                 undefined,
                 title,
-                {}, // empty execution plan options
+                {},
                 queryPromise,
             );
             await queryPromise;
+        }
+        if (isExecute) {
             await this._connectionManager.connectionStore.removeRecentlyUsed(
-                <IConnectionProfile>credentials,
+                credentials as IConnectionProfile,
             );
         }
     }

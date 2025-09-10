@@ -316,10 +316,10 @@ suite("Execution Plan Utilities", () => {
         );
 
         assert.strictEqual(result, mockInitialState, "The state should be returned unchanged.");
-        sinon.assert.calledOnceWithExactly(
-            mockSqlDocumentService.newQuery as sinon.SinonStub,
-            mockPayload.query,
-        );
+        sinon.assert.calledOnceWithExactly(mockSqlDocumentService.newQuery as sinon.SinonStub, {
+            content: mockPayload.query,
+            copyLastActiveConnection: false,
+        });
     });
 
     test("createExecutionPlanGraphs: should create executionPlanGraphs correctly and return the state", async () => {

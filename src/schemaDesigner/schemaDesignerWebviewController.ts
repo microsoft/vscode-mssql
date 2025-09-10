@@ -255,10 +255,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 updatedSchema: this.schemaDesignerDetails!.schema,
                 sessionId: this._sessionId,
             });
-            await this.mainController.sqlDocumentService.newQuery(
-                definition.script,
-                true /* should copy last active connection */,
-            );
+            await this.mainController.sqlDocumentService.newQuery({
+                content: definition.script,
+                copyLastActiveConnection: false,
+            });
         });
 
         this.onNotification(SchemaDesigner.OpenInEditorWithConnectionNotification.type, () => {
@@ -287,17 +287,20 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                         );
                         // Open the document in the editor with the connection
                         if (this.treeNode) {
-                            void this.mainController.onNewQuery(this.treeNode, result?.script);
+                            await this.mainController.sqlDocumentService.newQuery({
+                                content: result?.script,
+                                copyLastActiveConnection: true,
+                                connectionInfo: this.treeNode.connectionProfile,
+                            });
                         } else if (this.connectionUri) {
-                            const editor = await this.mainController.sqlDocumentService.newQuery(
-                                result?.script,
-                            );
-                            await this.mainController.connectionManager.connect(
-                                editor.document.uri.toString(true),
-                                this.mainController.connectionManager.getConnectionInfo(
-                                    this.connectionUri,
-                                ).credentials,
-                            );
+                            await this.mainController.sqlDocumentService.newQuery({
+                                content: result?.script,
+                                copyLastActiveConnection: false,
+                                connectionInfo:
+                                    this.mainController.connectionManager.getConnectionInfo(
+                                        this.connectionUri,
+                                    ).credentials,
+                            });
                         }
                     } catch (error) {
                         generateScriptActivity.endFailed(error, false);

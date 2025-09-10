@@ -15,6 +15,8 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import MainController from "./mainController";
 import * as vscodeMssql from "vscode-mssql";
+import { Deferred } from "../protocol";
+// no-op imports removed after execution flow simplification
 /**
  * Service for creating untitled documents for SQL query
  */
@@ -158,12 +160,10 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         await this.waitForOngoingCreates();
 
-        const skipCopyConnection = this.shouldSkipCopyConnection(getUriKey(doc.uri));
-
         if (
             this._lastActiveConnectionInfo &&
             doc.languageId === Constants.languageId &&
-            !skipCopyConnection
+            !this._ownedDocuments.has(doc)
         ) {
             await this._connectionMgr.connect(
                 getUriKey(doc.uri),
@@ -244,25 +244,49 @@ export default class SqlDocumentService implements vscode.Disposable {
     /**
      * Wait for all ongoing create operations to complete
      */
-    public async waitForOngoingCreates(): Promise<vscode.TextEditor[]> {
-        const pendingPromises = Array.from(this._ongoingCreates.values());
-        return Promise.all(pendingPromises);
+    /**
+     * Waits for any in-flight newQuery create operations to settle.
+     * Does not throw if any creation failed.
+     */
+    public async waitForOngoingCreates(): Promise<void> {
+        const pending = Array.from(this._ongoingCreates.values());
+        if (pending.length === 0) {
+            return;
+        }
+        await Promise.allSettled(pending);
     }
 
     /**
-     * Creates new untitled document for SQL query and opens in new editor tab
-     * with optional content
+     * Creates a new untitled SQL document and shows it in an editor.
+     * @param options Options for creating the new document
+     * @returns The newly created text editor
      */
-    public async newQuery(
-        content?: string,
-        shouldCopyLastActiveConnection: boolean = false,
-    ): Promise<vscode.TextEditor> {
+    public async newQuery(options: NewQueryOptions): Promise<vscode.TextEditor> {
         // Create a unique key for this operation to handle potential duplicates
         const operationKey = `${Date.now()}-${Math.random()}`;
         try {
-            const newQueryPromise = new Promise<vscode.TextEditor>(async (resolve) => {
-                const editor = await this.createDocument(content, shouldCopyLastActiveConnection);
-                resolve(editor);
+            const newQueryPromise = new Promise<vscode.TextEditor>(async (resolve, reject) => {
+                try {
+                    const normalized: NewQueryOptions = options ?? {
+                        copyLastActiveConnection: true,
+                    };
+
+                    const editor = await this.createDocument(
+                        normalized.copyLastActiveConnection ?? true,
+                        normalized.content,
+                        normalized.connectionInfo,
+                    );
+
+                    const newDocumentUriKey = getUriKey(editor.document.uri);
+                    this._statusview?.languageFlavorChanged(
+                        newDocumentUriKey,
+                        Constants.mssqlProviderName,
+                    );
+                    this._statusview?.sqlCmdModeChanged(newDocumentUriKey, false);
+                    resolve(editor);
+                } catch (err) {
+                    reject(err);
+                }
             });
             this._ongoingCreates.set(operationKey, newQueryPromise);
 
@@ -274,14 +298,14 @@ export default class SqlDocumentService implements vscode.Disposable {
     }
 
     private async createDocument(
+        copyLastActiveConnection: boolean,
         content?: string,
-        shouldCopyLastActiveConnection?: boolean,
+        connectionInfo?: vscodeMssql.IConnectionInfo,
     ): Promise<vscode.TextEditor> {
         const doc = await vscode.workspace.openTextDocument({
             language: "sql",
             content: content,
         });
-        console.log("doc created", getUriKey(doc.uri));
         // Mark as owned as soon as the document is created/opened to cover the
         // window where onDidOpenTextDocument may fire before showTextDocument resolves.
         this._ownedDocuments.add(doc);
@@ -292,14 +316,22 @@ export default class SqlDocumentService implements vscode.Disposable {
             preview: false,
         });
 
-        // If requested, explicitly connect this new document to the last active connection.
-        if (shouldCopyLastActiveConnection && this._lastActiveConnectionInfo) {
+        const newDocumentUriKey = getUriKey(editor.document.uri);
+        const connectionCreationPromise = new Deferred<boolean>();
+        if (copyLastActiveConnection && this._lastActiveConnectionInfo) {
             await this._connectionMgr?.connect(
-                getUriKey(editor.document.uri),
+                newDocumentUriKey,
                 this._lastActiveConnectionInfo,
+                connectionCreationPromise,
+            );
+        } else if (connectionInfo) {
+            await this._connectionMgr?.connect(
+                newDocumentUriKey,
+                connectionInfo,
+                connectionCreationPromise,
             );
         }
-
+        await connectionCreationPromise.promise;
         return editor;
     }
 
@@ -314,3 +346,20 @@ export default class SqlDocumentService implements vscode.Disposable {
         this._outputContentProvider?.onUntitledFileSaved(oldUri, newUri);
     }
 }
+
+/**
+ * Options for creating a new SQL document.
+ */
+export type NewQueryOptions = {
+    /** Initial document content. */
+    content?: string;
+
+    /**
+     * When true, copies the last active connection (if any) to the new document.
+     * Ignored if `connectionInfo` is provided.
+     */
+    copyLastActiveConnection?: boolean;
+
+    /** Explicit connection to apply to the new document. */
+    connectionInfo?: vscodeMssql.IConnectionInfo;
+};

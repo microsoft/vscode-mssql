@@ -353,6 +353,7 @@ export class SqlOutputContentProvider {
                     await this._queryResultWebviewController.createPanelController(queryRunner.uri);
                 }
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                this.revealQueryResult(queryRunner.uri);
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });
@@ -860,13 +861,6 @@ export class SqlOutputContentProvider {
             if (activeEditorUri === uri) {
                 this._queryResultWebviewController.state = state;
             }
-        }
-
-        /**
-         * Only reveal the panel if user is working on the same editor
-         */
-        if (activeEditorUri === uri) {
-            this.revealQueryResult(uri);
         }
     }
 }

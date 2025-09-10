@@ -344,7 +344,13 @@ suite("TableDesignerWebviewController tests", () => {
         assert.ok(newQueryStub.calledOnce, "newQuery should be called once");
         assert.deepStrictEqual(
             newQueryStub.firstCall.args,
-            [scriptResponse],
+            [
+                {
+                    content: scriptResponse,
+                    copyLastActiveConnection: false,
+                    connectionInfo: undefined,
+                },
+            ],
             "newQuery should be called with the generated script",
         );
 
@@ -467,10 +473,10 @@ suite("TableDesignerWebviewController tests", () => {
 
         await controller["_reducerHandlers"].get("scriptAsCreate")(state, mockPayload);
 
-        assert.ok(
-            newQueryStub.calledWith(mockScript),
-            "newQuery should be called with script content",
-        );
+        sinon.assert.calledOnceWithExactly(newQueryStub, {
+            content: mockScript,
+            copyLastActiveConnection: false,
+        });
 
         newQueryStub.restore();
     });

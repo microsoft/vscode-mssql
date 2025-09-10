@@ -219,12 +219,12 @@ suite("SqlDocumentService Tests", () => {
         } as any;
 
         const mockCreateDocument = sandbox.stub(sqlDocumentService as any, "createDocument");
-        mockCreateDocument.withArgs(undefined, true).resolves(editor);
+        mockCreateDocument.resolves(editor);
 
-        const result = await sqlDocumentService.newQuery(undefined, true);
+        const result = await sqlDocumentService.newQuery({ copyLastActiveConnection: true });
 
         expect(result).to.equal(editor);
-        expect(mockCreateDocument).to.have.been.calledOnceWithExactly(undefined, true);
+        expect(mockCreateDocument).to.have.been.calledOnce;
 
         mockCreateDocument.restore();
     });

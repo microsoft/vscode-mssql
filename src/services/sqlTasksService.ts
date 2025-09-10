@@ -175,7 +175,10 @@ export class SqlTasksService {
                 taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script &&
                 taskProgressInfo.script
             ) {
-                await this._sqlDocumentService.newQuery(taskProgressInfo.script);
+                await this._sqlDocumentService.newQuery({
+                    content: taskProgressInfo.script,
+                    copyLastActiveConnection: true,
+                });
             }
         } else {
             // Task is still ongoing so just update the progress notification with the latest status

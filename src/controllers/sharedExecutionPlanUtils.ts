@@ -65,7 +65,10 @@ export async function showQuery(
     payload: ExecutionPlanReducers["showQuery"],
     sqlDocumentService: SqlDocumentService,
 ) {
-    void sqlDocumentService.newQuery(payload.query);
+    void sqlDocumentService.newQuery({
+        content: payload.query,
+        copyLastActiveConnection: false,
+    });
 
     return state;
 }

@@ -363,7 +363,11 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     generateScriptState: designer.LoadState.Loaded,
                 },
             };
-            await this._sqlDocumentService.newQuery(script);
+            await this._sqlDocumentService.newQuery({
+                content: script,
+                copyLastActiveConnection: false,
+                connectionInfo: payload.table.connectionInfo,
+            });
             UserSurvey.getInstance().promptUserForNPSFeedback();
             return state;
         });
@@ -421,9 +425,11 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("scriptAsCreate", async (state) => {
-            await this._sqlDocumentService.newQuery(
-                (state.model["script"] as designer.InputBoxProperties).value ?? "",
-            );
+            await this._sqlDocumentService.newQuery({
+                content: (state.model["script"] as designer.InputBoxProperties).value ?? "",
+                copyLastActiveConnection: false,
+            });
+
             return state;
         });
 
