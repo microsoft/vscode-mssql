@@ -44,7 +44,7 @@
     "mssql.copilot.analyzeQueryPerformance": "Analyze Query Performance (Preview)",
     "mssql.copilot.rewriteQuery": "Rewrite Query (Preview)",
     "mssql.schemaCompare": "Schema Compare",
-    "mssql.tableExplorer": "View Data",
+    "mssql.tableExplorer": "View Data (Preview)",
     "mssql.toggleSqlCmd": "Toggle SQLCMD Mode",
     "mssql.copyObjectName": "Copy Object Name",
     "mssql.addAadAccount": "Add Microsoft Entra Account",
