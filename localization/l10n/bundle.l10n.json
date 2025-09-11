@@ -2008,6 +2008,7 @@
   },
   "Unknown error": "Unknown error",
   "No active database connection in the current editor. Please establish a connection to continue.": "No active database connection in the current editor. Please establish a connection to continue.",
+  "Chat command not available in this VS Code version": "Chat command not available in this VS Code version",
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
   "Cancel failed: {0}/{0} is the error message": {
     "message": "Cancel failed: {0}",

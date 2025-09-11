@@ -1731,6 +1731,9 @@ export class MssqlChatAgent {
     public static noActiveDatabaseConnection = l10n.t(
         "No active database connection in the current editor. Please establish a connection to continue.",
     );
+    public static chatCommandNotAvailable = l10n.t(
+        "Chat command not available in this VS Code version",
+    );
 }
 
 export class QueryEditor {
