@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import ConnectionManager, { ConnectionSuccessfulEvent } from "./connectionManager";
+import ConnectionManager, { ConnectionInfo, ConnectionSuccessfulEvent } from "./connectionManager";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import StatusView from "../views/statusView";
 import store from "../queryResult/singletonStore";
@@ -16,6 +16,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import MainController from "./mainController";
 import * as vscodeMssql from "vscode-mssql";
 import { Deferred } from "../protocol";
+import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
 
 /**
  * Service for creating untitled documents for SQL query
@@ -37,12 +38,15 @@ export default class SqlDocumentService implements vscode.Disposable {
     private _connectionMgr: ConnectionManager | undefined;
     private _outputContentProvider: SqlOutputContentProvider | undefined;
     private _statusview: StatusView | undefined;
+    private _objectExplorerService: ObjectExplorerService | undefined;
 
     constructor(private _mainController: MainController) {
         // In unit tests mocks may provide an undefined main controller; guard initialization.
         this._connectionMgr = this._mainController?.connectionManager;
         this._outputContentProvider = this._mainController?.outputContentProvider;
         this._statusview = this._mainController?.statusview;
+        this._objectExplorerService =
+            this._mainController?.objectEpxplorerProvider?.objectExplorerService;
         this.setupListeners();
     }
 
@@ -298,9 +302,14 @@ export default class SqlDocumentService implements vscode.Disposable {
 
             const connectionResult = await connectionPromise.promise;
             if (connectionResult) {
-                await this._mainController.createObjectExplorerSession(
-                    connectionConfig.connectionInfo,
-                );
+                /**
+                 * Skip creating an Object Explorer session if one already exists for the connection.
+                 */
+                if (!this._objectExplorerService.hasSession(connectionConfig.connectionInfo)) {
+                    await this._mainController.createObjectExplorerSession(
+                        connectionConfig.connectionInfo,
+                    );
+                }
             }
         }
 

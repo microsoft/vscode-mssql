@@ -61,6 +61,15 @@ suite("SqlDocumentService Tests", () => {
         mainController.connectionManager = connectionManager;
         mainController.createObjectExplorerSession = sandbox.stub().resolves();
 
+        // Mock objectExplorerProvider for SqlDocumentService
+        const mockObjectExplorerService = {
+            hasSession: sandbox.stub().returns(false),
+            getConnectionNodeFromProfile: sandbox.stub().returns(null),
+        };
+        (mainController as any)._objectExplorerProvider = {
+            objectExplorerService: mockObjectExplorerService,
+        };
+
         sqlDocumentService = new SqlDocumentService(mainController);
         mainController.sqlDocumentService = sqlDocumentService;
 

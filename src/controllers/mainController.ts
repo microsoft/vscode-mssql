@@ -969,14 +969,6 @@ export default class MainController implements vscode.Disposable {
     public async createObjectExplorerSession(
         connectionCredentials?: IConnectionInfo,
     ): Promise<TreeNodeInfo> {
-        /**
-         * In case the connection already exists, return the existing node.
-         */
-        if (this._objectExplorerProvider.objectExplorerService.hasSession(connectionCredentials)) {
-            return this._objectExplorerProvider.objectExplorerService.getConnectionNodeFromProfile(
-                connectionCredentials as IConnectionProfile,
-            );
-        }
         let retry = true;
         // There can be many reasons for the session creation to fail, so we will retry until we get a successful result or the user cancels the operation.
         let sessionCreationResult: CreateSessionResult = undefined;
@@ -2331,6 +2323,10 @@ export default class MainController implements vscode.Disposable {
 
     public set sqlDocumentService(sqlDocumentService: SqlDocumentService) {
         this._sqlDocumentService = sqlDocumentService;
+    }
+
+    public get objectEpxplorerProvider(): ObjectExplorerProvider {
+        return this._objectExplorerProvider;
     }
 
     /**
