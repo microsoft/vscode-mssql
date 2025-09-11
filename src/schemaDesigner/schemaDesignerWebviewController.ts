@@ -15,6 +15,8 @@ import { getErrorMessage, getUniqueFilePath } from "../utils/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
+import { IConnectionInfo } from "vscode-mssql";
+import { ConnectionStrategy } from "../controllers/sqlDocumentService";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
@@ -255,10 +257,10 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 updatedSchema: this.schemaDesignerDetails!.schema,
                 sessionId: this._sessionId,
             });
-            await this.mainController.sqlDocumentService.newQuery(
-                definition.script,
-                true /* should copy last active connection */,
-            );
+            await this.mainController.sqlDocumentService.newQuery({
+                content: definition.script,
+                connectionStrategy: ConnectionStrategy.DoNotConnect,
+            });
         });
 
         this.onNotification(SchemaDesigner.OpenInEditorWithConnectionNotification.type, () => {
@@ -285,20 +287,21 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                                 ? { scriptLength: result?.script?.length }
                                 : { scriptLength: 0 },
                         );
+                        let connectionCredentials: IConnectionInfo;
                         // Open the document in the editor with the connection
                         if (this.treeNode) {
-                            void this.mainController.onNewQuery(this.treeNode, result?.script);
+                            connectionCredentials = this.treeNode.connectionProfile;
                         } else if (this.connectionUri) {
-                            const editor = await this.mainController.sqlDocumentService.newQuery(
-                                result?.script,
-                            );
-                            await this.mainController.connectionManager.connect(
-                                editor.document.uri.toString(true),
+                            connectionCredentials =
                                 this.mainController.connectionManager.getConnectionInfo(
                                     this.connectionUri,
-                                ).credentials,
-                            );
+                                ).credentials;
                         }
+                        await this.mainController.sqlDocumentService.newQuery({
+                            content: result?.script,
+                            connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                            connectionInfo: connectionCredentials,
+                        });
                     } catch (error) {
                         generateScriptActivity.endFailed(error, false);
                         vscode.window.showErrorMessage(

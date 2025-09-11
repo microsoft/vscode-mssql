@@ -13,7 +13,7 @@ import {
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { QueryResultWebviewState } from "../sharedInterfaces/queryResult";
 import * as vscode from "vscode";
-import SqlDocumentService from "./sqlDocumentService";
+import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
@@ -64,8 +64,13 @@ export async function showQuery(
     state: QueryResultWebviewState | ExecutionPlanWebviewState,
     payload: ExecutionPlanReducers["showQuery"],
     sqlDocumentService: SqlDocumentService,
+    uri?: string,
 ) {
-    void sqlDocumentService.newQuery(payload.query);
+    void sqlDocumentService.newQuery({
+        content: payload.query,
+        connectionStrategy: uri ? ConnectionStrategy.CopyFromUri : ConnectionStrategy.DoNotConnect,
+        sourceUri: uri,
+    });
 
     return state;
 }

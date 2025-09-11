@@ -40,7 +40,7 @@ import { SqlTasksService } from "../services/sqlTasksService";
 import StatusView from "../views/statusView";
 import { IConnectionGroup, IConnectionProfile, ISelectionData } from "./../models/interfaces";
 import ConnectionManager from "./connectionManager";
-import SqlDocumentService from "./sqlDocumentService";
+import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -55,7 +55,7 @@ import {
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
-import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
+import { getErrorMessage, getUriKey, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
@@ -711,16 +711,15 @@ export default class MainController implements vscode.Disposable {
                 nodeUri,
                 operation,
             );
-            const editor = await this._sqlDocumentService.newQuery(selectStatement);
-            let uri = editor.document.uri.toString(true);
             let scriptingObject = this._scriptingService.getObjectFromNode(node);
             let title = `${scriptingObject.schema}.${scriptingObject.name}`;
-            const queryUriPromise = new Deferred<boolean>();
-            await this.connectionManager.connect(uri, connectionCreds, queryUriPromise);
-            await queryUriPromise;
-            this._statusview.languageFlavorChanged(uri, Constants.mssqlProviderName);
-            this._statusview.sqlCmdModeChanged(uri, false);
+            const editor = await this._sqlDocumentService.newQuery({
+                content: selectStatement,
+                connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                connectionInfo: connectionCreds,
+            });
             if (executeScript) {
+                const uri = getUriKey(editor.document.uri);
                 const queryPromise = new Deferred<boolean>();
                 await this._outputContentProvider.runQuery(
                     this._statusview,
@@ -1276,13 +1275,11 @@ export default class MainController implements vscode.Disposable {
             );
             const script = await this._scriptingService.script(scriptingParams);
 
-            const editor = await this._sqlDocumentService.newQuery(script);
-            const newDocUri = editor.document.uri.toString(true);
-            const promise = new Deferred<boolean>();
-            await this.connectionManager.connect(newDocUri, connection?.credentials, promise);
-            await promise;
-            this._statusview.languageFlavorChanged(newDocUri, Constants.mssqlProviderName);
-            this._statusview.sqlCmdModeChanged(newDocUri, false);
+            await this._sqlDocumentService.newQuery({
+                content: script,
+                connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                connectionInfo: connection?.credentials,
+            });
         } catch (error) {
             void vscode.window.showErrorMessage(
                 LocalizedConstants.searchObjectsErrorWithDetail(getErrorMessage(error)),
@@ -2370,6 +2367,10 @@ export default class MainController implements vscode.Disposable {
         this._sqlDocumentService = sqlDocumentService;
     }
 
+    public get objectEpxplorerProvider(): ObjectExplorerProvider {
+        return this._objectExplorerProvider;
+    }
+
     /**
      * Verifies the extension is initilized and if not shows an error message
      */
@@ -2520,73 +2521,6 @@ export default class MainController implements vscode.Disposable {
         await vscode.env.openExternal(vscode.Uri.parse(Constants.gettingStartedGuideLink));
     }
 
-    private async newQueryFromProfile(
-        newDocUri: string,
-        connectionProfile: IConnectionInfo,
-        sessionId: string,
-        source: string,
-        createObjectExplorerSession: boolean,
-    ) {
-        // connect to the node if the command came from the context
-        const connectionCreds = connectionProfile;
-        // if the node isn't connected
-        if (createObjectExplorerSession && !sessionId) {
-            // connect it first
-            await this.createObjectExplorerSession(connectionProfile);
-        }
-        this._statusview.languageFlavorChanged(newDocUri, Constants.mssqlProviderName);
-        // connection string based credential
-        if (connectionCreds.connectionString) {
-            if ((connectionCreds as IConnectionProfile).savePassword) {
-                // look up connection string
-                let connectionString = await this._connectionMgr.connectionStore.lookupPassword(
-                    connectionCreds,
-                    true,
-                );
-                connectionCreds.connectionString = connectionString;
-            }
-        }
-        await this.connectionManager.connect(newDocUri, connectionCreds);
-        this._statusview.sqlCmdModeChanged(newDocUri, false);
-        await this.connectionManager.connectionStore.removeRecentlyUsed(
-            <IConnectionProfile>connectionCreds,
-        );
-        sendActionEvent(
-            TelemetryViews.ObjectExplorer,
-            TelemetryActions.NewQuery,
-            {
-                nodeType: source,
-                isContainer: connectionCreds?.containerName ? "true" : "false",
-            },
-            undefined, // additionalMeasurements
-            connectionProfile as IConnectionProfile,
-            this._connectionMgr.getServerInfo(connectionProfile),
-        );
-        return true;
-    }
-
-    private async newQueryFromPrompt(newDocUri: string) {
-        // new query command
-        const credentials = await this._connectionMgr.onNewConnection();
-
-        // initiate a new OE with same connection
-        if (credentials) {
-            await this.createObjectExplorerSession(credentials);
-        }
-        this._statusview.sqlCmdModeChanged(newDocUri, false);
-        sendActionEvent(
-            TelemetryViews.CommandPalette,
-            TelemetryActions.NewQuery,
-            {
-                isContainer: credentials?.containerName ? "true" : "false",
-            },
-            undefined,
-            credentials as IConnectionProfile,
-            this._connectionMgr.getServerInfo(credentials),
-        );
-        return true;
-    }
-
     /**
      * Opens a new query and creates new connection. Connection precedence is:
      * 1. User right-clicked on an OE node and selected "New Query": use that node's connection profile
@@ -2599,52 +2533,52 @@ export default class MainController implements vscode.Disposable {
             return;
         }
 
-        const currentDocUri = vscode.window.activeTextEditor
-            ? vscode.window.activeTextEditor.document.uri.toString(true)
-            : undefined;
-        const newEditor = await this._sqlDocumentService.newQuery(content);
-        const newDocUri = newEditor.document.uri.toString(true);
+        let activeEditor = vscode.window.activeTextEditor;
 
-        // Case 1: User right-clicked on an OE node and selected "New Query"
+        let connectionCreds: IConnectionInfo | undefined;
+        let nodeType: string | undefined;
+
         if (node) {
-            return await this.newQueryFromProfile(
-                newDocUri,
-                node.connectionProfile,
-                node.sessionId,
-                node.nodeType,
-                true, // createObjectExplorerSession
-            );
+            // Case 1: User right-clicked on an OE node and selected "New Query"
+            connectionCreds = node.connectionProfile;
+            nodeType = node.nodeType;
+        } else if (activeEditor) {
+            // Case 2: User triggered "New Query" from command palette and the active document has a connection
+            connectionCreds = undefined;
+            nodeType = "previousEditor";
+        } else if (this.objectExplorerTree.selection?.length === 1) {
+            // Case 3: User triggered "New Query" from command palette while they have a connected OE node selected
+            connectionCreds = this.objectExplorerTree.selection[0].connectionProfile;
+            nodeType = this.objectExplorerTree.selection[0].nodeType;
         }
 
-        // Case 2: User triggered "New Query" from command palette and the active document has a connection
-        if (currentDocUri) {
-            const connectionInfo = this._connectionMgr.getConnectionInfo(currentDocUri);
-
-            if (connectionInfo) {
-                return await this.newQueryFromProfile(
-                    newDocUri,
-                    connectionInfo.credentials,
-                    undefined, // sessionId
-                    "previousEditor",
-                    false, //createObjectExplorerSession
-                );
-            }
+        if (connectionCreds) {
+            await this.connectionManager.handlePasswordBasedCredentials(connectionCreds);
         }
 
-        // Case 3: User triggered "New Query" from command palette while they have a connected OE node selected
-        const selectedNode = this.objectExplorerTree.selection?.[0];
-        if (selectedNode && selectedNode.sessionId) {
-            return await this.newQueryFromProfile(
-                newDocUri,
-                selectedNode.connectionProfile,
-                selectedNode.sessionId,
-                selectedNode.nodeType,
-                true, // createObjectExplorerSession
-            );
-        }
+        await this.sqlDocumentService.newQuery({
+            content,
+            connectionStrategy: connectionCreds
+                ? ConnectionStrategy.CopyConnectionFromInfo
+                : ConnectionStrategy.PromptForConnection,
+            connectionInfo: connectionCreds,
+        });
 
-        // Case 4: User triggered "New Query" from command palette and there's nowhere to get connection context from
-        return await this.newQueryFromPrompt(newDocUri);
+        await this.connectionManager.connectionStore.removeRecentlyUsed(
+            connectionCreds as IConnectionProfile,
+        );
+
+        sendActionEvent(
+            TelemetryViews.CommandPalette,
+            TelemetryActions.NewQuery,
+            {
+                nodeType: nodeType,
+                isContainer: connectionCreds?.containerName ? "true" : "false",
+            },
+            undefined,
+            connectionCreds as IConnectionProfile,
+            this._connectionMgr.getServerInfo(connectionCreds),
+        );
     }
 
     /**

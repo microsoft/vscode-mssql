@@ -13,7 +13,7 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as td from "../../src/sharedInterfaces/tableDesigner";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { TableDesignerService } from "../../src/services/tableDesignerService";
-import SqlDocumentService from "../../src/controllers/sqlDocumentService";
+import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
 import ConnectionManager from "../../src/controllers/connectionManager";
 
 suite("TableDesignerWebviewController tests", () => {
@@ -344,7 +344,13 @@ suite("TableDesignerWebviewController tests", () => {
         assert.ok(newQueryStub.calledOnce, "newQuery should be called once");
         assert.deepStrictEqual(
             newQueryStub.firstCall.args,
-            [scriptResponse],
+            [
+                {
+                    content: scriptResponse,
+                    connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                    connectionInfo: undefined,
+                },
+            ],
             "newQuery should be called with the generated script",
         );
 
@@ -467,10 +473,10 @@ suite("TableDesignerWebviewController tests", () => {
 
         await controller["_reducerHandlers"].get("scriptAsCreate")(state, mockPayload);
 
-        assert.ok(
-            newQueryStub.calledWith(mockScript),
-            "newQuery should be called with script content",
-        );
+        sinon.assert.calledOnceWithExactly(newQueryStub, {
+            content: mockScript,
+            connectionStrategy: ConnectionStrategy.DoNotConnect,
+        });
 
         newQueryStub.restore();
     });

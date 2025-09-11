@@ -311,7 +311,7 @@ export default class QueryRunner {
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
         this._statusView.executingQuery(this.uri);
-        QueryRunner._runningQueries.push(vscode.Uri.parse(this._ownerUri).fsPath);
+        QueryRunner._runningQueries.push(vscode.Uri.parse(this._ownerUri).path);
         this.updateRunningQueries();
 
         this._notificationHandler.registerRunner(this, this._ownerUri);
@@ -343,7 +343,7 @@ export default class QueryRunner {
      */
     private removeRunningQuery(): void {
         QueryRunner._runningQueries = QueryRunner._runningQueries.filter(
-            (fileName) => fileName !== vscode.Uri.parse(this._ownerUri).fsPath,
+            (fileName) => fileName !== vscode.Uri.parse(this._ownerUri).path,
         );
         this.updateRunningQueries();
     }
