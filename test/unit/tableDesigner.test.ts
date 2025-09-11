@@ -13,7 +13,7 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as td from "../../src/sharedInterfaces/tableDesigner";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { TableDesignerService } from "../../src/services/tableDesignerService";
-import SqlDocumentService from "../../src/controllers/sqlDocumentService";
+import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
 import ConnectionManager from "../../src/controllers/connectionManager";
 
 suite("TableDesignerWebviewController tests", () => {
@@ -347,7 +347,7 @@ suite("TableDesignerWebviewController tests", () => {
             [
                 {
                     content: scriptResponse,
-                    copyLastActiveConnection: false,
+                    connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
                     connectionInfo: undefined,
                 },
             ],
@@ -475,7 +475,7 @@ suite("TableDesignerWebviewController tests", () => {
 
         sinon.assert.calledOnceWithExactly(newQueryStub, {
             content: mockScript,
-            copyLastActiveConnection: false,
+            connectionStrategy: ConnectionStrategy.DoNotConnect,
         });
 
         newQueryStub.restore();

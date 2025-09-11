@@ -7,7 +7,7 @@ import * as assert from "assert";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { ExecutionPlanWebviewController } from "../../src/controllers/executionPlanWebviewController";
-import SqlDocumentService from "../../src/controllers/sqlDocumentService";
+import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import * as ep from "../../src/sharedInterfaces/executionPlan";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
@@ -320,8 +320,8 @@ suite("Execution Plan Utilities", () => {
         assert.strictEqual(result, mockInitialState, "The state should be returned unchanged.");
         sinon.assert.calledOnceWithExactly(mockSqlDocumentService.newQuery as sinon.SinonStub, {
             content: mockPayload.query,
-            copyLastActiveConnection: false,
-            copyConnectionFromUri: mockUri,
+            connectionStrategy: ConnectionStrategy.CopyFromUri,
+            sourceUri: mockUri,
         });
     });
 
@@ -339,8 +339,8 @@ suite("Execution Plan Utilities", () => {
         assert.strictEqual(result, mockInitialState, "The state should be returned unchanged.");
         sinon.assert.calledOnceWithExactly(mockSqlDocumentService.newQuery as sinon.SinonStub, {
             content: mockPayload.query,
-            copyLastActiveConnection: true,
-            copyConnectionFromUri: undefined,
+            connectionStrategy: ConnectionStrategy.DoNotConnect,
+            sourceUri: undefined,
         });
     });
 
