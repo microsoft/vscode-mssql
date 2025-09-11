@@ -501,7 +501,7 @@ export default class MainController implements vscode.Disposable {
             this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
             this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
-            this.tableExplorerService = new TableExplorerService();
+            this.tableExplorerService = new TableExplorerService(SqlToolsServerClient.instance);
             const azureResourceController = new AzureResourceController();
             this.azureAccountService = new AzureAccountService(
                 this._connectionMgr.azureController,
