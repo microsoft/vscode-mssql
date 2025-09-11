@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import ConnectionManager, { ConnectionInfo, ConnectionSuccessfulEvent } from "./connectionManager";
+import ConnectionManager, { ConnectionSuccessfulEvent } from "./connectionManager";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import StatusView from "../views/statusView";
 import store from "../queryResult/singletonStore";
