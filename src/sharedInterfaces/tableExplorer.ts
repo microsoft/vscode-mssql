@@ -165,3 +165,15 @@ export interface EditScriptResult {
 }
 
 //#endregion
+
+export interface TableExplorerWebViewState {
+    tableName: string;
+    databaseName: string;
+    serverName: string;
+    schemaName?: string;
+    connectionProfile?: IConnectionProfile;
+    isLoading: boolean;
+    tableMetadata?: any; // This would be more specific based on actual metadata structure
+}
+
+export interface TableExplorerReducers {}

@@ -91,6 +91,8 @@ import {
     stopContainer,
 } from "../deployment/dockerUtils";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
+import { TableExplorerService } from "../services/tableExplorerService";
+import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
 
 /**
  * The main controller class that initializes the extension
@@ -112,6 +114,7 @@ export default class MainController implements vscode.Disposable {
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
+    public tableExplorerService: TableExplorerService;
     public sqlProjectsService: SqlProjectsService;
     public azureAccountService: AzureAccountService;
     public azureResourceService: AzureResourceService;
@@ -498,6 +501,7 @@ export default class MainController implements vscode.Disposable {
             this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
             this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
+            this.tableExplorerService = new TableExplorerService();
             const azureResourceController = new AzureResourceController();
             this.azureAccountService = new AzureAccountService(
                 this._connectionMgr.azureController,
@@ -1504,6 +1508,12 @@ export default class MainController implements vscode.Disposable {
 
                         await this.onSchemaCompare(sourceNode, targetNode, runComparison);
                     },
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(Constants.cmdTableExplorer, async (node: any) =>
+                    this.onTableExplorer(node),
                 ),
             );
 
@@ -2632,6 +2642,18 @@ export default class MainController implements vscode.Disposable {
         );
 
         schemaCompareWebView.revealToForeground();
+    }
+
+    public async onTableExplorer(node?: any): Promise<void> {
+        const tableExplorerWebView = new TableExplorerWebViewController(
+            this._context,
+            this._vscodeWrapper,
+            // this.tableExplorerService,
+            // this._connectionMgr,
+            node,
+        );
+
+        tableExplorerWebView.revealToForeground();
     }
 
     /**

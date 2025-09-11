@@ -576,6 +576,11 @@
                     "group": "4_MSSQL_object@1"
                 },
                 {
+                    "command": "mssql.tableExplorer",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "group": "4_MSSQL_object@2"
+                },
+                {
                     "command": "mssql.filterNode",
                     "when": "view == objectExplorer && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/",
                     "group": "5_MSSQL_tree@1"
@@ -890,6 +895,11 @@
             {
                 "command": "mssql.schemaCompareOpenFromCommandPalette",
                 "title": "%mssql.schemaCompare%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.tableExplorer",
+                "title": "%mssql.tableExplorer%",
                 "category": "MS SQL"
             },
             {
