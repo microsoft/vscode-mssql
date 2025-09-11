@@ -7,11 +7,12 @@ import React, { createContext, useContext } from "react";
 import {
     TableExplorerWebViewState,
     TableExplorerReducers,
+    TableExplorerContextProps,
 } from "../../../sharedInterfaces/tableExplorer";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
-const TableExplorerContext = createContext<TableExplorerWebViewState>(
-    {} as TableExplorerWebViewState,
+const TableExplorerContext = createContext<TableExplorerContextProps>(
+    {} as TableExplorerContextProps,
 );
 
 export const TableExplorerStateProvider: React.FC<{
@@ -21,13 +22,17 @@ export const TableExplorerStateProvider: React.FC<{
     const tableExplorerState = webViewState?.state;
 
     return (
-        <TableExplorerContext.Provider value={tableExplorerState}>
+        <TableExplorerContext.Provider
+            value={{
+                state: tableExplorerState,
+                themeKind: webViewState?.themeKind,
+            }}>
             {children}
         </TableExplorerContext.Provider>
     );
 };
 
-export const useTableExplorerState = (): TableExplorerWebViewState | undefined => {
+export const useTableExplorerContext = (): TableExplorerContextProps => {
     const context = useContext(TableExplorerContext);
     return context;
 };

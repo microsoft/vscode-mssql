@@ -4,10 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React from "react";
-import { useTableExplorerState } from "./TableExplorerStateProvider";
+import { useTableExplorerContext } from "./TableExplorerStateProvider";
 
 export const TableExplorerPage: React.FC = () => {
-    const state = useTableExplorerState();
+    const context = useTableExplorerContext();
+    const state = context?.state;
 
     return (
         <div style={{ padding: "20px" }}>
