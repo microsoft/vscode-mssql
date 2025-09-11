@@ -429,6 +429,9 @@
       <note>{0} is the connection ID
 {1} is the database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++6822b8489308b650f2e36cb439297b0c4a43859fe39e164aea3ad453f4bd14d7">
+      <source xml:lang="en">Chat command not available in this VS Code version</source>
+    </trans-unit>
     <trans-unit id="++CODE++c8cabf4a998e678eb3213d46a3e9e80217b7839fb5f3537ee550a65e3b2202c9">
       <source xml:lang="en">Check Constraint</source>
     </trans-unit>
