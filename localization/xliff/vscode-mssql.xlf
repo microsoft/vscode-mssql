@@ -3910,7 +3910,7 @@
       <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
     </trans-unit>
     <trans-unit id="mssql.tableExplorer">
-      <source xml:lang="en">View Data</source>
+      <source xml:lang="en">View Data (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>
