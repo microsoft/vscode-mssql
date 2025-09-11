@@ -109,6 +109,7 @@ export default class MainController implements vscode.Disposable {
     private _queryHistoryProvider: QueryHistoryProvider;
     private _scriptingService: ScriptingService;
     private _queryHistoryRegistered: boolean = false;
+    private _availableCommands: string[] | undefined;
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
@@ -446,10 +447,20 @@ export default class MainController implements vscode.Disposable {
                     } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
                         connectionCredentials.database = "";
                     }
-                    vscode.commands.executeCommand(
-                        "workbench.action.chat.openAgent",
-                        `Connect to ${connectionCredentials.server},${connectionCredentials.database}${connectionCredentials.profileName ? ` using profile ${connectionCredentials.profileName}` : ""}.`,
-                    );
+
+                    // Use the improved command detection
+                    const chatCommand = await this.findChatOpenAgentCommand();
+                    if (chatCommand) {
+                        vscode.commands.executeCommand(
+                            chatCommand,
+                            `Connect to ${connectionCredentials.server},${connectionCredentials.database}${connectionCredentials.profileName ? ` using profile ${connectionCredentials.profileName}` : ""}.`,
+                        );
+                    } else {
+                        // Fallback or error handling
+                        this._vscodeWrapper.showErrorMessage(
+                            LocalizedConstants.MssqlChatAgent.chatCommandNotAvailable,
+                        );
+                    }
                 },
             );
 
@@ -824,6 +835,37 @@ export default class MainController implements vscode.Disposable {
      */
     public isInitialized(): boolean {
         return this._initialized;
+    }
+
+    /**
+     * Get available VS Code commands (cached for performance)
+     */
+    private async getAvailableCommands(): Promise<string[]> {
+        if (!this._availableCommands) {
+            this._availableCommands = await vscode.commands.getCommands();
+        }
+        return this._availableCommands;
+    }
+
+    /**
+     * Find the correct chat open agent command variant that exists in the current VS Code version
+     */
+    private async findChatOpenAgentCommand(): Promise<string | undefined> {
+        const commands = await this.getAvailableCommands();
+
+        // Try to find the correct command, checking both variants
+        const possibleCommands = [
+            Constants.vscodeWorkbenchChatOpenAgent, // Current VS Code
+            Constants.vscodeWorkbenchChatOpenAgentLegacy, // Legacy VS Code
+        ];
+
+        for (const cmd of possibleCommands) {
+            if (commands.includes(cmd)) {
+                return cmd;
+            }
+        }
+
+        return undefined;
     }
 
     public get context(): vscode.ExtensionContext {
