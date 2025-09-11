@@ -359,6 +359,7 @@ export function registerCommonRequestHandlers(
             state,
             payload,
             webviewViewController.sqlDocumentService,
+            state.uri,
         )) as qr.QueryResultWebviewState;
     });
     webviewController.registerReducer("updateTotalCost", async (state, payload) => {

@@ -8,7 +8,7 @@ import ConnectionManager from "../controllers/connectionManager";
 import { randomUUID } from "crypto";
 import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelController";
 import * as designer from "../sharedInterfaces/tableDesigner";
-import SqlDocumentService from "../controllers/sqlDocumentService";
+import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { getDesignerView } from "./tableDesignerTabDefinition";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
@@ -363,7 +363,11 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                     generateScriptState: designer.LoadState.Loaded,
                 },
             };
-            await this._sqlDocumentService.newQuery(script);
+            await this._sqlDocumentService.newQuery({
+                content: script,
+                connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                connectionInfo: payload.table.connectionInfo,
+            });
             UserSurvey.getInstance().promptUserForNPSFeedback();
             return state;
         });
@@ -421,9 +425,11 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("scriptAsCreate", async (state) => {
-            await this._sqlDocumentService.newQuery(
-                (state.model["script"] as designer.InputBoxProperties).value ?? "",
-            );
+            await this._sqlDocumentService.newQuery({
+                content: (state.model["script"] as designer.InputBoxProperties).value ?? "",
+                connectionStrategy: ConnectionStrategy.DoNotConnect,
+            });
+
             return state;
         });
 
