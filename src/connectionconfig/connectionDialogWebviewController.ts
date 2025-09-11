@@ -1723,7 +1723,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 {
                     sqlDbErrored: String(sqlDbErrored),
                     sqlAnalyticsEndpointErrored: String(
-                        errorMessages.length - (sqlDbErrored ? 1 : 0),
+                        Boolean(errorMessages.length - (sqlDbErrored ? 1 : 0)),
                     ),
                 },
                 {
