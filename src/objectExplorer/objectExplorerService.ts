@@ -338,12 +338,14 @@ export class ObjectExplorerService {
     }
 
     /**
-     * Helper to show the Add Connection node; only displayed when there are no saved connections
+     * Helper to show the Add Connection node; only displayed when there are no saved connections under the node
+     * @returns An array containing the Add Connection node
      */
-    private getAddConnectionNodes(): AddConnectionTreeNode[] {
-        let nodeList = [new AddConnectionTreeNode()];
+    private getAddConnectionNodes(parent?: TreeNodeInfo): AddConnectionTreeNode[] {
+        const nodeList: AddConnectionTreeNode[] = [];
+        nodeList.push(new AddConnectionTreeNode(parent));
         if (this._isRichExperienceEnabled) {
-            nodeList.push(new NewDeploymentTreeNode());
+            nodeList.push(new NewDeploymentTreeNode(parent));
         }
 
         return nodeList;
@@ -370,7 +372,7 @@ export class ObjectExplorerService {
             // so users can easily add a new connection under an empty group (same behavior
             // as when there are no saved connections in the root).
             if (!element.children || element.children.length === 0) {
-                return this.getAddConnectionNodes();
+                return this.getAddConnectionNodes(element);
             }
             return element.children;
         }

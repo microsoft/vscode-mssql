@@ -41,6 +41,7 @@ export interface ConnectionGroupState {
     description?: string;
     color?: string;
     message?: string;
+    parentId?: string;
 }
 
 /**

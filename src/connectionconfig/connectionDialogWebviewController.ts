@@ -396,7 +396,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("openCreateConnectionGroupDialog", async (state) => {
-            return getDefaultConnectionGroupDialogProps(state) as ConnectionDialogWebviewState;
+            return getDefaultConnectionGroupDialogProps(
+                state,
+                state.connectionProfile.groupId,
+            ) as ConnectionDialogWebviewState;
         });
 
         this.registerReducer("closeDialog", async (state) => {
