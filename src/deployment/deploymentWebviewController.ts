@@ -83,17 +83,20 @@ export class DeploymentWebviewController extends FormWebviewController<
             state.deploymentType = payload.deploymentType;
             state.deploymentTypeState.loadState = ApiStatus.Loading;
             this.updateState(state);
+            const selectedGroupId = (state.formState as any)?.groupId;
 
             // Initialize the appropriate deployment type state
             if (payload.deploymentType === DeploymentType.LocalContainers) {
                 newDeploymentTypeState = await localContainers.initializeLocalContainersState(
                     state.connectionGroupOptions,
+                    selectedGroupId,
                 );
             } else if (payload.deploymentType === DeploymentType.FabricProvisioning) {
                 newDeploymentTypeState = await fabricProvisioning.initializeFabricProvisioningState(
                     this,
                     state.connectionGroupOptions,
                     this.logger,
+                    selectedGroupId,
                 );
             }
 
