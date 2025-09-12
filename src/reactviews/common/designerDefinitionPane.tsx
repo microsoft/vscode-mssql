@@ -91,7 +91,7 @@ const useStyles = makeStyles({
     },
 });
 
-const DEFAULTPANEL_SIZE = 40;
+const DEFAULTPANEL_SIZE = 25;
 const MINIMUMPANEL_SIZE = 10;
 const MAXIMUMPANEL_SIZE = 100;
 
