@@ -215,8 +215,7 @@ export const DesignerDefinitionPane = forwardRef<
                         </TabList>
                     </div>
                     <Toolbar style={{ gap: "3px" }}>
-                        {(activeTab === DesignerDefinitionTabs.Script ||
-                            activeTab === undefined) && (
+                        {activeTab === DesignerDefinitionTabs.Script && (
                             <>
                                 <Button
                                     size="small"

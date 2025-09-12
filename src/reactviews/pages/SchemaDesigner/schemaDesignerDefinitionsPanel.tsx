@@ -9,6 +9,7 @@ import eventBus from "./schemaDesignerEvents";
 import {
     DesignerDefinitionPane,
     DesignerDefinitionPaneRef,
+    DesignerDefinitionTabs,
 } from "../../common/designerDefinitionPane";
 
 export const SchemaDesignerDefinitionsPanel = () => {
@@ -46,6 +47,7 @@ export const SchemaDesignerDefinitionsPanel = () => {
             themeKind={context?.themeKind}
             openInEditor={context?.openInEditor}
             copyToClipboard={context?.copyToClipboard}
+            activeTab={DesignerDefinitionTabs.Script}
         />
     );
 };
