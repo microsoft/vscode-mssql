@@ -204,6 +204,9 @@
       "{0} is the object type"
     ]
   },
+  "Expand properties pane": "Expand properties pane",
+  "Restore properties pane": "Restore properties pane",
+  "Close properties pane": "Close properties pane",
   "Table name": "Table name",
   "Remove {0}/{0} is the object type": {
     "message": "Remove {0}",
