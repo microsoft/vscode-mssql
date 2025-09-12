@@ -40,13 +40,14 @@ const useStyles = makeStyles({
     },
     title: {
         display: "flex",
-        height: "30px",
-        paddingTop: "10px",
-        paddingBottom: "10px",
-        "> *": {
-            marginRight: "10px",
-        },
-        lineHeight: "30px",
+        alignItems: "center",
+        gap: "8px",
+        padding: "6px 8px",
+        borderBottom: "1px solid var(--vscode-editorWidget-border)",
+        backgroundColor: "var(--vscode-editorWidget-background)",
+        boxShadow: "0 1px 0 var(--vscode-editorWidget-border), 0 2px 6px rgba(0, 0, 0, 0.2)",
+        position: "relative",
+        zIndex: 1,
     },
     stack: {
         marginBottom: "10px",
@@ -246,7 +247,7 @@ export const DesignerPropertiesPane = () => {
         <div className={classes.root}>
             <div className={classes.title}>
                 <Button
-                    appearance="transparent"
+                    appearance="subtle"
                     onClick={() => {
                         if (context.propertiesPaneResizeInfo.isMaximized) {
                             context.propertiesPaneResizeInfo.setCurrentWidth(
@@ -259,8 +260,8 @@ export const DesignerPropertiesPane = () => {
                     }}
                     title={
                         context.propertiesPaneResizeInfo.isMaximized
-                            ? locConstants.tableDesigner.restorePanelSize
-                            : locConstants.tableDesigner.maximizePanelSize
+                            ? locConstants.tableDesigner.restorePropertiesPane
+                            : locConstants.tableDesigner.expandPropertiesPane
                     }
                     icon={
                         context.propertiesPaneResizeInfo.isMaximized ? (
@@ -274,7 +275,7 @@ export const DesignerPropertiesPane = () => {
                     }}
                 />
                 <Text
-                    size={500}
+                    size={400}
                     weight="semibold"
                     style={{
                         flex: 1,
@@ -285,15 +286,11 @@ export const DesignerPropertiesPane = () => {
                     )}
                 </Text>
                 <Button
-                    appearance="transparent"
+                    appearance="subtle"
                     onClick={() => {
                         context.setPropertiesComponents(undefined);
                     }}
-                    title={
-                        context.propertiesPaneResizeInfo.isMaximized
-                            ? locConstants.tableDesigner.restorePanelSize
-                            : locConstants.tableDesigner.maximizePanelSize
-                    }
+                    title={locConstants.common.close}
                     icon={<DismissRegular />}
                 />
             </div>

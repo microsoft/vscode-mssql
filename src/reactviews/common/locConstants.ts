@@ -161,6 +161,9 @@ export class LocConstants {
                     args: [objectType],
                     comment: ["{0} is the object type"],
                 }),
+            expandPropertiesPane: l10n.t("Expand properties pane"),
+            restorePropertiesPane: l10n.t("Restore properties pane"),
+            closePropertiesPane: l10n.t("Close properties pane"),
             tableName: l10n.t("Table name"),
             remove: (objectType: string) =>
                 l10n.t({
