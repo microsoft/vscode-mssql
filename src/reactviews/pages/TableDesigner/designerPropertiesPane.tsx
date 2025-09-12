@@ -55,6 +55,7 @@ const useStyles = makeStyles({
         "> *": {
             marginBottom: "10px",
         },
+        ...shorthands.flex(1),
         overflowY: "auto",
         backgroundColor: "var(--vscode-editor-background)",
     },

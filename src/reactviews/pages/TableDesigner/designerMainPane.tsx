@@ -4,14 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Tab, TabList } from "@fluentui/react-tabs";
-import {
-    CounterBadge,
-    Field,
-    Input,
-    Text,
-    makeStyles,
-    shorthands,
-} from "@fluentui/react-components";
+import { CounterBadge, Field, Input, Text, makeStyles } from "@fluentui/react-components";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { useContext, useEffect, useState } from "react";
 import {
@@ -31,35 +24,23 @@ const useStyles = makeStyles({
         height: "100%",
         display: "flex",
         flexDirection: "column",
+        overflow: "auto",
+        flex: 1,
+        paddingTop: "10px",
+        paddingLeft: "10px",
+        paddingRight: "5px",
+        gap: "10px",
     },
     title: {
-        ...shorthands.margin("10px", "5px", "5px", "5px"),
-        gap: "10px",
         width: "400px",
         maxWidth: "100%",
         padding: "10px",
-        "> *": {
-            marginBottom: "10px",
-        },
-    },
-    separator: {
-        ...shorthands.margin("0px", "-20px", "0px", "0px"),
-        ...shorthands.padding("0px"),
-        fontSize: "5px",
-    },
-    form: {
-        height: "100%",
-        maxWidth: "100%",
-        overflow: "hidden",
     },
     tabButtonContainer: {
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        "> *": {
-            marginRight: "5px",
-        },
     },
 });
 
@@ -170,68 +151,51 @@ export const DesignerMainPane = () => {
 
     return (
         <div className={classes.root}>
-            <div className={classes.title}>
-                <Field label={locConstants.tableDesigner.tableName} orientation="horizontal">
-                    <Input
-                        size="medium"
-                        value={tableName}
-                        onChange={(_event, data) => {
-                            setTableName(data.value);
-                        }}
-                        autoFocus // initial focus
-                        onBlur={(_event) => {
-                            context.processTableEdit({
-                                source: "TabsView",
-                                type: DesignerEditType.Update,
-                                path: ["name"],
-                                value: tableName,
-                            });
-                        }}
-                    />
-                </Field>
-                <Field label={locConstants.tableDesigner.schema} orientation="horizontal">
-                    <SearchableDropdown
-                        size="medium"
-                        options={getSortedSchemaValues().map((option) => ({
-                            value: option,
-                        }))}
-                        onSelect={(option) => {
-                            context.processTableEdit({
-                                source: "TabsView",
-                                type: DesignerEditType.Update,
-                                path: ["schema"],
-                                value: option.value,
-                            });
-                        }}
-                        selectedOption={{
-                            value: schema,
-                        }}
-                    />
-                    {/* <Dropdown
-                        size="medium"
-                        value={schema}
-                        onOptionSelect={(_event, data) => {
-                            if (!data.optionValue) {
-                                return;
-                            }
-                            setSchema(data?.optionValue);
-                            context.processTableEdit({
-                                source: "TabsView",
-                                type: DesignerEditType.Update,
-                                path: ["schema"],
-                                value: data.optionValue,
-                            });
-                        }}
-                    >
-                        {
-                            // Sort schema values alphabetically
-                            getSortedSchemaValues().map((option) => {
-                                return <Option>{option}</Option>;
-                            })
-                        }
-                    </Dropdown> */}
-                </Field>
-            </div>
+            <Field
+                size="small"
+                label={locConstants.tableDesigner.tableName}
+                orientation="horizontal"
+                style={{ width: "300px" }}>
+                <Input
+                    size="small"
+                    value={tableName}
+                    onChange={(_event, data) => {
+                        setTableName(data.value);
+                    }}
+                    autoFocus // initial focus
+                    onBlur={(_event) => {
+                        context.processTableEdit({
+                            source: "TabsView",
+                            type: DesignerEditType.Update,
+                            path: ["name"],
+                            value: tableName,
+                        });
+                    }}
+                />
+            </Field>
+            <Field
+                size="small"
+                label={locConstants.tableDesigner.schema}
+                orientation="horizontal"
+                style={{ width: "300px" }}>
+                <SearchableDropdown
+                    size="small"
+                    options={getSortedSchemaValues().map((option) => ({
+                        value: option,
+                    }))}
+                    onSelect={(option) => {
+                        context.processTableEdit({
+                            source: "TabsView",
+                            type: DesignerEditType.Update,
+                            path: ["schema"],
+                            value: option.value,
+                        });
+                    }}
+                    selectedOption={{
+                        value: schema,
+                    }}
+                />
+            </Field>
             <TabList
                 size="small"
                 selectedValue={state.tabStates?.mainPaneTab}
@@ -258,7 +222,11 @@ export const DesignerMainPane = () => {
                     );
                 })}
             </TabList>
-            <div className={classes.form}>
+            <div
+                style={{
+                    flex: 1,
+                    width: "100%",
+                }}>
                 {state.view?.tabs.map((tab) => {
                     return (
                         <div
