@@ -314,6 +314,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         });
 
         this.onNotification(SchemaDesigner.CloseSchemaDesignerNotification.type, () => {
+            // Close the schema designer panel
             this.panel.dispose();
         });
     }
