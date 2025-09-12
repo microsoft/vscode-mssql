@@ -9,11 +9,12 @@ import * as LocalizedConstants from "../../constants/locConstants";
 import { ObjectExplorerUtils } from "../objectExplorerUtils";
 
 export class AddConnectionTreeNode extends vscode.TreeItem {
-    constructor() {
+    constructor(parent?: vscode.TreeItem) {
         super(LocalizedConstants.msgAddConnection, vscode.TreeItemCollapsibleState.None);
         this.command = {
             title: LocalizedConstants.msgAddConnection,
             command: Constants.cmdAddObjectExplorer,
+            arguments: parent ? [parent] : undefined,
         };
         this.iconPath = {
             light: ObjectExplorerUtils.iconPath("add_light"),
