@@ -46,13 +46,7 @@ const useStyles = fluentui.makeStyles({
     },
 });
 
-export const DesignerTable = ({
-    component,
-    model,
-    componentPath,
-    UiArea,
-    loadPropertiesTabData = true,
-}: DesignerTableProps) => {
+export const DesignerTable = ({ component, model, componentPath, UiArea }: DesignerTableProps) => {
     const tableProps = component.componentProperties as designer.DesignerTableProperties;
     const context = useContext(TableDesignerContext);
     if (!context) {
