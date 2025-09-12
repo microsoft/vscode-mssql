@@ -4,32 +4,33 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IProviderSettings } from "../models/contracts/azure";
+import * as AzureEnvironments from "@azure/ms-rest-azure-env";
 
-// TODO: source these values from ms-rest-azure-env package where possible
+const azureCloudInfo = AzureEnvironments.Environment.get("AzureCloud");
 
 const publicAzureSettings: IProviderSettings = {
     displayName: "publicCloudDisplayName",
     id: "azure_publicCloud",
     clientId: "a69788c6-1d43-44ed-9ca3-b83e194da255",
-    loginEndpoint: "https://login.microsoftonline.com/",
-    portalEndpoint: "https://portal.azure.com",
+    loginEndpoint: azureCloudInfo.activeDirectoryEndpointUrl,
+    portalEndpoint: azureCloudInfo.portalUrl,
     redirectUri: "http://localhost",
     resources: {
         windowsManagementResource: {
             id: "marm",
             resource: "MicrosoftResourceManagement",
-            endpoint: "https://management.core.windows.net/",
+            endpoint: azureCloudInfo.managementEndpointUrl,
         },
         azureManagementResource: {
             id: "arm",
             resource: "AzureResourceManagement",
-            endpoint: "https://management.azure.com/",
+            endpoint: azureCloudInfo.resourceManagerEndpointUrl,
         },
         databaseResource: {
             id: "sql",
             resource: "Sql",
             endpoint: "https://database.windows.net/",
-            dnsSuffix: "database.windows.net",
+            dnsSuffix: azureCloudInfo.sqlServerHostnameSuffix,
             analyticsDnsSuffix: "sql.azuresynapse.net",
         },
         azureKeyVaultResource: {
@@ -47,7 +48,7 @@ const publicAzureSettings: IProviderSettings = {
         "email",
         "profile",
         "offline_access",
-        "https://management.azure.com/user_impersonation",
+        `${azureCloudInfo.resourceManagerEndpointUrl}/user_impersonation`,
     ],
 };
 
