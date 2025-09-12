@@ -66,7 +66,7 @@ export async function initializeFabricProvisioningState(
 
     state.formState = {
         accountId: defaultAccountId,
-        groupId: selectedGroupId || (groupOptions.length > 0 ? groupOptions[0].value : ""),
+        groupId: selectedGroupId || groupOptions[0]?.value || "",
         tenantId: defaultTenantId,
         workspace: "",
         databaseName: "",

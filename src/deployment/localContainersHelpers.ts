@@ -43,7 +43,7 @@ export async function initializeLocalContainersState(
         port: undefined,
         hostname: "",
         acceptEula: false,
-        groupId: selectedGroupId || (groupOptions.length > 0 ? groupOptions[0].value : ""),
+        groupId: selectedGroupId || groupOptions[0]?.value || "",
     } as lc.DockerConnectionProfile;
     state.dockerSteps = dockerUtils.initializeDockerSteps();
     state.loadState = ApiStatus.Loaded;
