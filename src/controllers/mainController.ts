@@ -64,6 +64,7 @@ import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
+import { PublishProjectWebViewController } from "../publishProject/publishProjectWebViewController";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../copilot/prompts";
@@ -1556,6 +1557,12 @@ export default class MainController implements vscode.Disposable {
             );
 
             this._context.subscriptions.push(
+                vscode.commands.registerCommand(Constants.cmdPublishDatabaseProject, async () => {
+                    await this.onPublishDatabaseProject();
+                }),
+            );
+
+            this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdEditConnection,
                     async (node: TreeNodeInfo) => {
@@ -2605,6 +2612,23 @@ export default class MainController implements vscode.Disposable {
             this._connectionMgr,
             result,
             SchemaCompare.Title,
+        );
+
+        schemaCompareWebView.revealToForeground();
+    }
+
+    /**
+     * Handler for the Schema Compare command.
+     * Accepts variable arguments, typically:
+     *   - [sourceNode, targetNode, runComparison] when invoked from update Project SC or programmatically,
+     *   - [sourceNode, undefined] when invoked from a project tree node/ server / database node,
+     *   - [] when invoked from the command palette.
+     * This method normalizes the arguments and launches the Schema Compare UI.
+     */
+    public async onPublishDatabaseProject(): Promise<void> {
+        const schemaCompareWebView = new PublishProjectWebViewController(
+            this._context,
+            this._vscodeWrapper,
         );
 
         schemaCompareWebView.revealToForeground();

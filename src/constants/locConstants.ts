@@ -1177,6 +1177,10 @@ export class TableDesigner {
     public static AdvancedOptions = l10n.t("Advanced Options");
 }
 
+export class PublishProject {
+    public static Title = l10n.t("Publish Project");
+}
+
 export class SchemaCompare {
     public static Title = l10n.t("Schema Compare");
     public static Open = l10n.t("Open");
