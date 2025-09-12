@@ -58,6 +58,7 @@ suite("Fabric Provisioning logic", () => {
             deploymentController,
             groupOptions,
             logger,
+            undefined,
         );
 
         assert.strictEqual(state.loadState, ApiStatus.Loaded);
