@@ -38,7 +38,7 @@ export async function initializeFabricProvisioningState(
     deploymentController: DeploymentWebviewController,
     groupOptions: FormItemOptions[],
     logger: Logger,
-    selectedGroupId: any,
+    selectedGroupId: string | undefined,
 ): Promise<fp.FabricProvisioningState> {
     const startTime = Date.now();
     const state = new fp.FabricProvisioningState();

@@ -27,7 +27,7 @@ import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 
 export async function initializeLocalContainersState(
     groupOptions: FormItemOptions[],
-    selectedGroupId: any,
+    selectedGroupId: string | undefined,
 ): Promise<lc.LocalContainersState> {
     const startTime = Date.now();
     const state = new lc.LocalContainersState();
