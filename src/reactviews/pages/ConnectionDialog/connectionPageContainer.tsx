@@ -22,7 +22,6 @@ import {
 import {
     Button,
     Field,
-    Image,
     Link,
     makeStyles,
     MessageBar,
@@ -42,12 +41,12 @@ import { ConnectionHeader } from "./components/connectionHeader.component";
 import { TrustServerCertificateDialog } from "./components/trustServerCertificateDialog.component";
 import { ConnectionStringDialog } from "./components/connectionStringDialog.component";
 import { locConstants } from "../../common/locConstants";
-import { themeType } from "../../common/utils";
 import { AddFirewallRuleDialog } from "../AddFirewallRule/addFirewallRule.component";
-import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
 import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
 import { FabricBrowsePage } from "./fabricBrowsePage";
+import { AzureIcon, AzureIcon2 } from "../../common/icons/azure";
+import { FabricIcon } from "../../common/icons/fabric";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
     switch (connectionDialogContext?.state.selectedInputMode) {
@@ -71,24 +70,6 @@ export const ConnectionInfoFormContainer = () => {
     const context = useContext(ConnectionDialogContext)!;
     const formStyles = useFormStyles();
     const styles = useStyles();
-
-    function azureIcon(colorTheme: ColorThemeKind) {
-        const theme = themeType(colorTheme);
-        const saveIcon =
-            theme === "dark"
-                ? require("../../media/azure-inverse.svg")
-                : require("../../media/azure.svg");
-        return saveIcon;
-    }
-
-    function fabricIcon(colorTheme: ColorThemeKind) {
-        const theme = themeType(colorTheme);
-        const saveIcon =
-            theme === "dark"
-                ? require("../../media/fabric-inverse.svg")
-                : require("../../media/fabric.svg");
-        return saveIcon;
-    }
 
     function handleConnect(event: React.FormEvent) {
         event.preventDefault();
@@ -213,11 +194,9 @@ export const ConnectionInfoFormContainer = () => {
                                 value={ConnectionInputMode.AzureBrowse}
                                 label={
                                     <div className={styles.inputLink}>
-                                        <Image
-                                            src={azureIcon(context.themeKind)}
-                                            alt="Azure"
-                                            height={20}
-                                            width={20}
+                                        <AzureIcon2
+                                            height="20px"
+                                            width="20px"
                                             style={{ marginRight: "8px" }}
                                         />
                                         {locConstants.connectionDialog.browseAzure}
@@ -228,11 +207,10 @@ export const ConnectionInfoFormContainer = () => {
                                 value={ConnectionInputMode.FabricBrowse}
                                 label={
                                     <div className={styles.inputLink}>
-                                        <Image
-                                            src={fabricIcon(context.themeKind)}
+                                        <FabricIcon
                                             alt={"Fabric"}
-                                            height={20}
-                                            width={20}
+                                            height="20px"
+                                            width="20px"
                                             style={{ marginRight: "8px" }}
                                         />
                                         {locConstants.connectionDialog.browseFabric}
