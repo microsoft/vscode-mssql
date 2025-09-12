@@ -72,6 +72,25 @@ suite("Fabric Provisioning logic", () => {
         assert.ok(sendActionEvent.calledOnce);
     });
 
+    test("initializeFabricProvisioningState sets group id", async () => {
+        const state = await fabricHelpers.initializeFabricProvisioningState(
+            deploymentController,
+            groupOptions,
+            logger,
+            "testGroup",
+        );
+
+        assert.strictEqual(state.loadState, ApiStatus.Loaded);
+        assert.strictEqual(state.formState.accountId, "account1");
+        assert.strictEqual(state.formState.tenantId, "tenant1");
+        assert.strictEqual(state.formState.groupId, "testGroup");
+        assert.ok(state.formComponents.accountId);
+        assert.ok(state.formComponents.tenantId);
+        assert.ok(state.formComponents.groupId);
+
+        assert.ok(sendActionEvent.calledOnce);
+    });
+
     test("setFabricProvisioningFormComponents builds expected keys and validates fields", async () => {
         const azureAccounts = [{ displayName: "acct1", value: "account1" }];
         const azureActionButtons = [
