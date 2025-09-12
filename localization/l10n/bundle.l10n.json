@@ -218,6 +218,8 @@
   "Back to preview": "Back to preview",
   "Copy": "Copy",
   "You must review and accept the terms to proceed": "You must review and accept the terms to proceed",
+  "Publish Changes": "Publish Changes",
+  "Open Publish Script": "Open Publish Script",
   "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
     "message": "Create new firewall rule for {0}",
     "comment": [
@@ -480,7 +482,6 @@
       "{0} is the number of selected tables"
     ]
   },
-  "Publish Changes": "Publish Changes",
   "Edit Table": "Edit Table",
   "Open in Editor": "Open in Editor",
   "Changed Tables": "Changed Tables",
@@ -636,7 +637,6 @@
       "{0} is the number of errors"
     ]
   },
-  "Open Publish Script": "Open Publish Script",
   "On Update": "On Update",
   "On Delete": "On Delete",
   "Cascade": "Cascade",
