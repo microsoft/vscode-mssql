@@ -558,6 +558,30 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             );
         }
 
+        if (styles.nullCellBackground) {
+            content.push(
+                `.monaco-table .${this.idPrefix} .slick-cell.cell-null { background-color: ${styles.nullCellBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellForeground) {
+            content.push(
+                `.monaco-table .${this.idPrefix} .slick-cell.cell-null { color: ${styles.nullCellForeground}; }`,
+            );
+        }
+
+        if (styles.nullCellBackground && styles.listActiveSelectionBackground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-cell.cell-null.selected { background-color: ${styles.nullCellActiveSelectionBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellForeground && styles.listActiveSelectionForeground) {
+            content.push(
+                `.monaco-table.${this.idPrefix}.focused .slick-cell.cell-null.selected { background-color: ${styles.nullCellFocusSelectionBackground}; }`,
+            );
+        }
+
         if (styles.tableHeaderForeground) {
             content.push(
                 `.monaco-table .${this.idPrefix} .slick-header .slick-header-column { color: ${styles.tableHeaderForeground}; }`,
