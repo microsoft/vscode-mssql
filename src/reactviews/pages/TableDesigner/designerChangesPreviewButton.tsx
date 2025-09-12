@@ -11,7 +11,7 @@ import {
     Spinner,
     makeStyles,
 } from "@fluentui/react-components";
-import { CopyRegular, DatabaseArrowDownRegular, ErrorCircleRegular } from "@fluentui/react-icons";
+import { CopyRegular, DatabaseArrowUp16Regular, ErrorCircleRegular } from "@fluentui/react-icons";
 import {
     Dialog,
     DialogActions,
@@ -27,7 +27,6 @@ import { Button } from "@fluentui/react-button";
 import { LoadState } from "../../../sharedInterfaces/tableDesigner";
 import ReactMarkdown from "react-markdown";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { ToolbarButton } from "@fluentui/react-toolbar";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -305,16 +304,18 @@ export const DesignerChangesPreviewButton = () => {
     return (
         <Dialog inertTrapFocus>
             <DialogTrigger disableButtonEnhancement>
-                <ToolbarButton
+                <Button
+                    size="small"
+                    appearance="subtle"
                     aria-label={locConstants.tableDesigner.publish}
                     title={locConstants.tableDesigner.publish}
-                    icon={<DatabaseArrowDownRegular />}
+                    icon={<DatabaseArrowUp16Regular />}
                     onClick={() => {
                         designerContext.generatePreviewReport();
                     }}
                     disabled={(state?.issues?.length ?? 0) > 0}>
                     {locConstants.tableDesigner.publish}
-                </ToolbarButton>
+                </Button>
             </DialogTrigger>
             <DialogSurface>
                 <DialogBody>

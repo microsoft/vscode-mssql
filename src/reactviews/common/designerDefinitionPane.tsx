@@ -5,7 +5,6 @@
 
 import {
     Button,
-    Text,
     Toolbar,
     makeStyles,
     Tab,
@@ -99,7 +98,7 @@ const MAXIMUMPANEL_SIZE = 100;
 export interface DesignerIssue {
     description: string;
     severity: "error" | "warning" | "information";
-    propertyPath?: string[];
+    propertyPath?: (string | number)[];
 }
 
 export enum DesignerDefinitionTabs {
@@ -123,176 +122,193 @@ export const DesignerDefinitionPane = forwardRef<
         copyToClipboard: (script: string) => void;
         issues?: DesignerIssue[];
         onIssueClick?: (issue: DesignerIssue) => void;
+        activeTab?: DesignerDefinitionTabs;
+        setActiveTab?: (tab: DesignerDefinitionTabs) => void;
     }
->(({ script, themeKind, openInEditor, copyToClipboard, issues, onIssueClick }, ref) => {
-    const classes = useStyles();
-    const panelRef = useRef<ImperativePanelHandle>(null);
-    const [expandCollapseButtonLabel, setExpandCollapseButtonLabel] = useState<string>(
-        locConstants.tableDesigner.maximizePanelSize,
-    );
-    const [expandCollapseButtonIcon, setExpandCollapseButtonIcon] = useState<ReactElement>(
-        <FluentIcons.ChevronUp12Filled />,
-    );
-    const [activeTab, setActiveTab] = useState<DesignerDefinitionTabs>(
-        DesignerDefinitionTabs.Script,
-    );
-
-    useImperativeHandle(
+>(
+    (
+        {
+            script,
+            themeKind,
+            openInEditor,
+            copyToClipboard,
+            issues,
+            onIssueClick,
+            activeTab,
+            setActiveTab,
+        },
         ref,
-        () => ({
-            openPanel: (size: number = DEFAULTPANEL_SIZE) => {
-                if (panelRef.current?.isCollapsed()) {
-                    panelRef.current.expand(size);
-                }
-            },
-            closePanel: () => {
-                if (panelRef.current && !panelRef.current.isCollapsed()) {
-                    panelRef.current.collapse();
-                }
-            },
-            togglePanel: (size: number = DEFAULTPANEL_SIZE) => {
-                if (panelRef.current?.isCollapsed()) {
-                    panelRef.current.expand(size);
-                } else {
-                    panelRef?.current?.collapse();
-                }
-            },
-            isCollapsed: () => {
-                return panelRef.current?.isCollapsed() ?? true;
-            },
-        }),
-        [],
-    );
+    ) => {
+        const classes = useStyles();
+        const panelRef = useRef<ImperativePanelHandle>(null);
+        const [expandCollapseButtonLabel, setExpandCollapseButtonLabel] = useState<string>(
+            locConstants.tableDesigner.maximizePanelSize,
+        );
+        const [expandCollapseButtonIcon, setExpandCollapseButtonIcon] = useState<ReactElement>(
+            <FluentIcons.ChevronUp12Filled />,
+        );
 
-    return (
-        <Panel
-            collapsible
-            minSize={MINIMUMPANEL_SIZE}
-            ref={panelRef}
-            onResize={(size) => {
-                if (size === MAXIMUMPANEL_SIZE) {
-                    setExpandCollapseButtonLabel(locConstants.tableDesigner.maximizePanelSize);
-                    setExpandCollapseButtonIcon(<FluentIcons.ChevronDown12Filled />);
-                } else {
-                    setExpandCollapseButtonLabel(locConstants.tableDesigner.maximizePanelSize);
-                    setExpandCollapseButtonIcon(<FluentIcons.ChevronUp12Filled />);
-                }
-            }}>
-            <div className={classes.header}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <TabList
-                        size="small"
-                        selectedValue={activeTab}
-                        onTabSelect={(_event, data) => {
-                            setActiveTab(data.value as DesignerDefinitionTabs);
-                        }}>
-                        <Tab
-                            value={DesignerDefinitionTabs.Script}
-                            key={DesignerDefinitionTabs.Script}>
-                            {locConstants.schemaDesigner.definition}
-                        </Tab>
-                        {issues && issues.length > 0 && (
+        useImperativeHandle(
+            ref,
+            () => ({
+                openPanel: (size: number = DEFAULTPANEL_SIZE) => {
+                    if (panelRef.current?.isCollapsed()) {
+                        panelRef.current.expand(size);
+                    }
+                },
+                closePanel: () => {
+                    if (panelRef.current && !panelRef.current.isCollapsed()) {
+                        panelRef.current.collapse();
+                    }
+                },
+                togglePanel: (size: number = DEFAULTPANEL_SIZE) => {
+                    if (panelRef.current?.isCollapsed()) {
+                        panelRef.current.expand(size);
+                    } else {
+                        panelRef?.current?.collapse();
+                    }
+                },
+                isCollapsed: () => {
+                    return panelRef.current?.isCollapsed() ?? true;
+                },
+            }),
+            [],
+        );
+
+        return (
+            <Panel
+                collapsible
+                minSize={MINIMUMPANEL_SIZE}
+                ref={panelRef}
+                onResize={(size) => {
+                    if (size === MAXIMUMPANEL_SIZE) {
+                        setExpandCollapseButtonLabel(locConstants.tableDesigner.maximizePanelSize);
+                        setExpandCollapseButtonIcon(<FluentIcons.ChevronDown12Filled />);
+                    } else {
+                        setExpandCollapseButtonLabel(locConstants.tableDesigner.maximizePanelSize);
+                        setExpandCollapseButtonIcon(<FluentIcons.ChevronUp12Filled />);
+                    }
+                }}>
+                <div className={classes.header}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <TabList
+                            size="small"
+                            selectedValue={activeTab}
+                            onTabSelect={(_event, data) => {
+                                if (!setActiveTab) {
+                                    return;
+                                }
+                                setActiveTab(data.value as DesignerDefinitionTabs);
+                            }}>
                             <Tab
-                                value={DesignerDefinitionTabs.Issues}
-                                key={DesignerDefinitionTabs.Issues}>
-                                {locConstants.tableDesigner.issuesTabHeader(issues.length)}
+                                value={DesignerDefinitionTabs.Script}
+                                key={DesignerDefinitionTabs.Script}>
+                                {locConstants.schemaDesigner.definition}
                             </Tab>
+                            {issues && issues.length > 0 && (
+                                <Tab
+                                    value={DesignerDefinitionTabs.Issues}
+                                    key={DesignerDefinitionTabs.Issues}>
+                                    {locConstants.tableDesigner.issuesTabHeader(issues.length)}
+                                </Tab>
+                            )}
+                        </TabList>
+                    </div>
+                    <Toolbar style={{ gap: "3px" }}>
+                        {(activeTab === DesignerDefinitionTabs.Script ||
+                            activeTab === undefined) && (
+                            <>
+                                <Button
+                                    size="small"
+                                    appearance="subtle"
+                                    title={locConstants.schemaDesigner.openInEditor}
+                                    icon={<FluentIcons.Open12Regular />}
+                                    onClick={() => openInEditor(script)}>
+                                    {locConstants.schemaDesigner.openInEditor}
+                                </Button>
+                                <Button
+                                    size="small"
+                                    appearance="subtle"
+                                    title={locConstants.schemaDesigner.copy}
+                                    icon={<FluentIcons.Copy16Regular />}
+                                    onClick={() => copyToClipboard(script)}
+                                />
+                            </>
                         )}
-                    </TabList>
-                </div>
-                <Toolbar style={{ gap: "3px" }}>
-                    {activeTab === DesignerDefinitionTabs.Script && (
-                        <>
-                            <Button
-                                size="small"
-                                appearance="subtle"
-                                title={locConstants.schemaDesigner.openInEditor}
-                                icon={<FluentIcons.Open12Regular />}
-                                onClick={() => openInEditor(script)}>
-                                {locConstants.schemaDesigner.openInEditor}
-                            </Button>
-                            <Button
-                                size="small"
-                                appearance="subtle"
-                                title={locConstants.schemaDesigner.copy}
-                                icon={<FluentIcons.Copy16Regular />}
-                                onClick={() => copyToClipboard(script)}
-                            />
-                        </>
-                    )}
 
-                    <Button
-                        size="small"
-                        appearance="subtle"
-                        onClick={() => {
-                            if (panelRef.current?.getSize() === MAXIMUMPANEL_SIZE) {
-                                panelRef.current?.resize(DEFAULTPANEL_SIZE);
-                            } else {
-                                panelRef.current?.resize(MAXIMUMPANEL_SIZE);
-                            }
-                        }}
-                        title={expandCollapseButtonLabel}
-                        icon={expandCollapseButtonIcon}
-                    />
-                    <Button
-                        size="small"
-                        appearance="subtle"
-                        title={locConstants.schemaDesigner.close}
-                        icon={<FluentIcons.Dismiss12Regular />}
-                        onClick={() => {
-                            if (panelRef.current) {
-                                panelRef.current.collapse();
-                            }
-                        }}
-                    />
-                </Toolbar>
-            </div>
-
-            <div className={classes.tabContent}>
-                {(!issues ||
-                    issues.length === 0 ||
-                    activeTab === DesignerDefinitionTabs.Script) && (
-                    <div className={classes.designerDefinitionPaneScript}>
-                        <Editor
-                            height={"100%"}
-                            width={"100%"}
-                            language="sql"
-                            theme={resolveVscodeThemeType(themeKind)}
-                            value={script}
-                            options={{
-                                readOnly: true,
+                        <Button
+                            size="small"
+                            appearance="subtle"
+                            onClick={() => {
+                                if (panelRef.current?.getSize() === MAXIMUMPANEL_SIZE) {
+                                    panelRef.current?.resize(DEFAULTPANEL_SIZE);
+                                } else {
+                                    panelRef.current?.resize(MAXIMUMPANEL_SIZE);
+                                }
+                            }}
+                            title={expandCollapseButtonLabel}
+                            icon={expandCollapseButtonIcon}
+                        />
+                        <Button
+                            size="small"
+                            appearance="subtle"
+                            title={locConstants.schemaDesigner.close}
+                            icon={<FluentIcons.Dismiss12Regular />}
+                            onClick={() => {
+                                if (panelRef.current) {
+                                    panelRef.current.collapse();
+                                }
                             }}
                         />
-                    </div>
-                )}
-                {activeTab === DesignerDefinitionTabs.Issues && issues && issues.length > 0 && (
-                    <div className={classes.issuesContainer}>
-                        <List navigationMode="items">
-                            {issues.map((item, index) => (
-                                <ListItem
-                                    key={`issue-${index}`}
-                                    onAction={() => onIssueClick?.(item)}>
-                                    <div className={classes.issuesRows}>
-                                        {item.severity === "error" && (
-                                            <ErrorCircleRegular
-                                                fontSize={20}
-                                                color="var(--vscode-errorForeground)"
-                                            />
-                                        )}
-                                        {item.severity === "warning" && (
-                                            <WarningRegular fontSize={20} color="yellow" />
-                                        )}
-                                        {item.severity === "information" && (
-                                            <InfoRegular fontSize={20} color="blue" />
-                                        )}
-                                        {item.description}
-                                    </div>
-                                </ListItem>
-                            ))}
-                        </List>
-                    </div>
-                )}
-            </div>
-        </Panel>
-    );
-});
+                    </Toolbar>
+                </div>
+
+                <div className={classes.tabContent}>
+                    {(!issues ||
+                        issues.length === 0 ||
+                        activeTab === DesignerDefinitionTabs.Script) && (
+                        <div className={classes.designerDefinitionPaneScript}>
+                            <Editor
+                                height={"100%"}
+                                width={"100%"}
+                                language="sql"
+                                theme={resolveVscodeThemeType(themeKind)}
+                                value={script}
+                                options={{
+                                    readOnly: true,
+                                }}
+                            />
+                        </div>
+                    )}
+                    {activeTab === DesignerDefinitionTabs.Issues && issues && issues.length > 0 && (
+                        <div className={classes.issuesContainer}>
+                            <List navigationMode="items">
+                                {issues.map((item, index) => (
+                                    <ListItem
+                                        key={`issue-${index}`}
+                                        onAction={() => onIssueClick?.(item)}>
+                                        <div className={classes.issuesRows}>
+                                            {item.severity === "error" && (
+                                                <ErrorCircleRegular
+                                                    fontSize={20}
+                                                    color="var(--vscode-errorForeground)"
+                                                />
+                                            )}
+                                            {item.severity === "warning" && (
+                                                <WarningRegular fontSize={20} color="yellow" />
+                                            )}
+                                            {item.severity === "information" && (
+                                                <InfoRegular fontSize={20} color="blue" />
+                                            )}
+                                            {item.description}
+                                        </div>
+                                    </ListItem>
+                                ))}
+                            </List>
+                        </div>
+                    )}
+                </div>
+            </Panel>
+        );
+    },
+);
