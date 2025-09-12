@@ -129,51 +129,53 @@ export const TableDesigner = () => {
                         <div className={classes.mainPaneContainer}>
                             <DesignerMainPane />
                         </div>
-                        <Divider
-                            style={{
-                                width: "5px",
-                                height: "100%",
-                                flex: 0,
-                            }}
-                            vertical
-                        />
                         {context.state.propertiesPaneData && (
-                            <ResizableBox
-                                width={
-                                    context.propertiesPaneResizeInfo.isMaximized
-                                        ? 9999999
-                                        : context.propertiesPaneResizeInfo.currentWidth
-                                }
-                                onResizeStart={(_e, _div) => {
-                                    context.propertiesPaneResizeInfo.setIsMaximized(false);
-                                }}
-                                onResizeStop={(_e, div) => {
-                                    const parentContainerWidth =
-                                        div.node!.parentElement!.parentElement!.offsetWidth!;
-
-                                    const currentDivWidth = div.size.width;
-                                    if (currentDivWidth >= parentContainerWidth - 50) {
-                                        context.propertiesPaneResizeInfo.setIsMaximized(true);
-                                        context.propertiesPaneResizeInfo.setCurrentWidth(
-                                            parentContainerWidth,
-                                        );
-                                    } else {
-                                        context.propertiesPaneResizeInfo.setCurrentWidth(
-                                            div.size.width,
-                                        );
-                                        context.propertiesPaneResizeInfo.setOriginalWidth(
-                                            div.size.width,
-                                        );
+                            <>
+                                <Divider
+                                    style={{
+                                        width: "5px",
+                                        height: "100%",
+                                        flex: 0,
+                                    }}
+                                    vertical
+                                />
+                                <ResizableBox
+                                    width={
+                                        context.propertiesPaneResizeInfo.isMaximized
+                                            ? 9999999
+                                            : context.propertiesPaneResizeInfo.currentWidth
                                     }
-                                }}
-                                height={Infinity}
-                                maxConstraints={[Infinity, Infinity]}
-                                minConstraints={[10, Infinity]}
-                                resizeHandles={["w"]}
-                                handle={<div className={classes.propertiesPaneHandle} />}
-                                className={classes.propertiesPaneContainer}>
-                                <DesignerPropertiesPane />
-                            </ResizableBox>
+                                    onResizeStart={(_e, _div) => {
+                                        context.propertiesPaneResizeInfo.setIsMaximized(false);
+                                    }}
+                                    onResizeStop={(_e, div) => {
+                                        const parentContainerWidth =
+                                            div.node!.parentElement!.parentElement!.offsetWidth!;
+
+                                        const currentDivWidth = div.size.width;
+                                        if (currentDivWidth >= parentContainerWidth - 50) {
+                                            context.propertiesPaneResizeInfo.setIsMaximized(true);
+                                            context.propertiesPaneResizeInfo.setCurrentWidth(
+                                                parentContainerWidth,
+                                            );
+                                        } else {
+                                            context.propertiesPaneResizeInfo.setCurrentWidth(
+                                                div.size.width,
+                                            );
+                                            context.propertiesPaneResizeInfo.setOriginalWidth(
+                                                div.size.width,
+                                            );
+                                        }
+                                    }}
+                                    height={Infinity}
+                                    maxConstraints={[Infinity, Infinity]}
+                                    minConstraints={[10, Infinity]}
+                                    resizeHandles={["w"]}
+                                    handle={<div className={classes.propertiesPaneHandle} />}
+                                    className={classes.propertiesPaneContainer}>
+                                    <DesignerPropertiesPane />
+                                </ResizableBox>
+                            </>
                         )}
                     </div>
                     <ResizableBox
