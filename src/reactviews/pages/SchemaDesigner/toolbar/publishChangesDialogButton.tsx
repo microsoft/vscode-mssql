@@ -53,6 +53,10 @@ const useStyles = makeStyles({
         fontWeight: "bold",
         marginRight: "5px",
     },
+    surface: {
+        width: "800px",
+        maxWidth: "800px",
+    },
 });
 
 export function PublishChangesDialogButton() {
@@ -385,7 +389,7 @@ export function PublishChangesDialogButton() {
                                     });
                                 }
                             }}>
-                            {locConstants.schemaDesigner.publish}
+                            {locConstants.publishDialog.publish}
                         </Button>
                         <Button
                             appearance="secondary"
@@ -393,7 +397,7 @@ export function PublishChangesDialogButton() {
                             onClick={() => {
                                 context.openInEditorWithConnection();
                             }}>
-                            {locConstants.schemaDesigner.openPublishScript}
+                            {locConstants.publishDialog.openPublishScript}
                         </Button>
                     </>
                 )}
@@ -438,13 +442,9 @@ export function PublishChangesDialogButton() {
     return (
         <Dialog open={open} onOpenChange={(_e, data) => setOpen(data.open)}>
             {triggerButton()}
-            <DialogSurface
-                style={{
-                    width: "100%",
-                    maxWidth: "800px",
-                }}>
+            <DialogSurface className={classes.surface}>
                 <DialogBody>
-                    <DialogTitle>{locConstants.schemaDesigner.publishChanges}</DialogTitle>
+                    <DialogTitle>{locConstants.publishDialog.publishChanges}</DialogTitle>
                     <DialogContent>{dialogContent()}</DialogContent>
                     <DialogActions>{footerButtons()}</DialogActions>
                 </DialogBody>

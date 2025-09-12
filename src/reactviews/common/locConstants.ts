@@ -178,6 +178,15 @@ export class LocConstants {
         };
     }
 
+    public get publishDialog() {
+        return {
+            publishChanges: l10n.t("Publish Changes"),
+            publish: l10n.t("Publish"),
+            openPublishScript: l10n.t("Open Publish Script"),
+            confirmationText: l10n.t("I have read the summary and understand the potential risks."),
+        };
+    }
+
     public get firewallRules() {
         return {
             createNewFirewallRuleFor: (serverName: string) =>

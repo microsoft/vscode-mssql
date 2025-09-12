@@ -11,7 +11,12 @@ import {
     Spinner,
     makeStyles,
 } from "@fluentui/react-components";
-import { CopyRegular, DatabaseArrowUp16Regular, ErrorCircleRegular } from "@fluentui/react-icons";
+import {
+    CopyRegular,
+    DatabaseArrowUp16Regular,
+    ErrorCircleRegular,
+    CheckmarkCircleFilled,
+} from "@fluentui/react-icons";
 import {
     Dialog,
     DialogActions,
@@ -25,25 +30,14 @@ import { useContext, useState } from "react";
 
 import { Button } from "@fluentui/react-button";
 import { LoadState } from "../../../sharedInterfaces/tableDesigner";
-import ReactMarkdown from "react-markdown";
+import Markdown from "react-markdown";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
-    dialogContent: {
-        height: "300px",
-        overflow: "auto",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        width: "100%",
-        flexDirection: "column",
-    },
-    openScript: {
-        width: "150px",
-    },
-    updateDatabase: {
-        width: "150px",
+    dialogSurface: {
+        width: "800px",
+        maxWidth: "800px",
     },
     errorIcon: {
         fontSize: "100px",
@@ -53,16 +47,9 @@ const useStyles = makeStyles({
     dialogFooterButtons: {
         marginTop: "10px",
     },
-    markdownContainer: {
-        width: "calc(100% - 40px)",
-        height: "calc(100% - 80px)",
-        alignItems: "center",
-        justifyContent: "center",
-        border: "1px solid #e0e0e0",
-        overflow: "auto",
-        padding: "10px 5px 5px 10px",
-        margin: "5px",
-        backgroundColor: "var(--vscode-editor-background)",
+    confirmationRow: {
+        marginTop: "8px",
+        marginBottom: "8px",
     },
 });
 
@@ -100,7 +87,7 @@ export const DesignerChangesPreviewButton = () => {
 
     const publishingLoadingDialogContents = () => (
         <>
-            <DialogContent className={classes.dialogContent}>
+            <DialogContent>
                 <Spinner
                     label={locConstants.tableDesigner.publishingChanges}
                     labelPosition="below"
@@ -153,31 +140,35 @@ export const DesignerChangesPreviewButton = () => {
 
     const publishingSuccessDialogContents = () => (
         <>
-            <DialogContent className={classes.dialogContent}>
+            <DialogContent>
+                <CheckmarkCircleFilled style={{ width: "50px", height: "50px", marginBottom: 8 }} />
                 <div>{locConstants.tableDesigner.changesPublishedSuccessfully}</div>
             </DialogContent>
             <DialogActions>
-                <Button size="medium" appearance="primary" onClick={designerContext.closeDesigner}>
-                    {locConstants.tableDesigner.closeDesigner}
-                </Button>
                 <DialogTrigger action="close">
                     <Button
                         size="medium"
                         appearance="secondary"
                         onClick={() => {
                             setIsConfirmationChecked(false);
-                            designerContext.continueEditing;
+                            designerContext.continueEditing();
                         }}>
                         {locConstants.tableDesigner.continueEditing}
                     </Button>
                 </DialogTrigger>
+                <Button
+                    size="medium"
+                    appearance="secondary"
+                    onClick={designerContext.closeDesigner}>
+                    {locConstants.common.close}
+                </Button>
             </DialogActions>
         </>
     );
 
     const previewLoadingDialogContents = () => (
         <>
-            <DialogContent className={classes.dialogContent}>
+            <DialogContent>
                 <Spinner
                     label={locConstants.tableDesigner.loadingPreviewReport}
                     labelPosition="below"
@@ -188,7 +179,7 @@ export const DesignerChangesPreviewButton = () => {
 
     const previewLoadingErrorDialogContents = () => (
         <>
-            <DialogContent className={classes.dialogContent}>
+            <DialogContent>
                 <ErrorCircleRegular className={classes.errorIcon} />
                 <div>
                     {designerContext.state.generatePreviewReportResult?.schemaValidationError ??
@@ -216,65 +207,70 @@ export const DesignerChangesPreviewButton = () => {
         return (
             <>
                 <DialogContent>
-                    <div className={classes.markdownContainer}>
-                        <ReactMarkdown>{state?.generatePreviewReportResult?.report}</ReactMarkdown>
+                    <div
+                        style={{
+                            width: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            overflow: "hidden",
+                        }}>
+                        <Markdown>{state?.generatePreviewReportResult?.report}</Markdown>
+                        <Checkbox
+                            className={classes.confirmationRow}
+                            label={locConstants.publishDialog.confirmationText}
+                            required
+                            checked={isConfirmationChecked}
+                            onChange={(_event, data) => {
+                                setIsConfirmationChecked(data.checked as boolean);
+                            }}
+                            // Setting initial focus on the checkbox when it is rendered.
+                            autoFocus
+                            /**
+                             * The focus outline is not visible on the checkbox when it is focused programmatically.
+                             * This is a workaround to make the focus outline visible on the checkbox when it is focused programmatically.
+                             * This is most likely a bug in the browser.
+                             */
+                            onFocus={(event) => {
+                                if (event.target.parentElement) {
+                                    event.target.parentElement.style.outlineStyle = "solid";
+                                    event.target.parentElement.style.outlineColor =
+                                        "var(--vscode-focusBorder)";
+                                }
+                            }}
+                            onBlur={(event) => {
+                                if (event.target.parentElement) {
+                                    event.target.parentElement.style.outline = "none";
+                                    event.target.parentElement.style.outlineColor = "";
+                                }
+                            }}
+                        />
                     </div>
-                    <Checkbox
-                        label={locConstants.tableDesigner.designerPreviewConfirmation}
-                        required
-                        checked={isConfirmationChecked}
-                        onChange={(_event, data) => {
-                            setIsConfirmationChecked(data.checked as boolean);
-                        }}
-                        // Setting initial focus on the checkbox when it is rendered.
-                        autoFocus
-                        /**
-                         * The focus outline is not visible on the checkbox when it is focused programmatically.
-                         * This is a workaround to make the focus outline visible on the checkbox when it is focused programmatically.
-                         * This is most likely a bug in the browser.
-                         */
-                        onFocus={(event) => {
-                            if (event.target.parentElement) {
-                                event.target.parentElement.style.outlineStyle = "solid";
-                                event.target.parentElement.style.outlineColor =
-                                    "var(--vscode-focusBorder)";
-                            }
-                        }}
-                        onBlur={(event) => {
-                            if (event.target.parentElement) {
-                                event.target.parentElement.style.outline = "none";
-                                event.target.parentElement.style.outlineColor = "";
-                            }
-                        }}
-                    />
                 </DialogContent>
                 <DialogActions>
-                    {getDialogCloseButton()}
-                    <DialogTrigger action="close">
-                        <Button
-                            icon={generateScriptIcon()}
-                            iconPosition="after"
-                            className={classes.openScript}
-                            disabled={state.apiState?.previewState !== LoadState.Loaded}
-                            appearance="secondary"
-                            onClick={designerContext.generateScript}>
-                            {locConstants.tableDesigner.generateScript}
-                        </Button>
-                    </DialogTrigger>
                     <Button
-                        className={classes.updateDatabase}
                         disabled={!isConfirmationChecked}
                         title={
                             !isConfirmationChecked
                                 ? locConstants.tableDesigner.youMustReviewAndAccept
-                                : locConstants.tableDesigner.updateDatabase
+                                : locConstants.publishDialog.publish
                         }
                         appearance="primary"
                         onClick={() => {
                             designerContext.publishChanges();
                         }}>
-                        {locConstants.tableDesigner.updateDatabase}
+                        {locConstants.publishDialog.publish}
                     </Button>
+                    <DialogTrigger action="close">
+                        <Button
+                            icon={generateScriptIcon()}
+                            iconPosition="after"
+                            disabled={state.apiState?.previewState !== LoadState.Loaded}
+                            appearance="secondary"
+                            onClick={designerContext.generateScript}>
+                            {locConstants.publishDialog.openPublishScript}
+                        </Button>
+                    </DialogTrigger>
+                    {getDialogCloseButton()}
                 </DialogActions>
             </>
         );
@@ -317,9 +313,9 @@ export const DesignerChangesPreviewButton = () => {
                     {locConstants.tableDesigner.publish}
                 </Button>
             </DialogTrigger>
-            <DialogSurface>
+            <DialogSurface className={classes.dialogSurface}>
                 <DialogBody>
-                    <DialogTitle>{locConstants.tableDesigner.previewDatabaseUpdates}</DialogTitle>
+                    <DialogTitle>{locConstants.publishDialog.publishChanges}</DialogTitle>
                     {getDialogContent()}
                 </DialogBody>
             </DialogSurface>
