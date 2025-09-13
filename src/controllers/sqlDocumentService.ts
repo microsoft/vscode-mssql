@@ -305,7 +305,7 @@ export default class SqlDocumentService implements vscode.Disposable {
                 /**
                  * Skip creating an Object Explorer session if one already exists for the connection.
                  */
-                if (!this._objectExplorerService.hasSession(connectionConfig.connectionInfo)) {
+                if (!this._objectExplorerService?.hasSession(connectionConfig.connectionInfo)) {
                     await this._mainController.createObjectExplorerSession(
                         connectionConfig.connectionInfo,
                     );

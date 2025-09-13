@@ -539,6 +539,9 @@
     <trans-unit id="++CODE++4c7dd73e4af7d97c296dc01ab37edd119e5ef22592cb6a302bd9dc9a55264873">
       <source xml:lang="en">Close Find</source>
     </trans-unit>
+    <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
+      <source xml:lang="en">Close properties pane</source>
+    </trans-unit>
     <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
       <source xml:lang="en">Close the current connection</source>
     </trans-unit>
@@ -1241,6 +1244,9 @@
     </trans-unit>
     <trans-unit id="++CODE++48ad32aba89e3b0bbab4397b56bd23794212fe69606e0b644ff3b543035a048d">
       <source xml:lang="en">Expand Workspace Explorer</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
+      <source xml:lang="en">Expand properties pane</source>
     </trans-unit>
     <trans-unit id="++CODE++c39d646f10769b078ae82be4da7a0079ca91182b241e749be4276e08c215c654">
       <source xml:lang="en">Explorer</source>
@@ -2422,6 +2428,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
       <source xml:lang="en">Restore panel size</source>
+    </trans-unit>
+    <trans-unit id="++CODE++26b4293018ea72418733109f2e245387d9dfcfe7d4083c0c1f29eb1155c98365">
+      <source xml:lang="en">Restore properties pane</source>
     </trans-unit>
     <trans-unit id="++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c">
       <source xml:lang="en">Result Set {0}</source>

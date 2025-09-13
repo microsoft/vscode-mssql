@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, shorthands } from "@fluentui/react-components";
+import { makeStyles } from "@fluentui/react-components";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { useContext } from "react";
 import {
@@ -25,12 +25,9 @@ const useStyles = makeStyles({
     root: {
         width: "100%",
         height: "100%",
-        overflowX: "auto",
         display: "flex",
         flexDirection: "column",
-        paddingTop: "10px",
-        paddingLeft: "10px",
-        ...shorthands.gap("10px"),
+        gap: "10px",
     },
 });
 

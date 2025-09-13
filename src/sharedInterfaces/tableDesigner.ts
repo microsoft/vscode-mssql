@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { NotificationType } from "vscode-jsonrpc/browser";
+
 /**
  * Definition for the table designer service.
  */
@@ -736,11 +738,6 @@ export interface TableDesignerReducers {
     generatePreviewReport: {
         table: TableInfo;
     };
-    initializeTableDesigner: {
-        table: TableInfo;
-    };
-    scriptAsCreate: {};
-    copyScriptAsCreateToClipboard: {};
     setTab: {
         tabId: DesignerMainPaneTabs;
     };
@@ -750,9 +747,43 @@ export interface TableDesignerReducers {
     setResultTab: {
         tabId: DesignerResultPaneTabs;
     };
-    closeDesigner: {};
     continueEditing: {};
-    copyPublishErrorToClipboard: {};
 }
 
 export type DesignerUIArea = "PropertiesView" | "ScriptView" | "TopContentView" | "TabsView";
+
+export interface ScriptAsCreateParams {
+    script: string;
+}
+
+export interface CopyScriptAsCreateToClipboardParams {
+    script: string;
+}
+
+export interface CopyPublishErrorToClipboardParams {
+    error: string;
+}
+
+export namespace ScriptAsCreateNotification {
+    export const type = new NotificationType<ScriptAsCreateParams>("scriptAsCreate");
+}
+
+export namespace CopyScriptAsCreateToClipboardNotification {
+    export const type = new NotificationType<CopyScriptAsCreateToClipboardParams>(
+        "copyScriptAsCreateToClipboard",
+    );
+}
+
+export namespace CloseDesignerNotification {
+    export const type = new NotificationType<void>("closeDesigner");
+}
+
+export namespace CopyPublishErrorToClipboardNotification {
+    export const type = new NotificationType<CopyPublishErrorToClipboardParams>(
+        "copyPublishErrorToClipboard",
+    );
+}
+
+export namespace InitializeTableDesignerNotification {
+    export const type = new NotificationType<void>("initializeTableDesigner");
+}

@@ -5,6 +5,7 @@
 
 import * as designer from "../../../sharedInterfaces/tableDesigner";
 import { WebviewContextProps } from "../../../sharedInterfaces/webview";
+import { DesignerDefinitionPaneRef } from "../../common/designerDefinitionPane";
 import { getCoreRPCs } from "../../common/utils";
 
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -116,6 +117,17 @@ export interface TableDesignerContextProps
      * Copy the publish error to the clipboard.
      */
     copyPublishErrorToClipboard: () => void;
+
+    /**
+     * Show the table definition pane.
+     * @param show boolean to show or hide the definition pane.
+     */
+    toggleDefinitionPane: () => void;
+
+    /**
+     * Reference to the definition pane component.
+     */
+    definitionPaneRef: React.RefObject<DesignerDefinitionPaneRef>;
 }
 
 const TableDesignerContext = createContext<TableDesignerContextProps | undefined>(undefined);
@@ -142,6 +154,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
 
     const elementRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
     const tableState = webviewState?.state;
+    const definitionPaneRef = useRef<DesignerDefinitionPaneRef>(null);
 
     function getComponentId(componentPath: (string | number)[]): string {
         return `${tableState.tableInfo?.id}_${componentPath.join("_")}`;
@@ -173,15 +186,29 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
                     });
                 },
                 initializeTableDesigner: function (): void {
-                    webviewState?.extensionRpc.action("initializeTableDesigner", {
-                        table: tableState.tableInfo!,
-                    });
+                    void webviewState?.extensionRpc.sendNotification(
+                        designer.InitializeTableDesignerNotification.type,
+                    );
                 },
                 scriptAsCreate: function (): void {
-                    webviewState?.extensionRpc.action("scriptAsCreate", {});
+                    void webviewState?.extensionRpc.sendNotification(
+                        designer.ScriptAsCreateNotification.type,
+                        {
+                            script:
+                                (tableState.model!["script"] as designer.InputBoxProperties)
+                                    .value ?? "",
+                        },
+                    );
                 },
                 copyScriptAsCreateToClipboard: function (): void {
-                    webviewState?.extensionRpc.action("copyScriptAsCreateToClipboard", {});
+                    void webviewState?.extensionRpc.sendNotification(
+                        designer.CopyScriptAsCreateToClipboardNotification.type,
+                        {
+                            script:
+                                (tableState.model!["script"] as designer.InputBoxProperties)
+                                    .value ?? "",
+                        },
+                    );
                 },
                 setTab: function (tabId: designer.DesignerMainPaneTabs): void {
                     webviewState?.extensionRpc.action("setTab", {
@@ -217,13 +244,20 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
                     });
                 },
                 closeDesigner: function (): void {
-                    webviewState?.extensionRpc.action("closeDesigner", {});
+                    void webviewState?.extensionRpc.sendNotification(
+                        designer.CloseDesignerNotification.type,
+                    );
                 },
                 continueEditing: function (): void {
                     webviewState?.extensionRpc.action("continueEditing", {});
                 },
                 copyPublishErrorToClipboard: function (): void {
-                    webviewState?.extensionRpc.action("copyPublishErrorToClipboard", {});
+                    void webviewState?.extensionRpc.sendNotification(
+                        designer.CopyPublishErrorToClipboardNotification.type,
+                        {
+                            error: tableState.publishingError ?? "",
+                        },
+                    );
                 },
                 state: webviewState?.state as designer.TableDesignerWebviewState,
                 themeKind: webviewState?.themeKind,
@@ -259,6 +293,17 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
                     }
                     return (elementRefs.current[key] = ref);
                 },
+                toggleDefinitionPane: function (): void {
+                    if (!definitionPaneRef.current) {
+                        return;
+                    }
+                    if (definitionPaneRef.current.isCollapsed()) {
+                        definitionPaneRef.current.openPanel(25);
+                    } else {
+                        definitionPaneRef.current.closePanel();
+                    }
+                },
+                definitionPaneRef,
             }}>
             {children}
         </TableDesignerContext.Provider>

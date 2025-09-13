@@ -250,6 +250,7 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
 
         this.onNotification(SchemaDesigner.CopyToClipboardNotification.type, async (params) => {
             await vscode.env.clipboard.writeText(params.text);
+            await vscode.window.showInformationMessage(LocConstants.scriptCopiedToClipboard);
         });
 
         this.onNotification(SchemaDesigner.OpenInEditorNotification.type, async () => {

@@ -419,27 +419,24 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
             return state;
         });
 
-        this.registerReducer("initializeTableDesigner", async (state) => {
+        this.onNotification(designer.InitializeTableDesignerNotification.type, async () => {
             await this.initialize();
-            return state;
         });
 
-        this.registerReducer("scriptAsCreate", async (state) => {
+        this.onNotification(designer.ScriptAsCreateNotification.type, async (params) => {
             await this._sqlDocumentService.newQuery({
-                content: (state.model["script"] as designer.InputBoxProperties).value ?? "",
+                content: params.script,
                 connectionStrategy: ConnectionStrategy.DoNotConnect,
             });
-
-            return state;
         });
 
-        this.registerReducer("copyScriptAsCreateToClipboard", async (state) => {
-            await vscode.env.clipboard.writeText(
-                (state.model["script"] as designer.InputBoxProperties).value ?? "",
-            );
-            await vscode.window.showInformationMessage(scriptCopiedToClipboard);
-            return state;
-        });
+        this.onNotification(
+            designer.CopyScriptAsCreateToClipboardNotification.type,
+            async (params) => {
+                await vscode.env.clipboard.writeText(params.script);
+                await vscode.window.showInformationMessage(scriptCopiedToClipboard);
+            },
+        );
 
         this.registerReducer("setTab", async (state, payload) => {
             state.tabStates.mainPaneTab = payload.tabId;
@@ -456,12 +453,11 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
             return state;
         });
 
-        this.registerReducer("closeDesigner", async (state) => {
+        this.onNotification(designer.CloseDesignerNotification.type, async () => {
             sendActionEvent(TelemetryViews.TableDesigner, TelemetryActions.Close, {
                 correlationId: this._correlationId,
             });
             this.panel.dispose();
-            return state;
         });
 
         this.registerReducer("continueEditing", async (state) => {
@@ -471,10 +467,13 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
             });
             return state;
         });
-        this.registerReducer("copyPublishErrorToClipboard", async (state) => {
-            await vscode.env.clipboard.writeText(state.publishingError ?? "");
-            void vscode.window.showInformationMessage(copied);
-            return state;
-        });
+
+        this.onNotification(
+            designer.CopyPublishErrorToClipboardNotification.type,
+            async (params) => {
+                await vscode.env.clipboard.writeText(params.error);
+                void vscode.window.showInformationMessage(copied);
+            },
+        );
     }
 }

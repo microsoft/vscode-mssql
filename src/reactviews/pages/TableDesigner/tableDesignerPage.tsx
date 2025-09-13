@@ -3,17 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, Divider, Spinner, makeStyles, shorthands } from "@fluentui/react-components";
-import { useContext } from "react";
+import { Button, Spinner, makeStyles, shorthands } from "@fluentui/react-components";
+import { useContext, useEffect, useRef } from "react";
 import * as designer from "../../../sharedInterfaces/tableDesigner";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
-import { ResizableBox } from "react-resizable";
 import { DesignerPageRibbon } from "./designerPageRibbon";
 import { DesignerMainPane } from "./designerMainPane";
 import { DesignerPropertiesPane } from "./designerPropertiesPane";
 import { DesignerResultPane } from "./designerResultPane";
 import { locConstants } from "../../common/locConstants";
+import {
+    ImperativePanelHandle,
+    Panel,
+    PanelGroup,
+    PanelResizeHandle,
+} from "react-resizable-panels";
 
 const useStyles = makeStyles({
     root: {
@@ -78,20 +83,30 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "row",
     },
+    topPanelContent: {
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        height: "100%",
+        maxHeight: "100%",
+    },
     resultPaneContainer: {
         width: "100%",
         position: "relative",
     },
-    mainPaneContainer: {
-        ...shorthands.flex(1),
-        height: "100%",
-        ...shorthands.overflow("hidden"),
-    },
     propertiesPaneContainer: {
         position: "relative",
         height: "100%",
-        width: "300px",
+        width: "100%",
         ...shorthands.overflow("hidden"),
+    },
+    resizeHandle: {
+        height: "2px",
+        backgroundColor: "var(--vscode-editorWidget-border)",
+    },
+    verticalResizeHandle: {
+        width: "2px",
+        backgroundColor: "var(--vscode-editorWidget-border)",
     },
 });
 
@@ -99,9 +114,31 @@ export const TableDesigner = () => {
     const classes = useStyles();
     const context = useContext(TableDesignerContext);
     const tableDesignerState = context?.state;
+    const editorRef = useRef<HTMLDivElement>(null);
+    const propertiesPanelRef = useRef<ImperativePanelHandle>(null);
     if (!tableDesignerState) {
         return null;
     }
+
+    useEffect(() => {
+        if (!context || !context.state.propertiesPaneData) {
+            return;
+        }
+        // Adjust properties panel size when maximize/restore toggles
+        if (context.propertiesPaneResizeInfo.isMaximized) {
+            propertiesPanelRef.current?.resize(100);
+        } else {
+            const containerWidth = editorRef.current?.offsetWidth ?? 0;
+            if (containerWidth > 0) {
+                const desiredPx = context.propertiesPaneResizeInfo.currentWidth || 450;
+                const pct = Math.max(10, Math.min(90, (desiredPx / containerWidth) * 100));
+                propertiesPanelRef.current?.resize(pct);
+            } else {
+                // Fallback to a sane default if we can't measure
+                propertiesPanelRef.current?.resize(30);
+            }
+        }
+    }, [context?.state.propertiesPaneData, context?.propertiesPaneResizeInfo.isMaximized]);
 
     return (
         <div className={classes.root}>
@@ -124,90 +161,55 @@ export const TableDesigner = () => {
             )}
             {tableDesignerState.apiState?.initializeState === designer.LoadState.Loaded && (
                 <div className={classes.mainContent}>
-                    <DesignerPageRibbon />
-                    <div className={classes.editor}>
-                        <div className={classes.mainPaneContainer}>
-                            <DesignerMainPane />
-                        </div>
-                        <Divider
-                            style={{
-                                width: "5px",
-                                height: "100%",
-                                flex: 0,
-                            }}
-                            vertical
-                        />
-                        {context.state.propertiesPaneData && (
-                            <ResizableBox
-                                width={
-                                    context.propertiesPaneResizeInfo.isMaximized
-                                        ? 9999999
-                                        : context.propertiesPaneResizeInfo.currentWidth
-                                }
-                                onResizeStart={(_e, _div) => {
-                                    context.propertiesPaneResizeInfo.setIsMaximized(false);
-                                }}
-                                onResizeStop={(_e, div) => {
-                                    const parentContainerWidth =
-                                        div.node!.parentElement!.parentElement!.offsetWidth!;
-
-                                    const currentDivWidth = div.size.width;
-                                    if (currentDivWidth >= parentContainerWidth - 50) {
-                                        context.propertiesPaneResizeInfo.setIsMaximized(true);
-                                        context.propertiesPaneResizeInfo.setCurrentWidth(
-                                            parentContainerWidth,
-                                        );
-                                    } else {
-                                        context.propertiesPaneResizeInfo.setCurrentWidth(
-                                            div.size.width,
-                                        );
-                                        context.propertiesPaneResizeInfo.setOriginalWidth(
-                                            div.size.width,
-                                        );
-                                    }
-                                }}
-                                height={Infinity}
-                                maxConstraints={[Infinity, Infinity]}
-                                minConstraints={[10, Infinity]}
-                                resizeHandles={["w"]}
-                                handle={<div className={classes.propertiesPaneHandle} />}
-                                className={classes.propertiesPaneContainer}>
-                                <DesignerPropertiesPane />
-                            </ResizableBox>
-                        )}
-                    </div>
-                    <ResizableBox
-                        width={Infinity}
-                        height={
-                            context.resultPaneResizeInfo.isMaximized
-                                ? 9999999
-                                : context.resultPaneResizeInfo.currentHeight
-                        }
-                        maxConstraints={[Infinity, Infinity]}
-                        minConstraints={[Infinity, 10]}
-                        resizeHandles={["n"]}
-                        handle={<div className={classes.resultPaneHandle} />}
-                        className={classes.resultPaneContainer}
-                        onResizeStart={(_e, _div) => {
-                            context.resultPaneResizeInfo.setIsMaximized(false);
-                        }}
-                        onResizeStop={(_e, div) => {
-                            const parentContainerHeight =
-                                div.node!.parentElement!.parentElement!.offsetHeight!;
-
-                            const currentDivHeight = div.size.height;
-                            if (currentDivHeight >= parentContainerHeight - 50) {
-                                context.resultPaneResizeInfo.setIsMaximized(true);
-                                context.resultPaneResizeInfo.setCurrentHeight(
-                                    parentContainerHeight,
-                                );
-                            } else {
-                                context.resultPaneResizeInfo.setCurrentHeight(div.size.height);
-                                context.resultPaneResizeInfo.setOriginalHeight(div.size.height);
-                            }
-                        }}>
+                    <PanelGroup direction="vertical">
+                        <Panel defaultSize={75}>
+                            <div className={classes.topPanelContent}>
+                                <DesignerPageRibbon />
+                                <div className={classes.editor} ref={editorRef}>
+                                    <PanelGroup direction="horizontal">
+                                        <Panel defaultSize={100} minSize={10} collapsible>
+                                            <DesignerMainPane />
+                                        </Panel>
+                                        <PanelResizeHandle
+                                            className={classes.verticalResizeHandle}
+                                        />
+                                        {context.state.propertiesPaneData && (
+                                            <Panel
+                                                defaultSize={0}
+                                                minSize={10}
+                                                collapsible
+                                                ref={propertiesPanelRef}
+                                                onResize={(size) => {
+                                                    const containerWidth =
+                                                        editorRef.current?.offsetWidth ?? 0;
+                                                    if (containerWidth > 0) {
+                                                        const widthPx =
+                                                            (size / 100) * containerWidth;
+                                                        context.propertiesPaneResizeInfo.setCurrentWidth(
+                                                            widthPx,
+                                                        );
+                                                        if (
+                                                            !context.propertiesPaneResizeInfo
+                                                                .isMaximized
+                                                        ) {
+                                                            context.propertiesPaneResizeInfo.setOriginalWidth(
+                                                                widthPx,
+                                                            );
+                                                        }
+                                                    }
+                                                }}>
+                                                <div className={classes.propertiesPaneContainer}>
+                                                    <DesignerPropertiesPane />
+                                                </div>
+                                            </Panel>
+                                        )}
+                                    </PanelGroup>
+                                </div>
+                            </div>
+                        </Panel>
+                        <PanelResizeHandle className={classes.resizeHandle} />
                         <DesignerResultPane />
-                    </ResizableBox>
+                    </PanelGroup>
                 </div>
             )}
         </div>
