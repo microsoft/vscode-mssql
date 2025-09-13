@@ -13,31 +13,34 @@ export const useAccordionStyles = makeStyles({
     },
 });
 
+/**
+ * Adds markdown styles to make markdown content more readable.
+ */
 export const useMarkdownStyles = makeStyles({
     markdownPage: {
         backgroundColor: "var(--vscode-editorWidget-background)",
         border: "1px solid var(--vscode-panel-border)",
         borderRadius: "8px",
-        padding: "24px 32px",
-        margin: "16px",
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+        padding: "12px 16px",
+        margin: "8px",
+        boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)",
         fontFamily: "var(--vscode-editor-font-family)",
         fontSize: "14px",
-        lineHeight: "1.6",
+        lineHeight: "1.4",
         color: "var(--vscode-editor-foreground)",
         "& h1, & h2, & h3, & h4, & h5, & h6": {
             color: "var(--vscode-textPreformat-foreground)",
             borderBottom: "1px solid var(--vscode-panel-border)",
-            paddingBottom: "8px",
-            marginTop: "24px",
-            marginBottom: "16px",
+            paddingBottom: "4px",
+            marginTop: "12px",
+            marginBottom: "8px",
         },
         "& h1": {
-            fontSize: "24px",
+            fontSize: "22px",
             fontWeight: "600",
         },
         "& h2": {
-            fontSize: "20px",
+            fontSize: "18px",
             fontWeight: "600",
         },
         "& h3": {
@@ -45,29 +48,29 @@ export const useMarkdownStyles = makeStyles({
             fontWeight: "600",
         },
         "& p": {
-            marginBottom: "16px",
+            marginBottom: "8px",
         },
         "& ul, & ol": {
-            marginBottom: "16px",
-            paddingLeft: "24px",
+            marginBottom: "8px",
+            paddingLeft: "18px",
         },
         "& li": {
-            marginBottom: "8px",
+            marginBottom: "4px",
         },
         "& code": {
             backgroundColor: "var(--vscode-textBlockQuote-background)",
             border: "1px solid var(--vscode-panel-border)",
-            borderRadius: "4px",
-            padding: "2px 6px",
+            borderRadius: "3px",
+            padding: "1px 4px",
             fontSize: "13px",
             fontFamily: "var(--vscode-editor-font-family)",
         },
         "& pre": {
             backgroundColor: "var(--vscode-textBlockQuote-background)",
             border: "1px solid var(--vscode-panel-border)",
-            borderRadius: "6px",
-            padding: "16px",
-            marginBottom: "16px",
+            borderRadius: "4px",
+            padding: "10px",
+            marginBottom: "8px",
             overflow: "auto",
             "& code": {
                 backgroundColor: "transparent",
@@ -76,8 +79,8 @@ export const useMarkdownStyles = makeStyles({
             },
         },
         "& blockquote": {
-            borderLeft: "4px solid var(--vscode-textBlockQuote-border)",
-            paddingLeft: "16px",
+            borderLeft: "3px solid var(--vscode-textBlockQuote-border)",
+            paddingLeft: "12px",
             marginLeft: "0",
             fontStyle: "italic",
             color: "var(--vscode-descriptionForeground)",
@@ -85,10 +88,10 @@ export const useMarkdownStyles = makeStyles({
         "& table": {
             width: "100%",
             borderCollapse: "collapse",
-            marginBottom: "16px",
+            marginBottom: "8px",
             "& th, & td": {
                 border: "1px solid var(--vscode-panel-border)",
-                padding: "8px 12px",
+                padding: "6px 8px",
                 textAlign: "left",
             },
             "& th": {
