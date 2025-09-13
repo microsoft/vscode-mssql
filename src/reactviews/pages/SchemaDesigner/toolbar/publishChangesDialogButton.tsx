@@ -85,7 +85,7 @@ export function PublishChangesDialogButton() {
             <Button
                 size="small"
                 appearance="subtle"
-                icon={<FluentIcons.DatabaseArrowUp16Filled />}
+                icon={<FluentIcons.DatabaseArrowUp16Regular />}
                 title={locConstants.schemaDesigner.publishChanges}
                 disabled={publishButtonDisabled}
                 onClick={async () => {
