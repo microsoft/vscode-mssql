@@ -26,7 +26,11 @@ import {
     DropDownProperties,
     InputBoxProperties,
 } from "../../../sharedInterfaces/tableDesigner";
-import { ChevronRightFilled, ChevronLeftFilled, DismissRegular } from "@fluentui/react-icons";
+import {
+    ChevronRight16Regular,
+    ChevronLeft16Regular,
+    Dismiss16Regular,
+} from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
 import { useAccordionStyles } from "../../common/styles";
 
@@ -265,9 +269,9 @@ export const DesignerPropertiesPane = () => {
                     }
                     icon={
                         context.propertiesPaneResizeInfo.isMaximized ? (
-                            <ChevronRightFilled />
+                            <ChevronRight16Regular />
                         ) : (
-                            <ChevronLeftFilled />
+                            <ChevronLeft16Regular />
                         )
                     }
                     style={{
@@ -291,7 +295,7 @@ export const DesignerPropertiesPane = () => {
                         context.setPropertiesComponents(undefined);
                     }}
                     title={locConstants.common.close}
-                    icon={<DismissRegular />}
+                    icon={<Dismiss16Regular />}
                 />
             </div>
             <div className={classes.stack}>

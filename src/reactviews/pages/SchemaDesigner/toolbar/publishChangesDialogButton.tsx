@@ -23,6 +23,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext, useState } from "react";
 import Markdown from "react-markdown";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { useMarkdownStyles } from "../../../common/styles";
 
 enum PublishDialogStages {
     NotStarted = "notStarted",
@@ -61,6 +62,7 @@ const useStyles = makeStyles({
 
 export function PublishChangesDialogButton() {
     const classes = useStyles();
+    const markdownClasses = useMarkdownStyles();
     const context = useContext(SchemaDesignerContext);
     const [open, setOpen] = useState(false);
     const [publishButtonDisabled, setPublishButtonDisabled] = useState(false);
@@ -260,7 +262,9 @@ export function PublishChangesDialogButton() {
                             maxHeight: "100%",
                             overflow: "auto",
                         }}>
-                        <Markdown>{state?.report?.dacReport?.report ?? ""}</Markdown>
+                        <div className={markdownClasses.markdownPage}>
+                            <Markdown>{state?.report?.dacReport?.report ?? ""}</Markdown>
+                        </div>
                     </div>
 
                     <Checkbox

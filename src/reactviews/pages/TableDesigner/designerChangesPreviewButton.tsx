@@ -33,6 +33,7 @@ import { LoadState } from "../../../sharedInterfaces/tableDesigner";
 import Markdown from "react-markdown";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { locConstants } from "../../common/locConstants";
+import { useMarkdownStyles } from "../../common/styles";
 
 const useStyles = makeStyles({
     dialogSurface: {
@@ -47,14 +48,11 @@ const useStyles = makeStyles({
     dialogFooterButtons: {
         marginTop: "10px",
     },
-    confirmationRow: {
-        marginTop: "8px",
-        marginBottom: "8px",
-    },
 });
 
 export const DesignerChangesPreviewButton = () => {
     const designerContext = useContext(TableDesignerContext);
+    const markdownClasses = useMarkdownStyles();
     const classes = useStyles();
     if (!designerContext) {
         return null;
@@ -214,9 +212,13 @@ export const DesignerChangesPreviewButton = () => {
                             flexDirection: "column",
                             overflow: "hidden",
                         }}>
-                        <Markdown>{state?.generatePreviewReportResult?.report}</Markdown>
+                        <div className={markdownClasses.markdownPage}>
+                            <Markdown>{state?.generatePreviewReportResult?.report}</Markdown>
+                        </div>
                         <Checkbox
-                            className={classes.confirmationRow}
+                            style={{
+                                margin: "5px",
+                            }}
                             label={locConstants.publishDialog.confirmationText}
                             required
                             checked={isConfirmationChecked}
@@ -310,7 +312,7 @@ export const DesignerChangesPreviewButton = () => {
                         designerContext.generatePreviewReport();
                     }}
                     disabled={(state?.issues?.length ?? 0) > 0}>
-                    {locConstants.tableDesigner.publish}
+                    {locConstants.publishDialog.publishChanges}
                 </Button>
             </DialogTrigger>
             <DialogSurface className={classes.dialogSurface}>
