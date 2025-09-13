@@ -94,11 +94,6 @@ const useStyles = makeStyles({
         width: "100%",
         position: "relative",
     },
-    mainPaneContainer: {
-        ...shorthands.flex(1),
-        height: "100%",
-        ...shorthands.overflow("hidden"),
-    },
     propertiesPaneContainer: {
         position: "relative",
         height: "100%",
@@ -171,23 +166,16 @@ export const TableDesigner = () => {
                             <div className={classes.topPanelContent}>
                                 <DesignerPageRibbon />
                                 <div className={classes.editor} ref={editorRef}>
-                                    {!context.state.propertiesPaneData && (
-                                        <div className={classes.mainPaneContainer}>
+                                    <PanelGroup direction="horizontal">
+                                        <Panel defaultSize={100} minSize={10} collapsible>
                                             <DesignerMainPane />
-                                        </div>
-                                    )}
-                                    {context.state.propertiesPaneData && (
-                                        <PanelGroup direction="horizontal">
-                                            <Panel defaultSize={80} minSize={10} collapsible>
-                                                <div className={classes.mainPaneContainer}>
-                                                    <DesignerMainPane />
-                                                </div>
-                                            </Panel>
-                                            <PanelResizeHandle
-                                                className={classes.verticalResizeHandle}
-                                            />
+                                        </Panel>
+                                        <PanelResizeHandle
+                                            className={classes.verticalResizeHandle}
+                                        />
+                                        {context.state.propertiesPaneData && (
                                             <Panel
-                                                defaultSize={20}
+                                                defaultSize={0}
                                                 minSize={10}
                                                 collapsible
                                                 ref={propertiesPanelRef}
@@ -214,8 +202,8 @@ export const TableDesigner = () => {
                                                     <DesignerPropertiesPane />
                                                 </div>
                                             </Panel>
-                                        </PanelGroup>
-                                    )}
+                                        )}
+                                    </PanelGroup>
                                 </div>
                             </div>
                         </Panel>

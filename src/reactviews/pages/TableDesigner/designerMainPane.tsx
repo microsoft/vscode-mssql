@@ -22,13 +22,17 @@ const useStyles = makeStyles({
     root: {
         width: "100%",
         height: "100%",
+        paddingTop: "10px",
+        paddingLeft: "10px",
+        paddingRight: "10px",
+        boxSizing: "border-box",
+        overflow: "auto",
+    },
+    content: {
         display: "flex",
         flexDirection: "column",
         overflow: "auto",
         flex: 1,
-        paddingTop: "10px",
-        paddingLeft: "10px",
-        paddingRight: "5px",
         gap: "10px",
     },
     title: {
@@ -151,82 +155,80 @@ export const DesignerMainPane = () => {
 
     return (
         <div className={classes.root}>
-            <Field
-                size="small"
-                label={locConstants.tableDesigner.tableName}
-                orientation="horizontal"
-                style={{ width: "300px" }}>
-                <Input
+            <div className={classes.content}>
+                <Field
                     size="small"
-                    value={tableName}
-                    onChange={(_event, data) => {
-                        setTableName(data.value);
-                    }}
-                    autoFocus // initial focus
-                    onBlur={(_event) => {
-                        context.processTableEdit({
-                            source: "TabsView",
-                            type: DesignerEditType.Update,
-                            path: ["name"],
-                            value: tableName,
-                        });
-                    }}
-                />
-            </Field>
-            <Field
-                size="small"
-                label={locConstants.tableDesigner.schema}
-                orientation="horizontal"
-                style={{ width: "300px" }}>
-                <SearchableDropdown
+                    label={locConstants.tableDesigner.tableName}
+                    orientation="horizontal"
+                    style={{ width: "300px" }}>
+                    <Input
+                        size="small"
+                        value={tableName}
+                        onChange={(_event, data) => {
+                            setTableName(data.value);
+                        }}
+                        autoFocus // initial focus
+                        onBlur={(_event) => {
+                            context.processTableEdit({
+                                source: "TabsView",
+                                type: DesignerEditType.Update,
+                                path: ["name"],
+                                value: tableName,
+                            });
+                        }}
+                    />
+                </Field>
+                <Field
                     size="small"
-                    options={getSortedSchemaValues().map((option) => ({
-                        value: option,
-                    }))}
-                    onSelect={(option) => {
-                        context.processTableEdit({
-                            source: "TabsView",
-                            type: DesignerEditType.Update,
-                            path: ["schema"],
-                            value: option.value,
-                        });
-                    }}
-                    selectedOption={{
-                        value: schema,
-                    }}
-                />
-            </Field>
-            <TabList
-                size="small"
-                selectedValue={state.tabStates?.mainPaneTab}
-                onTabSelect={(_event, data) => {
-                    context.setTab(data.value as DesignerMainPaneTabs);
-                    context.setPropertiesComponents(undefined);
-                }}>
-                {state.view?.tabs.map((tab) => {
-                    const ariaLabel = getTabAriaLabel(tab.id);
-                    return (
-                        <Tab title={ariaLabel} value={tab.id} key={tab.id}>
-                            <div className={classes.tabButtonContainer}>
-                                <Text>{tab.title}</Text>
-                                {getCurrentTabIssuesCount(tab.id) > 0 && (
-                                    <CounterBadge
-                                        color="important"
-                                        size="small"
-                                        title={getTableIssuesCountLabel(tab.id)}
-                                        count={getCurrentTabIssuesCount(tab.id)}
-                                    />
-                                )}
-                            </div>
-                        </Tab>
-                    );
-                })}
-            </TabList>
-            <div
-                style={{
-                    flex: 1,
-                    width: "100%",
-                }}>
+                    label={locConstants.tableDesigner.schema}
+                    orientation="horizontal"
+                    style={{ width: "300px" }}>
+                    <SearchableDropdown
+                        size="small"
+                        options={getSortedSchemaValues().map((option) => ({
+                            value: option,
+                        }))}
+                        onSelect={(option) => {
+                            context.processTableEdit({
+                                source: "TabsView",
+                                type: DesignerEditType.Update,
+                                path: ["schema"],
+                                value: option.value,
+                            });
+                        }}
+                        selectedOption={{
+                            value: schema,
+                        }}
+                    />
+                </Field>
+                <TabList
+                    size="small"
+                    selectedValue={state.tabStates?.mainPaneTab}
+                    onTabSelect={(_event, data) => {
+                        context.setTab(data.value as DesignerMainPaneTabs);
+                        context.setPropertiesComponents(undefined);
+                    }}>
+                    {state.view?.tabs.map((tab) => {
+                        const ariaLabel = getTabAriaLabel(tab.id);
+                        return (
+                            <Tab title={ariaLabel} value={tab.id} key={tab.id}>
+                                <div className={classes.tabButtonContainer}>
+                                    <Text>{tab.title}</Text>
+                                    {getCurrentTabIssuesCount(tab.id) > 0 && (
+                                        <CounterBadge
+                                            color="important"
+                                            size="small"
+                                            title={getTableIssuesCountLabel(tab.id)}
+                                            count={getCurrentTabIssuesCount(tab.id)}
+                                            style={{ marginLeft: "6px" }}
+                                        />
+                                    )}
+                                </div>
+                            </Tab>
+                        );
+                    })}
+                </TabList>
+
                 {state.view?.tabs.map((tab) => {
                     return (
                         <div
