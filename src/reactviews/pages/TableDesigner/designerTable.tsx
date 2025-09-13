@@ -435,6 +435,17 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                     }}
                                     onFocus={(_event) => {
                                         setFocusedRowId(index);
+                                        // If properties pane is already open, update its content to show this row's properties
+                                        if (
+                                            context.state.propertiesPaneData &&
+                                            UiArea !== "PropertiesView"
+                                        ) {
+                                            context?.setPropertiesComponents({
+                                                componentPath: [...componentPath, index],
+                                                component: component,
+                                                model: model,
+                                            });
+                                        }
                                     }}
                                     key={componentPath.join(".") + index}>
                                     {columnsDef.map((column, columnIndex) => {
