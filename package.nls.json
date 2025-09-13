@@ -4,6 +4,7 @@
     "mssql.cancelQuery": "Cancel Query",
     "mssql.revealQueryResult": "Reveal Query Result",
     "mssql.copyAll": "Copy All",
+    "mssql.changeConnection": "Change Connection",
     "mssql.changeDatabase": "Change Database",
     "mssql.addObjectExplorerLegacy": "Add Connection (Legacy)",
     "mssql.addObjectExplorer": "Add Connection",
