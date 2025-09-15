@@ -1,0 +1,72 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { FormItemSpec, FormState, FormReducers } from "./form";
+import { RequestType } from "vscode-jsonrpc/browser";
+
+/**
+ * Data fields shown in the Publish form.
+ */
+export interface IPublishForm {
+    profileName?: string;
+    serverName?: string;
+    databaseName?: string;
+    publishTarget?: "existingServer" | "localContainer";
+    sqlCmdVariables?: { [key: string]: string };
+}
+
+/**
+ * Webview state for the Publish dialog (form + runtime fields).
+ */
+export interface PublishDialogWebviewState
+    extends FormState<IPublishForm, PublishDialogWebviewState, PublishDialogFormItemSpec> {
+    message: any;
+    projectFilePath: string;
+    inProgress: boolean;
+    lastPublishResult?: any;
+}
+
+/**
+ * Form item specification for Publish dialog fields.
+ */
+export type PublishDialogFormItemSpec = FormItemSpec<
+    IPublishForm,
+    PublishDialogWebviewState,
+    PublishDialogFormItemSpec
+>;
+
+/**
+ * Reducers (messages) the controller supports in addition to the generic form actions.
+ */
+export interface PublishDialogReducers extends FormReducers<IPublishForm> {
+    setPublishValues: {
+        profileName?: string;
+        serverName?: string;
+        databaseName?: string;
+        publishTarget?: "existingServer" | "localContainer";
+        sqlCmdVariables?: { [key: string]: string };
+        projectFilePath?: string;
+    };
+
+    publishNow: {
+        projectFilePath?: string;
+        databaseName?: string;
+        connectionUri?: string;
+        sqlCmdVariables?: { [key: string]: string };
+        publishProfilePath?: string;
+    };
+    generatePublishScript: {};
+    openPublishAdvanced: {};
+    cancelPublish: {};
+    selectPublishProfile: {};
+    savePublishProfile: { profileName: string };
+}
+
+/**
+ * Example request pattern retained for future preview scenarios.
+ */
+export namespace GetPublishPreviewRequest {
+    export const type = new RequestType<void, string, void>("getPublishPreview");
+}

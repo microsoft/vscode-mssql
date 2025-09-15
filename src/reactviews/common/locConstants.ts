@@ -878,6 +878,17 @@ export class LocConstants {
         };
     }
 
+    public get publishProject() {
+        return {
+            SelectProfile: l10n.t("Select Profile"),
+            SaveAs: l10n.t("Save As..."),
+            advanced: l10n.t("Advanced"),
+            generateScript: l10n.t("Generate Script"),
+            publish: l10n.t("Publish"),
+            cancel: l10n.t("Cancel"),
+        };
+    }
+
     public get connectionGroups() {
         return {
             createNew: l10n.t("Create New Connection Group"),

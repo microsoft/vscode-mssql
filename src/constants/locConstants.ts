@@ -1177,9 +1177,23 @@ export class TableDesigner {
     public static AdvancedOptions = l10n.t("Advanced Options");
 }
 
-export class PublishProject {
-    public static Title = l10n.t("Publish Project");
-}
+export const PublishProject = {
+    Title: "Publish Project",
+    ProfileLabel: "Publish Profile",
+    ProfilePlaceholder: "Select or enter a publish profile",
+    ServerLabel: "Server",
+    DatabaseLabel: "Database",
+    DatabaseRequiredMessage: "Database name is required",
+    PublishTargetLabel: "Publish Target",
+    PublishTargetExisting: "Existing SQL server",
+    PublishTargetContainer: "Local development container",
+    UpgradeExistingLabel: "Upgrade existing database",
+    BuildBeforePublishLabel: "Build project before publish",
+    Advanced: "Advanced...",
+    GenerateScript: "Generate Script",
+    Publish: "Publish",
+    Cancel: "Cancel",
+};
 
 export class SchemaCompare {
     public static Title = l10n.t("Schema Compare");

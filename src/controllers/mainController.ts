@@ -1557,9 +1557,12 @@ export default class MainController implements vscode.Disposable {
             );
 
             this._context.subscriptions.push(
-                vscode.commands.registerCommand(Constants.cmdPublishDatabaseProject, async () => {
-                    await this.onPublishDatabaseProject();
-                }),
+                vscode.commands.registerCommand(
+                    Constants.cmdPublishDatabaseProject,
+                    async (projectFilePath: string) => {
+                        await this.onPublishDatabaseProject(projectFilePath);
+                    },
+                ),
             );
 
             this._context.subscriptions.push(
@@ -2625,10 +2628,11 @@ export default class MainController implements vscode.Disposable {
      *   - [] when invoked from the command palette.
      * This method normalizes the arguments and launches the Schema Compare UI.
      */
-    public async onPublishDatabaseProject(): Promise<void> {
+    public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
         const schemaCompareWebView = new PublishProjectWebViewController(
             this._context,
             this._vscodeWrapper,
+            projectFilePath,
         );
 
         schemaCompareWebView.revealToForeground();

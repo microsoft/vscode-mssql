@@ -3,46 +3,133 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, createContext } from "react";
-import { makeStyles } from "@fluentui/react-components";
-
-// Define the context type
-interface PublishProjectState {
-    message?: string;
-}
-
-interface PublishProjectContextType {
-    state: PublishProjectState;
-}
-
-// Create a typed context with a default value
-const PublishProjectContext = createContext<PublishProjectContextType>({
-    state: { message: undefined },
-});
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+import { useContext } from "react";
+import { Button, makeStyles } from "@fluentui/react-components";
+import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { PublishProjectStateProvider, PublishProjectContext } from "./publishProjectStateProvider";
+import { LocConstants } from "../../common/locConstants";
+import {
+    IPublishForm,
+    PublishDialogFormItemSpec,
+    PublishDialogWebviewState,
+} from "../../../sharedInterfaces/publishDialog";
+import { FormContextProps } from "../../../sharedInterfaces/form";
+import PublishProfileField from "./components/PublishProfile";
 
 const useStyles = makeStyles({
-    container: {
+    root: { padding: "12px" },
+    footer: {
+        marginTop: "8px",
         display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        overflow: "hidden",
-        padding: "20px",
-    },
-    message: {
-        fontSize: "14px",
-        color: "#333",
+        justifyContent: "flex-end",
+        gap: "12px",
+        alignItems: "center",
+        maxWidth: "640px",
+        width: "100%",
+        paddingTop: "12px",
+        borderTop: "1px solid transparent",
     },
 });
 
-export let PublishProjectPage = () => {
-    const classes = useStyles();
-    const context = useContext(PublishProjectContext);
-    return (
-        <div className={classes.container}>
-            <h1>Publish Database Project</h1>
-            <div className={classes.message}>
-                {context.state.message || "Publish Project Dialog - Ready to configure"}
-            </div>
-        </div>
-    );
+type PublishFormContext = FormContextProps<
+    IPublishForm,
+    PublishDialogWebviewState,
+    PublishDialogFormItemSpec
+> & {
+    publishNow: () => void;
+    generatePublishScript: () => void;
+    openPublishAdvanced: () => void;
+    cancelPublish: () => void;
+    selectPublishProfile: () => void;
+    savePublishProfile: (profileName: string) => void;
 };
+
+function PublishProjectInner() {
+    const classes = useStyles();
+    const formStyles = useFormStyles();
+    const loc = LocConstants.getInstance().publishProject;
+    const context = useContext(PublishProjectContext) as PublishFormContext | undefined;
+
+    if (!context || !context.state) {
+        return <div className={classes.root}>Loading...</div>;
+    }
+
+    const state = context.state;
+
+    return (
+        <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
+            <div className={classes.root}>
+                <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
+                    <FormField<
+                        IPublishForm,
+                        PublishDialogWebviewState,
+                        PublishDialogFormItemSpec,
+                        PublishFormContext
+                    >
+                        context={context}
+                        component={state.formComponents.publishTarget as PublishDialogFormItemSpec}
+                        idx={0}
+                        props={{ orientation: "horizontal" }}
+                    />
+
+                    <PublishProfileField idx={1} />
+
+                    <FormField<
+                        IPublishForm,
+                        PublishDialogWebviewState,
+                        PublishDialogFormItemSpec,
+                        PublishFormContext
+                    >
+                        context={context}
+                        component={state.formComponents.serverName as PublishDialogFormItemSpec}
+                        idx={2}
+                        props={{ orientation: "horizontal" }}
+                    />
+                    <FormField<
+                        IPublishForm,
+                        PublishDialogWebviewState,
+                        PublishDialogFormItemSpec,
+                        PublishFormContext
+                    >
+                        context={context}
+                        component={state.formComponents.databaseName as PublishDialogFormItemSpec}
+                        idx={3}
+                        props={{ orientation: "horizontal" }}
+                    />
+
+                    <div style={{ marginTop: 8 }}>
+                        <Button appearance="subtle" onClick={() => context.openPublishAdvanced()}>
+                            {loc.advanced}
+                        </Button>
+                    </div>
+
+                    <div className={classes.footer}>
+                        <Button
+                            appearance="secondary"
+                            onClick={() => context.generatePublishScript()}>
+                            {loc.generateScript}
+                        </Button>
+                        <Button appearance="primary" onClick={() => context.publishNow()}>
+                            {loc.publish}
+                        </Button>
+                        <Button appearance="subtle" onClick={() => context.cancelPublish()}>
+                            {loc.cancel}
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    );
+}
+
+export default function PublishProjectPageWrapper() {
+    return (
+        <PublishProjectStateProvider>
+            <PublishProjectInner />
+        </PublishProjectStateProvider>
+    );
+}
