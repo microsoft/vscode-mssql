@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Toolbar } from "@fluentui/react-toolbar";
-import { Divider, makeStyles, shorthands } from "@fluentui/react-components";
+import { Button, Divider, makeStyles, shorthands } from "@fluentui/react-components";
 import { useContext } from "react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { DesignerChangesPreviewButton } from "./designerChangesPreviewButton";
+import * as FluentIcons from "@fluentui/react-icons";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     separator: {
@@ -26,8 +28,21 @@ export const DesignerPageRibbon = () => {
 
     return (
         <div>
-            <Toolbar size="small">
+            <Toolbar
+                size="small"
+                style={{
+                    paddingTop: "5px",
+                    paddingBottom: "5px",
+                }}>
                 <DesignerChangesPreviewButton />
+                <Button
+                    size="small"
+                    appearance="subtle"
+                    icon={<FluentIcons.Code16Filled />}
+                    title={locConstants.schemaDesigner.definition}
+                    onClick={() => designerContext.toggleDefinitionPane()}>
+                    {locConstants.schemaDesigner.definition}
+                </Button>
             </Toolbar>
             <Divider className={classes.separator} />
         </div>
