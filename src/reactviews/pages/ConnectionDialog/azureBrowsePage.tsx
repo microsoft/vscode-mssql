@@ -421,7 +421,8 @@ export const AzureBrowsePage = () => {
                                         setSelectedDatabase(db);
                                         setConnectionProperty("database", db ?? "");
                                     },
-                                    placeholder: `<${Loc.connectionDialog.default}>`,
+                                    // Formerly showed "<Default>" (root) placeholder; now omit since root selection is disallowed
+                                    placeholder: "",
                                     invalidOptionErrorMessage:
                                         Loc.connectionDialog.invalidAzureBrowse(
                                             Loc.connectionDialog.database,
