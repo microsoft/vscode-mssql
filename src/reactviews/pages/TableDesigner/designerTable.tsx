@@ -13,6 +13,7 @@ import {
     ArrowSortUpFilled,
     DeleteRegular,
     ReorderRegular,
+    SettingsRegular,
 } from "@fluentui/react-icons";
 import { useContext, useState } from "react";
 
@@ -27,7 +28,6 @@ export type DesignerTableProps = {
     model: designer.DesignerTableProperties;
     componentPath: (string | number)[];
     UiArea: designer.DesignerUIArea;
-    loadPropertiesTabData?: boolean;
 };
 
 export type ErrorPopupProps = {
@@ -45,13 +45,7 @@ const useStyles = fluentui.makeStyles({
     },
 });
 
-export const DesignerTable = ({
-    component,
-    model,
-    componentPath,
-    UiArea,
-    loadPropertiesTabData = true,
-}: DesignerTableProps) => {
+export const DesignerTable = ({ component, model, componentPath, UiArea }: DesignerTableProps) => {
     const tableProps = component.componentProperties as designer.DesignerTableProperties;
     const context = useContext(TableDesignerContext);
     if (!context) {
@@ -72,6 +66,14 @@ export const DesignerTable = ({
                 renderHeaderCell: () => <>{colProps?.componentProperties.title ?? column}</>,
             });
         });
+    if (UiArea !== "PropertiesView") {
+        columnsDef.push(
+            fluentui.createTableColumn({
+                columnId: "properties",
+                renderHeaderCell: () => <></>,
+            }),
+        );
+    }
     if (tableProps.canMoveRows) {
         columnsDef.unshift(
             fluentui.createTableColumn({
@@ -118,6 +120,13 @@ export const DesignerTable = ({
                 defaultWidth: colProps?.componentProperties.width ?? 70,
             };
         });
+        if (UiArea !== "PropertiesView") {
+            result["properties"] = {
+                minWidth: 24,
+                idealWidth: 24,
+                defaultWidth: 24,
+            };
+        }
         if (tableProps.canMoveRows) {
             result["dragHandle"] = {
                 minWidth: 15,
@@ -236,6 +245,25 @@ export const DesignerTable = ({
                             });
                         }}
                         title={locConstants.tableDesigner.remove(tableProps.objectTypeDisplayName!)}
+                    />
+                );
+            case "properties":
+                return (
+                    <fluentui.Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<SettingsRegular />}
+                        title={locConstants.tableDesigner.propertiesPaneTitle(
+                            tableProps.objectTypeDisplayName ?? "",
+                        )}
+                        onClick={() => {
+                            context?.setPropertiesComponents({
+                                componentPath: [...componentPath, row.rowId],
+                                component: component,
+                                model: model,
+                            });
+                            setFocusedRowId(rowIndex);
+                        }}
                     />
                 );
             default: {
@@ -404,20 +432,19 @@ export const DesignerTable = ({
                                         borderRight: border,
                                         marginTop: rowError ? "5px" : "",
                                     }}
-                                    onFocus={(event) => {
-                                        if (
-                                            !loadPropertiesTabData ||
-                                            tableProps.showItemDetailInPropertiesView === false
-                                        ) {
-                                            return;
-                                        }
-                                        context?.setPropertiesComponents({
-                                            componentPath: [...componentPath, row.rowId],
-                                            component: component,
-                                            model: model,
-                                        });
+                                    onFocus={(_event) => {
                                         setFocusedRowId(index);
-                                        event.preventDefault();
+                                        // If properties pane is already open, update its content to show this row's properties
+                                        if (
+                                            context.state.propertiesPaneData &&
+                                            UiArea !== "PropertiesView"
+                                        ) {
+                                            context?.setPropertiesComponents({
+                                                componentPath: [...componentPath, index],
+                                                component: component,
+                                                model: model,
+                                            });
+                                        }
                                     }}
                                     key={componentPath.join(".") + index}>
                                     {columnsDef.map((column, columnIndex) => {
