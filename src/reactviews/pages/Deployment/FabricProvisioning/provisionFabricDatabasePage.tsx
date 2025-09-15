@@ -3,14 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { Button, Card, makeStyles, Spinner, tokens } from "@fluentui/react-components";
-import { Checkmark20Regular, Circle20Regular, Dismiss20Regular } from "@fluentui/react-icons";
+import {
+    Checkmark20Regular,
+    ChevronLeft20Regular,
+    Circle20Regular,
+    Dismiss20Regular,
+} from "@fluentui/react-icons";
 import { FabricProvisioningHeader } from "./fabricProvisioningHeader";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProvisioning";
+import { FabricProvisioningInputForm } from "./fabricProvisioningInputForm";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -113,14 +119,30 @@ const useStyles = makeStyles({
         padding: "8px",
         textAlign: "left",
     },
+    backButton: {
+        position: "absolute",
+        top: "10px",
+        left: "10px",
+    },
 });
 
 export const ProvisionFabricDatabasePage: React.FC = () => {
     const classes = useStyles();
     const context = useContext(DeploymentContext);
+    const [showPrevious, setShowPrevious] = useState(false);
+
     const fabricProvisioningState = context?.state.deploymentTypeState as FabricProvisioningState;
 
-    if (!context || !fabricProvisioningState) return undefined;
+    if (!context || !fabricProvisioningState || showPrevious === undefined) return undefined;
+
+    const handleRetry = async () => {
+        await context.retryCreateDatabase();
+    };
+
+    const handleBack = async () => {
+        setShowPrevious(true);
+        await context.resetFormValidationState();
+    };
 
     const getStatusIcon = () => {
         let status: ApiStatus;
@@ -155,8 +177,19 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
         return headerText;
     };
 
-    return (
+    return showPrevious === true ? (
+        <FabricProvisioningInputForm />
+    ) : (
         <div>
+            {fabricProvisioningState.provisionLoadState === ApiStatus.Error && (
+                <Button
+                    className={classes.backButton}
+                    onClick={handleBack}
+                    appearance="transparent">
+                    <ChevronLeft20Regular style={{ marginRight: "4px" }} />
+                    {locConstants.common.back}
+                </Button>
+            )}
             <FabricProvisioningHeader />
             <div className={classes.outerDiv}>
                 <div className={classes.innerDiv}>
@@ -218,6 +251,22 @@ export const ProvisionFabricDatabasePage: React.FC = () => {
                             )}
                         </div>
                     </Card>
+                    {fabricProvisioningState.provisionLoadState === ApiStatus.Error && (
+                        <div className={classes.buttonDiv}>
+                            <Button
+                                className={classes.button}
+                                onClick={handleRetry}
+                                appearance="primary">
+                                {locConstants.common.retry}
+                            </Button>
+                            <Button
+                                className={classes.button}
+                                onClick={() => context.dispose()}
+                                appearance="secondary">
+                                {locConstants.common.cancel}
+                            </Button>
+                        </div>
+                    )}
                     {fabricProvisioningState.connectionLoadState === ApiStatus.Loaded && (
                         <div className={classes.buttonDiv}>
                             <Button
