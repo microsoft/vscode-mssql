@@ -4,14 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Tab, TabList } from "@fluentui/react-tabs";
-import {
-    CounterBadge,
-    Field,
-    Input,
-    Text,
-    makeStyles,
-    shorthands,
-} from "@fluentui/react-components";
+import { CounterBadge, Field, Input, Text, makeStyles } from "@fluentui/react-components";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
 import { useContext, useEffect, useState } from "react";
 import {
@@ -29,37 +22,29 @@ const useStyles = makeStyles({
     root: {
         width: "100%",
         height: "100%",
+        paddingTop: "10px",
+        paddingLeft: "10px",
+        paddingRight: "10px",
+        boxSizing: "border-box",
+        overflow: "auto",
+    },
+    content: {
         display: "flex",
         flexDirection: "column",
+        overflow: "auto",
+        flex: 1,
+        gap: "10px",
     },
     title: {
-        ...shorthands.margin("10px", "5px", "5px", "5px"),
-        gap: "10px",
         width: "400px",
         maxWidth: "100%",
         padding: "10px",
-        "> *": {
-            marginBottom: "10px",
-        },
-    },
-    separator: {
-        ...shorthands.margin("0px", "-20px", "0px", "0px"),
-        ...shorthands.padding("0px"),
-        fontSize: "5px",
-    },
-    form: {
-        height: "100%",
-        maxWidth: "100%",
-        overflow: "hidden",
     },
     tabButtonContainer: {
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        "> *": {
-            marginRight: "5px",
-        },
     },
 });
 
@@ -170,10 +155,14 @@ export const DesignerMainPane = () => {
 
     return (
         <div className={classes.root}>
-            <div className={classes.title}>
-                <Field label={locConstants.tableDesigner.tableName} orientation="horizontal">
+            <div className={classes.content}>
+                <Field
+                    size="small"
+                    label={locConstants.tableDesigner.tableName}
+                    orientation="horizontal"
+                    style={{ width: "300px" }}>
                     <Input
-                        size="medium"
+                        size="small"
                         value={tableName}
                         onChange={(_event, data) => {
                             setTableName(data.value);
@@ -189,9 +178,13 @@ export const DesignerMainPane = () => {
                         }}
                     />
                 </Field>
-                <Field label={locConstants.tableDesigner.schema} orientation="horizontal">
+                <Field
+                    size="small"
+                    label={locConstants.tableDesigner.schema}
+                    orientation="horizontal"
+                    style={{ width: "300px" }}>
                     <SearchableDropdown
-                        size="medium"
+                        size="small"
                         options={getSortedSchemaValues().map((option) => ({
                             value: option,
                         }))}
@@ -207,58 +200,35 @@ export const DesignerMainPane = () => {
                             value: schema,
                         }}
                     />
-                    {/* <Dropdown
-                        size="medium"
-                        value={schema}
-                        onOptionSelect={(_event, data) => {
-                            if (!data.optionValue) {
-                                return;
-                            }
-                            setSchema(data?.optionValue);
-                            context.processTableEdit({
-                                source: "TabsView",
-                                type: DesignerEditType.Update,
-                                path: ["schema"],
-                                value: data.optionValue,
-                            });
-                        }}
-                    >
-                        {
-                            // Sort schema values alphabetically
-                            getSortedSchemaValues().map((option) => {
-                                return <Option>{option}</Option>;
-                            })
-                        }
-                    </Dropdown> */}
                 </Field>
-            </div>
-            <TabList
-                size="small"
-                selectedValue={state.tabStates?.mainPaneTab}
-                onTabSelect={(_event, data) => {
-                    context.setTab(data.value as DesignerMainPaneTabs);
-                    context.setPropertiesComponents(undefined);
-                }}>
-                {state.view?.tabs.map((tab) => {
-                    const ariaLabel = getTabAriaLabel(tab.id);
-                    return (
-                        <Tab title={ariaLabel} value={tab.id} key={tab.id}>
-                            <div className={classes.tabButtonContainer}>
-                                <Text>{tab.title}</Text>
-                                {getCurrentTabIssuesCount(tab.id) > 0 && (
-                                    <CounterBadge
-                                        color="important"
-                                        size="small"
-                                        title={getTableIssuesCountLabel(tab.id)}
-                                        count={getCurrentTabIssuesCount(tab.id)}
-                                    />
-                                )}
-                            </div>
-                        </Tab>
-                    );
-                })}
-            </TabList>
-            <div className={classes.form}>
+                <TabList
+                    size="small"
+                    selectedValue={state.tabStates?.mainPaneTab}
+                    onTabSelect={(_event, data) => {
+                        context.setTab(data.value as DesignerMainPaneTabs);
+                        context.setPropertiesComponents(undefined);
+                    }}>
+                    {state.view?.tabs.map((tab) => {
+                        const ariaLabel = getTabAriaLabel(tab.id);
+                        return (
+                            <Tab title={ariaLabel} value={tab.id} key={tab.id}>
+                                <div className={classes.tabButtonContainer}>
+                                    <Text>{tab.title}</Text>
+                                    {getCurrentTabIssuesCount(tab.id) > 0 && (
+                                        <CounterBadge
+                                            color="important"
+                                            size="small"
+                                            title={getTableIssuesCountLabel(tab.id)}
+                                            count={getCurrentTabIssuesCount(tab.id)}
+                                            style={{ marginLeft: "6px" }}
+                                        />
+                                    )}
+                                </div>
+                            </Tab>
+                        );
+                    })}
+                </TabList>
+
                 {state.view?.tabs.map((tab) => {
                     return (
                         <div
