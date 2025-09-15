@@ -3892,6 +3892,10 @@
     <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
       <source xml:lang="en">Type</source>
     </trans-unit>
+    <trans-unit id="++CODE++42e6c5ad1e91dbc1117d11a06c9c8e77abe8ab091d68d4447b85e9c124c3e0ee">
+      <source xml:lang="en">Unable to enforce default User Connections group: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++e395097d9cde221cdb9af8b04e1073d0d3394439fce660d1c954d012cdeae6c1">
       <source xml:lang="en">Unable to execute the command while the extension is initializing. Please try again later.</source>
     </trans-unit>
