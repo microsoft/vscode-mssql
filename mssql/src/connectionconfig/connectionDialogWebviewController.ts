@@ -266,7 +266,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 }
             }
         } catch (err) {
-            this.logger.error(`Unable to enforce default User Connections group: ${err}`);
+            this.logger.error(Loc.unableToEnforceDefaultUserConnectionsGroup(getErrorMessage(err)));
         }
 
         await this.updateItemVisibility();
