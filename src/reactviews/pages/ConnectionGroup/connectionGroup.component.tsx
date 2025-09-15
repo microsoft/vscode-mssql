@@ -20,6 +20,12 @@ import {
     Popover,
     PopoverTrigger,
     PopoverSurface,
+    InputOnChangeData,
+    TextareaOnChangeData,
+    Dropdown,
+    Option,
+    OptionOnSelectData,
+    SelectionEvents,
 } from "@fluentui/react-components";
 import {
     ColorArea,
@@ -101,7 +107,8 @@ export const ConnectionGroupDialog = ({
     const [popoverOpen, setPopoverOpen] = useState(false);
     const [scope, setScope] = useState(state.scope || "user");
 
-    const handleChange: ColorPickerProps["onColorChange"] = (_, data) => {
+    // Explicitly remove undefined from the possible type so parameters are contextually typed
+    const handleChange: NonNullable<ColorPickerProps["onColorChange"]> = (_event, data) => {
         setColor({ ...data.color, a: 1 });
     };
 
@@ -148,16 +155,16 @@ export const ConnectionGroupDialog = ({
                                     <br />
                                 </>
                             )}{" "}
-                            <Field className={formStyles.formComponentDiv} label={"Scope"} required>
-                                <select
-                                    value={scope}
-                                    onChange={(e) =>
-                                        setScope(e.target.value as "user" | "workspace")
-                                    }
-                                    style={{ width: "100%", padding: "8px", fontSize: "16px" }}>
-                                    <option value="user">User Connections</option>
-                                    <option value="workspace">Workspace Connections</option>
-                                </select>
+                            <Field className={formStyles.formComponentDiv} label="Scope" required>
+                                <Dropdown
+                                    selectedOptions={[scope]}
+                                    onOptionSelect={(
+                                        _e: SelectionEvents,
+                                        data: OptionOnSelectData,
+                                    ) => setScope(data.optionValue as "user" | "workspace")}>
+                                    <Option value="user">User Connections</Option>
+                                    <Option value="workspace">Workspace Connections</Option>
+                                </Dropdown>
                             </Field>
                             <Field
                                 className={formStyles.formComponentDiv}
@@ -165,7 +172,10 @@ export const ConnectionGroupDialog = ({
                                 required>
                                 <Input
                                     value={groupName}
-                                    onChange={(_e, data) => {
+                                    onChange={(
+                                        _e: React.ChangeEvent<HTMLInputElement>,
+                                        data: InputOnChangeData,
+                                    ) => {
                                         setGroupName(data.value);
                                     }}
                                     required
@@ -177,7 +187,10 @@ export const ConnectionGroupDialog = ({
                                 label={Loc.connectionGroups.description}>
                                 <Textarea
                                     value={description}
-                                    onChange={(_e, data) => {
+                                    onChange={(
+                                        _e: React.ChangeEvent<HTMLTextAreaElement>,
+                                        data: TextareaOnChangeData,
+                                    ) => {
                                         setDescription(data.value);
                                     }}
                                     placeholder={Loc.connectionGroups.enterDescription}
