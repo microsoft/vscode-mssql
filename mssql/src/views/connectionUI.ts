@@ -484,11 +484,10 @@ export class ConnectionUI {
             })
             .sort((a, b) => a.displayName.localeCompare(b.displayName));
 
+        // Always put the create option first, then list existing groups. Root is intentionally excluded so
+        // users cannot place new connections at the implicit ROOT level. "User Connections" will always
+        // exist (created during initialization) and will appear in the sorted list.
         return [
-            {
-                displayName: LocalizedConstants.ConnectionDialog.default,
-                value: rootId,
-            },
             {
                 displayName: LocalizedConstants.ConnectionDialog.createConnectionGroup,
                 value: CREATE_NEW_GROUP_ID,
@@ -501,7 +500,16 @@ export class ConnectionUI {
      * Save a connection profile using the connection store
      */
     public async saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
-        // Set scope based on group
+        // Prevent saving a profile directly under ROOT; remap to User Connections if necessary
+        const rootId = this._connectionStore.rootGroupId;
+        if (profile.groupId === rootId) {
+            const userGroupId = this._connectionStore.connectionConfig.getUserConnectionsGroupId();
+            if (userGroupId) {
+                profile.groupId = userGroupId;
+            }
+        }
+
+        // Set scope based on (possibly updated) group
         const group = this._connectionStore.connectionConfig.getGroupById(profile.groupId);
         profile.scope = group?.scope || "user";
         return await this._connectionStore.saveProfile(profile);

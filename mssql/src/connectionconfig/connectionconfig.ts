@@ -649,6 +649,17 @@ export class ConnectionConfig implements IConnectionConfig {
             }
         }
 
+        // Reparent any existing USER connections that are still directly under ROOT (legacy <Default>) to User Connections group
+        for (const conn of userConnections) {
+            if (!conn.groupId || conn.groupId === rootGroup.id) {
+                conn.groupId = userConnectionsGroup.id;
+                madeChanges = true;
+                this._logger.logDebug(
+                    `Reparented legacy user connection '${getConnectionDisplayName(conn)}' from ROOT to 'User Connections'`,
+                );
+            }
+        }
+
         // Reparent all workspace connections directly under ROOT to Workspace Connections group
         for (const conn of workspaceConnections) {
             if (!conn.groupId || conn.groupId === rootGroup.id) {
