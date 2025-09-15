@@ -169,7 +169,6 @@ export const DesignerPropertiesPane = () => {
                                                 ...propertiesPaneData!.componentPath,
                                                 item.propertyName,
                                             ]}
-                                            loadPropertiesTabData={false}
                                             key={`${group}-${item.propertyName}`}
                                         />
                                     );

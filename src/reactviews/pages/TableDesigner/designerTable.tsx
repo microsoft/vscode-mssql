@@ -28,7 +28,6 @@ export type DesignerTableProps = {
     model: designer.DesignerTableProperties;
     componentPath: (string | number)[];
     UiArea: designer.DesignerUIArea;
-    loadPropertiesTabData?: boolean;
 };
 
 export type ErrorPopupProps = {
