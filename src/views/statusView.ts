@@ -44,7 +44,6 @@ class FileStatusBar {
 export default class StatusView implements vscode.Disposable {
     private _statusBars: { [fileUri: string]: FileStatusBar };
     private _lastShownStatusBar: FileStatusBar;
-    private _onDidChangeActiveTextEditorEvent: vscode.Disposable;
     private _onDidCloseTextDocumentEvent: vscode.Disposable;
     private _connectionStore: ConnectionStore;
 
