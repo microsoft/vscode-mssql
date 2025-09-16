@@ -654,8 +654,9 @@ export default class ConnectionManager {
                 }
                 await self.handleConnectionErrors(fileUri, connection, result);
             }
-
-            await self.tryAddMruConnection(connection);
+            if (!result.errorMessage || result.errorNumber !== 0) {
+                await self.tryAddMruConnection(connection);
+            }
         };
     }
 
@@ -784,6 +785,12 @@ export default class ConnectionManager {
                 result.errorMessage ? result.errorMessage : result.messages,
             ),
         );
+        /**
+         * Making sure to clean up the connection if it exists since the connection failed
+         * and firing the onConnectionsChanged event so UI elements like codelens can update.
+         */
+        delete this._connections[fileUri];
+        this._onConnectionsChangedEmitter.fire();
         sendErrorEvent(
             TelemetryViews.ConnectionPrompt,
             TelemetryActions.CreateConnectionResult,
@@ -1065,7 +1072,7 @@ export default class ConnectionManager {
             }
 
             this.removeActiveConnection(fileUri);
-            vscode.commands.executeCommand("setContext", "mssql.connections", this._connections);
+            this.updateConnectionsContext();
             return result;
         } else if (this.isConnecting(fileUri)) {
             // Prompt the user to cancel connecting
@@ -1074,6 +1081,22 @@ export default class ConnectionManager {
         } else {
             return true;
         }
+    }
+
+    private updateConnectionsContext() {
+        /**
+         * Making sure we keep encodings in the context. We need to convert the keys
+         * to Uri and back to string because the keys in _connections might have skipped encoding.
+         * This is done to match the behavior of how vscode core handles resource URIs in
+         * contexts.
+         * https://github.com/microsoft/vscode/blob/bb5a3c607b14787009f8e9fadb720beee596133c/src/vs/workbench/common/contextkeys.ts#L261C1-L262C1
+         */
+        const connectionContext = [];
+        Object.keys(this._connections).forEach((key) => {
+            const Uri = vscode.Uri.parse(key);
+            connectionContext.push(Uri.toString());
+        });
+        vscode.commands.executeCommand("setContext", "mssql.connections", connectionContext);
     }
 
     /**
@@ -1381,11 +1404,7 @@ export default class ConnectionManager {
                 if (error) {
                     reject(error);
                 } else {
-                    vscode.commands.executeCommand(
-                        "setContext",
-                        "mssql.connections",
-                        this._connections,
-                    );
+                    this.updateConnectionsContext();
                     resolve(connectResult);
                 }
             };
