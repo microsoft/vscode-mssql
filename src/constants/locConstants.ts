@@ -1187,9 +1187,6 @@ export class PublishProject {
     public static PublishTargetLabel = l10n.t("Publish Target");
     public static PublishTargetExisting = l10n.t("Existing SQL server");
     public static PublishTargetContainer = l10n.t("Local development container");
-    public static UpgradeExistingLabel = l10n.t("Upgrade existing database");
-    public static BuildBeforePublishLabel = l10n.t("Build project before publish");
-    public static Advanced = l10n.t("Advanced...");
     public static GenerateScript = l10n.t("Generate Script");
     public static Publish = l10n.t("Publish");
 }

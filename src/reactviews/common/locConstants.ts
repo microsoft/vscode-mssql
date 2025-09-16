@@ -882,11 +882,8 @@ export class LocConstants {
         return {
             SelectProfile: l10n.t("Select Profile"),
             SaveAs: l10n.t("Save As..."),
-            advanced: l10n.t("Advanced"),
-            advancedOptions: l10n.t("Advanced Publish Options"),
             generateScript: l10n.t("Generate Script"),
             publish: l10n.t("Publish"),
-            cancel: l10n.t("Cancel"),
         };
     }
 
