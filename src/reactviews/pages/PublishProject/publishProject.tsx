@@ -7,7 +7,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { PublishProjectStateProvider, PublishProjectContext } from "./publishProjectStateProvider";
@@ -19,6 +19,7 @@ import {
 } from "../../../sharedInterfaces/publishDialog";
 import { FormContextProps } from "../../../sharedInterfaces/form";
 import PublishProfileField from "./components/PublishProfile";
+import { PublishAdvancedOptionsDrawer } from "./components/publishAdvancedOptionsDrawer";
 
 const useStyles = makeStyles({
     root: { padding: "12px" },
@@ -53,6 +54,7 @@ function PublishProjectInner() {
     const formStyles = useFormStyles();
     const loc = LocConstants.getInstance().publishProject;
     const context = useContext(PublishProjectContext) as PublishFormContext | undefined;
+    const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
     if (!context || !context.state) {
         return <div className={classes.root}>Loading...</div>;
@@ -64,45 +66,44 @@ function PublishProjectInner() {
         <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
             <div className={classes.root}>
                 <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
-                    <FormField<
-                        IPublishForm,
-                        PublishDialogWebviewState,
-                        PublishDialogFormItemSpec,
-                        PublishFormContext
-                    >
-                        context={context}
-                        component={state.formComponents.publishTarget as PublishDialogFormItemSpec}
-                        idx={0}
-                        props={{ orientation: "horizontal" }}
-                    />
+                    {state.connectionComponents?.mainOptions.map((optionName, idx) => {
+                        if (!optionName) {
+                            return null;
+                        }
 
-                    <PublishProfileField idx={1} />
+                        if ((optionName as string) === "profileName") {
+                            return <PublishProfileField key={String(optionName)} idx={idx} />;
+                        }
 
-                    <FormField<
-                        IPublishForm,
-                        PublishDialogWebviewState,
-                        PublishDialogFormItemSpec,
-                        PublishFormContext
-                    >
-                        context={context}
-                        component={state.formComponents.serverName as PublishDialogFormItemSpec}
-                        idx={2}
-                        props={{ orientation: "horizontal" }}
-                    />
-                    <FormField<
-                        IPublishForm,
-                        PublishDialogWebviewState,
-                        PublishDialogFormItemSpec,
-                        PublishFormContext
-                    >
-                        context={context}
-                        component={state.formComponents.databaseName as PublishDialogFormItemSpec}
-                        idx={3}
-                        props={{ orientation: "horizontal" }}
+                        const component = state.formComponents[
+                            optionName as keyof IPublishForm
+                        ] as PublishDialogFormItemSpec;
+                        if (!component || component.hidden === true) {
+                            return null;
+                        }
+                        return (
+                            <FormField<
+                                IPublishForm,
+                                PublishDialogWebviewState,
+                                PublishDialogFormItemSpec,
+                                PublishFormContext
+                            >
+                                key={String(optionName)}
+                                context={context}
+                                component={component}
+                                idx={idx}
+                                props={{ orientation: "horizontal" }}
+                            />
+                        );
+                    })}
+
+                    <PublishAdvancedOptionsDrawer
+                        isOpen={isAdvancedOpen}
+                        onDismiss={() => setIsAdvancedOpen(false)}
                     />
 
                     <div style={{ marginTop: 8 }}>
-                        <Button appearance="subtle" onClick={() => context.openPublishAdvanced()}>
+                        <Button appearance="secondary" onClick={() => setIsAdvancedOpen(true)}>
                             {loc.advanced}
                         </Button>
                     </div>

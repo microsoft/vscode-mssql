@@ -2629,13 +2629,16 @@ export default class MainController implements vscode.Disposable {
      * This method normalizes the arguments and launches the Schema Compare UI.
      */
     public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
-        const schemaCompareWebView = new PublishProjectWebViewController(
+        const defaultsPublishOptions =
+            await this.schemaCompareService.schemaCompareGetDefaultOptions();
+        const publishProjectWebView = new PublishProjectWebViewController(
             this._context,
             this._vscodeWrapper,
             projectFilePath,
+            defaultsPublishOptions,
         );
 
-        schemaCompareWebView.revealToForeground();
+        publishProjectWebView.revealToForeground();
     }
 
     /**
