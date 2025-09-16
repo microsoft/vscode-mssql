@@ -654,7 +654,7 @@ export default class ConnectionManager {
                 }
                 await self.handleConnectionErrors(fileUri, connection, result);
             }
-            if (!result.errorMessage || result.errorNumber !== 0) {
+            if (!result.errorMessage) {
                 await self.tryAddMruConnection(connection);
             }
         };
@@ -785,12 +785,6 @@ export default class ConnectionManager {
                 result.errorMessage ? result.errorMessage : result.messages,
             ),
         );
-        /**
-         * Making sure to clean up the connection if it exists since the connection failed
-         * and firing the onConnectionsChanged event so UI elements like codelens can update.
-         */
-        delete this._connections[fileUri];
-        this._onConnectionsChangedEmitter.fire();
         sendErrorEvent(
             TelemetryViews.ConnectionPrompt,
             TelemetryActions.CreateConnectionResult,
@@ -1205,6 +1199,11 @@ export default class ConnectionManager {
                     return false;
                 }
             }
+
+            // Clean up failed connection and fire event to update UI elements like codelens
+            delete this._connections[fileUri];
+            this._onConnectionsChangedEmitter.fire();
+            return false;
         } else {
             return true;
         }
