@@ -705,6 +705,10 @@
         <source xml:lang="en">Close Find</source>
         <target state="translated">Fermer la recherche</target>
       </trans-unit>
+      <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
+        <source xml:lang="en">Close properties pane</source>
+        <target state="new">Close properties pane</target>
+      </trans-unit>
       <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
         <source xml:lang="en">Close the current connection</source>
         <target state="translated">Fermer la connexion actuelle</target>
@@ -1627,6 +1631,10 @@ Erreur :
       <trans-unit id="++CODE++48ad32aba89e3b0bbab4397b56bd23794212fe69606e0b644ff3b543035a048d">
         <source xml:lang="en">Expand Workspace Explorer</source>
         <target state="translated">Développer l’Explorateur de l’espace de travail</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
+        <source xml:lang="en">Expand properties pane</source>
+        <target state="new">Expand properties pane</target>
       </trans-unit>
       <trans-unit id="++CODE++c39d646f10769b078ae82be4da7a0079ca91182b241e749be4276e08c215c654">
         <source xml:lang="en">Explorer</source>
@@ -3174,6 +3182,10 @@ Erreur :
       <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
         <source xml:lang="en">Restore panel size</source>
         <target state="translated">Restaurer la taille du panneau</target>
+      </trans-unit>
+      <trans-unit id="++CODE++26b4293018ea72418733109f2e245387d9dfcfe7d4083c0c1f29eb1155c98365">
+        <source xml:lang="en">Restore properties pane</source>
+        <target state="new">Restore properties pane</target>
       </trans-unit>
       <trans-unit id="++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c">
         <source xml:lang="en">Result Set {0}</source>
