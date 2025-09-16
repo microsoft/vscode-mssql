@@ -7,7 +7,7 @@
    components exactly like the Connection dialog. */
 
 import * as vscode from "vscode";
-import { FormItemType } from "../sharedInterfaces/form";
+import * as mssql from "vscode-mssql";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { PublishProject as Loc } from "../constants/locConstants";
@@ -17,6 +17,7 @@ import {
     PublishDialogFormItemSpec,
     IPublishForm,
 } from "../sharedInterfaces/publishDialog";
+import { generatePublishFormComponents } from "./formComponentHelpers";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -24,10 +25,18 @@ export class PublishProjectWebViewController extends FormWebviewController<
     PublishDialogFormItemSpec,
     PublishDialogReducers
 > {
+    public static mainOptions: readonly (keyof IPublishForm)[] = [
+        "publishTarget",
+        "profileName",
+        "serverName",
+        "databaseName",
+    ];
+
     constructor(
         context: vscode.ExtensionContext,
         _vscodeWrapper: VscodeWrapper,
         projectFilePath: string,
+        schemaCompareOptionsResult?: mssql.SchemaCompareOptionsResult,
     ) {
         const initialFormState: IPublishForm = {
             profileName: "",
@@ -37,61 +46,21 @@ export class PublishProjectWebViewController extends FormWebviewController<
             sqlCmdVariables: {},
         };
 
-        const formComponents: Partial<Record<keyof IPublishForm, PublishDialogFormItemSpec>> = {
-            profileName: {
-                propertyName: "profileName",
-                type: FormItemType.Input,
-                label: Loc.ProfileLabel,
-                required: false,
-                placeholder: Loc.ProfilePlaceholder ?? "",
-            },
-            serverName: {
-                propertyName: "serverName",
-                type: FormItemType.Input,
-                label: Loc.ServerLabel,
-                required: false,
-                placeholder: Loc.ServerLabel ?? "",
-            },
-            databaseName: {
-                propertyName: "databaseName",
-                type: FormItemType.Input,
-                label: Loc.DatabaseLabel,
-                required: true,
-                placeholder: Loc.DatabaseLabel ?? "",
-                validate: (_state, value) => {
-                    const isValid = (value as string).trim().length > 0;
-                    return {
-                        isValid,
-                        validationMessage: isValid ? "" : (Loc.DatabaseRequiredMessage ?? ""),
-                    };
-                },
-            },
-            publishTarget: {
-                propertyName: "publishTarget",
-                type: FormItemType.Dropdown,
-                label: Loc.PublishTargetLabel,
-                required: true,
-                options: [
-                    {
-                        displayName: Loc.PublishTargetExisting ?? "Existing SQL server",
-                        value: "existingServer",
-                    },
-                    {
-                        displayName: Loc.PublishTargetContainer ?? "Local development container",
-                        value: "localContainer",
-                    },
-                ],
-            },
-        };
-
         const initialState: PublishDialogWebviewState = {
             formState: initialFormState,
-            formComponents,
+            formComponents: {},
             projectFilePath,
             inProgress: false,
             lastPublishResult: undefined,
             message: undefined,
-        };
+            connectionComponents: {
+                mainOptions: [
+                    ...(PublishProjectWebViewController.mainOptions as (keyof IPublishForm)[]),
+                ],
+                groupedAdvancedOptions: [],
+            } as any,
+            defaultDeploymentOptionsResult: schemaCompareOptionsResult,
+        } as PublishDialogWebviewState;
 
         super(context, _vscodeWrapper, "publishDialog", "publishDialog", initialState, {
             title: Loc.Title,
@@ -105,6 +74,28 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 ),
             },
         });
+
+        // async initialize so component generation can be async (mirrors connection dialog pattern)
+        void this.initializeDialog(projectFilePath);
+    }
+
+    private async initializeDialog(projectFilePath: string) {
+        // Load publish form components
+        this.state.formComponents = await generatePublishFormComponents();
+
+        // Configure which items are main vs advanced
+        this.state.connectionComponents = {
+            mainOptions: [...PublishProjectWebViewController.mainOptions],
+            groupedAdvancedOptions: [],
+        } as any;
+
+        // keep initial project path and computed database name
+        if (projectFilePath) {
+            this.state.projectFilePath = projectFilePath;
+        }
+
+        await this.updateItemVisibility();
+        this.updateState();
     }
 
     protected get reducers() {
@@ -173,15 +164,22 @@ export class PublishProjectWebViewController extends FormWebviewController<
     }
 
     protected getActiveFormComponents(_state: PublishDialogWebviewState) {
-        return [
-            "publishTarget",
-            "profileName",
-            "serverName",
-            "databaseName",
-        ] as (keyof IPublishForm)[];
+        return [...PublishProjectWebViewController.mainOptions];
     }
 
     public async updateItemVisibility(): Promise<void> {
+        const hidden: (keyof IPublishForm)[] = [];
+
+        // Example visibility: local container target doesn't require a server name
+        if (this.state.formState?.publishTarget === "localContainer") {
+            hidden.push("serverName");
+        }
+
+        for (const component of Object.values(this.state.formComponents)) {
+            // mark hidden if the property is in hidden list
+            component.hidden = hidden.includes(component.propertyName as keyof IPublishForm);
+        }
+
         return;
     }
 }
