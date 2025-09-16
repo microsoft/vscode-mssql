@@ -38,16 +38,17 @@ export default class SqlDocumentService implements vscode.Disposable {
     private _connectionMgr: ConnectionManager | undefined;
     private _outputContentProvider: SqlOutputContentProvider | undefined;
     private _statusview: StatusView | undefined;
-    private _objectExplorerService: ObjectExplorerService | undefined;
 
     constructor(private _mainController: MainController) {
         // In unit tests mocks may provide an undefined main controller; guard initialization.
         this._connectionMgr = this._mainController?.connectionManager;
         this._outputContentProvider = this._mainController?.outputContentProvider;
         this._statusview = this._mainController?.statusview;
-        this._objectExplorerService =
-            this._mainController?.objectEpxplorerProvider?.objectExplorerService;
         this.setupListeners();
+    }
+
+    public get objectExplorerService(): ObjectExplorerService | undefined {
+        return this._mainController?.objectEpxplorerProvider?.objectExplorerService;
     }
 
     private setupListeners(): void {
@@ -289,7 +290,7 @@ export default class SqlDocumentService implements vscode.Disposable {
         // Establish connection if needed
         if (
             connectionConfig?.shouldConnect &&
-            connectionConfig.connectionInfo &&
+            connectionConfig?.connectionInfo &&
             this._connectionMgr
         ) {
             const connectionPromise = new Deferred<boolean>();
@@ -305,7 +306,7 @@ export default class SqlDocumentService implements vscode.Disposable {
                 /**
                  * Skip creating an Object Explorer session if one already exists for the connection.
                  */
-                if (!this._objectExplorerService?.hasSession(connectionConfig.connectionInfo)) {
+                if (!this.objectExplorerService?.hasSession(connectionConfig.connectionInfo)) {
                     await this._mainController.createObjectExplorerSession(
                         connectionConfig.connectionInfo,
                     );
