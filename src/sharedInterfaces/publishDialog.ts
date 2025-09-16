@@ -5,6 +5,7 @@
 
 import { FormItemSpec, FormState, FormReducers } from "./form";
 import { RequestType } from "vscode-jsonrpc/browser";
+import * as mssql from "vscode-mssql";
 
 /**
  * Data fields shown in the Publish form.
@@ -26,16 +27,22 @@ export interface PublishDialogWebviewState
     projectFilePath: string;
     inProgress: boolean;
     lastPublishResult?: any;
+    connectionComponents?: {
+        mainOptions: (keyof IPublishForm)[];
+        groupedAdvancedOptions?: { groupName?: string; options: (keyof IPublishForm)[] }[];
+    };
+    defaultDeploymentOptionsResult?: mssql.SchemaCompareOptionsResult;
 }
 
 /**
  * Form item specification for Publish dialog fields.
  */
-export type PublishDialogFormItemSpec = FormItemSpec<
-    IPublishForm,
-    PublishDialogWebviewState,
-    PublishDialogFormItemSpec
->;
+export interface PublishDialogFormItemSpec
+    extends FormItemSpec<IPublishForm, PublishDialogWebviewState, PublishDialogFormItemSpec> {
+    isAdvancedOption?: boolean;
+    optionCategory?: string;
+    optionCategoryLabel?: string;
+}
 
 /**
  * Reducers (messages) the controller supports in addition to the generic form actions.
