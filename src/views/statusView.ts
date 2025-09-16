@@ -13,7 +13,7 @@ import * as ConnectionContracts from "../models/contracts/connection";
 import * as Utils from "../models/utils";
 import { ConnectionStore } from "../models/connectionStore";
 import { IConnectionProfile } from "../models/interfaces";
-import { getUriKey, trimDisplayString } from "../utils/utils";
+import { getUriKey } from "../utils/utils";
 
 // Status bar element for each file in the editor
 class FileStatusBar {
@@ -198,6 +198,26 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusConnection);
     }
 
+    /**
+     * Trims the given display string to the specified maximum length, adding an ellipsis if trimmed.
+     * Since status bar has limited space, this helps to avoid a status bar item occupying too much space.
+     * @param displayString long display string
+     * @param maxLength maximum length of the string, 0 for empty string, negative or undefined for no limit
+     * @returns trimmed display string
+     */
+    private trimDisplayString(displayString: string, maxLength: number): string {
+        let result = displayString;
+        if (maxLength === undefined || maxLength < 0) {
+            return result;
+        }
+        if (maxLength === 0) {
+            result = "";
+        } else if (maxLength > 0 && result.length > maxLength) {
+            result = result.slice(0, maxLength) + " \u2026"; // add ellipsis
+        }
+        return result;
+    }
+
     public async connectSuccess(
         fileUri: string,
         connCreds: IConnectionInfo,
@@ -208,13 +228,13 @@ export default class StatusView implements vscode.Disposable {
         const statusBarConnectionInfoMaxLength: number = vscode.workspace
             .getConfiguration(Constants.extensionConfigSectionName)
             .get(Constants.configStatusBarConnectionInfoMaxLength);
-        bar.statusConnection.text = trimDisplayString(
+        bar.statusConnection.text = this.trimDisplayString(
             `$(check) ${ConnInfo.generateServerDisplayName(connCreds)}`,
             statusBarConnectionInfoMaxLength,
         );
         bar.statusConnection.tooltip = ConnInfo.getTooltip(connCreds, serverInfo);
 
-        bar.statusChangeDatabase.text = trimDisplayString(
+        bar.statusChangeDatabase.text = this.trimDisplayString(
             ConnInfo.generateDatabaseDisplayName(connCreds, true),
             statusBarConnectionInfoMaxLength,
         );

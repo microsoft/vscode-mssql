@@ -113,19 +113,3 @@ export function getEditorEOL(): string {
         ? os.EOL
         : vscode.workspace.getConfiguration("files").get<string>("eol");
 }
-
-/**
- * Trims the given display string to the specified maximum length, adding an ellipsis if trimmed.
- * @param displayString long display string
- * @param maxLength maximum length of the string, 0 for empty string, negative or undefined for no limit
- * @returns trimmed display string
- */
-export function trimDisplayString(displayString: string, maxLength: number): string {
-    let result = displayString;
-    if (maxLength === 0) {
-        result = "";
-    } else if (maxLength > 0 && result.length > maxLength) {
-        result = result.slice(0, maxLength) + " \u2026"; // add ellipsis
-    }
-    return result;
-}
