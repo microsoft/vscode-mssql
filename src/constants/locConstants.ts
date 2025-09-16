@@ -1193,6 +1193,8 @@ export const PublishProject = {
     GenerateScript: "Generate Script",
     Publish: "Publish",
     Cancel: "Cancel",
+    PublishOptions: "Publish Options",
+    ExcludeOptions: "Exclude Options",
 };
 
 export class SchemaCompare {

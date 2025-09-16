@@ -3,9 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/* Refactored to use the FormWebviewController pattern so the webview can render FormField
-   components exactly like the Connection dialog. */
-
 import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 import { FormWebviewController } from "../forms/formWebviewController";
@@ -68,7 +65,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
             },
         });
 
-        // async initialize so component generation can be async (mirrors connection dialog pattern)
+        // Initialize so component generation can be async
         void this.initializeDialog(projectFilePath);
     }
 
@@ -110,7 +107,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
         );
 
         reducerMap.set("publishNow", async (state: PublishDialogWebviewState) => {
-            // Placeholder publish action; replace with deploy logic.
             state.inProgress = false;
             this.updateState(state);
             return state;

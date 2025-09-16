@@ -27,11 +27,12 @@ export interface PublishDialogWebviewState
 /**
  * Form item specification for Publish dialog fields.
  */
-export type PublishDialogFormItemSpec = FormItemSpec<
-    IPublishForm,
-    PublishDialogWebviewState,
-    PublishDialogFormItemSpec
->;
+export interface PublishDialogFormItemSpec
+    extends FormItemSpec<IPublishForm, PublishDialogWebviewState, PublishDialogFormItemSpec> {
+    isAdvancedOption?: boolean;
+    optionCategory?: string;
+    optionCategoryLabel?: string;
+}
 
 /**
  * Reducers (messages) the controller supports in addition to the generic form actions.
