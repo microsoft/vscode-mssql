@@ -2648,8 +2648,8 @@ export default class MainController implements vscode.Disposable {
         const tableExplorerWebView = new TableExplorerWebViewController(
             this._context,
             this._vscodeWrapper,
-            // this.tableExplorerService,
-            // this._connectionMgr,
+            this.tableExplorerService,
+            this._connectionMgr,
             node,
         );
 

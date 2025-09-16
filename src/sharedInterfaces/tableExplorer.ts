@@ -174,6 +174,8 @@ export interface TableExplorerWebViewState {
     schemaName?: string;
     connectionProfile?: IConnectionProfile;
     isLoading: boolean;
+    ownerUri: string;
+    resultSet: EditSubsetResult | undefined;
     tableMetadata?: any; // This would be more specific based on actual metadata structure
 }
 

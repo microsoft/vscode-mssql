@@ -8,12 +8,17 @@ import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelCon
 import {
     TableExplorerWebViewState,
     TableExplorerReducers,
+    EditSessionReadyParams,
+    EditSubsetResult,
 } from "../sharedInterfaces/tableExplorer";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
-// import ConnectionManager from "../controllers/connectionManager";
+import ConnectionManager from "../controllers/connectionManager";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
-// import { TableExplorerService } from "../services/tableExplorerService";
+import { TableExplorerService } from "../services/tableExplorerService";
+import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
+import { NotificationHandler } from "vscode-languageclient";
+import { Deferred } from "../protocol";
 
 export class TableExplorerWebViewController extends ReactWebviewPanelController<
     TableExplorerWebViewState,
@@ -22,8 +27,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
-        // private _tableExplorerService: TableExplorerService,
-        // private _connectionManager: ConnectionManager,
+        private _tableExplorerService: TableExplorerService,
+        private _connectionManager: ConnectionManager,
         private _targetNode: TreeNodeInfo,
     ) {
         const tableName = _targetNode?.metadata?.name || "Table";
@@ -42,6 +47,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 connectionProfile: _targetNode?.connectionProfile,
                 schemaName: _targetNode?.metadata?.schema || "dbo",
                 isLoading: false,
+                ownerUri: "",
+                resultSet: undefined,
             },
             {
                 title: `Table Explorer: ${tableName}`,
@@ -81,10 +88,68 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             return;
         }
 
-        this.logger.info(`Initializing table explorer for table: ${this.state.tableName}`);
+        this._tableExplorerService.sqlToolsClient.onNotification(
+            EditSessionReadyNotification.type,
+            this.handleEditSessionReadyNotification(),
+        );
 
-        // Update the state with initial information
-        this.updateState(this.state);
+        const schemaName = this.state.schemaName;
+        const objectName = this.state.tableName;
+        const ownerUri = schemaName
+            ? `untitled:${schemaName}.${objectName}`
+            : `untitled:${objectName}`;
+
+        const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
+        const limitResults = 200;
+
+        let connectionCreds = Object.assign({}, this._targetNode.connectionProfile);
+        const databaseName = ObjectExplorerUtils.getDatabaseName(this._targetNode);
+
+        if (
+            !this._connectionManager.isConnected(ownerUri) ||
+            connectionCreds.database !== databaseName
+        ) {
+            connectionCreds.database = databaseName;
+            if (!this._connectionManager.isConnecting(ownerUri)) {
+                const promise = new Deferred<boolean>();
+                await this._connectionManager.connect(ownerUri, connectionCreds, promise);
+                await promise;
+            }
+        }
+
+        await this._tableExplorerService.initialize(
+            ownerUri,
+            objectName,
+            schemaName,
+            objectType,
+            undefined,
+            limitResults,
+        );
+    }
+
+    private handleEditSessionReadyNotification(): NotificationHandler<EditSessionReadyParams> {
+        const self = this;
+        return (result: EditSessionReadyParams): void => {
+            if (result.success) {
+                self.state.ownerUri = result.ownerUri;
+                self.updateState();
+
+                void self.loadResultSet();
+            }
+        };
+    }
+
+    private async loadResultSet(): Promise<void> {
+        const subsetResult = await this._tableExplorerService.subset(this.state.ownerUri, 0, 200);
+
+        const result: EditSubsetResult = {
+            rowCount: subsetResult.rowCount,
+            subset: subsetResult.subset,
+        };
+
+        this.state.resultSet = result;
+
+        this.updateState();
     }
 
     private registerRpcHandlers(): void {
