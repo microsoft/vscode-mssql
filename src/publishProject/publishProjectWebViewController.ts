@@ -117,11 +117,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
             return state;
         });
 
-        reducerMap.set("openPublishAdvanced", async (state: PublishDialogWebviewState) => {
-            this.updateState(state);
-            return state;
-        });
-
         reducerMap.set("selectPublishProfile", async (state: PublishDialogWebviewState) => {
             this.updateState(state);
             return state;

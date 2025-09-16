@@ -15,7 +15,6 @@ import {
 } from "../../../sharedInterfaces/publishDialog";
 import { FormContextProps } from "../../../sharedInterfaces/form";
 import PublishProfileField from "./components/PublishProfile";
-import { PublishAdvancedOptionsDrawer } from "./components/publishAdvancedOptionsDrawer";
 
 const useStyles = makeStyles({
     root: { padding: "12px" },
@@ -39,7 +38,6 @@ type PublishFormContext = FormContextProps<
 > & {
     publishNow: () => void;
     generatePublishScript: () => void;
-    openPublishAdvanced: () => void;
     selectPublishProfile: () => void;
     savePublishProfile: (profileName: string) => void;
 };
