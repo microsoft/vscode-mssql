@@ -7,7 +7,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { SlickgridReactInstance, Column, GridOption, SlickgridReact } from "slickgrid-react";
 import { EditSubsetResult } from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
-import "../../media/slickgrid.css";
+import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 
 interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
