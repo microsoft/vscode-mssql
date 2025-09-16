@@ -63,6 +63,7 @@ export default class StatusView implements vscode.Disposable {
             if (this._statusBars.hasOwnProperty(bar)) {
                 this._statusBars[bar].statusLanguageFlavor.dispose();
                 this._statusBars[bar].statusConnection.dispose();
+                this._statusBars[bar].statusChangeDatabase.dispose();
                 this._statusBars[bar].statusQuery.dispose();
                 this._statusBars[bar].statusLanguageService.dispose();
                 this._statusBars[bar].sqlCmdMode.dispose();
@@ -73,7 +74,6 @@ export default class StatusView implements vscode.Disposable {
                 delete this._statusBars[bar];
             }
         }
-        this._onDidChangeActiveTextEditorEvent.dispose();
         this._onDidCloseTextDocumentEvent.dispose();
     }
 
