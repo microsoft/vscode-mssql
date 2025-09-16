@@ -3,10 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
 import { useContext } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
@@ -64,48 +60,36 @@ function PublishProjectInner() {
         <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
             <div className={classes.root}>
                 <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
-                    <FormField<
-                        IPublishForm,
-                        PublishDialogWebviewState,
-                        PublishDialogFormItemSpec,
-                        PublishFormContext
-                    >
-                        context={context}
-                        component={state.formComponents.publishTarget as PublishDialogFormItemSpec}
-                        idx={0}
-                        props={{ orientation: "horizontal" }}
-                    />
+                    {state.connectionComponents?.mainOptions.map((optionName, idx) => {
+                        if (!optionName) {
+                            return null;
+                        }
 
-                    <PublishProfileField idx={1} />
+                        if ((optionName as string) === "profileName") {
+                            return <PublishProfileField key={String(optionName)} idx={idx} />;
+                        }
 
-                    <FormField<
-                        IPublishForm,
-                        PublishDialogWebviewState,
-                        PublishDialogFormItemSpec,
-                        PublishFormContext
-                    >
-                        context={context}
-                        component={state.formComponents.serverName as PublishDialogFormItemSpec}
-                        idx={2}
-                        props={{ orientation: "horizontal" }}
-                    />
-                    <FormField<
-                        IPublishForm,
-                        PublishDialogWebviewState,
-                        PublishDialogFormItemSpec,
-                        PublishFormContext
-                    >
-                        context={context}
-                        component={state.formComponents.databaseName as PublishDialogFormItemSpec}
-                        idx={3}
-                        props={{ orientation: "horizontal" }}
-                    />
-
-                    <div style={{ marginTop: 8 }}>
-                        <Button appearance="subtle" onClick={() => context.openPublishAdvanced()}>
-                            {loc.advanced}
-                        </Button>
-                    </div>
+                        const component = state.formComponents[
+                            optionName as keyof IPublishForm
+                        ] as PublishDialogFormItemSpec;
+                        if (!component || component.hidden === true) {
+                            return null;
+                        }
+                        return (
+                            <FormField<
+                                IPublishForm,
+                                PublishDialogWebviewState,
+                                PublishDialogFormItemSpec,
+                                PublishFormContext
+                            >
+                                key={String(optionName)}
+                                context={context}
+                                component={component}
+                                idx={idx}
+                                props={{ orientation: "horizontal" }}
+                            />
+                        );
+                    })}
 
                     <div className={classes.footer}>
                         <Button

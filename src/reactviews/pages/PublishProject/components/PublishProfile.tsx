@@ -5,7 +5,7 @@
 
 import { Button, makeStyles } from "@fluentui/react-components";
 import { useContext } from "react";
-import { FormField } from "../../../common/forms/form.component";
+import { FormField, useFormStyles } from "../../../common/forms/form.component";
 import { LocConstants } from "../../../common/locConstants";
 import {
     IPublishForm,
@@ -30,8 +30,8 @@ type PublishFormContext = FormContextProps<
 const useStyles = makeStyles({
     root: {
         display: "flex",
-        flexDirection: "row",
-        alignItems: "flex-end",
+        flexDirection: "column",
+        alignItems: "stretch",
         gap: "8px",
         maxWidth: "640px",
         width: "100%",
@@ -41,6 +41,7 @@ const useStyles = makeStyles({
         flexDirection: "row",
         gap: "4px",
         paddingBottom: "4px",
+        alignSelf: "flex-end",
     },
     fieldContainer: {
         flexGrow: 1,
@@ -55,17 +56,18 @@ const useStyles = makeStyles({
 export default function PublishProfileField(props: { idx: number }) {
     const { idx } = props;
     const classes = useStyles();
+    const formStyles = useFormStyles();
     const loc = LocConstants.getInstance().publishProject;
     const context = useContext(PublishProjectContext) as PublishFormContext | undefined;
 
     if (!context || !context.state) {
-        return null;
+        return undefined;
     }
 
     const component = context.state.formComponents.profileName as PublishDialogFormItemSpec;
 
     return (
-        <div className={classes.root}>
+        <div className={`${formStyles.formComponentDiv} ${classes.root}`}>
             <div className={classes.fieldContainer}>
                 <FormField<
                     IPublishForm,
