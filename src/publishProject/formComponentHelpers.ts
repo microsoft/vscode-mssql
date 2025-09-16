@@ -24,21 +24,18 @@ export async function generatePublishFormComponents(): Promise<
             label: Loc.ProfileLabel,
             required: false,
             type: FormItemType.Input,
-            isAdvancedOption: false,
         },
         serverName: {
             propertyName: "serverName",
             label: Loc.ServerLabel,
             required: false,
             type: FormItemType.Input,
-            isAdvancedOption: false,
         },
         databaseName: {
             propertyName: "databaseName",
             label: Loc.DatabaseLabel,
             required: true,
             type: FormItemType.Input,
-            isAdvancedOption: false,
             validate: (_state: PublishDialogWebviewState, value: string) => {
                 const isValid = (value ?? "").trim().length > 0;
                 return { isValid, validationMessage: isValid ? "" : Loc.DatabaseRequiredMessage };
@@ -49,7 +46,6 @@ export async function generatePublishFormComponents(): Promise<
             label: Loc.PublishTargetLabel,
             required: true,
             type: FormItemType.Dropdown,
-            isAdvancedOption: false,
             options: [
                 {
                     displayName: Loc.PublishTargetExisting,

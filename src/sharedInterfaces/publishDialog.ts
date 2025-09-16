@@ -17,15 +17,11 @@ export interface IPublishForm {
     sqlCmdVariables?: { [key: string]: string };
 }
 
-/**
- * Webview state for the Publish dialog (form + runtime fields).
- */
 export interface PublishDialogWebviewState
     extends FormState<IPublishForm, PublishDialogWebviewState, PublishDialogFormItemSpec> {
-    message: any;
     projectFilePath: string;
     inProgress: boolean;
-    lastPublishResult?: any;
+    lastPublishResult?: { success: boolean; details?: string };
 }
 
 /**
@@ -59,7 +55,6 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     };
     generatePublishScript: {};
     openPublishAdvanced: {};
-    cancelPublish: {};
     selectPublishProfile: {};
     savePublishProfile: { profileName: string };
 }

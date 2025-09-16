@@ -52,13 +52,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
             projectFilePath,
             inProgress: false,
             lastPublishResult: undefined,
-            message: undefined,
-            connectionComponents: {
-                mainOptions: [
-                    ...(PublishProjectWebViewController.mainOptions as (keyof IPublishForm)[]),
-                ],
-                groupedAdvancedOptions: [],
-            } as any,
             defaultDeploymentOptionsResult: schemaCompareOptionsResult,
         } as PublishDialogWebviewState;
 
@@ -83,12 +76,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Load publish form components
         this.state.formComponents = await generatePublishFormComponents();
 
-        // Configure which items are main vs advanced
-        this.state.connectionComponents = {
-            mainOptions: [...PublishProjectWebViewController.mainOptions],
-            groupedAdvancedOptions: [],
-        } as any;
-
         // keep initial project path and computed database name
         if (projectFilePath) {
             this.state.projectFilePath = projectFilePath;
@@ -99,11 +86,18 @@ export class PublishProjectWebViewController extends FormWebviewController<
     }
 
     protected get reducers() {
-        const reducerMap = new Map<any, any>();
+        type ReducerFn = (
+            state: PublishDialogWebviewState,
+            payload: unknown,
+        ) => Promise<PublishDialogWebviewState>;
+        const reducerMap = new Map<string, ReducerFn>();
 
         reducerMap.set(
             "setPublishValues",
-            async (state: PublishDialogWebviewState, payload: any) => {
+            async (
+                state: PublishDialogWebviewState,
+                payload: Partial<IPublishForm> & { projectFilePath?: string },
+            ) => {
                 if (payload) {
                     state.formState = { ...state.formState, ...payload };
                     if (payload.projectFilePath) {
@@ -115,46 +109,34 @@ export class PublishProjectWebViewController extends FormWebviewController<
             },
         );
 
-        reducerMap.set("publishNow", async (state: PublishDialogWebviewState, _payload: any) => {
+        reducerMap.set("publishNow", async (state: PublishDialogWebviewState) => {
             // Placeholder publish action; replace with deploy logic.
             state.inProgress = false;
-            state.message = { type: "info", text: "Publish action placeholder." };
             this.updateState(state);
             return state;
         });
 
         reducerMap.set("generatePublishScript", async (state: PublishDialogWebviewState) => {
-            state.message = { type: "info", text: "Generate script placeholder." };
             this.updateState(state);
             return state;
         });
 
         reducerMap.set("openPublishAdvanced", async (state: PublishDialogWebviewState) => {
-            state.message = { type: "info", text: "Advanced settings placeholder." };
-            this.updateState(state);
-            return state;
-        });
-
-        reducerMap.set("cancelPublish", async (state: PublishDialogWebviewState) => {
-            state.inProgress = false;
-            state.message = { type: "info", text: "Publish canceled." };
             this.updateState(state);
             return state;
         });
 
         reducerMap.set("selectPublishProfile", async (state: PublishDialogWebviewState) => {
-            state.message = { type: "info", text: "Select profile placeholder." };
             this.updateState(state);
             return state;
         });
 
         reducerMap.set(
             "savePublishProfile",
-            async (state: PublishDialogWebviewState, payload: any) => {
+            async (state: PublishDialogWebviewState, payload: { profileName?: string }) => {
                 if (payload?.profileName) {
                     state.formState.profileName = payload.profileName;
                 }
-                state.message = { type: "info", text: "Save profile placeholder." };
                 this.updateState(state);
                 return state;
             },
