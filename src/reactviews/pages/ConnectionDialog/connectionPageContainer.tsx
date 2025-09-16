@@ -45,8 +45,7 @@ import { AddFirewallRuleDialog } from "../AddFirewallRule/addFirewallRule.compon
 import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
 import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
 import { FabricBrowsePage } from "./fabricBrowsePage";
-import { AzureIcon, AzureIcon2 } from "../../common/icons/azure";
-import { FabricIcon } from "../../common/icons/fabric";
+import { AzureIcon20, FabricIcon20 } from "../../common/icons/fluentIcons";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
     switch (connectionDialogContext?.state.selectedInputMode) {
@@ -194,11 +193,7 @@ export const ConnectionInfoFormContainer = () => {
                                 value={ConnectionInputMode.AzureBrowse}
                                 label={
                                     <div className={styles.inputLink}>
-                                        <AzureIcon2
-                                            height="20px"
-                                            width="20px"
-                                            style={{ marginRight: "8px" }}
-                                        />
+                                        <AzureIcon20 style={{ marginRight: "8px" }} />
                                         {locConstants.connectionDialog.browseAzure}
                                     </div>
                                 }
@@ -207,12 +202,7 @@ export const ConnectionInfoFormContainer = () => {
                                 value={ConnectionInputMode.FabricBrowse}
                                 label={
                                     <div className={styles.inputLink}>
-                                        <FabricIcon
-                                            alt={"Fabric"}
-                                            height="20px"
-                                            width="20px"
-                                            style={{ marginRight: "8px" }}
-                                        />
+                                        <FabricIcon20 style={{ marginRight: "8px" }} />
                                         {locConstants.connectionDialog.browseFabric}
                                     </div>
                                 }
