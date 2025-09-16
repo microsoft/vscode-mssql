@@ -4,17 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React from "react";
-import { useTableExplorerContext } from "./TableExplorerStateProvider";
-import { TableDataGrid } from "./TableDataGrid";
+// import { useTableExplorerContext } from "./TableExplorerStateProvider";
+// import { TableDataGrid } from "./TableDataGrid";
+import TableDataGrid2 from "./TableDataGrid2";
 
 export const TableExplorerPage: React.FC = () => {
-    const context = useTableExplorerContext();
-    const state = context?.state;
+    // const context = useTableExplorerContext();
+    // const state = context?.state;
 
     return (
         <div style={{ padding: "20px" }}>
             <h1>Table Explorer</h1>
-            {state?.tableName && (
+            {/* {state?.tableName && (
                 <div style={{ marginBottom: "20px" }}>
                     <p>
                         <strong>Table:</strong> {state.tableName}
@@ -26,9 +27,12 @@ export const TableExplorerPage: React.FC = () => {
                         <strong>Server:</strong> {state.serverName}
                     </p>
                 </div>
-            )}
+            )} */}
 
-            {state?.resultSet ? (
+            <h2>Table Data</h2>
+            <TableDataGrid2 />
+
+            {/* {state?.resultSet ? (
                 <div>
                     <h2>Table Data</h2>
                     <TableDataGrid
@@ -43,7 +47,7 @@ export const TableExplorerPage: React.FC = () => {
                 <p>Loading table data...</p>
             ) : (
                 <p>No data available</p>
-            )}
+            )} */}
         </div>
     );
 };
