@@ -5,6 +5,7 @@
 
 import React from "react";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
+import { TableDataGrid } from "./TableDataGrid";
 
 export const TableExplorerPage: React.FC = () => {
     const context = useTableExplorerContext();
@@ -14,7 +15,7 @@ export const TableExplorerPage: React.FC = () => {
         <div style={{ padding: "20px" }}>
             <h1>Table Explorer</h1>
             {state?.tableName && (
-                <div>
+                <div style={{ marginBottom: "20px" }}>
                     <p>
                         <strong>Table:</strong> {state.tableName}
                     </p>
@@ -25,6 +26,23 @@ export const TableExplorerPage: React.FC = () => {
                         <strong>Server:</strong> {state.serverName}
                     </p>
                 </div>
+            )}
+
+            {state?.resultSet ? (
+                <div>
+                    <h2>Table Data</h2>
+                    <TableDataGrid
+                        resultSet={state.resultSet}
+                        tableMetadata={state.tableMetadata}
+                        tableName={state.tableName}
+                        schemaName={state.schemaName}
+                        themeKind={context?.themeKind}
+                    />
+                </div>
+            ) : state?.isLoading ? (
+                <p>Loading table data...</p>
+            ) : (
+                <p>No data available</p>
             )}
         </div>
     );
