@@ -253,8 +253,6 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdShowGettingStarted, async () => {
                 await this.launchGettingStartedPage();
             });
-            this.registerCommand(Constants.cmdNewQuery);
-            this._event.on(Constants.cmdNewQuery, () => this.runAndLogErrors(this.onNewQuery()));
             this.registerCommand(Constants.cmdRebuildIntelliSenseCache);
             this._event.on(Constants.cmdRebuildIntelliSenseCache, () => {
                 this.onRebuildIntelliSense();
@@ -392,7 +390,10 @@ export default class MainController implements vscode.Disposable {
 
                 if (!alreadyActive) {
                     treeNodeInfo.updateConnectionProfile(connectionCredentials);
-                    await this.onNewQuery(treeNodeInfo);
+                    await this.sqlDocumentService.newQuery({
+                        connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                        connectionInfo: connectionCredentials,
+                    });
 
                     // Check if the new editor was created
                     activeEditor = vscode.window.activeTextEditor;
@@ -1352,28 +1353,6 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdAddObjectExplorerLegacy, (args) => {
             vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, args);
         });
-
-        // Object Explorer New Query
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdObjectExplorerNewQuery,
-                async (treeNodeInfo: TreeNodeInfo) => {
-                    const connectionCredentials = treeNodeInfo.connectionProfile;
-                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
-
-                    if (
-                        databaseName !== connectionCredentials.database &&
-                        databaseName !== LocalizedConstants.defaultDatabaseLabel
-                    ) {
-                        connectionCredentials.database = databaseName;
-                    } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
-                        connectionCredentials.database = "";
-                    }
-                    treeNodeInfo.updateConnectionProfile(connectionCredentials);
-                    await self.onNewQuery(treeNodeInfo);
-                },
-            ),
-        );
 
         // Remove Object Explorer Node
         this._context.subscriptions.push(
@@ -2519,66 +2498,6 @@ export default class MainController implements vscode.Disposable {
      */
     private async launchGettingStartedPage(): Promise<void> {
         await vscode.env.openExternal(vscode.Uri.parse(Constants.gettingStartedGuideLink));
-    }
-
-    /**
-     * Opens a new query and creates new connection. Connection precedence is:
-     * 1. User right-clicked on an OE node and selected "New Query": use that node's connection profile
-     * 2. User triggered "New Query" from command palette and the active document has a connection: copy that to the new document
-     * 3. User triggered "New Query" from command palette while they have a connected OE node selected: use that node's connection profile
-     * 4. User triggered "New Query" from command palette and there's no reasonable context: prompt for connection to use
-     */
-    public async onNewQuery(node?: TreeNodeInfo, content?: string): Promise<boolean> {
-        if (!this.canRunCommand()) {
-            return;
-        }
-
-        let activeEditor = vscode.window.activeTextEditor;
-
-        let connectionCreds: IConnectionInfo | undefined;
-        let nodeType: string | undefined;
-
-        if (node) {
-            // Case 1: User right-clicked on an OE node and selected "New Query"
-            connectionCreds = node.connectionProfile;
-            nodeType = node.nodeType;
-        } else if (activeEditor) {
-            // Case 2: User triggered "New Query" from command palette and the active document has a connection
-            connectionCreds = undefined;
-            nodeType = "previousEditor";
-        } else if (this.objectExplorerTree.selection?.length === 1) {
-            // Case 3: User triggered "New Query" from command palette while they have a connected OE node selected
-            connectionCreds = this.objectExplorerTree.selection[0].connectionProfile;
-            nodeType = this.objectExplorerTree.selection[0].nodeType;
-        }
-
-        if (connectionCreds) {
-            await this.connectionManager.handlePasswordBasedCredentials(connectionCreds);
-        }
-
-        await this.sqlDocumentService.newQuery({
-            content,
-            connectionStrategy: connectionCreds
-                ? ConnectionStrategy.CopyConnectionFromInfo
-                : ConnectionStrategy.PromptForConnection,
-            connectionInfo: connectionCreds,
-        });
-
-        await this.connectionManager.connectionStore.removeRecentlyUsed(
-            connectionCreds as IConnectionProfile,
-        );
-
-        sendActionEvent(
-            TelemetryViews.CommandPalette,
-            TelemetryActions.NewQuery,
-            {
-                nodeType: nodeType,
-                isContainer: connectionCreds?.containerName ? "true" : "false",
-            },
-            undefined,
-            connectionCreds as IConnectionProfile,
-            this._connectionMgr.getServerInfo(connectionCreds),
-        );
     }
 
     /**
