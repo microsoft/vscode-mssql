@@ -337,6 +337,10 @@ export class SqlOutputContentProvider {
                 executionPlanOptions?.includeActualExecutionPlanXml,
             this._actualPlanStatuses.includes(uri),
         );
+        if (isOpenQueryResultsInTabByDefaultEnabled()) {
+            await this._queryResultWebviewController.createPanelController(queryRunner.uri);
+            await new Promise<void>((resolve) => setTimeout(resolve, 300));
+        }
         if (queryRunner) {
             void queryCallback(queryRunner);
         }
@@ -371,9 +375,6 @@ export class SqlOutputContentProvider {
                 );
                 resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                 resultWebviewState.isExecutionPlan = false;
-                if (isOpenQueryResultsInTabByDefaultEnabled()) {
-                    await this._queryResultWebviewController.createPanelController(queryRunner.uri);
-                }
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 this.revealQueryResult(queryRunner.uri);
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {

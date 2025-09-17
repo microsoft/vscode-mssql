@@ -15,6 +15,7 @@ import {
     makeStyles,
     shorthands,
     Text,
+    Spinner,
 } from "@fluentui/react-components";
 import {
     DataGridBody,
@@ -642,20 +643,33 @@ export const QueryResultPane = () => {
         <div className={classes.root}>
             <div className={classes.noResultsContainer}>
                 <div className={classes.noResultsScrollablePane}>
-                    <div className={classes.noResultsIcon} aria-hidden>
-                        <DatabaseSearch24Regular />
-                    </div>
-                    <Title3>{locConstants.queryResult.noResultsHeader}</Title3>
-                    <Text>{locConstants.queryResult.noResultMessage}</Text>
-                    <Link
-                        className={classes.hidePanelLink}
-                        onClick={async () => {
-                            await context.extensionRpc.sendRequest(ExecuteCommandRequest.type, {
-                                command: "workbench.action.closePanel",
-                            });
-                        }}>
-                        {locConstants.queryResult.clickHereToHideThisPanel}
-                    </Link>
+                    {webviewLocation === "document" ? (
+                        <Spinner
+                            label={locConstants.queryResult.loadingResultsMessage}
+                            labelPosition="below"
+                            size="large"
+                        />
+                    ) : (
+                        <>
+                            <div className={classes.noResultsIcon} aria-hidden>
+                                <DatabaseSearch24Regular />
+                            </div>
+                            <Title3>{locConstants.queryResult.noResultsHeader}</Title3>
+                            <Text>{locConstants.queryResult.noResultMessage}</Text>
+                            <Link
+                                className={classes.hidePanelLink}
+                                onClick={async () => {
+                                    await context.extensionRpc.sendRequest(
+                                        ExecuteCommandRequest.type,
+                                        {
+                                            command: "workbench.action.closePanel",
+                                        },
+                                    );
+                                }}>
+                                {locConstants.queryResult.clickHereToHideThisPanel}
+                            </Link>
+                        </>
+                    )}
                 </div>
             </div>
         </div>
