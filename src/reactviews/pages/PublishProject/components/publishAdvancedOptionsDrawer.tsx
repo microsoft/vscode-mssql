@@ -59,7 +59,7 @@ const useStyles = makeStyles({
     },
 });
 
-type AdvancedOptionGroup = { groupName?: string; options: (keyof IPublishForm)[] };
+type AdvancedOptionGroup = { groupName?: string; options: (keyof IPublishForm | string)[] };
 
 export const PublishAdvancedOptionsDrawer = ({
     isOpen,
@@ -80,8 +80,17 @@ export const PublishAdvancedOptionsDrawer = ({
         return undefined;
     }
 
-    const groupedOptions: AdvancedOptionGroup[] =
-        context.state.connectionComponents?.groupedAdvancedOptions ?? [];
+    const formComponents = context.state.formComponents as Record<
+        string,
+        PublishDialogFormItemSpec
+    >;
+
+    const groupedOptions: AdvancedOptionGroup[] = Array.isArray(context.state.advancedGroups)
+        ? (context.state.advancedGroups as {
+              groupName: string;
+              options: (keyof IPublishForm | string)[];
+          }[])
+        : [];
 
     const isOptionVisible = (option: PublishDialogFormItemSpec) => {
         if (!searchSettingsText) {
@@ -95,9 +104,7 @@ export const PublishAdvancedOptionsDrawer = ({
     };
 
     const doesGroupHaveVisibleOptions = (group: AdvancedOptionGroup) =>
-        group.options.some((name) =>
-            isOptionVisible(context.state.formComponents[name] as PublishDialogFormItemSpec),
-        );
+        group.options.some((name) => isOptionVisible(formComponents[String(name)]));
 
     return (
         <OverlayDrawer
@@ -153,25 +160,19 @@ export const PublishAdvancedOptionsDrawer = ({
                                 <AccordionPanel>
                                     {group.options
                                         .filter((name) =>
-                                            isOptionVisible(
-                                                context.state.formComponents[
-                                                    name
-                                                ] as PublishDialogFormItemSpec,
-                                            ),
+                                            isOptionVisible(formComponents[String(name)]),
                                         )
                                         .sort((aName, bName) => {
                                             const aLabel = (
-                                                context.state.formComponents[aName]!.label ?? ""
+                                                formComponents[String(aName)]?.label ?? ""
                                             ).toString();
                                             const bLabel = (
-                                                context.state.formComponents[bName]!.label ?? ""
+                                                formComponents[String(bName)]?.label ?? ""
                                             ).toString();
                                             return aLabel.localeCompare(bLabel);
                                         })
                                         .map((name, idx) => {
-                                            const component = context.state.formComponents[
-                                                name
-                                            ] as PublishDialogFormItemSpec;
+                                            const component = formComponents[String(name)];
                                             if (component.type === "checkbox") {
                                                 const checked = Boolean(
                                                     context.state.formState[component.propertyName],

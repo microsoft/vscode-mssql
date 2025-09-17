@@ -24,6 +24,7 @@ export interface PublishDialogWebviewState
     inProgress: boolean;
     lastPublishResult?: { success: boolean; details?: string };
     defaultDeploymentOptionsResult?: mssql.SchemaCompareOptionsResult;
+    advancedGroups?: { groupName: string; options: (keyof IPublishForm | string)[] }[];
 }
 
 /**

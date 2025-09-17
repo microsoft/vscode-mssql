@@ -14,7 +14,7 @@ import {
     PublishDialogFormItemSpec,
     IPublishForm,
 } from "../sharedInterfaces/publishDialog";
-import { generatePublishFormComponents } from "./formComponentHelpers";
+import { generatePublishFormComponents, groupAdvancedOptions } from "./formComponentHelpers";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -71,7 +71,51 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
     private async initializeDialog(projectFilePath: string) {
         // Load publish form components
-        this.state.formComponents = await generatePublishFormComponents();
+        this.state.formComponents = await generatePublishFormComponents(
+            this.state.defaultDeploymentOptionsResult,
+        );
+        this.state.advancedGroups = groupAdvancedOptions(
+            this.state.formComponents as Record<string, PublishDialogFormItemSpec>,
+        );
+
+        // if schema compare defaults were passed in, map matching option keys into formState
+        const defaults = this.state.defaultDeploymentOptionsResult?.defaultDeploymentOptions;
+        const formComponents = this.state.formComponents as Record<
+            string,
+            PublishDialogFormItemSpec
+        >;
+        if (defaults) {
+            // boolean options -> set matching form fields
+            const bools = defaults.booleanOptionsDictionary ?? {};
+            for (const key of Object.keys(bools)) {
+                if (formComponents[key]) {
+                    // dynamic boolean option field
+                    (this.state.formState as Record<string, unknown>)[key] = bools[key].value;
+                }
+            }
+
+            // excludeObjectTypes -> if publish form has matching control
+            if (
+                (defaults as mssql.DeploymentOptions).excludeObjectTypes &&
+                formComponents["excludeObjectTypes"]
+            ) {
+                (this.state.formState as Record<string, unknown>)["excludeObjectTypes"] = (
+                    defaults as mssql.DeploymentOptions
+                ).excludeObjectTypes!.value;
+            }
+
+            // exclude object types defaults -> set per-object checkbox components (exclude_{type})
+            const excludedList: string[] =
+                (defaults as mssql.DeploymentOptions).excludeObjectTypes?.value ?? [];
+            const objectTypes = defaults.objectTypesDictionary ?? {};
+            for (const key of Object.keys(objectTypes)) {
+                const propName = `exclude_${key}`;
+                if (formComponents[propName]) {
+                    (this.state.formState as Record<string, unknown>)[propName] =
+                        excludedList.includes(key);
+                }
+            }
+        }
 
         // keep initial project path and computed database name
         if (projectFilePath) {

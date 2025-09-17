@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { PublishProjectStateProvider, PublishProjectContext } from "./publishProjectStateProvider";
@@ -15,6 +15,7 @@ import {
 } from "../../../sharedInterfaces/publishDialog";
 import { FormContextProps } from "../../../sharedInterfaces/form";
 import PublishProfileField from "./components/PublishProfile";
+import { PublishAdvancedOptionsDrawer } from "./components/publishAdvancedOptionsDrawer";
 
 const useStyles = makeStyles({
     root: { padding: "12px" },
@@ -53,6 +54,7 @@ function PublishProjectInner() {
     }
 
     const state = context.state;
+    const [advancedOpen, setAdvancedOpen] = useState(false);
 
     // Static list of main publish dialog options
     const mainOptions: (keyof IPublishForm)[] = [
@@ -63,53 +65,59 @@ function PublishProjectInner() {
     ];
 
     return (
-        <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
-            <div className={classes.root}>
-                <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
-                    {mainOptions.map((optionName, idx) => {
-                        if (!optionName) {
-                            return undefined;
-                        }
-
-                        if ((optionName as string) === "profileName") {
-                            return <PublishProfileField key={String(optionName)} idx={idx} />;
-                        }
-
-                        const component = state.formComponents[
-                            optionName as keyof IPublishForm
-                        ] as PublishDialogFormItemSpec;
-                        if (!component || component.hidden === true) {
-                            return undefined;
-                        }
-                        return (
-                            <FormField<
-                                IPublishForm,
-                                PublishDialogWebviewState,
-                                PublishDialogFormItemSpec,
-                                PublishFormContext
-                            >
-                                key={String(optionName)}
-                                context={context}
-                                component={component}
-                                idx={idx}
-                                props={{ orientation: "horizontal" }}
-                            />
-                        );
-                    })}
-
-                    <div className={classes.footer}>
-                        <Button
-                            appearance="secondary"
-                            onClick={() => context.generatePublishScript()}>
-                            {loc.generateScript}
-                        </Button>
-                        <Button appearance="primary" onClick={() => context.publishNow()}>
-                            {loc.publish}
-                        </Button>
+        <>
+            <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
+                <div className={classes.root}>
+                    <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
+                        {mainOptions.map((optionName, idx) => {
+                            if (!optionName) {
+                                return undefined;
+                            }
+                            if ((optionName as string) === "profileName") {
+                                return <PublishProfileField key={String(optionName)} idx={idx} />;
+                            }
+                            const component = state.formComponents[
+                                optionName as keyof IPublishForm
+                            ] as PublishDialogFormItemSpec;
+                            if (!component || component.hidden === true) {
+                                return undefined;
+                            }
+                            return (
+                                <FormField<
+                                    IPublishForm,
+                                    PublishDialogWebviewState,
+                                    PublishDialogFormItemSpec,
+                                    PublishFormContext
+                                >
+                                    key={String(optionName)}
+                                    context={context}
+                                    component={component}
+                                    idx={idx}
+                                    props={{ orientation: "horizontal" }}
+                                />
+                            );
+                        })}
+                        <div className={classes.footer}>
+                            <Button appearance="secondary" onClick={() => setAdvancedOpen(true)}>
+                                {loc.advanced}
+                            </Button>
+                            <Button
+                                appearance="secondary"
+                                onClick={() => context.generatePublishScript()}>
+                                {loc.generateScript}
+                            </Button>
+                            <Button appearance="primary" onClick={() => context.publishNow()}>
+                                {loc.publish}
+                            </Button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </form>
+            </form>
+            <PublishAdvancedOptionsDrawer
+                isOpen={advancedOpen}
+                onDismiss={() => setAdvancedOpen(false)}
+            />
+        </>
     );
 }
 
