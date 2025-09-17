@@ -339,7 +339,6 @@ export class SqlOutputContentProvider {
         );
         if (isOpenQueryResultsInTabByDefaultEnabled()) {
             await this._queryResultWebviewController.createPanelController(queryRunner.uri);
-            await new Promise<void>((resolve) => setTimeout(resolve, 300));
         }
         if (queryRunner) {
             void queryCallback(queryRunner);

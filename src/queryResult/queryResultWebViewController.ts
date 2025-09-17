@@ -237,6 +237,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         controller.revealToForeground();
         this._queryResultWebviewPanelControllerMap.set(uri, controller);
         this.showSplashScreen();
+        await controller.whenWebviewReady();
     }
 
     public addQueryResultState(
