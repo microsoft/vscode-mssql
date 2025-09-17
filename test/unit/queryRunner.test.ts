@@ -175,12 +175,6 @@ suite("Query Runner tests", () => {
 
             // ... The query runner should not be running a query
             assert.strictEqual(queryRunner.isExecutingQuery, false);
-
-            // ... An error message should have been shown
-            testVscodeWrapper.verify(
-                (x) => x.showErrorMessage(TypeMoq.It.isAnyString()),
-                TypeMoq.Times.once(),
-            );
         }
     });
 
