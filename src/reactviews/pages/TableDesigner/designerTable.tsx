@@ -44,7 +44,6 @@ const useStyles = fluentui.makeStyles({
         width: "14px",
     },
     tableHeaderCellText: {
-        fontWeight: "600",
         textAlign: "center",
         width: "100%",
     },
@@ -68,6 +67,28 @@ const useStyles = fluentui.makeStyles({
         "&:last-child": {
             borderRight: "none",
         },
+    },
+    tableCellWithErrorFirst: {
+        borderLeft: "1px solid var(--vscode-errorForeground) !important",
+        borderBottom: "1px solid var(--vscode-errorForeground) !important",
+        borderRight: "1px solid var(--vscode-panel-border)",
+        boxShadow: "inset 0 1px 0 0 var(--vscode-errorForeground)",
+        "&:last-child": {
+            borderRight: "1px solid var(--vscode-errorForeground) !important",
+        },
+    },
+    tableCellWithErrorMiddle: {
+        borderBottom: "1px solid var(--vscode-errorForeground) !important",
+        borderRight: "1px solid var(--vscode-panel-border)",
+        boxShadow: "inset 0 1px 0 0 var(--vscode-errorForeground)",
+        "&:last-child": {
+            borderRight: "1px solid var(--vscode-errorForeground) !important",
+        },
+    },
+    tableCellWithErrorLast: {
+        borderBottom: "1px solid var(--vscode-errorForeground) !important",
+        borderRight: "1px solid var(--vscode-errorForeground) !important",
+        boxShadow: "inset 0 1px 0 0 var(--vscode-errorForeground)",
     },
 });
 
@@ -218,6 +239,27 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
             return i.propertyPath!.join(".") === [...componentPath, index].join(".");
         });
         return issue?.description ?? undefined;
+    };
+
+    const getCellErrorClass = (
+        hasError: boolean,
+        columnIndex: number,
+        totalColumns: number,
+    ): string => {
+        if (!hasError) {
+            return classes.tableCellWithBorder;
+        }
+
+        const isFirstColumn = columnIndex === 0;
+        const isLastColumn = columnIndex === totalColumns - 1;
+
+        if (isFirstColumn) {
+            return classes.tableCellWithErrorFirst;
+        } else if (isLastColumn) {
+            return classes.tableCellWithErrorLast;
+        } else {
+            return classes.tableCellWithErrorMiddle;
+        }
     };
 
     const renderDragHandle = (rowIndex: number) => {
@@ -451,7 +493,6 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                 focusedRowId === index
                                     ? "var(--vscode-list-hoverBackground)"
                                     : "var(--vscode-editor-background)";
-                            let border = rowError ? "1px solid var(--vscode-errorForeground)" : "";
                             let draggedOverBorder = "3px solid var(--vscode-focusBorder)";
                             return (
                                 <fluentui.TableRow
@@ -463,15 +504,13 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                             draggedRowId !== index &&
                                             draggedRowId > index
                                                 ? draggedOverBorder
-                                                : border,
+                                                : "",
                                         borderBottom:
                                             draggedOverRowId === index &&
                                             draggedRowId !== index &&
                                             draggedRowId < index
                                                 ? draggedOverBorder
-                                                : border,
-                                        borderLeft: border,
-                                        borderRight: border,
+                                                : "",
                                     }}
                                     onFocus={(_event) => {
                                         setFocusedRowId(index);
@@ -495,7 +534,11 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                                 {...columnSizing_unstable.getTableCellProps(
                                                     column.columnId,
                                                 )}
-                                                className={classes.tableCellWithBorder}
+                                                className={getCellErrorClass(
+                                                    !!rowError,
+                                                    columnIndex,
+                                                    columnsDef.length,
+                                                )}
                                                 id={`table-cell-${context?.state.tableInfo?.id}-${componentPath.join("-")}_${index}-${columnIndex}`}
                                                 style={{
                                                     height: "30px",
