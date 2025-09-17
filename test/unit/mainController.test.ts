@@ -9,7 +9,6 @@ import * as vscode from "vscode";
 import * as Extension from "../../src/extension";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
-import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { TestExtensionContext } from "./stubs";
 import { activateExtension } from "./utils";
@@ -19,7 +18,7 @@ import * as Constants from "../../src/constants/constants";
 suite("MainController Tests", function () {
     let mainController: MainController;
     let connectionManager: TypeMoq.IMock<ConnectionManager>;
-    let mockSqlDocumentService: TypeMoq.IMock<SqlDocumentService>;
+    // Use the real SqlDocumentService instance from the controller
 
     setup(async () => {
         // Need to activate the extension to get the mainController
@@ -37,15 +36,7 @@ suite("MainController Tests", function () {
             mockContext.object,
         );
         mainController.connectionManager = connectionManager.object;
-
-        let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
-        mockSqlDocumentService = TypeMoq.Mock.ofType(
-            SqlDocumentService,
-            TypeMoq.MockBehavior.Loose,
-            mockVscodeWrapper.object,
-            mainController,
-        );
-        mainController.sqlDocumentService = mockSqlDocumentService.object;
+        mainController.sqlDocumentService["_connectionMgr"] = connectionManager.object;
     });
 
     test("validateTextDocumentHasFocus returns false if there is no active text document", () => {
@@ -81,60 +72,6 @@ suite("MainController Tests", function () {
             true,
             "Expected validateTextDocumentHasFocus to return true when the active document URI is not undefined",
         );
-    });
-
-    test("onNewQuery should call the new query", async () => {
-        let editor: vscode.TextEditor = {
-            document: {
-                uri: "test_uri",
-            },
-            viewColumn: vscode.ViewColumn.One,
-            selection: undefined,
-        } as any;
-        mockSqlDocumentService
-            .setup((x) => x.newQuery(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(editor));
-        connectionManager
-            .setup((x) => x.onNewConnection())
-            .returns(() => {
-                return Promise.resolve(undefined);
-            });
-
-        // Mock connectionStore.removeRecentlyUsed to avoid the undefined error
-        const mockConnectionStore = TypeMoq.Mock.ofType<any>();
-        mockConnectionStore
-            .setup((x) => x.removeRecentlyUsed(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve());
-        connectionManager.setup((x) => x.connectionStore).returns(() => mockConnectionStore.object);
-
-        // Mock getServerInfo method that is called at the end of onNewQuery
-        connectionManager
-            .setup((x) => x.getServerInfo(TypeMoq.It.isAny()))
-            .returns(() => undefined);
-
-        await mainController.onNewQuery(undefined, undefined);
-        mockSqlDocumentService.verify((x) => x.newQuery(TypeMoq.It.isAny()), TypeMoq.Times.once());
-    });
-
-    test("onNewQuery should not call the new connection if new query fails", async () => {
-        // Ensure the command is allowed to run (otherwise early return and nothing is called)
-        (mainController as any).canRunCommand = () => true;
-
-        // Make newQuery reject
-        mockSqlDocumentService
-            .setup((x) => x.newQuery(TypeMoq.It.isAny()))
-            .returns(() => Promise.reject(new Error("boom")));
-
-        connectionManager.setup((x) => x.onNewConnection()).returns(() => Promise.resolve() as any);
-
-        // Act + assert reject
-        await assert.rejects(() => mainController.onNewQuery(undefined, undefined), /boom/);
-
-        // Verify prod calls newQuery once
-        mockSqlDocumentService.verify((x) => x.newQuery(TypeMoq.It.isAny()), TypeMoq.Times.once());
-
-        // Should NOT try to create a new connection when newQuery failed
-        connectionManager.verify((x) => x.onNewConnection(), TypeMoq.Times.never());
     });
 
     test("onManageProfiles should call the connection manager to manage profiles", async () => {

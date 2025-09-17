@@ -21,7 +21,6 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionProfile } from "../models/interfaces";
-import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 
 /**
  * Service for creating untitled documents for SQL query

@@ -99,6 +99,47 @@ suite("SqlDocumentService Tests", () => {
         sandbox.restore();
     });
 
+    test("handleNewQueryCommand should create a new query and update recents", async () => {
+        const editor: vscode.TextEditor = {
+            document: { uri: "test_uri" },
+        } as any;
+
+        const newQueryStub = sandbox.stub(sqlDocumentService as any, "newQuery").resolves(editor);
+        (connectionManager as any).connectionStore = {
+            removeRecentlyUsed: sandbox.stub().resolves(),
+        };
+        connectionManager.getServerInfo.returns(undefined as any);
+        connectionManager.handlePasswordBasedCredentials.resolves();
+
+        const node: any = { connectionProfile: {}, nodeType: "Server" };
+        await sqlDocumentService.handleNewQueryCommand(node, undefined);
+
+        expect(newQueryStub).to.have.been.calledOnce;
+        expect((connectionManager as any).connectionStore.removeRecentlyUsed).to.have.been
+            .calledOnce;
+
+        newQueryStub.restore();
+    });
+
+    test("handleNewQueryCommand should not create a new connection if new query fails", async () => {
+        const newQueryStub = sandbox
+            .stub(sqlDocumentService as any, "newQuery")
+            .rejects(new Error("boom"));
+
+        connectionManager.handlePasswordBasedCredentials.resolves();
+        const node: any = { connectionProfile: {}, nodeType: "Server" };
+        try {
+            await sqlDocumentService.handleNewQueryCommand(node, undefined);
+            expect.fail("Expected rejection");
+        } catch (e) {
+            expect((e as Error).message).to.match(/boom/);
+        } finally {
+            newQueryStub.restore();
+        }
+
+        expect(connectionManager.onNewConnection).to.not.have.been.called;
+    });
+
     // Standard closed document event test
     test("onDidCloseTextDocument should propagate onDidCloseTextDocument to connectionManager", async () => {
         // Reset internal timers to ensure clean test state - this ensures we hit the normal close path
