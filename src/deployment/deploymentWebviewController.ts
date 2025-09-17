@@ -44,7 +44,7 @@ export class DeploymentWebviewController extends FormWebviewController<
         vscodeWrapper: VscodeWrapper,
         // Main controller is used to connect to the container after creation
         public mainController: MainController,
-        initialConnectionGroup?: { id?: string },
+        initialConnectionGroup?: string,
     ) {
         super(context, vscodeWrapper, "deployment", "deployment", new DeploymentWebviewState(), {
             title: newDeployment,
@@ -65,10 +65,10 @@ export class DeploymentWebviewController extends FormWebviewController<
         void this.initialize(initialConnectionGroup);
     }
 
-    private async initialize(initialConnectionGroup: { id?: string }) {
+    private async initialize(initialConnectionGroup?: string) {
         // If an initial connection group was provided, try to pre-populate the form state
-        if (initialConnectionGroup && initialConnectionGroup.id) {
-            this.state.formState.groupId = initialConnectionGroup.id;
+        if (initialConnectionGroup && initialConnectionGroup) {
+            this.state.formState.groupId = initialConnectionGroup;
         }
         this.state.connectionGroupOptions =
             await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();

@@ -222,12 +222,12 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommandWithArgs(Constants.cmdDeployNewDatabase);
             this._event.on(Constants.cmdDeployNewDatabase, (args?: any) => {
-                let initialConnectionGroup: { id?: string };
+                let initialConnectionGroup: string;
                 if (args) {
                     if (args instanceof ConnectionGroupNode) {
-                        initialConnectionGroup = { id: args.connectionGroup?.id };
-                    } else if (typeof args === "object" && (args as any).id) {
-                        initialConnectionGroup = { id: (args as any).id };
+                        initialConnectionGroup = args.connectionGroup?.id;
+                    } else if (typeof args === "object" && args.id) {
+                        initialConnectionGroup = args.id;
                     }
                 }
                 this.onDeployNewDatabase(initialConnectionGroup);
@@ -2085,7 +2085,7 @@ export default class MainController implements vscode.Disposable {
         return false;
     }
 
-    public onDeployNewDatabase(initialConnectionGroup?: { id?: string }): void {
+    public onDeployNewDatabase(initialConnectionGroup?: string): void {
         sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
         const reactPanel = new DeploymentWebviewController(
