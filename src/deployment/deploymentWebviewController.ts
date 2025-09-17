@@ -62,14 +62,14 @@ export class DeploymentWebviewController extends FormWebviewController<
                 ),
             },
         });
+        void this.initialize(initialConnectionGroup);
+    }
+
+    private async initialize(initialConnectionGroup: { id?: string }) {
         // If an initial connection group was provided, try to pre-populate the form state
         if (initialConnectionGroup && initialConnectionGroup.id) {
             this.state.formState.groupId = initialConnectionGroup.id;
         }
-        void this.initialize();
-    }
-
-    private async initialize() {
         this.state.connectionGroupOptions =
             await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
         this.registerRpcHandlers();
