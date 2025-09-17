@@ -408,10 +408,10 @@ export default class StatusView implements vscode.Disposable {
     }
 
     private onDidChangeActiveTextEditor(editor: vscode.TextEditor): void {
-        // Change the status bar to match the open file
+        this.hideLastShownStatusBar(); // hide the last shown status bar since the active editor has changed
+
+        // Change the status bar to match the newly active editor
         if (typeof editor !== "undefined") {
-            // Hide the most recently shown status bar
-            this.hideLastShownStatusBar();
             const fileUri = editor.document.uri.toString(true);
             const bar = this._statusBars[fileUri];
             if (bar) {
@@ -421,6 +421,7 @@ export default class StatusView implements vscode.Disposable {
                 this.showStatusBarItem(fileUri, bar.sqlCmdMode);
                 this.showStatusBarItem(fileUri, bar.rowCount);
                 this.showStatusBarItem(fileUri, bar.executionTime);
+                this._lastShownStatusBar = bar;
             }
         }
     }
