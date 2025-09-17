@@ -43,6 +43,14 @@ const useStyles = fluentui.makeStyles({
         height: "14px",
         width: "14px",
     },
+    tableHeaderCellText: {
+        fontWeight: "600",
+        textAlign: "center",
+        width: "100%",
+    },
+    tableCellButton: {
+        height: "100%",
+    },
 });
 
 export const DesignerTable = ({ component, model, componentPath, UiArea }: DesignerTableProps) => {
@@ -63,7 +71,11 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
             );
             return fluentui.createTableColumn({
                 columnId: column,
-                renderHeaderCell: () => <>{colProps?.componentProperties.title ?? column}</>,
+                renderHeaderCell: () => (
+                    <fluentui.Text className={classes.tableHeaderCellText}>
+                        {colProps?.componentProperties.title ?? column}
+                    </fluentui.Text>
+                ),
             });
         });
     if (UiArea !== "PropertiesView") {
@@ -190,6 +202,84 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
         return issue?.description ?? undefined;
     };
 
+    const renderDragHandle = (rowIndex: number) => {
+        return (
+            <fluentui.Button
+                appearance="subtle"
+                size="small"
+                className={classes.tableCellButton}
+                icon={<ReorderRegular />}
+                draggable={true}
+                onDragEnter={() => {
+                    setDraggedOverRowId(rowIndex);
+                }}
+                onDragEnd={() => {
+                    if (draggedRowId === -1 || draggedOverRowId === -1) {
+                        return;
+                    }
+                    moveRows(draggedRowId, draggedOverRowId);
+                    setDraggedRowId(-1);
+                    setDraggedOverRowId(-1);
+                }}
+                onDrag={() => {
+                    setDraggedRowId(rowIndex);
+                }}
+                onDragStart={() => {
+                    setDraggedOverRowId(-1);
+                    setDraggedRowId(rowIndex);
+                }}
+            />
+        );
+    };
+
+    const renderRemoveButton = (
+        row: fluentui.TableRowData<designer.DesignerTableComponentDataItem>,
+    ) => {
+        return (
+            <fluentui.Button
+                disabled={row.item.canBeDeleted ? !row.item.canBeDeleted : false}
+                appearance="subtle"
+                size="small"
+                className={classes.tableCellButton}
+                icon={<DeleteRegular />}
+                onClick={async () => {
+                    context.processTableEdit({
+                        path: [...componentPath, row.rowId],
+                        source: UiArea,
+                        type: designer.DesignerEditType.Remove,
+                        value: undefined,
+                    });
+                }}
+                title={locConstants.tableDesigner.remove(tableProps.objectTypeDisplayName!)}
+            />
+        );
+    };
+
+    const renderPropertiesButton = (
+        row: fluentui.TableRowData<designer.DesignerTableComponentDataItem>,
+        rowIndex: number,
+    ) => {
+        return (
+            <fluentui.Button
+                appearance="subtle"
+                size="small"
+                className={classes.tableCellButton}
+                icon={<SettingsRegular />}
+                title={locConstants.tableDesigner.propertiesPaneTitle(
+                    tableProps.objectTypeDisplayName ?? "",
+                )}
+                onClick={() => {
+                    context?.setPropertiesComponents({
+                        componentPath: [...componentPath, row.rowId],
+                        component: component,
+                        model: model,
+                    });
+                    setFocusedRowId(rowIndex);
+                }}
+            />
+        );
+    };
+
     const getTableCell = (
         row: fluentui.TableRowData<designer.DesignerTableComponentDataItem>,
         columnId: fluentui.TableColumnId,
@@ -199,73 +289,11 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
         const value = row.item[columnId];
         switch (columnId) {
             case "dragHandle":
-                return (
-                    <div className={classes.tableCell}>
-                        {tableProps.canMoveRows && (
-                            <fluentui.Button
-                                appearance="subtle"
-                                size="small"
-                                icon={<ReorderRegular />}
-                                draggable={true}
-                                onDragEnter={() => {
-                                    setDraggedOverRowId(rowIndex);
-                                }}
-                                onDragEnd={() => {
-                                    if (draggedRowId === -1 || draggedOverRowId === -1) {
-                                        return;
-                                    }
-                                    moveRows(draggedRowId, draggedOverRowId);
-                                    setDraggedRowId(-1);
-                                    setDraggedOverRowId(-1);
-                                }}
-                                onDrag={() => {
-                                    setDraggedRowId(rowIndex);
-                                }}
-                                onDragStart={() => {
-                                    setDraggedOverRowId(-1);
-                                    setDraggedRowId(rowIndex);
-                                }}
-                            />
-                        )}
-                    </div>
-                );
+                return renderDragHandle(rowIndex);
             case "remove":
-                return (
-                    <fluentui.Button
-                        disabled={row.item.canBeDeleted ? !row.item.canBeDeleted : false}
-                        appearance="subtle"
-                        size="small"
-                        icon={<DeleteRegular />}
-                        onClick={async () => {
-                            context.processTableEdit({
-                                path: [...componentPath, row.rowId],
-                                source: UiArea,
-                                type: designer.DesignerEditType.Remove,
-                                value: undefined,
-                            });
-                        }}
-                        title={locConstants.tableDesigner.remove(tableProps.objectTypeDisplayName!)}
-                    />
-                );
+                return renderRemoveButton(row);
             case "properties":
-                return (
-                    <fluentui.Button
-                        appearance="subtle"
-                        size="small"
-                        icon={<SettingsRegular />}
-                        title={locConstants.tableDesigner.propertiesPaneTitle(
-                            tableProps.objectTypeDisplayName ?? "",
-                        )}
-                        onClick={() => {
-                            context?.setPropertiesComponents({
-                                componentPath: [...componentPath, row.rowId],
-                                component: component,
-                                model: model,
-                            });
-                            setFocusedRowId(rowIndex);
-                        }}
-                    />
-                );
+                return renderPropertiesButton(row, rowIndex);
             default: {
                 switch (colProps?.componentType) {
                     case "input":
@@ -281,7 +309,11 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                         );
                     case "dropdown":
                         return (
-                            <div className={classes.tableCell}>
+                            <div
+                                className={classes.tableCell}
+                                style={{
+                                    marginTop: "2px",
+                                }}>
                                 <DesignerDropdown
                                     component={colProps}
                                     model={value as designer.DropDownProperties}
@@ -362,22 +394,13 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                     </fluentui.Button>
                 )}
             </fluentui.Toolbar>
-            <div
-                style={{
-                    maxWidth: "calc(100% - 20px)",
-                    width: "fit-content",
-                    overflowX: "auto",
-                    paddingBottom: "5px",
-                    paddingRight: "5px",
-                    paddingLeft: "5px",
-                }}>
+            <div>
                 <fluentui.Table
                     as="table"
                     size="extra-small"
                     {...columnSizing_unstable.getTableProps()}
                     ref={tableRef}
                     style={{
-                        marginRight: "5px",
                         width:
                             Object.keys(columnSizingOptions).reduce((acc, curr) => {
                                 return acc + columnSizingOptions[curr].idealWidth! + 22;
@@ -385,7 +408,6 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                     }}>
                     <fluentui.TableHeader
                         style={{
-                            marginBottom: "5px",
                             backgroundColor: "var(--vscode-keybindingTable-headerBackground)",
                         }}>
                         <fluentui.TableRow>
@@ -430,7 +452,6 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                                 : border,
                                         borderLeft: border,
                                         borderRight: border,
-                                        marginTop: rowError ? "5px" : "",
                                     }}
                                     onFocus={(_event) => {
                                         setFocusedRowId(index);
@@ -457,7 +478,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                                 id={`table-cell-${context?.state.tableInfo?.id}-${componentPath.join("-")}_${index}-${columnIndex}`}
                                                 style={{
                                                     height: "30px",
-                                                    paddingBottom: "5px",
+                                                    maxHeight: "30px",
                                                 }}>
                                                 {getTableCell(row, column.columnId, index)}
                                             </fluentui.TableCell>

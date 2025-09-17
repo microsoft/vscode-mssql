@@ -44,7 +44,7 @@ export const DesignerCheckbox = ({
                     <Label
                         size="small"
                         style={{
-                            lineHeight: "22px", // Used to align the label with the checkbox
+                            lineHeight: "16px", // Used to align the label with the checkbox
                         }}>
                         {component.componentProperties.title!}
                     </Label>
@@ -70,9 +70,6 @@ export const DesignerCheckbox = ({
                         type: DesignerEditType.Update,
                         source: UiArea,
                     });
-                }}
-                style={{
-                    fontSize: "12px",
                 }}
                 size="medium"
                 disabled={model.enabled === undefined ? false : !model.enabled}
