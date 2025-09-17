@@ -79,15 +79,19 @@ export interface IAzureTenant {
     name: string;
 }
 
-export interface IDialogProps {
-    props: {
-        parentId?: string;
-    };
+export interface IDialogProps<T extends IDialogContextProps = IDialogContextProps> {
+    props: T;
     type:
         | "trustServerCert"
         | "addFirewallRule"
         | "loadFromConnectionString"
         | "createConnectionGroup";
+}
+
+export interface IDialogContextProps {}
+
+export interface IDialogContextParentProps extends IDialogContextProps {
+    parentId?: string;
 }
 
 export interface TrustServerCertDialogProps extends IDialogProps {

@@ -12,7 +12,7 @@ import {
 } from "./localContainers";
 import { ApiStatus } from "./webview";
 import { ConnectionGroupSpec } from "./connectionGroup";
-import { IDialogProps } from "./connectionDialog";
+import { IDialogContextParentProps, IDialogProps } from "./connectionDialog";
 import {
     FabricProvisioningContextProps,
     FabricProvisioningFormState,
@@ -26,7 +26,7 @@ export class DeploymentWebviewState
     loadState: ApiStatus = ApiStatus.Loading;
     errorMessage?: string;
     deploymentType: DeploymentType = DeploymentType.LocalContainers;
-    dialog: IDialogProps | undefined;
+    dialog: IDialogProps<IDialogContextParentProps> | undefined;
     deploymentTypeState: DeploymentTypeState = {} as DeploymentTypeState;
     formState: DeploymentFormState = {} as DeploymentFormState;
     formComponents: Partial<Record<keyof DeploymentFormState, DeploymentFormItemSpec>> = {};

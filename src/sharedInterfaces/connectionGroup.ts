@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDialogProps } from "./connectionDialog";
+import { IDialogContextParentProps, IDialogProps } from "./connectionDialog";
 import { WebviewContextProps } from "./webview";
 
 /**
@@ -35,7 +35,7 @@ export interface CreateConnectionGroupDialogProps extends IDialogProps {
 /**
  * State for the Connection Group webview
  */
-export interface ConnectionGroupState {
+export interface ConnectionGroupState extends IDialogContextParentProps {
     existingGroupName?: string;
     name: string;
     description?: string;

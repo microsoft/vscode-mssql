@@ -134,7 +134,6 @@ export function getDefaultConnectionGroupDialogProps(state) {
     state.dialog = {
         type: "createConnectionGroup",
     } as CreateConnectionGroupDialogProps;
-
     return state;
 }
 
