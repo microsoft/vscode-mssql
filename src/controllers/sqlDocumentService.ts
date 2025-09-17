@@ -125,6 +125,7 @@ export default class SqlDocumentService implements vscode.Disposable {
             nodeType = this.objectExplorerTree.selection[0].nodeType;
             connectionStrategy = ConnectionStrategy.CopyConnectionFromInfo;
         } else {
+            // Case 4: User triggered "New Query" from command palette and there's no reasonable context
             connectionStrategy = ConnectionStrategy.PromptForConnection;
         }
 
