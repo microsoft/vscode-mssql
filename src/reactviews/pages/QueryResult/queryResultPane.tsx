@@ -662,6 +662,7 @@ export const QueryResultPane = () => {
                             <ErrorCircle24Regular />
                         </div>
                         <Title3>{locConstants.queryResult.failedToStartQuery}</Title3>
+                        <Text className={classes.noResultMessage}>{initilizationError}</Text>
                     </div>
                 </div>
             </div>
