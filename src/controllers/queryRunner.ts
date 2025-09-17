@@ -92,6 +92,9 @@ export default class QueryRunner {
     private _uriToQueryStringMap = new Map<string, string>();
     private static _runningQueries = [];
 
+    private _startFailedEmitter: vscode.EventEmitter<string> = new vscode.EventEmitter<string>();
+    public onStartFailed: vscode.Event<string> = this._startFailedEmitter.event;
+
     private _startEmitter: vscode.EventEmitter<string> = new vscode.EventEmitter<string>();
     public onStart: vscode.Event<string> = this._startEmitter.event;
 
@@ -333,6 +336,7 @@ export default class QueryRunner {
             // Show error message here to ensure test expectation is met
             let errorMsg = error instanceof Error ? error.message : String(error);
             this._vscodeWrapper.showErrorMessage("Execution failed: " + errorMsg);
+            this._startFailedEmitter.fire(this.uri);
             onError(error);
             throw error;
         }

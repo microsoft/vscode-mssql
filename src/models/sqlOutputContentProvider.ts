@@ -368,12 +368,23 @@ export class SqlOutputContentProvider {
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
 
+            const startFailedListener = queryRunner.onStartFailed(async (error) => {
+                this.updateWebviewState(queryRunner.uri, {
+                    initializationError: getErrorMessage(error),
+                    resultSetSummaries: {},
+                    executionPlanState: {},
+                    messages: [],
+                    fontSettings: { fontSize: 0, fontFamily: "" },
+                });
+            });
+
             const startListener = queryRunner.onStart(async (_panelUri) => {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
                 resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                 resultWebviewState.isExecutionPlan = false;
+                resultWebviewState.initializationError = undefined;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 this.revealQueryResult(queryRunner.uri);
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
@@ -533,6 +544,7 @@ export class SqlOutputContentProvider {
 
             const queryRunnerState = new QueryRunnerState(queryRunner);
             queryRunnerState.listeners.push(
+                startFailedListener,
                 startListener,
                 resultSetAvailableListener,
                 resultSetUpdatedListener,
