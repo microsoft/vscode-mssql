@@ -1177,25 +1177,22 @@ export class TableDesigner {
     public static AdvancedOptions = l10n.t("Advanced Options");
 }
 
-export const PublishProject = {
-    Title: "Publish Project",
-    ProfileLabel: "Publish Profile",
-    ProfilePlaceholder: "Select or enter a publish profile",
-    ServerLabel: "Server",
-    DatabaseLabel: "Database",
-    DatabaseRequiredMessage: "Database name is required",
-    PublishTargetLabel: "Publish Target",
-    PublishTargetExisting: "Existing SQL server",
-    PublishTargetContainer: "Local development container",
-    UpgradeExistingLabel: "Upgrade existing database",
-    BuildBeforePublishLabel: "Build project before publish",
-    Advanced: "Advanced...",
-    GenerateScript: "Generate Script",
-    Publish: "Publish",
-    Cancel: "Cancel",
-    PublishOptions: "Publish Options",
-    ExcludeOptions: "Exclude Options",
-};
+export class PublishProject {
+    public static Title = l10n.t("Publish Project");
+    public static ProfileLabel = l10n.t("Publish Profile");
+    public static ProfilePlaceholder = l10n.t("Select or enter a publish profile");
+    public static ServerLabel = l10n.t("Server");
+    public static DatabaseLabel = l10n.t("Database");
+    public static DatabaseRequiredMessage = l10n.t("Database name is required");
+    public static PublishTargetLabel = l10n.t("Publish Target");
+    public static PublishTargetExisting = l10n.t("Existing SQL server");
+    public static PublishTargetContainer = l10n.t("Local development container");
+    public static GenerateScript = l10n.t("Generate Script");
+    public static Publish = l10n.t("Publish");
+    public static Advanced = l10n.t("Advanced...");
+    public static PublishOptions = l10n.t("Publish Options");
+    public static ExcludeOptions = l10n.t("Exclude Options");
+}
 
 export class SchemaCompare {
     public static Title = l10n.t("Schema Compare");

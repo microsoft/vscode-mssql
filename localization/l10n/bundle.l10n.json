@@ -740,6 +740,8 @@
     ]
   },
   "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
+  "Select Profile": "Select Profile",
+  "Save As...": "Save As...",
   "Create New Connection Group": "Create New Connection Group",
   "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
     "message": "Edit Connection Group: {0}",
@@ -1631,6 +1633,13 @@
     ]
   },
   "General": "General",
+  "Publish Project": "Publish Project",
+  "Publish Profile": "Publish Profile",
+  "Select or enter a publish profile": "Select or enter a publish profile",
+  "Database name is required": "Database name is required",
+  "Publish Target": "Publish Target",
+  "Existing SQL server": "Existing SQL server",
+  "Local development container": "Local development container",
   "Schema Compare": "Schema Compare",
   "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
   "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {

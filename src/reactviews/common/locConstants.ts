@@ -886,7 +886,6 @@ export class LocConstants {
             advancedOptions: l10n.t("Advanced Publish Options"),
             generateScript: l10n.t("Generate Script"),
             publish: l10n.t("Publish"),
-            cancel: l10n.t("Cancel"),
         };
     }
 

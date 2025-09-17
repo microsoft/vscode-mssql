@@ -5,6 +5,7 @@
 
 import { createContext } from "react";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { WebviewRpc } from "../../common/rpc";
 import {
     PublishDialogWebviewState,
     PublishDialogReducers,
@@ -12,17 +13,32 @@ import {
 
 interface PublishProjectContextValue {
     state?: PublishDialogWebviewState;
-    formAction: (event: any) => void;
-    publishNow: (payload?: any) => void;
+    formAction: (event: PublishFormActionEvent) => void;
+    publishNow: (payload?: PublishNowPayload) => void;
     generatePublishScript: () => void;
-    openPublishAdvanced: () => void;
-    cancelPublish: () => void;
     selectPublishProfile: () => void;
     savePublishProfile: (profileName: string) => void;
     setPublishValues: (
         values: Partial<PublishDialogWebviewState["formState"]> & { projectFilePath?: string },
     ) => void;
-    extensionRpc?: any;
+    extensionRpc?: WebviewRpc<PublishDialogReducers>;
+}
+
+// Event payload coming from shared FormField components
+export interface PublishFormActionEvent {
+    propertyName: keyof PublishDialogWebviewState["formState"];
+    value: string | boolean;
+    isAction: boolean; // true when triggered by an action button on the field
+    updateValidation?: boolean; // optional flag to force validation
+}
+
+// Optional payload for publishNow future expansion
+export interface PublishNowPayload {
+    projectFilePath?: string;
+    databaseName?: string;
+    connectionUri?: string;
+    sqlCmdVariables?: { [key: string]: string };
+    publishProfilePath?: string;
 }
 
 const PublishProjectContext = createContext<PublishProjectContextValue | undefined>(undefined);
@@ -33,17 +49,14 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
     const webviewContext = useVscodeWebview<PublishDialogWebviewState, PublishDialogReducers>();
     const state = webviewContext?.state;
 
-    const formAction = (event: any) => webviewContext?.extensionRpc.action("formAction", { event });
+    const formAction = (event: PublishFormActionEvent) =>
+        webviewContext?.extensionRpc.action("formAction", { event });
 
-    const publishNow = (payload?: any) =>
+    const publishNow = (payload?: PublishNowPayload) =>
         webviewContext?.extensionRpc.action("publishNow", payload);
 
     const generatePublishScript = () =>
         webviewContext?.extensionRpc.action("generatePublishScript");
-
-    const openPublishAdvanced = () => webviewContext?.extensionRpc.action("openPublishAdvanced");
-
-    const cancelPublish = () => webviewContext?.extensionRpc.action("cancelPublish");
 
     const selectPublishProfile = () => webviewContext?.extensionRpc.action("selectPublishProfile");
 
@@ -61,8 +74,6 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
                 formAction,
                 publishNow,
                 generatePublishScript,
-                openPublishAdvanced,
-                cancelPublish,
                 selectPublishProfile,
                 savePublishProfile,
                 setPublishValues,

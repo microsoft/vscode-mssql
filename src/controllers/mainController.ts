@@ -2621,12 +2621,10 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Handler for the Schema Compare command.
-     * Accepts variable arguments, typically:
-     *   - [sourceNode, targetNode, runComparison] when invoked from update Project SC or programmatically,
-     *   - [sourceNode, undefined] when invoked from a project tree node/ server / database node,
-     *   - [] when invoked from the command palette.
-     * This method normalizes the arguments and launches the Schema Compare UI.
+     * Handler for the Publish Database Project command.
+     * Accepts the project file path as an argument.
+     * This method launches the Publish Project UI for the specified database project.
+     * @param projectFilePath The file path of the database project to publish.
      */
     public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
         const defaultsPublishOptions =

@@ -38,8 +38,6 @@ type PublishFormContext = FormContextProps<
 > & {
     publishNow: () => void;
     generatePublishScript: () => void;
-    openPublishAdvanced: () => void;
-    cancelPublish: () => void;
     selectPublishProfile: () => void;
     savePublishProfile: (profileName: string) => void;
 };
@@ -56,13 +54,21 @@ function PublishProjectInner() {
 
     const state = context.state;
 
+    // Static list of main publish dialog options
+    const mainOptions: (keyof IPublishForm)[] = [
+        "publishTarget",
+        "profileName",
+        "serverName",
+        "databaseName",
+    ];
+
     return (
         <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
             <div className={classes.root}>
                 <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
-                    {state.connectionComponents?.mainOptions.map((optionName, idx) => {
+                    {mainOptions.map((optionName, idx) => {
                         if (!optionName) {
-                            return null;
+                            return undefined;
                         }
 
                         if ((optionName as string) === "profileName") {
@@ -73,7 +79,7 @@ function PublishProjectInner() {
                             optionName as keyof IPublishForm
                         ] as PublishDialogFormItemSpec;
                         if (!component || component.hidden === true) {
-                            return null;
+                            return undefined;
                         }
                         return (
                             <FormField<
@@ -99,9 +105,6 @@ function PublishProjectInner() {
                         </Button>
                         <Button appearance="primary" onClick={() => context.publishNow()}>
                             {loc.publish}
-                        </Button>
-                        <Button appearance="subtle" onClick={() => context.cancelPublish()}>
-                            {loc.cancel}
                         </Button>
                     </div>
                 </div>
