@@ -3438,6 +3438,9 @@
     <trans-unit id="mssql.cancelQuery">
       <source xml:lang="en">Cancel Query</source>
     </trans-unit>
+    <trans-unit id="mssql.changeConnection">
+      <source xml:lang="en">Change Connection</source>
+    </trans-unit>
     <trans-unit id="mssql.changeDatabase">
       <source xml:lang="en">Change Database</source>
     </trans-unit>
