@@ -83,7 +83,7 @@ suite("MainController Tests", function () {
         );
     });
 
-    test("onNewQuery should call the new query and new connection", async () => {
+    test("onNewQuery should call the new query", async () => {
         let editor: vscode.TextEditor = {
             document: {
                 uri: "test_uri",
@@ -92,19 +92,28 @@ suite("MainController Tests", function () {
             selection: undefined,
         } as any;
         mockSqlDocumentService
-            .setup((x) => x.newQuery(undefined, true))
-            .returns(() => {
-                return Promise.resolve(editor);
-            });
+            .setup((x) => x.newQuery(TypeMoq.It.isAny()))
+            .returns(() => Promise.resolve(editor));
         connectionManager
             .setup((x) => x.onNewConnection())
             .returns(() => {
                 return Promise.resolve(undefined);
             });
 
+        // Mock connectionStore.removeRecentlyUsed to avoid the undefined error
+        const mockConnectionStore = TypeMoq.Mock.ofType<any>();
+        mockConnectionStore
+            .setup((x) => x.removeRecentlyUsed(TypeMoq.It.isAny()))
+            .returns(() => Promise.resolve());
+        connectionManager.setup((x) => x.connectionStore).returns(() => mockConnectionStore.object);
+
+        // Mock getServerInfo method that is called at the end of onNewQuery
+        connectionManager
+            .setup((x) => x.getServerInfo(TypeMoq.It.isAny()))
+            .returns(() => undefined);
+
         await mainController.onNewQuery(undefined, undefined);
-        mockSqlDocumentService.verify((x) => x.newQuery(undefined, true), TypeMoq.Times.once());
-        connectionManager.verify((x) => x.onNewConnection(), TypeMoq.Times.atLeastOnce());
+        mockSqlDocumentService.verify((x) => x.newQuery(TypeMoq.It.isAny()), TypeMoq.Times.once());
     });
 
     test("onNewQuery should not call the new connection if new query fails", async () => {
@@ -113,7 +122,7 @@ suite("MainController Tests", function () {
 
         // Make newQuery reject
         mockSqlDocumentService
-            .setup((x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isValue(true)))
+            .setup((x) => x.newQuery(TypeMoq.It.isAny()))
             .returns(() => Promise.reject(new Error("boom")));
 
         connectionManager.setup((x) => x.onNewConnection()).returns(() => Promise.resolve() as any);
@@ -121,11 +130,8 @@ suite("MainController Tests", function () {
         // Act + assert reject
         await assert.rejects(() => mainController.onNewQuery(undefined, undefined), /boom/);
 
-        // Verify exactly how prod calls it (2 args, second is true)
-        mockSqlDocumentService.verify(
-            (x) => x.newQuery(TypeMoq.It.isAny(), TypeMoq.It.isValue(true)),
-            TypeMoq.Times.once(),
-        );
+        // Verify prod calls newQuery once
+        mockSqlDocumentService.verify((x) => x.newQuery(TypeMoq.It.isAny()), TypeMoq.Times.once());
 
         // Should NOT try to create a new connection when newQuery failed
         connectionManager.verify((x) => x.onNewConnection(), TypeMoq.Times.never());

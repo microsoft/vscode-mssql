@@ -15,110 +15,105 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 suite("Status View Tests", () => {
-    test("updateStatusMessage should not immediately update status message for definition request", (done) => {
-        return new Promise((resolve, reject) => {
-            let statusView = new StatusView();
-            let newStatus = LocalizedConstants.definitionRequestedStatus;
-            let currentStatus = "";
-            let getCurrentStatus = () => {
-                return currentStatus;
-            };
-            let actualStatusMessage = "";
-            let expectedStatusMessage = LocalizedConstants.gettingDefinitionMessage;
-            let updateMessage = (message) => {
-                actualStatusMessage = message;
-            };
-            statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
-            assert.equal(actualStatusMessage, "");
+    test("updateStatusMessage should not immediately update status message for definition request", async () => {
+        let statusView = new StatusView();
+        let newStatus = LocalizedConstants.definitionRequestedStatus;
+        let currentStatus = "";
+        let getCurrentStatus = () => {
+            return currentStatus;
+        };
+        let actualStatusMessage = "";
+        let expectedStatusMessage = LocalizedConstants.gettingDefinitionMessage;
+        let updateMessage = (message: string) => {
+            actualStatusMessage = message;
+        };
+        statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
+        assert.equal(actualStatusMessage, "");
+
+        await new Promise((resolve) => {
             setTimeout(() => {
                 assert.equal(actualStatusMessage, expectedStatusMessage);
+                resolve(undefined);
             }, 600);
-            statusView.dispose();
-            done();
         });
+
+        statusView.dispose();
     });
 
-    test("updateStatusMessage should not update status message for definition request if already completed", (done) => {
-        return new Promise((resolve, reject) => {
-            let statusView = new StatusView();
-            let newStatus = LocalizedConstants.definitionRequestedStatus;
-            let currentStatus = LocalizedConstants.definitionRequestCompletedStatus;
-            let getCurrentStatus = () => {
-                return currentStatus;
-            };
-            let actualStatusMessage = "";
-            let expectedStatusMessage = "";
-            let updateMessage = (message) => {
-                actualStatusMessage = message;
-            };
-            statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
-            assert.equal(actualStatusMessage, "");
+    test("updateStatusMessage should not update status message for definition request if already completed", async () => {
+        let statusView = new StatusView();
+        let newStatus = LocalizedConstants.definitionRequestedStatus;
+        let currentStatus = LocalizedConstants.definitionRequestCompletedStatus;
+        let getCurrentStatus = () => {
+            return currentStatus;
+        };
+        let actualStatusMessage = "";
+        let expectedStatusMessage = "";
+        let updateMessage = (message: string) => {
+            actualStatusMessage = message;
+        };
+        statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
+        assert.equal(actualStatusMessage, "");
+
+        await new Promise((resolve) => {
             setTimeout(() => {
                 assert.equal(actualStatusMessage, expectedStatusMessage);
+                resolve(undefined);
             }, 600);
-            statusView.dispose();
-            done();
         });
+
+        statusView.dispose();
     });
 
-    test("updateStatusMessage should update status message for definition request completed", (done) => {
-        return new Promise((resolve, reject) => {
-            let statusView = new StatusView();
-            let newStatus = LocalizedConstants.definitionRequestCompletedStatus;
-            let currentStatus = LocalizedConstants.definitionRequestCompletedStatus;
-            let getCurrentStatus = () => {
-                return currentStatus;
-            };
-            let actualStatusMessage = "";
-            let expectedStatusMessage = "";
-            let updateMessage = (message) => {
-                actualStatusMessage = message;
-            };
-            statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
-            assert.equal(actualStatusMessage, expectedStatusMessage);
-            statusView.dispose();
-            done();
-        });
+    test("updateStatusMessage should update status message for definition request completed", () => {
+        let statusView = new StatusView();
+        let newStatus = LocalizedConstants.definitionRequestCompletedStatus;
+        let currentStatus = LocalizedConstants.definitionRequestCompletedStatus;
+        let getCurrentStatus = () => {
+            return currentStatus;
+        };
+        let actualStatusMessage = "";
+        let expectedStatusMessage = "";
+        let updateMessage = (message: string) => {
+            actualStatusMessage = message;
+        };
+        statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
+        assert.equal(actualStatusMessage, expectedStatusMessage);
+        statusView.dispose();
     });
 
-    test("updateStatusMessage should update status message for updating intelliSense", (done) => {
-        return new Promise((resolve, reject) => {
-            let statusView = new StatusView();
-            let newStatus = LocalizedConstants.updatingIntelliSenseStatus;
-            let currentStatus = "";
-            let getCurrentStatus = () => {
-                return currentStatus;
-            };
-            let actualStatusMessage = "";
-            let expectedStatusMessage = LocalizedConstants.updatingIntelliSenseLabel;
-            let updateMessage = (message) => {
-                actualStatusMessage = message;
-            };
-            statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
-            assert.equal(actualStatusMessage, expectedStatusMessage);
-            statusView.dispose();
-            done();
-        });
+    test("updateStatusMessage should update status message for updating intelliSense", () => {
+        let statusView = new StatusView();
+        let newStatus = LocalizedConstants.updatingIntelliSenseStatus;
+        let currentStatus = "";
+        let getCurrentStatus = () => {
+            return currentStatus;
+        };
+        let actualStatusMessage = "";
+        let expectedStatusMessage = LocalizedConstants.updatingIntelliSenseLabel;
+        let updateMessage = (message: string) => {
+            actualStatusMessage = message;
+        };
+        statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
+        assert.equal(actualStatusMessage, expectedStatusMessage);
+        statusView.dispose();
     });
 
-    test("updateStatusMessage should update status message for intelliSense updated status", (done) => {
-        return new Promise((resolve, reject) => {
-            let statusView = new StatusView();
-            let newStatus = LocalizedConstants.intelliSenseUpdatedStatus;
-            let currentStatus = "";
-            let getCurrentStatus = () => {
-                return currentStatus;
-            };
-            let actualStatusMessage = "";
-            let expectedStatusMessage = "";
-            let updateMessage = (message) => {
-                actualStatusMessage = message;
-            };
-            statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
-            assert.equal(actualStatusMessage, expectedStatusMessage);
-            statusView.dispose();
-            done();
-        });
+    test("updateStatusMessage should update status message for intelliSense updated status", () => {
+        let statusView = new StatusView();
+        let newStatus = LocalizedConstants.intelliSenseUpdatedStatus;
+        let currentStatus = "";
+        let getCurrentStatus = () => {
+            return currentStatus;
+        };
+        let actualStatusMessage = "";
+        let expectedStatusMessage = "";
+        let updateMessage = (message: string) => {
+            actualStatusMessage = message;
+        };
+        statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
+        assert.equal(actualStatusMessage, expectedStatusMessage);
+        statusView.dispose();
     });
 
     suite("Colorization tests", () => {

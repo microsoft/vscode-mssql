@@ -429,6 +429,9 @@
       <note>{0} is the connection ID
 {1} is the database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++6822b8489308b650f2e36cb439297b0c4a43859fe39e164aea3ad453f4bd14d7">
+      <source xml:lang="en">Chat command not available in this VS Code version</source>
+    </trans-unit>
     <trans-unit id="++CODE++c8cabf4a998e678eb3213d46a3e9e80217b7839fb5f3537ee550a65e3b2202c9">
       <source xml:lang="en">Check Constraint</source>
     </trans-unit>
@@ -535,6 +538,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4c7dd73e4af7d97c296dc01ab37edd119e5ef22592cb6a302bd9dc9a55264873">
       <source xml:lang="en">Close Find</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
+      <source xml:lang="en">Close properties pane</source>
     </trans-unit>
     <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
       <source xml:lang="en">Close the current connection</source>
@@ -786,6 +792,12 @@
     </trans-unit>
     <trans-unit id="++CODE++ac030299960c4d5cba2b13fa5f358cb7f1b1531ce5f2e5315eff17b7c93a97bf">
       <source xml:lang="en">Copy as CSV</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5f7261cbf4eef17922f168d487b4e92de9bb9b118350254bfff4ea732bf0e1d9">
+      <source xml:lang="en">Copy as IN clause</source>
+    </trans-unit>
+    <trans-unit id="++CODE++20e0663f2c175c2d6a5a11120ce06def7ecea5fd1cfb3cb837232bbd0aab34cd">
+      <source xml:lang="en">Copy as INSERT INTO</source>
     </trans-unit>
     <trans-unit id="++CODE++fd4aee4cb3fa5d5963fc78a7261f20700d94a8ddbbb5b963e97a84c441149508">
       <source xml:lang="en">Copy as JSON</source>
@@ -1232,6 +1244,9 @@
     </trans-unit>
     <trans-unit id="++CODE++48ad32aba89e3b0bbab4397b56bd23794212fe69606e0b644ff3b543035a048d">
       <source xml:lang="en">Expand Workspace Explorer</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
+      <source xml:lang="en">Expand properties pane</source>
     </trans-unit>
     <trans-unit id="++CODE++c39d646f10769b078ae82be4da7a0079ca91182b241e749be4276e08c215c654">
       <source xml:lang="en">Explorer</source>
@@ -2414,6 +2429,9 @@
     <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
       <source xml:lang="en">Restore panel size</source>
     </trans-unit>
+    <trans-unit id="++CODE++26b4293018ea72418733109f2e245387d9dfcfe7d4083c0c1f29eb1155c98365">
+      <source xml:lang="en">Restore properties pane</source>
+    </trans-unit>
     <trans-unit id="++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c">
       <source xml:lang="en">Result Set {0}</source>
       <note>{0} is the index of the result set</note>
@@ -2518,6 +2536,9 @@
     </trans-unit>
     <trans-unit id="++CODE++40838c73e26d7ae3162bb4250c2c1e261a33fec5478432e6e47ba9ab6649c1ef">
       <source xml:lang="en">Save as Excel</source>
+    </trans-unit>
+    <trans-unit id="++CODE++49e889d19cb98b87430fab55b6c5203e191463e874e2d94eb44d43f38395e226">
+      <source xml:lang="en">Save as INSERT</source>
     </trans-unit>
     <trans-unit id="++CODE++910ed5e0c43df2bc1a2c71f1d5ecd2168b919fd4dc9f6d4b1f13f660cba9c524">
       <source xml:lang="en">Save as JSON</source>
@@ -3416,6 +3437,9 @@
     </trans-unit>
     <trans-unit id="mssql.cancelQuery">
       <source xml:lang="en">Cancel Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.changeConnection">
+      <source xml:lang="en">Change Connection</source>
     </trans-unit>
     <trans-unit id="mssql.changeDatabase">
       <source xml:lang="en">Change Database</source>

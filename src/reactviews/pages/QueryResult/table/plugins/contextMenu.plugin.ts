@@ -6,6 +6,8 @@
 import {
     CopyAsCsvRequest,
     CopyAsJsonRequest,
+    CopyAsInClauseRequest,
+    CopyAsInsertIntoRequest,
     CopyHeadersRequest,
     CopySelectionRequest,
     CopyWithHeadersRequest,
@@ -206,6 +208,27 @@ export class ContextMenu<T extends Slick.SlickData> {
                     selection: selection,
                     includeHeaders: true, // Default to including headers for JSON
                 });
+                break;
+            case GridContextMenuAction.CopyAsInClause:
+                this.queryResultContext.log("Copy as IN clause action triggered");
+                await this.queryResultContext.extensionRpc.sendRequest(CopyAsInClauseRequest.type, {
+                    uri: this.uri,
+                    batchId: this.resultSetSummary.batchId,
+                    resultId: this.resultSetSummary.id,
+                    selection: selection,
+                });
+                break;
+            case GridContextMenuAction.CopyAsInsertInto:
+                this.queryResultContext.log("Copy as INSERT INTO action triggered");
+                await this.queryResultContext.extensionRpc.sendRequest(
+                    CopyAsInsertIntoRequest.type,
+                    {
+                        uri: this.uri,
+                        batchId: this.resultSetSummary.batchId,
+                        resultId: this.resultSetSummary.id,
+                        selection: selection,
+                    },
+                );
                 break;
             default:
                 console.warn("Unknown action:", action);

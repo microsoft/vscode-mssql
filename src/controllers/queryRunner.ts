@@ -70,6 +70,11 @@ export interface ExecutionPlanEvent {
     resultId: number;
 }
 
+export const editorEol =
+    vscode.workspace.getConfiguration("files").get<string>("eol") === "auto"
+        ? os.EOL
+        : vscode.workspace.getConfiguration("files").get<string>("eol");
+
 /*
  * Query Runner class which handles running a query, reports the results to the content manager,
  * and handles getting more rows from the service layer and disposing when the content is closed.
@@ -306,7 +311,7 @@ export default class QueryRunner {
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
         this._statusView.executingQuery(this.uri);
-        QueryRunner._runningQueries.push(vscode.Uri.parse(this._ownerUri).fsPath);
+        QueryRunner._runningQueries.push(vscode.Uri.parse(this._ownerUri).path);
         this.updateRunningQueries();
 
         this._notificationHandler.registerRunner(this, this._ownerUri);
@@ -338,7 +343,7 @@ export default class QueryRunner {
      */
     private removeRunningQuery(): void {
         QueryRunner._runningQueries = QueryRunner._runningQueries.filter(
-            (fileName) => fileName !== vscode.Uri.parse(this._ownerUri).fsPath,
+            (fileName) => fileName !== vscode.Uri.parse(this._ownerUri).path,
         );
         this.updateRunningQueries();
     }
@@ -813,12 +818,12 @@ export default class QueryRunner {
                     copyString += "\t";
                 }
             }
-            copyString += os.EOL;
+            copyString += editorEol;
         }
 
         // Remove the last extra new line
         if (copyString.length > 1) {
-            copyString = copyString.substring(0, copyString.length - os.EOL.length);
+            copyString = copyString.substring(0, copyString.length - editorEol.length);
         }
         return copyString;
     }
@@ -856,7 +861,7 @@ export default class QueryRunner {
         };
         let columnHeaders = this.getColumnHeaders(batchId, resultId, columnRange);
         copyString += columnHeaders.join("\t");
-        copyString += os.EOL;
+        copyString += editorEol;
         return copyString;
     }
 
@@ -891,7 +896,7 @@ export default class QueryRunner {
 
         const delimiter = csvConfig.delimiter || ",";
         const textIdentifier = csvConfig.textIdentifier || '"';
-        const lineSeperator = csvConfig.lineSeperator || os.EOL;
+        const lineSeperator = csvConfig.lineSeperator || editorEol;
 
         let copyString = "";
 
@@ -1004,6 +1009,95 @@ export default class QueryRunner {
         );
 
         await this.writeStringToClipboard(jsonString);
+    }
+
+    public async copyResultsAsInClause(
+        selection: ISlickRange[],
+        batchId: number,
+        resultId: number,
+    ): Promise<void> {
+        // sort the selections by row to maintain copy order
+        selection.sort((a, b) => a.fromRow - b.fromRow);
+
+        // create a mapping of rows to selections
+        let rowIdToSelectionMap = new Map<number, ISlickRange[]>();
+        let rowIdToRowMap = new Map<number, DbCellValue[]>();
+
+        // create a mapping of the ranges to get promises
+        let tasks = selection.map((range) => {
+            return async () => {
+                const result = await this.getRows(
+                    range.fromRow,
+                    range.toRow - range.fromRow + 1,
+                    batchId,
+                    resultId,
+                );
+                this.getRowMappings(
+                    result.resultSubset.rows,
+                    range,
+                    rowIdToSelectionMap,
+                    rowIdToRowMap,
+                );
+            };
+        });
+
+        // get all the rows
+        let p = tasks[0]();
+        for (let i = 1; i < tasks.length; i++) {
+            p = p.then(tasks[i]);
+        }
+        await p;
+
+        const inClauseString = this.constructInClauseString(rowIdToRowMap, rowIdToSelectionMap);
+
+        await this.writeStringToClipboard(inClauseString);
+    }
+
+    public async copyResultsAsInsertInto(
+        selection: ISlickRange[],
+        batchId: number,
+        resultId: number,
+    ): Promise<void> {
+        // sort the selections by row to maintain copy order
+        selection.sort((a, b) => a.fromRow - b.fromRow);
+
+        // create a mapping of rows to selections
+        let rowIdToSelectionMap = new Map<number, ISlickRange[]>();
+        let rowIdToRowMap = new Map<number, DbCellValue[]>();
+
+        // create a mapping of the ranges to get promises
+        let tasks = selection.map((range) => {
+            return async () => {
+                const result = await this.getRows(
+                    range.fromRow,
+                    range.toRow - range.fromRow + 1,
+                    batchId,
+                    resultId,
+                );
+                this.getRowMappings(
+                    result.resultSubset.rows,
+                    range,
+                    rowIdToSelectionMap,
+                    rowIdToRowMap,
+                );
+            };
+        });
+
+        // get all the rows
+        let p = tasks[0]();
+        for (let i = 1; i < tasks.length; i++) {
+            p = p.then(tasks[i]);
+        }
+        await p;
+
+        const insertIntoString = this.constructInsertIntoString(
+            rowIdToRowMap,
+            rowIdToSelectionMap,
+            batchId,
+            resultId,
+        );
+
+        await this.writeStringToClipboard(insertIntoString);
     }
 
     public async toggleSqlCmd(): Promise<boolean> {
@@ -1200,7 +1294,7 @@ export default class QueryRunner {
             this.escapeCsvValue(header, textIdentifier),
         );
         copyString += escapedHeaders.join(delimiter);
-        copyString += os.EOL;
+        copyString += editorEol;
         return copyString;
     }
 
@@ -1363,6 +1457,168 @@ export default class QueryRunner {
         }
 
         return JSON.stringify(jsonArray, null, 2);
+    }
+
+    private constructInClauseString(
+        rowIdToRowMap: Map<number, DbCellValue[]>,
+        rowIdToSelectionMap: Map<number, ISlickRange[]>,
+    ): string {
+        let allRowIds = Array.from(rowIdToRowMap.keys()).sort((a, b) => a - b);
+        if (allRowIds.length === 0) {
+            return "IN ()";
+        }
+
+        let values: string[] = [];
+
+        for (let rowId of allRowIds) {
+            let row = rowIdToRowMap.get(rowId);
+            const rowSelections = rowIdToSelectionMap.get(rowId);
+
+            // sort selections by column to go from left to right
+            rowSelections.sort((a, b) => {
+                return a.fromCell < b.fromCell ? -1 : a.fromCell > b.fromCell ? 1 : 0;
+            });
+
+            for (let i = 0; i < rowSelections.length; i++) {
+                let rowSelection = rowSelections[i];
+                let cellObjects = row.slice(rowSelection.fromCell, rowSelection.toCell + 1);
+
+                for (let cellObject of cellObjects) {
+                    if (cellObject.isNull) {
+                        values.push("NULL");
+                    } else {
+                        let displayValue = this.shouldRemoveNewLines()
+                            ? this.removeNewLines(cellObject.displayValue)
+                            : cellObject.displayValue;
+
+                        // Check if the value is numeric
+                        if (
+                            !isNaN(Number(displayValue)) &&
+                            isFinite(Number(displayValue)) &&
+                            displayValue.trim() !== ""
+                        ) {
+                            values.push(displayValue);
+                        } else {
+                            // Escape single quotes and wrap in single quotes for string values
+                            let escapedValue = displayValue.replace(/'/g, "''");
+                            values.push(`'${escapedValue}'`);
+                        }
+                    }
+                }
+            }
+        }
+
+        return `IN${editorEol}(${editorEol}${values.map((value) => `    ${value}`).join(`,${editorEol}`)}${editorEol})`;
+    }
+
+    private constructInsertIntoString(
+        rowIdToRowMap: Map<number, DbCellValue[]>,
+        rowIdToSelectionMap: Map<number, ISlickRange[]>,
+        batchId: number,
+        resultId: number,
+    ): string {
+        let allRowIds = Array.from(rowIdToRowMap.keys()).sort((a, b) => a - b);
+        if (allRowIds.length === 0) {
+            return `INSERT INTO [TableName] VALUES${editorEol}();`;
+        }
+
+        // Get column information for headers
+        const endColumns = this.getSelectionEndColumns(rowIdToRowMap, rowIdToSelectionMap);
+        const firstColumn = endColumns[0];
+        const lastColumn = endColumns[1];
+
+        let columnRange: ISlickRange = {
+            fromCell: firstColumn,
+            toCell: lastColumn,
+            fromRow: undefined,
+            toRow: undefined,
+        };
+        let columnHeaders = this.getColumnHeaders(batchId, resultId, columnRange);
+
+        // Build column list for INSERT INTO
+        const columnList = columnHeaders.map((header) => `[${header}]`).join(", ");
+
+        // Process all rows and extract their values
+        let allRowValues: string[][] = [];
+
+        for (let rowId of allRowIds) {
+            let row = rowIdToRowMap.get(rowId);
+            const rowSelections = rowIdToSelectionMap.get(rowId);
+
+            // sort selections by column to go from left to right
+            rowSelections.sort((a, b) => {
+                return a.fromCell < b.fromCell ? -1 : a.fromCell > b.fromCell ? 1 : 0;
+            });
+
+            let values: string[] = [];
+            let columnIndex = 0;
+
+            for (let i = 0; i < rowSelections.length; i++) {
+                let rowSelection = rowSelections[i];
+
+                // Add NULL values for gaps before this selection
+                while (columnIndex < rowSelection.fromCell - firstColumn) {
+                    values.push("NULL");
+                    columnIndex++;
+                }
+
+                let cellObjects = row.slice(rowSelection.fromCell, rowSelection.toCell + 1);
+
+                for (let cellObject of cellObjects) {
+                    if (cellObject.isNull) {
+                        values.push("NULL");
+                    } else {
+                        let displayValue = this.shouldRemoveNewLines()
+                            ? this.removeNewLines(cellObject.displayValue)
+                            : cellObject.displayValue;
+
+                        // Check if the value is numeric
+                        if (
+                            !isNaN(Number(displayValue)) &&
+                            isFinite(Number(displayValue)) &&
+                            displayValue.trim() !== ""
+                        ) {
+                            values.push(displayValue);
+                        } else {
+                            // Escape single quotes and wrap in single quotes for string values
+                            let escapedValue = displayValue.replace(/'/g, "''");
+                            values.push(`'${escapedValue}'`);
+                        }
+                    }
+                    columnIndex++;
+                }
+            }
+
+            // Add NULL values for gaps after the last selection
+            while (columnIndex < columnHeaders.length) {
+                values.push("NULL");
+                columnIndex++;
+            }
+
+            allRowValues.push(values);
+        }
+
+        // SQL Server limit: 1000 rows per INSERT VALUES statement
+        const maxRowsPerInsert = 1000;
+
+        if (allRowValues.length <= maxRowsPerInsert) {
+            // Use single INSERT INTO ... VALUES statement
+            const valueRows = allRowValues.map((values) => `    (${values.join(", ")})`);
+            return `INSERT INTO [TableName] (${columnList})${editorEol}VALUES${editorEol}${valueRows.join(`,${editorEol}`)};`;
+        } else {
+            // Break into individual INSERT statements
+            const insertStatements: string[] = [];
+
+            for (let i = 0; i < allRowValues.length; i += maxRowsPerInsert) {
+                const chunk = allRowValues.slice(i, i + maxRowsPerInsert);
+                const valueRows = chunk.map((values) => `    (${values.join(", ")})`);
+                insertStatements.push(
+                    `INSERT INTO [TableName] (${columnList})${editorEol}VALUES${editorEol}${valueRows.join(`,${editorEol}`)};`,
+                );
+            }
+
+            return insertStatements.join(`${editorEol}${editorEol}`);
+        }
     }
 
     /**
