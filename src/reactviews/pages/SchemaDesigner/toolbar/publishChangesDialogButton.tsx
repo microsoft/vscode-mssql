@@ -23,6 +23,7 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext, useState } from "react";
 import Markdown from "react-markdown";
 import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
+import { useMarkdownStyles } from "../../../common/styles";
 
 enum PublishDialogStages {
     NotStarted = "notStarted",
@@ -53,10 +54,15 @@ const useStyles = makeStyles({
         fontWeight: "bold",
         marginRight: "5px",
     },
+    surface: {
+        width: "800px",
+        maxWidth: "800px",
+    },
 });
 
 export function PublishChangesDialogButton() {
     const classes = useStyles();
+    const markdownClasses = useMarkdownStyles();
     const context = useContext(SchemaDesignerContext);
     const [open, setOpen] = useState(false);
     const [publishButtonDisabled, setPublishButtonDisabled] = useState(false);
@@ -81,7 +87,7 @@ export function PublishChangesDialogButton() {
             <Button
                 size="small"
                 appearance="subtle"
-                icon={<FluentIcons.DatabaseArrowUp16Filled />}
+                icon={<FluentIcons.DatabaseArrowUp16Regular />}
                 title={locConstants.schemaDesigner.publishChanges}
                 disabled={publishButtonDisabled}
                 onClick={async () => {
@@ -256,7 +262,9 @@ export function PublishChangesDialogButton() {
                             maxHeight: "100%",
                             overflow: "auto",
                         }}>
-                        <Markdown>{state?.report?.dacReport?.report ?? ""}</Markdown>
+                        <div className={markdownClasses.markdownPage}>
+                            <Markdown>{state?.report?.dacReport?.report ?? ""}</Markdown>
+                        </div>
                     </div>
 
                     <Checkbox
@@ -385,7 +393,7 @@ export function PublishChangesDialogButton() {
                                     });
                                 }
                             }}>
-                            {locConstants.schemaDesigner.publish}
+                            {locConstants.publishDialog.publish}
                         </Button>
                         <Button
                             appearance="secondary"
@@ -393,7 +401,7 @@ export function PublishChangesDialogButton() {
                             onClick={() => {
                                 context.openInEditorWithConnection();
                             }}>
-                            {locConstants.schemaDesigner.openPublishScript}
+                            {locConstants.publishDialog.openPublishScript}
                         </Button>
                     </>
                 )}
@@ -438,13 +446,9 @@ export function PublishChangesDialogButton() {
     return (
         <Dialog open={open} onOpenChange={(_e, data) => setOpen(data.open)}>
             {triggerButton()}
-            <DialogSurface
-                style={{
-                    width: "100%",
-                    maxWidth: "800px",
-                }}>
+            <DialogSurface className={classes.surface}>
                 <DialogBody>
-                    <DialogTitle>{locConstants.schemaDesigner.publishChanges}</DialogTitle>
+                    <DialogTitle>{locConstants.publishDialog.publishChanges}</DialogTitle>
                     <DialogContent>{dialogContent()}</DialogContent>
                     <DialogActions>{footerButtons()}</DialogActions>
                 </DialogBody>

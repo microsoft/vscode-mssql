@@ -224,6 +224,28 @@ export class SqlOutputContentProvider {
             .queryRunner.copyResultsAsJson(selection, batchId, resultId, includeHeaders);
     }
 
+    public copyAsInClauseRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsInClause(selection, batchId, resultId);
+    }
+
+    public copyAsInsertIntoRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsInsertInto(selection, batchId, resultId);
+    }
+
     public editorSelectionRequestHandler(uri: string, selection: ISelectionData): void {
         void this._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection);
     }
@@ -353,6 +375,7 @@ export class SqlOutputContentProvider {
                     await this._queryResultWebviewController.createPanelController(queryRunner.uri);
                 }
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                this.revealQueryResult(queryRunner.uri);
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });
@@ -860,13 +883,6 @@ export class SqlOutputContentProvider {
             if (activeEditorUri === uri) {
                 this._queryResultWebviewController.state = state;
             }
-        }
-
-        /**
-         * Only reveal the panel if user is working on the same editor
-         */
-        if (activeEditorUri === uri) {
-            this.revealQueryResult(uri);
         }
     }
 }

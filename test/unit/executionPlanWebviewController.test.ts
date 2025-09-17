@@ -7,7 +7,7 @@ import * as assert from "assert";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { ExecutionPlanWebviewController } from "../../src/controllers/executionPlanWebviewController";
-import SqlDocumentService from "../../src/controllers/sqlDocumentService";
+import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import * as ep from "../../src/sharedInterfaces/executionPlan";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
@@ -304,7 +304,28 @@ suite("Execution Plan Utilities", () => {
         assert.strictEqual(result, mockInitialState, "The state should be returned unchanged.");
     });
 
-    test("showQuery: should call newQuery with the correct query and return the state", async () => {
+    test("showQuery: should call newQuery with copyConnectionFromUri when URI is provided", async () => {
+        (mockSqlDocumentService.newQuery as sinon.SinonStub).resolves();
+
+        const mockPayload = { query: "SELECT * FROM TestTable" };
+        const mockUri = "file:///test.sql";
+
+        const result = await epUtils.showQuery(
+            mockInitialState,
+            mockPayload,
+            mockSqlDocumentService,
+            mockUri,
+        );
+
+        assert.strictEqual(result, mockInitialState, "The state should be returned unchanged.");
+        sinon.assert.calledOnceWithExactly(mockSqlDocumentService.newQuery as sinon.SinonStub, {
+            content: mockPayload.query,
+            connectionStrategy: ConnectionStrategy.CopyFromUri,
+            sourceUri: mockUri,
+        });
+    });
+
+    test("showQuery: should fallback to copyLastActiveConnection when no URI is provided", async () => {
         (mockSqlDocumentService.newQuery as sinon.SinonStub).resolves();
 
         const mockPayload = { query: "SELECT * FROM TestTable" };
@@ -316,10 +337,11 @@ suite("Execution Plan Utilities", () => {
         );
 
         assert.strictEqual(result, mockInitialState, "The state should be returned unchanged.");
-        sinon.assert.calledOnceWithExactly(
-            mockSqlDocumentService.newQuery as sinon.SinonStub,
-            mockPayload.query,
-        );
+        sinon.assert.calledOnceWithExactly(mockSqlDocumentService.newQuery as sinon.SinonStub, {
+            content: mockPayload.query,
+            connectionStrategy: ConnectionStrategy.DoNotConnect,
+            sourceUri: undefined,
+        });
     });
 
     test("createExecutionPlanGraphs: should create executionPlanGraphs correctly and return the state", async () => {

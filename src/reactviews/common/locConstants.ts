@@ -161,6 +161,9 @@ export class LocConstants {
                     args: [objectType],
                     comment: ["{0} is the object type"],
                 }),
+            expandPropertiesPane: l10n.t("Expand properties pane"),
+            restorePropertiesPane: l10n.t("Restore properties pane"),
+            closePropertiesPane: l10n.t("Close properties pane"),
             tableName: l10n.t("Table name"),
             remove: (objectType: string) =>
                 l10n.t({
@@ -172,6 +175,15 @@ export class LocConstants {
             backToPreview: l10n.t("Back to preview"),
             copy: l10n.t("Copy"),
             youMustReviewAndAccept: l10n.t("You must review and accept the terms to proceed"),
+        };
+    }
+
+    public get publishDialog() {
+        return {
+            publishChanges: l10n.t("Publish Changes"),
+            publish: l10n.t("Publish"),
+            openPublishScript: l10n.t("Open Publish Script"),
+            confirmationText: l10n.t("I have read the summary and understand the potential risks."),
         };
     }
 
@@ -451,6 +463,9 @@ export class LocConstants {
             copyAs: l10n.t("Copy As"),
             copyAsCsv: l10n.t("Copy as CSV"),
             copyAsJson: l10n.t("Copy as JSON"),
+            copyAsInClause: l10n.t("Copy as IN clause"),
+            copyAsInsertInto: l10n.t("Copy as INSERT INTO"),
+            saveAsInsert: l10n.t("Save as INSERT"),
             null: l10n.t("NULL"),
             blankString: l10n.t("Blanks"),
             apply: l10n.t("Apply"),
