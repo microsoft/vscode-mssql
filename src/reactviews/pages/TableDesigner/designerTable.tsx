@@ -39,6 +39,17 @@ const useStyles = fluentui.makeStyles({
         display: "flex",
         flexDirection: "row",
     },
+    tableCellContent: {
+        width: "100%",
+        "& > *": {
+            width: "100% !important",
+        },
+        "& input, & [role='combobox'], & textarea": {
+            width: "100% !important",
+            minWidth: "auto !important",
+            maxWidth: "none !important",
+        },
+    },
     tableActionIcon: {
         height: "14px",
         width: "14px",
@@ -360,42 +371,46 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                 switch (colProps?.componentType) {
                     case "input":
                         return (
-                            <DesignerInputBox
-                                component={colProps}
-                                model={value as designer.InputBoxProperties}
-                                componentPath={[...componentPath, row.rowId, columnId]}
-                                UiArea={UiArea}
-                                showLabel={false}
-                                showError={false}
-                            />
+                            <div className={classes.tableCell} style={{ width: "100%" }}>
+                                <div className={classes.tableCellContent}>
+                                    <DesignerInputBox
+                                        component={colProps}
+                                        model={value as designer.InputBoxProperties}
+                                        componentPath={[...componentPath, row.rowId, columnId]}
+                                        UiArea={UiArea}
+                                        showLabel={false}
+                                        showError={false}
+                                    />
+                                </div>
+                            </div>
                         );
                     case "dropdown":
                         return (
-                            <div
-                                className={classes.tableCell}
-                                style={{
-                                    marginTop: "2px",
-                                }}>
-                                <DesignerDropdown
-                                    component={colProps}
-                                    model={value as designer.DropDownProperties}
-                                    componentPath={[...componentPath, row.rowId, columnId]}
-                                    UiArea={"TabsView"}
-                                    showLabel={false}
-                                    showError={false}
-                                />
+                            <div className={classes.tableCell} style={{ width: "100%" }}>
+                                <div className={classes.tableCellContent}>
+                                    <DesignerDropdown
+                                        component={colProps}
+                                        model={value as designer.DropDownProperties}
+                                        componentPath={[...componentPath, row.rowId, columnId]}
+                                        UiArea={"TabsView"}
+                                        showLabel={false}
+                                        showError={false}
+                                    />
+                                </div>
                             </div>
                         );
                     case "checkbox": {
                         return (
-                            <div className={classes.tableCell}>
-                                <DesignerCheckbox
-                                    component={colProps}
-                                    model={value as designer.CheckBoxProperties}
-                                    componentPath={[...componentPath, row.rowId, columnId]}
-                                    UiArea={UiArea}
-                                    showLabel={false}
-                                />
+                            <div className={classes.tableCell} style={{ width: "100%" }}>
+                                <div className={classes.tableCellContent}>
+                                    <DesignerCheckbox
+                                        component={colProps}
+                                        model={value as designer.CheckBoxProperties}
+                                        componentPath={[...componentPath, row.rowId, columnId]}
+                                        UiArea={UiArea}
+                                        showLabel={false}
+                                    />
+                                </div>
                             </div>
                         );
                     }
