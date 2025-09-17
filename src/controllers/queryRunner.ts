@@ -291,7 +291,6 @@ export default class QueryRunner {
             if (promise) {
                 this._uriToQueryPromiseMap.set(this._ownerUri, promise);
             }
-            throw new Error("Query execution failed");
             await this._client
                 .sendRequest(QueryExecuteRequest.type, queryDetails)
                 .then(onSuccess, onError);
