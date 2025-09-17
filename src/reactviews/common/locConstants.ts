@@ -503,7 +503,7 @@ export class LocConstants {
                     comment: ["{0} is the index of the result set"],
                 }),
             loadingTextView: l10n.t("Loading text view..."),
-            loadingResultsMessage: l10n.t("Please wait while the results are being loaded..."),
+            loadingResultsMessage: l10n.t("Loading results..."),
             noResultsHeader: l10n.t("No results for the active editor"),
             noResultMessage: l10n.t(
                 "Run a query in the current editor, or switch to an editor that has results.",

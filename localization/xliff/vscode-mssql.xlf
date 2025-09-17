@@ -2265,6 +2265,9 @@
     <trans-unit id="++CODE++2e0422920bb9bd61c1c7edf3554564e5ca37f4f0bc5d5a96b0402fb3a4c00155">
       <source xml:lang="en">Please select a workspace where you have sufficient permissions (Contributor or higher)</source>
     </trans-unit>
+    <trans-unit id="++CODE++d89a0118be9cdeac31865e642e6a790922feb0117bffe1c6accb6459d7509d09">
+      <source xml:lang="en">Please wait while the results are being loaded...</source>
+    </trans-unit>
     <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
       <source xml:lang="en">Port</source>
     </trans-unit>

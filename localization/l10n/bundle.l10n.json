@@ -456,6 +456,7 @@
     ]
   },
   "Loading text view...": "Loading text view...",
+  "Please wait while the results are being loaded...": "Please wait while the results are being loaded...",
   "No results for the active editor": "No results for the active editor",
   "Run a query in the current editor, or switch to an editor that has results.": "Run a query in the current editor, or switch to an editor that has results.",
   "Add new column": "Add new column",
