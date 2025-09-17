@@ -770,6 +770,9 @@ export class Azure {
             comment: ["{0} is the tenant id", "{1} is the account name"],
         });
     };
+
+    public static PublicCloud = l10n.t("Azure (Public)");
+    public static USGovernmentCloud = l10n.t("Azure (US Government)");
 }
 
 export class Fabric {
