@@ -215,6 +215,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             },
             autoSizeColumns: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: this.getInMemoryDataProcessingThresholdConfig(),
+            initializationError: undefined,
         };
     }
 
