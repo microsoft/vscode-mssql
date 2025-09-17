@@ -204,6 +204,10 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdConnect, () => {
                 void this.runAndLogErrors(this.onNewConnection());
             });
+            this.registerCommand(Constants.cmdChangeConnection);
+            this._event.on(Constants.cmdChangeConnection, () => {
+                void this.runAndLogErrors(this.onNewConnection());
+            });
             this.registerCommand(Constants.cmdDisconnect);
             this._event.on(Constants.cmdDisconnect, () => {
                 void this.runAndLogErrors(this.onDisconnect());
