@@ -153,13 +153,11 @@ export class DeploymentWebviewController extends FormWebviewController<
 
         this.registerReducer("setConnectionGroupDialogState", async (state, payload) => {
             if (payload.shouldOpen) {
-                state = getDefaultConnectionGroupDialogProps(
-                    state,
-                    (state.formState as any)?.groupId,
-                ) as DeploymentWebviewState;
+                state = getDefaultConnectionGroupDialogProps(state) as DeploymentWebviewState;
             } else {
                 state.dialog = undefined;
             }
+            state.dialog.props.parentId = state.formState.groupId;
             state.deploymentTypeState.dialog = state.dialog;
             return state;
         });

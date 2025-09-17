@@ -80,6 +80,9 @@ export interface IAzureTenant {
 }
 
 export interface IDialogProps {
+    props: {
+        parentId?: string;
+    };
     type:
         | "trustServerCert"
         | "addFirewallRule"

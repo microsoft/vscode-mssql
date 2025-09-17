@@ -124,19 +124,15 @@ export function createConnectionGroupFromSpec(spec: ConnectionGroupState): IConn
         description: spec.description,
         color: spec.color,
         id: Utils.generateGuid(),
-        parentId: spec.parentId,
     };
 }
 
 /**
  * Shared function to get the default properties for the Create Connection Group dialog.
  */
-export function getDefaultConnectionGroupDialogProps(state, parentId?: string) {
+export function getDefaultConnectionGroupDialogProps(state) {
     state.dialog = {
         type: "createConnectionGroup",
-        props: {
-            parentId,
-        },
     } as CreateConnectionGroupDialogProps;
 
     return state;
