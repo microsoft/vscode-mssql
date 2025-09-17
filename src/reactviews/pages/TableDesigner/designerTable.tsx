@@ -93,6 +93,8 @@ const useStyles = fluentui.makeStyles({
 });
 
 export const DesignerTable = ({ component, model, componentPath, UiArea }: DesignerTableProps) => {
+    const keyboardNavAttr = fluentui.useArrowNavigationGroup({ axis: "grid" });
+
     const tableProps = component.componentProperties as designer.DesignerTableProperties;
     const context = useContext(TableDesignerContext);
     if (!context) {
@@ -456,6 +458,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
             </fluentui.Toolbar>
             <div>
                 <fluentui.Table
+                    {...keyboardNavAttr}
                     as="table"
                     size="extra-small"
                     {...columnSizing_unstable.getTableProps()}
