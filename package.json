@@ -2471,6 +2471,80 @@
                 "userDescription": "Execute a SQL query against a connected MSSQL database.",
                 "icon": "$(play)"
             }
+        ],
+        "colors": [
+            {
+                "id": "mssql.resultsGridNullBackground",
+                "description": "Color for null background in results grid",
+                "defaults": {
+                    "light": "#a3d3a3",
+                    "dark": "#77116f",
+                    "highContrast": "#4db356"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullForeground",
+                "description": "Color for null foreground in results grid",
+                "defaults": {
+                    "light": "#0f0f0f",
+                    "dark": "#0f0f0f",
+                    "highContrast": "#0f0f0f"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullSelectedBackground",
+                "description": "Background color for null selected cells in results grid",
+                "defaults": {
+                    "light": "#173b17",
+                    "dark": "#678a99",
+                    "highContrast": "#327037"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullSelectedForeground",
+                "description": "Foreground color for null selected cells in results grid",
+                "defaults": {
+                    "light": "#0f0f0f",
+                    "dark": "#0f0f0f",
+                    "highContrast": "#0f0f0f"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullSelectedActiveBackground",
+                "description": "Background color for null selected active cells in results grid",
+                "defaults": {
+                    "light": "#2a0950",
+                    "dark": "#c0af12",
+                    "highContrast": "#327037"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullSelectedActiveForeground",
+                "description": "Foreground color for null selected active cells in results grid",
+                "defaults": {
+                    "light": "#0f0f0f",
+                    "dark": "#0f0f0f",
+                    "highContrast": "#0f0f0f"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullFocusedBackground",
+                "description": "Background color for null focused cells in results grid",
+                "defaults": {
+                    "light": "#1d3874",
+                    "dark": "#49b91c",
+                    "highContrast": "#4dbe57"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullFocusedForeground",
+                "description": "Foreground color for null focused cells in results grid",
+                "defaults": {
+                    "light": "#0f0f0f",
+                    "dark": "#0f0f0f",
+                    "highContrast": "#0f0f0f"
+                }
+            }
         ]
     }
 }

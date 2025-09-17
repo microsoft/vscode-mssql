@@ -33,8 +33,12 @@ export interface ITableStyles {
     tableHeaderForeground: string | undefined;
     nullCellBackground: string | undefined;
     nullCellForeground: string | undefined;
+    nullCellSelectionBackground: string | undefined;
+    nullCellSelectionForeground: string | undefined;
     nullCellActiveSelectionBackground?: string | undefined;
+    nullCellActiveSelectionForeground?: string | undefined;
     nullCellFocusSelectionBackground?: string | undefined;
+    nullCellFocusSelectionForeground?: string | undefined;
 }
 
 export interface ITableSorter<T extends Slick.SlickData> {
@@ -91,8 +95,14 @@ export const defaultTableStyles: ITableStyles = {
     listInactiveFocusOutline: "var(--vscode-list-inactiveFocusOutline)",
     tableHeaderBackground: "var(--vscode-keybindingTable-headerBackground)",
     tableHeaderForeground: "var(--vscode-foreground)",
-    nullCellBackground: "var(--vscode-editor-inactiveSelectionBackground)",
-    nullCellForeground: "var(--vscode-editor-selectionForeground)",
-    nullCellActiveSelectionBackground: "var(--vscode-editor-wordHighlightStrongBackground)",
-    nullCellFocusSelectionBackground: "var(--vscode-editor-linkedEditingBackground)",
+    nullCellBackground: "var(--vscode-mssql-resultsGridNullBackground)",
+    nullCellForeground: "var(--vscode-mssql-resultsGridNullForeground)",
+    nullCellSelectionBackground: "var(--vscode-mssql-resultsGridNullSelectedBackground)",
+    nullCellSelectionForeground: "var(--vscode-mssql-resultsGridNullSelectedForeground)",
+    nullCellActiveSelectionBackground:
+        "var(--vscode-mssql-resultsGridNullSelectedActiveBackground)",
+    nullCellActiveSelectionForeground:
+        "var(--vscode-mssql-resultsGridNullSelectedActiveForeground)",
+    nullCellFocusSelectionBackground: "var(--vscode-mssql-resultsGridNullFocusedBackground)",
+    nullCellFocusSelectionForeground: "var(--vscode-mssql-resultsGridNullFocusedForeground)",
 };
