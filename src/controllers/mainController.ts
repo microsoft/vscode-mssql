@@ -253,6 +253,10 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdShowGettingStarted, async () => {
                 await this.launchGettingStartedPage();
             });
+            this.registerCommand(Constants.cmdNewQuery);
+            this._event.on(Constants.cmdNewQuery, () =>
+                this.runAndLogErrors(this.sqlDocumentService.handleNewQueryCommand()),
+            );
             this.registerCommand(Constants.cmdRebuildIntelliSenseCache);
             this._event.on(Constants.cmdRebuildIntelliSenseCache, () => {
                 this.onRebuildIntelliSense();
@@ -1353,6 +1357,31 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdAddObjectExplorerLegacy, (args) => {
             vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, args);
         });
+
+        // Object Explorer New Query
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdObjectExplorerNewQuery,
+                async (treeNodeInfo: TreeNodeInfo) => {
+                    const connectionCredentials = treeNodeInfo.connectionProfile;
+                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
+
+                    if (
+                        databaseName !== connectionCredentials.database &&
+                        databaseName !== LocalizedConstants.defaultDatabaseLabel
+                    ) {
+                        connectionCredentials.database = databaseName;
+                    } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
+                        connectionCredentials.database = "";
+                    }
+                    treeNodeInfo.updateConnectionProfile(connectionCredentials);
+                    await this.sqlDocumentService.newQuery({
+                        connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                        connectionInfo: connectionCredentials,
+                    });
+                },
+            ),
+        );
 
         // Remove Object Explorer Node
         this._context.subscriptions.push(

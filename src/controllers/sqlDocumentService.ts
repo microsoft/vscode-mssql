@@ -85,33 +85,6 @@ export default class SqlDocumentService implements vscode.Disposable {
             }),
         );
 
-        this._disposables.push(
-            vscode.commands.registerCommand(Constants.cmdNewQuery, async (node?: TreeNodeInfo) => {
-                await this.handleNewQueryCommand(node);
-            }),
-        );
-
-        this._disposables.push(
-            vscode.commands.registerCommand(
-                Constants.cmdObjectExplorerNewQuery,
-                async (treeNodeInfo: TreeNodeInfo) => {
-                    const connectionCredentials = treeNodeInfo.connectionProfile;
-                    const databaseName = ObjectExplorerUtils.getDatabaseName(treeNodeInfo);
-
-                    if (
-                        databaseName !== connectionCredentials.database &&
-                        databaseName !== LocalizedConstants.defaultDatabaseLabel
-                    ) {
-                        connectionCredentials.database = databaseName;
-                    } else if (databaseName === LocalizedConstants.defaultDatabaseLabel) {
-                        connectionCredentials.database = "";
-                    }
-                    treeNodeInfo.updateConnectionProfile(connectionCredentials);
-                    await this.handleNewQueryCommand(treeNodeInfo);
-                },
-            ),
-        );
-
         if (this._connectionMgr) {
             this._disposables.push(
                 this._connectionMgr.onSuccessfulConnection((params) =>
@@ -128,7 +101,7 @@ export default class SqlDocumentService implements vscode.Disposable {
      * 3. User triggered "New Query" from command palette while they have a connected OE node selected: use that node's connection profile
      * 4. User triggered "New Query" from command palette and there's no reasonable context: prompt for connection to use
      */
-    private async handleNewQueryCommand(node?: TreeNodeInfo, content?: string): Promise<boolean> {
+    public async handleNewQueryCommand(node?: TreeNodeInfo, content?: string): Promise<boolean> {
         if (!this._connectionMgr || !this._mainController) {
             return false;
         }
