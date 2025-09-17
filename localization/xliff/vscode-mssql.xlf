@@ -273,6 +273,12 @@
       <source xml:lang="en">Average: {0}  Count: {1}  Sum: {2}</source>
       <note>{0} is the average, {1} is the count, {2} is the sum</note>
     </trans-unit>
+    <trans-unit id="++CODE++cdf9c75db21efc1ddc557d567de91e9bc67533606ce4bbc049c592d77f122e68">
+      <source xml:lang="en">Azure (Public)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cf582c92b799b117f2d093534bbe7b99aea5df658f201220f320f2976c0ebbba">
+      <source xml:lang="en">Azure (US Government)</source>
+    </trans-unit>
     <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
       <source xml:lang="en">Azure Account</source>
     </trans-unit>

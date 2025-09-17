@@ -1362,6 +1362,8 @@
       "{1} is the account name"
     ]
   },
+  "Azure (Public)": "Azure (Public)",
+  "Azure (US Government)": "Azure (US Government)",
   "Failed to get Fabric workspaces for tenant '{0} ({1})'./{0} is the tenant name{1} is the tenant id": {
     "message": "Failed to get Fabric workspaces for tenant '{0} ({1})'.",
     "comment": [
