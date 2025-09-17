@@ -91,9 +91,12 @@ export default function PublishProfileField(props: { idx: number }) {
                 <Button
                     size="small"
                     appearance="secondary"
-                    onClick={() =>
-                        context.savePublishProfile?.(context.state.formState.profileName || "")
-                    }>
+                    onClick={() => {
+                        const profileName = context.state.formState.profileName;
+                        if (profileName && profileName.trim() !== "") {
+                            context.savePublishProfile?.(profileName);
+                        }
+                    }}>
                     {loc.SaveAs}
                 </Button>
             </div>

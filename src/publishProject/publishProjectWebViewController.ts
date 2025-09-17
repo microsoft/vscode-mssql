@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as mssql from "vscode-mssql";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { PublishProject as Loc } from "../constants/locConstants";
@@ -33,7 +32,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
         context: vscode.ExtensionContext,
         _vscodeWrapper: VscodeWrapper,
         projectFilePath: string,
-        schemaCompareOptionsResult?: mssql.SchemaCompareOptionsResult,
     ) {
         const initialFormState: IPublishForm = {
             profileName: "",
@@ -49,7 +47,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
             projectFilePath,
             inProgress: false,
             lastPublishResult: undefined,
-            defaultDeploymentOptionsResult: schemaCompareOptionsResult,
         } as PublishDialogWebviewState;
 
         super(context, _vscodeWrapper, "publishDialog", "publishDialog", initialState, {
