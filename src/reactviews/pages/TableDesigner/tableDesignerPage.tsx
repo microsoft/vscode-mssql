@@ -162,7 +162,7 @@ export const TableDesigner = () => {
             {tableDesignerState.apiState?.initializeState === designer.LoadState.Loaded && (
                 <div className={classes.mainContent}>
                     <PanelGroup direction="vertical">
-                        <Panel defaultSize={100}>
+                        <Panel defaultSize={75}>
                             <div className={classes.topPanelContent}>
                                 <DesignerPageRibbon />
                                 <div className={classes.editor} ref={editorRef}>
