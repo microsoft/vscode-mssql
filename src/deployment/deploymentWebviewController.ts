@@ -64,7 +64,7 @@ export class DeploymentWebviewController extends FormWebviewController<
         });
         // If an initial connection group was provided, try to pre-populate the form state
         if (initialConnectionGroup && initialConnectionGroup.id) {
-            (this.state.formState as any).groupId = initialConnectionGroup.id;
+            this.state.formState.groupId = initialConnectionGroup.id;
         }
         void this.initialize();
     }
