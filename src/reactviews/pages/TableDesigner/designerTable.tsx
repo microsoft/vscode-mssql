@@ -51,6 +51,24 @@ const useStyles = fluentui.makeStyles({
     tableCellButton: {
         height: "100%",
     },
+    table: {
+        border: "1px solid var(--vscode-panel-border)",
+        borderCollapse: "collapse",
+    },
+    tableHeaderCell: {
+        borderRight: "1px solid var(--vscode-panel-border)",
+        borderBottom: "1px solid var(--vscode-panel-border)",
+        "&:last-child": {
+            borderRight: "none",
+        },
+    },
+    tableCellWithBorder: {
+        borderRight: "1px solid var(--vscode-panel-border)",
+        borderBottom: "1px solid var(--vscode-panel-border)",
+        "&:last-child": {
+            borderRight: "none",
+        },
+    },
 });
 
 export const DesignerTable = ({ component, model, componentPath, UiArea }: DesignerTableProps) => {
@@ -400,6 +418,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                     size="extra-small"
                     {...columnSizing_unstable.getTableProps()}
                     ref={tableRef}
+                    className={classes.table}
                     style={{
                         width:
                             Object.keys(columnSizingOptions).reduce((acc, curr) => {
@@ -417,6 +436,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                         {...columnSizing_unstable.getTableHeaderCellProps(
                                             column.columnId,
                                         )}
+                                        className={classes.tableHeaderCell}
                                         key={column.columnId}>
                                         {column.renderHeaderCell()}
                                     </fluentui.TableHeaderCell>
@@ -475,6 +495,7 @@ export const DesignerTable = ({ component, model, componentPath, UiArea }: Desig
                                                 {...columnSizing_unstable.getTableCellProps(
                                                     column.columnId,
                                                 )}
+                                                className={classes.tableCellWithBorder}
                                                 id={`table-cell-${context?.state.tableInfo?.id}-${componentPath.join("-")}_${index}-${columnIndex}`}
                                                 style={{
                                                     height: "30px",
