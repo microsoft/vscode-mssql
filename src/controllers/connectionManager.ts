@@ -1085,12 +1085,13 @@ export default class ConnectionManager {
          * contexts.
          * https://github.com/microsoft/vscode/blob/bb5a3c607b14787009f8e9fadb720beee596133c/src/vs/workbench/common/contextkeys.ts#L261C1-L262C1
          */
-        const connectionContext = [];
-        Object.keys(this._connections).forEach((key) => {
-            const Uri = vscode.Uri.parse(key);
-            connectionContext.push(Uri.toString());
-        });
-        vscode.commands.executeCommand("setContext", "mssql.connections", connectionContext);
+        vscode.commands.executeCommand(
+            "setContext",
+            "mssql.connections",
+            Object.keys(this._connections).map((key) => {
+                return vscode.Uri.parse(key).toString();
+            }),
+        );
     }
 
     /**

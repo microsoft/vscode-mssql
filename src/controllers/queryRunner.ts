@@ -312,7 +312,7 @@ export default class QueryRunner {
         this._totalElapsedMilliseconds = 0;
         this._statusView.executingQuery(this.uri);
 
-        this.addRunningQuery(this._ownerUri);
+        QueryRunner.addRunningQuery(this._ownerUri);
 
         this._notificationHandler.registerRunner(this, this._ownerUri);
 
@@ -1680,10 +1680,10 @@ export default class QueryRunner {
      * Add query to running queries list
      * @param ownerUri The owner URI of the query
      */
-    private addRunningQuery(ownerUri: string): void {
+    private static addRunningQuery(ownerUri: string): void {
         const key = vscode.Uri.parse(ownerUri).fsPath;
         QueryRunner._runningQueries.push(key);
-        this.updateRunningQueries();
+        QueryRunner.updateRunningQueries();
     }
 
     /**
@@ -1693,10 +1693,10 @@ export default class QueryRunner {
         QueryRunner._runningQueries = QueryRunner._runningQueries.filter(
             (fileName) => fileName !== vscode.Uri.parse(this._ownerUri).fsPath,
         );
-        this.updateRunningQueries();
+        QueryRunner.updateRunningQueries();
     }
 
-    private updateRunningQueries() {
+    private static updateRunningQueries() {
         vscode.commands.executeCommand(
             "setContext",
             "mssql.runningQueries",
