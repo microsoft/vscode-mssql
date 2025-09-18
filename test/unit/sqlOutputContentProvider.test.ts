@@ -15,6 +15,7 @@ import { ISelectionData } from "../../src/models/interfaces";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import * as sinon from "sinon";
+import QueryRunner from "../../src/controllers/queryRunner";
 
 suite("SqlOutputProvider Tests using mocks", () => {
     const testUri = "Test_URI";
@@ -72,11 +73,66 @@ suite("SqlOutputProvider Tests using mocks", () => {
             } as vscode.Disposable;
         });
 
+        // // Mock vscode.workspace.openTextDocument to avoid file system access
+        // sandbox.stub(vscode.workspace, "openTextDocument").callsFake((uri) => {
+        //     return Promise.resolve({
+        //         uri: typeof uri === "string" ? vscode.Uri.parse(uri) : uri,
+        //         getText: () => "SELECT * FROM test_table",
+        //         languageId: "sql",
+        //         lineCount: 1,
+        //         lineAt: () => ({
+        //             text: "SELECT * FROM test_table",
+        //             range: new vscode.Range(0, 0, 0, 25)
+        //         }),
+        //         positionAt: () => new vscode.Position(0, 0),
+        //         offsetAt: () => 0,
+        //         validateRange: (range) => range,
+        //         validatePosition: (position) => position,
+        //         getWordRangeAtPosition: () => undefined,
+        //         save: () => Promise.resolve(true),
+        //         isDirty: false,
+        //         isUntitled: false,
+        //         isClosed: false,
+        //         eol: vscode.EndOfLine.LF,
+        //         fileName: typeof uri === "string" ? uri : uri.path,
+        //         version: 1
+        //     } as vscode.TextDocument);
+        // });
+
         statusView.setup((x) => x.cancelingQuery(TypeMoq.It.isAny()));
         statusView.setup((x) => x.executedQuery(TypeMoq.It.isAny()));
         context.setup((c) => c.extensionPath).returns(() => "test_uri");
         const subscriptions: vscode.Disposable[] = [];
         context.setup((c) => c.subscriptions).returns(() => subscriptions);
+
+        // // Mock parseUri method
+        // vscodeWrapper.setup((v) => v.parseUri(TypeMoq.It.isAnyString())).returns((uri) => vscode.Uri.parse(uri));
+
+        // // Mock openTextDocument method
+        // vscodeWrapper.setup((v) => v.openTextDocument(TypeMoq.It.isAny())).returns(() => {
+        //     return Promise.resolve({
+        //         uri: vscode.Uri.parse("test_uri"),
+        //         getText: () => "SELECT * FROM test_table",
+        //         languageId: "sql",
+        //         lineCount: 1,
+        //         lineAt: () => ({
+        //             text: "SELECT * FROM test_table",
+        //             range: new vscode.Range(0, 0, 0, 25)
+        //         }),
+        //         positionAt: () => new vscode.Position(0, 0),
+        //         offsetAt: () => 0,
+        //         validateRange: (range) => range,
+        //         validatePosition: (position) => position,
+        //         getWordRangeAtPosition: () => undefined,
+        //         save: () => Promise.resolve(true),
+        //         isDirty: false,
+        //         isUntitled: false,
+        //         isClosed: false,
+        //         eol: vscode.EndOfLine.LF,
+        //         fileName: "test_uri",
+        //         version: 1
+        //     } as vscode.TextDocument);
+        // });
         contentProvider = new SqlOutputContentProvider(
             context.object,
             statusView.object,
@@ -486,6 +542,13 @@ suite("SqlOutputProvider Tests using mocks", () => {
                 let config = stubs.createWorkspaceConfiguration(configResult);
                 return config;
             });
+
+        contentProvider.queryResultWebviewController.createPanelController = sandbox
+            .stub()
+            .resolves();
+
+        sandbox.stub(QueryRunner.prototype, "runQuery").resolves();
+
         let testQueryRunner = contentProvider.getQueryRunner("test_uri");
         assert.equal(testQueryRunner, undefined);
         await contentProvider.runQuery(statusView.object, "test_uri", undefined, "test_title");
