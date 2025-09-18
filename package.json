@@ -2528,8 +2528,8 @@
                 }
             },
             {
-                "id": "mssql.resultsGridNullFocusedBackground",
-                "description": "Background color for null focused cells in results grid",
+                "id": "mssql.resultsGridNullHoverSelectionBackground",
+                "description": "Background color for null hover selection cells in results grid",
                 "defaults": {
                     "light": "#1d3874",
                     "dark": "#49b91c",
@@ -2537,8 +2537,26 @@
                 }
             },
             {
-                "id": "mssql.resultsGridNullFocusedForeground",
-                "description": "Foreground color for null focused cells in results grid",
+                "id": "mssql.resultsGridNullHoverSelectionForeground",
+                "description": "Foreground color for null hover selection cells in results grid",
+                "defaults": {
+                    "light": "#0f0f0f",
+                    "dark": "#0f0f0f",
+                    "highContrast": "#0f0f0f"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullHoverBackground",
+                "description": "Background color for null hover cells in results grid",
+                "defaults": {
+                    "light": "#1d3874",
+                    "dark": "#ce420a",
+                    "highContrast": "#4dbe57"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullHoverForeground",
+                "description": "Foreground color for null hover cells in results grid",
                 "defaults": {
                     "light": "#0f0f0f",
                     "dark": "#0f0f0f",

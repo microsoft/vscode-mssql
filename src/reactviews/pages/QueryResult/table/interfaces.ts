@@ -35,10 +35,12 @@ export interface ITableStyles {
     nullCellForeground: string | undefined;
     nullCellSelectionBackground: string | undefined;
     nullCellSelectionForeground: string | undefined;
-    nullCellActiveSelectionBackground?: string | undefined;
-    nullCellActiveSelectionForeground?: string | undefined;
-    nullCellFocusSelectionBackground?: string | undefined;
-    nullCellFocusSelectionForeground?: string | undefined;
+    nullCellHoverBackground?: string | undefined;
+    nullCellHoverForeground?: string | undefined;
+    nullCellHoverSelectionBackground?: string | undefined;
+    nullCellHoverSelectionForeground?: string | undefined;
+    nullCellSelectionActiveBackground?: string | undefined;
+    nullCellSelectionActiveForeground?: string | undefined;
 }
 
 export interface ITableSorter<T extends Slick.SlickData> {
@@ -99,10 +101,12 @@ export const defaultTableStyles: ITableStyles = {
     nullCellForeground: "var(--vscode-mssql-resultsGridNullForeground)",
     nullCellSelectionBackground: "var(--vscode-mssql-resultsGridNullSelectedBackground)",
     nullCellSelectionForeground: "var(--vscode-mssql-resultsGridNullSelectedForeground)",
-    nullCellActiveSelectionBackground:
+    nullCellHoverBackground: "var(--vscode-mssql-resultsGridNullHoverBackground)",
+    nullCellHoverForeground: "var(--vscode-mssql-resultsGridNullHoverForeground)",
+    nullCellHoverSelectionBackground: "var(--vscode-mssql-resultsGridNullHoverSelectionBackground)",
+    nullCellHoverSelectionForeground: "var(--vscode-mssql-resultsGridNullHoverSelectionForeground)",
+    nullCellSelectionActiveBackground:
         "var(--vscode-mssql-resultsGridNullSelectedActiveBackground)",
-    nullCellActiveSelectionForeground:
+    nullCellSelectionActiveForeground:
         "var(--vscode-mssql-resultsGridNullSelectedActiveForeground)",
-    nullCellFocusSelectionBackground: "var(--vscode-mssql-resultsGridNullFocusedBackground)",
-    nullCellFocusSelectionForeground: "var(--vscode-mssql-resultsGridNullFocusedForeground)",
 };
