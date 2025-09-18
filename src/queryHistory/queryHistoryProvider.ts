@@ -194,6 +194,9 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
      * Creates the node label for a query history node
      */
     private createHistoryNodeLabel(ownerUri: string): string {
+        if (this.getQueryString(ownerUri) === undefined) {
+            return "";
+        }
         const queryString = Utils.limitStringSize(this.getQueryString(ownerUri)).trim();
         const connectionLabel = Utils.limitStringSize(this.getConnectionLabel(ownerUri)).trim();
         return `${queryString} : ${connectionLabel}`;

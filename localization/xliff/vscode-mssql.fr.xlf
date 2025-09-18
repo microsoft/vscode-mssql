@@ -4512,6 +4512,10 @@ Requête : {1}</target>
         <source xml:lang="en">Cancel Query</source>
         <target state="translated">Annuler la requête</target>
       </trans-unit>
+      <trans-unit id="mssql.changeConnection">
+        <source xml:lang="en">Change Connection</source>
+        <target state="new">Change Connection</target>
+      </trans-unit>
       <trans-unit id="mssql.changeDatabase">
         <source xml:lang="en">Change Database</source>
         <target state="translated">Modifier la base de données</target>

@@ -34,6 +34,7 @@ export const cmdrevealQueryResult = "mssql.revealQueryResult";
 export const cmdCopyAll = "mssql.copyAll";
 export const cmdConnect = "mssql.connect";
 export const cmdDisconnect = "mssql.disconnect";
+export const cmdChangeConnection = "mssql.changeConnection";
 export const cmdChangeDatabase = "mssql.changeDatabase";
 export const cmdChooseDatabase = "mssql.chooseDatabase";
 export const cmdChooseLanguageFlavor = "mssql.chooseLanguageFlavor";
