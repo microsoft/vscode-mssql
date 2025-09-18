@@ -3441,6 +3441,9 @@
     <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
       <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
     </trans-unit>
+    <trans-unit id="mssql.autoRevealResultsPanel">
+      <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results.</source>
+    </trans-unit>
     <trans-unit id="mssql.cancelQuery">
       <source xml:lang="en">Cancel Query</source>
     </trans-unit>
