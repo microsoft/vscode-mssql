@@ -80,7 +80,6 @@ export const editorEol =
  * and handles getting more rows from the service layer and disposing when the content is closed.
  */
 export default class QueryRunner {
-    // MEMBER VARIABLES ////////////////////////////////////////////////////
     private _batchSets: BatchSummary[] = [];
     private _batchSetMessages: { [batchId: number]: IResultMessage[] } = {};
     private _isExecuting: boolean;
@@ -212,6 +211,10 @@ export default class QueryRunner {
 
     // PUBLIC METHODS ======================================================
 
+    /**
+     * Cancels the currently running query.
+     * @returns A promise that resolves to the result of the cancel operation.
+     */
     public async cancel(): Promise<QueryCancelResult> {
         // Make the request to cancel the query
         let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
@@ -231,6 +234,9 @@ export default class QueryRunner {
         return queryCancelResult;
     }
 
+    /**
+     * Resets the query runner to a clean state if we want to run another query on it.
+     */
     public async resetQueryRunner(): Promise<void> {
         try {
             let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
@@ -248,7 +254,9 @@ export default class QueryRunner {
         }
     }
 
-    // Pulls the query text from the current document/selection and initiates the query
+    /**
+     * Runs a query against the database for the current statement based on the cursor position.
+     */
     public async runStatement(line: number, column: number): Promise<void> {
         await this.doRunQuery(
             <ISelectionData>{
@@ -1022,7 +1030,6 @@ export default class QueryRunner {
             rowIdToSelectionMap,
             batchId,
             resultId,
-            includeHeaders,
         );
 
         await this.writeStringToClipboard(jsonString);
@@ -1402,7 +1409,6 @@ export default class QueryRunner {
         rowIdToSelectionMap: Map<number, ISlickRange[]>,
         batchId: number,
         resultId: number,
-        includeHeaders: boolean,
     ): string {
         // Get column headers for property names
         let allRowIds = Array.from(rowIdToRowMap.keys()).sort((a, b) => a - b);

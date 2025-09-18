@@ -258,6 +258,12 @@ export class SqlOutputContentProvider {
 
     // PUBLIC METHODS //////////////////////////////////////////////////////
 
+    public isRunningQuery(uri: string): boolean {
+        return !this._queryResultsMap.has(uri)
+            ? false
+            : this._queryResultsMap.get(uri).queryRunner.isExecutingQuery;
+    }
+
     /**
      * Runs a query against the database.
      * @param statusView The status view to use for showing query progress
