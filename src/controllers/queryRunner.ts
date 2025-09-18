@@ -51,7 +51,6 @@ import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { RequestType } from "vscode-languageclient";
 
 export interface IResultSet {
     columns: string[];
