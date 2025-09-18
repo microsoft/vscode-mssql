@@ -599,24 +599,94 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
-        let handled = false;
-        if (this.isMac) {
-            // Cmd + A
-            if (e.metaKey && e.key === Keys.a) {
-                handled = true;
-                await this.handleSelectAll();
-            }
-        } else {
-            if (e.ctrlKey && e.key === Keys.a) {
-                handled = true;
-                await this.handleSelectAll();
-            }
-        }
+        const key = e.key; // e.g., 'a', 'ArrowLeft'
+        const metaOrCtrlPressed = this.isMac ? e.metaKey : e.ctrlKey;
 
-        if (handled) {
+        // --- 1) Select All (Cmd/Ctrl + A) ---
+        if (metaOrCtrlPressed && key === Keys?.a) {
             e.preventDefault();
             e.stopPropagation();
+            await this.handleSelectAll();
+            return;
         }
+
+        // --- 2) Range selection via Shift + Arrow (no Alt, no Meta/Ctrl) ---
+        const isArrow =
+            key === (Keys?.ArrowLeft ?? "ArrowLeft") ||
+            key === (Keys?.ArrowRight ?? "ArrowRight") ||
+            key === (Keys?.ArrowUp ?? "ArrowUp") ||
+            key === (Keys?.ArrowDown ?? "ArrowDown");
+
+        if (!isArrow || !e.shiftKey || metaOrCtrlPressed || e.altKey) {
+            return; // Not our concern—let the default handler run
+        }
+
+        const active = this.grid.getActiveCell();
+        if (!active) {
+            return; // Nothing to extend from
+        }
+
+        // Grab existing ranges; ensure we have at least one range rooted at active
+        let ranges = this.getSelectedRanges();
+        if (!ranges?.length) {
+            ranges = [new Slick.Range(active.row, active.cell)];
+        }
+
+        // keyboard can work with last range only
+        let last = ranges.pop()!;
+
+        // If the active cell isn't inside the last range, start a fresh one
+        if (!last.contains(active.row, active.cell)) {
+            last = new Slick.Range(active.row, active.cell);
+        }
+
+        // Determine the "growth" direction relative to the active anchor
+        const dirRow = active.row === last.fromRow ? 1 : -1;
+        const dirCell = active.cell === last.fromCell ? 1 : -1;
+
+        // Current deltas
+        let dRow = last.toRow - last.fromRow;
+        let dCell = last.toCell - last.fromCell;
+
+        // Nudge the deltas based on the pressed arrow
+        switch (key) {
+            case Keys?.ArrowLeft ?? "ArrowLeft":
+                dCell -= dirCell;
+                break;
+            case Keys?.ArrowRight ?? "ArrowRight":
+                dCell += dirCell;
+                break;
+            case Keys?.ArrowUp ?? "ArrowUp":
+                dRow -= dirRow;
+                break;
+            case Keys?.ArrowDown ?? "ArrowDown":
+                dRow += dirRow;
+                break;
+        }
+
+        // Compute new candidate range
+        const newRange = new Slick.Range(
+            active.row,
+            active.cell,
+            active.row + dirRow * dRow,
+            active.cell + dirCell * dCell,
+        );
+
+        // Validate and apply; fall back to previous range if invalid
+        const valid = this.removeInvalidRanges([newRange]).length > 0;
+        const finalRange = valid ? newRange : last;
+        ranges.push(finalRange);
+
+        // Keep the new edge in view
+        const viewRow = dirRow > 0 ? finalRange.toRow : finalRange.fromRow;
+        const viewCell = dirCell > 0 ? finalRange.toCell : finalRange.fromCell;
+        this.grid.scrollRowIntoView(viewRow, false);
+        this.grid.scrollCellIntoView(viewRow, viewCell, false);
+
+        // Commit selection and swallow the event
+        this.setSelectedRanges(ranges);
+        e.preventDefault();
+        e.stopPropagation();
     }
 
     private async setSelectionSummaryText(isSelection?: boolean) {
