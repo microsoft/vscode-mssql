@@ -61,8 +61,14 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
         context.subscriptions.push(
             vscode.window.onDidChangeActiveTextEditor((editor) => {
+                console.log(editor);
                 const uri = editor?.document?.uri?.toString(true);
-                if (this.hasPanel(uri)) {
+                const hasPanel = uri && this.hasPanel(uri);
+                const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
+
+                if (hasWebviewViewState && !hasPanel) {
+                    this.state = this.getQueryResultState(uri);
+                } else if (hasPanel) {
                     const editorViewColumn = editor?.viewColumn;
                     const panelViewColumn =
                         this._queryResultWebviewPanelControllerMap.get(uri).viewColumn;
@@ -71,22 +77,11 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                      * If the results are shown in webview panel, and the active editor is not in the same
                      * view column as the results, then reveal the panel to the foreground
                      */
-                    if (editorViewColumn !== panelViewColumn && this.shouldAutoRevealResultsPanel) {
+                    if (this.shouldAutoRevealResultsPanel && editorViewColumn !== panelViewColumn) {
                         this.revealPanel(uri);
                     }
                 } else {
-                    if (uri && this._queryResultStateMap.has(uri)) {
-                        /**
-                         * If the results are shown in webview view, then update the state to show the
-                         * results for the active editor
-                         */
-                        this.state = this.getQueryResultState(uri);
-                    } else {
-                        /**
-                         * If there is no results for the active editor, then show the splash screen
-                         */
-                        this.showSplashScreen();
-                    }
+                    this.showSplashScreen();
                 }
             }),
         );
