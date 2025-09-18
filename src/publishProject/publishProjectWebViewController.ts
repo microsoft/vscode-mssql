@@ -14,8 +14,15 @@ import {
     IPublishForm,
 } from "../sharedInterfaces/publishDialog";
 import { generatePublishFormComponents } from "./formComponentHelpers";
-import { DacFxService } from "../services/dacFxService";
 import * as mssql from "vscode-mssql";
+import { getSqlProjectsApi } from "../services/sqlProjectsApi";
+
+interface SqlProjectsPublishProfile {
+    databaseName?: string;
+    serverName?: string;
+    sqlCmdVariables?: Map<string, string>;
+    options?: mssql.DeploymentOptions;
+}
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -23,7 +30,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
     PublishDialogFormItemSpec,
     PublishDialogReducers
 > {
-    private static readonly _mssqlExtensionId = "ms-mssql.mssql";
     public static mainOptions: readonly (keyof IPublishForm)[] = [
         "publishTarget",
         "profilePath",
@@ -103,7 +109,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
             return state;
         });
 
-        // selectPublishProfile -> open dialog and capture path
+        // selectPublishProfile -> open dialog and capture path (prefer sql-database-projects API)
         this.registerReducer("selectPublishProfile", async (state: PublishDialogWebviewState) => {
             try {
                 const filters: Record<string, string[]> = { "Publish Profiles": ["publish.xml"] };
@@ -119,85 +125,40 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     return state;
                 }
                 const fileUri = uris[0];
-                // Store full path for display and derive file name for save operations
-
-                // Display full absolute path in textbox (normalize backslashes)
                 const normalizedFullPath = fileUri.fsPath.replace(/\\/g, "/");
                 state.formState.profilePath = normalizedFullPath;
-                const baseName = normalizedFullPath.split("/").pop() || normalizedFullPath;
-                state.publishFileName = baseName;
+                state.publishFileName = normalizedFullPath.split("/").pop() || normalizedFullPath;
 
-                // Retrieve deployment options using DacFx service (activate extension if needed)
                 try {
-                    const dacfx = await this.getDacFxService();
-                    let optionsResult: mssql.DacFxOptionsResult | undefined;
-                    if (dacfx) {
-                        optionsResult = await dacfx.getOptionsFromProfile(fileUri.fsPath);
-                    }
-
-                    // map deployment options
-                    if (optionsResult?.deploymentOptions) {
-                        // Store for later advanced mapping into advanced options UI
-                        state.formState.deploymentOptions =
-                            optionsResult.deploymentOptions as mssql.DeploymentOptions;
+                    const api = await getSqlProjectsApi();
+                    if (api) {
+                        const prof = (await api.readPublishProfile(
+                            fileUri,
+                        )) as SqlProjectsPublishProfile;
+                        if (prof.databaseName) {
+                            state.formState.databaseName = prof.databaseName;
+                        }
+                        if (prof.serverName) {
+                            state.formState.serverName = prof.serverName;
+                        }
+                        if (prof.sqlCmdVariables && prof.sqlCmdVariables.size) {
+                            const varsObj: { [k: string]: string } = {};
+                            (prof.sqlCmdVariables as Map<string, string>).forEach(
+                                (v: string, k: string) => (varsObj[k] = v),
+                            );
+                            state.formState.sqlCmdVariables = varsObj;
+                        }
+                        if (prof.options) {
+                            state.formState.deploymentOptions =
+                                prof.options as mssql.DeploymentOptions;
+                        }
+                    } else {
+                        void vscode.window.showWarningMessage(
+                            "SQL Projects API unavailable for reading publish profile.",
+                        );
                     }
                 } catch {
-                    // ignore if options are empty or read issues
-                }
-
-                // Read raw file to extract db/server + sqlcmd vars (connection string not required for this dialog)
-                try {
-                    const bytes = await vscode.workspace.fs.readFile(fileUri);
-                    const text = Buffer.from(bytes).toString("utf8");
-                    // Simple regex extraction (TargetDatabaseName last occurrence wins)
-                    const dbMatches = [
-                        ...text.matchAll(/<TargetDatabaseName>(.*?)<\/TargetDatabaseName>/gi),
-                    ];
-                    if (dbMatches.length > 0) {
-                        state.formState.databaseName = dbMatches[dbMatches.length - 1][1].trim();
-                    }
-                    // Prefer extracting server from TargetConnectionString's Data Source entry
-                    let serverExtracted = false;
-                    const connStrMatch =
-                        /<TargetConnectionString>([\s\S]*?)<\/TargetConnectionString>/i.exec(text);
-                    if (connStrMatch) {
-                        const connStr = connStrMatch[1];
-                        const dsMatch =
-                            /(Data Source|Server|Address|Addr|Network Address)\s*=\s*([^;]+)/i.exec(
-                                connStr,
-                            );
-                        if (dsMatch) {
-                            state.formState.serverName = dsMatch[2].trim();
-                            serverExtracted = true;
-                        }
-                    }
-                    // Fallback to legacy TargetConnectionServerName element if server not found in connection string
-                    if (!serverExtracted) {
-                        const serverMatch =
-                            /<TargetConnectionServerName>(.*?)<\/TargetConnectionServerName>/i.exec(
-                                text,
-                            );
-                        if (serverMatch) {
-                            state.formState.serverName = serverMatch[1].trim();
-                        }
-                    }
-                    // SQLCMD variables
-                    const varRegex =
-                        /<SQLCMDVariable\s+Include="([^"]+)">([\s\S]*?)<\/SQLCMDVariable>/gi;
-                    let vm: RegExpExecArray | null;
-                    const mergedVars = { ...(state.formState.sqlCmdVariables ?? {}) };
-                    while ((vm = varRegex.exec(text))) {
-                        const name = vm[1];
-                        const valueMatch = /<Value>([\s\S]*?)<\/Value>/i.exec(vm[2]);
-                        if (name && valueMatch) {
-                            mergedVars[name] = valueMatch[1].trim();
-                        }
-                    }
-                    if (Object.keys(mergedVars).length) {
-                        state.formState.sqlCmdVariables = mergedVars;
-                    }
-                } catch {
-                    // ignore file read issues
+                    // ignore API issues
                 }
             } catch {
                 // ignore cancellation/errors
@@ -244,9 +205,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     | mssql.DeploymentOptions
                     | undefined;
                 try {
-                    const dacfx = await this.getDacFxService();
-                    if (dacfx) {
-                        await dacfx.savePublishProfile(
+                    const api = await getSqlProjectsApi();
+                    if (!api) {
+                        void vscode.window.showWarningMessage(
+                            "SQL Projects API unavailable. Cannot save publish profile.",
+                        );
+                    } else {
+                        await api.savePublishProfile(
                             full,
                             databaseName,
                             connectionString,
@@ -254,10 +219,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                             deploymentOptions,
                         );
                         void vscode.window.showInformationMessage(`Publish profile saved: ${full}`);
-                    } else {
-                        void vscode.window.showWarningMessage(
-                            "Unable to access DacFx service to save publish profile.",
-                        );
                     }
                 } catch (err) {
                     void vscode.window.showErrorMessage(
@@ -268,34 +229,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this.updateState(state);
             return state;
         });
-    }
-
-    /** Acquire the DacFx service from MSSQL extension following the activation pattern used in schema compare */
-    private async getDacFxService(): Promise<DacFxService | undefined> {
-        try {
-            const ext = vscode.extensions.getExtension(
-                PublishProjectWebViewController._mssqlExtensionId,
-            );
-            if (!ext) {
-                return undefined;
-            }
-            if (!ext.isActive) {
-                await ext.activate();
-            }
-
-            // NOTE: The exported property name is 'dacFx' (capital F) per extension.ts return object
-            const api = ext.exports as mssql.IExtension | undefined;
-            const svc: DacFxService | undefined = api?.dacFx as DacFxService;
-            if (!svc) {
-                this.logger?.warn?.("DacFx service not exposed by MSSQL extension exports");
-            }
-            return svc;
-        } catch (err) {
-            this.logger?.error?.(
-                `Unexpected error while acquiring DacFx service: ${(err as Error).message}`,
-            );
-            return undefined;
-        }
     }
 
     private async initializeDialog(projectFilePath: string) {
