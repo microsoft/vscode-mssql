@@ -288,22 +288,27 @@ export class SqlOutputContentProvider {
             executionPlanOptions,
         );
 
-        if (runner) {
-            const includeExecutionPlanXml =
-                executionPlanOptions?.includeActualExecutionPlanXml ??
-                this._actualPlanStatuses.includes(uri);
-            const includeEstimatedExecutionPlanXml =
-                executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false;
-
-            await runner.runQuery(
-                selection,
-                {
-                    includeActualExecutionPlanXml: includeExecutionPlanXml,
-                    includeEstimatedExecutionPlanXml: includeEstimatedExecutionPlanXml,
-                },
-                promise,
-            );
+        if (!runner) {
+            if (promise) {
+                promise.reject(false);
+            }
+            return;
         }
+
+        const includeExecutionPlanXml =
+            executionPlanOptions?.includeActualExecutionPlanXml ??
+            this._actualPlanStatuses.includes(uri);
+        const includeEstimatedExecutionPlanXml =
+            executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false;
+
+        await runner.runQuery(
+            selection,
+            {
+                includeActualExecutionPlanXml: includeExecutionPlanXml,
+                includeEstimatedExecutionPlanXml: includeEstimatedExecutionPlanXml,
+            },
+            promise,
+        );
     }
 
     /**
@@ -326,9 +331,11 @@ export class SqlOutputContentProvider {
             title,
         );
 
-        if (runner) {
-            await runner.runStatement(selection.startLine, selection.startColumn);
+        if (!runner) {
+            return;
         }
+
+        await runner.runStatement(selection.startLine, selection.startColumn);
     }
 
     private async initializeRunnerAndWebviewState(
@@ -336,12 +343,15 @@ export class SqlOutputContentProvider {
         uri: string,
         title: string,
         executionPlanOptions?: ExecutionPlanOptions,
-    ): Promise<QueryRunner> {
+    ): Promise<QueryRunner | undefined> {
         let queryRunner = await this.createQueryRunner(
             statusView ? statusView : this._statusView,
             uri,
             title,
         );
+        if (!queryRunner) {
+            return;
+        }
         this._queryResultWebviewController.addQueryResultState(
             uri,
             title,
@@ -356,11 +366,20 @@ export class SqlOutputContentProvider {
         return queryRunner;
     }
 
+    /**
+     * Creates a new query runner for the given URI if one does not already exist.
+     * If one already exists and is not currently executing a query, it will be reused.
+     * If one already exists and is currently executing a query, undefined will be returned.
+     * @param statusView The status view to use for showing query progress
+     * @param uri  The URI of the editor to run the query for
+     * @param title The title of the editor to run the query for
+     * @returns A promise that resolves to the query runner or undefined if a query is already in progress
+     */
     public async createQueryRunner(
         statusView: StatusView,
         uri: string,
         title: string,
-    ): Promise<QueryRunner> {
+    ): Promise<QueryRunner | undefined> {
         // Reuse existing query runner if it exists
         let queryRunner: QueryRunner;
 
