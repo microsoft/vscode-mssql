@@ -10,8 +10,8 @@ import { Azure as Loc } from "../constants/locConstants";
 
 const azureCloudInfo = AzureEnvironments.Environment.get("AzureCloud");
 const usGovernmentCloudInfo = AzureEnvironments.Environment.get("USGovernment");
-const chinaCloudInfo = AzureEnvironments.Environment.get("AzureChinaCloud");
-const germanyCloudInfo = AzureEnvironments.Environment.get("AzureGermanCloud");
+// const chinaCloudInfo = AzureEnvironments.Environment.get("AzureChinaCloud");
+// const germanyCloudInfo = AzureEnvironments.Environment.get("AzureGermanCloud");
 
 export const publicAzureSettings: IProviderSettings = {
     displayName: Loc.PublicCloud,
@@ -101,20 +101,27 @@ const usGovernmentAzureSettings: IProviderSettings = {
     ],
 };
 
-const allSettings = publicAzureSettings;
-export default allSettings;
-
-export function getCurrentCloudSettings(): IProviderSettings {
-    // if microsoft-sovereign-cloud.environment is set, return the corresponding settings, otherwise return public Azure settings
-    //check microsoft-sovereign-cloud.environment setting
-    const config = vscode.workspace.getConfiguration();
-    const cloud = config.get<string>("microsoft-sovereign-cloud.environment");
+/**
+ * Fetches the provider settings for the specified cloud.
+ * If not specified, the default cloud is determined by the "microsoft-sovereign-cloud.environment".
+ * If that is not set, then the public Azure settings are returned.
+ * @param cloud (optional) the cloud environment name.  Valid values are the options for the "microsoft-sovereign-cloud.environment" setting.
+ * @returns Provider settings for the specified cloud
+ */
+export function getCloudSettings(cloud?: string): IProviderSettings {
+    if (!cloud) {
+        // if microsoft-sovereign-cloud.environment is set, return the corresponding settings, otherwise return public Azure settings
+        //check microsoft-sovereign-cloud.environment setting
+        const config = vscode.workspace.getConfiguration();
+        cloud = config.get<string>("microsoft-sovereign-cloud.environment");
+    }
 
     switch (cloud) {
         case "USGovernment":
             return usGovernmentAzureSettings;
         case "ChinaCloud":
         case "GermanyCloud":
+        case "Custom":
             throw new Error(`${cloud} is not supported yet.`);
         case "PublicCloud":
         default:
