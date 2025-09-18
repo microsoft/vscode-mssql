@@ -570,39 +570,39 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             );
         }
 
-        if (styles.nullCellActiveSelectionBackground) {
+        if (styles.nullCellSelectionBackground) {
             content.push(
-                `.monaco-table.${this.idPrefix} .slick-cell .cell-null .selected { background-color: ${styles.nullCellActiveSelectionBackground}; }`,
+                `.monaco-table .${this.idPrefix} .slick-cell .cell-null .selected { background-color: ${styles.nullCellSelectionBackground}; }`,
             );
         }
 
-        if (styles.nullCellActiveSelectionForeground) {
+        if (styles.nullCellSelectionForeground) {
             content.push(
-                `.monaco-table.${this.idPrefix} .slick-cell .cell-null .selected { color: ${styles.nullCellActiveSelectionForeground}; }`,
+                `.monaco-table .${this.idPrefix} .slick-cell .cell-null .selected { color: ${styles.nullCellSelectionForeground}; }`,
             );
         }
 
         if (styles.nullCellFocusSelectionBackground) {
             content.push(
-                `.monaco-table.${this.idPrefix}.focused .slick-cell .cell-null { background-color: ${styles.nullCellFocusSelectionBackground}; }`,
+                `.monaco-table .${this.idPrefix} .focused .slick-cell .cell-null { background-color: ${styles.nullCellFocusSelectionBackground}; }`,
             );
         }
 
         if (styles.nullCellFocusSelectionForeground) {
             content.push(
-                `.monaco-table.${this.idPrefix}.focused .slick-cell .cell-null { color: ${styles.nullCellFocusSelectionForeground}; }`,
+                `.monaco-table .${this.idPrefix} .focused .slick-cell .cell-null { color: ${styles.nullCellFocusSelectionForeground}; }`,
             );
         }
 
         if (styles.nullCellActiveSelectionBackground) {
             content.push(
-                `.monaco-table.${this.idPrefix} .slick-cell .cell-null .selected .active { background-color: ${styles.nullCellActiveSelectionBackground}; }`,
+                `.monaco-table .${this.idPrefix} .slick-cell .cell-null .selected .active { background-color: ${styles.nullCellActiveSelectionBackground}; }`,
             );
         }
 
         if (styles.nullCellActiveSelectionForeground) {
             content.push(
-                `.monaco-table.${this.idPrefix} .slick-cell .cell-null .selected .active { color: ${styles.nullCellActiveSelectionForeground}; }`,
+                `.monaco-table .${this.idPrefix} .slick-cell .cell-null .selected .active { color: ${styles.nullCellActiveSelectionForeground}; }`,
             );
         }
 
