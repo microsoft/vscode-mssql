@@ -584,25 +584,13 @@ export class Table<T extends Slick.SlickData> implements IThemable {
 
         if (styles.nullCellSelectionBackground) {
             content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected { background-color: ${styles.nullCellSelectionBackground}; }`,
+                `.monaco-table.${this.idPrefix} .slick-cell .cell-null .selected { background-color: ${styles.nullCellSelectionBackground}; }`,
             );
         }
 
         if (styles.nullCellSelectionForeground) {
             content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected { color: ${styles.nullCellSelectionForeground}; }`,
-            );
-        }
-
-        if (styles.nullCellHoverSelectionBackground) {
-            content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected:hover { background-color: ${styles.nullCellHoverSelectionBackground}; }`,
-            );
-        }
-
-        if (styles.nullCellHoverSelectionForeground) {
-            content.push(
-                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected:hover { color: ${styles.nullCellHoverSelectionForeground}; }`,
+                `.monaco-table.${this.idPrefix} .slick-cell .cell-null .selected { color: ${styles.nullCellSelectionForeground}; }`,
             );
         }
 
