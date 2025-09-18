@@ -2017,7 +2017,7 @@ export default class MainController implements vscode.Disposable {
             isSqlCmd = false;
             const editor = this._vscodeWrapper.activeTextEditor;
             const title = path.basename(editor.document.fileName);
-            this._outputContentProvider.createQueryRunner(this._statusview, uri, title);
+            await this._outputContentProvider.createQueryRunner(this._statusview, uri, title);
         }
         await this._outputContentProvider.toggleSqlCmd(this._vscodeWrapper.activeTextEditorUri);
         await this._connectionMgr.onChooseLanguageFlavor(true, !isSqlCmd);

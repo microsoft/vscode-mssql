@@ -231,6 +231,23 @@ export default class QueryRunner {
         return queryCancelResult;
     }
 
+    public async resetQueryRunner(): Promise<void> {
+        try {
+            let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
+            await this._client.sendRequest(QueryCancelRequest.type, cancelParams);
+        } catch {
+            // Suppress any errors
+        }
+        this._isExecuting = false;
+        this._hasCompleted = true;
+        this.removeRunningQuery();
+        const promise = this._uriToQueryPromiseMap.get(this._ownerUri);
+        if (promise) {
+            promise.reject("Query cancelled");
+            this._uriToQueryPromiseMap.delete(this._ownerUri);
+        }
+    }
+
     // Pulls the query text from the current document/selection and initiates the query
     public async runStatement(line: number, column: number): Promise<void> {
         await this.doRunQuery(
