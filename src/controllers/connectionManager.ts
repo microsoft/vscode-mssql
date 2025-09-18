@@ -1084,6 +1084,7 @@ export default class ConnectionManager {
          * This is done to match the behavior of how vscode core handles resource URIs in
          * contexts.
          * https://github.com/microsoft/vscode/blob/bb5a3c607b14787009f8e9fadb720beee596133c/src/vs/workbench/common/contextkeys.ts#L261C1-L262C1
+         * TODO: aaskhan find the underlying issue that causes the mismatch in encoding and fix it.
          */
         vscode.commands.executeCommand(
             "setContext",
