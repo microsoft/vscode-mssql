@@ -370,7 +370,7 @@
                 },
                 {
                     "command": "mssql.revealQueryResult",
-                    "when": "editorLangId == sql && resource in mssql.connections && !isInDiffEditor && view.queryResult.visible == false",
+                    "when": "editorLangId == sql && resource in mssql.connections && !isInDiffEditor",
                     "group": "navigation@2"
                 },
                 {
