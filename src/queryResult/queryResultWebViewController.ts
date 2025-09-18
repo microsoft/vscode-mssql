@@ -62,13 +62,31 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         context.subscriptions.push(
             vscode.window.onDidChangeActiveTextEditor((editor) => {
                 const uri = editor?.document?.uri?.toString(true);
-                /**
-                 * Do not load query results in the webview view if a panel is already opened for the results
-                 */
-                if (uri && this._queryResultStateMap.has(uri) && !this.hasPanel(uri)) {
-                    this.state = this.getQueryResultState(uri);
+                if (this.hasPanel(uri)) {
+                    const editorViewColumn = editor?.viewColumn;
+                    const panelViewColumn =
+                        this._queryResultWebviewPanelControllerMap.get(uri).viewColumn;
+
+                    /**
+                     * If the results are shown in webview panel, and the active editor is not in the same
+                     * view column as the results, then reveal the panel to the foreground
+                     */
+                    if (editorViewColumn !== panelViewColumn && this.shouldAutoRevealResultsPanel) {
+                        this.revealPanel(uri);
+                    }
                 } else {
-                    this.showSplashScreen();
+                    if (uri && this._queryResultStateMap.has(uri)) {
+                        /**
+                         * If the results are shown in webview view, then update the state to show the
+                         * results for the active editor
+                         */
+                        this.state = this.getQueryResultState(uri);
+                    } else {
+                        /**
+                         * If there is no results for the active editor, then show the splash screen
+                         */
+                        this.showSplashScreen();
+                    }
                 }
             }),
         );
@@ -121,6 +139,10 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 }
             }),
         );
+    }
+
+    private get shouldAutoRevealResultsPanel(): boolean {
+        return this.vscodeWrapper.getConfiguration().get(Constants.configAutoRevealResultsPanel);
     }
 
     private async initialize() {

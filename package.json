@@ -2028,6 +2028,12 @@
                     "type": "boolean",
                     "default": true,
                     "description": "%mssql.connectionManagement.rememberPasswordsUntilRestart%"
+                },
+                "mssql.autoRevealResultsPanel": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.autoRevealResultsPanel%",
+                    "scope": "window"
                 }
             }
         },
