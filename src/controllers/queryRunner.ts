@@ -92,6 +92,9 @@ export default class QueryRunner {
     private _uriToQueryStringMap = new Map<string, string>();
     private static _runningQueries = [];
 
+    private _startFailedEmitter: vscode.EventEmitter<string> = new vscode.EventEmitter<string>();
+    public onStartFailed: vscode.Event<string> = this._startFailedEmitter.event;
+
     private _startEmitter: vscode.EventEmitter<string> = new vscode.EventEmitter<string>();
     public onStart: vscode.Event<string> = this._startEmitter.event;
 
@@ -331,8 +334,7 @@ export default class QueryRunner {
             // If queryCallback throws synchronously, handle it here
             this._statusView.executedQuery(this.uri);
             // Show error message here to ensure test expectation is met
-            let errorMsg = error instanceof Error ? error.message : String(error);
-            this._vscodeWrapper.showErrorMessage("Execution failed: " + errorMsg);
+            this._startFailedEmitter.fire(getErrorMessage(error));
             onError(error);
             throw error;
         }
@@ -570,11 +572,9 @@ export default class QueryRunner {
         disposeDetails.ownerUri = this.uri;
         try {
             await this._client.sendRequest(QueryDisposeRequest.type, disposeDetails);
-        } catch (error) {
-            this._handleQueryCleanup(
-                LocalizedConstants.QueryEditor.queryDisposeFailed(error),
-                error,
-            );
+        } catch (_error) {
+            // Do not show error message if dispose fails as it normally means the query is already disposed
+            this._handleQueryCleanup();
             return;
         }
         this._handleQueryCleanup();
