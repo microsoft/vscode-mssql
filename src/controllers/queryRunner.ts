@@ -337,21 +337,10 @@ export default class QueryRunner {
         this._totalElapsedMilliseconds = 0;
         // Update the status view to show that we're executing
         this._statusView.executingQuery(this.uri);
-        // Add this uri to the runningQueries list. This will update the toolbar icons for the editor
-        QueryRunner._runningQueries.push(vscode.Uri.parse(this._ownerUri).path);
-        this.updateRunningQueries();
-        // Register for notifications
-        this._notificationHandler.registerRunner(this, this._ownerUri);
-    }
 
-    /**
-     * Remove uri from runningQueries
-     */
-    private removeRunningQuery(): void {
-        QueryRunner._runningQueries = QueryRunner._runningQueries.filter(
-            (fileName) => fileName !== vscode.Uri.parse(this._ownerUri).path,
-        );
-        this.updateRunningQueries();
+        QueryRunner.addRunningQuery(this._ownerUri);
+
+        this._notificationHandler.registerRunner(this, this._ownerUri);
     }
 
     // handle the result of the notification
@@ -1644,7 +1633,32 @@ export default class QueryRunner {
         return value;
     }
 
-    private updateRunningQueries() {
+    /**
+     * Vscode core expects uri.fsPath for resourcePath context value.
+     * https://github.com/microsoft/vscode/blob/bb5a3c607b14787009f8e9fadb720beee596133c/src/vs/workbench/common/contextkeys.ts#L275
+     */
+
+    /**
+     * Add query to running queries list
+     * @param ownerUri The owner URI of the query
+     */
+    private static addRunningQuery(ownerUri: string): void {
+        const key = vscode.Uri.parse(ownerUri).fsPath;
+        QueryRunner._runningQueries.push(key);
+        QueryRunner.updateRunningQueries();
+    }
+
+    /**
+     * Remove current query from running queries list
+     */
+    private removeRunningQuery(): void {
+        QueryRunner._runningQueries = QueryRunner._runningQueries.filter(
+            (fileName) => fileName !== vscode.Uri.parse(this._ownerUri).fsPath,
+        );
+        QueryRunner.updateRunningQueries();
+    }
+
+    private static updateRunningQueries() {
         vscode.commands.executeCommand(
             "setContext",
             "mssql.runningQueries",
