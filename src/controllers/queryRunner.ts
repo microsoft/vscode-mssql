@@ -51,6 +51,7 @@ import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { RequestType } from "vscode-languageclient";
 
 export interface IResultSet {
     columns: string[];
@@ -258,27 +259,27 @@ export default class QueryRunner {
      * Runs a query against the database for the current statement based on the cursor position.
      */
     public async runStatement(line: number, column: number): Promise<void> {
-        await this.doRunQuery(
-            <ISelectionData>{
-                startLine: line,
-                startColumn: column,
-                endLine: 0,
-                endColumn: 0,
-            },
-            async (onSuccess, onError) => {
-                // Put together the request
-                let queryDetails: QueryExecuteStatementParams = {
-                    ownerUri: this._ownerUri,
-                    line: line,
-                    column: column,
-                };
+        await this.setupQueryExecution({
+            startLine: line,
+            startColumn: column,
+            endLine: 0,
+            endColumn: 0,
+        });
 
-                // Send the request to execute the query
-                await this._client
-                    .sendRequest(QueryExecuteStatementRequest.type, queryDetails)
-                    .then(onSuccess, onError);
-            },
-        );
+        let optionsParams: QueryExecuteStatementParams = {
+            ownerUri: this._ownerUri,
+            line: line,
+            column: column,
+        };
+
+        try {
+            await this._client.sendRequest(QueryExecuteStatementRequest.type, optionsParams);
+            this._startEmitter.fire(this.uri);
+        } catch (error) {
+            this._handleQueryCleanup(undefined, error);
+            this._startFailedEmitter.fire(getErrorMessage(error));
+            throw error;
+        }
     }
 
     // Pulls the query text from the current document/selection and initiates the query
@@ -287,82 +288,61 @@ export default class QueryRunner {
         executionPlanOptions?: ExecutionPlanOptions,
         promise?: Deferred<boolean>,
     ): Promise<void> {
-        await this.doRunQuery(selection, async (onSuccess, onError) => {
-            // Put together the request
-            let queryDetails: QueryExecuteParams = {
-                ownerUri: this._ownerUri,
-                executionPlanOptions: executionPlanOptions,
-                querySelection: selection,
-            };
+        await this.setupQueryExecution(selection);
 
-            const doc = await this._vscodeWrapper.openTextDocument(
-                this._vscodeWrapper.parseUri(this._ownerUri),
+        // Setting up options
+        let executeOptions: QueryExecuteParams = {
+            ownerUri: this._ownerUri,
+            executionPlanOptions: executionPlanOptions,
+            querySelection: selection,
+        };
+
+        // Getting query text
+        const doc = await this._vscodeWrapper.openTextDocument(
+            this._vscodeWrapper.parseUri(this._ownerUri),
+        );
+        let queryString: string;
+        if (selection) {
+            let range = this._vscodeWrapper.range(
+                this._vscodeWrapper.position(selection.startLine, selection.startColumn),
+                this._vscodeWrapper.position(selection.endLine, selection.endColumn),
             );
-            let queryString: string;
-            if (selection) {
-                let range = this._vscodeWrapper.range(
-                    this._vscodeWrapper.position(selection.startLine, selection.startColumn),
-                    this._vscodeWrapper.position(selection.endLine, selection.endColumn),
-                );
-                queryString = doc.getText(range);
-            } else {
-                queryString = doc.getText();
-            }
+            queryString = doc.getText(range);
+        } else {
+            queryString = doc.getText();
+        }
+        this._uriToQueryStringMap.set(this._ownerUri, queryString);
 
-            // Set the query string for the uri
-            this._uriToQueryStringMap.set(this._ownerUri, queryString);
+        // Setting up completion promise.
+        if (promise) {
+            this._uriToQueryPromiseMap.set(this._ownerUri, promise);
+        }
 
-            // Send the request to execute the query
-            if (promise) {
-                this._uriToQueryPromiseMap.set(this._ownerUri, promise);
-            }
-            await this._client
-                .sendRequest(QueryExecuteRequest.type, queryDetails)
-                .then(onSuccess, onError);
-        });
+        try {
+            await this._client.sendRequest(QueryExecuteRequest.type, executeOptions);
+            this._startEmitter.fire(this.uri);
+        } catch (error) {
+            this._handleQueryCleanup(undefined, error);
+            this._startFailedEmitter.fire(getErrorMessage(error));
+            throw error;
+        }
     }
 
-    // Pulls the query text from the current document/selection and initiates the query
-    private async doRunQuery(
-        selection: ISelectionData,
-        queryCallback: (
-            onSuccess: (result: unknown) => void,
-            onError: (error: Error) => void,
-        ) => Promise<void>,
-    ): Promise<void> {
+    public setupQueryExecution(selection: ISelectionData): void {
         this._vscodeWrapper.logToOutputChannel(
             LocalizedConstants.msgStartedExecute(this._ownerUri),
         );
-
-        // Update internal state to show that we're executing the query
+        // Store the line offset for the query text
         this._resultLineOffset = selection ? selection.startLine : 0;
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
+        // Update the status view to show that we're executing
         this._statusView.executingQuery(this.uri);
+        // Add this uri to the runningQueries list. This will update the toolbar icons for the editor
         QueryRunner._runningQueries.push(vscode.Uri.parse(this._ownerUri).path);
         this.updateRunningQueries();
-
+        // Register for notifications
         this._notificationHandler.registerRunner(this, this._ownerUri);
-
-        let onSuccess = (_result: unknown) => {
-            // The query has started, so lets fire up the result pane
-            this._startEmitter.fire(this.uri);
-        };
-        let onError = (error: Error) => {
-            this._handleQueryCleanup(undefined, error);
-            throw error;
-        };
-
-        try {
-            await queryCallback(onSuccess, onError);
-        } catch (error) {
-            // If queryCallback throws synchronously, handle it here
-            this._statusView.executedQuery(this.uri);
-            // Show error message here to ensure test expectation is met
-            this._startFailedEmitter.fire(getErrorMessage(error));
-            onError(error);
-            throw error;
-        }
     }
 
     /**
@@ -451,45 +431,6 @@ export default class QueryRunner {
         this._batchCompleteEmitter.fire(batch);
     }
 
-    /**
-     * Refreshes the webview panel with the query results when tabs are changed
-     */
-    public async refreshQueryTab(uri: string): Promise<boolean> {
-        this._isExecuting = true;
-        this._hasCompleted = false;
-        for (let batchId = 0; batchId < this.batchSets.length; batchId++) {
-            const batchSet = this.batchSets[batchId];
-            this._batchStartEmitter.fire(batchSet);
-            let executionTime = <number>(Utils.parseTimeString(batchSet.executionElapsed) || 0);
-            if (executionTime > 0) {
-                // send a time message in the format used for query complete
-                this.sendBatchTimeMessage(batchSet.id, Utils.parseNumAsTimeString(executionTime));
-            }
-
-            // replay the messages for the current batch
-            const messages = this._batchSetMessages[batchId];
-            if (messages !== undefined) {
-                for (let messageId = 0; messageId < messages.length; ++messageId) {
-                    // Send the message to the results pane
-                    this._messageEmitter.fire(messages[messageId]);
-                }
-            }
-
-            this._batchCompleteEmitter.fire(batchSet);
-        }
-        // We're done with this query so shut down any waiting mechanisms
-        this._statusView.executedQuery(uri);
-        this._isExecuting = false;
-        this._hasCompleted = true;
-
-        this._completeEmitter.fire({
-            totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
-            hasError: false,
-            isRefresh: false,
-        });
-        return true;
-    }
-
     public handleResultSetAvailable(
         result: QueryExecuteResultSetAvailableNotificationParams,
     ): void {
@@ -556,38 +497,6 @@ export default class QueryRunner {
         }
     }
 
-    /*
-     * Get more data rows from the current resultSets from the service layer
-     */
-    public async getRows(
-        rowStart: number,
-        numberOfRows: number,
-        batchIndex: number,
-        resultSetIndex: number,
-    ): Promise<QueryExecuteSubsetResult> {
-        let queryDetails = new QueryExecuteSubsetParams();
-        queryDetails.ownerUri = this.uri;
-        queryDetails.resultSetIndex = resultSetIndex;
-        queryDetails.rowsCount = numberOfRows;
-        queryDetails.rowsStartIndex = rowStart;
-        queryDetails.batchIndex = batchIndex;
-        try {
-            const queryExecuteSubsetResult = await this._client.sendRequest(
-                QueryExecuteSubsetRequest.type,
-                queryDetails,
-            );
-            if (queryExecuteSubsetResult) {
-                return queryExecuteSubsetResult;
-            }
-        } catch (error) {
-            // TODO: Localize
-            this._vscodeWrapper.showErrorMessage(
-                "Something went wrong getting more rows: " + error.message,
-            );
-            void Promise.reject(error);
-        }
-    }
-
     /**
      * Disposes the Query from the service client
      * @returns A promise that will be rejected if a problem occured
@@ -635,6 +544,38 @@ export default class QueryRunner {
 
         if (errorMsg) {
             this._vscodeWrapper.showErrorMessage(getErrorMessage(errorMsg));
+        }
+    }
+
+    /*
+     * Get more data rows from the current resultSets from the service layer
+     */
+    public async getRows(
+        rowStart: number,
+        numberOfRows: number,
+        batchIndex: number,
+        resultSetIndex: number,
+    ): Promise<QueryExecuteSubsetResult> {
+        let queryDetails = new QueryExecuteSubsetParams();
+        queryDetails.ownerUri = this.uri;
+        queryDetails.resultSetIndex = resultSetIndex;
+        queryDetails.rowsCount = numberOfRows;
+        queryDetails.rowsStartIndex = rowStart;
+        queryDetails.batchIndex = batchIndex;
+        try {
+            const queryExecuteSubsetResult = await this._client.sendRequest(
+                QueryExecuteSubsetRequest.type,
+                queryDetails,
+            );
+            if (queryExecuteSubsetResult) {
+                return queryExecuteSubsetResult;
+            }
+        } catch (error) {
+            // TODO: Localize
+            this._vscodeWrapper.showErrorMessage(
+                "Something went wrong getting more rows: " + error.message,
+            );
+            void Promise.reject(error);
         }
     }
 
