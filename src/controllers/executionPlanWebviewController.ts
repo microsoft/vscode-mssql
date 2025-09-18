@@ -7,7 +7,7 @@ import * as ep from "../sharedInterfaces/executionPlan";
 import * as vscode from "vscode";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
-import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
+import SqlDocumentService from "./sqlDocumentService";
 import {
     createExecutionPlanGraphs,
     saveExecutionPlan,
@@ -26,7 +26,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
         public executionPlanService: ExecutionPlanService, // public for testing purposes
-        public untitledSqlDocumentService: UntitledSqlDocumentService,
+        public sqlDocumentService: SqlDocumentService,
         public executionPlanContents: string,
         // needs ts-ignore because linter doesn't recognize that fileName is being used in the call to super
         // @ts-ignore
@@ -93,7 +93,7 @@ export class ExecutionPlanWebviewController extends ReactWebviewPanelController<
             return showPlanXml(state, payload);
         });
         this.registerReducer("showQuery", async (state, payload) => {
-            return showQuery(state, payload, this.untitledSqlDocumentService);
+            return showQuery(state, payload, this.sqlDocumentService);
         });
         this.registerReducer("updateTotalCost", async (state, payload) => {
             return updateTotalCost(state, payload);

@@ -4,99 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    Button,
-    Tab,
-    TabList,
-    makeStyles,
-    shorthands,
-    List,
-    ListItem,
-} from "@fluentui/react-components";
-import {
-    ChevronDownFilled,
-    ChevronUpFilled,
-    CopyFilled,
-    ErrorCircleRegular,
-    InfoRegular,
-    OpenFilled,
-    WarningRegular,
-} from "@fluentui/react-icons";
-import {
     DesignerIssue,
     DesignerResultPaneTabs,
     InputBoxProperties,
     TableProperties,
 } from "../../../sharedInterfaces/tableDesigner";
 
-import Editor from "@monaco-editor/react";
 import { TableDesignerContext } from "./tableDesignerStateProvider";
-import { resolveVscodeThemeType } from "../../common/utils";
-import { locConstants } from "../../common/locConstants";
-import { useContext } from "react";
-
-const useStyles = makeStyles({
-    root: {
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-    },
-    ribbon: {
-        width: "100%",
-        display: "flex",
-        flexDirection: "row",
-        "> *": {
-            marginRight: "10px",
-        },
-        padding: "5px 0px",
-    },
-    designerResultPaneTabs: {
-        flex: 1,
-    },
-    tabContent: {
-        ...shorthands.flex(1),
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        ...shorthands.overflow("auto"),
-    },
-    designerResultPaneScript: {
-        width: "100%",
-        height: "100%",
-        position: "relative",
-    },
-    designerResultPaneScriptOpenButton: {
-        position: "absolute",
-        top: "0px",
-        right: "0px",
-    },
-    issuesContainer: {
-        width: "100%",
-        height: "calc( 100% - 10px )", // Subtracting 10px to account for padding and hiding double scrollbars
-        flexDirection: "column",
-        "> *": {
-            marginBottom: "10px",
-        },
-        backgroundColor: "var(--vscode-editor-background)",
-        padding: "5px",
-        overflow: "hidden auto",
-    },
-    issuesRows: {
-        display: "flex",
-        lineHeight: "20px",
-        padding: "5px",
-        "> *": {
-            marginRight: "10px",
-        },
-        ":hover": {
-            backgroundColor: "var(--vscode-editor-selectionHighlightBackground)",
-        },
-        width: "100%",
-    },
-});
+import { useContext, useEffect, useState } from "react";
+import {
+    DesignerDefinitionPane,
+    DesignerDefinitionTabs,
+} from "../../common/designerDefinitionPane";
 
 export const DesignerResultPane = () => {
-    const classes = useStyles();
     const context = useContext(TableDesignerContext);
     const state = context?.state;
 
@@ -104,7 +25,7 @@ export const DesignerResultPane = () => {
         return undefined;
     }
 
-    const openAndFocusIssueComponet = async (issue: DesignerIssue) => {
+    const openAndFocusIssueComponent = async (issue: DesignerIssue) => {
         const issuePath = issue.propertyPath ?? [];
         context?.log(`focusing on ${issuePath}`);
 
@@ -194,119 +115,29 @@ export const DesignerResultPane = () => {
         }
     };
 
+    const [definitionTab, setDefinitionTab] = useState<DesignerDefinitionTabs>(
+        DesignerDefinitionTabs.Script,
+    );
+
+    useEffect(() => {
+        setDefinitionTab(
+            state.tabStates!.resultPaneTab === DesignerResultPaneTabs.Script
+                ? DesignerDefinitionTabs.Script
+                : DesignerDefinitionTabs.Issues,
+        );
+    }, [state.tabStates!.resultPaneTab]);
+
     return (
-        <div className={classes.root}>
-            <div className={classes.ribbon}>
-                <TabList
-                    size="small"
-                    selectedValue={state.tabStates!.resultPaneTab}
-                    onTabSelect={(_event, data) => {
-                        context.setResultTab(data.value as DesignerResultPaneTabs);
-                    }}
-                    className={classes.designerResultPaneTabs}>
-                    <Tab value={DesignerResultPaneTabs.Script} key={DesignerResultPaneTabs.Script}>
-                        {locConstants.tableDesigner.scriptAsCreate}
-                    </Tab>
-                    {state.issues?.length !== 0 && (
-                        <Tab
-                            value={DesignerResultPaneTabs.Issues}
-                            key={DesignerResultPaneTabs.Issues}>
-                            {locConstants.tableDesigner.issuesTabHeader(state.issues?.length!)}
-                        </Tab>
-                    )}
-                </TabList>
-                {state.tabStates!.resultPaneTab === DesignerResultPaneTabs.Script && (
-                    <>
-                        <Button
-                            size="small"
-                            appearance="outline"
-                            onClick={() => context.scriptAsCreate()}
-                            title={locConstants.tableDesigner.openInEditor}
-                            icon={<OpenFilled />}>
-                            {locConstants.tableDesigner.openInEditor}
-                        </Button>
-                        <Button
-                            size="small"
-                            appearance="outline"
-                            onClick={() => context.copyScriptAsCreateToClipboard()}
-                            title={locConstants.tableDesigner.copyScript}
-                            icon={<CopyFilled />}>
-                            {locConstants.tableDesigner.copyScript}
-                        </Button>
-                    </>
-                )}
-                <Button
-                    size="small"
-                    appearance="transparent"
-                    onClick={() => {
-                        if (context.resultPaneResizeInfo.isMaximized) {
-                            context.resultPaneResizeInfo.setCurrentHeight(
-                                context.resultPaneResizeInfo.originalHeight,
-                            );
-                        }
-                        context.resultPaneResizeInfo.setIsMaximized(
-                            !context.resultPaneResizeInfo.isMaximized,
-                        );
-                    }}
-                    title={
-                        context.resultPaneResizeInfo.isMaximized
-                            ? locConstants.tableDesigner.restorePanelSize
-                            : locConstants.tableDesigner.maximizePanelSize
-                    }
-                    icon={
-                        context.resultPaneResizeInfo.isMaximized ? (
-                            <ChevronDownFilled />
-                        ) : (
-                            <ChevronUpFilled />
-                        )
-                    }
-                />
-            </div>
-            <div className={classes.tabContent}>
-                {state.tabStates!.resultPaneTab === DesignerResultPaneTabs.Script && (
-                    <div className={classes.designerResultPaneScript}>
-                        <Editor
-                            height={"100%"}
-                            width={"100%"}
-                            language="sql"
-                            theme={resolveVscodeThemeType(context?.themeKind)}
-                            value={(state?.model!["script"] as InputBoxProperties).value ?? ""}
-                            options={{
-                                readOnly: true,
-                            }}></Editor>
-                    </div>
-                )}
-                {state.tabStates!.resultPaneTab === DesignerResultPaneTabs.Issues &&
-                    state.issues?.length !== 0 && (
-                        <div className={classes.issuesContainer}>
-                            <List navigationMode="items">
-                                {state.issues!.map((item, index) => {
-                                    return (
-                                        <ListItem
-                                            key={`issue-${index}`}
-                                            onAction={async () => openAndFocusIssueComponet(item)}>
-                                            <div className={classes.issuesRows}>
-                                                {item.severity === "error" && (
-                                                    <ErrorCircleRegular
-                                                        fontSize={20}
-                                                        color="var(--vscode-errorForeground)"
-                                                    />
-                                                )}
-                                                {item.severity === "warning" && (
-                                                    <WarningRegular fontSize={20} color="yellow" />
-                                                )}
-                                                {item.severity === "information" && (
-                                                    <InfoRegular fontSize={20} color="blue" />
-                                                )}
-                                                {item.description}
-                                            </div>
-                                        </ListItem>
-                                    );
-                                })}
-                            </List>
-                        </div>
-                    )}
-            </div>
-        </div>
+        <DesignerDefinitionPane
+            ref={context?.definitionPaneRef}
+            copyToClipboard={context?.copyScriptAsCreateToClipboard}
+            themeKind={context?.themeKind}
+            openInEditor={context?.scriptAsCreate}
+            script={(state?.model!["script"] as InputBoxProperties).value ?? ""}
+            issues={state?.issues}
+            activeTab={definitionTab}
+            setActiveTab={setDefinitionTab}
+            onIssueClick={openAndFocusIssueComponent}
+        />
     );
 };

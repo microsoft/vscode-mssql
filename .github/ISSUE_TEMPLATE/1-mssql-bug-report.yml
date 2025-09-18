@@ -1,4 +1,4 @@
-name: Bug Report - MSSQL Extension for VS Code
+name: Bug Report
 description: File a bug report to help us improve the MSSQL extension.
 title: "[Bug]: "
 labels: ["Bug", "Triage: Needed", "User-filed"]
@@ -46,14 +46,15 @@ body:
       label: Affected Area
       description: Select all the areas where you encountered issues.
       options:
-        - label: Connection dialog
+        - label: Connection dialog (SQL Server | Azure browse/Fabric browse)
         - label: Query results panel
         - label: Query editor
         - label: Object Explorer
         - label: Table Designer
         - label: Schema Compare
         - label: Schema Designer
-        - label: Local container
+        - label: Local SQL Server Container provisioning
+        - label: SQL database in Fabric provisioning
         - label: GitHub Copilot integration
         - label: Query Plan Visualizer
         - label: Other (please describe below)

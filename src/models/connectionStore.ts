@@ -25,6 +25,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { Logger } from "./logger";
 import { Deferred } from "../protocol";
+import { ConnectionMatcher, MatchScore } from "../models/utils";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
@@ -617,13 +618,13 @@ export class ConnectionStore {
      * Deletes the password for a connection from the credential store
      * @param profile Connection profile
      */
-    public async deleteCredential(profile: IConnectionProfile): Promise<boolean> {
+    public async deleteCredential(profile: IConnectionProfile): Promise<void> {
         let credentialId: string;
 
         // Use profile ID if available
 
         credentialId = ConnectionStore.formatCredentialIdForCred(profile);
-        const result = await this._credentialStore.deleteCredential(credentialId);
+        await this._credentialStore.deleteCredential(credentialId);
 
         // Also try to delete legacy format if using profile ID
         if (profile.id) {
@@ -639,7 +640,6 @@ export class ConnectionStore {
                 // Ignore errors for legacy cleanup
             }
         }
-        return result;
     }
 
     /**
@@ -725,6 +725,26 @@ export class ConnectionStore {
         this._logger.logDebug(logMessage);
 
         return connResults;
+    }
+
+    public async findMatchingProfile(
+        connProfile: IConnectionProfile,
+    ): Promise<{ profile: IConnectionProfile; score: MatchScore } | undefined> {
+        const savedConnections = await this.readAllConnections();
+
+        let bestMatch: IConnectionProfile | undefined;
+        let bestMatchScore = MatchScore.NotMatch;
+
+        for (const savedConn of savedConnections) {
+            const matchLevel = ConnectionMatcher.isMatchingConnection(savedConn, connProfile);
+
+            if (matchLevel > bestMatchScore) {
+                bestMatchScore = matchLevel;
+                bestMatch = savedConn;
+            }
+        }
+
+        return { profile: bestMatch, score: bestMatchScore };
     }
 
     /** Gets the groupId for connections  */

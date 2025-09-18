@@ -9,6 +9,7 @@ import { ApiStatus } from "../../../../sharedInterfaces/webview";
 
 export const EntraSignInEmpty: React.FC<EntraSignInEmptyProps> = ({
     loadAccountStatus,
+    hasAccounts,
     brandImageSource,
     signInText,
     linkText: linkText,
@@ -18,12 +19,17 @@ export const EntraSignInEmpty: React.FC<EntraSignInEmptyProps> = ({
     const styles = useStyles();
 
     if (loadAccountStatus === ApiStatus.Loaded) {
-        return undefined;
+        // If accounts are already loaded and exist, don't render the empty state
+        if (hasAccounts) {
+            return undefined;
+        }
+        // If loaded but no accounts, show sign-in prompt
     }
 
     return (
         <div className={styles.notSignedInContainer}>
-            {loadAccountStatus === ApiStatus.NotStarted && (
+            {(loadAccountStatus === ApiStatus.NotStarted ||
+                (loadAccountStatus === ApiStatus.Loaded && !hasAccounts)) && (
                 <div className={styles.notSignedInContainer}>
                     <img className={styles.icon} src={brandImageSource} alt={signInText} />
                     <div>{signInText}</div>
@@ -36,7 +42,7 @@ export const EntraSignInEmpty: React.FC<EntraSignInEmptyProps> = ({
                 <div className={styles.notSignedInContainer}>
                     <img className={styles.icon} src={brandImageSource} alt={signInText} />
                     <div>{loadingText}</div>
-                    <Spinner size="large" />
+                    <Spinner size="large" style={{ marginTop: "10px" }} />
                 </div>
             )}
         </div>
@@ -65,6 +71,7 @@ const useStyles = makeStyles({
 
 export interface EntraSignInEmptyProps {
     loadAccountStatus: ApiStatus;
+    hasAccounts: boolean;
     brandImageSource: string;
     signInText: string;
     linkText: string;

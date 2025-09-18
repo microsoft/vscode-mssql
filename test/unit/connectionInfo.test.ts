@@ -10,6 +10,7 @@ import * as ConnectionInfo from "../../src/models/connectionInfo";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import * as Constants from "../../src/constants/constants";
 import { EncryptOptions, IConnectionProfile } from "../../src/models/interfaces";
+import { ServerType } from "../../src/models/connectionInfo";
 
 suite("getConnectionDisplayName", () => {
     test("Should include server, database, and user for SQL Authentication", () => {
@@ -234,4 +235,35 @@ suite("fixupConnectionCredentials", () => {
             EncryptOptions.Strict,
         );
     });
+});
+
+test("getServerTypes", () => {
+    const testCases = [
+        { input: "test.database.windows.net", expected: [ServerType.Azure, ServerType.Sql] },
+        {
+            input: "test.sql.azuresynapse.net",
+            expected: [ServerType.Azure, ServerType.DataWarehouse],
+        },
+        {
+            input: "test.database.fabric.microsoft.com",
+            expected: [ServerType.Fabric, ServerType.Sql],
+        },
+        {
+            input: "test.datawarehouse.fabric.microsoft.com",
+            expected: [ServerType.Fabric, ServerType.DataWarehouse],
+        },
+        { input: "localhost", expected: [ServerType.Local, ServerType.Sql] },
+        { input: "localhost,1234", expected: [ServerType.Local, ServerType.Sql] },
+        { input: ".", expected: [ServerType.Local, ServerType.Sql] },
+        { input: ".,1234", expected: [ServerType.Local, ServerType.Sql] },
+    ];
+
+    for (const { input, expected } of testCases) {
+        const connection = { server: input } as IConnectionInfo;
+        const result = ConnectionInfo.getServerTypes(connection);
+        expect(
+            result,
+            `'${input}' should return ${expected.join(", ")}, but was ${result.join(", ")}`,
+        ).to.deep.equal(expected);
+    }
 });

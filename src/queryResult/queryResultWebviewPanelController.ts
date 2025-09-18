@@ -63,6 +63,15 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
 
     private async initialize() {
         this.registerRpcHandlers();
+        this.panel.onDidChangeViewState((params) => {
+            /**
+             * Update the view column if it has changed so that we can reveal
+             * the panel in the correct column later if needed.
+             */
+            if (params.webviewPanel.viewColumn) {
+                this._viewColumn = params.webviewPanel.viewColumn;
+            }
+        });
     }
 
     private registerRpcHandlers() {
@@ -74,7 +83,7 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
 
     public override dispose(): void {
         super.dispose();
-        this._queryResultWebviewViewController.removePanel(this._uri);
+        void this._queryResultWebviewViewController.removePanel(this._uri);
     }
 
     public revealToForeground() {

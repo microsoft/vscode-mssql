@@ -161,6 +161,9 @@ export class LocConstants {
                     args: [objectType],
                     comment: ["{0} is the object type"],
                 }),
+            expandPropertiesPane: l10n.t("Expand properties pane"),
+            restorePropertiesPane: l10n.t("Restore properties pane"),
+            closePropertiesPane: l10n.t("Close properties pane"),
             tableName: l10n.t("Table name"),
             remove: (objectType: string) =>
                 l10n.t({
@@ -172,6 +175,15 @@ export class LocConstants {
             backToPreview: l10n.t("Back to preview"),
             copy: l10n.t("Copy"),
             youMustReviewAndAccept: l10n.t("You must review and accept the terms to proceed"),
+        };
+    }
+
+    public get publishDialog() {
+        return {
+            publishChanges: l10n.t("Publish Changes"),
+            publish: l10n.t("Publish"),
+            openPublishScript: l10n.t("Open Publish Script"),
+            confirmationText: l10n.t("I have read the summary and understand the potential risks."),
         };
     }
 
@@ -448,6 +460,12 @@ export class LocConstants {
             copy: l10n.t("Copy"),
             copyWithHeaders: l10n.t("Copy with Headers"),
             copyHeaders: l10n.t("Copy Headers"),
+            copyAs: l10n.t("Copy As"),
+            copyAsCsv: l10n.t("Copy as CSV"),
+            copyAsJson: l10n.t("Copy as JSON"),
+            copyAsInClause: l10n.t("Copy as IN clause"),
+            copyAsInsertInto: l10n.t("Copy as INSERT INTO"),
+            saveAsInsert: l10n.t("Save as INSERT"),
             null: l10n.t("NULL"),
             blankString: l10n.t("Blanks"),
             apply: l10n.t("Apply"),
@@ -485,10 +503,12 @@ export class LocConstants {
                     comment: ["{0} is the index of the result set"],
                 }),
             loadingTextView: l10n.t("Loading text view..."),
+            loadingResultsMessage: l10n.t("Loading results..."),
             noResultsHeader: l10n.t("No results for the active editor"),
             noResultMessage: l10n.t(
                 "Run a query in the current editor, or switch to an editor that has results.",
             ),
+            failedToStartQuery: l10n.t("Failed to start query."),
         };
     }
 
@@ -897,14 +917,14 @@ export class LocConstants {
     public get deployment() {
         return {
             loadingDeploymentPage: l10n.t("Loading deployment"),
-            deploymentHeader: l10n.t("New SQL Database"),
+            deploymentHeader: l10n.t("New SQL database"),
             deploymentDescription: l10n.t("Choose an option to provision a database"),
             sqlServerContainerHeader: l10n.t("Local SQL Server database container"),
             dockerSqlServerHeader: l10n.t("Create a Local Docker SQL Server"),
             dockerSqlServerDescription: l10n.t(
                 "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
             ),
-            fabricProvisioningHeader: l10n.t("Create a SQL Database in Fabric"),
+            fabricProvisioningHeader: l10n.t("Create a SQL database in Fabric (Preview)"),
             fabricProvisioningDescription: l10n.t(
                 "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
             ),
@@ -952,7 +972,7 @@ export class LocConstants {
     public get fabricProvisioning() {
         return {
             loadingFabricProvisioning: l10n.t("Loading fabric provisioning..."),
-            sqlDatabaseInFabric: l10n.t("SQL Database in Fabric"),
+            sqlDatabaseInFabric: l10n.t("SQL database in Fabric (Preview)"),
             createDatabase: l10n.t("Create Database"),
             loadingWorkspaces: l10n.t("Loading workspaces"),
             errorLoadingWorkspaces: l10n.t(

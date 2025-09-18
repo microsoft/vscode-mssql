@@ -37,7 +37,7 @@
       </trans-unit>
       <trans-unit id="++CODE++75aeb47c4c40ae9ea18e7b77776ff62be55ce308e85a64f870e49b056533d5cb">
         <source xml:lang="en">+ Add Fabric Account</source>
-        <target state="new">+ Add Fabric Account</target>
+        <target state="translated">+ Добавить учетную запись Fabric</target>
       </trans-unit>
       <trans-unit id="++CODE++dbfb6fb3f275d24e8e32113cbbabeffe9d78165e6bdaf5b82c0fede5881451b5">
         <source xml:lang="en">+ Create Connection Group</source>
@@ -50,6 +50,10 @@
       <trans-unit id="++CODE++6ab58ce9ca23e017bf594366b66b620458a5580640ddaf3aebf96f3c8fdf0977">
         <source xml:lang="en">A firewall rule is required to access this server.</source>
         <target state="translated">Для доступа к этому серверу требуется правило брандмауэра.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6b262b5e3f3a492b857cb857bded5d039fa91cbc72a121ef398ef5676b2be947">
+        <source xml:lang="en">A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services</source>
+        <target state="translated">Высокоинтегрированная, готовая для разработчиков транзакционная база данных, которая автоматически масштабируется, автоматически настраивается и зеркально отображает данные в Одном озере для аналитики в службах Fabric</target>
       </trans-unit>
       <trans-unit id="++CODE++880a0618dd92395efe1446e54fe5d50854c148586fdc14f5da8aecda61c827ae">
         <source xml:lang="en">A predefined global default value for the column or binding.</source>
@@ -79,7 +83,7 @@
       </trans-unit>
       <trans-unit id="++CODE++7e1b0d5641f2640ce9a953ec231eea2c27a2a7633f7d3c273e5735e2b30c10b7">
         <source xml:lang="en">Account</source>
-        <target state="new">Account</target>
+        <target state="translated">Учетная запись</target>
       </trans-unit>
       <trans-unit id="++CODE++08a2ef94ef94039eed728a4a3ab703508a7bfe442d702183ecbd763d5852a232">
         <source xml:lang="en">Account not found</source>
@@ -137,6 +141,10 @@
       <trans-unit id="++CODE++09857ad18f3cf066330f9fc08318e41f71ecb7b7d71f12bd1dd3b9d050db4ca0">
         <source xml:lang="en">Add a Microsoft Entra account...</source>
         <target state="translated">Добавьте учетную запись Microsoft Entra...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ee7ee5830f091690030fed013c05a7073f6cb971891c3fc6f16e928bd6d69e61">
+        <source xml:lang="en">Add account</source>
+        <target state="translated">Добавить учетную запись</target>
       </trans-unit>
       <trans-unit id="++CODE++7c0d6c25e58caa429d8df44b1266a82eff13a7fe9f477b164863aea8a9acc658">
         <source xml:lang="en">Add my client IP ({0})</source>
@@ -210,12 +218,12 @@
       </trans-unit>
       <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
         <source xml:lang="en">An error occurred while searching database objects</source>
-        <target state="new">An error occurred while searching database objects</target>
+        <target state="translated">Произошла ошибка при поиске объектов базы данных</target>
       </trans-unit>
       <trans-unit id="++CODE++fe01cd2e56483272d8d46be5c77c37d6be1aba49dfbe2fa79f68b4740723b758">
         <source xml:lang="en">An error occurred while searching database objects: {0}</source>
         <note>{0} is the error detail returned from the search operation</note>
-        <target state="new">An error occurred while searching database objects: {0}</target>
+        <target state="translated">Произошла ошибка при поиске объектов базы данных: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++56f99fbd59570e105fca5070d135f8f86c67f48168d43f8020b70523f06b21bb">
         <source xml:lang="en">An error occurred: {0}</source>
@@ -229,6 +237,10 @@
       <trans-unit id="++CODE++82fcdad573baa3443513b5c61196ed142a07d6b967afc2778c8932549a5ad455">
         <source xml:lang="en">An unknown error occurred. Please try again.</source>
         <target state="translated">Возникла неизвестная ошибка. Попробуйте еще раз.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6ca0797fa56ecdc7f5f08c99504d70d93a42ccbe0e904e273144c6fd9efdc21c">
+        <source xml:lang="en">Analytics-ready by default</source>
+        <target state="translated">Готово к аналитике по умолчанию</target>
       </trans-unit>
       <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
         <source xml:lang="en">And</source>
@@ -289,7 +301,7 @@
       </trans-unit>
       <trans-unit id="++CODE++66880d2d8216260d201917a72eb245440ef18ba9b54c070ee39aa4c343ae126f">
         <source xml:lang="en">Authentication</source>
-        <target state="new">Authentication</target>
+        <target state="translated">Проверка подлинности</target>
       </trans-unit>
       <trans-unit id="++CODE++eccf8ea40318babf1bd28fa823e0fa905383eed481da5fccb9f54ea4a6152943">
         <source xml:lang="en">Authentication Library has changed, please reload Visual Studio Code.</source>
@@ -329,9 +341,13 @@
         <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
         <target state="translated">Автоматическое упорядочивание автоматически изменит размещение всех элементов диаграммы на основе оптимальных алгоритмов макета. Созданное вами настраиваемое размещение будут потеряно. Вы хотите продолжить автоматическое упорядочивание диаграммы схемы?</target>
       </trans-unit>
+      <trans-unit id="++CODE++0b88b412b158e1648835456305f857b2228f04cdd61b08afc1924ea48fcee4c0">
+        <source xml:lang="en">Automatic tuning features like automatic index creation enabled by default.</source>
+        <target state="translated">Функции автоматической настройки, например автоматическое создание индексов, включены по умолчанию.</target>
+      </trans-unit>
       <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
         <source xml:lang="en">Available Servers</source>
-        <target state="new">Available Servers</target>
+        <target state="translated">Доступные серверы</target>
       </trans-unit>
       <trans-unit id="++CODE++92eb0b1fb89f1725b3c1fe652164720d7b2d17222e81bd5057f02f645fb24e67">
         <source xml:lang="en">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</source>
@@ -375,6 +391,10 @@
         <source xml:lang="en">Azure: Sign In with Device Code</source>
         <target state="translated">Azure: войдите с кодом устройства</target>
       </trans-unit>
+      <trans-unit id="++CODE++76900f1bfd16c8d4dd3d25e6f46638d7165aee23883ccea6bfe071c514421769">
+        <source xml:lang="en">Back</source>
+        <target state="translated">Назад</target>
+      </trans-unit>
       <trans-unit id="++CODE++e6885d7f1ab90cd7529fb7e3690957e6324d73e7a2dc017014bb9667d7524a76">
         <source xml:lang="en">Back to preview</source>
         <target state="translated">Вернуться к предварительному просмотру</target>
@@ -406,11 +426,11 @@
       </trans-unit>
       <trans-unit id="++CODE++d2945638af819132af21f6c456f562493e7bf76e6ce1bb782eeef16cbfbeb85b">
         <source xml:lang="en">Browse By</source>
-        <target state="new">Browse By</target>
+        <target state="translated">Просмотр по</target>
       </trans-unit>
       <trans-unit id="++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1">
         <source xml:lang="en">Browse Fabric</source>
-        <target state="new">Browse Fabric</target>
+        <target state="translated">Обзор Fabric</target>
       </trans-unit>
       <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
         <source xml:lang="en">CSV</source>
@@ -539,6 +559,10 @@
 {1} is the database name</note>
         <target state="translated">Производится изменение базы данных на "{1}" для подключения "{0}"</target>
       </trans-unit>
+      <trans-unit id="++CODE++6822b8489308b650f2e36cb439297b0c4a43859fe39e164aea3ad453f4bd14d7">
+        <source xml:lang="en">Chat command not available in this VS Code version</source>
+        <target state="new">Chat command not available in this VS Code version</target>
+      </trans-unit>
       <trans-unit id="++CODE++c8cabf4a998e678eb3213d46a3e9e80217b7839fb5f3537ee550a65e3b2202c9">
         <source xml:lang="en">Check Constraint</source>
         <target state="translated">Проверочное ограничение</target>
@@ -615,6 +639,10 @@
         <source xml:lang="en">Choose a port to host the SQL Server Docker Container</source>
         <target state="translated">Выберите порт для размещения контейнера Docker с SQL Server</target>
       </trans-unit>
+      <trans-unit id="++CODE++8dc22bcccf1fa2165bc27bcd3af9d5979985733f54896c185307a1ccd0e0d134">
+        <source xml:lang="en">Choose an option to provision a database</source>
+        <target state="translated">Выберите вариант для подготовки базы данных</target>
+      </trans-unit>
       <trans-unit id="++CODE++ac64b397d6dc32aa86e749583723d12ec51ada87e971cfe6c41de1454f7131b0">
         <source xml:lang="en">Choose color</source>
         <target state="translated">Выберите цвет</target>
@@ -677,13 +705,17 @@
         <source xml:lang="en">Close Find</source>
         <target state="translated">Закрыть поиск</target>
       </trans-unit>
+      <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
+        <source xml:lang="en">Close properties pane</source>
+        <target state="new">Close properties pane</target>
+      </trans-unit>
       <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
         <source xml:lang="en">Close the current connection</source>
         <target state="translated">Закрыть текущее подключение</target>
       </trans-unit>
       <trans-unit id="++CODE++b977b950c1ae31e5aeb9ef778cc20a66fc034eb81e738e0206104b677962c465">
         <source xml:lang="en">Cloud</source>
-        <target state="new">Cloud</target>
+        <target state="translated">Облако</target>
       </trans-unit>
       <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
         <source xml:lang="en">Collapse</source>
@@ -695,7 +727,7 @@
       </trans-unit>
       <trans-unit id="++CODE++73bdb3fe57af851db2313c3716cc6e6d8584314063030d5262237ad2fa9f8201">
         <source xml:lang="en">Collapse Workspace Explorer</source>
-        <target state="new">Collapse Workspace Explorer</target>
+        <target state="translated">Свернуть проводник по рабочим областям</target>
       </trans-unit>
       <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
         <source xml:lang="en">Color</source>
@@ -826,7 +858,7 @@
       </trans-unit>
       <trans-unit id="++CODE++28d29898bc769fd6df013da142af60f451953946e641fc2a2bee0e49b235a623">
         <source xml:lang="en">Connected successfully</source>
-        <target state="new">Connected successfully</target>
+        <target state="translated">Подключение установлено</target>
       </trans-unit>
       <trans-unit id="++CODE++b6c3dc8ba33b3a93b9060f81da8fa7d496f07487cec7a12353257242b2ea9e24">
         <source xml:lang="en">Connected to server "{0}" on document "{1}". Server information: {2}</source>
@@ -846,6 +878,10 @@
       <trans-unit id="++CODE++fc83034782062ce727014f496892adc8087186e29e686533f40d6064c70e7c7c">
         <source xml:lang="en">Connecting to Container</source>
         <target state="translated">Подключение к контейнеру</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bd02214c7799ec6a69018761f76fed82a6516c170ddbc3fdbf6f0c2a7b566d9f">
+        <source xml:lang="en">Connecting to Database</source>
+        <target state="translated">Подключение к базе данных</target>
       </trans-unit>
       <trans-unit id="++CODE++4f7403da68117c9595b82a6c264837910b1421a60537bcfa77a004a58b0a4c7a">
         <source xml:lang="en">Connecting to server "{0}" on document "{1}".</source>
@@ -868,6 +904,11 @@
         <source xml:lang="en">Connecting to your SQL Server Docker container</source>
         <target state="translated">Подключение к контейнеру Docker с SQL Server</target>
       </trans-unit>
+      <trans-unit id="++CODE++9b8df2904fd9e25473fed50a3df04dc0629dec82daa72d6085cab8d1c63e4f65">
+        <source xml:lang="en">Connecting to {0}...</source>
+        <note>{0} is the connection display name</note>
+        <target state="translated">Подключение к {0}...</target>
+      </trans-unit>
       <trans-unit id="++CODE++031d95e24e24622c128716284eb67a80331c825272813bf720f2c35a0b18f96c">
         <source xml:lang="en">Connecting to: </source>
         <target state="translated">Производится подключение к: </target>
@@ -883,11 +924,11 @@
       </trans-unit>
       <trans-unit id="++CODE++6c916d6a3ffb6e0c85ad115ae2e1f277af1bc76f11a7267fd818b798a796b26a">
         <source xml:lang="en">Connection Authentication</source>
-        <target state="new">Connection Authentication</target>
+        <target state="translated">Проверка подлинности подключения</target>
       </trans-unit>
       <trans-unit id="++CODE++880cac6e9612c7672ce73c666f54c5f789e7b1ed1b9f0b7f1431fe84a2e59bce">
         <source xml:lang="en">Connection Details</source>
-        <target state="new">Connection Details</target>
+        <target state="translated">Сведения о подключении</target>
       </trans-unit>
       <trans-unit id="++CODE++dba530f818587a0d79d7bb8f59e07d372d10691f49c560e3e4c3d42d105fe9e7">
         <source xml:lang="en">Connection Dialog</source>
@@ -896,6 +937,10 @@
       <trans-unit id="++CODE++ddb621f87c5c0baf1158d527d62ad1bf9752e53483d2540591ce3ae35e06fd6b">
         <source xml:lang="en">Connection Error</source>
         <target state="translated">Ошибка подключения</target>
+      </trans-unit>
+      <trans-unit id="++CODE++42aa4e7bc5d2c21a58bb8444c81129c26ccb652e805a73266e8737c55981a6a3">
+        <source xml:lang="en">Connection Failed</source>
+        <target state="translated">Сбой подключения</target>
       </trans-unit>
       <trans-unit id="++CODE++fea70af0cad96e7c97f889724e5dfe0e2d28cbf958e905f5e51ba2584c3d9458">
         <source xml:lang="en">Connection Group</source>
@@ -915,7 +960,7 @@
       </trans-unit>
       <trans-unit id="++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3">
         <source xml:lang="en">Connection is not active. Please establish a connection before performing this action.</source>
-        <target state="new">Connection is not active. Please establish a connection before performing this action.</target>
+        <target state="translated">Подключение не активно. Установите подключение перед выполнением этого действия.</target>
       </trans-unit>
       <trans-unit id="++CODE++28512f31201abdd26ae93d0caaba3b8a3c77113b9665059a9e1d2ba4e47de64d">
         <source xml:lang="en">Connection not found for uri "{0}".</source>
@@ -930,12 +975,12 @@
       <trans-unit id="++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8">
         <source xml:lang="en">Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.</source>
         <note>{0} is the extension ID</note>
-        <target state="new">Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.</target>
+        <target state="translated">Отказано в разрешении на совместное использование подключения для расширения: "{0}". Используйте команды управления разрешениями, чтобы изменить это.</target>
       </trans-unit>
       <trans-unit id="++CODE++6fc14523d003cf70290f0110eeafa850232518f52a0d26436b18c1e838cf1c27">
         <source xml:lang="en">Connection sharing permission is required for extension: '{0}'</source>
         <note>{0} is the extension ID</note>
-        <target state="new">Connection sharing permission is required for extension: '{0}'</target>
+        <target state="translated">Требуется разрешение на совместное использование подключения для расширения: "{0}"</target>
       </trans-unit>
       <trans-unit id="++CODE++e0626fd341a12763ec4285d858397c3d4ba2507c9ef567f1284c658bde195cd2">
         <source xml:lang="en">Connection string is required</source>
@@ -944,7 +989,7 @@
       <trans-unit id="++CODE++6ae8947e98979cbbaeb55a8af448297f63002580ddebd9731fd40ec3ddcdc849">
         <source xml:lang="en">Connection with ID "{0}" not found. Please verify the connection ID exists.</source>
         <note>{0} is the connection ID</note>
-        <target state="new">Connection with ID "{0}" not found. Please verify the connection ID exists.</target>
+        <target state="translated">Подключение с идентификатором "{0}" не найдено. Убедитесь, что идентификатор подключения существует.</target>
       </trans-unit>
       <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
         <source xml:lang="en">Consider adding a name for this foreign key</source>
@@ -978,9 +1023,29 @@
         <source xml:lang="en">Copy</source>
         <target state="translated">Копировать</target>
       </trans-unit>
+      <trans-unit id="++CODE++7644dd0a33ff475c31116e369646b3410ca1463eb32dd1aabf3569f79cc02b4e">
+        <source xml:lang="en">Copy As</source>
+        <target state="translated">Копировать как</target>
+      </trans-unit>
       <trans-unit id="++CODE++e172d8c5fbb864a5f85d4926588ef06167cdd4a29ddffdf07714bf25336c2269">
         <source xml:lang="en">Copy Headers</source>
         <target state="translated">Копировать заголовки</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ac030299960c4d5cba2b13fa5f358cb7f1b1531ce5f2e5315eff17b7c93a97bf">
+        <source xml:lang="en">Copy as CSV</source>
+        <target state="translated">Копировать как CSV</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5f7261cbf4eef17922f168d487b4e92de9bb9b118350254bfff4ea732bf0e1d9">
+        <source xml:lang="en">Copy as IN clause</source>
+        <target state="new">Copy as IN clause</target>
+      </trans-unit>
+      <trans-unit id="++CODE++20e0663f2c175c2d6a5a11120ce06def7ecea5fd1cfb3cb837232bbd0aab34cd">
+        <source xml:lang="en">Copy as INSERT INTO</source>
+        <target state="new">Copy as INSERT INTO</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fd4aee4cb3fa5d5963fc78a7261f20700d94a8ddbbb5b963e97a84c441149508">
+        <source xml:lang="en">Copy as JSON</source>
+        <target state="translated">Копировать как JSON</target>
       </trans-unit>
       <trans-unit id="++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc">
         <source xml:lang="en">Copy code and open webpage</source>
@@ -1027,6 +1092,10 @@
         <source xml:lang="en">Create Container</source>
         <target state="translated">Создать контейнер</target>
       </trans-unit>
+      <trans-unit id="++CODE++a4772bd4c2a746f4bf95ffea1f8e9f44d3a8db72e301280d2bba6338c61724b6">
+        <source xml:lang="en">Create Database</source>
+        <target state="translated">Создать базу данных</target>
+      </trans-unit>
       <trans-unit id="++CODE++0d5e7861b9a1710c8e1d2347dbb8d4dde272143bbeca537d216474ef7bd9193f">
         <source xml:lang="en">Create Firewall Rule</source>
         <target state="translated">Создать правило брандмауэра</target>
@@ -1039,9 +1108,17 @@
         <source xml:lang="en">Create New Connection Group</source>
         <target state="translated">Создать новую группу подключений</target>
       </trans-unit>
+      <trans-unit id="++CODE++2491afdca82a92663822feb8cd1ef045295b05178959965f47eb4d8b41058e47">
+        <source xml:lang="en">Create a Local Docker SQL Server</source>
+        <target state="translated">Создать локальный SQL Server в Docker</target>
+      </trans-unit>
       <trans-unit id="++CODE++1c67dff33030f48bfc399c9c9c43fb0c67e6986d741c12604cfd9cdf6f03bcb9">
         <source xml:lang="en">Create a SQL Server container in seconds—no manual steps required. Manage it easily from the MSSQL extension without leaving VS Code.</source>
         <target state="translated">Создание контейнера с SQL Server за считанные секунды — не требуется выполнять действия вручную. Удобное управление из расширения MSSQL без выхода из VS Code.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++76475214b86cde3b17e547c917253368f60ab3fb43eb8f71dca4d4c45535c1c5">
+        <source xml:lang="en">Create a SQL database in Fabric (Preview)</source>
+        <target state="translated">Создать базу данных SQL в Fabric (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
         <source xml:lang="en">Create a new firewall rule</source>
@@ -1059,7 +1136,7 @@
       <trans-unit id="++CODE++f25b28d86db44d028580bac2348b043db0eebc8a41f443aaaa5d22bfd2cb3fd2">
         <source xml:lang="en">Creating SQL Database for workspace {0}</source>
         <note>{0} is the workspace ID</note>
-        <target state="new">Creating SQL Database for workspace {0}</target>
+        <target state="translated">Создание Базы данных SQL для рабочей области {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
         <source xml:lang="en">Creating and starting your SQL Server container</source>
@@ -1068,7 +1145,7 @@
       <trans-unit id="++CODE++dbfe0a6c5a4cae79965c542e317484c3b53346daa195d3ec31d91c55c92181a3">
         <source xml:lang="en">Creating workspace with capacity {0}</source>
         <note>{0} is the capacity ID</note>
-        <target state="new">Creating workspace with capacity {0}</target>
+        <target state="translated">Создание рабочей области с емкостью {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++60c0c05c936ef432e55dd4ea862b5dd1d454413310190ddaef63ef2dbbf75c03">
         <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate.</source>
@@ -1085,6 +1162,10 @@
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
         <target state="translated">Тип данных</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e3a5d47b33a0d2d672730f3278c43f30e8a43b8c973534f001e775f9dc5135bf">
+        <source xml:lang="en">Data automatically replicated to OneLake in real time with a SQL analytics endpoint.</source>
+        <target state="translated">Данные автоматически реплицируются в Одно озеро в режиме реального времени с помощью конечной точки аналитики SQL.</target>
       </trans-unit>
       <trans-unit id="++CODE++002d75dcd5ce57695a446308e181eaf59edc9236246aa29a124ecb72409a65d7">
         <source xml:lang="en">Data type mismatch: '{0}' in column '{1}' incompatible with '{2}' in '{3}'</source>
@@ -1107,17 +1188,29 @@
         <note>{0} is the database name</note>
         <target state="translated">База данных — {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++cc2bc1468b131fa8c46d376dd879592e78af283343403eb011206e52450a7ad3">
+        <source xml:lang="en">Database Description</source>
+        <target state="translated">Описание базы данных</target>
+      </trans-unit>
+      <trans-unit id="++CODE++15f0fd55dd5c59cd5dabc0966ac7d02f83e3303b36ad6f692da47a8778eb4186">
+        <source xml:lang="en">Database Name</source>
+        <target state="translated">Имя базы данных</target>
+      </trans-unit>
+      <trans-unit id="++CODE++11fc4c8107afd167c617e0099298c647d423931e67c1257d1f4eb7811b2512fd">
+        <source xml:lang="en">Database Name is required</source>
+        <target state="translated">Требуется имя базы данных</target>
+      </trans-unit>
       <trans-unit id="++CODE++667dd91d86c6b574073536489e39f0c5ab034846a63d946e8ef9f7bedeb1f4fb">
         <source xml:lang="en">Database Project</source>
         <target state="translated">Проект базы данных</target>
       </trans-unit>
       <trans-unit id="++CODE++ec9c37392a809590dbb62879bd1b261c3675552b33d4d8936d539925d774f6a6">
         <source xml:lang="en">Database changed successfully</source>
-        <target state="new">Database changed successfully</target>
+        <target state="translated">База данных изменена</target>
       </trans-unit>
       <trans-unit id="++CODE++4027712bbc416cfc7ec6cf98c5be5578684cd55571f48076e82ea6230a66811e">
         <source xml:lang="en">Database list</source>
-        <target state="new">Database list</target>
+        <target state="translated">Список баз данных</target>
       </trans-unit>
       <trans-unit id="++CODE++e97a0773fb7b656c174155270bd9ded70bc82caa0fc5d65b3ba24871577a5b08">
         <source xml:lang="en">Database name</source>
@@ -1167,6 +1260,18 @@
         <source xml:lang="en">Deny</source>
         <target state="translated">Запретить</target>
       </trans-unit>
+      <trans-unit id="++CODE++05081f14d114ed28b2997927154de0eb554e2938d0254935df8bf9b4a129769f">
+        <source xml:lang="en">Deployment Failed</source>
+        <target state="translated">Сбой развертывания</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d88868890471c6cc2ac101b2e2d848718a71936be8158d3c57ec81840fbefa54">
+        <source xml:lang="en">Deployment Name</source>
+        <target state="translated">Имя развертывания</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cc51187ae9dbe9ccc606865c0177000cdeca2af5bca1c36c7f3065882c6ee18b">
+        <source xml:lang="en">Deployment in progress</source>
+        <target state="translated">Выполняется развертывание</target>
+      </trans-unit>
       <trans-unit id="++CODE++526e0087cc3f254d9f86f6c7d8e23d954c4dfda2b312efc29194ae8a860106ba">
         <source xml:lang="en">Description</source>
         <target state="translated">Описание</target>
@@ -1178,6 +1283,10 @@
       <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
         <source xml:lang="en">Details</source>
         <target state="translated">Сведения</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707">
+        <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine.</source>
+        <target state="translated">Удобная для разработчиков транзакционная база данных, использующая ядро СУБД SQL Azure.</target>
       </trans-unit>
       <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
         <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
@@ -1199,7 +1308,7 @@
       </trans-unit>
       <trans-unit id="++CODE++459c45733e24412e32c08ebea6b6819b4a29ca99ec1b99e5c8036d0165df44b7">
         <source xml:lang="en">Disconnected successfully</source>
-        <target state="new">Disconnected successfully</target>
+        <target state="translated">Отключение выполнено</target>
       </trans-unit>
       <trans-unit id="++CODE++810e6bf829af848a6ab728e3b8f94dde597f95f47f11b160ca7eaa9f0d21395b">
         <source xml:lang="en">Disconnecting from connection '{0}'</source>
@@ -1249,6 +1358,10 @@
       <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
         <source xml:lang="en">Don't Show Again</source>
         <target state="translated">Больше не показывать</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
+        <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
+        <target state="translated">Легко настройте локальный SQL Server, не покидая расширение VS Code. Всего несколько щелчков для простой установки, настройки и администрирования сервера!</target>
       </trans-unit>
       <trans-unit id="++CODE++464c4ffd019e1e9691dcf0537c797353ef2b1c1d4833d3d463e5b74ae4547344">
         <source xml:lang="en">Edit</source>
@@ -1312,6 +1425,14 @@
         <source xml:lang="en">Ends With</source>
         <target state="translated">Заканчивается на</target>
       </trans-unit>
+      <trans-unit id="++CODE++b8a643021b4a76524ae2ef4dad6de2ec180e23fd99ca204282cca599d43792f3">
+        <source xml:lang="en">Enter Database Description</source>
+        <target state="translated">Введите описание базы данных</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9fe6b769c35efbcf43d8dcbfced2ae4a84372d540d787211cc31759ad50838f2">
+        <source xml:lang="en">Enter Database Name</source>
+        <target state="translated">Введите имя базы данных</target>
+      </trans-unit>
       <trans-unit id="++CODE++cad17aa68a83418367684821ea4734c877707d1f340846dc7b17b04a8a04c1c0">
         <source xml:lang="en">Enter connection group name</source>
         <target state="translated">Введите имя группы подключений</target>
@@ -1334,7 +1455,7 @@
       </trans-unit>
       <trans-unit id="++CODE++03c72a0dd31428f797eaadef0452b218e6d7cfbfc8b66e7f47e404818a53cda0">
         <source xml:lang="en">Enter part of an object name to search for</source>
-        <target state="new">Enter part of an object name to search for</target>
+        <target state="translated">Введите часть имени объекта для поиска</target>
       </trans-unit>
       <trans-unit id="++CODE++7014aff13517c4071a9de8a8d338ac3ca12ae8ecf6589941d84170aa47cdcac3">
         <source xml:lang="en">Enter password</source>
@@ -1405,7 +1526,7 @@
       </trans-unit>
       <trans-unit id="++CODE++42ae158b81fa6835d984f032a4850d9242fc9551860b90117a5f78c9a76d30a7">
         <source xml:lang="en">Error loading databases</source>
-        <target state="new">Error loading databases</target>
+        <target state="translated">Ошибка при загрузке баз данных</target>
       </trans-unit>
       <trans-unit id="++CODE++f6d7eb5fe821427ad07a3bf9a3cc35423ddc3ccd3a745b1f09584fbf26f377fe">
         <source xml:lang="en">Error loading designer</source>
@@ -1417,7 +1538,11 @@
       </trans-unit>
       <trans-unit id="++CODE++3ba789024640c6f231695bdf0d82e6845483cf65f092b3c3646910e60c638761">
         <source xml:lang="en">Error loading workspaces</source>
-        <target state="new">Error loading workspaces</target>
+        <target state="translated">Ошибка при загрузке рабочих областей</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b154b77abde300c955ebf8ac540930618d871899cd631bf8a90e9efb66a9323e">
+        <source xml:lang="en">Error loading workspaces. Please try choosing a different account or tenant.</source>
+        <target state="translated">Ошибка при загрузке рабочих областей. Попробуйте выбрать другую учетную запись или клиент.</target>
       </trans-unit>
       <trans-unit id="++CODE++2b850d590d607436d4cbf751406a7626e01d0e5c775f26c880ab4fd21e70bb66">
         <source xml:lang="en">Error loading; refresh to try again</source>
@@ -1440,7 +1565,7 @@ Error:
       <trans-unit id="++CODE++7ce810c92d5881cd4638f73772ee57317b503d0f04dbc5cd2f281f77ac1d697d">
         <source xml:lang="en">Error retrieving server list: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Error retrieving server list: {0}</target>
+        <target state="translated">Ошибка при получении списка серверов:{0}</target>
       </trans-unit>
       <trans-unit id="++CODE++2982897442ab8ee74ad10f968e801f2979c59ecc19ae9d2041eeedec219fd8f1">
         <source xml:lang="en">Error running Docker commands. Please make sure Docker is running.</source>
@@ -1505,11 +1630,15 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++48ad32aba89e3b0bbab4397b56bd23794212fe69606e0b644ff3b543035a048d">
         <source xml:lang="en">Expand Workspace Explorer</source>
-        <target state="new">Expand Workspace Explorer</target>
+        <target state="translated">Развернуть проводник по рабочим областям</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
+        <source xml:lang="en">Expand properties pane</source>
+        <target state="new">Expand properties pane</target>
       </trans-unit>
       <trans-unit id="++CODE++c39d646f10769b078ae82be4da7a0079ca91182b241e749be4276e08c215c654">
         <source xml:lang="en">Explorer</source>
-        <target state="new">Explorer</target>
+        <target state="translated">Обозреватель</target>
       </trans-unit>
       <trans-unit id="++CODE++3664895579f0a7e68c4aa09c91316e20239bc74499010e6423ece40cad7c28f7">
         <source xml:lang="en">Export</source>
@@ -1523,13 +1652,29 @@ Error:
         <source xml:lang="en">Extremely likely</source>
         <target state="translated">Весьма вероятно</target>
       </trans-unit>
+      <trans-unit id="++CODE++ce973c12f6c3371202fc82770629424f5dff2aeaf8fda4b6a5e2f91156c13af3">
+        <source xml:lang="en">Fabric API error occurred ({0}): {1}</source>
+        <note>{0} is the error code
+{1} is the error message</note>
+        <target state="translated">Произошла ошибка API Fabric ({0}): {1}</target>
+      </trans-unit>
       <trans-unit id="++CODE++2669635517c6f110f77148287c814fbb91a8ee9fb366d1113794cf21f767d9a9">
         <source xml:lang="en">Fabric Account</source>
-        <target state="new">Fabric Account</target>
+        <target state="translated">Учетная запись Fabric</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c7869b25e42d5683ca7cf9fc6cc3bbe5c8c39dab0ee1f2938b5570714350d0bb">
+        <source xml:lang="en">Fabric Account is required</source>
+        <target state="translated">Требуется учетная запись Fabric</target>
       </trans-unit>
       <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
         <source xml:lang="en">Fabric Workspaces</source>
-        <target state="new">Fabric Workspaces</target>
+        <target state="translated">Рабочие области Fabric</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3db198c251ac68aeafbdfbb134d03b8be7bca7a5b2f612addb78f72b2da67a90">
+        <source xml:lang="en">Fabric long-running API error with error code '{0}': {1}</source>
+        <note>{0} is the error code
+{1} is the error message</note>
+        <target state="translated">Долгосрочная ошибка API Fabric с кодом ошибки "{0}": {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
         <source xml:lang="en">Failed</source>
@@ -1547,11 +1692,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++0f20f13b4e0c02dbfd1419272fdc0223aea4745a0704daf5f91876a21476bda2">
         <source xml:lang="en">Failed to change database</source>
-        <target state="new">Failed to change database</target>
+        <target state="translated">Не удалось изменить базу данных</target>
       </trans-unit>
       <trans-unit id="++CODE++46c9f3b7520fde539ec4452ba821c1b8ad43f18971284f033ab93d32f04c65df">
         <source xml:lang="en">Failed to connect</source>
-        <target state="new">Failed to connect</target>
+        <target state="translated">Не удалось подключиться</target>
       </trans-unit>
       <trans-unit id="++CODE++6e543be4255a8c4362baca16d0850278f1d95a7df9cd38f4b94ecbda4abe57e5">
         <source xml:lang="en">Failed to connect to database: {0}</source>
@@ -1581,7 +1726,7 @@ Error:
       <trans-unit id="++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b">
         <source xml:lang="en">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</source>
         <note>{0} is the connection ID</note>
-        <target state="new">Failed to establish connection with ID "{0}". Please check connection details and network connectivity.</target>
+        <target state="translated">Не удалось установить подключение с идентификатором "{0}". Проверьте сведения о подключении и сетевую доступность.</target>
       </trans-unit>
       <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
         <source xml:lang="en">Failed to fetch user tokens.</source>
@@ -1601,7 +1746,7 @@ Error:
         <source xml:lang="en">Failed to get Fabric workspaces for tenant '{0} ({1})'.</source>
         <note>{0} is the tenant name
 {1} is the tenant id</note>
-        <target state="new">Failed to get Fabric workspaces for tenant '{0} ({1})'.</target>
+        <target state="translated">Не удалось получить рабочие области Fabric для клиента "{0} ({1})".</target>
       </trans-unit>
       <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
         <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
@@ -1611,7 +1756,7 @@ Error:
         <source xml:lang="en">Failed to get tenant '{0}' for account '{1}'.</source>
         <note>{0} is the tenant id
 {1} is the account name</note>
-        <target state="new">Failed to get tenant '{0}' for account '{1}'.</target>
+        <target state="translated">Не удалось получить клиент "{0}" для учетной записи "{1}".</target>
       </trans-unit>
       <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
@@ -1641,6 +1786,10 @@ Error:
         <source xml:lang="en">Failed to start SQL Server container. Please check the error message for more details, and then try again.</source>
         <target state="translated">Не удалось запустить контейнер с SQL Server. Прочтите сообщение об ошибке для получения дополнительных сведений, затем повторите попытку.</target>
       </trans-unit>
+      <trans-unit id="++CODE++08e3cce193c1731c751f4e68352687632cb9edb3e01e8bc9200742d0bd5f7b2c">
+        <source xml:lang="en">Failed to start query.</source>
+        <target state="new">Failed to start query.</target>
+      </trans-unit>
       <trans-unit id="++CODE++8d966abf7ce439608c05903323ea676d64af27e6119ddcc6edebd6db2cd5c479">
         <source xml:lang="en">Failed to start {0}.</source>
         <note>Failed to start {0}.</note>
@@ -1653,7 +1802,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++7a1f2a83aca9a0819f244d5b4a7a0e7f6b779eb709dd4744136b22e724dbb10b">
         <source xml:lang="en">Favorites</source>
-        <target state="new">Favorites</target>
+        <target state="translated">Избранное</target>
       </trans-unit>
       <trans-unit id="++CODE++4d696d1fc30a43745a483d9bf89065718f6abfcdf8241fe4abb09ef13ec1d5e3">
         <source xml:lang="en">Fetching {0} script...</source>
@@ -1683,11 +1832,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++6493eda41425d761de3497b7563b968d07d84a3eebb1844d3f54b76460eee2cb">
         <source xml:lang="en">Filter by keyword</source>
-        <target state="new">Filter by keyword</target>
+        <target state="translated">Фильтровать по ключевому слову</target>
       </trans-unit>
       <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
         <source xml:lang="en">Filter by type</source>
-        <target state="new">Filter by type</target>
+        <target state="translated">Фильтровать по типу</target>
       </trans-unit>
       <trans-unit id="++CODE++01a0e0d1c3cdcf7bac1e7280e753431937f8773ddd7b6ba85bf7fea4b842ad4e">
         <source xml:lang="en">Filter for any field...</source>
@@ -1716,6 +1865,10 @@ Error:
       <trans-unit id="++CODE++a6c7a84baa6750fce33f7512acd6793e53def1d228b5f2efb8074b42648424fc">
         <source xml:lang="en">Finish</source>
         <target state="translated">Готово</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1b301aefb6d539ae0f9ad9d0a548549459322b5271d33f2b041df5c096e996b6">
+        <source xml:lang="en">Finished Deployment</source>
+        <target state="translated">Развертывание завершено</target>
       </trans-unit>
       <trans-unit id="++CODE++b9ab95c28bb1c6c21592e63cc03daacec4bb7be9774e47ec9a1c6f8721e26b08">
         <source xml:lang="en">Finished query execution for document "{0}"</source>
@@ -1793,7 +1946,7 @@ Error:
       <trans-unit id="++CODE++fc70e7e548649aa12095a141703b67943b4437de990082c3646b3ab61884dcf0">
         <source xml:lang="en">Found {0} saved connection profile(s).</source>
         <note>{0} is the number of connection profiles</note>
-        <target state="new">Found {0} saved connection profile(s).</target>
+        <target state="translated">Найдены сохраненные профили подключений ({0}).</target>
       </trans-unit>
       <trans-unit id="++CODE++c910d474dcd724bff83ddedeb06bf1eceaf9fb3af7c76bb282be057f36e6dffa">
         <source xml:lang="en">General</source>
@@ -1836,10 +1989,15 @@ Error:
         <source xml:lang="en">Getting Docker Ready...</source>
         <target state="translated">Подготовка Docker...</target>
       </trans-unit>
+      <trans-unit id="++CODE++d6d1dc00ba08494d29eb2fb1a62a7b312e2a89c23b818493f1f3eec3167d54b9">
+        <source xml:lang="en">Getting Fabric database '{0}'</source>
+        <note>{0} is the database ID</note>
+        <target state="translated">Получение базы данных Fabric "{0}"</target>
+      </trans-unit>
       <trans-unit id="++CODE++4f2809d46e4d5ae64171f0a386b32412184dbf2ea9fb08956f407bed421b7bea">
         <source xml:lang="en">Getting Fabric workspace '{0}'</source>
         <note>{0} is the workspace ID</note>
-        <target state="new">Getting Fabric workspace '{0}'</target>
+        <target state="translated">Получение рабочей области Fabric "{0}"</target>
       </trans-unit>
       <trans-unit id="++CODE++2a8c8cd4e7c7142bffa09b893aaf7ab5886407a22a7ef9b2ee4f60f46fad7bf0">
         <source xml:lang="en">Getting connection details for connection '{0}'</source>
@@ -1850,7 +2008,7 @@ Error:
         <source xml:lang="en">Getting connection string for SQL Endpoint '{0}' in workspace '{1}'</source>
         <note>{0} is the SQL endpoint ID
 {1} is the workspace ID</note>
-        <target state="new">Getting connection string for SQL Endpoint '{0}' in workspace '{1}'</target>
+        <target state="translated">Получение строки подключения для конечной точки SQL "{0}" в рабочей области "{1}"</target>
       </trans-unit>
       <trans-unit id="++CODE++407c9ce5c11270b1d15836456ad1efdbe70f71f3c845186e535f82f02112be4e">
         <source xml:lang="en">Getting container ready for connections</source>
@@ -1971,9 +2129,21 @@ Error:
         <source xml:lang="en">Instant Container Setup</source>
         <target state="translated">Мгновенная настройка контейнера</target>
       </trans-unit>
+      <trans-unit id="++CODE++07fe70d13a25b3d4c4f7d4e64e1aaa9b9d80952a1478fb7e2da36209ccbf549f">
+        <source xml:lang="en">Insufficient Capacity Permissions</source>
+        <target state="translated">Недостаточно разрешений емкости</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ece3ecedb5f57c84cc9749995b62f69213c0cb04b1578a713fda486ff04f8fdb">
+        <source xml:lang="en">Insufficient Worskpace Permissions</source>
+        <target state="translated">Недостаточно разрешений для рабочей области</target>
+      </trans-unit>
       <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
         <source xml:lang="en">Integrated</source>
         <target state="translated">Интегрированные</target>
+      </trans-unit>
+      <trans-unit id="++CODE++aca9e581f935a7772af49f14b1bc37305d26449df47ba4a8ecea51c758d4814f">
+        <source xml:lang="en">Integrated &amp; secure</source>
+        <target state="translated">Интегрированная и безопасная</target>
       </trans-unit>
       <trans-unit id="++CODE++eced7daa046aa47caa62c3306d8114cb2f558fd2f53ebd2cc4d3b802857d200b">
         <source xml:lang="en">Invalid Firewall rule name</source>
@@ -1989,11 +2159,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++4ce86c72bcd330160b14a711a925bf6f8e24fdd6b26d4a7abbfa548e510648d5">
         <source xml:lang="en">Invalid connection URI provided.</source>
-        <target state="new">Invalid connection URI provided.</target>
+        <target state="translated">Предоставлен недопустимый URI подключения.</target>
       </trans-unit>
       <trans-unit id="++CODE++5c61e4661a7417ada5f0b7d34d9c3cd27dcc3aad485b337ea6d58cd077be7c8c">
         <source xml:lang="en">Invalid connection URI. Please ensure you have an active database connection.</source>
-        <target state="new">Invalid connection URI. Please ensure you have an active database connection.</target>
+        <target state="translated">Недопустимый URI подключения. Убедитесь, что у вас есть активное подключение к базе данных.</target>
       </trans-unit>
       <trans-unit id="++CODE++c265d537d7811a1e8fa19df9305f90ad86e0326ad6dd2d585172fcf570023c57">
         <source xml:lang="en">Invalid connection string: {0}</source>
@@ -2126,22 +2296,22 @@ Error:
       <trans-unit id="++CODE++8043c062698783f821c86c7bc00a285e71f93c8ddf50815cfa601fef33905401">
         <source xml:lang="en">Listing Fabric SQL Databases for workspace '{0}'</source>
         <note>{0} is the workspace ID</note>
-        <target state="new">Listing Fabric SQL Databases for workspace '{0}'</target>
+        <target state="translated">Перечисление баз данных SQL Fabric для рабочей области "{0}"</target>
       </trans-unit>
       <trans-unit id="++CODE++d63cd16cd7f14f873a95c39ea88cdd895461edd04b9fa7894a5b050274e85b1f">
         <source xml:lang="en">Listing Fabric SQL Endpoints for workspace '{0}'</source>
         <note>{0} is the workspace ID</note>
-        <target state="new">Listing Fabric SQL Endpoints for workspace '{0}'</target>
+        <target state="translated">Перечисление конечных точек SQL Fabric для рабочей области "{0}"</target>
       </trans-unit>
       <trans-unit id="++CODE++a5c14e0446ba987ee1804ac7f75c2cf29a526c5b3efc8ec431eeb50d200ad7f0">
         <source xml:lang="en">Listing Fabric capacities for tenant '{0}'</source>
         <note>{0} is the tenant ID</note>
-        <target state="new">Listing Fabric capacities for tenant '{0}'</target>
+        <target state="translated">Перечисление емкостей Fabric для клиента "{0}"</target>
       </trans-unit>
       <trans-unit id="++CODE++0674831e66235d3d493987bb2f89a42a981be092b9be08a7214438e389b30737">
         <source xml:lang="en">Listing Fabric workspaces for tenant '{0}'</source>
         <note>{0} is the tenant ID</note>
-        <target state="new">Listing Fabric workspaces for tenant '{0}'</target>
+        <target state="translated">Перечисление рабочих областей Fabric для клиента "{0}"</target>
       </trans-unit>
       <trans-unit id="++CODE++b96793f36b682b832b59fce2ab2fbfbe394de6c913abd6f389f8c19273f040a5">
         <source xml:lang="en">Listing databases for connection '{0}'</source>
@@ -2152,6 +2322,11 @@ Error:
         <source xml:lang="en">Listing functions for connection '{0}'</source>
         <note>{0} is the connection ID</note>
         <target state="translated">Перечисление функций для подключения "{0}"</target>
+      </trans-unit>
+      <trans-unit id="++CODE++df15d83efd9fc637dc083e4165d14496ddd68c309ef41be96ddf930de86fa600">
+        <source xml:lang="en">Listing role assignments for workspace '${workspaceId}'</source>
+        <note>{0} is the workspace ID</note>
+        <target state="translated">Перечисление назначений ролей для рабочей области "${workspaceId}"</target>
       </trans-unit>
       <trans-unit id="++CODE++33ed9f224eba0860b9cfb0063fdbd1680208c1e358cecb479c7bd8c46236000e">
         <source xml:lang="en">Listing schemas for connection '{0}'</source>
@@ -2190,11 +2365,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++6fa7126ccca3880030902e857b23844499021637082687cfb79725ee3095e087">
         <source xml:lang="en">Loading Azure Accounts</source>
-        <target state="new">Loading Azure Accounts</target>
+        <target state="translated">Загрузка учетных записей Azure</target>
       </trans-unit>
       <trans-unit id="++CODE++c11efeef9812b5933f66f281e1df758fca0d28ff6c96462aa5caa7a72f0637ed">
         <source xml:lang="en">Loading Fabric Accounts</source>
-        <target state="new">Loading Fabric Accounts</target>
+        <target state="translated">Загрузка учетных записей Fabric</target>
       </trans-unit>
       <trans-unit id="++CODE++f71c42d1d9ac676535360465df8ce04aacb3b40ecb8b1ba01906d9b4971a51c9">
         <source xml:lang="en">Loading Report</source>
@@ -2215,31 +2390,47 @@ Error:
       <trans-unit id="++CODE++f9c9f560fd60d852df849d8b9694f6e56be6ca531ec5366d75812345a7dbf567">
         <source xml:lang="en">Loading databases in '{0}'...</source>
         <note>{0} is the name of the workspace</note>
-        <target state="new">Loading databases in '{0}'...</target>
+        <target state="translated">Загрузка баз данных в "{0}"...</target>
       </trans-unit>
       <trans-unit id="++CODE++a67a8cf028d055264cd779f840ad3290cb70557277e6fe38ecf976fce921f030">
         <source xml:lang="en">Loading databases in selected workspace...</source>
-        <target state="new">Loading databases in selected workspace...</target>
+        <target state="translated">Загрузка баз данных в выбранной рабочей области...</target>
       </trans-unit>
-      <trans-unit id="++CODE++02bb7cb27116645ab68671a04d8f35d473c32d981ec5ec784e8aa20e9067c2a2">
-        <source xml:lang="en">Loading deployment page...</source>
-        <target state="translated">Загрузка страницы развертывания...</target>
+      <trans-unit id="++CODE++d1fdc252fab1c642cc1b487dbb6658fd77d5831e03b3d391b4c73b01226d75ff">
+        <source xml:lang="en">Loading deployment</source>
+        <target state="translated">Загрузка развертывания</target>
       </trans-unit>
       <trans-unit id="++CODE++c4b5594f53462fcb5025d55e2ad5ba368c8fbb12de5a8701276b5477f7dd07fb">
         <source xml:lang="en">Loading execution plan...</source>
         <target state="translated">Загрузка плана выполнения...</target>
       </trans-unit>
+      <trans-unit id="++CODE++5aa7a4eb1f103858e56dc2f529435ff221afa8e7ff280a24ec6bbd810dd5b163">
+        <source xml:lang="en">Loading fabric provisioning...</source>
+        <target state="translated">Загрузка подготовки Fabric...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++934bbb16d95b8f72c6353bba1afc96aee3975ae50aaca4b3abe9389f292b4987">
+        <source xml:lang="en">Loading local containers...</source>
+        <target state="translated">Загрузка локальных контейнеров...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297">
+        <source xml:lang="en">Loading results...</source>
+        <target state="new">Loading results...</target>
+      </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
-        <target state="new">Loading tenants...</target>
+        <target state="translated">Загрузка клиентов...</target>
       </trans-unit>
       <trans-unit id="++CODE++136a37d2ee433b1eb4302a84ebee86659922e34ca61c2383bc863191b5aeeafa">
         <source xml:lang="en">Loading text view...</source>
         <target state="translated">Загрузка текстового представления...</target>
       </trans-unit>
+      <trans-unit id="++CODE++58878f300e53ea741b29ea101504537639f39f997791a5950d225f8353fad887">
+        <source xml:lang="en">Loading workspaces</source>
+        <target state="translated">Загрузка рабочих областей</target>
+      </trans-unit>
       <trans-unit id="++CODE++3f9adb0f75f8f08022d5289c54dae461204356f0f718404bf22c0d08214ab34a">
         <source xml:lang="en">Loading workspaces...</source>
-        <target state="new">Loading workspaces...</target>
+        <target state="translated">Загрузка рабочих областей...</target>
       </trans-unit>
       <trans-unit id="++CODE++47d2a515ef2f05b87d688656286a61e4f743da4b878684c7654969db17711c40">
         <source xml:lang="en">Loading...</source>
@@ -2255,7 +2446,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ac93cb35e24190764d9718b44e0c847f9e06a22105b20e4f8ca8ef96ed959775">
         <source xml:lang="en">Location (Workspace)</source>
-        <target state="new">Location (Workspace)</target>
+        <target state="translated">Расположение (рабочая область)</target>
       </trans-unit>
       <trans-unit id="++CODE++aaaeb8d7872b0c49ed19d951314516d2dcd84ca23411320f05fac3d87bac8a32">
         <source xml:lang="en">MSSQL</source>
@@ -2315,11 +2506,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e62105462009615e24c43715b276cc4743f4efd9bfd6e1e4bc108a5f9a328be9">
         <source xml:lang="en">Microsoft Account</source>
-        <target state="new">Microsoft Account</target>
+        <target state="translated">Учетная запись Майкрософт</target>
       </trans-unit>
       <trans-unit id="++CODE++871ca3cb96885bd9a333a1d2914f5f4782b9d0477bcfddd603db5e4f98bde56a">
         <source xml:lang="en">Microsoft Account is required</source>
-        <target state="new">Microsoft Account is required</target>
+        <target state="translated">Требуется учетная запись Майкрософт</target>
       </trans-unit>
       <trans-unit id="++CODE++8055a31cb4833efbf1b76994151d8256bfc8500f2985d3d0ab1cf222dd91a043">
         <source xml:lang="en">Microsoft Corp</source>
@@ -2372,7 +2563,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85">
         <source xml:lang="en">My Data</source>
-        <target state="new">My Data</target>
+        <target state="translated">Мои данные</target>
       </trans-unit>
       <trans-unit id="++CODE++fb329000228cc5a24c264c57139de8bf854fc86fc18bf1c04ab61a2b5cb4b921">
         <source xml:lang="en">NULL</source>
@@ -2398,6 +2589,10 @@ Error:
         <source xml:lang="en">New Column Mapping</source>
         <target state="translated">Новое сопоставление столбцов</target>
       </trans-unit>
+      <trans-unit id="++CODE++ab23a59c68316fe4f3a53c610bdf6d7a43090ced0e69ce60895361f176ce93f6">
+        <source xml:lang="en">New Deployment</source>
+        <target state="translated">Новое развертывание</target>
+      </trans-unit>
       <trans-unit id="++CODE++b71586503f1694b5328fa16ed600eb0d20d4d9608dfb54f44ae97fe4ac43f0bf">
         <source xml:lang="en">New Foreign Key</source>
         <target state="translated">Создать внешний ключ</target>
@@ -2409,6 +2604,10 @@ Error:
       <trans-unit id="++CODE++6334507f512e52b67d0a5a0fb392e35e5d3acc29acdce7218f66b6199150f589">
         <source xml:lang="en">New Microsoft Entra account could not be added.</source>
         <target state="translated">Не удалось добавить новую учетную запись Microsoft Entra.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
+        <source xml:lang="en">New SQL database</source>
+        <target state="translated">Новая база данных SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
         <source xml:lang="en">New column mapping</source>
@@ -2440,27 +2639,27 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++9659b767df189a5839c87672cb77cb5c7e5dbe63f59c88712ad34358dda02676">
         <source xml:lang="en">No active connection</source>
-        <target state="new">No active connection</target>
+        <target state="translated">Нет активного подключения</target>
       </trans-unit>
       <trans-unit id="++CODE++fd8753767d0ca74647a1d3b877db12f2a65a06f4c81db6eadd086759df0a5ad1">
         <source xml:lang="en">No active connection for database change</source>
-        <target state="new">No active connection for database change</target>
+        <target state="translated">Нет активного подключения для изменения базы данных</target>
       </trans-unit>
       <trans-unit id="++CODE++796911143ea8bb8e1ff88271e2618eb63b05d9e04cdf6e9363533b0715ab3574">
         <source xml:lang="en">No active connection for schema view</source>
-        <target state="new">No active connection for schema view</target>
+        <target state="translated">Нет активного подключения для представления схемы</target>
       </trans-unit>
       <trans-unit id="++CODE++d932a05eba0200bedb4b5449ce9e6487525ba3ecfd164e137388fd0833b4121b">
         <source xml:lang="en">No active database connection in the current editor. Please establish a connection to continue.</source>
-        <target state="new">No active database connection in the current editor. Please establish a connection to continue.</target>
+        <target state="translated">Нет активного подключения к базе данных в текущем редакторе. Установите подключение, чтобы продолжить.</target>
       </trans-unit>
       <trans-unit id="++CODE++971d7b9ca9340d6e8e22146855f8ef9cd9576279575ad1f7bd2fb5f40eaaddf9">
         <source xml:lang="en">No active database connection. Please connect to a database first.</source>
-        <target state="new">No active database connection. Please connect to a database first.</target>
+        <target state="translated">Нет активного подключения к базе данных. Сначала подключитесь к базе данных.</target>
       </trans-unit>
       <trans-unit id="++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87">
         <source xml:lang="en">No active text editor found. Please open a file with an active database connection.</source>
-        <target state="new">No active text editor found. Please open a file with an active database connection.</target>
+        <target state="translated">Активный текстовый редактор не найден. Откройте файл с активным подключением к базе данных.</target>
       </trans-unit>
       <trans-unit id="++CODE++37d715d202ea8a671a72107c5949755a1cfc925eb3b51f4b2ea823d7a54f2aa7">
         <source xml:lang="en">No changes detected</source>
@@ -2468,7 +2667,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d359844ae129bd7d51eda9e3c61dcf5c4036be148cdf783fc11d6454e8ca372b">
         <source xml:lang="en">No connection credentials found</source>
-        <target state="new">No connection credentials found</target>
+        <target state="translated">Учетные данные подключения не найдены</target>
       </trans-unit>
       <trans-unit id="++CODE++bb6f0c310647145d31546d24967be9eb8ebae90f640642e9fbb5d7713e6e8550">
         <source xml:lang="en">No connection found for connectionId: {0}</source>
@@ -2477,7 +2676,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++3820494b45e56abad074e97c277e6328476da0ec09dacdf18bc5d5d7a6984cb2">
         <source xml:lang="en">No connection information found</source>
-        <target state="new">No connection information found</target>
+        <target state="translated">Сведения о подключении не найдены</target>
       </trans-unit>
       <trans-unit id="++CODE++e7877ea821bcdd1b117351c975bccabc10caea61e2e13fae7fe37e0179bd8470">
         <source xml:lang="en">No connection profile to remove.</source>
@@ -2490,16 +2689,16 @@ Error:
       <trans-unit id="++CODE++3280128c0901d1323dde9a406ee7d2d6e8e1b98fd30971fa6134b302fec41eca">
         <source xml:lang="en">No database objects found matching '{0}'</source>
         <note>{0} is the search term</note>
-        <target state="new">No database objects found matching '{0}'</target>
+        <target state="translated">Не найдены объекты базы данных, соответствующие "{0}"</target>
       </trans-unit>
       <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
         <source xml:lang="en">No databases found in the selected workspace.</source>
-        <target state="new">No databases found in the selected workspace.</target>
+        <target state="translated">Не найдены базы данных в выбранной рабочей области.</target>
       </trans-unit>
       <trans-unit id="++CODE++44abb1efd9e1246e7a38688a54d76fd070a07de55884b732dff70f7eff9a0491">
         <source xml:lang="en">No databases found in workspace '{0}'.</source>
         <note>{0} is the name of the workspace</note>
-        <target state="new">No databases found in workspace '{0}'.</target>
+        <target state="translated">Базы данных не найдены в рабочей области "{0}".</target>
       </trans-unit>
       <trans-unit id="++CODE++6c351c116cc7feeaf5724426f891c890b4f7d9cb8baab5f2ec1d6c512cc016b6">
         <source xml:lang="en">No items</source>
@@ -2529,7 +2728,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
         <source xml:lang="en">No saved connection profiles found.</source>
-        <target state="new">No saved connection profiles found.</target>
+        <target state="translated">Сохраненные профили подключений не найдены.</target>
       </trans-unit>
       <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
         <source xml:lang="en">No schema differences were found.</source>
@@ -2549,11 +2748,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++1507d637b267b1f20c1238414d7e51458fe7d6b98b292a8497d9982634fbe83c">
         <source xml:lang="en">No workspaces found</source>
-        <target state="new">No workspaces found</target>
+        <target state="translated">Рабочие области не найдены</target>
       </trans-unit>
       <trans-unit id="++CODE++f567a09466c3451f2b171ee4b409a52f3aea306cea3bd4ca9ad4cef8669f1856">
         <source xml:lang="en">No workspaces found. Please change Fabric account or tenant to view available workspaces.</source>
-        <target state="new">No workspaces found. Please change Fabric account or tenant to view available workspaces.</target>
+        <target state="translated">Рабочие области не найдены. Измените учетную запись Fabric или клиент, чтобы просмотреть доступные рабочие области.</target>
       </trans-unit>
       <trans-unit id="++CODE++522f7c01e016bd0f95cd3b404ebb0751a2b6db89a57ff1c7e5110b39e1f136e0">
         <source xml:lang="en">Non-SQL Server SQL file detected. Disable IntelliSense for such files?</source>
@@ -2606,6 +2805,10 @@ Error:
       <trans-unit id="++CODE++565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3">
         <source xml:lang="en">OK</source>
         <target state="translated">ОК</target>
+      </trans-unit>
+      <trans-unit id="++CODE++17353b3f8f54bed0a811ad1ed6fb9f3505a0e039df3b934afb3e8bc11976a2ca">
+        <source xml:lang="en">OLTP, built on Azure SQL</source>
+        <target state="translated">OLTP, создано на основе Azure SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
         <source xml:lang="en">Object Explorer Filter</source>
@@ -2681,7 +2884,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++fe0d6bd1aef549a43c5fca4a838882918bd3a85e9641cb5150f31df976e18e38">
         <source xml:lang="en">Opening schema designer...</source>
-        <target state="new">Opening schema designer...</target>
+        <target state="translated">Открытие конструктора схем...</target>
       </trans-unit>
       <trans-unit id="++CODE++291101a07fe980e93b900ae85c9eb824f9e7e93d0d754be7440b9386b615cad7">
         <source xml:lang="en">Operator</source>
@@ -2769,6 +2972,10 @@ Error:
         <source xml:lang="en">Please make your password 8-128 characters long.</source>
         <target state="translated">Установите пароль длиной от 8 до 128 символов.</target>
       </trans-unit>
+      <trans-unit id="++CODE++2e0422920bb9bd61c1c7edf3554564e5ca37f4f0bc5d5a96b0402fb3a4c00155">
+        <source xml:lang="en">Please select a workspace where you have sufficient permissions (Contributor or higher)</source>
+        <target state="translated">Выберите рабочую область, в которой у вас достаточно разрешений (участник или выше)</target>
+      </trans-unit>
       <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
         <source xml:lang="en">Port</source>
         <target state="translated">Порт</target>
@@ -2855,6 +3062,10 @@ Error:
         <note>{0} is the provider</note>
         <target state="translated">Для поставщика {0} не определена конечная точка ресурса Майкрософт.</target>
       </trans-unit>
+      <trans-unit id="++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7">
+        <source xml:lang="en">Provisioning</source>
+        <target state="translated">Подготовка</target>
+      </trans-unit>
       <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
         <source xml:lang="en">Publish</source>
         <target state="translated">Опубликовать</target>
@@ -2911,7 +3122,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++690dbe9dc0993c4256683738fc3fd541cfa96f60d299be33343615dd58179d93">
         <source xml:lang="en">Recent</source>
-        <target state="new">Recent</target>
+        <target state="translated">Недавние</target>
       </trans-unit>
       <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
         <source xml:lang="en">Recent Connections</source>
@@ -2980,6 +3191,10 @@ Error:
         <source xml:lang="en">Restore panel size</source>
         <target state="translated">Восстановить размер панели</target>
       </trans-unit>
+      <trans-unit id="++CODE++26b4293018ea72418733109f2e245387d9dfcfe7d4083c0c1f29eb1155c98365">
+        <source xml:lang="en">Restore properties pane</source>
+        <target state="new">Restore properties pane</target>
+      </trans-unit>
       <trans-unit id="++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c">
         <source xml:lang="en">Result Set {0}</source>
         <note>{0} is the index of the result set</note>
@@ -3043,11 +3258,11 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++59b151f69d83edf3eb174ff38c0f77aebf28c9195c785f2003a1cd708de0dc77">
         <source xml:lang="en">SQL Analytics Endpoint</source>
-        <target state="new">SQL Analytics Endpoint</target>
+        <target state="translated">Конечная точка аналитики SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++7f779b8a3477b9909716127bf4ed2ef8e07e7f5fae134f7ad1506a7f267de247">
         <source xml:lang="en">SQL Database</source>
-        <target state="new">SQL Database</target>
+        <target state="translated">База данных SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
@@ -3069,6 +3284,10 @@ Query: {1}</source>
         <source xml:lang="en">SQL Server {0} - latest</source>
         <note>{0} is the SQL Server version</note>
         <target state="translated">SQL Server {0} — последняя версия</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c15c5b93db5aa2d000fa6a98f1eaad96beff26347b410388dc524f19a0f0aeee">
+        <source xml:lang="en">SQL database in Fabric (Preview)</source>
+        <target state="translated">База данных в Fabric (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
         <source xml:lang="en">SVG</source>
@@ -3117,6 +3336,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++40838c73e26d7ae3162bb4250c2c1e261a33fec5478432e6e47ba9ab6649c1ef">
         <source xml:lang="en">Save as Excel</source>
         <target state="translated">Сохранить как файл Excel</target>
+      </trans-unit>
+      <trans-unit id="++CODE++49e889d19cb98b87430fab55b6c5203e191463e874e2d94eb44d43f38395e226">
+        <source xml:lang="en">Save as INSERT</source>
+        <target state="new">Save as INSERT</target>
       </trans-unit>
       <trans-unit id="++CODE++910ed5e0c43df2bc1a2c71f1d5ecd2168b919fd4dc9f6d4b1f13f660cba9c524">
         <source xml:lang="en">Save as JSON</source>
@@ -3189,13 +3412,17 @@ Query: {1}</source>
         <source xml:lang="en">Script copied to clipboard</source>
         <target state="translated">Сценарий скопирован в буфер обмена.</target>
       </trans-unit>
+      <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
+        <source xml:lang="en">Search Workspaces</source>
+        <target state="translated">Поиск рабочих областей</target>
+      </trans-unit>
       <trans-unit id="++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365">
         <source xml:lang="en">Search connection groups</source>
         <target state="translated">Поиск групп подключений</target>
       </trans-unit>
       <trans-unit id="++CODE++448fcd5b80608528b5b492337667acf711f486e31784b41b4bba7066a9527ac4">
         <source xml:lang="en">Search for database objects...</source>
-        <target state="new">Search for database objects...</target>
+        <target state="translated">Поиск объектов базы данных...</target>
       </trans-unit>
       <trans-unit id="++CODE++49ff54ad141b9f4b74b176a98807c6b9a1282dfe026c3f38015dd596c54c4a84">
         <source xml:lang="en">Search options...</source>
@@ -3211,11 +3438,11 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++f0b2ef28c0bec626ad14f56179e18d97cdbfcb4f676c4735f95eae628d079538">
         <source xml:lang="en">Search term cannot be empty</source>
-        <target state="new">Search term cannot be empty</target>
+        <target state="translated">Условие поиска не может быть пустым</target>
       </trans-unit>
       <trans-unit id="++CODE++5c192a3e6f23b125cfaa70c46f6fcd47a2081fa7270e7687687ea8596d2e012f">
         <source xml:lang="en">Search workspaces...</source>
-        <target state="new">Search workspaces...</target>
+        <target state="translated">Поиск рабочих областей...</target>
       </trans-unit>
       <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
         <source xml:lang="en">Search...</source>
@@ -3249,6 +3476,10 @@ Query: {1}</source>
         <source xml:lang="en">Select Target Schema</source>
         <target state="translated">Выберите целевую схему</target>
       </trans-unit>
+      <trans-unit id="++CODE++35ce1fefb3478f2ba328f46db9deb60e08786a3f825f64dd5f9804459c6b8b4c">
+        <source xml:lang="en">Select a Workspace</source>
+        <target state="translated">Выбор рабочей области</target>
+      </trans-unit>
       <trans-unit id="++CODE++c4300a3eee24147d9593a09a659650b44b4733e2979fef9cae3e3db10f116831">
         <source xml:lang="en">Select a connection group</source>
         <target state="translated">Выберите группу подключений</target>
@@ -3264,7 +3495,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++903e816918c1b2835c9186eed7375ce85cc0f6230c48afbaa979177517e8545d">
         <source xml:lang="en">Select a workspace to view the databases in it.</source>
-        <target state="new">Select a workspace to view the databases in it.</target>
+        <target state="translated">Выберите рабочую область для просмотра баз данных в ней.</target>
       </trans-unit>
       <trans-unit id="++CODE++a1205265db328a59a52187387e01e37a0e1d2b28210aa2e663f750eb8b7c8dcf">
         <source xml:lang="en">Select a {0} for filtering</source>
@@ -3290,7 +3521,7 @@ Query: {1}</source>
       <trans-unit id="++CODE++cac9a015dc3356af3f386e840985bfc09d57c0b9cc01a88e26ec67f3501058d8">
         <source xml:lang="en">Select an object to view its definition ({0} results)</source>
         <note>{0} is the number of results</note>
-        <target state="new">Select an object to view its definition ({0} results)</target>
+        <target state="translated">Выберите объект для просмотра его определения (результатов: {0})</target>
       </trans-unit>
       <trans-unit id="++CODE++6a8027c451f5eed5d0e62f3f599e8d39a787706b19612279423f6b706b1751f3">
         <source xml:lang="en">Select image</source>
@@ -3328,11 +3559,11 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++6b0054dcd0116896729545198c9cdfe9b8f97008d91d39084e5c8808a6784c58">
         <source xml:lang="en">Server Edition</source>
-        <target state="new">Server Edition</target>
+        <target state="translated">Выпуск сервера</target>
       </trans-unit>
       <trans-unit id="++CODE++86c1cd65696eadbc588fd4fe04d8b03ca948befc5a89467c621edf47f885118c">
         <source xml:lang="en">Server Version</source>
-        <target state="new">Server Version</target>
+        <target state="translated">Версия сервера</target>
       </trans-unit>
       <trans-unit id="++CODE++1c53883708ab16a3743793905feb38c8e77c295d846ff276491831e1de69b6e1">
         <source xml:lang="en">Server connection in progress. Do you want to cancel?</source>
@@ -3385,7 +3616,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
         <source xml:lang="en">Show All</source>
-        <target state="new">Show All</target>
+        <target state="translated">Показать все</target>
       </trans-unit>
       <trans-unit id="++CODE++a89fead964a8515cf74f4e5fcfbc0aaa029cee9744df340c6853e59a944de7ad">
         <source xml:lang="en">Show Filter</source>
@@ -3427,7 +3658,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++bcc0bcc9140b0c97a6440ce56966a07a05e85bddd509ddc5e2ab98755f319af1">
         <source xml:lang="en">Sign In</source>
-        <target state="new">Sign In</target>
+        <target state="translated">Войти</target>
       </trans-unit>
       <trans-unit id="++CODE++bfd402b2f6f3812529b55596136d3a11c51616317e3b1cd999928e2d4eae7d3f">
         <source xml:lang="en">Sign in</source>
@@ -3459,7 +3690,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++8fb63cdc9270808c8b3dab6531000afcfd2e8bd1550fa5fd1981b82d28859ad8">
         <source xml:lang="en">Sign into Fabric</source>
-        <target state="new">Sign into Fabric</target>
+        <target state="translated">Войти в Fabric</target>
       </trans-unit>
       <trans-unit id="++CODE++144c66d6781cb554af7f4c2f15e5dee4dc39723194785f532bf22b3da2c8f8e6">
         <source xml:lang="en">Signing in to Azure...</source>
@@ -3468,6 +3699,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++f6dd83003322db3c5d5ef293a8dc73363ae462529918cc8d17cc94f9988c0d45">
         <source xml:lang="en">Simple Container Management</source>
         <target state="translated">Простое управление контейнерами</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
+        <source xml:lang="en">Smart performance</source>
+        <target state="translated">Интеллектуальная производительность</target>
       </trans-unit>
       <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
         <source xml:lang="en">Sort Ascending</source>
@@ -3500,6 +3735,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++a49eb416daf711062abb036ea09b46cbe49f513082db1ef699e94ddcf35adc42">
         <source xml:lang="en">Start IP Address</source>
         <target state="translated">Начальный IP-адрес</target>
+      </trans-unit>
+      <trans-unit id="++CODE++271189ae389a39d79c24cd43cee7e86f57b7543bd1aebe14817ea8981cfdfcde">
+        <source xml:lang="en">Start Time</source>
+        <target state="translated">Время начала</target>
       </trans-unit>
       <trans-unit id="++CODE++bdc02a6178825493234ef2190acba2fe15e3fb76a37fb9a740ea4e5b7b843961">
         <source xml:lang="en">Start, stop, and remove containers directly from the extension.</source>
@@ -3799,6 +4038,10 @@ Query: {1}</source>
         <source xml:lang="en">There was an error updating the project</source>
         <target state="translated">Ошибка при обновлении проекта</target>
       </trans-unit>
+      <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
+        <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
+        <target state="translated">Это имя базы данных уже используется. Выберите другое имя.</target>
+      </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
         <target state="translated">Метка времени</target>
@@ -3852,11 +4095,11 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++27c2ccd962c2b8dccb52fe3688ab236f186f7a41fd57d810478712048e9ad3f8">
         <source xml:lang="en">Unknown error</source>
-        <target state="new">Unknown error</target>
+        <target state="translated">Неизвестная ошибка</target>
       </trans-unit>
       <trans-unit id="++CODE++e4dd0ac78c7663f350454bad4258d3b6d38971181470082487d131decc61880b">
         <source xml:lang="en">Unnamed Profile</source>
-        <target state="new">Unnamed Profile</target>
+        <target state="translated">Безымянный профиль</target>
       </trans-unit>
       <trans-unit id="++CODE++a41927d919e273a317907b7f6817ca593d800bc0eb3262ff288630d157bb9448">
         <source xml:lang="en">Unsupported architecture for Docker: {0}</source>
@@ -3891,11 +4134,11 @@ Query: {1}</source>
       <trans-unit id="++CODE++6fa7eeedfe2d3774f7d0d8fbb044c15710f171f58174bf7435ab1757e92d0c27">
         <source xml:lang="en">Use {0} to create a new connection.</source>
         <note>{0} is the connect command</note>
-        <target state="new">Use {0} to create a new connection.</target>
+        <target state="translated">Используйте {0} для создания нового подключения.</target>
       </trans-unit>
       <trans-unit id="++CODE++b512d97e7cbf97c273e4db073bbb547aa65a84589227f8f3d9e4a72b9372a24d">
         <source xml:lang="en">User</source>
-        <target state="new">User</target>
+        <target state="translated">Пользователь</target>
       </trans-unit>
       <trans-unit id="++CODE++b82e11da3bc16786000d6e008e038f4d0272163a6476e0ca3c4b29d958051f9c">
         <source xml:lang="en">User name</source>
@@ -3964,6 +4207,18 @@ Query: {1}</source>
         <source xml:lang="en">Width cannot be 0 or negative</source>
         <target state="translated">Ширина не может быть отрицательной или равной 0</target>
       </trans-unit>
+      <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
+        <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>
+        <target state="translated">Работает с VS Code/SSMS и использует проверку подлинности Microsoft Entra и элементы управления доступом Fabric.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++87bb59ba2f92f2a5a9f13e021fd58dd14ae5c065b1046146875e6e68d5ebc8b7">
+        <source xml:lang="en">Workspace</source>
+        <target state="translated">Рабочая область</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d53a5854df209c578705bfaec402128f2a44624d1e435ae700ef0f56c958c15e">
+        <source xml:lang="en">Workspace is required</source>
+        <target state="translated">Необходимо указать рабочую область</target>
+      </trans-unit>
       <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
         <source xml:lang="en">Yes</source>
         <target state="translated">Да</target>
@@ -3978,7 +4233,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++bb5b6644dc612a69a27fc4eb9b11f3e54901055b75fe7fb9bb754f28693a574f">
         <source xml:lang="en">You must be signed into Fabric in order to browse SQL databases.</source>
-        <target state="new">You must be signed into Fabric in order to browse SQL databases.</target>
+        <target state="translated">Для просмотра баз данных SQL необходимо войти в Fabric.</target>
       </trans-unit>
       <trans-unit id="++CODE++72f5c8fcf386f50a0af8057b25cbd6d2cbfe99d41c859934b12e7592b60b2690">
         <source xml:lang="en">You must review and accept the terms to proceed</source>
@@ -4265,6 +4520,10 @@ Query: {1}</source>
         <source xml:lang="en">Cancel Query</source>
         <target state="translated">Отменить запрос</target>
       </trans-unit>
+      <trans-unit id="mssql.changeConnection">
+        <source xml:lang="en">Change Connection</source>
+        <target state="new">Change Connection</target>
+      </trans-unit>
       <trans-unit id="mssql.changeDatabase">
         <source xml:lang="en">Change Database</source>
         <target state="translated">Изменение базы данных</target>
@@ -4346,10 +4605,6 @@ Query: {1}</source>
 Once you're done making your changes, click the 'Publish' button to send the changes to your database.</source>
         <target state="translated">Создать новую таблицу в вашей базе данных и изменить существующие таблицы поможет конструктор таблиц.
 Внеся изменения, нажмите кнопку "Опубликовать", чтобы отправить изменения в базу данных.</target>
-      </trans-unit>
-      <trans-unit id="mssql.deployLocalDockerContainer">
-        <source xml:lang="en">Create local SQL Container</source>
-        <target state="translated">Создать локальный контейнер с SQL</target>
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.description">
         <source xml:lang="en">Default view mode for query results display.</source>
@@ -4543,7 +4798,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.showEstimatedPlan">
         <source xml:lang="en">Estimated Plan</source>
-        <target state="new">Estimated Plan</target>
+        <target state="translated">Предполагаемый план</target>
       </trans-unit>
       <trans-unit id="mssql.runCurrentStatement">
         <source xml:lang="en">Execute Current Statement</source>
@@ -4620,6 +4875,10 @@ You can connect to a database by entering your connection information, using a c
       <trans-unit id="mssql.query.textSize">
         <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
         <target state="translated">Максимальный размер данных типа text и ntext, возвращаемых инструкцией SELECT</target>
+      </trans-unit>
+      <trans-unit id="mssql.newDeployment">
+        <source xml:lang="en">New Deployment</source>
+        <target state="translated">Новое развертывание</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerNewQuery">
         <source xml:lang="en">New Query</source>
@@ -4754,10 +5013,6 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.scriptExecute">
         <source xml:lang="en">Script as Execute</source>
         <target state="translated">Создать скрипт как EXECUTE</target>
-      </trans-unit>
-      <trans-unit id="mssql.searchObjects">
-        <source xml:lang="en">Search Objects</source>
-        <target state="new">Search Objects</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
@@ -4947,7 +5202,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription">
         <source xml:lang="en">When enabled, connection groups will be collapsed instead of expanded at startup.</source>
-        <target state="new">When enabled, connection groups will be collapsed instead of expanded at startup.</target>
+        <target state="translated">Если включено, группы подключений будут свернуты вместо развертывания при запуске.</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.groupBySchema">
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>

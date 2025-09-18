@@ -34,6 +34,7 @@ import {
     stubVscodeAzureSignIn,
     stubFetchServersFromAzure,
     stubPromptForAzureSubscriptionFilter,
+    stubVscodeAzureHelperGetAccounts,
 } from "./azureHelperStubs";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
@@ -142,6 +143,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
                         displayInfo: {
                             displayName: "Test Display Name",
                             userId: "TestUserId",
+                        },
+                        key: {
+                            id: "TestUserId",
                         },
                     } as IAccount,
                 ]),
@@ -348,6 +352,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 const { sendErrorEvent } = stubTelemetry(sandbox);
 
                 stubVscodeAzureSignIn(sandbox);
+                stubVscodeAzureHelperGetAccounts(sandbox);
                 stubFetchServersFromAzure(sandbox);
 
                 await controller["_reducerHandlers"].get("setConnectionInputType")(
@@ -516,6 +521,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 const { sendErrorEvent } = stubTelemetry(sandbox);
 
                 stubPromptForAzureSubscriptionFilter(sandbox, true);
+                stubVscodeAzureHelperGetAccounts(sandbox);
                 stubVscodeAzureSignIn(sandbox);
                 stubFetchServersFromAzure(sandbox);
 

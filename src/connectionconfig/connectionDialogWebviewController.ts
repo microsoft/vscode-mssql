@@ -53,7 +53,7 @@ import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { UserSurvey } from "../nps/userSurvey";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { getConnectionDisplayName } from "../models/connectionInfo";
+import { getConnectionDisplayName, getServerTypes } from "../models/connectionInfo";
 import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
 import {
@@ -273,14 +273,23 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         state.loadingAzureAccountsStatus === ApiStatus.NotStarted ||
                         state.loadingAzureAccountsStatus === ApiStatus.Error
                     ) {
+                        // Indicate we're checking for existing accounts
+                        state.loadingAzureAccountsStatus = ApiStatus.Loading;
+                        this.updateState(state);
+
                         state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
                             return {
                                 id: a.id,
                                 name: a.label,
                             } as IAzureAccount;
                         });
-                        state.selectedAccountId = state.azureAccounts[0].id;
-                        state.loadingAzureAccountsStatus = ApiStatus.Loaded;
+
+                        if (state.azureAccounts.length === 0) {
+                            state.loadingAzureAccountsStatus = ApiStatus.NotStarted;
+                        } else {
+                            state.selectedAccountId = state.azureAccounts[0].id;
+                            state.loadingAzureAccountsStatus = ApiStatus.Loaded;
+                        }
 
                         this.updateState(state);
                     }
@@ -717,11 +726,31 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.onRequest(GetSqlAnalyticsEndpointUriFromFabricRequest.type, async (payload) => {
-            return FabricHelper.getFabricSqlEndpointServerUri(
-                payload.id,
-                payload.workspaceId,
-                payload.tenantId,
+            const getUriActivity = startActivity(
+                TelemetryViews.ConnectionDialog,
+                TelemetryActions.GetSqlAnalyticsEndpointUrlFromFabric,
             );
+            try {
+                const result = FabricHelper.getFabricSqlEndpointServerUri(
+                    payload.id,
+                    payload.workspaceId,
+                    payload.tenantId,
+                );
+
+                getUriActivity.end(ActivityStatus.Succeeded);
+
+                return result;
+            } catch (err) {
+                this.logger.error(
+                    `Failed to get URL for Fabric SQL Endpoint: ${getErrorMessage(err)}`,
+                );
+
+                getUriActivity.endFailed(
+                    new Error("Failed to get URL for Fabric SQL Endpoint"),
+                    true,
+                );
+                return undefined;
+            }
         });
     }
 
@@ -800,6 +829,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         cleanedConnection.connectionString = undefined;
+
+        if (cleanedConnection.secureEnclaves !== "Enabled") {
+            cleanedConnection.attestationProtocol = undefined;
+            cleanedConnection.enclaveAttestationUrl = undefined;
+        }
 
         return cleanedConnection;
     }
@@ -943,6 +977,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
                 connectionInputType: this.state.selectedInputMode,
                 authMode: this.state.connectionProfile.authenticationType,
+                serverTypes: getServerTypes(this.state.connectionProfile).join(","),
             });
 
             if (this._connectionBeingEdited) {
@@ -1337,13 +1372,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ): Promise<Map<string, AzureSubscription[]> | undefined> {
         let telemActivity: ActivityObject;
         try {
-            let auth: MssqlVSCodeAzureSubscriptionProvider;
-            try {
-                auth = await VsCodeAzureHelper.signIn();
-            } catch (error) {
-                state.formError = LocAzure.errorSigningIntoAzure(getErrorMessage(error));
-                return undefined;
-            }
+            // Step 1: Check for existing accounts first and show loading while we do
+            state.loadingAzureAccountsStatus = ApiStatus.Loading;
+            state.loadingAzureTenantsStatus = ApiStatus.NotStarted;
+            state.azureTenants = [];
+            this.updateState(state);
 
             state.formError = "";
             state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
@@ -1353,6 +1386,22 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 } as IAzureAccount;
             });
             state.loadingAzureAccountsStatus = ApiStatus.Loaded;
+            this.updateState(state);
+
+            // If there are no accounts, don't proceed to load subscriptions
+            if (!state.azureAccounts || state.azureAccounts.length === 0) {
+                return undefined;
+            }
+
+            // Step 2: We have accounts; initialize provider (should not force prompt)
+            let auth: MssqlVSCodeAzureSubscriptionProvider;
+            try {
+                auth = await VsCodeAzureHelper.signIn();
+            } catch (error) {
+                state.formError = LocAzure.errorSigningIntoAzure(getErrorMessage(error));
+                return undefined;
+            }
+
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loading;
             this.updateState();
 
@@ -1505,6 +1554,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         account: IAzureAccount | string,
         tenantId: string,
     ): Promise<void> {
+        const loadWorkspacesActivity = startActivity(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.LoadFabricWorkspaces,
+        );
+
         try {
             const accountId = typeof account === "string" ? account : account.id;
             const vscodeAccount = await VsCodeAzureHelper.getAccountById(accountId);
@@ -1523,6 +1577,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                 this.logger.error(message);
                 state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message: locMessage };
+
+                loadWorkspacesActivity.endFailed(
+                    new Error(
+                        "Failed to get tenant info from VS Code; may have been user-canceled.",
+                    ),
+                    true, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                );
             }
 
             try {
@@ -1550,6 +1613,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                             ? Loc.noWorkspacesFound
                             : undefined,
                 };
+
+                loadWorkspacesActivity.end(ActivityStatus.Succeeded, undefined, {
+                    workspaceCount: this.state.fabricWorkspaces.length,
+                });
             } catch (err) {
                 const message = `Failed to get Fabric workspaces for tenant '${tenant.displayName} (${tenant.tenantId})': ${getErrorMessage(err)}`;
                 const locMessage = LocFabric.failedToGetWorkspacesForTenant(
@@ -1559,9 +1626,23 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                 this.logger.error(message);
                 state.fabricWorkspacesLoadStatus = { status: ApiStatus.Error, message: locMessage };
+
+                loadWorkspacesActivity.endFailed(
+                    new Error("Failed to fetch Fabric workspaces"),
+                    true, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                );
             }
         } catch (err) {
             state.formError = getErrorMessage(err);
+
+            loadWorkspacesActivity.endFailed(
+                new Error("Failure while getting Fabric workspaces"),
+                true, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+            );
         }
     }
 
@@ -1569,6 +1650,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         state: ConnectionDialogWebviewState,
         workspace: FabricWorkspaceInfo,
     ): Promise<void> {
+        const loadDatabasesActivity = startActivity(
+            TelemetryViews.ConnectionDialog,
+            TelemetryActions.LoadDatabases,
+        );
+
         // 1. Display loading status
         workspace.loadStatus = { status: ApiStatus.Loading };
         this.updateState(state);
@@ -1590,6 +1676,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
                 errorMessages.push(errorMessage);
             }
+
+            const sqlDbCount = databases.length;
+            const sqlDbErrored = errorMessages.length > 0;
 
             // 3. Load SQL Analytics endpoints from Fabric
             try {
@@ -1629,12 +1718,33 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             workspace.databases.sort((a, b) => a.displayName.localeCompare(b.displayName));
 
+            loadDatabasesActivity.end(
+                ActivityStatus.Succeeded,
+                {
+                    sqlDbErrored: String(sqlDbErrored),
+                    sqlAnalyticsEndpointErrored: String(
+                        errorMessages.length - (sqlDbErrored ? 1 : 0),
+                    ),
+                },
+                {
+                    sqlDbCount: sqlDbCount,
+                    sqlAnalyticsEndpointCount: workspace.databases.length - sqlDbCount,
+                },
+            );
+
             this.updateState(state);
         } catch (err) {
             const message = `Failed to load Fabric databases for workspace ${workspace.id}: ${getErrorMessage(err)}`;
 
             this.logger.error(message);
             workspace.loadStatus = { status: ApiStatus.Error, message: getErrorMessage(err) };
+
+            loadDatabasesActivity.endFailed(
+                new Error("Failure while getting Fabric databases"),
+                true, // includeErrorMessage
+                undefined, // errorCode
+                undefined, // errorType
+            );
         }
     }
 

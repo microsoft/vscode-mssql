@@ -275,6 +275,173 @@ export function isSameProfile(
     );
 }
 
+export enum MatchScore {
+    /**
+     * Not a match on core connection properties
+     */
+    NotMatch = 0,
+
+    /**
+     * Matches on the server URL only.  Other properties may be different.
+     */
+    Server = 1,
+
+    /**
+     * Matches on the server URL and database name only.  Other properties may be different.
+     */
+    ServerAndDatabase = 2,
+
+    /**
+     * Matches on core connection properties (server, database, and auth).  Other properties may be different.
+     */
+    ServerDatabaseAndAuth = 3,
+
+    /**
+     * Match on core connection properties, as well as all available additional properties.
+     * If a property is specified in the partial profile, it must match.  If a property is not specified
+     * in the partial profile, it is ignored for matching purposes.
+     *
+     * If either connection uses a connection string, the connection strings must match exactly and all other properties are ignored.
+     */
+    AllAvailableProps = 4,
+
+    /**
+     * Matches on connection ID GUID.  Other properties are assumed to be the same.
+     */
+    Id = 5,
+}
+
+export class ConnectionMatcher {
+    /**
+     * Returns the highest match level for the given connection profiles
+     * @param current the saved connection profile that's being checked as a match; generally expected to be a complete profile.
+     * @param expected the connection info that you're looking for a match for; treated as the partial profile when evaluating `MatchLevel.AllAvailableProps`.
+     */
+    public static isMatchingConnection(
+        current: IConnectionProfile,
+        expected: IConnectionProfile,
+    ): MatchScore {
+        // Check for ID match first (highest match confidence)
+        if (current.id && expected.id && current.id === expected.id) {
+            return MatchScore.Id;
+        }
+
+        // Check for connection string match; all-or-nothing when connection strings are involved
+        if (current.connectionString || expected.connectionString) {
+            if (current.connectionString === expected.connectionString) {
+                return MatchScore.AllAvailableProps;
+            } else {
+                return MatchScore.NotMatch;
+            }
+        }
+
+        // Check for connection information match (server, database, authentication info)
+        if (ConnectionMatcher.serverMatches(current, expected)) {
+            if (expected.database && ConnectionMatcher.databaseMatches(current, expected)) {
+                if (
+                    expected.authenticationType &&
+                    ConnectionMatcher.authenticationMatches(current, expected)
+                ) {
+                    if (ConnectionMatcher.additionalPropertiesMatch(current, expected)) {
+                        return MatchScore.AllAvailableProps;
+                    }
+                    return MatchScore.ServerDatabaseAndAuth;
+                }
+                return MatchScore.ServerAndDatabase;
+            }
+            return MatchScore.Server;
+        }
+
+        return MatchScore.NotMatch;
+    }
+
+    /**
+     * Checks if the server names match.  Normalizes "." to "localhost" for comparison purposes.  Case-sensitive.
+     */
+    public static serverMatches(
+        current: IConnectionProfile,
+        expected: IConnectionProfile,
+    ): boolean {
+        function normalizeServerName(server: string): string {
+            if (server === ".") {
+                return "localhost";
+            }
+            return server;
+        }
+
+        const currentServer = normalizeServerName(current.server);
+        const expectedServer = normalizeServerName(expected.server);
+
+        return currentServer === expectedServer;
+    }
+
+    /**
+     * Checks if the database names match.  Case-sensitive.
+     */
+    public static databaseMatches(
+        current: IConnectionProfile,
+        expected: IConnectionProfile,
+    ): boolean {
+        return isSameDatabase(current.database, expected.database);
+    }
+
+    /**
+     * Checks if the authentication information matches, including authentication type and user/account.  Does not compare passwords.
+     */
+    public static authenticationMatches(
+        current: IConnectionProfile,
+        expected: IConnectionProfile,
+    ): boolean {
+        let result = true;
+
+        // confirm same authentication type
+        result &&= isSameAuthenticationType(
+            current.authenticationType,
+            expected.authenticationType,
+        );
+
+        // confirm same user/account
+        if (current.authenticationType === Constants.sqlAuthentication) {
+            result &&= current.user === expected.user;
+        } else if (current.authenticationType === Constants.azureMfa) {
+            if (current.accountId && expected.accountId) {
+                // If both account IDs are defined, then require those to match as well
+                result &&= isSameAccountKey(current.accountId, expected.accountId);
+            }
+        }
+
+        return result;
+    }
+
+    public static additionalPropertiesMatch(
+        current: IConnectionProfile,
+        expected: IConnectionProfile,
+    ): boolean {
+        const coreKeys = new Set<keyof IConnectionProfile>([
+            "server",
+            "database",
+            "authenticationType",
+            "user",
+            "password",
+            "accountId",
+            "profileName",
+            "connectionString",
+            "savePassword",
+            "id",
+        ]);
+
+        for (const key of Object.keys(expected).filter(
+            (k) => !coreKeys.has(k as keyof IConnectionProfile),
+        )) {
+            if (current[key] !== expected[key]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
 /**
  * Compares 2 connections to see if they match. Logic for matching:
  * match on all key properties (connectionString or server, db, auth type, user) being identical.
@@ -310,8 +477,8 @@ export function isSameConnectionInfo(
             (conn.authenticationType === Constants.sqlAuthentication
                 ? conn.user === expectedConn.user
                 : isEmpty(conn.user) === isEmpty(expectedConn.user)) &&
-            (<IConnectionProfile>conn).savePassword ===
-                (<IConnectionProfile>expectedConn).savePassword;
+            (conn as IConnectionProfile).savePassword ===
+                (expectedConn as IConnectionProfile).savePassword;
 }
 
 /**

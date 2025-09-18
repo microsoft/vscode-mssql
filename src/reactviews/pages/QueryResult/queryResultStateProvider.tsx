@@ -3,18 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ReactNode, createContext, useMemo } from "react";
+import { ReactNode, createContext, useEffect, useMemo, useState } from "react";
 import { getCoreRPCs2 } from "../../common/utils";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { ExecutionPlanProvider } from "../../../sharedInterfaces/executionPlan";
 import { CoreRPCs } from "../../../sharedInterfaces/webview";
 import {
+    GridContextMenuAction,
     QueryResultPaneTabs,
     QueryResultReducers,
     QueryResultViewMode,
     QueryResultWebviewState,
 } from "../../../sharedInterfaces/queryResult";
 import { WebviewRpc } from "../../common/rpc";
+import GridContextMenu from "./table/plugins/GridContextMenu";
 
 export interface QueryResultReactProvider
     extends Omit<ExecutionPlanProvider, "getExecutionPlan">,
@@ -22,6 +24,13 @@ export interface QueryResultReactProvider
     extensionRpc: WebviewRpc<QueryResultReducers>;
     setResultTab: (tabId: QueryResultPaneTabs) => void;
     setResultViewMode: (viewMode: QueryResultViewMode) => void;
+    // Grid context menu control
+    showGridContextMenu: (
+        x: number,
+        y: number,
+        onAction: (action: GridContextMenuAction) => void | Promise<void>,
+    ) => void;
+    hideGridContextMenu: () => void;
     /**
      * Gets the execution plan graph from the provider for a result set
      * @param uri the uri of the query result state this request is associated with
@@ -46,6 +55,13 @@ interface QueryResultProviderProps {
 
 const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children }) => {
     const { extensionRpc } = useVscodeWebview2<QueryResultWebviewState, QueryResultReducers>();
+    // Grid context menu state
+    const [menuState, setMenuState] = useState<{
+        open: boolean;
+        x: number;
+        y: number;
+        onAction?: (action: GridContextMenuAction) => void | Promise<void>;
+    }>({ open: false, x: 0, y: 0 });
 
     const commands = useMemo<QueryResultReactProvider>(
         () => ({
@@ -56,6 +72,14 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             },
             setResultViewMode: (viewMode: QueryResultViewMode) => {
                 extensionRpc.action("setResultViewMode", { viewMode });
+            },
+
+            // Grid context menu API
+            showGridContextMenu: (x: number, y: number, onAction) => {
+                setMenuState({ open: true, x, y, onAction });
+            },
+            hideGridContextMenu: () => {
+                setMenuState((s) => ({ ...s, open: false }));
             },
 
             openFileThroughLink: (content: string, type: string) => {
@@ -102,9 +126,37 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
         }),
         [extensionRpc],
     );
+
+    // Close context menu when focus leaves the webview or it becomes hidden
+    useEffect(() => {
+        const closeMenu = () => setMenuState((s) => (s.open ? { ...s, open: false } : s));
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "hidden") {
+                closeMenu();
+            }
+        };
+        window.addEventListener("blur", closeMenu);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => {
+            window.removeEventListener("blur", closeMenu);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+    }, []);
     return (
         <QueryResultCommandsContext.Provider value={commands}>
             {children}
+            {menuState.open && (
+                <GridContextMenu
+                    x={menuState.x}
+                    y={menuState.y}
+                    open={menuState.open}
+                    onAction={async (action) => {
+                        await menuState.onAction?.(action);
+                        setMenuState((s) => ({ ...s, open: false }));
+                    }}
+                    onClose={() => setMenuState((s) => ({ ...s, open: false }))}
+                />
+            )}
         </QueryResultCommandsContext.Provider>
     );
 };

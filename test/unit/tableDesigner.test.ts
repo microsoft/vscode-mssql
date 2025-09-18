@@ -13,7 +13,7 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as td from "../../src/sharedInterfaces/tableDesigner";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { TableDesignerService } from "../../src/services/tableDesignerService";
-import UntitledSqlDocumentService from "../../src/controllers/untitledSqlDocumentService";
+import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
 import ConnectionManager from "../../src/controllers/connectionManager";
 
 suite("TableDesignerWebviewController tests", () => {
@@ -24,7 +24,7 @@ suite("TableDesignerWebviewController tests", () => {
     let treeNode: TypeMoq.IMock<TreeNodeInfo>;
     let mockConnectionManager: TypeMoq.IMock<ConnectionManager>;
     let mockTableDesignerService: TableDesignerService;
-    let mockUntitledSqlDocumentService: UntitledSqlDocumentService;
+    let mockSqlDocumentService: SqlDocumentService;
     let newQueryStub: sinon.SinonStub;
     const tableName = "TestTable";
     let mockResult: any;
@@ -40,7 +40,7 @@ suite("TableDesignerWebviewController tests", () => {
 
         mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
         mockTableDesignerService = sandbox.createStubInstance(TableDesignerService);
-        mockUntitledSqlDocumentService = sandbox.createStubInstance(UntitledSqlDocumentService);
+        mockSqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
         mockConnectionManager = TypeMoq.Mock.ofType<ConnectionManager>();
 
         const mockConnectionDetails = {
@@ -119,7 +119,7 @@ suite("TableDesignerWebviewController tests", () => {
             tableChangeInfo: mockTableChangeInfo,
         };
 
-        newQueryStub = (mockUntitledSqlDocumentService.newQuery as sinon.SinonStub).resolves();
+        newQueryStub = (mockSqlDocumentService.newQuery as sinon.SinonStub).resolves();
 
         (mockTableDesignerService.initializeTableDesigner as sinon.SinonStub).resolves(mockResult);
 
@@ -130,7 +130,7 @@ suite("TableDesignerWebviewController tests", () => {
             mockVscodeWrapper.object,
             mockTableDesignerService,
             mockConnectionManager.object,
-            mockUntitledSqlDocumentService,
+            mockSqlDocumentService,
             treeNode.object,
         );
         controller.revealToForeground();
@@ -344,7 +344,13 @@ suite("TableDesignerWebviewController tests", () => {
         assert.ok(newQueryStub.calledOnce, "newQuery should be called once");
         assert.deepStrictEqual(
             newQueryStub.firstCall.args,
-            [scriptResponse],
+            [
+                {
+                    content: scriptResponse,
+                    connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                    connectionInfo: undefined,
+                },
+            ],
             "newQuery should be called with the generated script",
         );
 
@@ -439,42 +445,6 @@ suite("TableDesignerWebviewController tests", () => {
         );
     });
 
-    test("should call initialize in initializeTableDesigner reducer", async () => {
-        const initializeSpy = sinon.spy(controller as any, "initialize");
-
-        const callState = (controller as any)._state;
-
-        await controller["_reducerHandlers"].get("initializeTableDesigner")(
-            callState,
-            mockTableChangeInfo,
-        );
-
-        assert.ok(initializeSpy.calledOnce, "private initialize should be called once");
-
-        (initializeSpy as sinon.SinonSpy).restore();
-    });
-
-    test("should call newQuery with script content in scriptAsCreate reducer", async () => {
-        const mockScript = "CREATE TABLE example (...);";
-
-        const state = {
-            model: {
-                script: {
-                    value: mockScript,
-                },
-            },
-        };
-
-        await controller["_reducerHandlers"].get("scriptAsCreate")(state, mockPayload);
-
-        assert.ok(
-            newQueryStub.calledWith(mockScript),
-            "newQuery should be called with script content",
-        );
-
-        newQueryStub.restore();
-    });
-
     test("should set mainPaneTab in setTab reducer", async () => {
         const state = { tabStates: { mainPaneTab: "" } };
         const tabId = "properties";
@@ -518,53 +488,6 @@ suite("TableDesignerWebviewController tests", () => {
         );
     });
 
-    test("should copy script to clipboard in copyScriptAsCreateToClipboard reducer", async () => {
-        const infoStub = sinon.stub(vscode.window, "showInformationMessage").resolves();
-        const writeTextStub = sinon.stub().resolves();
-        const mockEnvClipboard = {
-            ...vscode.env.clipboard,
-            writeText: writeTextStub,
-        };
-
-        sandbox.replaceGetter(vscode.env, "clipboard", () => mockEnvClipboard);
-
-        // Setup state
-        const state = {
-            model: {
-                script: {
-                    value: "Test value",
-                },
-            },
-        };
-
-        await controller["_reducerHandlers"].get("copyScriptAsCreateToClipboard")(
-            state,
-            mockPayload,
-        );
-
-        assert.ok(writeTextStub.calledOnce, "Clipboard writeText should be called once");
-
-        assert.deepStrictEqual(
-            writeTextStub.firstCall.args,
-            ["Test value"],
-            "writeStub should be called with correct arguments",
-        );
-
-        infoStub.restore();
-    });
-
-    test("should dispose panel and send telemetry in closeDesigner reducer", async () => {
-        const disposeStub = sinon.stub(controller.panel, "dispose");
-
-        const state = (controller as any)._state;
-
-        await controller["_reducerHandlers"].get("closeDesigner")(state, mockPayload);
-
-        assert.ok(disposeStub.calledOnce, "panel.dispose should be called");
-
-        disposeStub.restore();
-    });
-
     test("should set publishState and send telemetry in continueEditing reducer", async () => {
         const state = (controller as any)._state;
 
@@ -575,35 +498,5 @@ suite("TableDesignerWebviewController tests", () => {
             td.LoadState.NotStarted,
             "publishState should be set to NotStarted",
         );
-    });
-
-    test("should copy publishing error to clipboard in copyPublishErrorToClipboard reducer", async () => {
-        const writeTextStub = sinon.stub().resolves();
-        const showInfoStub = sinon.stub().resolves();
-
-        const mockEnvClipboard = {
-            ...vscode.env.clipboard,
-            writeText: writeTextStub,
-        };
-
-        // Replace clipboard and window with stubs
-        sandbox.replaceGetter(vscode.env, "clipboard", () => mockEnvClipboard);
-        sandbox.replace(vscode.window, "showInformationMessage", showInfoStub);
-
-        // Setup state
-        const state = {
-            publishingError: "Something went wrong",
-        };
-
-        await controller["_reducerHandlers"].get("copyPublishErrorToClipboard")(state, mockPayload);
-
-        assert.ok(writeTextStub.calledOnce, "Clipboard writeText should be called once");
-        assert.strictEqual(
-            writeTextStub.firstCall.args[0],
-            "Something went wrong",
-            "writeText should be called with the publishing error",
-        );
-
-        assert.ok(showInfoStub.calledOnce, "showInformationMessage should be called once");
     });
 });

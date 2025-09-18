@@ -91,15 +91,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++02bb7cb27116645ab68671a04d8f35d473c32d981ec5ec784e8aa20e9067c2a2" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Loading deployment page...]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Bereitstellungsseite wird geladen...]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop > Settings > General.]]></Val>
@@ -145,6 +136,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++03c72a0dd31428f797eaadef0452b218e6d7cfbfc8b66e7f47e404818a53cda0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter part of an object name to search for]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Geben Sie einen Teil eines Objektnamens ein, nach dem gesucht werden soll.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++03cdf40907b9e95ff338fe3d4fd451910410c1dbddd93e543b590a40755e6744" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connecting to your SQL Server Docker container]]></Val>
@@ -181,6 +181,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++05081f14d114ed28b2997927154de0eb554e2938d0254935df8bf9b4a129769f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deployment Failed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler bei der Bereitstellung]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++051ab9f3bd7362945f1e2adc7c118c48d4286a3e181158b32e8e87f915103e73" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Find Node]]></Val>
@@ -213,6 +222,15 @@
           <Val><![CDATA[Container does not exist. Would you like to remove the connection?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Der Container ist nicht vorhanden. Möchten Sie die Verbindung entfernen?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++0674831e66235d3d493987bb2f89a42a981be092b9be08a7214438e389b30737" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Listing Fabric workspaces for tenant '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Auflisten von Fabric-Arbeitsbereichen für Mandant „{0}“]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -276,6 +294,15 @@
           <Val><![CDATA[Add Firewall Rule to {0}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Hinzufügen einer Firewallregel zu {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++07fe70d13a25b3d4c4f7d4e64e1aaa9b9d80952a1478fb7e2da36209ccbf549f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Insufficient Capacity Permissions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Unzureichende Kapazitätsberechtigungen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -424,6 +451,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0b88b412b158e1648835456305f857b2228f04cdd61b08afc1924ea48fcee4c0" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Automatic tuning features like automatic index creation enabled by default.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Automatische Optimierungsfunktionen wie die automatische Indexerstellung sind standardmäßig aktiviert.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.]]></Val>
@@ -510,6 +546,15 @@
           <Val><![CDATA[A query is already running for this editor session. Please cancel this query or wait for its completion.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Für diese Editorsitzung wird bereits eine Abfrage ausgeführt. Brechen Sie diese Abfrage ab, oder warten Sie auf den Abschluss der aktuellen Abfrageausführung.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++0f20f13b4e0c02dbfd1419272fdc0223aea4745a0704daf5f91876a21476bda2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to change database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Ändern der Datenbank.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -631,6 +676,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++11fc4c8107afd167c617e0099298c647d423931e67c1257d1f4eb7811b2512fd" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Database Name is required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Der Datenbankname ist erforderlich.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++126ac0f6a36d10138034e44aae3e764f15c8eabba9192445716609b37d21bda9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error {0}: {1}]]></Val>
@@ -730,6 +784,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++1507d637b267b1f20c1238414d7e51458fe7d6b98b292a8497d9982634fbe83c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No workspaces found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Keine Arbeitsbereiche gefunden]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connect to Database]]></Val>
@@ -811,6 +874,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++15f0fd55dd5c59cd5dabc0966ac7d02f83e3303b36ad6f692da47a8778eb4186" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Database Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Datenbankname]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} has been closed. Would you like to restore it?]]></Val>
@@ -834,6 +906,15 @@
           <Val><![CDATA[No tools to process.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Keine zu verarbeitenden Tools.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++17353b3f8f54bed0a811ad1ed6fb9f3505a0e039df3b934afb3e8bc11976a2ca" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[OLTP, built on Azure SQL]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[OLTP, basierend auf Azure SQL]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -960,6 +1041,15 @@
           <Val><![CDATA[Maximize panel size]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Panelgröße maximieren]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++1b301aefb6d539ae0f9ad9d0a548549459322b5271d33f2b041df5c096e996b6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Finished Deployment]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Bereitstellung abgeschlossen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1279,6 +1369,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2491afdca82a92663822feb8cd1ef045295b05178959965f47eb4d8b41058e47" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create a Local Docker SQL Server]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Lokalen Docker SQL Server erstellen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2497697ff826db13ca94ea6c34dceced8bdf6fe44c7dde9d32c1cea30e9360a6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Sort Descending]]></Val>
@@ -1315,6 +1414,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2669635517c6f110f77148287c814fbb91a8ee9fb366d1113794cf21f767d9a9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fabric Account]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fabric-Konto]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++268604d30ba8caf436360709d0933805fb33fe3c3bb87a0782ce8c393ecf7da4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error creating firewall rule {0}.  Check your Azure account settings and try again.  Error: {1}]]></Val>
@@ -1333,11 +1441,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++271189ae389a39d79c24cd43cee7e86f57b7543bd1aebe14817ea8981cfdfcde" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Start Time]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Startzeit]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Move to Root]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[In Stamm verschieben]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++27c2ccd962c2b8dccb52fe3688ab236f186f7a41fd57d810478712048e9ad3f8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unknown error]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Unbekannter Fehler.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1383,6 +1509,15 @@
           <Val><![CDATA[MSSQL - Azure Auth Logs]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[MSSQL – Azure-Authentifizierungsprotokolle]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++28d29898bc769fd6df013da142af60f451953946e641fc2a2bee0e49b235a623" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connected successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Verbindung erfolgreich hergestellt]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1549,6 +1684,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2e0422920bb9bd61c1c7edf3554564e5ca37f4f0bc5d5a96b0402fb3a4c00155" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Please select a workspace where you have sufficient permissions (Contributor or higher)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Wählen Sie einen Arbeitsbereich aus, in dem Sie über ausreichende Berechtigungen verfügen (Mitwirkender oder höher).]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2e71037756b80741dc7aff95ef179d5a25c08df7a40cd7b16af9a5edb6f64047" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Successfully changed to database: {0}]]></Val>
@@ -1608,6 +1752,15 @@
           <Val><![CDATA[Max Length]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Maximale Länge]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fabric Workspaces]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fabric-Arbeitsbereiche]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1693,11 +1846,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3280128c0901d1323dde9a406ee7d2d6e8e1b98fd30971fa6134b302fec41eca" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No database objects found matching '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Es wurden keine Datenbankobjekte gefunden, die mit „{0}“ übereinstimmen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++328923e4274282cae8dc3222c0281c6454f9625843394b33364bfb4213436f1a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Foreign key '{0}' already exists]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Der Fremdschlüssel "{0}" ist bereits vorhanden.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++329f218a3e5212fcaa1558fed9984172c9a456980d1c8015ea761b5a017d19b4" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to get tenant '{0}' for account '{1}'.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Abrufen des Mandanten „{0}“ für das Konto „{1}“.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1765,6 +1936,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++35ce1fefb3478f2ba328f46db9deb60e08786a3f825f64dd5f9804459c6b8b4c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select a Workspace]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Arbeitsbereich auswählen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++35e74c3a943dcaf90a91c99a242ea7dbfb3ead16a012ba5a7d6a747a96e01d64" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Open in New Tab]]></Val>
@@ -1806,6 +1986,15 @@
           <Val><![CDATA[No changes detected]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Änderungen wurden nicht gefunden.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++3820494b45e56abad074e97c277e6328476da0ec09dacdf18bc5d5d7a6984cb2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No connection information found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Keine Verbindungsinformationen gefunden]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1900,6 +2089,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3ba789024640c6f231695bdf0d82e6845483cf65f092b3c3646910e60c638761" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error loading workspaces]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Laden von Arbeitsbereichen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3bd451a10a86c5f3b6edebcde31b6a0e51c4fbcf0b42752066f7496a1ed6077b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Starting {0}...]]></Val>
@@ -1972,6 +2170,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3db198c251ac68aeafbdfbb134d03b8be7bca7a5b2f612addb78f72b2da67a90" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fabric long-running API error with error code '{0}': {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fabric-API-Fehler mit langer Ausführungszeit mit Fehlercode „{0}“: {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3db7232b2e9f0b74bad366312879cd89ee7bd3e6c5b737f358b7897907c6ab39" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Tenant ID is required]]></Val>
@@ -2017,6 +2224,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++3f9adb0f75f8f08022d5289c54dae461204356f0f718404bf22c0d08214ab34a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading workspaces...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Arbeitsbereiche werden geladen...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Importance]]></Val>
@@ -2049,6 +2265,15 @@
           <Val><![CDATA[Property]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Eigenschaft]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4027712bbc416cfc7ec6cf98c5be5578684cd55571f48076e82ea6230a66811e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Database list]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Datenbankliste]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2098,11 +2323,38 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Developer-friendly transactional database using the Azure SQL Database Engine.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Entwicklerfreundliche Transaktionsdatenbank, die die Azure SQL-Datenbank-Engine nutzt.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++421600005b3f0bef9188978d2e890f5c5ff1cdaafa4da92f07a52cdc6295c1c6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Very Satisfied]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Sehr zufrieden]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++42aa4e7bc5d2c21a58bb8444c81129c26ccb652e805a73266e8737c55981a6a3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection Failed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler bei der Verbindung]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++42ae158b81fa6835d984f032a4850d9242fc9551860b90117a5f78c9a76d30a7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error loading databases]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Laden von Datenbanken]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2161,6 +2413,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++448fcd5b80608528b5b492337667acf711f486e31784b41b4bba7066a9527ac4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search for database objects...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nach Datenbankobjekten suchen...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++44abb1efd9e1246e7a38688a54d76fd070a07de55884b732dff70f7eff9a0491" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No databases found in workspace '{0}'.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Im Arbeitsbereich „{0}“ wurden keine Datenbanken gefunden.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++44db9a12f4699cefd03940639b9675924d76fc9dc7faed967e044f5fbaf7bfb6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[(0 rows affected)]]></Val>
@@ -2206,6 +2476,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++459c45733e24412e32c08ebea6b6819b4a29ca99ec1b99e5c8036d0165df44b7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disconnected successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Verbindung erfolgreich getrennt]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++45e1d4cb14359d2ad702451798500ccdf4e30f19c5fd15c378328cf83827d606" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Table name cannot be empty]]></Val>
@@ -2247,6 +2526,15 @@
           <Val><![CDATA[Checking if Docker is installed]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Es wird überprüft, ob Docker installiert ist.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++46c9f3b7520fde539ec4452ba821c1b8ad43f18971284f033ab93d32f04c65df" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to connect]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Herstellen der Verbindung]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2310,6 +2598,15 @@
           <Val><![CDATA[[Optional]5D; Enter a display name for this connection profile]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[[Optional]5D; Gibt einen Anzeigenamen für dieses Verbindungsprofil an.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++48ad32aba89e3b0bbab4397b56bd23794212fe69606e0b644ff3b543035a048d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expand Workspace Explorer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Arbeitsbereichs-Explorer erweitern]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2476,6 +2773,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Funktioniert mit VS Code/SSMS und verwendet die Microsoft Entra-Authentifizierung und Fabric-Zugriffssteuerungen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++4c4d50191531a82f528c2802cf6b245d0c776a5d4b51d3b5da127aaf21728547" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[To use this command, Open a .sql file -or- Change editor language to "SQL" -or- Select T-SQL text in the active SQL editor.]]></Val>
@@ -2508,6 +2814,15 @@
           <Val><![CDATA[Microsoft Entra Id]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Microsoft Entra ID]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++4ce86c72bcd330160b14a711a925bf6f8e24fdd6b26d4a7abbfa548e510648d5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Invalid connection URI provided.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Es wurde ein ungültiger Verbindungs-URI angegeben.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2629,6 +2944,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++4f2809d46e4d5ae64171f0a386b32412184dbf2ea9fb08956f407bed421b7bea" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Getting Fabric workspace '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fabric-Arbeitsbereich „{0}“ wird abgerufen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++4f5103123c8a9080ba6c1595ab5f058a1aa4715fe8c1aa2b956b6512f28cc365" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Search connection groups]]></Val>
@@ -2679,6 +3003,15 @@
           <Val><![CDATA[Object Explorer Filter]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Filter zum Objekt-Explorer]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Filter by type]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nach Typ filtern]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2953,6 +3286,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++58878f300e53ea741b29ea101504537639f39f997791a5950d225f8353fad887" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading workspaces]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Arbeitsbereiche werden geladen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++58ce5122060a06a437de1d4c7d19886005ef98b2bae3c455c677baa4f30b7d71" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[+ Add Azure Account]]></Val>
@@ -2967,6 +3309,15 @@
           <Val><![CDATA[Show table relationships]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Tabellenbeziehungen anzeigen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++59b151f69d83edf3eb174ff38c0f77aebf28c9195c785f2003a1cd708de0dc77" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL Analytics Endpoint]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL-Analyseendpunkt]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3003,6 +3354,15 @@
           <Val><![CDATA[Zoom In]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Vergrößern]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5aa7a4eb1f103858e56dc2f529435ff221afa8e7ff280a24ec6bbd810dd5b163" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading fabric provisioning...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fabricbereitstellung wird geladen...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3061,6 +3421,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++5c192a3e6f23b125cfaa70c46f6fcd47a2081fa7270e7687687ea8596d2e012f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search workspaces...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Arbeitsbereiche suchen...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++5c1afaa0e5ec640786450559a23d287ff17a8b5ffd18db119012de352e431731" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} errors]]></Val>
@@ -3075,6 +3444,15 @@
           <Val><![CDATA[Select the SQL Server Container Image]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[SQL Server-Containerimage auswählen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++5c61e4661a7417ada5f0b7d34d9c3cd27dcc3aad485b337ea6d58cd077be7c8c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Invalid connection URI. Please ensure you have an active database connection.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ungültige Verbindungs-URI Stellen Sie sicher, dass Sie über eine aktive Datenbankverbindung verfügen.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3358,6 +3736,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6493eda41425d761de3497b7563b968d07d84a3eebb1844d3f54b76460eee2cb" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Filter by keyword]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nach Schlüsselwort filtern]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[SQL Server {0} - latest]]></Val>
@@ -3430,6 +3817,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++66880d2d8216260d201917a72eb245440ef18ba9b54c070ee39aa4c343ae126f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Authentication]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Authentifizierung]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++66a64458c4ba13495492108557828d5ef43bfc7f9aca725db617d6a1556ad088" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Length mismatch: Column '{0}' ({1}) incompatible with '{2}' ({3})]]></Val>
@@ -3471,6 +3867,15 @@
           <Val><![CDATA[Data Type]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Datentyp]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++690dbe9dc0993c4256683738fc3fd541cfa96f60d299be33343615dd58179d93" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Recent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aktuell]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3529,11 +3934,38 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6ae8947e98979cbbaeb55a8af448297f63002580ddebd9731fd40ec3ddcdc849" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection with ID "{0}" not found. Please verify the connection ID exists.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Die Verbindung mit der ID „{0}“ wurde nicht gefunden. Überprüfen Sie, ob die Verbindungs-ID vorhanden ist.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6aeaa6a53d09dcad071fdda6280b1e7c42aa164cd0514304ff162e7da440ffaa" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Show password]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Kennwort anzeigen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6b0054dcd0116896729545198c9cdfe9b8f97008d91d39084e5c8808a6784c58" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Server Edition]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Server Edition]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6b262b5e3f3a492b857cb857bded5d039fa91cbc72a121ef398ef5676b2be947" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Eine hochintegrierte, entwicklerfreundliche Transaktionsdatenbank, die automatisch skaliert, automatisch optimiert und Daten für Analysen über Fabric in OneLake spiegelt.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3583,6 +4015,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[An error occurred while searching database objects]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Suchen von Datenbankobjekten]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6be7e803f4291ec5e83f38d2789fd4ea6c31923cdf1eedfa48564e33708cc5d3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Checking if Docker is started]]></Val>
@@ -3615,6 +4056,24 @@
           <Val><![CDATA[Listing functions for connection '{0}']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Auflisten von Funktionen für die Verbindung „{0}“]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6c916d6a3ffb6e0c85ad115ae2e1f277af1bc76f11a7267fd818b798a796b26a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection Authentication]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Verbindungsauthentifizierung]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6ca0797fa56ecdc7f5f08c99504d70d93a42ccbe0e904e273144c6fd9efdc21c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Analytics-ready by default]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Standardmäßig für Analysen bereit.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3682,11 +4141,47 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++6fa7126ccca3880030902e857b23844499021637082687cfb79725ee3095e087" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading Azure Accounts]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Laden von Azure-Konten]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6fa7eeedfe2d3774f7d0d8fbb044c15710f171f58174bf7435ab1757e92d0c27" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Use {0} to create a new connection.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} verwenden, um eine neue Verbindung zu erstellen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Disable intellisense and syntax error checking on current document]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[IntelliSense und Syntaxfehlerprüfung im aktuellen Dokument deaktivieren]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6fc14523d003cf70290f0110eeafa850232518f52a0d26436b18c1e838cf1c27" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection sharing permission is required for extension: '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Eine Verbindungsfreigabeberechtigung ist für die Erweiterung erforderlich: „{0}“]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading tenants...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Mandanten werden geladen...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3808,6 +4303,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++73bdb3fe57af851db2313c3716cc6e6d8584314063030d5262237ad2fa9f8201" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Collapse Workspace Explorer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Arbeitsbereichs-Explorer reduzieren]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++73c5b19bd87f6238ea91f7a12afda7927ec9708f0d2a5ca86154b2e0bbe06109" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra Account]]></Val>
@@ -3876,6 +4380,42 @@
           <Val><![CDATA[Please make sure the port is a number, and choose a port that is not in use]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Stellen Sie sicher, dass der Port eine Zahl ist, und wählen Sie einen Port aus, der nicht verwendet wird.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++75aeb47c4c40ae9ea18e7b77776ff62be55ce308e85a64f870e49b056533d5cb" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[+ Add Fabric Account]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[+ Fabric-Konto hinzufügen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7644dd0a33ff475c31116e369646b3410ca1463eb32dd1aabf3569f79cc02b4e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copy As]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Kopieren als]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++76475214b86cde3b17e547c917253368f60ab3fb43eb8f71dca4d4c45535c1c5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create a SQL database in Fabric (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Einer SQL-Datenbank in Fabric erstellen (Vorschau)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++76900f1bfd16c8d4dd3d25e6f46638d7165aee23883ccea6bfe071c514421769" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Back]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Zurück]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -3961,11 +4501,38 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++796911143ea8bb8e1ff88271e2618eb63b05d9e04cdf6e9363533b0715ab3574" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No active connection for schema view]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Keine aktive Verbindung für Schemaansicht]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++797ad1e737f00e56b04c2d4140e177a26977d3a90e9ea84cb65016e21c50113f" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Referenced table '{0}' not found]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Die referenzierte Tabelle "{0}" wurde nicht gefunden.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++79e53b9f38d1c9de4d84c9a78339ceb838b609638b9194a2f0caad2f05ea2c85" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[My Data]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Meine Daten]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7a1f2a83aca9a0819f244d5b4a7a0e7f6b779eb709dd4744136b22e724dbb10b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Favorites]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Favoriten]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4042,11 +4609,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7c6ecb13b6127990792bdb4cd61037a4d398bcda0034b4e9d23af714a5785c85" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Getting connection string for SQL Endpoint '{0}' in workspace '{1}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Verbindungszeichenfolge für SQL-Endpunkt „{0}“ im Arbeitsbereich „{1}“ wird abgerufen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Rule name]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Regelname]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++7ce810c92d5881cd4638f73772ee57317b503d0f04dbc5cd2f281f77ac1d697d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error retrieving server list: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Abrufen der Serverliste: {0}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4096,6 +4681,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7e1b0d5641f2640ce9a953ec231eea2c27a2a7633f7d3c273e5735e2b30c10b7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Account]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Konto]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7ec04ea2bc2ba275e7471e9e6ec9ed4764f7c069d84e751a4652cb5bd3cba6b7" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Create new firewall rule for {0}]]></Val>
@@ -4141,11 +4735,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7f779b8a3477b9909716127bf4ed2ef8e07e7f5fae134f7ad1506a7f267de247" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL Database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL-Datenbank]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7f8ed04b6c80f9c80c6b9644594472ad2fd1da77707d2fa30f63418c0024f68c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to refresh connection ${0} with uri {1}, invalid connection result.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Fehler beim Aktualisieren der Verbindung ${0} mit URI {1}, ungültiges Verbindungsergebnis.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++8043c062698783f821c86c7bc00a285e71f93c8ddf50815cfa601fef33905401" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Listing Fabric SQL Databases for workspace '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Auflisten von Fabric SQL-Datenbanken für den Arbeitsbereich „{0}“]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4191,6 +4803,15 @@
           <Val><![CDATA[Load source, target, and options saved in an .scmp file]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Quelle und Ziel sowie die in einer SCMP-Datei gespeicherten Optionen laden]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++81e351f7a6077b0ce810f3e316831fbfbfe02b36e74496748b59abc51274001b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to establish connection with ID "{0}". Please check connection details and network connectivity.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Herstellen einer Verbindung mit der ID „{0}“. Überprüfen Sie die Verbindungsdetails und die Netzwerkkonnektivität.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4339,6 +4960,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++86c1cd65696eadbc588fd4fe04d8b03ca948befc5a89467c621edf47f885118c" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Server Version]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Serverversion]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++871ca3cb96885bd9a333a1d2914f5f4782b9d0477bcfddd603db5e4f98bde56a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Microsoft Account is required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Microsoft-Konto ist erforderlich]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++87a122216f22b55fd29964cf75c886ef5da5cd8369e2a6e24c73ec0ad22227ba" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No connection was found. Please connect to a server first.]]></Val>
@@ -4366,11 +5005,38 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++87bb59ba2f92f2a5a9f13e021fd58dd14ae5c065b1046146875e6e68d5ebc8b7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Workspace]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Arbeitsbereich]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Available Servers]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Verfügbare Server]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++880a0618dd92395efe1446e54fe5d50854c148586fdc14f5da8aecda61c827ae" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[A predefined global default value for the column or binding.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ein vordefinierter globaler Standardwert für die Spalte oder Bindung.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++880cac6e9612c7672ce73c666f54c5f789e7b1ed1b9f0b7f1431fe84a2e59bce" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection Details]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Verbindungsdetails]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4555,6 +5221,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Richten Sie ganz einfach einen lokalen SQL Server ein, ohne die VS Code-Erweiterung zu verlassen. Nur wenige Klicks, um Ihren Server mühelos zu installieren, zu konfigurieren und zu verwalten!]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++8cf147a84fa5b378df2fb1c8d2001b12404768f0de0871a152ed488136a3b350" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[An error occurred while removing Microsoft Entra account: {0}]]></Val>
@@ -4609,6 +5284,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++8dc22bcccf1fa2165bc27bcd3af9d5979985733f54896c185307a1ccd0e0d134" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Choose an option to provision a database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Wählen Sie eine Option zum Bereitstellen einer Datenbank aus.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++8dd4f3a846ac5cf5452d53cc438aaae7ad47df96a29ad32857a87718cdeefbca" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Average: {0}  Count: {1}  Sum: {2}]]></Val>
@@ -4650,6 +5334,33 @@
           <Val><![CDATA[Error loading Azure account information for tenant ID '{0}']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Fehler beim Laden der Azure-Kontoinformationen für die Mandanten-ID '{0}']]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++8fb63cdc9270808c8b3dab6531000afcfd2e8bd1550fa5fd1981b82d28859ad8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sign into Fabric]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Bei Fabric anmelden]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++903e816918c1b2835c9186eed7375ce85cc0f6230c48afbaa979177517e8545d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select a workspace to view the databases in it.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Wählen Sie einen Arbeitsbereich aus, um die darin enthaltenen Datenbanken anzuzeigen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++90971b4f986b2a5d6c3d6f32b711a0bbb3f93d8453a9f0006c0a30d1350cdaff" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to get Fabric workspaces for tenant '{0} ({1})'.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Abrufen von Fabric-Arbeitsbereichen für Mandant „{0} ({1})“.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4744,6 +5455,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++934bbb16d95b8f72c6353bba1afc96aee3975ae50aaca4b3abe9389f292b4987" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading local containers...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Lokale Container werden geladen...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++936af734b4badd8602cb27237f8dea0fd3950e12b5bab278565babc15e854136" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Found pending reconnect promise for uri {0}, failed.]]></Val>
@@ -4816,6 +5536,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++9659b767df189a5839c87672cb77cb5c7e5dbe63f59c88712ad34358dda02676" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No active connection]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Keine aktive Verbindung]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++971d7b9ca9340d6e8e22146855f8ef9cd9576279575ad1f7bd2fb5f40eaaddf9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No active database connection. Please connect to a database first.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Keine aktive Datenbankverbindung. Stellen Sie zuerst eine Verbindung mit einer Datenbank her.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Not likely at all]]></Val>
@@ -4870,6 +5608,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++9901d22224c70ca49d9a42f1429021c1f6720eec301efafad38a8a73e0734a87" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No active text editor found. Please open a file with an active database connection.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Keinen aktiven Text-Editor gefunden. Öffnen Sie eine Datei mit einer aktiven Datenbankverbindung.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++993f024b650eaf0f1c64118f6033c44b7c98d220539bcb51454ca578f6f2b477" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Saturation]]></Val>
@@ -4915,6 +5662,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Browse Fabric]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fabric durchsuchen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++9b8df2904fd9e25473fed50a3df04dc0629dec82daa72d6085cab8d1c63e4f65" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connecting to {0}...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Verbindung mit „{0}“ wird hergestellt …]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++9ba1ac70c4386df695c803041aec395325f7f6cb8151ca597c9715b3f99262fb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Target Name]]></Val>
@@ -4956,15 +5721,6 @@
           <Val><![CDATA[Successfully saved results to ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ergebnisse erfolgreich gespeichert in: ]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++9caca4621a4e79e9eba8871a8b0772c87fe7af38b1e5ce6518083abfd676c241" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Azure Account is required]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure Konto ist erforderlich.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5095,6 +5851,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++9fe6b769c35efbcf43d8dcbfced2ae4a84372d540d787211cc31759ad50838f2" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter Database Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Datenbanknamen eingeben]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a04452986b48c7c3c21f78712b31a68f2aecb85566c134d87d55348c7b16b9a8" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Encryption was enabled on this connection; review your SSL and certificate configuration for the target SQL Server, or set 'Trust server certificate' to 'true' in the settings file. Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?]]></Val>
@@ -5212,6 +5977,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a4772bd4c2a746f4bf95ffea1f8e9f44d3a8db72e301280d2bba6338c61724b6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Create Database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Datenbank erstellen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a49d631f8c6cf6fb1660fb5229dfa0c08b55727549c0e48cc0cef1f7770ba0e2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Alphabetical]]></Val>
@@ -5248,6 +6022,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++a5c14e0446ba987ee1804ac7f75c2cf29a526c5b3efc8ec431eeb50d200ad7f0" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Listing Fabric capacities for tenant '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Auflisten von Fabric-Kapazitäten für mandant „{0}“]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++a5d38a76e9010d59374fafce6a3d75189df15be61859ee1ffa33da6e9cf97b05" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Docker is not installed or not in PATH. Please install Docker Desktop and try again.]]></Val>
@@ -5262,6 +6045,24 @@
           <Val><![CDATA[Hide password]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Kennwort ausblenden]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This database name is already in use. Please choose a different name.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Dieser Datenbankname wird bereits verwendet. Wählen Sie einen anderen Namen aus.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++a67a8cf028d055264cd779f840ad3290cb70557277e6fe38ecf976fce921f030" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading databases in selected workspace...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Datenbanken im ausgewählten Arbeitsbereich werden geladen...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5437,6 +6238,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ab23a59c68316fe4f3a53c610bdf6d7a43090ced0e69ce60895361f176ce93f6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New Deployment]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Neue Bereitstellung]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Smart performance]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Intelligente Leistung]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ab3e7e5387cdfbb5043748e63a21b5da7a9855b47821b6a4e1bc17391a118e17" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Table '{0}' not found]]></Val>
@@ -5469,6 +6288,15 @@
           <Val><![CDATA[List databases for connection '{0}'?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Die Datenbanken für die Verbindung „{0}“ auflisten?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ac030299960c4d5cba2b13fa5f358cb7f1b1531ce5f2e5315eff17b7c93a97bf" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copy as CSV]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Als CSV kopieren]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5509,11 +6337,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ac93cb35e24190764d9718b44e0c847f9e06a22105b20e4f8ca8ef96ed959775" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Location (Workspace)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Standort (Arbeitsbereich)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Run a query in the current editor, or switch to an editor that has results.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Führen Sie eine Abfrage im aktuellen Editor aus oder wechseln Sie zu einem Editor, der Ergebnisse enthält.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++aca9e581f935a7772af49f14b1bc37305d26449df47ba4a8ecea51c758d4814f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Integrated & secure]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Integriert und sicher]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5626,6 +6472,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b154b77abde300c955ebf8ac540930618d871899cd631bf8a90e9efb66a9323e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error loading workspaces. Please try choosing a different account or tenant.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Laden von Arbeitsbereichen Versuchen Sie, ein anderes Konto oder einen anderen Mandanten auszuwählen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b16cf0590a6c78b2e8047509582e5448bd55e408cd112bd1f064e34529f6ce3d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Description for the table.]]></Val>
@@ -5712,6 +6567,15 @@
           <Val><![CDATA[server]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Server]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b512d97e7cbf97c273e4db073bbb547aa65a84589227f8f3d9e4a72b9372a24d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[User]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Benutzende Person]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5869,6 +6733,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b8a643021b4a76524ae2ef4dad6de2ec180e23fd99ca204282cca599d43792f3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Enter Database Description]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Datenbankbeschreibung eingeben]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b8c590be37f9806eacc2f43e047d943cb0b51e96d92efe6f1549fd0d13d03a25" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Scale mismatch between '{0}' and '{1}']]></Val>
@@ -5883,6 +6756,15 @@
           <Val><![CDATA[Listing databases for connection '{0}']]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Die Datenbanken für die Verbindung „{0}“ werden aufgelistet.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++b977b950c1ae31e5aeb9ef778cc20a66fc034eb81e738e0206104b677962c465" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cloud]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Cloud]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5914,6 +6796,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No databases found in the selected workspace.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Im ausgewählten Arbeitsbereich wurden keine Datenbanken gefunden.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++ba89783a339fd43f48271d2e9813374075b46d8896bfa4f99444022a42847531" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select an account]]></Val>
@@ -5937,6 +6828,15 @@
           <Val><![CDATA[Save results command cannot be used with multiple selections.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Der Befehl "Ergebnisse speichern" kann nicht mit einer Mehrfachauswahl verwendet werden.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bb5b6644dc612a69a27fc4eb9b11f3e54901055b75fe7fb9bb754f28693a574f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[You must be signed into Fabric in order to browse SQL databases.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Sie müssen bei Fabric angemeldet sein, um SQL-Datenbanken durchsuchen zu können.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5986,6 +6886,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++bcc0bcc9140b0c97a6440ce56966a07a05e85bddd509ddc5e2ab98755f319af1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sign In]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Anmelden]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Getting definition ...]]></Val>
@@ -5995,11 +6904,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++bd02214c7799ec6a69018761f76fed82a6516c170ddbc3fdbf6f0c2a7b566d9f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connecting to Database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Verbindung zur Datenbank wird hergestellt.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Execution Plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ausführungsplan]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search Workspaces]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Arbeitsbereiche suchen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6121,11 +7048,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c11efeef9812b5933f66f281e1df758fca0d28ff6c96462aa5caa7a72f0637ed" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading Fabric Accounts]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Laden von Fabric-Konten]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c1399614154a55dfb1fcb95e208ed1f0b1115b846d6150ded7c7b43fdf6cbc09" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[authenticationType]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Authentifizierungstyp]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c15c5b93db5aa2d000fa6a98f1eaad96beff26347b410388dc524f19a0f0aeee" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL database in Fabric (Preview)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SQL-Datenbank in Fabric (Vorschau)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6175,6 +7120,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Provisioning]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Bereitstellung]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c360b9bc22466a897cd5a6398646517f1bc0236d4bd579846b258d267dfd859c" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Column '{0}' must be a primary key]]></Val>
@@ -6207,6 +7161,15 @@
           <Val><![CDATA[Remove]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Entfernen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++c39d646f10769b078ae82be4da7a0079ca91182b241e749be4276e08c215c654" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Explorer]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Explorer]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6310,6 +7273,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++c7869b25e42d5683ca7cf9fc6cc3bbe5c8c39dab0ee1f2938b5570714350d0bb" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fabric Account is required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fabric-Konto ist erforderlich]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Profile removed successfully]]></Val>
@@ -6400,6 +7372,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++cac9a015dc3356af3f386e840985bfc09d57c0b9cc01a88e26ec67f3501058d8" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Select an object to view its definition ({0} results)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Wählen Sie ein Objekt aus, um dessen Definition anzuzeigen ({0} Ergebnisse).]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++cad17aa68a83418367684821ea4734c877707d1f340846dc7b17b04a8a04c1c0" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter connection group name]]></Val>
@@ -6441,6 +7422,24 @@
           <Val><![CDATA[Add Table]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Tabelle hinzufügen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++cc2bc1468b131fa8c46d376dd879592e78af283343403eb011206e52450a7ad3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Database Description]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Datenbankbeschreibung]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++cc51187ae9dbe9ccc606865c0177000cdeca2af5bca1c36c7f3065882c6ee18b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deployment in progress]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Bereitstellung wird ausgeführt]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6522,6 +7521,15 @@
           <Val><![CDATA[Delete saved connection]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Gespeicherte Verbindung löschen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ce973c12f6c3371202fc82770629424f5dff2aeaf8fda4b6a5e2f91156c13af3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fabric API error occurred ({0}): {1}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fabric-API-Fehler ({0}): {1}]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6625,6 +7633,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d1fdc252fab1c642cc1b487dbb6658fd77d5831e03b3d391b4c73b01226d75ff" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading deployment]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Bereitstellung wird geladen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d24b24ff2640e9b5731d40ac97ea534034176c1478b681eca122262c4d98a8a2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra Id - Universal w/ MFA Support]]></Val>
@@ -6652,6 +7669,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d2945638af819132af21f6c456f562493e7bf76e6ce1bb782eeef16cbfbeb85b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Browse By]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Durchsuchen nach]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d2b6ebb67aeb8ede651aa24682be64c81d2e0a970c297908b470e55fd14c0bcc" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Copy code and open webpage]]></Val>
@@ -6675,6 +7701,15 @@
           <Val><![CDATA[Using {0} to process your request...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0} wird zum Verarbeiten Ihrer Anforderung verwendet …]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++d359844ae129bd7d51eda9e3c61dcf5c4036be148cdf783fc11d6454e8ca372b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No connection credentials found]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Keine Verbindungsanmeldeinformationen gefunden.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6715,6 +7750,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d53a5854df209c578705bfaec402128f2a44624d1e435ae700ef0f56c958c15e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Workspace is required]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Arbeitsbereich ist erforderlich]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d54543fb6beb1b6dc5aaa5961c0d92fe25a4ae3bc6fe81b241bd9064e43f46d7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Mandatory (True)]]></Val>
@@ -6742,6 +7786,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d63cd16cd7f14f873a95c39ea88cdd895461edd04b9fa7894a5b050274e85b1f" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Listing Fabric SQL Endpoints for workspace '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Auflisten von Fabric SQL-Endpunkten für den Arbeitsbereich „{0}“]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d67e96ac435b6d4a9b9aedc12377ba5da6778e010fa1bd7e2942ed221ab16a4f" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[User name (SQL Login)]]></Val>
@@ -6756,6 +7809,15 @@
           <Val><![CDATA[Failed to connect to server.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Fehler beim Herstellen einer Verbindung mit dem Server.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++d6d1dc00ba08494d29eb2fb1a62a7b312e2a89c23b818493f1f3eec3167d54b9" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Getting Fabric database '{0}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fabric-Datenbank „{0}“ wird abrufen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6805,6 +7867,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d7ab7c0f4c608ef31b73519723a5e437bde717796c5946c33d68cfd96501e3f8" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection sharing permission denied for extension: '{0}'. Use the permission management commands to change this.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Verbindungsfreigabeberechtigung für die Erweiterung verweigert: „{0}“. Verwenden Sie die Berechtigungsverwaltungsbefehle, um dies zu ändern.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d7f406a55a763bcaf21ae757e59b0ba9b5e2954c074d760a6afa484f977dcf3d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Microsoft Entra account {0} successfully added.]]></Val>
@@ -6832,6 +7903,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++d88868890471c6cc2ac101b2e2d848718a71936be8158d3c57ec81840fbefa54" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Deployment Name]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Bereitstellungsname]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++d8d462ddc91939459ae107d47fee7a34b3601b20fcd01615f98e1941674f14ea" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[I'm sorry, I can only assist with SQL-related questions.]]></Val>
@@ -6846,6 +7926,15 @@
           <Val><![CDATA[Connection Profile could not be updated. Please modify the connection details manually in settings.json and try again.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Das Verbindungsprofil konnte nicht aktualisiert werden. Bitte ändern Sie die Verbindungsdetails manuell in „settings.json“, und versuchen Sie es noch mal.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++d932a05eba0200bedb4b5449ce9e6487525ba3ecfd164e137388fd0833b4121b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No active database connection in the current editor. Please establish a connection to continue.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Keine aktive Datenbankverbindung im aktuellen Editor. Stellen Sie eine Verbindung her, um fortzufahren.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6936,6 +8025,15 @@
           <Val><![CDATA[+ Create Connection Group]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[+ Verbindungsgruppe erstellen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++dbfe0a6c5a4cae79965c542e317484c3b53346daa195d3ec31d91c55c92181a3" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Creating workspace with capacity {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Erstellen eines Arbeitsbereichs mit Kapazität „{0}“]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7084,6 +8182,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++df15d83efd9fc637dc083e4165d14496ddd68c309ef41be96ddf930de86fa600" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Listing role assignments for workspace '${workspaceId}']]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Auflisten von Rollenzuweisungen für den Arbeitsbereich „${workspaceId}“]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++df2839447956141d6503caf44145db003e70b17dc128d5c4fefec188b28d6966" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Save Connection Group]]></Val>
@@ -7116,6 +8223,15 @@
           <Val><![CDATA[Copy Headers]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Header kopieren]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show All]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Alle anzeigen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7210,6 +8326,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No saved connection profiles found.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Es wurden keine gespeicherten Verbindungsprofile gefunden.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e3620e8a37371c6057d768faed05a7608c6e5ee783372a58b137b047300e8b7a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} issue]]></Val>
@@ -7237,6 +8362,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++e3a5d47b33a0d2d672730f3278c43f30e8a43b8c973534f001e775f9dc5135bf" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Data automatically replicated to OneLake in real time with a SQL analytics endpoint.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Daten werden mit einem SQL-Analyseendpunkt automatisch in Echtzeit in OneLake repliziert.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++e3a67d9540e9a204f7dc4aa9d44a0ec652856cfa932a21196bf9df23aa0e4cd1" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Execute]]></Val>
@@ -7251,6 +8385,15 @@
           <Val><![CDATA[Error when refreshing token]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Fehler beim Aktualisieren des Tokens]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e4dd0ac78c7663f350454bad4258d3b6d38971181470082487d131decc61880b" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unnamed Profile]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Unbenannte Profile]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7287,6 +8430,15 @@
           <Val><![CDATA[List Functions]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Funktionen auflisten]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e62105462009615e24c43715b276cc4743f4efd9bfd6e1e4bc108a5f9a328be9" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Microsoft Account]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Microsoft-Konto]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7543,11 +8695,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ec9c37392a809590dbb62879bd1b261c3675552b33d4d8936d539925d774f6a6" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Database changed successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Datenbank erfolgreich geändert]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++eccf8ea40318babf1bd28fa823e0fa905383eed481da5fccb9f54ea4a6152943" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Authentication Library has changed, please reload Visual Studio Code.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Die Authentifizierungsbibliothek wurde geändert. Bitte laden Sie Visual Studio Code erneut.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ece3ecedb5f57c84cc9749995b62f69213c0cb04b1578a713fda486ff04f8fdb" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Insufficient Worskpace Permissions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Unzureichende Worskpace-Berechtigungen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7597,6 +8767,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++ee7ee5830f091690030fed013c05a7073f6cb971891c3fc6f16e928bd6d69e61" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Add account]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Konto hinzufügen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Use T-SQL intellisense and syntax error checking on current document]]></Val>
@@ -7642,11 +8821,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++f0b2ef28c0bec626ad14f56179e18d97cdbfcb4f676c4735f95eae628d079538" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search term cannot be empty]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Der Suchbegriff darf nicht leer sein.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++f0e54e5d12e2e2f5d8cf453857e0a307a8ecc5e8016b43b3c1c5c93300a40c60" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Die Verbindung konnte mit den aktuellen Verbindungsinformationen nicht hergestellt werden. Möchten Sie die Verbindung erneut versuchen oder das Verbindungsprofil bearbeiten?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New SQL database]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Neue SQL-Datenbank]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7692,6 +8889,15 @@
           <Val><![CDATA[Error Message: ]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Fehlermeldung: ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f25b28d86db44d028580bac2348b043db0eebc8a41f443aaaa5d22bfd2cb3fd2" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Creating SQL Database for workspace {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Für den Arbeitsbereich „{0}“ wird eine SQL-Datenbank erstellt.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7773,6 +8979,15 @@
           <Val><![CDATA[JPEG]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[JPEG]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++f567a09466c3451f2b171ee4b409a52f3aea306cea3bd4ca9ad4cef8669f1856" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No workspaces found. Please change Fabric account or tenant to view available workspaces.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Keine Arbeitsbereiche gefunden Ändern Sie das Fabric-Konto oder den Fabric-Mandanten, um verfügbare Arbeitsbereiche anzuzeigen.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -7876,6 +9091,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++f9c9f560fd60d852df849d8b9694f6e56be6ca531ec5366d75812345a7dbf567" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading databases in '{0}'...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Datenbanken werden in „{0}“ geladen...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++f9fdea6ffd1d5c93340eff3cb4b0f75abcada7d160a99fd8f3092b3632661d84" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[List schemas for connection '{0}'?]]></Val>
@@ -7948,6 +9172,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++fb6d70b252967b1a424bfa1f8be6c56eb3359e0a7f86d477837002be7af317f3" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connection is not active. Please establish a connection before performing this action.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Die Verbindung ist nicht aktiv. Stellen Sie eine Verbindung her, bevor Sie diese Aktion ausführen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++fb77011a24ad32a2b166d3d74cf25aee9d67da4c5579e8740211e0738bd05a10" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Loading Schema Designer]]></Val>
@@ -7984,6 +9217,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++fc70e7e548649aa12095a141703b67943b4437de990082c3646b3ab61884dcf0" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Found {0} saved connection profile(s).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Es wurden {0} gespeicherte Verbindungsprofile gefunden.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++fc83034782062ce727014f496892adc8087186e29e686533f40d6064c70e7c7c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connecting to Container]]></Val>
@@ -8011,6 +9253,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++fd4aee4cb3fa5d5963fc78a7261f20700d94a8ddbbb5b963e97a84c441149508" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Copy as JSON]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Als JSON kopieren]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++fd7b1bde88541fa18fcf29098d6ac35bf9b6e18c9e393c1762bc119ff95a47fe" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?]]></Val>
@@ -8020,11 +9271,38 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++fd8753767d0ca74647a1d3b877db12f2a65a06f4c81db6eadd086759df0a5ad1" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No active connection for database change]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Keine aktive Verbindung für Datenbankänderung]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++fddd3d1537452414b2a4c7bb1b231ca37398b9f211c1e0d8d80e6f69a7f58f2d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Get Connection Details]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Verbindungsdetails abrufen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fe01cd2e56483272d8d46be5c77c37d6be1aba49dfbe2fa79f68b4740723b758" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[An error occurred while searching database objects: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Suchen von Datenbankobjekten: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fe0d6bd1aef549a43c5fca4a838882918bd3a85e9641cb5150f31df976e18e38" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Opening schema designer...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Schema-Designer wird geöffnet...]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -8866,15 +10144,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";package.mssql.deployLocalDockerContainer" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Create local SQL Container]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Lokalen SQL-Container erstellen]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";package.mssql.deviceCode.description" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Allows users to sign in to input-constrained devices.]]></Val>
@@ -9184,6 +10453,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.newDeployment" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New Deployment]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Neue Bereitstellung]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.newQuery" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New Query]]></Val>
@@ -9198,6 +10476,15 @@
           <Val><![CDATA[New Table]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Neue Tabelle]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.objectExplorer.collapseConnectionGroupsOnStartupDescription" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[When enabled, connection groups will be collapsed instead of expanded at startup.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Wenn diese Option aktiviert ist, werden die Verbindungsgruppen beim Start reduziert und nicht erweitert.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9820,6 +11107,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";package.mssql.searchObjects" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Search Objects]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Objekte suchen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";package.mssql.selectedAzureSubscriptions" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Selected Azure subscriptions for browsing and managing servers and databases]]></Val>
@@ -9847,15 +11143,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";package.mssql.showExecutionPlanInResults" ItemType="0" PsrId="308" Leaf="true">
+      <Item ItemId=";package.mssql.showEstimatedPlan" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Estimated Plan]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Geschätzter Plan]]></Val>
           </Tgt>
-          <Prev Cat="Text">
-            <Val><![CDATA[Estimated Plan (Preview)]]></Val>
-          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>

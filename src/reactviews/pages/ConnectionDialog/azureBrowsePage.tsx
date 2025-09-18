@@ -224,10 +224,13 @@ export const AzureBrowsePage = () => {
         context!.formAction({ propertyName, value, isAction: false });
     }
 
+    const hasAccounts = (context.state.azureAccounts?.length ?? 0) > 0;
+
     return (
         <div>
             <EntraSignInEmpty
                 loadAccountStatus={context.state.loadingAzureAccountsStatus}
+                hasAccounts={hasAccounts}
                 brandImageSource={azureLogoColor()}
                 signInText={Loc.connectionDialog.signIntoAzureToBrowse}
                 linkText={Loc.azure.signIntoAzure}
@@ -236,7 +239,7 @@ export const AzureBrowsePage = () => {
                     context.signIntoAzureForBrowse(ConnectionInputMode.AzureBrowse)
                 }
             />
-            {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && (
+            {context.state.loadingAzureAccountsStatus === ApiStatus.Loaded && hasAccounts && (
                 <>
                     <div
                         className={formStyles.formComponentDiv}

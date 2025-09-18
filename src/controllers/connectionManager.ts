@@ -44,6 +44,7 @@ import { changeLanguageServiceForFile } from "../languageservice/utils";
 import { AddFirewallRuleWebviewController } from "./addFirewallRuleWebviewController";
 import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
+import { getServerTypes } from "../models/connectionInfo";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -101,6 +102,11 @@ export interface IReconnectAction {
     (profile: IConnectionProfile | undefined): Promise<void>;
 }
 
+export interface ConnectionSuccessfulEvent {
+    connection: ConnectionInfo;
+    fileUri: string;
+}
+
 // ConnectionManager class is the main controller for connection management
 export default class ConnectionManager {
     private _statusView: StatusView;
@@ -122,6 +128,11 @@ export default class ConnectionManager {
         new vscode.EventEmitter<void>();
     public readonly onConnectionsChanged: vscode.Event<void> =
         this._onConnectionsChangedEmitter.event;
+
+    private _onSuccessfulConnectionEmitter: vscode.EventEmitter<ConnectionSuccessfulEvent> =
+        new vscode.EventEmitter<ConnectionSuccessfulEvent>();
+    public readonly onSuccessfulConnection: vscode.Event<ConnectionSuccessfulEvent> =
+        this._onSuccessfulConnectionEmitter.event;
 
     public initialized: Deferred<void> = new Deferred<void>();
 
@@ -159,7 +170,7 @@ export default class ConnectionManager {
         }
 
         if (!this._credentialStore) {
-            this._credentialStore = new CredentialStore(context);
+            this._credentialStore = new CredentialStore(context, this._vscodeWrapper);
         }
 
         if (!this._connectionStore) {
@@ -384,6 +395,12 @@ export default class ConnectionManager {
 
     public isConnecting(fileUri: string): boolean {
         return fileUri in this._connections && this._connections[fileUri].connecting;
+    }
+
+    public async findMatchingProfile(
+        connProfile: IConnectionProfile,
+    ): Promise<{ profile: IConnectionProfile; score: Utils.MatchScore } | undefined> {
+        return this.connectionStore.findMatchingProfile(connProfile);
     }
 
     /**
@@ -659,6 +676,11 @@ export default class ConnectionManager {
             fileUri,
             LocalizedConstants.updatingIntelliSenseStatus,
         );
+
+        this._onSuccessfulConnectionEmitter.fire({
+            connection,
+            fileUri,
+        });
 
         this._vscodeWrapper.logToOutputChannel(
             LocalizedConstants.msgConnectedServerInfo(
@@ -1168,8 +1190,8 @@ export default class ConnectionManager {
     /**
      * Delete a credential from the credential store
      */
-    public async deleteCredential(profile: IConnectionProfile): Promise<boolean> {
-        return await this._connectionStore.deleteCredential(profile);
+    public async deleteCredential(profile: IConnectionProfile): Promise<void> {
+        await this._connectionStore.deleteCredential(profile);
     }
 
     /**
@@ -1382,8 +1404,23 @@ export default class ConnectionManager {
                     ConnectionContracts.ConnectionRequest.type,
                     connectParams,
                 );
-                if (!result) {
+                if (result) {
+                    sendActionEvent(TelemetryViews.ConnectionManager, TelemetryActions.Connect, {
+                        serverTypes: getServerTypes(connectionCreds).join(","),
+                    });
+                } else {
                     // Failed to process connect request
+                    sendErrorEvent(
+                        TelemetryViews.ConnectionManager,
+                        TelemetryActions.Connect,
+                        new Error("Failed to initiate connection"),
+                        true, // includeErrorMessage,
+                        undefined, // errorCode
+                        undefined, // errorType
+                        {
+                            serverTypes: getServerTypes(connectionCreds).join(","),
+                        },
+                    );
                     resolve(false);
                 }
             } catch (error) {
@@ -1550,11 +1587,7 @@ export default class ConnectionManager {
      * @param keepOldConnected Whether to keep the old file connected after copying the connection info.  Defaults to false.
      * @returns
      */
-    public async copyConnectionToFile(
-        oldFileUri: string,
-        newFileUri: string,
-        keepOldConnected: boolean = false,
-    ): Promise<void> {
+    public async copyConnectionToFile(oldFileUri: string, newFileUri: string): Promise<void> {
         // Is the new file connected or the old file not connected?
         if (!this.isConnected(oldFileUri) || this.isConnected(newFileUri)) {
             return;
@@ -1562,10 +1595,7 @@ export default class ConnectionManager {
 
         // Connect the saved uri and disconnect the untitled uri on successful connection
         let creds: IConnectionInfo = this._connections[oldFileUri].credentials;
-        let result = await this.connect(newFileUri, creds);
-        if (result && !keepOldConnected) {
-            await this.disconnect(oldFileUri);
-        }
+        await this.connect(newFileUri, creds);
     }
 
     public async refreshAzureAccountToken(uri: string): Promise<void> {

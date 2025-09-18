@@ -19,10 +19,10 @@ import { QueryResultWebviewController } from "../queryResult/queryResultWebViewC
 import { IMessage, QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import * as qr from "../sharedInterfaces/queryResult";
-import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
 import { ApiStatus, StateChangeNotification } from "../sharedInterfaces/webview";
+import { getErrorMessage } from "../utils/utils";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 
@@ -52,7 +52,6 @@ export class SqlOutputContentProvider {
         private _context: vscode.ExtensionContext,
         private _statusView: StatusView,
         private _vscodeWrapper: VscodeWrapper,
-        private _untitledSqlDocumentService: UntitledSqlDocumentService,
         private _executionPlanService: ExecutionPlanService,
     ) {
         if (!_vscodeWrapper) {
@@ -68,7 +67,6 @@ export class SqlOutputContentProvider {
             this._context,
             this._vscodeWrapper,
             this._executionPlanService,
-            this._untitledSqlDocumentService,
             this,
         );
 
@@ -115,6 +113,10 @@ export class SqlOutputContentProvider {
                 this.revealQueryResult(uri.toString(true));
             }),
         );
+    }
+
+    public get queryResultWebviewController(): QueryResultWebviewController {
+        return this._queryResultWebviewController;
     }
 
     public setQueryResultWebviewController(
@@ -222,6 +224,28 @@ export class SqlOutputContentProvider {
             .queryRunner.copyResultsAsJson(selection, batchId, resultId, includeHeaders);
     }
 
+    public copyAsInClauseRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsInClause(selection, batchId, resultId);
+    }
+
+    public copyAsInsertIntoRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsInsertInto(selection, batchId, resultId);
+    }
+
     public editorSelectionRequestHandler(uri: string, selection: ISelectionData): void {
         void this._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection);
     }
@@ -313,6 +337,9 @@ export class SqlOutputContentProvider {
                 executionPlanOptions?.includeActualExecutionPlanXml,
             this._actualPlanStatuses.includes(uri),
         );
+        if (isOpenQueryResultsInTabByDefaultEnabled()) {
+            await this._queryResultWebviewController.createPanelController(queryRunner.uri);
+        }
         if (queryRunner) {
             void queryCallback(queryRunner);
         }
@@ -341,16 +368,25 @@ export class SqlOutputContentProvider {
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
 
+            const startFailedListener = queryRunner.onStartFailed(async (error) => {
+                this.updateWebviewState(queryRunner.uri, {
+                    initializationError: getErrorMessage(error),
+                    resultSetSummaries: {},
+                    executionPlanState: {},
+                    messages: [],
+                    fontSettings: { fontSize: 0, fontFamily: "" },
+                });
+            });
+
             const startListener = queryRunner.onStart(async (_panelUri) => {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
                 resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                 resultWebviewState.isExecutionPlan = false;
-                if (isOpenQueryResultsInTabByDefaultEnabled()) {
-                    await this._queryResultWebviewController.createPanelController(queryRunner.uri);
-                }
+                resultWebviewState.initializationError = undefined;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                this.revealQueryResult(queryRunner.uri);
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });
@@ -508,6 +544,7 @@ export class SqlOutputContentProvider {
 
             const queryRunnerState = new QueryRunnerState(queryRunner);
             queryRunnerState.listeners.push(
+                startFailedListener,
                 startListener,
                 resultSetAvailableListener,
                 resultSetUpdatedListener,
@@ -524,7 +561,7 @@ export class SqlOutputContentProvider {
         return queryRunner;
     }
 
-    public cancelQuery(input: QueryRunner | string): void {
+    public async cancelQuery(input: QueryRunner | string): Promise<void> {
         let self = this;
         let queryRunner: QueryRunner;
 
@@ -546,15 +583,14 @@ export class SqlOutputContentProvider {
         this._statusView.cancelingQuery(queryRunner.uri);
 
         // Cancel the query
-        queryRunner.cancel().then(
-            (_success) => undefined,
-            (error) => {
-                // On error, show error message
-                self._vscodeWrapper.showErrorMessage(
-                    LocalizedConstants.msgCancelQueryFailed(error.message),
-                );
-            },
-        );
+        try {
+            await queryRunner.cancel();
+        } catch (error) {
+            // On error, show error message
+            self._vscodeWrapper.showErrorMessage(
+                LocalizedConstants.msgCancelQueryFailed(getErrorMessage(error)),
+            );
+        }
     }
 
     /**
@@ -628,7 +664,7 @@ export class SqlOutputContentProvider {
      * the query will be disposed.
      * @param doc   The document that was closed
      */
-    public onDidCloseTextDocument(doc: vscode.TextDocument): void {
+    public async onDidCloseTextDocument(doc: vscode.TextDocument): Promise<void> {
         const closedDocumentUri = doc.uri.toString(true);
 
         for (let [key, _value] of this._queryResultsMap.entries()) {
@@ -637,9 +673,7 @@ export class SqlOutputContentProvider {
                  * If the result is in a webview view, immediately dispose the runner
                  * For panel results, we wait until the panel is closed to dispose the runner
                  */
-                if (!this._queryResultWebviewController.hasPanel(key)) {
-                    this.cleanupRunner(key);
-                }
+                await this.cleanupRunner(key);
             }
         }
 
@@ -664,7 +698,7 @@ export class SqlOutputContentProvider {
         );
     }
 
-    public cleanupRunner(uri: string): void {
+    public async cleanupRunner(uri: string): Promise<void> {
         let queryRunnerState = this._queryResultsMap.get(uri);
         if (queryRunnerState) {
             // Clear any pending throttled state update for this URI
@@ -673,15 +707,15 @@ export class SqlOutputContentProvider {
                 clearTimeout(timer);
                 this._stateUpdateTimers.delete(uri);
             }
-            this._queryResultsMap.delete(uri);
-            queryRunnerState.listeners?.forEach((listener) => listener.dispose());
             if (queryRunnerState.queryRunner.isExecutingQuery) {
                 // We need to cancel it, which will dispose it
-                this.cancelQuery(queryRunnerState.queryRunner);
+                await this.cancelQuery(queryRunnerState.queryRunner);
             } else {
                 // We need to explicitly dispose the query
                 void queryRunnerState.queryRunner.dispose();
+                queryRunnerState.listeners?.forEach((listener) => listener.dispose());
             }
+            this._queryResultsMap.delete(uri);
         }
     }
 
@@ -861,13 +895,6 @@ export class SqlOutputContentProvider {
             if (activeEditorUri === uri) {
                 this._queryResultWebviewController.state = state;
             }
-        }
-
-        /**
-         * Only reveal the panel if user is working on the same editor
-         */
-        if (activeEditorUri === uri) {
-            this.revealQueryResult(uri);
         }
     }
 }

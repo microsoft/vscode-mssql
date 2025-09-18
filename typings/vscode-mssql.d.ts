@@ -1061,6 +1061,10 @@ declare module "vscode-mssql" {
         portalEndpoint: string;
         redirectUri: string;
         resources: IProviderResources;
+        fabric: {
+            sqlDbDnsSuffix: string;
+            dataWarehouseSuffix: string;
+        };
     }
 
     export interface IProviderResources {
@@ -2511,7 +2515,10 @@ declare module "vscode-mssql" {
          * @param connectionId The ID of the connection.
          * @returns The database name for the connection if found, or undefined if the connection is not found.
          */
-        getDatabaseForConnectionId(extensionId: string, connectionId: string): Promise<string | undefined>;
+        getDatabaseForConnectionId(
+            extensionId: string,
+            connectionId: string,
+        ): Promise<string | undefined>;
         /**
          * Connect to an existing connection using the connection ID.
          * This will return the connection URI if successful.

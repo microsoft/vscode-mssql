@@ -7,6 +7,7 @@ import { promises as fs } from "fs";
 import * as vscode from "vscode";
 import type { PagedAsyncIterableIterator } from "@azure/core-paging";
 import { IConnectionInfo } from "vscode-mssql";
+import * as os from "os";
 
 export async function exists(path: string, uri?: vscode.Uri): Promise<boolean> {
     if (uri) {
@@ -92,4 +93,23 @@ export async function listAllIterator<T>(iterator: PagedAsyncIterableIterator<T>
     }
 
     return resources;
+}
+
+/**
+ * Gets a unique key for the given URI to be used in maps or sets to identify the URI uniquely.
+ * @param uri The URI to get the unique key for.
+ * @returns A unique string key for the URI.
+ */
+export function getUriKey(uri: vscode.Uri): string {
+    return uri?.toString(true);
+}
+
+/**
+ * Gets the end-of-line character sequence configured in the editor.
+ * @returns The end-of-line character sequence.
+ */
+export function getEditorEOL(): string {
+    return vscode.workspace.getConfiguration("files").get<string>("eol") === "auto"
+        ? os.EOL
+        : vscode.workspace.getConfiguration("files").get<string>("eol");
 }

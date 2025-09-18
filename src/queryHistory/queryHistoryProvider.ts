@@ -12,12 +12,13 @@ import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { QueryHistoryNode, EmptyHistoryNode } from "./queryHistoryNode";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Constants from "../constants/constants";
-import UntitledSqlDocumentService from "../controllers/untitledSqlDocumentService";
-import { Deferred } from "../protocol";
+import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import StatusView from "../views/statusView";
 import { IConnectionProfile } from "../models/interfaces";
 import { IPrompter } from "../prompts/question";
 import { QueryHistoryUI, QueryHistoryAction } from "../views/queryHistoryUI";
+import { getUriKey } from "../utils/utils";
+import { Deferred } from "../protocol";
 
 export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
@@ -33,7 +34,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
         private _connectionManager: ConnectionManager,
         private _outputContentProvider: SqlOutputContentProvider,
         private _vscodeWrapper: VscodeWrapper,
-        private _untitledSqlDocumentService: UntitledSqlDocumentService,
+        private _sqlDocumentService: SqlDocumentService,
         private _statusView: StatusView,
         private _prompter: IPrompter,
     ) {
@@ -143,16 +144,15 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
         node: QueryHistoryNode,
         isExecute: boolean = false,
     ): Promise<void> {
-        const editor = await this._untitledSqlDocumentService.newQuery(node.queryString);
-        let uri = editor.document.uri.toString(true);
-        let title = path.basename(editor.document.fileName);
-        const queryUriPromise = new Deferred<boolean>();
-        let credentials = this._connectionManager.getConnectionInfo(node.ownerUri).credentials;
-        await this._connectionManager.connect(uri, credentials, queryUriPromise);
-        await queryUriPromise;
-        this._statusView.languageFlavorChanged(uri, Constants.mssqlProviderName);
-        this._statusView.sqlCmdModeChanged(uri, false);
+        const credentials = this._connectionManager.getConnectionInfo(node.ownerUri).credentials;
+        const editor = await this._sqlDocumentService.newQuery({
+            content: node.queryString,
+            connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+            connectionInfo: credentials,
+        });
         if (isExecute) {
+            const uri = getUriKey(editor.document.uri);
+            const title = path.basename(editor.document.fileName);
             const queryPromise = new Deferred<boolean>();
             await this._outputContentProvider.runQuery(
                 this._statusView,
@@ -163,8 +163,10 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
                 queryPromise,
             );
             await queryPromise;
+        }
+        if (isExecute) {
             await this._connectionManager.connectionStore.removeRecentlyUsed(
-                <IConnectionProfile>credentials,
+                credentials as IConnectionProfile,
             );
         }
     }
@@ -192,6 +194,9 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
      * Creates the node label for a query history node
      */
     private createHistoryNodeLabel(ownerUri: string): string {
+        if (this.getQueryString(ownerUri) === undefined) {
+            return "";
+        }
         const queryString = Utils.limitStringSize(this.getQueryString(ownerUri)).trim();
         const connectionLabel = Utils.limitStringSize(this.getConnectionLabel(ownerUri)).trim();
         return `${queryString} : ${connectionLabel}`;
@@ -202,6 +207,9 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<any> {
      */
     private getQueryString(ownerUri: string): string {
         const queryRunner = this._outputContentProvider.getQueryRunner(ownerUri);
+        if (!queryRunner) {
+            return undefined;
+        }
         return queryRunner.getQueryString(ownerUri);
     }
 

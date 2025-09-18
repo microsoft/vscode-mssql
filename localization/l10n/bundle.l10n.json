@@ -204,6 +204,9 @@
       "{0} is the object type"
     ]
   },
+  "Expand properties pane": "Expand properties pane",
+  "Restore properties pane": "Restore properties pane",
+  "Close properties pane": "Close properties pane",
   "Table name": "Table name",
   "Remove {0}/{0} is the object type": {
     "message": "Remove {0}",
@@ -215,6 +218,8 @@
   "Back to preview": "Back to preview",
   "Copy": "Copy",
   "You must review and accept the terms to proceed": "You must review and accept the terms to proceed",
+  "Publish Changes": "Publish Changes",
+  "Open Publish Script": "Open Publish Script",
   "Create new firewall rule for {0}/{0} is the server name that the firewall rule will be created for": {
     "message": "Create new firewall rule for {0}",
     "comment": [
@@ -419,6 +424,12 @@
   "Select All": "Select All",
   "Copy with Headers": "Copy with Headers",
   "Copy Headers": "Copy Headers",
+  "Copy As": "Copy As",
+  "Copy as CSV": "Copy as CSV",
+  "Copy as JSON": "Copy as JSON",
+  "Copy as IN clause": "Copy as IN clause",
+  "Copy as INSERT INTO": "Copy as INSERT INTO",
+  "Save as INSERT": "Save as INSERT",
   "NULL": "NULL",
   "Blanks": "Blanks",
   "Search...": "Search...",
@@ -445,8 +456,10 @@
     ]
   },
   "Loading text view...": "Loading text view...",
+  "Loading results...": "Loading results...",
   "No results for the active editor": "No results for the active editor",
   "Run a query in the current editor, or switch to an editor that has results.": "Run a query in the current editor, or switch to an editor that has results.",
+  "Failed to start query.": "Failed to start query.",
   "Add new column": "Add new column",
   "Table": "Table",
   "Save": "Save",
@@ -471,7 +484,6 @@
       "{0} is the number of selected tables"
     ]
   },
-  "Publish Changes": "Publish Changes",
   "Edit Table": "Edit Table",
   "Open in Editor": "Open in Editor",
   "Changed Tables": "Changed Tables",
@@ -627,7 +639,6 @@
       "{0} is the number of errors"
     ]
   },
-  "Open Publish Script": "Open Publish Script",
   "On Update": "On Update",
   "On Delete": "On Delete",
   "Cascade": "Cascade",
@@ -750,12 +761,12 @@
   "Saturation": "Saturation",
   "Brightness": "Brightness",
   "Loading deployment": "Loading deployment",
-  "New SQL Database": "New SQL Database",
+  "New SQL database": "New SQL database",
   "Choose an option to provision a database": "Choose an option to provision a database",
   "Local SQL Server database container": "Local SQL Server database container",
   "Create a Local Docker SQL Server": "Create a Local Docker SQL Server",
   "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!": "Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!",
-  "Create a SQL Database in Fabric": "Create a SQL Database in Fabric",
+  "Create a SQL database in Fabric (Preview)": "Create a SQL database in Fabric (Preview)",
   "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services": "A highly integrated, developer-ready transactional database that auto-scales, auto-tunes, and mirrors data to OneLake for analytics across Fabric services",
   "Loading local containers...": "Loading local containers...",
   "Instant Container Setup": "Instant Container Setup",
@@ -777,7 +788,7 @@
   "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
   "+ Add Fabric Account": "+ Add Fabric Account",
   "Loading fabric provisioning...": "Loading fabric provisioning...",
-  "SQL Database in Fabric": "SQL Database in Fabric",
+  "SQL database in Fabric (Preview)": "SQL database in Fabric (Preview)",
   "Create Database": "Create Database",
   "Loading workspaces": "Loading workspaces",
   "Error loading workspaces. Please try choosing a different account or tenant.": "Error loading workspaces. Please try choosing a different account or tenant.",
@@ -1661,6 +1672,12 @@
   "Click to connect to a database": "Click to connect to a database",
   "Connecting": "Connecting",
   "Connection error": "Connection error",
+  "Connecting to {0}.../{0} is the connection display name": {
+    "message": "Connecting to {0}...",
+    "comment": [
+      "{0} is the connection display name"
+    ]
+  },
   "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}/{0} is the list of display names for the connections that have been ignored": {
     "message": "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}",
     "comment": [
@@ -2002,6 +2019,7 @@
   },
   "Unknown error": "Unknown error",
   "No active database connection in the current editor. Please establish a connection to continue.": "No active database connection in the current editor. Please establish a connection to continue.",
+  "Chat command not available in this VS Code version": "Chat command not available in this VS Code version",
   "$(plug)  Connect to MSSQL": "$(plug)  Connect to MSSQL",
   "Cancel failed: {0}/{0} is the error message": {
     "message": "Cancel failed: {0}",

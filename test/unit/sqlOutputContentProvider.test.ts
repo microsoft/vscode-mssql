@@ -12,7 +12,7 @@ import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 import * as assert from "assert";
 import { ISelectionData } from "../../src/models/interfaces";
-import UntitledSqlDocumentService from "../../src/controllers/untitledSqlDocumentService";
+import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import * as sinon from "sinon";
 
@@ -25,7 +25,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
     let mockContentProvider: TypeMoq.IMock<SqlOutputContentProvider>;
     let context: TypeMoq.IMock<vscode.ExtensionContext>;
     let statusView: TypeMoq.IMock<StatusView>;
-    let untitledSqlDocumentService: TypeMoq.IMock<UntitledSqlDocumentService>;
+    let mockSqlDocumentService: TypeMoq.IMock<SqlDocumentService>;
     let executionPlanService: TypeMoq.IMock<ExecutionPlanService>;
     let mockMap: Map<string, any> = new Map<string, any>();
     let setSplitPaneSelectionConfig: (value: string) => void;
@@ -35,7 +35,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         sandbox = sinon.createSandbox();
         vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
         statusView = TypeMoq.Mock.ofType(StatusView);
-        untitledSqlDocumentService = TypeMoq.Mock.ofType(UntitledSqlDocumentService);
+        mockSqlDocumentService = TypeMoq.Mock.ofType(SqlDocumentService);
         executionPlanService = TypeMoq.Mock.ofType(ExecutionPlanService);
         context = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
 
@@ -81,7 +81,6 @@ suite("SqlOutputProvider Tests using mocks", () => {
             context.object,
             statusView.object,
             vscodeWrapper.object,
-            untitledSqlDocumentService.object,
             executionPlanService.object,
         );
         contentProvider.setVscodeWrapper = vscodeWrapper.object;
@@ -106,7 +105,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
             context.object,
             statusView.object,
             vscodeWrapper.object,
-            untitledSqlDocumentService.object,
+            mockSqlDocumentService.object,
             executionPlanService.object,
         );
         mockContentProvider.setup((p) => p.getResultsMap).returns(() => mockMap);
@@ -303,7 +302,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         done();
     });
 
-    test("onDidCloseTextDocument properly mark the uri for deletion", (done) => {
+    test("onDidCloseTextDocument properly mark the uri for deletion", async () => {
         let title = "Test_Title";
         let uri = testUri;
         let querySelection: ISelectionData = {
@@ -327,13 +326,12 @@ suite("SqlOutputProvider Tests using mocks", () => {
             },
             languageId: "sql",
         };
-        mockContentProvider.object.onDidCloseTextDocument(doc);
+        await mockContentProvider.object.onDidCloseTextDocument(doc);
 
         // This URI should now be flagged for deletion later on
         console.log(mockMap.get(uri));
         assert.equal(mockMap.get(uri).flaggedForDeletion, true);
         mockMap.clear();
-        done();
     });
 
     test("isRunningQuery should return the correct state for the query", (done) => {
@@ -376,7 +374,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         // Setup the function to call base and run it
         void mockContentProvider.object.runQuery(statusView.object, uri, querySelection, title);
-        mockContentProvider.object.cancelQuery(resultUri);
+        void mockContentProvider.object.cancelQuery(resultUri);
 
         // Ensure all side effects occured as intended
         assert.equal(mockMap.has(resultUri), true);
@@ -403,7 +401,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         // Setup the function to call base and run it
         void mockContentProvider.object.runQuery(statusView.object, uri, querySelection, title);
-        mockContentProvider.object.cancelQuery(uri);
+        void mockContentProvider.object.cancelQuery(uri);
 
         // Ensure all side effects occured as intended
         assert.equal(mockMap.has(testUri), true);
@@ -442,7 +440,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         vscodeWrapper
             .setup((v) => v.showInformationMessage(TypeMoq.It.isAnyString()))
             .returns(() => Promise.resolve("error"));
-        contentProvider.cancelQuery("test_input");
+        void contentProvider.cancelQuery("test_input");
         vscodeWrapper.verify(
             (v) => v.showInformationMessage(TypeMoq.It.isAnyString()),
             TypeMoq.Times.once(),
