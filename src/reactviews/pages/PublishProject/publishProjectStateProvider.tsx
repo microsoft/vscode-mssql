@@ -17,7 +17,7 @@ interface PublishProjectContextValue {
     publishNow: (payload?: PublishNowPayload) => void;
     generatePublishScript: () => void;
     selectPublishProfile: () => void;
-    savePublishProfile: (profileName: string) => void;
+    savePublishProfile: (profilePathOrFileName?: string) => void;
     setPublishValues: (
         values: Partial<PublishDialogWebviewState["formState"]> & { projectFilePath?: string },
     ) => void;
@@ -60,8 +60,9 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
 
     const selectPublishProfile = () => webviewContext?.extensionRpc.action("selectPublishProfile");
 
-    const savePublishProfile = (profileName: string) =>
-        webviewContext?.extensionRpc.action("savePublishProfile", { profileName });
+    const savePublishProfile = () => {
+        webviewContext?.extensionRpc.action("savePublishProfile", {});
+    };
 
     const setPublishValues = (
         values: Partial<PublishDialogWebviewState["formState"]> & { projectFilePath?: string },

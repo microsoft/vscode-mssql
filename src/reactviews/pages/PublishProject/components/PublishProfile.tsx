@@ -24,7 +24,7 @@ type PublishFormContext = FormContextProps<
     PublishDialogFormItemSpec
 > & {
     selectPublishProfile?: () => void;
-    savePublishProfile?: (profileName: string) => void;
+    savePublishProfile?: (profilePathOrFileName?: string) => void;
 };
 
 const useStyles = makeStyles({
@@ -64,7 +64,7 @@ export default function PublishProfileField(props: { idx: number }) {
         return undefined;
     }
 
-    const component = context.state.formComponents.profileName as PublishDialogFormItemSpec;
+    const component = context.state.formComponents.profilePath as PublishDialogFormItemSpec;
 
     return (
         <div className={`${formStyles.formComponentDiv} ${classes.root}`}>
@@ -92,9 +92,9 @@ export default function PublishProfileField(props: { idx: number }) {
                     size="small"
                     appearance="secondary"
                     onClick={() => {
-                        const profileName = context.state.formState.profileName;
-                        if (profileName && profileName.trim() !== "") {
-                            context.savePublishProfile?.(profileName);
+                        const profilePath = context.state.formState.profilePath;
+                        if (profilePath && profilePath.trim() !== "") {
+                            context.savePublishProfile?.();
                         }
                     }}>
                     {loc.SaveAs}

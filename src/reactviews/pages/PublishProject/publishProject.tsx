@@ -39,7 +39,7 @@ type PublishFormContext = FormContextProps<
     publishNow: () => void;
     generatePublishScript: () => void;
     selectPublishProfile: () => void;
-    savePublishProfile: (profileName: string) => void;
+    savePublishProfile: () => void;
 };
 
 function PublishProjectInner() {
@@ -57,7 +57,7 @@ function PublishProjectInner() {
     // Static list of main publish dialog options
     const mainOptions: (keyof IPublishForm)[] = [
         "publishTarget",
-        "profileName",
+        "profilePath",
         "serverName",
         "databaseName",
     ];
@@ -71,7 +71,7 @@ function PublishProjectInner() {
                             return undefined;
                         }
 
-                        if ((optionName as string) === "profileName") {
+                        if ((optionName as string) === "profilePath") {
                             return <PublishProfileField key={String(optionName)} idx={idx} />;
                         }
 

@@ -19,8 +19,8 @@ export async function generatePublishFormComponents(): Promise<
     Record<keyof IPublishForm | string, PublishDialogFormItemSpec>
 > {
     const components: Record<keyof IPublishForm | string, PublishDialogFormItemSpec> = {
-        profileName: {
-            propertyName: "profileName",
+        profilePath: {
+            propertyName: "profilePath",
             label: Loc.ProfileLabel,
             required: false,
             type: FormItemType.Input,

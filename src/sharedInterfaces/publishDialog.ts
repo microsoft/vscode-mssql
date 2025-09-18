@@ -5,16 +5,18 @@
 
 import { FormItemSpec, FormState, FormReducers } from "./form";
 import { RequestType } from "vscode-jsonrpc/browser";
+import * as mssql from "vscode-mssql";
 
 /**
  * Data fields shown in the Publish form.
  */
 export interface IPublishForm {
-    profileName?: string;
+    profilePath?: string;
     serverName?: string;
     databaseName?: string;
     publishTarget?: "existingServer" | "localContainer";
     sqlCmdVariables?: { [key: string]: string };
+    deploymentOptions?: mssql.DeploymentOptions;
 }
 
 export interface PublishDialogWebviewState
@@ -22,6 +24,7 @@ export interface PublishDialogWebviewState
     projectFilePath: string;
     inProgress: boolean;
     lastPublishResult?: { success: boolean; details?: string };
+    publishFileName?: string;
 }
 
 /**
@@ -39,7 +42,7 @@ export interface PublishDialogFormItemSpec
  */
 export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     setPublishValues: {
-        profileName?: string;
+        profilePath?: string;
         serverName?: string;
         databaseName?: string;
         publishTarget?: "existingServer" | "localContainer";
@@ -57,7 +60,7 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     generatePublishScript: {};
     openPublishAdvanced: {};
     selectPublishProfile: {};
-    savePublishProfile: { profileName: string };
+    savePublishProfile: {};
 }
 
 /**
