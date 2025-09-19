@@ -370,7 +370,7 @@
                 },
                 {
                     "command": "mssql.revealQueryResult",
-                    "when": "editorLangId == sql && resource in mssql.connections && !isInDiffEditor && view.queryResult.visible == false",
+                    "when": "editorLangId == sql && resource in mssql.connections && !isInDiffEditor",
                     "group": "navigation@2"
                 },
                 {
@@ -2034,6 +2034,12 @@
                     "default": 5000,
                     "minimum": 0,
                     "description": "%mssql.query.summaryFetchThreshold%"
+                },
+                "mssql.autoRevealResultsPanel": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.autoRevealResultsPanel%",
+                    "scope": "window"
                 }
             }
         },

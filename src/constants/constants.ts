@@ -243,6 +243,7 @@ export const configSchemaDesignerEnableExpandCollapseButtons =
 export const configSavePasswordsUntilRestart =
     "mssql.connectionManagement.rememberPasswordsUntilRestart";
 export const configSummaryFetchThreshold = "mssql.query.summaryFetchThreshold";
+export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";

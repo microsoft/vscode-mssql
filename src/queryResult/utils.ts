@@ -22,6 +22,8 @@ import { JsonFormattingEditProvider } from "../utils/jsonFormatter";
 import * as LocalizedConstants from "../constants/locConstants";
 import { generateGuid } from "../models/utils";
 
+export const MAX_VIEW_COLUMN = 9;
+
 export function getNewResultPaneViewColumn(
     uri: string,
     vscodeWrapper: VscodeWrapper,
@@ -29,31 +31,36 @@ export function getNewResultPaneViewColumn(
     // // Find configuration options
     let config = vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, uri);
     let splitPaneSelection = config[Constants.configSplitPaneSelection];
-    let viewColumn: vscode.ViewColumn;
 
     switch (splitPaneSelection) {
         case "current":
-            viewColumn = vscodeWrapper.activeTextEditor.viewColumn;
-            break;
+            return vscodeWrapper.activeTextEditor.viewColumn;
         case "end":
-            viewColumn = vscode.ViewColumn.Three;
-            break;
-        // default case where splitPaneSelection is next or anything else
+            const visibleEditors = vscode.window.visibleTextEditors;
+            const maxViewColumn = visibleEditors.reduce((max, editor) => {
+                return editor.viewColumn && editor.viewColumn > max ? editor.viewColumn : max;
+            }, 0);
+            return Math.min(maxViewColumn + 1, MAX_VIEW_COLUMN) as vscode.ViewColumn;
+        /**
+         * 'next' is the default case.
+         */
+        case "next":
         default:
-            // if there's an active text editor
-            if (vscodeWrapper.isEditingSqlFile) {
-                viewColumn = vscodeWrapper.activeTextEditor.viewColumn;
-                if (viewColumn === vscode.ViewColumn.One) {
-                    viewColumn = vscode.ViewColumn.Two;
-                } else {
-                    viewColumn = vscode.ViewColumn.Three;
-                }
-            } else {
-                // otherwise take default results column
-                viewColumn = vscode.ViewColumn.Two;
+            const currentEditor = vscode.window.visibleTextEditors.find((editor) => {
+                return (
+                    editor.document.uri.toString(true) === uri && editor.viewColumn !== undefined
+                );
+            });
+            if (!currentEditor) {
+                return vscode.ViewColumn.One;
             }
+
+            const newViewColumn = Math.min(
+                (currentEditor.viewColumn ?? 1) + 1,
+                MAX_VIEW_COLUMN,
+            ) as vscode.ViewColumn;
+            return newViewColumn;
     }
-    return viewColumn;
 }
 
 export function registerCommonRequestHandlers(
