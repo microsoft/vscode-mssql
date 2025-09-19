@@ -215,6 +215,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             },
             autoSizeColumns: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: this.getInMemoryDataProcessingThresholdConfig(),
+            initializationError: undefined,
         };
     }
 
@@ -237,6 +238,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         controller.revealToForeground();
         this._queryResultWebviewPanelControllerMap.set(uri, controller);
         this.showSplashScreen();
+        await controller.whenWebviewReady();
     }
 
     public addQueryResultState(

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import { exec } from "child_process";
+import { spawn } from "child_process";
 import { arch, platform } from "os";
 import { DockerCommandParams, DockerStep } from "../sharedInterfaces/localContainers";
 import { ApiStatus } from "../sharedInterfaces/webview";
@@ -67,48 +67,168 @@ export const rosettaErrorLink =
 
 /**
  * Commands used to interact with Docker.
+ * These return structured command objects.
  */
 export const COMMANDS = {
-    CHECK_DOCKER: "docker --version",
-    CHECK_DOCKER_RUNNING: "docker info",
-    GET_DOCKER_PATH: 'powershell -Command "(Get-Command docker).Source"',
+    CHECK_DOCKER: (): DockerCommand => ({
+        command: "docker",
+        args: ["--version"],
+    }),
+    CHECK_DOCKER_RUNNING: (): DockerCommand => ({
+        command: "docker",
+        args: ["info"],
+    }),
+    GET_DOCKER_PATH: (): DockerCommand => ({
+        command: "powershell.exe",
+        args: ["-Command", "(Get-Command docker).Source"],
+    }),
     START_DOCKER: (path: string) => ({
-        win32: `start "" "${path}"`,
-        darwin: "open -a Docker",
-        linux: "systemctl start docker",
+        win32: {
+            command: "cmd.exe",
+            args: ["/c", "start", "", path],
+        },
+        darwin: {
+            command: "open",
+            args: ["-a", "Docker"],
+        },
+        linux: {
+            command: "systemctl",
+            args: ["start", "docker"],
+        },
     }),
     CHECK_ENGINE: {
-        win32: `docker info --format '{{.OSType}}'`,
-        darwin: `cat "${process.env.HOME}/Library/Group Containers/group.com.docker/settings-store.json" | grep '"UseVirtualizationFrameworkRosetta": true' || exit 1`,
-        linux: "docker ps",
+        win32: {
+            command: "docker",
+            args: ["info", "--format", "{{.OSType}}"],
+        },
+        darwin: {
+            dockerCmd: {
+                command: "cat",
+                args: [
+                    `${process.env.HOME}/Library/Group Containers/group.com.docker/settings-store.json`,
+                ],
+            },
+            grepCmd: {
+                command: "grep",
+                args: ['"UseVirtualizationFrameworkRosetta": true'],
+            },
+        },
+        linux: {
+            command: "docker",
+            args: ["ps"],
+        },
     },
-    SWITCH_ENGINE: (path: string) => `powershell -Command "& \\"${path}\\" -SwitchLinuxEngine"`,
-    GET_CONTAINERS: `docker ps -a --format "{{.ID}}"`,
-    GET_CONTAINERS_BY_NAME: `docker ps -a --format "{{.Names}}"`,
-    INSPECT: (id: string) => `docker inspect ${id}`,
-    PULL_IMAGE: (versionTag: string) => `docker pull mcr.microsoft.com/mssql/server:${versionTag}`,
+    SWITCH_ENGINE: (path: string): DockerCommand => ({
+        command: "powershell.exe",
+        args: ["-Command", `& "${path}" -SwitchLinuxEngine`],
+    }),
+    GET_CONTAINERS: (): DockerCommand => ({
+        command: "docker",
+        args: ["ps", "-a", "--format", "{{.ID}}"],
+    }),
+    GET_CONTAINERS_BY_NAME: (): DockerCommand => ({
+        command: "docker",
+        args: ["ps", "-a", "--format", "{{.Names}}"],
+    }),
+    INSPECT: (id: string): DockerCommand => ({
+        command: "docker",
+        args: ["inspect", sanitizeContainerInput(id)],
+    }),
+    PULL_IMAGE: (versionTag: string): DockerCommand => ({
+        command: "docker",
+        args: ["pull", `mcr.microsoft.com/mssql/server:${versionTag}`],
+    }),
     START_SQL_SERVER: (
         name: string,
         password: string,
         port: number,
         versionTag: string,
         hostname: string,
-    ) =>
-        `docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=${password}" -p ${port}:${defaultPortNumber} --name ${name} ${hostname ? `--hostname ${sanitizeContainerInput(hostname)}` : ""} -d mcr.microsoft.com/mssql/server:${versionTag}`,
-    CHECK_CONTAINER_RUNNING: (name: string) =>
-        `docker ps --filter "name=${sanitizeContainerInput(name)}" --filter "status=running" --format "{{.Names}}"`,
-    VALIDATE_CONTAINER_NAME: 'docker ps -a --format "{{.Names}}"',
-    START_CONTAINER: (name: string) => `docker start "${sanitizeContainerInput(name)}"`,
-    CHECK_LOGS: (name: string, platform: string, timestamp: string) =>
-        `docker logs --since ${timestamp} "${sanitizeContainerInput(name)}" | ${platform === "win32" ? 'findstr "Recovery is complete"' : 'grep "Recovery is complete"'}`,
-    CHECK_CONTAINER_READY: `Recovery is complete`,
-    STOP_CONTAINER: (name: string) => `docker stop "${sanitizeContainerInput(name)}"`,
-    DELETE_CONTAINER: (name: string) => {
-        const safeName = sanitizeContainerInput(name);
-        return `docker stop "${safeName}" && docker rm "${safeName}"`;
+    ): DockerCommand => {
+        const args = [
+            "run",
+            "-e",
+            "ACCEPT_EULA=Y",
+            "-e",
+            `SA_PASSWORD=${password}`,
+            "-p",
+            `${port}:${defaultPortNumber}`,
+            "--name",
+            sanitizeContainerInput(name),
+        ];
+
+        if (hostname) {
+            args.push("--hostname", sanitizeContainerInput(hostname));
+        }
+
+        args.push("-d", `mcr.microsoft.com/mssql/server:${versionTag}`);
+
+        return { command: "docker", args };
     },
-    INSPECT_CONTAINER: (id: string) => `docker inspect ${id}`,
-    GET_SQL_SERVER_CONTAINER_VERSIONS: `curl -s https://mcr.microsoft.com/v2/mssql/server/tags/list`,
+    CHECK_CONTAINER_RUNNING: (name: string): DockerCommand => ({
+        command: "docker",
+        args: [
+            "ps",
+            "--filter",
+            `name=${sanitizeContainerInput(name)}`,
+            "--filter",
+            "status=running",
+            "--format",
+            "{{.Names}}",
+        ],
+    }),
+    VALIDATE_CONTAINER_NAME: (): DockerCommand => ({
+        command: "docker",
+        args: ["ps", "-a", "--format", "{{.Names}}"],
+    }),
+    START_CONTAINER: (name: string): DockerCommand => ({
+        command: "docker",
+        args: ["start", sanitizeContainerInput(name)],
+    }),
+    CHECK_LOGS: (
+        name: string,
+        timestamp: string,
+    ): {
+        dockerCmd: DockerCommand;
+        grepCmd: DockerCommand;
+    } => ({
+        dockerCmd: {
+            command: "docker",
+            args: ["logs", "--since", timestamp, sanitizeContainerInput(name)],
+        },
+        grepCmd: {
+            command: platform() === "win32" ? "findstr" : "grep",
+            args: ["Recovery is complete"],
+        },
+    }),
+    CHECK_CONTAINER_READY: `Recovery is complete`,
+    STOP_CONTAINER: (name: string): DockerCommand => ({
+        command: "docker",
+        args: ["stop", sanitizeContainerInput(name)],
+    }),
+    DELETE_CONTAINER: (
+        name: string,
+    ): {
+        stop: DockerCommand;
+        remove: DockerCommand;
+    } => ({
+        stop: {
+            command: "docker",
+            args: ["stop", sanitizeContainerInput(name)],
+        },
+        remove: {
+            command: "docker",
+            args: ["rm", sanitizeContainerInput(name)],
+        },
+    }),
+    INSPECT_CONTAINER: (id: string): DockerCommand => ({
+        command: "docker",
+        args: ["inspect", sanitizeContainerInput(id)],
+    }),
+    GET_SQL_SERVER_CONTAINER_VERSIONS: (): DockerCommand => ({
+        command: "curl",
+        args: ["-s", "https://mcr.microsoft.com/v2/mssql/server/tags/list"],
+    }),
 };
 
 /**
@@ -242,14 +362,85 @@ export function sanitizeContainerInput(name: string): string {
 //#region Docker Command Implementations
 
 /**
- * Helper function to execute a command in the shell and return the output.
+ * Interface for parameterized commands
  */
-async function execCommand(command: string): Promise<string> {
+interface DockerCommand {
+    command: string;
+    args: string[];
+}
+
+/**
+ * Safe command execution helper that uses spawn
+ */
+async function execDockerCommand(cmd: DockerCommand): Promise<string> {
     return new Promise((resolve, reject) => {
-        exec(command, (error, stdout) => {
-            if (error) return reject(error);
-            resolve(stdout.trim());
+        const process = spawn(cmd.command, cmd.args, {
+            stdio: ["ignore", "pipe", "pipe"],
         });
+
+        let stdout = "";
+        let stderr = "";
+
+        process.stdout.on("data", (data) => {
+            stdout += data.toString();
+        });
+
+        process.stderr.on("data", (data) => {
+            stderr += data.toString();
+        });
+
+        process.on("close", (code) => {
+            if (code === 0) {
+                resolve(stdout.trim());
+            } else {
+                const error = new Error(stderr || `Command failed with exit code ${code}`);
+                (error as any).code = code;
+                reject(error);
+            }
+        });
+
+        process.on("error", (error) => {
+            reject(error);
+        });
+    });
+}
+
+/**
+ * Safe command execution for commands with pipes (using spawn)
+ */
+async function execDockerCommandWithPipe(
+    dockerCmd: DockerCommand,
+    pipeCmd: DockerCommand,
+): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const dockerProcess = spawn(dockerCmd.command, dockerCmd.args);
+        const pipeProcess = spawn(pipeCmd.command, pipeCmd.args);
+
+        let output = "";
+        let errorOutput = "";
+
+        // Pipe docker output to grep/findstr
+        dockerProcess.stdout.pipe(pipeProcess.stdin);
+
+        pipeProcess.stdout.on("data", (data) => {
+            output += data.toString();
+        });
+
+        dockerProcess.stderr.on("data", (data) => {
+            errorOutput += data.toString();
+        });
+
+        pipeProcess.on("close", (code) => {
+            if (code === 0 || code === 1) {
+                // grep returns 1 when no matches found
+                resolve(output.trim());
+            } else {
+                reject(new Error(errorOutput || `Command failed with code ${code}`));
+            }
+        });
+
+        dockerProcess.on("error", reject);
+        pipeProcess.on("error", reject);
     });
 }
 
@@ -258,7 +449,7 @@ async function execCommand(command: string): Promise<string> {
  */
 export async function checkDockerInstallation(): Promise<DockerCommandParams> {
     try {
-        await execCommand(COMMANDS.CHECK_DOCKER);
+        await execDockerCommand(COMMANDS.CHECK_DOCKER());
         return { success: true };
     } catch (e) {
         return {
@@ -297,15 +488,28 @@ export async function checkEngine(): Promise<DockerCommandParams> {
     }
 
     try {
-        const stdout = await execCommand(engineCommand);
-        if (platform() === Platform.Windows && stdout.trim() !== `'${Platform.Linux}'`) {
+        let stdout = "";
+        if (platform() === Platform.Windows) {
+            stdout = await execDockerCommand(engineCommand);
+        } else if (platform() === Platform.Mac) {
+            // For macOS, we need to use pipe commands to check Rosetta
+            stdout = await execDockerCommandWithPipe(
+                engineCommand.dockerCmd,
+                engineCommand.grepCmd,
+            );
+        } else {
+            // Linux
+            stdout = await execDockerCommand(engineCommand);
+        }
+
+        if (platform() === Platform.Windows && stdout.trim() !== `${Platform.Linux}`) {
             const confirmation = await vscode.window.showInformationMessage(
                 LocalContainers.switchToLinuxContainersConfirmation,
                 { modal: true },
                 msgYes,
             );
             if (confirmation === msgYes) {
-                await execCommand(COMMANDS.SWITCH_ENGINE(dockerCliPath));
+                await execDockerCommand(COMMANDS.SWITCH_ENGINE(dockerCliPath));
             } else {
                 throw new Error(LocalContainers.switchToLinuxContainersCanceled);
             }
@@ -331,7 +535,7 @@ export async function checkEngine(): Promise<DockerCommandParams> {
  */
 export async function validateContainerName(containerName: string): Promise<string> {
     try {
-        const stdout = await execCommand(COMMANDS.VALIDATE_CONTAINER_NAME);
+        const stdout = await execDockerCommand(COMMANDS.VALIDATE_CONTAINER_NAME());
         const existingContainers = stdout ? stdout.split("\n") : [];
         let newContainerName = "";
 
@@ -360,7 +564,7 @@ export async function validateContainerName(containerName: string): Promise<stri
  */
 export async function getDockerPath(executable: string): Promise<string> {
     try {
-        const stdout = (await execCommand(COMMANDS.GET_DOCKER_PATH)).trim();
+        const stdout = await execDockerCommand(COMMANDS.GET_DOCKER_PATH());
         const fullPath = stdout.trim();
 
         const parts = fullPath.split(path.sep);
@@ -398,7 +602,7 @@ export function constructVersionTag(version: string): string {
  */
 export async function pullSqlServerContainerImage(version: string): Promise<DockerCommandParams> {
     try {
-        await execCommand(COMMANDS.PULL_IMAGE(constructVersionTag(version)));
+        await execDockerCommand(COMMANDS.PULL_IMAGE(constructVersionTag(version)));
         return { success: true };
     } catch (e) {
         return {
@@ -419,15 +623,16 @@ export async function startSqlServerDockerContainer(
     hostname: string,
     port: number,
 ): Promise<DockerCommandParams> {
-    const command = COMMANDS.START_SQL_SERVER(
-        containerName,
-        password,
-        port,
-        constructVersionTag(version),
-        hostname,
-    );
     try {
-        await execCommand(command);
+        await execDockerCommand(
+            COMMANDS.START_SQL_SERVER(
+                containerName,
+                password,
+                port,
+                constructVersionTag(version),
+                hostname,
+            ),
+        );
         dockerLogger.append(`SQL Server container ${containerName} started on port ${port}.`);
         return {
             success: true,
@@ -449,7 +654,7 @@ export async function startSqlServerDockerContainer(
  */
 export async function isDockerContainerRunning(name: string): Promise<boolean> {
     try {
-        const output = await execCommand(COMMANDS.CHECK_CONTAINER_RUNNING(name));
+        const output = await execDockerCommand(COMMANDS.CHECK_CONTAINER_RUNNING(name));
         const names = output.split("\n").map((line) => line.trim());
         return names.includes(name); // exact match
     } catch {
@@ -465,7 +670,7 @@ export async function startDocker(
     objectExplorerService?: ObjectExplorerService,
 ): Promise<DockerCommandParams> {
     try {
-        await execCommand(COMMANDS.CHECK_DOCKER_RUNNING);
+        await execDockerCommand(COMMANDS.CHECK_DOCKER_RUNNING());
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StartDocker, {
             dockerStartedThroughExtension: "false",
         });
@@ -485,7 +690,8 @@ export async function startDocker(
             };
         }
     }
-    const startCommand = COMMANDS.START_DOCKER(dockerDesktopPath)[platform()];
+    const startCommands = COMMANDS.START_DOCKER(dockerDesktopPath);
+    const startCommand = startCommands[platform()];
 
     if (!startCommand) {
         return {
@@ -496,7 +702,7 @@ export async function startDocker(
 
     try {
         dockerLogger.appendLine("Waiting for Docker to start...");
-        await execCommand(startCommand);
+        await execDockerCommand(startCommand);
 
         let attempts = 0;
         const maxAttempts = 30;
@@ -505,7 +711,7 @@ export async function startDocker(
         return await new Promise((resolve) => {
             const checkDocker = setInterval(async () => {
                 try {
-                    await execCommand(COMMANDS.CHECK_DOCKER_RUNNING);
+                    await execDockerCommand(COMMANDS.CHECK_DOCKER_RUNNING());
                     clearInterval(checkDocker);
                     dockerLogger.appendLine("Docker started successfully.");
                     sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StartDocker, {
@@ -564,7 +770,7 @@ export async function restartContainer(
     containerNode.loadingLabel = LocalContainers.startingContainerLoadingLabel;
     await objectExplorerService.setLoadingUiForNode(containerNode);
     dockerLogger.appendLine(`Restarting container: ${containerName}`);
-    await execCommand(COMMANDS.START_CONTAINER(containerName));
+    await execDockerCommand(COMMANDS.START_CONTAINER(containerName));
 
     dockerLogger.appendLine(`Container ${containerName} restarted successfully.`);
     containerNode.loadingLabel = LocalContainers.readyingContainerLoadingLabel;
@@ -607,9 +813,8 @@ export async function checkIfContainerIsReadyForConnections(
     return new Promise((resolve) => {
         const interval = setInterval(async () => {
             try {
-                const logs = await execCommand(
-                    COMMANDS.CHECK_LOGS(containerName, platform(), startTimestamp),
-                );
+                const { dockerCmd, grepCmd } = COMMANDS.CHECK_LOGS(containerName, startTimestamp);
+                const logs = await execDockerCommandWithPipe(dockerCmd, grepCmd);
                 const lines = logs.split("\n");
                 const readyLine = lines.find((line) =>
                     line.includes(COMMANDS.CHECK_CONTAINER_READY),
@@ -640,7 +845,13 @@ export async function checkIfContainerIsReadyForConnections(
  */
 export async function deleteContainer(containerName: string): Promise<boolean> {
     try {
-        await execCommand(COMMANDS.DELETE_CONTAINER(containerName));
+        const { stop, remove } = COMMANDS.DELETE_CONTAINER(containerName);
+        try {
+            await execDockerCommand(stop);
+        } catch {
+            // Container might already be stopped
+        }
+        await execDockerCommand(remove);
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.DeleteContainer);
         return true;
     } catch (e) {
@@ -661,7 +872,7 @@ export async function deleteContainer(containerName: string): Promise<boolean> {
  */
 export async function stopContainer(containerName: string): Promise<boolean> {
     try {
-        await execCommand(COMMANDS.STOP_CONTAINER(containerName));
+        await execDockerCommand(COMMANDS.STOP_CONTAINER(containerName));
         sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StopContainer);
         return true;
     } catch (e) {
@@ -687,7 +898,7 @@ async function getUsedPortsFromContainers(containerIds: string[]): Promise<Set<n
     await Promise.all(
         containerIds.map(async (id) => {
             try {
-                const inspect = await execCommand(COMMANDS.INSPECT_CONTAINER(id));
+                const inspect = await execDockerCommand(COMMANDS.INSPECT_CONTAINER(id));
                 const matches = inspect.match(/"HostPort":\s*"(\d+)"/g);
                 matches?.forEach((match) => {
                     const port = match.match(/\d+/);
@@ -712,7 +923,7 @@ async function findContainerByPort(containerIds: string[], serverName: string): 
     }
     for (const id of containerIds) {
         try {
-            const inspect = await execCommand(COMMANDS.INSPECT_CONTAINER(id));
+            const inspect = await execDockerCommand(COMMANDS.INSPECT_CONTAINER(id));
             const ports = inspect.match(/"HostPort":\s*"(\d+)"/g);
 
             if (ports?.some((p) => serverName.includes(p.match(/\d+/)?.[0] || ""))) {
@@ -734,7 +945,7 @@ export async function checkIfConnectionIsDockerContainer(serverName: string): Pr
     if (!serverName.includes(localhost) && !serverName.includes(localhostIP)) return "";
 
     try {
-        const stdout = await execCommand(COMMANDS.GET_CONTAINERS);
+        const stdout = await execDockerCommand(COMMANDS.GET_CONTAINERS());
         const containerIds = stdout.split("\n").filter(Boolean);
         if (!containerIds.length) return undefined;
 
@@ -750,7 +961,7 @@ export async function checkIfConnectionIsDockerContainer(serverName: string): Pr
  */
 export async function findAvailablePort(startPort: number): Promise<number> {
     try {
-        const stdout = await execCommand(COMMANDS.GET_CONTAINERS);
+        const stdout = await execDockerCommand(COMMANDS.GET_CONTAINERS());
         const containerIds = stdout.split("\n").filter(Boolean);
         if (!containerIds.length) return startPort;
 
@@ -772,7 +983,7 @@ export async function findAvailablePort(startPort: number): Promise<number> {
  */
 export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]> {
     try {
-        const stdout = await execCommand(COMMANDS.GET_SQL_SERVER_CONTAINER_VERSIONS);
+        const stdout = await execDockerCommand(COMMANDS.GET_SQL_SERVER_CONTAINER_VERSIONS());
         const parsed = JSON.parse(stdout);
         const tags: string[] = parsed.tags ?? [];
 
@@ -855,7 +1066,7 @@ export async function prepareForDockerContainerCommand(
  */
 export async function checkContainerExists(name: string): Promise<boolean> {
     try {
-        const stdout = await execCommand(COMMANDS.GET_CONTAINERS_BY_NAME);
+        const stdout = await execDockerCommand(COMMANDS.GET_CONTAINERS_BY_NAME());
         const containers = stdout.split("\n").map((c) => c.trim());
         return containers.includes(name);
     } catch (e) {

@@ -72,6 +72,10 @@ export class SaveResultsAsExcelRequestParams extends SaveResultsRequestParams {
     includeHeaders: boolean = true;
 }
 
+export class SaveResultsAsInsertRequestParams extends SaveResultsRequestParams {
+    includeHeaders: boolean = true;
+}
+
 export class SaveResultRequestResult {
     messages: string;
 }
@@ -111,3 +115,15 @@ export namespace SaveResultsAsExcelRequest {
     >("query/saveExcel");
 }
 // --------------------------------- </ Save Results as Excel Request > ------------------------------------------
+
+// --------------------------------- < Save Results as INSERT Request > ------------------------------------------
+// save results in INSERT format
+export namespace SaveResultsAsInsertRequest {
+    export const type = new RequestType<
+        SaveResultsAsInsertRequestParams,
+        SaveResultRequestResult,
+        void,
+        void
+    >("query/saveInsert");
+}
+// --------------------------------- </ Save Results as INSERT Request > ------------------------------------------

@@ -95,7 +95,12 @@ export class MssqlProtocolHandler {
 
         // If the database is specified, only connect automatically if both server and database match.
         // If no database is specified, connecting based on server alone is sufficient.
-        if (foundProfile && (!parsedProfile.database || score >= MatchScore.ServerAndDatabase)) {
+        if (
+            foundProfile && // minimum requirement is a server match
+            (!parsedProfile.database || score >= MatchScore.ServerAndDatabase) && // also require database match if specified
+            ((!parsedProfile.accountId && !parsedProfile.user) || // also require auth match if specified
+                score >= MatchScore.ServerDatabaseAndAuth)
+        ) {
             this._logger.info(`Matching profile found for ${uri.query}; connecting...`);
             await this.connectProfile(foundProfile);
         } else {
@@ -147,19 +152,18 @@ export class MssqlProtocolHandler {
         );
         const connectionOptions = capabilitiesResult.capabilities.connectionProvider.options;
 
-        const connectionInfo = {};
+        const connectionInfo: IConnectionProfile = {} as IConnectionProfile;
         const args = new URLSearchParams(query);
 
-        const profileName = args.get("profileName");
-        if (profileName) {
-            connectionInfo["profileName"] = profileName;
-        }
+        this.fillConnectionProperty(connectionInfo, args, "profileName");
 
-        const connectionString = args.get("connectionString");
-        if (connectionString) {
-            connectionInfo["connectionString"] = connectionString;
+        const connString = this.fillConnectionProperty(connectionInfo, args, "connectionString");
+        if (connString) {
             return connectionInfo as IConnectionProfile;
         }
+
+        this.fillConnectionProperty(connectionInfo, args, "tenantId");
+        this.fillConnectionProperty(connectionInfo, args, "accountId");
 
         const connectionOptionProperties: ConnectionOptionProperty[] = connectionOptions.map(
             (option) =>
@@ -210,5 +214,24 @@ export class MssqlProtocolHandler {
         result.savePassword ??= !!result.password; // propose saving password if one is provided
 
         return result;
+    }
+
+    /**
+     * Fills a connection property from the URL parameters.
+     * Used for additional connection metadata that isn't one of the standard connection options supplied by SQL Tools Service.
+     */
+    private fillConnectionProperty(
+        connectionInfo: IConnectionProfile,
+        args: URLSearchParams,
+        property: keyof IConnectionProfile,
+    ): string | undefined {
+        const value = args.get(property as string);
+        if (value) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (connectionInfo as Record<string, any>)[property] = value;
+            return value;
+        } else {
+            return undefined;
+        }
     }
 }

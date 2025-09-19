@@ -87,7 +87,7 @@ export class ObjectExplorerService {
         const rootId = this._connectionManager.connectionStore.rootGroupId;
 
         if (!this._connectionGroupNodes.has(rootId)) {
-            this._logger.error(
+            this._logger.verbose(
                 "Root server group is not defined. Cannot get root nodes for Object Explorer.",
             );
             return [];
@@ -1248,7 +1248,7 @@ export class ObjectExplorerService {
      * @param connectionProfile The connection profile to get the node for
      * @returns The connection node for the profile, or undefined if not found.
      */
-    private getConnectionNodeFromProfile(
+    public getConnectionNodeFromProfile(
         connectionProfile: IConnectionProfile,
     ): ConnectionNode | undefined {
         const foundNode = this._connectionNodes.get(connectionProfile.id);
@@ -1302,6 +1302,11 @@ export class ObjectExplorerService {
         }
 
         return serverGroupNode;
+    }
+
+    public hasSession(connectionInfo: IConnectionInfo): boolean {
+        const node = this.getConnectionNodeFromProfile(connectionInfo as IConnectionProfile);
+        return node?.sessionId ? true : false;
     }
 }
 

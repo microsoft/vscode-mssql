@@ -8,7 +8,7 @@ import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { NotificationType, RequestType } from "vscode-languageclient";
 import { Deferred } from "../protocol";
 import * as localizedConstants from "../constants/locConstants";
-import SqlDocumentService from "../controllers/sqlDocumentService";
+import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 
 export enum TaskStatus {
@@ -175,7 +175,10 @@ export class SqlTasksService {
                 taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script &&
                 taskProgressInfo.script
             ) {
-                await this._sqlDocumentService.newQuery(taskProgressInfo.script);
+                await this._sqlDocumentService.newQuery({
+                    content: taskProgressInfo.script,
+                    connectionStrategy: ConnectionStrategy.CopyLastActive,
+                });
             }
         } else {
             // Task is still ongoing so just update the progress notification with the latest status

@@ -18,7 +18,8 @@ import opener from "opener";
 type SaveAsRequestParams =
     | Contracts.SaveResultsAsCsvRequestParams
     | Contracts.SaveResultsAsJsonRequestParams
-    | Contracts.SaveResultsAsExcelRequestParams;
+    | Contracts.SaveResultsAsExcelRequestParams
+    | Contracts.SaveResultsAsInsertRequestParams;
 
 /**
  *  Handles save results request from the context menu of slickGrid
@@ -56,6 +57,8 @@ export default class ResultsSerializer {
             fileTypeFilter[LocalizedConstants.fileTypeJSONLabel] = ["json"];
         } else if (format === "excel") {
             fileTypeFilter[LocalizedConstants.fileTypeExcelLabel] = ["xlsx"];
+        } else if (format === "insert") {
+            fileTypeFilter["SQL Files"] = ["sql"];
         }
         let options = <vscode.SaveDialogOptions>{
             defaultUri: defaultUri,
@@ -134,6 +137,26 @@ export default class ResultsSerializer {
         return saveResultsParams;
     }
 
+    private getConfigForInsert(): Contracts.SaveResultsAsInsertRequestParams {
+        // get save results config from vscode config
+        // Note: we are currently using the configSaveAsCsv setting since it has the option mssql.saveAsCsv.includeHeaders
+        // and we want to have just 1 setting that lists this.
+        let config = this._vscodeWrapper.getConfiguration(
+            Constants.extensionConfigSectionName,
+            this._uri,
+        );
+        let saveConfig = config[Constants.configSaveAsCsv];
+        let saveResultsParams = new Contracts.SaveResultsAsInsertRequestParams();
+
+        // if user entered config, set options
+        if (saveConfig) {
+            if (saveConfig.includeHeaders !== undefined) {
+                saveResultsParams.includeHeaders = saveConfig.includeHeaders;
+            }
+        }
+        return saveResultsParams;
+    }
+
     private getParameters(
         filePath: string,
         batchIndex: number,
@@ -151,6 +174,8 @@ export default class ResultsSerializer {
             saveResultsParams = self.getConfigForJson();
         } else if (format === "excel") {
             saveResultsParams = self.getConfigForExcel();
+        } else if (format === "insert") {
+            saveResultsParams = self.getConfigForInsert();
         }
 
         saveResultsParams.filePath = this._filePath;
@@ -206,6 +231,8 @@ export default class ResultsSerializer {
             type = Contracts.SaveResultsAsJsonRequest.type;
         } else if (format === "excel") {
             type = Contracts.SaveResultsAsExcelRequest.type;
+        } else if (format === "insert") {
+            type = Contracts.SaveResultsAsInsertRequest.type;
         }
 
         self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveStarted + this._filePath);
