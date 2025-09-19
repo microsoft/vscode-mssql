@@ -621,6 +621,11 @@ export class ObjectExplorerService {
         }
     }
 
+    public async initialize(): Promise<void> {
+        // Pre-load root nodes to ensure connection/group maps are populated
+        await this.getRootNodes();
+    }
+
     /**
      * Create an OE session for the given connection credentials
      * otherwise prompt the user to create a new connection profile

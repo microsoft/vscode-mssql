@@ -306,7 +306,7 @@ export default class MainController implements vscode.Disposable {
                 ),
             );
 
-            this.initializeObjectExplorer();
+            await this.initializeObjectExplorer();
 
             this.registerCommandWithArgs(Constants.cmdConnectObjectExplorerProfile);
             this._event.on(
@@ -1308,7 +1308,9 @@ export default class MainController implements vscode.Disposable {
      * Initializes the Object Explorer commands
      * @param objectExplorerProvider provider settable for testing purposes
      */
-    private initializeObjectExplorer(objectExplorerProvider?: ObjectExplorerProvider): void {
+    private async initializeObjectExplorer(
+        objectExplorerProvider?: ObjectExplorerProvider,
+    ): Promise<void> {
         const self = this;
         // Register the object explorer tree provider
         this._objectExplorerProvider =
@@ -1318,6 +1320,8 @@ export default class MainController implements vscode.Disposable {
                 this._connectionMgr,
                 this.isRichExperiencesEnabled,
             );
+
+        await this._objectExplorerProvider.initialize();
 
         this.objectExplorerTree = vscode.window.createTreeView("objectExplorer", {
             treeDataProvider: this._objectExplorerProvider,
