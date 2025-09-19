@@ -175,12 +175,6 @@ suite("Query Runner tests", () => {
 
             // ... The query runner should not be running a query
             assert.strictEqual(queryRunner.isExecutingQuery, false);
-
-            // ... An error message should have been shown
-            testVscodeWrapper.verify(
-                (x) => x.showErrorMessage(TypeMoq.It.isAnyString()),
-                TypeMoq.Times.once(),
-            );
         }
     });
 
@@ -1409,6 +1403,554 @@ suite("Query Runner tests", () => {
                 !capturedJsonContent.includes('"null"'),
                 "JSON should not contain literal 'null' strings",
             );
+        });
+    });
+
+    suite("copyResultsAsInClause", () => {
+        const testuri = "uri";
+        let testSqlToolsServerClient: TypeMoq.IMock<SqlToolsServerClient>;
+        let testVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+        let testStatusView: TypeMoq.IMock<StatusView>;
+        let testQueryNotificationHandler: TypeMoq.IMock<QueryNotificationHandler>;
+
+        setup(() => {
+            testSqlToolsServerClient = TypeMoq.Mock.ofType(
+                SqlToolsServerClient,
+                TypeMoq.MockBehavior.Loose,
+            );
+            testQueryNotificationHandler = TypeMoq.Mock.ofType(
+                QueryNotificationHandler,
+                TypeMoq.MockBehavior.Loose,
+            );
+            testVscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
+            testStatusView = TypeMoq.Mock.ofType(StatusView, TypeMoq.MockBehavior.Loose);
+        });
+
+        function setupMockConfig() {
+            // Use the shared workspace configuration stub so config.get(...) works
+            const configItems: { [key: string]: any } = {
+                [Constants.copyIncludeHeaders]: true,
+                [Constants.configCopyRemoveNewLine]: false,
+            };
+            const config = stubs.createWorkspaceConfiguration(configItems);
+            testVscodeWrapper
+                .setup((x) =>
+                    x.getConfiguration(TypeMoq.It.isAnyString(), TypeMoq.It.isAnyString()),
+                )
+                .returns(() => config);
+        }
+
+        test("Copies selection as IN clause with string values", async () => {
+            setupMockConfig();
+
+            let testResult: QueryExecuteSubsetResult = {
+                resultSubset: {
+                    rowCount: 2,
+                    rows: [
+                        [{ isNull: false, displayValue: "USA" }],
+                        [{ isNull: false, displayValue: "Canada" }],
+                    ],
+                },
+            };
+
+            let result: QueryExecuteCompleteNotificationResult = {
+                ownerUri: testuri,
+                batchSummaries: [
+                    {
+                        hasError: false,
+                        id: 0,
+                        selection: {
+                            startLine: 0,
+                            endLine: 0,
+                            startColumn: 3,
+                            endColumn: 3,
+                        },
+                        resultSetSummaries: <ResultSetSummary[]>[
+                            {
+                                id: 0,
+                                rowCount: 2,
+                                columnInfo: [{ columnName: "Country" }],
+                            },
+                        ],
+                        executionElapsed: undefined,
+                        executionStart: new Date().toISOString(),
+                        executionEnd: new Date().toISOString(),
+                    },
+                ],
+            };
+
+            let testRange: ISlickRange[] = [{ fromCell: 0, fromRow: 0, toCell: 0, toRow: 1 }];
+
+            let capturedClipboardContent: string = "";
+            testVscodeWrapper
+                .setup((x) => x.clipboardWriteText(TypeMoq.It.isAnyString()))
+                .callback((text: string) => {
+                    capturedClipboardContent = text;
+                })
+                .returns(() => Promise.resolve());
+
+            testSqlToolsServerClient
+                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => Promise.resolve(testResult));
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object,
+            );
+            queryRunner.uri = testuri;
+            queryRunner.handleQueryComplete(result);
+
+            await queryRunner.copyResultsAsInClause(testRange, 0, 0);
+
+            testVscodeWrapper.verify<void>(
+                (x) => x.clipboardWriteText(TypeMoq.It.isAnyString()),
+                TypeMoq.Times.once(),
+            );
+
+            // Verify the IN clause format
+            const expectedInClause = "IN\n(\n    'USA',\n    'Canada'\n)";
+            assert.equal(capturedClipboardContent, expectedInClause);
+        });
+
+        test("Copies selection as IN clause with numeric values", async () => {
+            setupMockConfig();
+
+            let testResult: QueryExecuteSubsetResult = {
+                resultSubset: {
+                    rowCount: 3,
+                    rows: [
+                        [{ isNull: false, displayValue: "247199264" }],
+                        [{ isNull: false, displayValue: "247199265" }],
+                        [{ isNull: false, displayValue: "247199266" }],
+                    ],
+                },
+            };
+
+            let result: QueryExecuteCompleteNotificationResult = {
+                ownerUri: testuri,
+                batchSummaries: [
+                    {
+                        hasError: false,
+                        id: 0,
+                        selection: {
+                            startLine: 0,
+                            endLine: 0,
+                            startColumn: 3,
+                            endColumn: 3,
+                        },
+                        resultSetSummaries: <ResultSetSummary[]>[
+                            {
+                                id: 0,
+                                rowCount: 3,
+                                columnInfo: [{ columnName: "ID" }],
+                            },
+                        ],
+                        executionElapsed: undefined,
+                        executionStart: new Date().toISOString(),
+                        executionEnd: new Date().toISOString(),
+                    },
+                ],
+            };
+
+            let testRange: ISlickRange[] = [{ fromCell: 0, fromRow: 0, toCell: 0, toRow: 2 }];
+
+            let capturedClipboardContent: string = "";
+            testVscodeWrapper
+                .setup((x) => x.clipboardWriteText(TypeMoq.It.isAnyString()))
+                .callback((text: string) => {
+                    capturedClipboardContent = text;
+                })
+                .returns(() => Promise.resolve());
+
+            testSqlToolsServerClient
+                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => Promise.resolve(testResult));
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object,
+            );
+            queryRunner.uri = testuri;
+            queryRunner.handleQueryComplete(result);
+
+            await queryRunner.copyResultsAsInClause(testRange, 0, 0);
+
+            // Verify the IN clause format with numeric values (no quotes)
+            const expectedInClause = "IN\n(\n    247199264,\n    247199265,\n    247199266\n)";
+            assert.equal(capturedClipboardContent, expectedInClause);
+        });
+
+        test("Copies selection as IN clause with NULL values", async () => {
+            setupMockConfig();
+
+            let testResult: QueryExecuteSubsetResult = {
+                resultSubset: {
+                    rowCount: 2,
+                    rows: [
+                        [{ isNull: false, displayValue: "Valid" }],
+                        [{ isNull: true, displayValue: "null" }],
+                    ],
+                },
+            };
+
+            let result: QueryExecuteCompleteNotificationResult = {
+                ownerUri: testuri,
+                batchSummaries: [
+                    {
+                        hasError: false,
+                        id: 0,
+                        selection: {
+                            startLine: 0,
+                            endLine: 0,
+                            startColumn: 3,
+                            endColumn: 3,
+                        },
+                        resultSetSummaries: <ResultSetSummary[]>[
+                            {
+                                id: 0,
+                                rowCount: 2,
+                                columnInfo: [{ columnName: "Value" }],
+                            },
+                        ],
+                        executionElapsed: undefined,
+                        executionStart: new Date().toISOString(),
+                        executionEnd: new Date().toISOString(),
+                    },
+                ],
+            };
+
+            let testRange: ISlickRange[] = [{ fromCell: 0, fromRow: 0, toCell: 0, toRow: 1 }];
+
+            let capturedClipboardContent: string = "";
+            testVscodeWrapper
+                .setup((x) => x.clipboardWriteText(TypeMoq.It.isAnyString()))
+                .callback((text: string) => {
+                    capturedClipboardContent = text;
+                })
+                .returns(() => Promise.resolve());
+
+            testSqlToolsServerClient
+                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => Promise.resolve(testResult));
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object,
+            );
+            queryRunner.uri = testuri;
+            queryRunner.handleQueryComplete(result);
+
+            await queryRunner.copyResultsAsInClause(testRange, 0, 0);
+
+            // Verify the IN clause format with NULL values
+            const expectedInClause = "IN\n(\n    'Valid',\n    NULL\n)";
+            assert.equal(capturedClipboardContent, expectedInClause);
+        });
+    });
+
+    suite("copyResultsAsInsertInto", () => {
+        const testuri = "uri";
+        let testSqlToolsServerClient: TypeMoq.IMock<SqlToolsServerClient>;
+        let testVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+        let testStatusView: TypeMoq.IMock<StatusView>;
+        let testQueryNotificationHandler: TypeMoq.IMock<QueryNotificationHandler>;
+
+        setup(() => {
+            testSqlToolsServerClient = TypeMoq.Mock.ofType(
+                SqlToolsServerClient,
+                TypeMoq.MockBehavior.Loose,
+            );
+            testQueryNotificationHandler = TypeMoq.Mock.ofType(
+                QueryNotificationHandler,
+                TypeMoq.MockBehavior.Loose,
+            );
+            testVscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
+            testStatusView = TypeMoq.Mock.ofType(StatusView, TypeMoq.MockBehavior.Loose);
+        });
+
+        function setupMockConfig() {
+            // Use the shared workspace configuration stub so config.get(...) works
+            const configItems: { [key: string]: any } = {
+                [Constants.copyIncludeHeaders]: true,
+                [Constants.configCopyRemoveNewLine]: false,
+            };
+            const config = stubs.createWorkspaceConfiguration(configItems);
+            testVscodeWrapper
+                .setup((x) =>
+                    x.getConfiguration(TypeMoq.It.isAnyString(), TypeMoq.It.isAnyString()),
+                )
+                .returns(() => config);
+        }
+
+        test("Copies selection as INSERT INTO statement with small dataset", async () => {
+            setupMockConfig();
+
+            let testResult: QueryExecuteSubsetResult = {
+                resultSubset: {
+                    rowCount: 2,
+                    rows: [
+                        [
+                            { isNull: false, displayValue: "1" },
+                            { isNull: false, displayValue: "John" },
+                            { isNull: false, displayValue: "Doe" },
+                        ],
+                        [
+                            { isNull: false, displayValue: "2" },
+                            { isNull: false, displayValue: "Jane" },
+                            { isNull: false, displayValue: "Smith" },
+                        ],
+                    ],
+                },
+            };
+
+            let result: QueryExecuteCompleteNotificationResult = {
+                ownerUri: testuri,
+                batchSummaries: [
+                    {
+                        hasError: false,
+                        id: 0,
+                        selection: {
+                            startLine: 0,
+                            endLine: 0,
+                            startColumn: 3,
+                            endColumn: 3,
+                        },
+                        resultSetSummaries: <ResultSetSummary[]>[
+                            {
+                                id: 0,
+                                rowCount: 2,
+                                columnInfo: [
+                                    { columnName: "ID" },
+                                    { columnName: "FirstName" },
+                                    { columnName: "LastName" },
+                                ],
+                            },
+                        ],
+                        executionElapsed: undefined,
+                        executionStart: new Date().toISOString(),
+                        executionEnd: new Date().toISOString(),
+                    },
+                ],
+            };
+
+            let testRange: ISlickRange[] = [{ fromCell: 0, fromRow: 0, toCell: 2, toRow: 1 }];
+
+            let capturedClipboardContent: string = "";
+            testVscodeWrapper
+                .setup((x) => x.clipboardWriteText(TypeMoq.It.isAnyString()))
+                .callback((text: string) => {
+                    capturedClipboardContent = text;
+                })
+                .returns(() => Promise.resolve());
+
+            testSqlToolsServerClient
+                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => Promise.resolve(testResult));
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object,
+            );
+            queryRunner.uri = testuri;
+            queryRunner.handleQueryComplete(result);
+
+            await queryRunner.copyResultsAsInsertInto(testRange, 0, 0);
+
+            // Verify the INSERT INTO format
+            const expectedInsert =
+                "INSERT INTO [TableName] ([ID], [FirstName], [LastName])\nVALUES\n    (1, 'John', 'Doe'),\n    (2, 'Jane', 'Smith');";
+            assert.equal(capturedClipboardContent, expectedInsert);
+        });
+
+        test("Copies selection as INSERT INTO with NULL and mixed data types", async () => {
+            setupMockConfig();
+
+            let testResult: QueryExecuteSubsetResult = {
+                resultSubset: {
+                    rowCount: 2,
+                    rows: [
+                        [
+                            { isNull: false, displayValue: "100" },
+                            { isNull: true, displayValue: "null" },
+                            { isNull: false, displayValue: "Active" },
+                        ],
+                        [
+                            { isNull: false, displayValue: "200" },
+                            { isNull: false, displayValue: "2023-01-01" },
+                            { isNull: true, displayValue: "null" },
+                        ],
+                    ],
+                },
+            };
+
+            let result: QueryExecuteCompleteNotificationResult = {
+                ownerUri: testuri,
+                batchSummaries: [
+                    {
+                        hasError: false,
+                        id: 0,
+                        selection: {
+                            startLine: 0,
+                            endLine: 0,
+                            startColumn: 3,
+                            endColumn: 3,
+                        },
+                        resultSetSummaries: <ResultSetSummary[]>[
+                            {
+                                id: 0,
+                                rowCount: 2,
+                                columnInfo: [
+                                    { columnName: "Amount" },
+                                    { columnName: "CreatedDate" },
+                                    { columnName: "Status" },
+                                ],
+                            },
+                        ],
+                        executionElapsed: undefined,
+                        executionStart: new Date().toISOString(),
+                        executionEnd: new Date().toISOString(),
+                    },
+                ],
+            };
+
+            let testRange: ISlickRange[] = [{ fromCell: 0, fromRow: 0, toCell: 2, toRow: 1 }];
+
+            let capturedClipboardContent: string = "";
+            testVscodeWrapper
+                .setup((x) => x.clipboardWriteText(TypeMoq.It.isAnyString()))
+                .callback((text: string) => {
+                    capturedClipboardContent = text;
+                })
+                .returns(() => Promise.resolve());
+
+            testSqlToolsServerClient
+                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => Promise.resolve(testResult));
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object,
+            );
+            queryRunner.uri = testuri;
+            queryRunner.handleQueryComplete(result);
+
+            await queryRunner.copyResultsAsInsertInto(testRange, 0, 0);
+
+            // Verify the INSERT INTO format with NULL values and mixed data types
+            const expectedInsert =
+                "INSERT INTO [TableName] ([Amount], [CreatedDate], [Status])\nVALUES\n    (100, NULL, 'Active'),\n    (200, '2023-01-01', NULL);";
+            assert.equal(capturedClipboardContent, expectedInsert);
+        });
+
+        test("Handles large dataset exceeding 1000 rows (chunking)", async () => {
+            setupMockConfig();
+
+            // Create test data with more than 1000 rows to test chunking
+            const rowCount = 1500;
+            const rows: any[] = [];
+            for (let i = 1; i <= rowCount; i++) {
+                rows.push([
+                    { isNull: false, displayValue: i.toString() },
+                    { isNull: false, displayValue: `Name${i}` },
+                ]);
+            }
+
+            let testResult: QueryExecuteSubsetResult = {
+                resultSubset: {
+                    rowCount: rowCount,
+                    rows: rows,
+                },
+            };
+
+            let result: QueryExecuteCompleteNotificationResult = {
+                ownerUri: testuri,
+                batchSummaries: [
+                    {
+                        hasError: false,
+                        id: 0,
+                        selection: {
+                            startLine: 0,
+                            endLine: 0,
+                            startColumn: 3,
+                            endColumn: 3,
+                        },
+                        resultSetSummaries: <ResultSetSummary[]>[
+                            {
+                                id: 0,
+                                rowCount: rowCount,
+                                columnInfo: [{ columnName: "ID" }, { columnName: "Name" }],
+                            },
+                        ],
+                        executionElapsed: undefined,
+                        executionStart: new Date().toISOString(),
+                        executionEnd: new Date().toISOString(),
+                    },
+                ],
+            };
+
+            let testRange: ISlickRange[] = [
+                { fromCell: 0, fromRow: 0, toCell: 1, toRow: rowCount - 1 },
+            ];
+
+            let capturedClipboardContent: string = "";
+            testVscodeWrapper
+                .setup((x) => x.clipboardWriteText(TypeMoq.It.isAnyString()))
+                .callback((text: string) => {
+                    capturedClipboardContent = text;
+                })
+                .returns(() => Promise.resolve());
+
+            testSqlToolsServerClient
+                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => Promise.resolve(testResult));
+
+            let queryRunner = new QueryRunner(
+                testuri,
+                testuri,
+                testStatusView.object,
+                testSqlToolsServerClient.object,
+                testQueryNotificationHandler.object,
+                testVscodeWrapper.object,
+            );
+            queryRunner.uri = testuri;
+            queryRunner.handleQueryComplete(result);
+
+            await queryRunner.copyResultsAsInsertInto(testRange, 0, 0);
+
+            // Verify that multiple INSERT statements were generated (chunking occurred)
+            const statementCount = (capturedClipboardContent.match(/INSERT INTO/g) || []).length;
+            assert.equal(statementCount, 2, "Should generate 2 INSERT statements for 1500 rows");
+
+            // Verify that statements are separated by double newlines
+            assert.ok(
+                capturedClipboardContent.includes("\n\nINSERT INTO"),
+                "Statements should be separated by double newlines",
+            );
+
+            // Verify first statement contains exactly 1000 rows (plus header)
+            const firstStatement = capturedClipboardContent.split("\n\nINSERT INTO")[0];
+            const firstStatementRowCount = (firstStatement.match(/\(/g) || []).length - 1; // Subtract 1 for column list parentheses
+            assert.equal(firstStatementRowCount, 1000, "First statement should contain 1000 rows");
         });
     });
 });

@@ -224,6 +224,28 @@ export class SqlOutputContentProvider {
             .queryRunner.copyResultsAsJson(selection, batchId, resultId, includeHeaders);
     }
 
+    public copyAsInClauseRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsInClause(selection, batchId, resultId);
+    }
+
+    public copyAsInsertIntoRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsInsertInto(selection, batchId, resultId);
+    }
+
     public editorSelectionRequestHandler(uri: string, selection: ISelectionData): void {
         void this._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection);
     }
@@ -315,6 +337,9 @@ export class SqlOutputContentProvider {
                 executionPlanOptions?.includeActualExecutionPlanXml,
             this._actualPlanStatuses.includes(uri),
         );
+        if (isOpenQueryResultsInTabByDefaultEnabled()) {
+            await this._queryResultWebviewController.createPanelController(queryRunner.uri);
+        }
         if (queryRunner) {
             void queryCallback(queryRunner);
         }
@@ -343,16 +368,25 @@ export class SqlOutputContentProvider {
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
 
+            const startFailedListener = queryRunner.onStartFailed(async (error) => {
+                this.updateWebviewState(queryRunner.uri, {
+                    initializationError: getErrorMessage(error),
+                    resultSetSummaries: {},
+                    executionPlanState: {},
+                    messages: [],
+                    fontSettings: { fontSize: 0, fontFamily: "" },
+                });
+            });
+
             const startListener = queryRunner.onStart(async (_panelUri) => {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
                 resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                 resultWebviewState.isExecutionPlan = false;
-                if (isOpenQueryResultsInTabByDefaultEnabled()) {
-                    await this._queryResultWebviewController.createPanelController(queryRunner.uri);
-                }
+                resultWebviewState.initializationError = undefined;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                this.revealQueryResult(queryRunner.uri);
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });
@@ -510,6 +544,7 @@ export class SqlOutputContentProvider {
 
             const queryRunnerState = new QueryRunnerState(queryRunner);
             queryRunnerState.listeners.push(
+                startFailedListener,
                 startListener,
                 resultSetAvailableListener,
                 resultSetUpdatedListener,
@@ -860,13 +895,6 @@ export class SqlOutputContentProvider {
             if (activeEditorUri === uri) {
                 this._queryResultWebviewController.state = state;
             }
-        }
-
-        /**
-         * Only reveal the panel if user is working on the same editor
-         */
-        if (activeEditorUri === uri) {
-            this.revealQueryResult(uri);
         }
     }
 }

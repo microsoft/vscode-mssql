@@ -33,8 +33,8 @@ export function useVscodeSelector<State, Reducers, T>(
     const selected = snap ? selector(snap) : (undefined as T);
     const ref = useRef(selected);
 
-    // Only update ref if we have a valid selection and it's different
-    if (selected !== undefined && !equals(ref.current, selected)) {
+    // Update whenever the selected slice changes
+    if (!equals(ref.current as T, selected as T)) {
         ref.current = selected;
     }
 
