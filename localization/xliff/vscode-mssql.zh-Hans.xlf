@@ -4516,6 +4516,10 @@ Query: {1}</source>
         <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
         <target state="translated">在新选项卡而不是查询窗格中自动显示查询结果。仅当启用了 `mssql.enableRichExperiences` 时，此选项才会生效。</target>
       </trans-unit>
+      <trans-unit id="mssql.autoRevealResultsPanel">
+        <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</source>
+        <target state="new">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</target>
+      </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
         <target state="translated">取消查询</target>

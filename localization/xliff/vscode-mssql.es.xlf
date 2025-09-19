@@ -4516,6 +4516,10 @@ Consulta: {1}</target>
         <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
         <target state="translated">Mostrar automáticamente los resultados de la consulta en una nueva pestaña en lugar del panel de consulta. Esta opción solo surte efecto si "mssql.enableRichExperiences" está habilitado.</target>
       </trans-unit>
+      <trans-unit id="mssql.autoRevealResultsPanel">
+        <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</source>
+        <target state="new">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</target>
+      </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
         <target state="translated">Cancelar la consulta</target>
