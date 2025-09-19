@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as path from "path";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { PublishProject as Loc } from "../constants/locConstants";
@@ -14,7 +15,7 @@ import {
     PublishDialogReducers,
 } from "../sharedInterfaces/publishDialog";
 import { generatePublishFormComponents } from "./formComponentHelpers";
-import { getProjectTargetVersion, readProjectProperties } from "./ProjectUtils";
+import { readProjectProperties } from "./ProjectUtils";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { filterAndSortTags, getDockerBaseImage } from "./dockerUtils";
 
@@ -40,7 +41,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         const initialFormState: IPublishForm = {
             profileName: "",
             serverName: "",
-            databaseName: getFileNameWithoutExt(projectFilePath),
+            databaseName: path.basename(projectFilePath),
             publishTarget: "existingServer",
             sqlCmdVariables: {},
         };
@@ -88,9 +89,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 this.state.projectFilePath,
             );
             if (props) {
-                (this.state as any).projectProperties = props; // eslint-disable-line @typescript-eslint/no-explicit-any
-                // Also attach transient version so initial webview renderers that ask for it have it
-                (this.state as any).__projectTargetVersion = props.targetVersion; // eslint-disable-line @typescript-eslint/no-explicit-any
+                (this.state as PublishDialogWebviewState).projectProperties = props;
             }
         } catch {
             // Swallow errors; dialog should still load
@@ -100,6 +99,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         this.updateState();
     }
 
+    //#region RPC Handlers - Registering Reducers
     /**
      * Explicitly registers all reducers
      */
@@ -117,7 +117,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         state.projectFilePath = payload.projectFilePath;
                     }
                 }
-                // Re-evaluate visibility if publishTarget or other controlling fields changed
+                // Re-evaluate visibility if any controlling fields changed
                 await this.updateItemVisibility();
                 this.updateState(state);
                 return state;
@@ -153,31 +153,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 return state;
             },
         );
-
-        this.registerReducer("fetchTargetDetails", async (state: PublishDialogWebviewState) => {
-            // Legacy no-op retained
-            return state;
-        });
-
-        this.registerReducer("getProjectProperties", async (state: PublishDialogWebviewState) => {
-            // If we've already loaded properties, just attach transient version again
-            if (!state.projectProperties) {
-                const props = await readProjectProperties(
-                    this.sqlProjectsService,
-                    state.projectFilePath,
-                );
-                if (props) {
-                    state.projectProperties = props;
-                }
-            }
-            const version =
-                state.projectProperties?.targetVersion ??
-                (await getProjectTargetVersion(this.sqlProjectsService, state.projectFilePath));
-            // Store transient helper without polluting strong type (augment state via index signature pattern)
-            (state as unknown as { __projectTargetVersion?: string }).__projectTargetVersion =
-                version;
-            return state;
-        });
 
         // Fetch docker tags server-side to avoid CORS issues in webview
         this.registerReducer(
@@ -236,14 +211,30 @@ export class PublishProjectWebViewController extends FormWebviewController<
         });
     }
 
-    protected getActiveFormComponents(_state: PublishDialogWebviewState) {
-        return [...PublishProjectWebViewController.mainOptions];
+    //#endregion
+
+    /**
+     * Active form fields (in validation/render order). Extends with container-only
+     * inputs when targeting a local container.
+     */
+    protected getActiveFormComponents(state: PublishDialogWebviewState) {
+        const base = [...PublishProjectWebViewController.mainOptions];
+        if (state.formState.publishTarget === "localContainer") {
+            base.push(
+                "containerPort",
+                "containerAdminPassword",
+                "containerAdminPasswordConfirm",
+                "containerImageTag",
+                "acceptContainerLicense",
+            );
+        }
+        return base as (keyof IPublishForm)[];
     }
 
     public async updateItemVisibility(): Promise<void> {
         const hidden: (keyof IPublishForm)[] = [];
 
-        // Example visibility: local container target doesn't require a server name
+        // local container target doesn't require a server name
         if (this.state.formState?.publishTarget === "localContainer") {
             hidden.push("serverName");
         }
@@ -252,26 +243,5 @@ export class PublishProjectWebViewController extends FormWebviewController<
             // mark hidden if the property is in hidden list
             component.hidden = hidden.includes(component.propertyName as keyof IPublishForm);
         }
-        // Ensure main options exist (fallback in case generation failed earlier)
-        for (const key of PublishProjectWebViewController.mainOptions) {
-            if (!this.state.formComponents[key]) {
-                // regenerate missing component set lazily
-                // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                generatePublishFormComponents().then((c) => {
-                    this.state.formComponents = c;
-                    this.updateState();
-                });
-                break;
-            }
-        }
     }
-}
-
-function getFileNameWithoutExt(filePath: string): string {
-    if (!filePath) {
-        return "";
-    }
-    const parts = filePath.replace(/\\/g, "/").split("/");
-    const last = parts[parts.length - 1];
-    return last.replace(/\.[^/.]+$/, "");
 }

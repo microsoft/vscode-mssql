@@ -6,7 +6,7 @@
 // Utilities specific to the Publish Project dialog (extension host side)
 
 import * as mssql from "vscode-mssql";
-import * as Constants from "../constants/constants";
+import * as constants from "../constants/constants";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 
 // Shape returned by sqlProjectsService.getProjectProperties (partial, only fields we use)
@@ -72,12 +72,12 @@ export async function getProjectTargetVersion(
             return undefined;
         }
         const dsp = result.databaseSchemaProvider;
-        if (!dsp || !dsp.startsWith(Constants.DSP_PREFIX) || !dsp.endsWith(Constants.DSP_SUFFIX)) {
+        if (!dsp || !dsp.startsWith(constants.DSP_PREFIX) || !dsp.endsWith(constants.DSP_SUFFIX)) {
             return undefined;
         }
         const version = dsp.substring(
-            Constants.DSP_PREFIX.length,
-            dsp.length - Constants.DSP_SUFFIX.length,
+            constants.DSP_PREFIX.length,
+            dsp.length - constants.DSP_SUFFIX.length,
         );
         // Basic sanity check: version should be non-empty and alphanumeric-ish
         if (!version || /[^A-Za-z0-9]/.test(version)) {
@@ -120,4 +120,11 @@ export async function readProjectProperties(
     } catch {
         return undefined;
     }
+}
+
+export function getPublishServerName(target: string) {
+    return target ===
+        targetPlatformToVersion.get("Azure SQL Database" /* SqlTargetPlatform.sqlAzure */)
+        ? constants.AzureSqlServerName
+        : constants.SqlServerName;
 }

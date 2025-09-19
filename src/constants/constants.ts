@@ -291,3 +291,6 @@ export const sqlServerEulaLink = "https://aka.ms/mssql-container-license";
 export const dockerImageDefaultTag = "latest";
 export const AzureSqlDbFullDockerImageName = "Azure SQL Database (Edge emulation)"; // placeholder label
 export const SqlServerDockerImageName = "SQL Server";
+export const MAX_PORT_NUMBER = 65535;
+export const SqlServerName = "SQL server";
+export const AzureSqlServerName = "Azure SQL server";

@@ -65,21 +65,25 @@ function PublishProjectInner() {
                     {/* Publish Target (with container extension) */}
                     <PublishTargetField idx={0} />
                     {mainOptions.map((optionName, idx) => {
-                        const actualIdx = idx + 1; // shift because publish target inserted first
+                        const actualIdx = idx + 1;
                         if (!optionName) {
                             return undefined;
                         }
 
+                        // Special case: publish profile field with its own custom component
                         if ((optionName as string) === "profileName") {
                             return <PublishProfileField key={String(optionName)} idx={actualIdx} />;
                         }
 
+                        // Dynamic form components
                         const component = state.formComponents[
                             optionName as keyof IPublishForm
                         ] as PublishDialogFormItemSpec;
                         if (!component || component.hidden === true) {
                             return undefined;
                         }
+
+                        // Render the field
                         return (
                             <FormField<
                                 IPublishForm,

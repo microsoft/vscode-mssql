@@ -10,6 +10,8 @@ import {
     PublishDialogWebviewState,
 } from "../sharedInterfaces/publishDialog";
 import { PublishProject as Loc } from "../constants/locConstants";
+import { validateSqlServerPortNumber, isValidSqlAdminPassword } from "./dockerUtils";
+import { getPublishServerName } from "./ProjectUtils";
 
 /**
  * Generate publish form components. Kept async to mirror the connection pattern and allow
@@ -62,13 +64,12 @@ export async function generatePublishFormComponents(): Promise<
             label: Loc.SqlServerPortNumber,
             required: true,
             type: FormItemType.Input,
-            validate: (_state, value: string | boolean | number) => {
+            validate: (_state, value) => {
                 const str = String(value ?? "").trim();
-                const num = Number(str);
-                const isValid = !!str && Number.isInteger(num) && num > 0 && num < 65536;
+                const isValid = validateSqlServerPortNumber(str);
                 return {
                     isValid,
-                    validationMessage: isValid ? "" : "Enter a valid TCP port (1-65535)",
+                    validationMessage: isValid ? "" : Loc.InvalidPortMessage,
                 };
             },
         },
@@ -78,16 +79,15 @@ export async function generatePublishFormComponents(): Promise<
             required: true,
             type: FormItemType.Password,
             validate: (state, value) => {
-                const v = String(value ?? "");
-                const ok = v.length >= 8; // basic rule placeholder
-                const match = v === (state.formState.containerAdminPasswordConfirm ?? "");
+                const pwd = String(value ?? "");
+                const isValid = isValidSqlAdminPassword(pwd, "sa");
                 return {
-                    isValid: ok && match,
-                    validationMessage: ok
-                        ? match
-                            ? ""
-                            : "Passwords do not match"
-                        : "Minimum 8 characters",
+                    isValid: isValid,
+                    validationMessage: isValid
+                        ? ""
+                        : Loc.InvalidSQLPasswordMessage(
+                              getPublishServerName(state.projectProperties?.targetVersion),
+                          ),
                 };
             },
         },
@@ -97,12 +97,16 @@ export async function generatePublishFormComponents(): Promise<
             required: true,
             type: FormItemType.Password,
             validate: (state, value) => {
-                const v = String(value ?? "");
+                const confirm = String(value ?? "");
                 const orig = state.formState.containerAdminPassword ?? "";
-                const match = v === orig && v.length >= 8;
+                const match = confirm === orig && confirm.length >= 8;
                 return {
                     isValid: match,
-                    validationMessage: match ? "" : "Passwords must match",
+                    validationMessage: match
+                        ? ""
+                        : Loc.PasswordNotMatchMessage(
+                              getPublishServerName(state.projectProperties?.targetVersion),
+                          ),
                 };
             },
         },

@@ -23,6 +23,10 @@ export interface IPublishForm {
     acceptContainerLicense?: boolean;
 }
 
+/*
+ * State maintained in the Publish dialog webview.
+ * Extends the generic form state with additional fields specific to publishing.
+ */
 export interface PublishDialogWebviewState
     extends FormState<IPublishForm, PublishDialogWebviewState, PublishDialogFormItemSpec> {
     projectFilePath: string;
@@ -41,6 +45,9 @@ export interface PublishDialogFormItemSpec
     optionCategoryLabel?: string;
 }
 
+/*
+ * Partial project properties we use from the service
+ */
 export interface ProjectProperties {
     targetVersion?: string;
     projectGuid?: string;
@@ -81,7 +88,5 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     openPublishAdvanced: {};
     selectPublishProfile: {};
     savePublishProfile: { profileName: string };
-    fetchTargetDetails: {}; // no-op now (legacy placeholder)
-    getProjectProperties: {};
     fetchDockerTags: { tagsUrl: string };
 }
