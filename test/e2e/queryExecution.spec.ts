@@ -97,40 +97,16 @@ SELECT Name FROM TestTable;`;
     });
 
     test.afterAll(async () => {
-        try {
-            await openNewQueryEditor(vsCodePage);
-            const dropTestDatabaseScript = `
+        await openNewQueryEditor(vsCodePage);
+        const dropTestDatabaseScript = `
 USE master
-IF EXISTS (SELECT name FROM sys.databases WHERE name = 'TestDB')
-BEGIN
-    ALTER DATABASE TestDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE
-    DROP DATABASE TestDB
-END`;
-            await enterTextIntoQueryEditor(vsCodePage, dropTestDatabaseScript);
-            await executeQuery(vsCodePage);
+ALTER DATABASE TestDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE
+DROP DATABASE TestDB;`;
+        await enterTextIntoQueryEditor(vsCodePage, dropTestDatabaseScript);
+        await executeQuery(vsCodePage);
 
-            await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
-        } catch (error) {
-            console.warn("Database cleanup failed:", error);
-        }
+        await new Promise((resolve) => setTimeout(resolve, 10 * 1000));
 
-        try {
-            await Promise.race([
-                vsCodeApp.close(),
-                new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error("VSCode close timeout")), 30000),
-                ),
-            ]);
-        } catch (error) {
-            console.warn("VSCode close failed or timed out:", error);
-            try {
-                const process = vsCodeApp.process();
-                if (process) {
-                    await process.kill();
-                }
-            } catch (killError) {
-                console.warn("Failed to kill VSCode process:", killError);
-            }
-        }
+        await vsCodeApp.close();
     });
 });
