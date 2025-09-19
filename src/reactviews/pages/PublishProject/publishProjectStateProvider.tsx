@@ -3,30 +3,32 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createContext } from "react";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import { createContext, useMemo } from "react";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { WebviewRpc } from "../../common/rpc";
 import {
-    PublishDialogWebviewState,
     PublishDialogReducers,
+    PublishDialogState,
+    IPublishForm,
 } from "../../../sharedInterfaces/publishDialog";
 
-interface PublishProjectContextValue {
-    state?: PublishDialogWebviewState;
+export interface PublishProjectContextValue {
+    // Use inner state directly for form system generics
+    state?: PublishDialogState; // snapshot accessor
     formAction: (event: PublishFormActionEvent) => void;
     publishNow: (payload?: PublishNowPayload) => void;
     generatePublishScript: () => void;
     selectPublishProfile: () => void;
     savePublishProfile: (profileName: string) => void;
     setPublishValues: (
-        values: Partial<PublishDialogWebviewState["formState"]> & { projectFilePath?: string },
+        values: Partial<PublishDialogState["formState"]> & { projectFilePath?: string },
     ) => void;
-    extensionRpc?: WebviewRpc<PublishDialogReducers>;
+    extensionRpc: WebviewRpc<PublishDialogReducers>;
 }
 
 // Event payload coming from shared FormField components
 export interface PublishFormActionEvent {
-    propertyName: keyof PublishDialogWebviewState["formState"];
+    propertyName: keyof IPublishForm;
     value: string | boolean;
     isAction: boolean; // true when triggered by an action button on the field
     updateValidation?: boolean; // optional flag to force validation
@@ -41,47 +43,44 @@ export interface PublishNowPayload {
     publishProfilePath?: string;
 }
 
-const PublishProjectContext = createContext<PublishProjectContextValue | undefined>(undefined);
+export const PublishProjectContext = createContext<PublishProjectContextValue | undefined>(
+    undefined,
+);
 
 export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }> = ({
     children,
 }) => {
-    const webviewContext = useVscodeWebview<PublishDialogWebviewState, PublishDialogReducers>();
-    const state = webviewContext?.state;
+    const { extensionRpc, getSnapshot } = useVscodeWebview2<
+        PublishDialogState,
+        PublishDialogReducers
+    >();
 
-    const formAction = (event: PublishFormActionEvent) =>
-        webviewContext?.extensionRpc.action("formAction", { event });
-
-    const publishNow = (payload?: PublishNowPayload) =>
-        webviewContext?.extensionRpc.action("publishNow", payload);
-
-    const generatePublishScript = () =>
-        webviewContext?.extensionRpc.action("generatePublishScript");
-
-    const selectPublishProfile = () => webviewContext?.extensionRpc.action("selectPublishProfile");
-
-    const savePublishProfile = (profileName: string) =>
-        webviewContext?.extensionRpc.action("savePublishProfile", { profileName });
-
-    const setPublishValues = (
-        values: Partial<PublishDialogWebviewState["formState"]> & { projectFilePath?: string },
-    ) => webviewContext?.extensionRpc.action("setPublishValues", values);
+    const value = useMemo<PublishProjectContextValue>(
+        () => ({
+            get state() {
+                const inner = getSnapshot(); // inner PublishDialogState
+                if (!inner || Object.keys(inner).length === 0) {
+                    return undefined;
+                }
+                return inner;
+            },
+            formAction: (event: PublishFormActionEvent) =>
+                extensionRpc.action("formAction", { event }),
+            publishNow: (payload?: PublishNowPayload) =>
+                extensionRpc.action("publishNow", payload ?? {}),
+            generatePublishScript: () => extensionRpc.action("generatePublishScript"),
+            selectPublishProfile: () => extensionRpc.action("selectPublishProfile"),
+            savePublishProfile: (profileName: string) =>
+                extensionRpc.action("savePublishProfile", { profileName }),
+            setPublishValues: (
+                values: Partial<PublishDialogState["formState"]> & { projectFilePath?: string },
+            ) => extensionRpc.action("setPublishValues", values),
+            extensionRpc,
+        }),
+        [extensionRpc, getSnapshot],
+    );
 
     return (
-        <PublishProjectContext.Provider
-            value={{
-                state,
-                formAction,
-                publishNow,
-                generatePublishScript,
-                selectPublishProfile,
-                savePublishProfile,
-                setPublishValues,
-                extensionRpc: webviewContext?.extensionRpc,
-            }}>
-            {children}
-        </PublishProjectContext.Provider>
+        <PublishProjectContext.Provider value={value}>{children}</PublishProjectContext.Provider>
     );
 };
-
-export { PublishProjectContext };

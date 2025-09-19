@@ -7,20 +7,20 @@ import { Button, makeStyles } from "@fluentui/react-components";
 import { useContext } from "react";
 import { FormField, useFormStyles } from "../../../common/forms/form.component";
 import { LocConstants } from "../../../common/locConstants";
+import { PublishProjectContext } from "../publishProjectStateProvider";
+import { FormContextProps } from "../../../../sharedInterfaces/form";
 import {
     IPublishForm,
     PublishDialogFormItemSpec,
-    PublishDialogWebviewState,
+    PublishDialogState,
 } from "../../../../sharedInterfaces/publishDialog";
-import { PublishProjectContext } from "../publishProjectStateProvider";
-import { FormContextProps } from "../../../../sharedInterfaces/form";
 
 /**
  * Extended context type including the extra publish profile actions we expose.
  */
 type PublishFormContext = FormContextProps<
     IPublishForm,
-    PublishDialogWebviewState,
+    PublishDialogState,
     PublishDialogFormItemSpec
 > & {
     selectPublishProfile?: () => void;
@@ -53,17 +53,15 @@ const useStyles = makeStyles({
  * Custom field wrapper for Publish Profile.
  * Renders the generic FormField for the text input and adds the action buttons alongside it.
  */
-export default function PublishProfileField(props: { idx: number }) {
+export const PublishProfileField = (props: { idx: number }) => {
     const { idx } = props;
     const classes = useStyles();
     const formStyles = useFormStyles();
     const loc = LocConstants.getInstance().publishProject;
     const context = useContext(PublishProjectContext) as PublishFormContext | undefined;
-
     if (!context || !context.state) {
         return undefined;
     }
-
     const component = context.state.formComponents.profileName as PublishDialogFormItemSpec;
 
     return (
@@ -71,7 +69,7 @@ export default function PublishProfileField(props: { idx: number }) {
             <div className={classes.fieldContainer}>
                 <FormField<
                     IPublishForm,
-                    PublishDialogWebviewState,
+                    PublishDialogState,
                     PublishDialogFormItemSpec,
                     PublishFormContext
                 >
@@ -102,4 +100,4 @@ export default function PublishProfileField(props: { idx: number }) {
             </div>
         </div>
     );
-}
+};

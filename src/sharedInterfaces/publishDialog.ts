@@ -17,8 +17,12 @@ export interface IPublishForm {
     sqlCmdVariables?: { [key: string]: string };
 }
 
-export interface PublishDialogWebviewState
-    extends FormState<IPublishForm, PublishDialogWebviewState, PublishDialogFormItemSpec> {
+/**
+ * Inner state (domain + form) analogous to ExecutionPlanState in executionPlan.ts
+ * Extends generic FormState so form system works unchanged.
+ */
+export interface PublishDialogState
+    extends FormState<IPublishForm, PublishDialogState, PublishDialogFormItemSpec> {
     projectFilePath: string;
     inProgress: boolean;
     lastPublishResult?: { success: boolean; details?: string };
@@ -28,7 +32,7 @@ export interface PublishDialogWebviewState
  * Form item specification for Publish dialog fields.
  */
 export interface PublishDialogFormItemSpec
-    extends FormItemSpec<IPublishForm, PublishDialogWebviewState, PublishDialogFormItemSpec> {
+    extends FormItemSpec<IPublishForm, PublishDialogState, PublishDialogFormItemSpec> {
     isAdvancedOption?: boolean;
     optionCategory?: string;
     optionCategoryLabel?: string;

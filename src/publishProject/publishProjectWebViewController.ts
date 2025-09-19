@@ -4,20 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as path from "path";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { PublishProject as Loc } from "../constants/locConstants";
 import {
-    PublishDialogWebviewState,
     PublishDialogReducers,
     PublishDialogFormItemSpec,
     IPublishForm,
+    PublishDialogState,
 } from "../sharedInterfaces/publishDialog";
 import { generatePublishFormComponents } from "./formComponentHelpers";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
-    PublishDialogWebviewState,
+    PublishDialogState,
     PublishDialogFormItemSpec,
     PublishDialogReducers
 > {
@@ -36,18 +37,20 @@ export class PublishProjectWebViewController extends FormWebviewController<
         const initialFormState: IPublishForm = {
             profileName: "",
             serverName: "",
-            databaseName: getFileNameWithoutExt(projectFilePath),
+            databaseName: path.basename(projectFilePath, path.extname(projectFilePath)),
             publishTarget: "existingServer",
             sqlCmdVariables: {},
         };
 
-        const initialState: PublishDialogWebviewState = {
+        const innerState: PublishDialogState = {
             formState: initialFormState,
             formComponents: {},
             projectFilePath,
             inProgress: false,
             lastPublishResult: undefined,
-        } as PublishDialogWebviewState;
+        } as PublishDialogState;
+
+        const initialState: PublishDialogState = innerState;
 
         super(context, _vscodeWrapper, "publishDialog", "publishDialog", initialState, {
             title: Loc.Title,
@@ -81,15 +84,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
     protected get reducers() {
         type ReducerFn = (
-            state: PublishDialogWebviewState,
+            state: PublishDialogState,
             payload: unknown,
-        ) => Promise<PublishDialogWebviewState>;
+        ) => Promise<PublishDialogState>;
         const reducerMap = new Map<string, ReducerFn>();
 
         reducerMap.set(
             "setPublishValues",
             async (
-                state: PublishDialogWebviewState,
+                state: PublishDialogState,
                 payload: Partial<IPublishForm> & { projectFilePath?: string },
             ) => {
                 if (payload) {
@@ -103,25 +106,25 @@ export class PublishProjectWebViewController extends FormWebviewController<
             },
         );
 
-        reducerMap.set("publishNow", async (state: PublishDialogWebviewState) => {
+        reducerMap.set("publishNow", async (state: PublishDialogState) => {
             state.inProgress = false;
             this.updateState(state);
             return state;
         });
 
-        reducerMap.set("generatePublishScript", async (state: PublishDialogWebviewState) => {
+        reducerMap.set("generatePublishScript", async (state: PublishDialogState) => {
             this.updateState(state);
             return state;
         });
 
-        reducerMap.set("selectPublishProfile", async (state: PublishDialogWebviewState) => {
+        reducerMap.set("selectPublishProfile", async (state: PublishDialogState) => {
             this.updateState(state);
             return state;
         });
 
         reducerMap.set(
             "savePublishProfile",
-            async (state: PublishDialogWebviewState, payload: { profileName?: string }) => {
+            async (state: PublishDialogState, payload: { profileName?: string }) => {
                 if (payload?.profileName) {
                     state.formState.profileName = payload.profileName;
                 }
@@ -133,7 +136,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         return reducerMap;
     }
 
-    protected getActiveFormComponents(_state: PublishDialogWebviewState) {
+    protected getActiveFormComponents(_state: PublishDialogState) {
         return [...PublishProjectWebViewController.mainOptions];
     }
 
@@ -152,13 +155,4 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         return;
     }
-}
-
-function getFileNameWithoutExt(filePath: string): string {
-    if (!filePath) {
-        return "";
-    }
-    const parts = filePath.replace(/\\/g, "/").split("/");
-    const last = parts[parts.length - 1];
-    return last.replace(/\.[^/.]+$/, "");
 }

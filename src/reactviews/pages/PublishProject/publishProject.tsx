@@ -7,14 +7,16 @@ import { useContext } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { PublishProjectStateProvider, PublishProjectContext } from "./publishProjectStateProvider";
+import { useVscodeSelector } from "../../common/useVscodeSelector";
 import { LocConstants } from "../../common/locConstants";
 import {
     IPublishForm,
     PublishDialogFormItemSpec,
-    PublishDialogWebviewState,
+    PublishDialogState,
+    PublishDialogReducers,
 } from "../../../sharedInterfaces/publishDialog";
 import { FormContextProps } from "../../../sharedInterfaces/form";
-import PublishProfileField from "./components/PublishProfile";
+import { PublishProfileField } from "./components/PublishProfile";
 
 const useStyles = makeStyles({
     root: { padding: "12px" },
@@ -33,7 +35,7 @@ const useStyles = makeStyles({
 
 type PublishFormContext = FormContextProps<
     IPublishForm,
-    PublishDialogWebviewState,
+    PublishDialogState,
     PublishDialogFormItemSpec
 > & {
     publishNow: () => void;
@@ -47,12 +49,22 @@ function PublishProjectInner() {
     const formStyles = useFormStyles();
     const loc = LocConstants.getInstance().publishProject;
     const context = useContext(PublishProjectContext) as PublishFormContext | undefined;
+    // Select pieces of state needed for this component
+    const formComponents = useVscodeSelector<
+        PublishDialogState,
+        PublishDialogReducers,
+        PublishDialogState["formComponents"] | undefined
+    >((s) => s.formComponents, Object.is);
+    const formState = useVscodeSelector<
+        PublishDialogState,
+        PublishDialogReducers,
+        PublishDialogState["formState"] | undefined
+    >((s) => s.formState, Object.is);
 
-    if (!context || !context.state) {
+    const loading = !context || !formComponents || !formState;
+    if (loading) {
         return <div className={classes.root}>Loading...</div>;
     }
-
-    const state = context.state;
 
     // Static list of main publish dialog options
     const mainOptions: (keyof IPublishForm)[] = [
@@ -75,7 +87,7 @@ function PublishProjectInner() {
                             return <PublishProfileField key={String(optionName)} idx={idx} />;
                         }
 
-                        const component = state.formComponents[
+                        const component = formComponents[
                             optionName as keyof IPublishForm
                         ] as PublishDialogFormItemSpec;
                         if (!component || component.hidden === true) {
@@ -84,7 +96,7 @@ function PublishProjectInner() {
                         return (
                             <FormField<
                                 IPublishForm,
-                                PublishDialogWebviewState,
+                                PublishDialogState,
                                 PublishDialogFormItemSpec,
                                 PublishFormContext
                             >

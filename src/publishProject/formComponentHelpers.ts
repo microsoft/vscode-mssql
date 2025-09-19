@@ -7,7 +7,7 @@ import { FormItemType } from "../sharedInterfaces/form";
 import {
     IPublishForm,
     PublishDialogFormItemSpec,
-    PublishDialogWebviewState,
+    PublishDialogState,
 } from "../sharedInterfaces/publishDialog";
 import { PublishProject as Loc } from "../constants/locConstants";
 
@@ -36,7 +36,7 @@ export async function generatePublishFormComponents(): Promise<
             label: Loc.DatabaseLabel,
             required: true,
             type: FormItemType.Input,
-            validate: (_state: PublishDialogWebviewState, value: string) => {
+            validate: (_state: PublishDialogState, value: string) => {
                 const isValid = (value ?? "").trim().length > 0;
                 return { isValid, validationMessage: isValid ? "" : Loc.DatabaseRequiredMessage };
             },
@@ -59,6 +59,5 @@ export async function generatePublishFormComponents(): Promise<
         },
     } as Record<keyof IPublishForm | string, PublishDialogFormItemSpec>;
 
-    // allow future async population here
     return components;
 }
