@@ -216,6 +216,11 @@
         <note>{0} is the error message</note>
         <target state="translated">Error al quitar la cuenta de Microsoft Entra: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++381d558ea8ee3e00d772e070932d5a334e7743c399dda1ddd675e1962d6e32bc">
+        <source xml:lang="en">An error occurred while retrieving rows: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">An error occurred while retrieving rows: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
         <source xml:lang="en">An error occurred while searching database objects</source>
         <target state="translated">Error al buscar objetos de base de datos</target>
