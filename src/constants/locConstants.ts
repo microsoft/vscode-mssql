@@ -952,7 +952,7 @@ export class QueryResult {
     public static summaryFetchConfirmation = (numCells: number) =>
         l10n.t({
             message:
-                "Are you sure you want to fetch summary statistic for {0} cells? This may take a while.",
+                "You have selected {0} cells, it might take a while to load the data and calculate the summary, do you want to continue?",
             args: [numCells],
             comment: ["{0} is the number of cells to fetch summary statistics for"],
         });
