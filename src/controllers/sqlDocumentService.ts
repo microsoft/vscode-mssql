@@ -265,6 +265,8 @@ export default class SqlDocumentService implements vscode.Disposable {
     }
 
     public async onDidChangeActiveTextEditor(editor: vscode.TextEditor | undefined): Promise<void> {
+        this._statusview?.hideLastShownStatusBar(); // hide the last shown status bar since the active editor has changed
+
         if (!editor?.document) {
             return;
         }
@@ -276,7 +278,7 @@ export default class SqlDocumentService implements vscode.Disposable {
         if (activeConnection) {
             this._lastActiveConnectionInfo = Utils.deepClone(activeConnection);
         }
-        this._statusview?.onDidChangeActiveTextEditor(editor, activeConnection !== undefined);
+        this._statusview?.updateStatusBarForEditor(editor, activeConnection !== undefined);
     }
 
     /**

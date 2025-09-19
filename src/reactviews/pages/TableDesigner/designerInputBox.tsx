@@ -52,13 +52,17 @@ export const DesignerInputBox = ({
 
     return (
         <Field
-            label={{
-                children: showLabel ? (
-                    <InfoLabel size="small" info={component.description}>
-                        {showLabel ? component.componentProperties.title : undefined}
-                    </InfoLabel>
-                ) : undefined,
-            }}
+            label={
+                showLabel
+                    ? {
+                          children: (
+                              <InfoLabel size="small" info={component.description}>
+                                  {component.componentProperties.title}
+                              </InfoLabel>
+                          ),
+                      }
+                    : undefined
+            }
             validationState={context.getErrorMessage(componentPath) ? "error" : undefined}
             validationMessage={showError ? context.getErrorMessage(componentPath) : undefined}
             validationMessageIcon={
