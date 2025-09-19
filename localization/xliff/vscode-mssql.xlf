@@ -3217,6 +3217,10 @@
     <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
       <source xml:lang="en">You are not connected to any database.</source>
     </trans-unit>
+    <trans-unit id="++CODE++7da743f01518ba59bb591e5f66432d722bf3769f4811aa63d8c0e916b55283f8">
+      <source xml:lang="en">You have selected {0} cells, it might take a while to load the data and calculate the summary, do you want to continue?</source>
+      <note>{0} is the number of cells to fetch summary statistics for</note>
+    </trans-unit>
     <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
       <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
     </trans-unit>
@@ -3896,6 +3900,9 @@
     </trans-unit>
     <trans-unit id="mssql.connectionGroup.description">
       <source xml:lang="en">The description of the connection group.</source>
+    </trans-unit>
+    <trans-unit id="mssql.query.summaryFetchThreshold">
+      <source xml:lang="en">The maximum number of cells that can be included in a summary fetch before prompting the user for confirmation.</source>
     </trans-unit>
     <trans-unit id="mssql.statusBar.connectionInfoMaxLength.description">
       <source xml:lang="en">The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.</source>
