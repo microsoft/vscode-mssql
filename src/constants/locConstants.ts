@@ -949,12 +949,12 @@ export class QueryResult {
                 "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum",
             ],
         });
-    public static summaryFetchConfirmation = (numCells: number) =>
+    public static summaryFetchConfirmation = (numRows: number) =>
         l10n.t({
             message:
-                "You have selected {0} cells, it might take a while to load the data and calculate the summary, do you want to continue?",
-            args: [numCells],
-            comment: ["{0} is the number of cells to fetch summary statistics for"],
+                "You have selected data across {0} rows, it might take a while to load the data and calculate the summary, do you want to continue?",
+            args: [numRows],
+            comment: ["{0} is the number of rows to fetch summary statistics for"],
         });
 }
 

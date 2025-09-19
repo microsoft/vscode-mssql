@@ -1100,19 +1100,19 @@ export default class QueryRunner {
         // Keep copy order deterministic
         selection.sort((a, b) => a.fromRow - b.fromRow);
 
-        let totalCells = 0;
+        let totalRows = 0;
         for (let range of selection) {
-            totalCells += (range.toRow - range.fromRow + 1) * (range.toCell - range.fromCell + 1);
+            totalRows += range.toRow - range.fromRow + 1;
         }
 
         const summaryFetchThreshold =
             vscode.workspace
                 .getConfiguration()
-                .get<number>(Constants.configSummaryFetchThreshold) ?? 5000;
+                .get<number>(Constants.configInMemoryDataProcessingThreshold) ?? 5000;
 
-        if (totalCells > summaryFetchThreshold) {
+        if (totalRows > summaryFetchThreshold) {
             let confirm = await vscode.window.showInformationMessage(
-                LocalizedConstants.QueryResult.summaryFetchConfirmation(totalCells),
+                LocalizedConstants.QueryResult.summaryFetchConfirmation(totalRows),
                 { modal: false },
                 LocalizedConstants.msgYes,
             );
