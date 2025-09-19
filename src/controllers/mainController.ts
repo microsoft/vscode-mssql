@@ -1278,6 +1278,33 @@ export default class MainController implements vscode.Disposable {
         });
         this._context.subscriptions.push(this.objectExplorerTree);
 
+        // Register command for table node double-click action
+        let lastTableClickTime = 0;
+        let lastTableNode: TreeNodeInfo | undefined;
+        const doubleClickThreshold = 500; // milliseconds
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdTableNodeAction, (node: TreeNodeInfo) => {
+                const currentTime = Date.now();
+
+                // Check if this is a double-click on the same node
+                if (
+                    lastTableNode === node &&
+                    currentTime - lastTableClickTime < doubleClickThreshold
+                ) {
+                    // Double-click detected - open Table Explorer
+                    void this.onTableExplorer(node);
+                    // Reset to prevent triple-click
+                    lastTableNode = undefined;
+                    lastTableClickTime = 0;
+                } else {
+                    // Single click - just track it
+                    lastTableNode = node;
+                    lastTableClickTime = currentTime;
+                }
+            }),
+        );
+
         // Old style Add connection when experimental features are not enabled
 
         // Add Object Explorer Node
