@@ -55,9 +55,11 @@ test.describe("MSSQL Extension - Database Connection", async () => {
         await openNewQueryEditor(vsCodePage);
         await screenshot(vsCodePage, testInfo, "new query editor opened");
 
+        // New editor should be connected to the last added connection
         await disconnect(vsCodePage);
         await screenshot(vsCodePage, testInfo, "disconnected");
 
+        // Verify that the Connect to MSSQL button is visible again after disconnecting
         const connectAgainButton = await vsCodePage.getByText("Connect to MSSQL");
         await expect(connectAgainButton).toBeVisible({ timeout: 10 * 1000 });
     });
