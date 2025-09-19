@@ -97,7 +97,7 @@ SELECT Name FROM TestTable;`;
     });
 
     test.afterAll(async () => {
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage);
         const dropTestDatabaseScript = `
 USE master
 ALTER DATABASE TestDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE
