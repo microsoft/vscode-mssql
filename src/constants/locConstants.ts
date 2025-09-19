@@ -1190,6 +1190,20 @@ export class TableDesigner {
     public static AdvancedOptions = l10n.t("Advanced Options");
 }
 
+export class PublishProject {
+    public static Title = l10n.t("Publish Project");
+    public static ProfileLabel = l10n.t("Publish Profile");
+    public static ProfilePlaceholder = l10n.t("Select or enter a publish profile");
+    public static ServerLabel = l10n.t("Server");
+    public static DatabaseLabel = l10n.t("Database");
+    public static DatabaseRequiredMessage = l10n.t("Database name is required");
+    public static PublishTargetLabel = l10n.t("Publish Target");
+    public static PublishTargetExisting = l10n.t("Existing SQL server");
+    public static PublishTargetContainer = l10n.t("Local development container");
+    public static GenerateScript = l10n.t("Generate Script");
+    public static Publish = l10n.t("Publish");
+}
+
 export class SchemaCompare {
     public static Title = l10n.t("Schema Compare");
     public static Open = l10n.t("Open");

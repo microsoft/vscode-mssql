@@ -475,6 +475,15 @@ declare module "vscode-mssql" {
         cancel(operationId: string): Thenable<ResultStatus>;
     }
 
+    export interface IPublishDatabaseProjectService {
+        publishProject(
+            operationId: string,
+            targetServerName: string,
+            targetDatabaseName: string,
+            taskExecutionMode: TaskExecutionMode,
+        ): Thenable<ResultStatus>;
+    }
+
     export interface IDacFxService {
         exportBacpac(
             databaseName: string,
