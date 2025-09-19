@@ -30,6 +30,16 @@ const useStyles = makeStyles({
         paddingLeft: "16px",
         borderLeft: "2px solid var(--vscode-editorWidget-border, #8883)",
     },
+    licenseBlock: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
+        maxWidth: "100%",
+    },
+    // Optional: tighten the label line height for multi-line wrapping
+    licenseLabel: {
+        lineHeight: "1.3",
+    },
 });
 
 type PublishFormContext = FormContextProps<
@@ -121,36 +131,35 @@ export default function PublishTargetField(props: { idx: number }) {
                         if (name === "acceptContainerLicense") {
                             const validation = comp.validation;
                             const isError = validation ? !validation.isValid : false;
+
+                            const licenseLabel = (
+                                <span
+                                    className={classes.licenseLabel}
+                                    // label text may contain an anchor – keep existing HTML
+                                    dangerouslySetInnerHTML={{ __html: comp.label ?? "" }}
+                                />
+                            );
+
                             return (
-                                <div
-                                    key={String(name)}
-                                    style={{ display: "flex", flexDirection: "column" }}>
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "flex-start",
-                                            gap: 6,
-                                        }}>
-                                        <Checkbox
-                                            size="medium"
-                                            checked={
-                                                (state.formState[
-                                                    comp.propertyName as keyof IPublishForm
-                                                ] as boolean) ?? false
-                                            }
-                                            onChange={(_e, data) =>
-                                                context.formAction({
-                                                    propertyName: comp.propertyName,
-                                                    isAction: false,
-                                                    value: data.checked,
-                                                })
-                                            }
-                                        />
-                                        <span
-                                            style={{ lineHeight: 1.3 }}
-                                            dangerouslySetInnerHTML={{ __html: comp.label ?? "" }}
-                                        />
-                                    </div>
+                                <div key={String(name)} className={classes.licenseBlock}>
+                                    <Checkbox
+                                        size="medium"
+                                        label={licenseLabel}
+                                        checked={
+                                            (state.formState[
+                                                comp.propertyName as keyof IPublishForm
+                                            ] as boolean) ?? false
+                                        }
+                                        onChange={(_e, data) =>
+                                            context.formAction({
+                                                propertyName: comp.propertyName,
+                                                isAction: false,
+                                                value: data.checked,
+                                            })
+                                        }
+                                        // Align label start with top of the checkbox for multi-line wrapping
+                                        style={{ alignItems: "flex-start" }}
+                                    />
                                     {isError && validation?.validationMessage && (
                                         <span
                                             style={{

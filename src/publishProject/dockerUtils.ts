@@ -27,10 +27,12 @@ export interface DockerImageInfo {
  * @param imageName docker image name
  * @returns SQL server version
  */
-function findSqlVersionInImageName(imageName: string): number | undefined {
+function findSqlVersionInImageName(imageName: string, regex?: RegExp): number | undefined {
     // Regex to find the version in the beginning of the image name
     // e.g. 2017-CU16-ubuntu, 2019-latest
-    const regex = new RegExp("^([0-9]+)[-].+$");
+    if (!regex) {
+        regex = new RegExp("^([0-9]+)[-].+$");
+    }
 
     if (regex.test(imageName)) {
         const finds = regex.exec(imageName);
@@ -42,12 +44,13 @@ function findSqlVersionInImageName(imageName: string): number | undefined {
     return undefined;
 }
 
-// Extract a version year from a target platform string (mirrors simplified logic of ADS utils)
+// Extract a version year from a target platform string
 function findSqlVersionInTargetPlatform(target: string | undefined): number | undefined {
     if (!target) {
         return undefined;
     }
-    return findSqlVersionInImageName(target);
+    const regex = new RegExp("([0-9]+)$");
+    return findSqlVersionInImageName(target, regex);
 }
 
 export function getTargetPlatformFromVersion(version: string): string {

@@ -215,6 +215,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     tagComponent.options = imageTags.map((t) => ({ value: t, displayName: t }));
                 }
 
+                // default selection to the first tag (latest/default) if none (or invalid) selected
+                if (
+                    imageTags.length > 0 &&
+                    (!state.formState.containerImageTag ||
+                        !imageTags.includes(state.formState.containerImageTag))
+                ) {
+                    state.formState.containerImageTag = imageTags[0];
+                }
+
                 this.updateState(state);
                 return state;
             },
