@@ -52,7 +52,7 @@ test.describe("MSSQL Extension - Database Connection", async () => {
 
         await screenshot(vsCodePage, testInfo, "connected");
 
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage);
         await screenshot(vsCodePage, testInfo, "new query editor opened");
 
         await disconnect(vsCodePage);

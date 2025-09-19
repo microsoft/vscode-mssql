@@ -57,11 +57,7 @@ export async function addDatabaseConnection(
     await iframe.getByRole("button", { name: "Connect", exact: true }).click();
 }
 
-export async function openNewQueryEditor(
-    vsCodePage: Page,
-    profileName: string,
-    password: string,
-): Promise<void> {
+export async function openNewQueryEditor(vsCodePage: Page): Promise<void> {
     await vsCodePage.keyboard.press(`${getModifierKey()}+P`);
     await waitForCommandPaletteToBeVisible(vsCodePage);
     await vsCodePage.keyboard.type(">MS SQL: New Query");
