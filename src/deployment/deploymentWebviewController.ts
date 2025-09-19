@@ -157,7 +157,6 @@ export class DeploymentWebviewController extends FormWebviewController<
             } else {
                 state.dialog = undefined;
             }
-            state.dialog.props.parentId = state.formState.groupId;
             state.deploymentTypeState.dialog = state.dialog;
             return state;
         });

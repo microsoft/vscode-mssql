@@ -4,14 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IMssqlAzureAccount, IMssqlAzureTenant } from "./azureAccountManagement";
-import { IDialogContextProps } from "./connectionDialog";
 import { FirewallRuleSpec } from "./firewallRule";
 import { ApiStatus, WebviewContextProps } from "./webview";
 
 /**
  * State for the Add Firewall Rule webview
  */
-export interface AddFirewallRuleState extends IDialogContextProps {
+export interface AddFirewallRuleState {
     serverName?: string;
     message: string;
     clientIp: string;
