@@ -225,9 +225,17 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdClearPooledConnections, async () => {
                 await this.onClearPooledConnections();
             });
-            this.registerCommand(Constants.cmdDeployNewDatabase);
-            this._event.on(Constants.cmdDeployNewDatabase, () => {
-                this.onDeployNewDatabase();
+            this.registerCommandWithArgs(Constants.cmdDeployNewDatabase);
+            this._event.on(Constants.cmdDeployNewDatabase, (args?: any) => {
+                let initialConnectionGroup: string;
+                if (args) {
+                    if (args instanceof ConnectionGroupNode) {
+                        initialConnectionGroup = args.connectionGroup?.id;
+                    } else if (typeof args === "object" && args.id) {
+                        initialConnectionGroup = args.id;
+                    }
+                }
+                this.onDeployNewDatabase(initialConnectionGroup);
             });
             this.registerCommand(Constants.cmdRunCurrentStatement);
             this._event.on(Constants.cmdRunCurrentStatement, () => {
@@ -2120,13 +2128,14 @@ export default class MainController implements vscode.Disposable {
         return false;
     }
 
-    public onDeployNewDatabase(): void {
+    public onDeployNewDatabase(initialConnectionGroup?: string): void {
         sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
         const reactPanel = new DeploymentWebviewController(
             this._context,
             this._vscodeWrapper,
             this,
+            initialConnectionGroup,
         );
         reactPanel.revealToForeground();
     }
