@@ -949,6 +949,12 @@ export class QueryResult {
                 "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum",
             ],
         });
+    public static getRowsError = (error: string) =>
+        l10n.t({
+            message: "An error occurred while retrieving rows: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
 }
 
 export class LocalContainers {
