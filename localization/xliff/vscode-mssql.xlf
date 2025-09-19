@@ -1653,6 +1653,9 @@
     <trans-unit id="++CODE++4480c895a6e66acfc4e43550d8a60598168463e52699be5ed28eae3ecf7200c7">
       <source xml:lang="en">Invalid IP Address</source>
     </trans-unit>
+    <trans-unit id="++CODE++0c2f118ad5933157d00e2025f7cc3d3c3da84db32e18ffbb4f1032471cc643ef">
+      <source xml:lang="en">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</source>
+    </trans-unit>
     <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
       <source xml:lang="en">Invalid column width</source>
     </trans-unit>
@@ -2280,6 +2283,9 @@
     </trans-unit>
     <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
       <source xml:lang="en">Port</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ed66c5818178010b7908ff51b8195453260bb97629cc433ea0b53795840b8645">
+      <source xml:lang="en">Port must be a number between 1 and 65535</source>
     </trans-unit>
     <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
       <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
@@ -3382,6 +3388,9 @@
       <source xml:lang="en">{0} of {1}</source>
       <note>{0} is the number of active elements
 {1} is the total number of elements</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
+      <source xml:lang="en">{0} password doesn&apos;t match the confirmation password</source>
     </trans-unit>
     <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
       <source xml:lang="en">{0} properties</source>
