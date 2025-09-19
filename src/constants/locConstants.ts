@@ -956,6 +956,12 @@ export class QueryResult {
             args: [numRows],
             comment: ["{0} is the number of rows to fetch summary statistics for"],
         });
+    public static getRowsError = (error: string) =>
+        l10n.t({
+            message: "An error occurred while retrieving rows: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
 }
 
 export class LocalContainers {

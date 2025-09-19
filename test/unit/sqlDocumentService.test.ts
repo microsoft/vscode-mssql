@@ -13,6 +13,7 @@ import * as LocalizedConstants from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
+import * as Telemetry from "../../src/telemetry/telemetry";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { IConnectionInfo } from "vscode-mssql";
 
@@ -97,6 +98,118 @@ suite("SqlDocumentService Tests", () => {
 
     teardown(() => {
         sandbox.restore();
+    });
+
+    test("handleNewQueryCommand should create a new query and update recents", async () => {
+        const editor: vscode.TextEditor = {
+            document: { uri: "test_uri" },
+        } as any;
+
+        const newQueryStub = sandbox.stub(sqlDocumentService as any, "newQuery").resolves(editor);
+        (connectionManager as any).connectionStore = {
+            removeRecentlyUsed: sandbox.stub().resolves(),
+        };
+        connectionManager.getServerInfo.returns(undefined as any);
+        connectionManager.handlePasswordBasedCredentials.resolves();
+        const sendActionStub = sandbox.stub(Telemetry, "sendActionEvent");
+
+        const node: any = { connectionProfile: {}, nodeType: "Server" };
+        await sqlDocumentService.handleNewQueryCommand(node, undefined);
+
+        expect(newQueryStub).to.have.been.calledOnce;
+        expect((connectionManager as any).connectionStore.removeRecentlyUsed).to.have.been
+            .calledOnce;
+        expect(connectionManager.handlePasswordBasedCredentials).to.have.been.calledOnce;
+        expect(sendActionStub).to.have.been.calledOnce;
+
+        newQueryStub.restore();
+        sendActionStub.restore();
+    });
+
+    test("handleNewQueryCommand should not create a new connection if new query fails", async () => {
+        const newQueryStub = sandbox
+            .stub(sqlDocumentService as any, "newQuery")
+            .rejects(new Error("boom"));
+
+        connectionManager.handlePasswordBasedCredentials.resolves();
+        const node: any = { connectionProfile: {}, nodeType: "Server" };
+        try {
+            await sqlDocumentService.handleNewQueryCommand(node, undefined);
+            expect.fail("Expected rejection");
+        } catch (e) {
+            expect((e as Error).message).to.match(/boom/);
+        } finally {
+            newQueryStub.restore();
+        }
+
+        expect(connectionManager.onNewConnection).to.not.have.been.called;
+    });
+
+    test("handleNewQueryCommand uses CopyLastActive when last active connection exists", async () => {
+        const editor: vscode.TextEditor = { document: { uri: "test_uri" } } as any;
+        const newQueryStub = sandbox.stub(sqlDocumentService, "newQuery").callsFake((opts: any) => {
+            expect(opts.connectionStrategy).to.equal(ConnectionStrategy.CopyLastActive);
+            expect(opts.connectionInfo).to.equal(undefined);
+            return Promise.resolve(editor);
+        });
+
+        // simulate last active connection
+        sqlDocumentService["_lastActiveConnectionInfo"] = { server: "localhost" } as any;
+        // remove OE selection influence
+        mainController.objectExplorerTree = { selection: [] } as any;
+        connectionManager.connectionStore = {
+            removeRecentlyUsed: sandbox.stub().resolves(),
+        } as any;
+
+        await sqlDocumentService.handleNewQueryCommand(undefined, "SELECT 1");
+
+        expect(newQueryStub).to.have.been.calledOnce;
+        newQueryStub.restore();
+    });
+
+    test("handleNewQueryCommand uses OE selection when exactly one node is selected", async () => {
+        const nodeConnection = { server: "oeServer" } as any;
+        mainController.objectExplorerTree = {
+            selection: [{ connectionProfile: nodeConnection, nodeType: "Database" }],
+        } as any;
+        connectionManager.handlePasswordBasedCredentials.resolves();
+        connectionManager.connectionStore = {
+            removeRecentlyUsed: sandbox.stub().resolves(),
+        } as any;
+
+        const editor: vscode.TextEditor = { document: { uri: "t" } } as any;
+        const newQueryStub = sandbox.stub(sqlDocumentService, "newQuery").callsFake((opts: any) => {
+            expect(opts.connectionStrategy).to.equal(ConnectionStrategy.CopyConnectionFromInfo);
+            expect(opts.connectionInfo).to.equal(nodeConnection);
+            return Promise.resolve(editor);
+        });
+
+        await sqlDocumentService.handleNewQueryCommand(undefined, undefined);
+        expect(connectionManager.handlePasswordBasedCredentials).to.have.been.calledOnceWith(
+            nodeConnection,
+        );
+        expect(newQueryStub).to.have.been.calledOnce;
+        newQueryStub.restore();
+    });
+
+    test("handleNewQueryCommand prompts for connection when no context", async () => {
+        // clear last active and OE selection
+        sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
+        mainController.objectExplorerTree = { selection: [] } as any;
+        connectionManager.connectionStore = {
+            removeRecentlyUsed: sandbox.stub().resolves(),
+        } as any;
+
+        const editor: vscode.TextEditor = { document: { uri: "x" } } as any;
+        const newQueryStub = sandbox.stub(sqlDocumentService, "newQuery").callsFake((opts: any) => {
+            expect(opts.connectionStrategy).to.equal(ConnectionStrategy.PromptForConnection);
+            expect(opts.connectionInfo).to.equal(undefined);
+            return Promise.resolve(editor);
+        });
+
+        await sqlDocumentService.handleNewQueryCommand(undefined, undefined);
+        expect(newQueryStub).to.have.been.calledOnce;
+        newQueryStub.restore();
     });
 
     // Standard closed document event test
