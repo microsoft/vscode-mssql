@@ -451,12 +451,12 @@ export class ObjectExplorerService {
                         childNode.parentNode = parentNode;
                     }
                 } else {
-                    this._logger.error(
+                    this._logger.verbose(
                         `Child group '${group.name}' with ID '${group.id}' does not have a valid parent group (${group.parentId}).`,
                     );
                 }
             } else {
-                this._logger.error(
+                this._logger.verbose(
                     `Group '${group.name}' with ID '${group.id}' does not have a valid parent group ID.  This should have been corrected when reading server groups from settings.`,
                 );
             }
@@ -485,7 +485,7 @@ export class ObjectExplorerService {
                 newConnectionNodes.set(connection.id, connectionNode);
                 groupNode.addChild(connectionNode);
             } else {
-                this._logger.error(
+                this._logger.verbose(
                     `Connection '${getConnectionDisplayName(connection)}' with ID '${connection.id}' does not have a valid group ID.  This should have been corrected when reading connections from settings.`,
                 );
             }
@@ -1213,7 +1213,7 @@ export class ObjectExplorerService {
         if (node.sessionId) {
             return node.sessionId;
         } else {
-            this._logger.error("Node does not have a session ID");
+            this._logger.verbose("Node does not have a session ID");
             return ObjectExplorerUtils.getNodeUri(node); // TODO: can this removed entirely?  ideally, every node has a session ID associated with it
         }
     }
@@ -1277,7 +1277,7 @@ export class ObjectExplorerService {
 
         const connectionNode = this._connectionNodes.get(id);
         if (!connectionNode) {
-            this._logger.error(`Connection node with ID ${id} not found.`);
+            this._logger.verbose(`Connection node with ID ${id} not found.`);
         }
 
         return connectionNode;
@@ -1290,7 +1290,7 @@ export class ObjectExplorerService {
 
         const serverGroupNode = this._connectionGroupNodes.get(id);
         if (!serverGroupNode) {
-            this._logger.error(`Server group node with ID ${id} not found.`);
+            this._logger.verbose(`Server group node with ID ${id} not found.`);
         }
 
         return serverGroupNode;
