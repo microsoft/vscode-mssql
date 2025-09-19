@@ -561,7 +561,7 @@ export default class QueryRunner {
         } catch (error) {
             // TODO: Localize
             this._vscodeWrapper.showErrorMessage(
-                "Something went wrong getting more rows: " + error.message,
+                LocalizedConstants.QueryResult.getRowsError(getErrorMessage(error)),
             );
             void Promise.reject(error);
         }
