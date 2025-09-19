@@ -272,8 +272,7 @@ export default class SqlDocumentService implements vscode.Disposable {
         }
 
         const activeDocumentUri = getUriKey(editor.document.uri);
-        const activeConnection =
-            await this._connectionMgr?.getConnectionInfoFromUri(activeDocumentUri);
+        const activeConnection = this._connectionMgr?.getConnectionInfoFromUri(activeDocumentUri);
 
         if (activeConnection) {
             this._lastActiveConnectionInfo = Utils.deepClone(activeConnection);
