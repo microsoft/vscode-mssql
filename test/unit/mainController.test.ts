@@ -18,7 +18,6 @@ import * as Constants from "../../src/constants/constants";
 suite("MainController Tests", function () {
     let mainController: MainController;
     let connectionManager: TypeMoq.IMock<ConnectionManager>;
-    // Use the real SqlDocumentService instance from the controller
 
     setup(async () => {
         // Need to activate the extension to get the mainController
