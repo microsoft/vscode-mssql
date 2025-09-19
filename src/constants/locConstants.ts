@@ -1189,6 +1189,19 @@ export class PublishProject {
     public static PublishTargetContainer = l10n.t("Local development container");
     public static GenerateScript = l10n.t("Generate Script");
     public static Publish = l10n.t("Publish");
+    public static SqlServerPortNumber = l10n.t("SQL Server port number");
+    public static SqlServerAdminPassword = l10n.t("SQL Server admin password");
+    public static SqlServerAdminPasswordConfirm = l10n.t("Confirm SQL Server admin password");
+    public static SqlServerImageTag = l10n.t("Image tag");
+    public static UserLicenseAgreement = (licenseUrl: string) =>
+        l10n.t({
+            message:
+                'I accept the <a href="{0}" target="_blank" rel="noopener noreferrer">Microsoft SQL Server License Agreement</a>',
+            args: [licenseUrl],
+            comment: [
+                "{0} is the hyperlink URL to the Microsoft SQL Server License Agreement used in an HTML anchor tag",
+            ],
+        });
 }
 
 export class SchemaCompare {

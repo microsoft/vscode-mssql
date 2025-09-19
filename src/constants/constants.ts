@@ -281,3 +281,13 @@ export const x64 = "x64";
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";
 export const docker = "docker";
 export const dockerDeploymentLoggerChannelName = "Docker Deployment";
+
+// SQL Database Projects Constants
+export const DSP_PREFIX = "Microsoft.Data.Tools.Schema.Sql.Sql";
+export const DSP_SUFFIX = "DatabaseSchemaProvider";
+export const sqlServerDockerRegistry = "mcr.microsoft.com";
+export const sqlServerDockerRepository = "mssql/server";
+export const sqlServerEulaLink = "https://aka.ms/mssql-container-license";
+export const dockerImageDefaultTag = "latest";
+export const AzureSqlDbFullDockerImageName = "Azure SQL Database (Edge emulation)"; // placeholder label
+export const SqlServerDockerImageName = "SQL Server";

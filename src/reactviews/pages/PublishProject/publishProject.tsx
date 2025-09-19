@@ -15,6 +15,7 @@ import {
 } from "../../../sharedInterfaces/publishDialog";
 import { FormContextProps } from "../../../sharedInterfaces/form";
 import PublishProfileField from "./components/PublishProfile";
+import PublishTargetField from "./components/PublishTarget";
 
 const useStyles = makeStyles({
     root: { padding: "12px" },
@@ -55,24 +56,22 @@ function PublishProjectInner() {
     const state = context.state;
 
     // Static list of main publish dialog options
-    const mainOptions: (keyof IPublishForm)[] = [
-        "publishTarget",
-        "profileName",
-        "serverName",
-        "databaseName",
-    ];
+    const mainOptions: (keyof IPublishForm)[] = ["profileName", "serverName", "databaseName"];
 
     return (
         <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
             <div className={classes.root}>
                 <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
+                    {/* Publish Target (with container extension) */}
+                    <PublishTargetField idx={0} />
                     {mainOptions.map((optionName, idx) => {
+                        const actualIdx = idx + 1; // shift because publish target inserted first
                         if (!optionName) {
                             return undefined;
                         }
 
                         if ((optionName as string) === "profileName") {
-                            return <PublishProfileField key={String(optionName)} idx={idx} />;
+                            return <PublishProfileField key={String(optionName)} idx={actualIdx} />;
                         }
 
                         const component = state.formComponents[
@@ -91,7 +90,7 @@ function PublishProjectInner() {
                                 key={String(optionName)}
                                 context={context}
                                 component={component}
-                                idx={idx}
+                                idx={actualIdx}
                                 props={{ orientation: "horizontal" }}
                             />
                         );

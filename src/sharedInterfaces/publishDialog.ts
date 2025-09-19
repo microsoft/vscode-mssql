@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { FormItemSpec, FormState, FormReducers } from "./form";
-import { RequestType } from "vscode-jsonrpc/browser";
 
 /**
  * Data fields shown in the Publish form.
@@ -15,6 +14,13 @@ export interface IPublishForm {
     databaseName?: string;
     publishTarget?: "existingServer" | "localContainer";
     sqlCmdVariables?: { [key: string]: string };
+
+    // Local container specific fields
+    containerPort?: string; // store as string for easy binding, validate numeric
+    containerAdminPassword?: string;
+    containerAdminPasswordConfirm?: string;
+    containerImageTag?: string; // selected image tar path or name
+    acceptContainerLicense?: boolean;
 }
 
 export interface PublishDialogWebviewState
@@ -22,6 +28,7 @@ export interface PublishDialogWebviewState
     projectFilePath: string;
     inProgress: boolean;
     lastPublishResult?: { success: boolean; details?: string };
+    projectProperties?: ProjectProperties; // cached full project properties (including targetVersion)
 }
 
 /**
@@ -32,6 +39,17 @@ export interface PublishDialogFormItemSpec
     isAdvancedOption?: boolean;
     optionCategory?: string;
     optionCategoryLabel?: string;
+}
+
+export interface ProjectProperties {
+    targetVersion?: string;
+    projectGuid?: string;
+    configuration?: string;
+    outputPath?: string;
+    databaseSource?: string;
+    defaultCollation?: string;
+    databaseSchemaProvider?: string;
+    projectStyle?: unknown;
 }
 
 /**
@@ -45,6 +63,11 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
         publishTarget?: "existingServer" | "localContainer";
         sqlCmdVariables?: { [key: string]: string };
         projectFilePath?: string;
+        containerPort?: string;
+        containerAdminPassword?: string;
+        containerAdminPasswordConfirm?: string;
+        containerImageTag?: string;
+        acceptContainerLicense?: boolean;
     };
 
     publishNow: {
@@ -58,11 +81,7 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     openPublishAdvanced: {};
     selectPublishProfile: {};
     savePublishProfile: { profileName: string };
-}
-
-/**
- * Example request pattern retained for future preview scenarios.
- */
-export namespace GetPublishPreviewRequest {
-    export const type = new RequestType<void, string, void>("getPublishPreview");
+    fetchTargetDetails: {}; // no-op now (legacy placeholder)
+    getProjectProperties: {};
+    fetchDockerTags: { tagsUrl: string };
 }
