@@ -949,6 +949,13 @@ export class QueryResult {
                 "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum",
             ],
         });
+    public static summaryFetchConfirmation = (numRows: number) =>
+        l10n.t({
+            message:
+                "You have selected data across {0} rows, it might take a while to load the data and calculate the summary, do you want to continue?",
+            args: [numRows],
+            comment: ["{0} is the number of rows to fetch summary statistics for"],
+        });
     public static getRowsError = (error: string) =>
         l10n.t({
             message: "An error occurred while retrieving rows: {0}",

@@ -51,6 +51,8 @@ import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { SelectionSummaryStats } from "../sharedInterfaces/queryResult";
+import { calculateSelectionSummaryFromData } from "../queryResult/utils";
 
 export interface IResultSet {
     columns: string[];
@@ -1051,6 +1053,55 @@ export default class QueryRunner {
         );
 
         await this.writeStringToClipboard(insertIntoString);
+    }
+
+    public async generateSelectionSummaryData(
+        selection: ISlickRange[],
+        batchId: number,
+        resultId: number,
+    ): Promise<SelectionSummaryStats> {
+        // Keep copy order deterministic
+        selection.sort((a, b) => a.fromRow - b.fromRow);
+
+        let totalRows = 0;
+        for (let range of selection) {
+            totalRows += range.toRow - range.fromRow + 1;
+        }
+
+        const summaryFetchThreshold =
+            vscode.workspace
+                .getConfiguration()
+                .get<number>(Constants.configInMemoryDataProcessingThreshold) ?? 5000;
+
+        if (totalRows > summaryFetchThreshold) {
+            let confirm = await vscode.window.showInformationMessage(
+                LocalizedConstants.QueryResult.summaryFetchConfirmation(totalRows),
+                { modal: false },
+                LocalizedConstants.msgYes,
+            );
+            if (confirm !== LocalizedConstants.msgYes) {
+                return;
+            }
+        }
+
+        const rowIdToSelectionMap = new Map<number, ISlickRange[]>();
+        const rowIdToRowMap = new Map<number, DbCellValue[]>();
+
+        // Fetch all ranges in parallel; fill the maps as results come in
+        await Promise.all(
+            selection.map(async (range) => {
+                const count = range.toRow - range.fromRow + 1;
+                const result = await this.getRows(range.fromRow, count, batchId, resultId);
+                this.getRowMappings(
+                    result.resultSubset.rows,
+                    range,
+                    rowIdToSelectionMap,
+                    rowIdToRowMap,
+                );
+            }),
+        );
+
+        return calculateSelectionSummaryFromData(rowIdToRowMap, rowIdToSelectionMap);
     }
 
     public async toggleSqlCmd(): Promise<boolean> {

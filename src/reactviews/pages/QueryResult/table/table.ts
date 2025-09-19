@@ -80,6 +80,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
                 hasRowSelector: true,
             },
             context,
+            uri,
+            resultSetSummary,
         );
         if (
             !configuration ||

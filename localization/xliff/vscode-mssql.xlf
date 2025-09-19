@@ -3221,6 +3221,10 @@
     <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
       <source xml:lang="en">You are not connected to any database.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9b358aeeb5265d934737d601151f0982e0b833eaa6abb54c40be62ed494882b8">
+      <source xml:lang="en">You have selected data across {0} rows, it might take a while to load the data and calculate the summary, do you want to continue?</source>
+      <note>{0} is the number of rows to fetch summary statistics for</note>
+    </trans-unit>
     <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
       <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
     </trans-unit>
