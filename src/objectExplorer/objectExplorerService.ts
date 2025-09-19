@@ -87,7 +87,7 @@ export class ObjectExplorerService {
         const rootId = this._connectionManager.connectionStore.rootGroupId;
 
         if (!this._connectionGroupNodes.has(rootId)) {
-            this._logger.verbose(
+            this._logger.error(
                 "Root server group is not defined. Cannot get root nodes for Object Explorer.",
             );
             return [];
@@ -611,6 +611,11 @@ export class ObjectExplorerService {
             setTimeout(() => this._refreshCallback(element), 0);
             return children;
         }
+    }
+
+    public async initialize(): Promise<void> {
+        // Pre-load root nodes to ensure connection/group maps are populated
+        await this.getRootNodes();
     }
 
     /**
