@@ -81,6 +81,7 @@ export class ObjectExplorerService {
 
     private _connectionNodes = new Map<string, ConnectionNode>();
     private _connectionGroupNodes = new Map<string, ConnectionGroupNode>();
+    private _isInitialized = false;
     private get _rootTreeNodeArray(): Array<TreeNodeInfo> {
         const result = [];
 
@@ -137,6 +138,20 @@ export class ObjectExplorerService {
         this._client.onNotification(ExpandCompleteNotification.type, (e) =>
             this.handleExpandNodeNotification(e),
         );
+    }
+
+    /**
+     * Initialize the Object Explorer service by preloading connection groups and nodes.
+     * This ensures that _connectionGroupNodes is populated before any UI components
+     * attempt to access root nodes, preventing console error messages.
+     */
+    public async initialize(): Promise<void> {
+        if (!this._isInitialized) {
+            this._logger.verbose("Initializing Object Explorer service...");
+            await this.getRootNodes();
+            this._isInitialized = true;
+            this._logger.verbose("Object Explorer service initialized successfully.");
+        }
     }
 
     /**
@@ -623,11 +638,11 @@ export class ObjectExplorerService {
     public async createSession(
         connectionInfo?: IConnectionInfo,
     ): Promise<CreateSessionResult | undefined> {
-        if (!this._rootTreeNodeArray) {
+        if (!this._isInitialized) {
             // Ensure root nodes are loaded.
             // This is needed when connection attempts are made before OE has been activated
             // e.g. User clicks connect button from Editor before ever viewing the OE panel
-            await this.getRootNodes();
+            await this.initialize();
         }
 
         const createSessionActivity = startActivity(
