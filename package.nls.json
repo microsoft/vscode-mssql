@@ -226,5 +226,6 @@
     "mssql.connectionSharing.clearAllConnectionSharingPermissions": "Clear All Connection Sharing Permissions",
     "mssql.statusBar.connectionInfoMaxLength.description": "The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.",
     "mssql.schemaDesigner.enableExpandCollapseButtons": "Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns",
-    "mssql.connectionManagement.rememberPasswordsUntilRestart": "Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session."
+    "mssql.connectionManagement.rememberPasswordsUntilRestart": "Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.",
+    "mssql.query.summaryFetchThreshold": "The maximum number of cells that can be included in a summary fetch before prompting the user for confirmation."
 }

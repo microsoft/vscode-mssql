@@ -2028,6 +2028,12 @@
                     "type": "boolean",
                     "default": true,
                     "description": "%mssql.connectionManagement.rememberPasswordsUntilRestart%"
+                },
+                "mssql.query.summaryFetchThreshold": {
+                    "type": "number",
+                    "default": 5000,
+                    "minimum": 0,
+                    "description": "%mssql.query.summaryFetchThreshold%"
                 }
             }
         },

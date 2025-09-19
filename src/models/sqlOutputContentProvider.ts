@@ -246,6 +246,17 @@ export class SqlOutputContentProvider {
             .queryRunner.copyResultsAsInsertInto(selection, batchId, resultId);
     }
 
+    public generateSelectionSummaryData(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+    ): Promise<qr.SelectionSummaryStats> {
+        return this._queryResultsMap
+            .get(uri)
+            .queryRunner.generateSelectionSummaryData(selection, batchId, resultId);
+    }
+
     public editorSelectionRequestHandler(uri: string, selection: ISelectionData): void {
         void this._queryResultsMap.get(uri).queryRunner.setEditorSelection(selection);
     }
