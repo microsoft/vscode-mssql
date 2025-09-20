@@ -5,18 +5,19 @@
 
 import { useContext } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
-import { FormField, useFormStyles } from "../../common/forms/form.component";
+import { useFormStyles } from "../../common/forms/form.component";
 import { PublishProjectStateProvider, PublishProjectContext } from "./publishProjectStateProvider";
-import { useVscodeSelector } from "../../common/useVscodeSelector";
+import { usePublishDialogSelector } from "./publishDialogSelector";
 import { LocConstants } from "../../common/locConstants";
 import {
     IPublishForm,
     PublishDialogFormItemSpec,
     PublishDialogState,
-    PublishDialogReducers,
 } from "../../../sharedInterfaces/publishDialog";
 import { FormContextProps } from "../../../sharedInterfaces/form";
-import { PublishProfileField } from "./components/PublishProfile";
+import { PublishProfileField } from "./components/PublishProfileSection";
+import { PublishTargetSection } from "./components/PublishTargetSection";
+import { ConnectionSection } from "./components/ConnectionSection";
 
 const useStyles = makeStyles({
     root: { padding: "12px" },
@@ -50,64 +51,23 @@ function PublishProjectInner() {
     const loc = LocConstants.getInstance().publishProject;
     const context = useContext(PublishProjectContext) as PublishFormContext | undefined;
     // Select pieces of state needed for this component
-    const formComponents = useVscodeSelector<
-        PublishDialogState,
-        PublishDialogReducers,
-        PublishDialogState["formComponents"] | undefined
-    >((s) => s.formComponents, Object.is);
-    const formState = useVscodeSelector<
-        PublishDialogState,
-        PublishDialogReducers,
-        PublishDialogState["formState"] | undefined
-    >((s) => s.formState, Object.is);
+    const formComponents = usePublishDialogSelector((s) => s.formComponents, Object.is);
+    const formState = usePublishDialogSelector((s) => s.formState, Object.is);
 
     const loading = !context || !formComponents || !formState;
     if (loading) {
         return <div className={classes.root}>Loading...</div>;
     }
 
-    // Static list of main publish dialog options
-    const mainOptions: (keyof IPublishForm)[] = [
-        "publishTarget",
-        "profileName",
-        "serverName",
-        "databaseName",
-    ];
+    // Static ordering now expressed via explicit section components.
 
     return (
         <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
             <div className={classes.root}>
                 <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
-                    {mainOptions.map((optionName, idx) => {
-                        if (!optionName) {
-                            return undefined;
-                        }
-
-                        if ((optionName as string) === "profileName") {
-                            return <PublishProfileField key={String(optionName)} idx={idx} />;
-                        }
-
-                        const component = formComponents[
-                            optionName as keyof IPublishForm
-                        ] as PublishDialogFormItemSpec;
-                        if (!component || component.hidden === true) {
-                            return undefined;
-                        }
-                        return (
-                            <FormField<
-                                IPublishForm,
-                                PublishDialogState,
-                                PublishDialogFormItemSpec,
-                                PublishFormContext
-                            >
-                                key={String(optionName)}
-                                context={context}
-                                component={component}
-                                idx={idx}
-                                props={{ orientation: "horizontal" }}
-                            />
-                        );
-                    })}
+                    <PublishTargetSection idx={0} />
+                    <PublishProfileField idx={1} />
+                    <ConnectionSection startIdx={2} />
 
                     <div className={classes.footer}>
                         <Button
