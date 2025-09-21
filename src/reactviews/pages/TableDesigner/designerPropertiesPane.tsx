@@ -26,7 +26,11 @@ import {
     DropDownProperties,
     InputBoxProperties,
 } from "../../../sharedInterfaces/tableDesigner";
-import { ChevronRightFilled, ChevronLeftFilled, DismissRegular } from "@fluentui/react-icons";
+import {
+    ChevronRight16Regular,
+    ChevronLeft16Regular,
+    Dismiss16Regular,
+} from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
 import { useAccordionStyles } from "../../common/styles";
 
@@ -40,13 +44,14 @@ const useStyles = makeStyles({
     },
     title: {
         display: "flex",
-        height: "30px",
-        paddingTop: "10px",
-        paddingBottom: "10px",
-        "> *": {
-            marginRight: "10px",
-        },
-        lineHeight: "30px",
+        alignItems: "center",
+        gap: "8px",
+        padding: "6px 8px",
+        borderBottom: "1px solid var(--vscode-editorWidget-border)",
+        backgroundColor: "var(--vscode-editorWidget-background)",
+        boxShadow: "0 1px 0 var(--vscode-editorWidget-border), 0 2px 6px rgba(0, 0, 0, 0.2)",
+        position: "relative",
+        zIndex: 1,
     },
     stack: {
         marginBottom: "10px",
@@ -55,6 +60,7 @@ const useStyles = makeStyles({
         "> *": {
             marginBottom: "10px",
         },
+        ...shorthands.flex(1),
         overflowY: "auto",
         backgroundColor: "var(--vscode-editor-background)",
     },
@@ -163,7 +169,6 @@ export const DesignerPropertiesPane = () => {
                                                 ...propertiesPaneData!.componentPath,
                                                 item.propertyName,
                                             ]}
-                                            loadPropertiesTabData={false}
                                             key={`${group}-${item.propertyName}`}
                                         />
                                     );
@@ -245,7 +250,7 @@ export const DesignerPropertiesPane = () => {
         <div className={classes.root}>
             <div className={classes.title}>
                 <Button
-                    appearance="transparent"
+                    appearance="subtle"
                     onClick={() => {
                         if (context.propertiesPaneResizeInfo.isMaximized) {
                             context.propertiesPaneResizeInfo.setCurrentWidth(
@@ -258,14 +263,14 @@ export const DesignerPropertiesPane = () => {
                     }}
                     title={
                         context.propertiesPaneResizeInfo.isMaximized
-                            ? locConstants.tableDesigner.restorePanelSize
-                            : locConstants.tableDesigner.maximizePanelSize
+                            ? locConstants.tableDesigner.restorePropertiesPane
+                            : locConstants.tableDesigner.expandPropertiesPane
                     }
                     icon={
                         context.propertiesPaneResizeInfo.isMaximized ? (
-                            <ChevronRightFilled />
+                            <ChevronRight16Regular />
                         ) : (
-                            <ChevronLeftFilled />
+                            <ChevronLeft16Regular />
                         )
                     }
                     style={{
@@ -273,7 +278,7 @@ export const DesignerPropertiesPane = () => {
                     }}
                 />
                 <Text
-                    size={500}
+                    size={400}
                     weight="semibold"
                     style={{
                         flex: 1,
@@ -284,16 +289,12 @@ export const DesignerPropertiesPane = () => {
                     )}
                 </Text>
                 <Button
-                    appearance="transparent"
+                    appearance="subtle"
                     onClick={() => {
                         context.setPropertiesComponents(undefined);
                     }}
-                    title={
-                        context.propertiesPaneResizeInfo.isMaximized
-                            ? locConstants.tableDesigner.restorePanelSize
-                            : locConstants.tableDesigner.maximizePanelSize
-                    }
-                    icon={<DismissRegular />}
+                    title={locConstants.common.close}
+                    icon={<Dismiss16Regular />}
                 />
             </div>
             <div className={classes.stack}>

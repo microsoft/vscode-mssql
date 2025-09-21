@@ -48,13 +48,17 @@ export const DesignerDropdown = ({
 
     return (
         <Field
-            label={{
-                children: showLabel ? (
-                    <InfoLabel size="small" info={component.description}>
-                        {showLabel ? component.componentProperties.title : undefined}
-                    </InfoLabel>
-                ) : undefined,
-            }}
+            label={
+                showLabel
+                    ? {
+                          children: (
+                              <InfoLabel size="small" info={component.description}>
+                                  {component.componentProperties.title}
+                              </InfoLabel>
+                          ),
+                      }
+                    : undefined
+            }
             validationState={
                 showError && context.getErrorMessage(componentPath) ? "error" : undefined
             }
@@ -67,6 +71,7 @@ export const DesignerDropdown = ({
                     width: width,
                     minWidth: width,
                     maxWidth: width,
+                    height: "100%",
                     border: context.getErrorMessage(componentPath)
                         ? "1px solid var(--vscode-errorForeground)"
                         : undefined,
@@ -93,46 +98,6 @@ export const DesignerDropdown = ({
                     value: value[0],
                 }}
             />
-            {/* <Dropdown
-                aria-labelledby={dropdownId}
-                ref={(el) => context.addElementRef(componentPath, el, UiArea)}
-                selectedOptions={value}
-                disabled={model.enabled === undefined ? false : !model.enabled}
-                style={{
-                    width: width,
-                    minWidth: width,
-                    maxWidth: width,
-                    border: context.getErrorMessage(componentPath)
-                        ? "1px solid var(--vscode-errorForeground)"
-                        : undefined,
-                }}
-                value={model.value}
-                size="small"
-                onOptionSelect={(_event, option) => {
-                    if (model.enabled === false) {
-                        return;
-                    }
-                    context.processTableEdit({
-                        path: componentPath,
-                        value: option.optionValue!.toString(),
-                        type: DesignerEditType.Update,
-                        source: UiArea,
-                    });
-                }}
-                aria-errormessage={context.getErrorMessage(componentPath) ?? ""}
-            >
-                {model.values
-                    .sort((a, b) => a.localeCompare(b))
-                    .map((option, index) => (
-                        <Option
-                            key={componentPath.join(".") + index}
-                            text={option}
-                            value={option}
-                        >
-                            {option}
-                        </Option>
-                    ))}
-            </Dropdown> */}
         </Field>
     );
 };

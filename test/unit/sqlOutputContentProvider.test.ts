@@ -15,6 +15,7 @@ import { ISelectionData } from "../../src/models/interfaces";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import * as sinon from "sinon";
+import QueryRunner from "../../src/controllers/queryRunner";
 
 suite("SqlOutputProvider Tests using mocks", () => {
     const testUri = "Test_URI";
@@ -77,6 +78,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         context.setup((c) => c.extensionPath).returns(() => "test_uri");
         const subscriptions: vscode.Disposable[] = [];
         context.setup((c) => c.subscriptions).returns(() => subscriptions);
+
         contentProvider = new SqlOutputContentProvider(
             context.object,
             statusView.object,
@@ -486,6 +488,13 @@ suite("SqlOutputProvider Tests using mocks", () => {
                 let config = stubs.createWorkspaceConfiguration(configResult);
                 return config;
             });
+
+        contentProvider.queryResultWebviewController.createPanelController = sandbox
+            .stub()
+            .resolves();
+
+        sandbox.stub(QueryRunner.prototype, "runQuery").resolves();
+
         let testQueryRunner = contentProvider.getQueryRunner("test_uri");
         assert.equal(testQueryRunner, undefined);
         await contentProvider.runQuery(statusView.object, "test_uri", undefined, "test_title");

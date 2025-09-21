@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 export enum Keys {
-    ArrowDown = "ArrowDown",
-    ArrowUp = "ArrowUp",
     Enter = "Enter",
     Escape = "Escape",
+    ArrowLeft = "ArrowLeft",
+    ArrowRight = "ArrowRight",
+    ArrowUp = "ArrowUp",
+    ArrowDown = "ArrowDown",
     Space = " ",
     c = "c",
     a = "a",

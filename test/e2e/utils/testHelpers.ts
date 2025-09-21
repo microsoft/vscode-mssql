@@ -15,6 +15,7 @@ export async function addDatabaseConnection(
     savePassword: string,
     profileName: string,
 ): Promise<void> {
+    let iframe: FrameLocator;
     // Navigate to Sql Server Tab
     const sqlServerTabContainer = vsCodePage.locator('[role="tab"][aria-label^="SQL Server"]');
     const isSelected = await sqlServerTabContainer.getAttribute("aria-selected");
@@ -28,70 +29,44 @@ export async function addDatabaseConnection(
     await expect(addConnectionButton).toBeVisible({ timeout: 10000 });
     await addConnectionButton.click();
 
-    await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${serverName}`);
-    await vsCodePage.keyboard.press("Enter");
+    iframe = await getWebviewByTitle(vsCodePage, "Connection Dialog");
+
+    await iframe.getByRole("textbox", { name: "Server name" }).fill(serverName);
 
     if (databaseName) {
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${databaseName}`);
+        await iframe.getByRole("textbox", { name: "Database name" }).fill(databaseName);
     }
-    await vsCodePage.keyboard.press("Enter");
-
-    await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${authType}`);
-    await vsCodePage.keyboard.press("Enter");
+    await iframe.getByRole("combobox", { name: "Authentication type" }).click();
+    // Then select an option from the dropdown list that appears
+    await iframe.getByRole("option", { name: authType }).click();
 
     if (authType === "SQL Login") {
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${userName}`);
-        await vsCodePage.keyboard.press("Enter");
+        await iframe.getByRole("textbox", { name: "User name" }).fill(userName);
+        await iframe.getByRole("textbox", { name: "Password" }).fill(password);
 
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${password}`);
-        await vsCodePage.keyboard.press("Enter");
-
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${savePassword}`);
-        await vsCodePage.keyboard.press("Enter");
+        await iframe.getByRole("checkbox", { name: "Save Password" }).click();
     }
 
     if (profileName) {
-        await vsCodePage.fill('input[aria-controls="quickInput_list"]', `${profileName}`);
+        await iframe.getByRole("textbox", { name: "Profile name" }).fill(profileName);
     }
-    await vsCodePage.keyboard.press("Enter");
 
     await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
 
-    const enableTrustServerCertificateButton = await vsCodePage.getByText(
-        "Enable Trust Server Certificate",
-    );
-    const isEnableTrustButtonVisible = await enableTrustServerCertificateButton.isVisible({
-        timeout: 3 * 1000,
-    });
-    if (isEnableTrustButtonVisible) {
-        await enableTrustServerCertificateButton.click();
-    }
+    await iframe.getByRole("checkbox", { name: "Trust server certificate" }).click();
+    await iframe.getByRole("button", { name: "Connect", exact: true }).click();
 }
 
-export async function openNewQueryEditor(
-    vsCodePage: Page,
-    profileName: string,
-    password: string,
-): Promise<void> {
-    await vsCodePage.keyboard.press("Control+P");
+export async function openNewQueryEditor(vsCodePage: Page): Promise<void> {
+    await vsCodePage.keyboard.press(`${getModifierKey()}+P`);
     await waitForCommandPaletteToBeVisible(vsCodePage);
     await vsCodePage.keyboard.type(">MS SQL: New Query");
     await waitForCommandPaletteToBeVisible(vsCodePage);
     await vsCodePage.keyboard.press("Enter");
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.type(profileName);
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.press("Enter");
-    await waitForCommandPaletteToBeVisible(vsCodePage);
-    await vsCodePage.keyboard.type(password);
-    await vsCodePage.keyboard.press("Enter");
-
-    await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
-    await vsCodePage.keyboard.press("Escape");
 }
 
 export async function disconnect(vsCodePage: Page): Promise<void> {
-    await vsCodePage.keyboard.press("Control+P");
+    await vsCodePage.keyboard.press(`${getModifierKey()}+P`);
     await vsCodePage.keyboard.type(">MS SQL: Disconnect");
     // await new Promise(resolve => setTimeout(resolve, 1 * 1000));
     await vsCodePage.keyboard.press("Enter");
@@ -113,4 +88,12 @@ export async function waitForCommandPaletteToBeVisible(vsCodePage: Page): Promis
 
 export async function getWebviewByTitle(vsCodePage: Page, title: string): Promise<FrameLocator> {
     return vsCodePage.frameLocator(".webview").frameLocator(`[title='${title}']`);
+}
+
+export function isMac(): boolean {
+    return process.platform === "darwin";
+}
+
+export function getModifierKey(): string {
+    return isMac() ? "Meta" : "Control";
 }

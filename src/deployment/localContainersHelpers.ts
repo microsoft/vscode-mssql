@@ -27,6 +27,7 @@ import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 
 export async function initializeLocalContainersState(
     groupOptions: FormItemOptions[],
+    selectedGroupId: string | undefined,
 ): Promise<lc.LocalContainersState> {
     const startTime = Date.now();
     const state = new lc.LocalContainersState();
@@ -42,7 +43,7 @@ export async function initializeLocalContainersState(
         port: undefined,
         hostname: "",
         acceptEula: false,
-        groupId: groupOptions[0].value,
+        groupId: selectedGroupId || groupOptions[0]?.value,
     } as lc.DockerConnectionProfile;
     state.dockerSteps = dockerUtils.initializeDockerSteps();
     state.loadState = ApiStatus.Loaded;

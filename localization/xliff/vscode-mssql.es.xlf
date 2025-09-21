@@ -216,6 +216,11 @@
         <note>{0} is the error message</note>
         <target state="translated">Error al quitar la cuenta de Microsoft Entra: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++381d558ea8ee3e00d772e070932d5a334e7743c399dda1ddd675e1962d6e32bc">
+        <source xml:lang="en">An error occurred while retrieving rows: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">An error occurred while retrieving rows: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
         <source xml:lang="en">An error occurred while searching database objects</source>
         <target state="translated">Error al buscar objetos de base de datos</target>
@@ -704,6 +709,10 @@
       <trans-unit id="++CODE++4c7dd73e4af7d97c296dc01ab37edd119e5ef22592cb6a302bd9dc9a55264873">
         <source xml:lang="en">Close Find</source>
         <target state="translated">Cerrar búsqueda</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
+        <source xml:lang="en">Close properties pane</source>
+        <target state="new">Close properties pane</target>
       </trans-unit>
       <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
         <source xml:lang="en">Close the current connection</source>
@@ -1628,6 +1637,10 @@ Error:
         <source xml:lang="en">Expand Workspace Explorer</source>
         <target state="translated">Expandir explorador del área de trabajo</target>
       </trans-unit>
+      <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
+        <source xml:lang="en">Expand properties pane</source>
+        <target state="new">Expand properties pane</target>
+      </trans-unit>
       <trans-unit id="++CODE++c39d646f10769b078ae82be4da7a0079ca91182b241e749be4276e08c215c654">
         <source xml:lang="en">Explorer</source>
         <target state="translated">Explorer</target>
@@ -1777,6 +1790,10 @@ Error:
       <trans-unit id="++CODE++cc941d13be3079b6fc2c4cf73df1e3583aca4d5f0df87203767037625e8d37aa">
         <source xml:lang="en">Failed to start SQL Server container. Please check the error message for more details, and then try again.</source>
         <target state="translated">Error al iniciar el contenedor de SQL Server. Compruebe el mensaje de error para obtener más detalles e inténtelo de nuevo.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++08e3cce193c1731c751f4e68352687632cb9edb3e01e8bc9200742d0bd5f7b2c">
+        <source xml:lang="en">Failed to start query.</source>
+        <target state="new">Failed to start query.</target>
       </trans-unit>
       <trans-unit id="++CODE++8d966abf7ce439608c05903323ea676d64af27e6119ddcc6edebd6db2cd5c479">
         <source xml:lang="en">Failed to start {0}.</source>
@@ -2399,6 +2416,10 @@ Error:
       <trans-unit id="++CODE++934bbb16d95b8f72c6353bba1afc96aee3975ae50aaca4b3abe9389f292b4987">
         <source xml:lang="en">Loading local containers...</source>
         <target state="translated">Cargando contenedores locales...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297">
+        <source xml:lang="en">Loading results...</source>
+        <target state="new">Loading results...</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -3174,6 +3195,10 @@ Error:
       <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
         <source xml:lang="en">Restore panel size</source>
         <target state="translated">Restaurar el tamaño del panel</target>
+      </trans-unit>
+      <trans-unit id="++CODE++26b4293018ea72418733109f2e245387d9dfcfe7d4083c0c1f29eb1155c98365">
+        <source xml:lang="en">Restore properties pane</source>
+        <target state="new">Restore properties pane</target>
       </trans-unit>
       <trans-unit id="++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c">
         <source xml:lang="en">Result Set {0}</source>
@@ -4207,6 +4232,11 @@ Consulta: {1}</target>
         <source xml:lang="en">You are not connected to any database.</source>
         <target state="translated">No está conectado a ninguna base de datos.</target>
       </trans-unit>
+      <trans-unit id="++CODE++9b358aeeb5265d934737d601151f0982e0b833eaa6abb54c40be62ed494882b8">
+        <source xml:lang="en">You have selected data across {0} rows, it might take a while to load the data and calculate the summary, do you want to continue?</source>
+        <note>{0} is the number of rows to fetch summary statistics for</note>
+        <target state="new">You have selected data across {0} rows, it might take a while to load the data and calculate the summary, do you want to continue?</target>
+      </trans-unit>
       <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
         <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
         <target state="translated">Debe iniciar sesión en Azure para poder explorar las bases de datos SQL.</target>
@@ -4496,9 +4526,17 @@ Consulta: {1}</target>
         <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
         <target state="translated">Mostrar automáticamente los resultados de la consulta en una nueva pestaña en lugar del panel de consulta. Esta opción solo surte efecto si "mssql.enableRichExperiences" está habilitado.</target>
       </trans-unit>
+      <trans-unit id="mssql.autoRevealResultsPanel">
+        <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</source>
+        <target state="new">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</target>
+      </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
         <target state="translated">Cancelar la consulta</target>
+      </trans-unit>
+      <trans-unit id="mssql.changeConnection">
+        <source xml:lang="en">Change Connection</source>
+        <target state="new">Change Connection</target>
       </trans-unit>
       <trans-unit id="mssql.changeDatabase">
         <source xml:lang="en">Change Database</source>
