@@ -15,6 +15,12 @@ export interface IPublishForm {
     databaseName?: string;
     publishTarget?: "existingServer" | "localContainer";
     sqlCmdVariables?: { [key: string]: string };
+    // Container deployment specific fields (only used when publishTarget === 'localContainer')
+    containerPort?: string; // kept as string since form inputs are string-based
+    containerAdminPassword?: string;
+    containerAdminPasswordConfirm?: string;
+    containerImageTag?: string;
+    acceptContainerLicense?: boolean;
 }
 
 /**
@@ -26,6 +32,12 @@ export interface PublishDialogState
     projectFilePath: string;
     inProgress: boolean;
     lastPublishResult?: { success: boolean; details?: string };
+    // Optional project metadata (target version, etc.) loaded asynchronously
+    projectProperties?: {
+        targetVersion?: string;
+        // Additional properties can be added here as needed
+        [key: string]: unknown;
+    };
 }
 
 /**
@@ -48,6 +60,11 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
         databaseName?: string;
         publishTarget?: "existingServer" | "localContainer";
         sqlCmdVariables?: { [key: string]: string };
+        containerPort?: string;
+        containerAdminPassword?: string;
+        containerAdminPasswordConfirm?: string;
+        containerImageTag?: string;
+        acceptContainerLicense?: boolean;
         projectFilePath?: string;
     };
 
@@ -60,6 +77,7 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     };
     generatePublishScript: {};
     openPublishAdvanced: {};
+    fetchDockerTags: { tagsUrl: string };
     selectPublishProfile: {};
     savePublishProfile: { profileName: string };
 }

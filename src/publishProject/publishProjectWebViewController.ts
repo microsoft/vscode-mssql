@@ -15,6 +15,9 @@ import {
     PublishDialogState,
 } from "../sharedInterfaces/publishDialog";
 import { generatePublishFormComponents } from "./formComponentHelpers";
+import { getDockerBaseImage, filterAndSortTags } from "./dockerUtils";
+import { readProjectProperties } from "./projectUtils";
+import { SqlProjectsService } from "../services/sqlProjectsService";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -22,17 +25,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
     PublishDialogFormItemSpec,
     PublishDialogReducers
 > {
-    public static mainOptions: readonly (keyof IPublishForm)[] = [
-        "publishTarget",
-        "profileName",
-        "serverName",
-        "databaseName",
-    ];
+    private readonly _sqlProjectsService?: SqlProjectsService;
 
     constructor(
         context: vscode.ExtensionContext,
         _vscodeWrapper: VscodeWrapper,
         projectFilePath: string,
+        sqlProjectsService?: SqlProjectsService,
     ) {
         const initialFormState: IPublishForm = {
             profileName: "",
@@ -65,8 +64,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
             },
         });
 
+        // Store the SQL Projects Service
+        this._sqlProjectsService = sqlProjectsService;
+
         // Initialize so component generation can be async
         void this.initializeDialog(projectFilePath);
+
+        // Register reducers (pure style)
+        this.registerReducers();
     }
 
     private async initializeDialog(projectFilePath: string) {
@@ -78,81 +83,150 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this.state.projectFilePath = projectFilePath;
         }
 
+        // Attempt to load project properties (non-blocking). This enriches state with targetVersion
+        // and other metadata used for default selections (e.g., docker image tags)
+        try {
+            if (this._sqlProjectsService && projectFilePath) {
+                const props = await readProjectProperties(
+                    this._sqlProjectsService,
+                    projectFilePath,
+                );
+                if (props) {
+                    // Copy into loose index-signature shape expected by state
+                    this.state.projectProperties = {
+                        ...props,
+                    } as {
+                        [key: string]: unknown;
+                        targetVersion?: string;
+                    };
+                    // Update state to notify UI of the new project properties
+                    this.updateState();
+                }
+            }
+        } catch {
+            // swallow errors; keep dialog resilient
+        }
+
         await this.updateItemVisibility();
         this.updateState();
     }
+    /** Registers all reducers in pure (immutable) style */
+    private registerReducers() {
+        // setPublishValues
+        this.registerReducer("setPublishValues", async (state, payload) => {
+            const changes = payload || {};
+            const newFormState = { ...state.formState, ...changes };
+            const newState: PublishDialogState = {
+                ...state,
+                formState: newFormState,
+                projectFilePath: changes.projectFilePath ?? state.projectFilePath,
+            };
+            await this.updateItemVisibility();
+            return newState;
+        });
 
-    protected get reducers() {
-        type ReducerFn = (
-            state: PublishDialogState,
-            payload: unknown,
-        ) => Promise<PublishDialogState>;
-        const reducerMap = new Map<string, ReducerFn>();
+        this.registerReducer("publishNow", async (state) => {
+            return { ...state, inProgress: false };
+        });
 
-        reducerMap.set(
-            "setPublishValues",
-            async (
-                state: PublishDialogState,
-                payload: Partial<IPublishForm> & { projectFilePath?: string },
-            ) => {
-                if (payload) {
-                    state.formState = { ...state.formState, ...payload };
-                    if (payload.projectFilePath) {
-                        state.projectFilePath = payload.projectFilePath;
+        this.registerReducer("generatePublishScript", async (state) => {
+            return { ...state }; // placeholder
+        });
+
+        this.registerReducer("selectPublishProfile", async (state) => {
+            return { ...state }; // placeholder for future selection logic
+        });
+
+        this.registerReducer("savePublishProfile", async (state, payload) => {
+            if (payload?.profileName) {
+                return {
+                    ...state,
+                    formState: { ...state.formState, profileName: payload.profileName },
+                };
+            }
+            return state;
+        });
+
+        this.registerReducer("openPublishAdvanced", async (state) => {
+            return { ...state }; // no-op placeholder
+        });
+
+        this.registerReducer("fetchDockerTags", async (state, payload) => {
+            const url = payload?.tagsUrl;
+            let tags: string[] = [];
+            if (url) {
+                try {
+                    const resp = await fetch(url, { method: "GET" });
+                    if (resp.ok) {
+                        const json = await resp.json();
+                        if (json?.tags && Array.isArray(json.tags)) {
+                            tags = json.tags as string[];
+                        }
                     }
+                } catch {
+                    // ignore network errors; leave tags empty
                 }
-                this.updateState(state);
-                return state;
-            },
-        );
+            }
 
-        reducerMap.set("publishNow", async (state: PublishDialogState) => {
-            state.inProgress = false;
-            this.updateState(state);
-            return state;
+            const targetVersion = state.projectProperties?.targetVersion || "";
+            const baseImage = getDockerBaseImage(targetVersion, undefined);
+            const imageTags = filterAndSortTags(tags, baseImage, targetVersion, true);
+
+            // Update containerImageTag component options if present
+            const newFormComponents = { ...state.formComponents };
+            const tagComponent = newFormComponents["containerImageTag"] as
+                | PublishDialogFormItemSpec
+                | undefined;
+            if (tagComponent) {
+                const updatedTagComponent: PublishDialogFormItemSpec = {
+                    ...tagComponent,
+                    options: imageTags.map((t) => ({ value: t, displayName: t })),
+                };
+                newFormComponents["containerImageTag"] = updatedTagComponent;
+            }
+
+            let newSelectedTag = state.formState.containerImageTag;
+            if (imageTags.length > 0 && (!newSelectedTag || !imageTags.includes(newSelectedTag))) {
+                newSelectedTag = imageTags[0];
+            }
+
+            return {
+                ...state,
+                formComponents: newFormComponents,
+                formState: { ...state.formState, containerImageTag: newSelectedTag },
+            };
         });
-
-        reducerMap.set("generatePublishScript", async (state: PublishDialogState) => {
-            this.updateState(state);
-            return state;
-        });
-
-        reducerMap.set("selectPublishProfile", async (state: PublishDialogState) => {
-            this.updateState(state);
-            return state;
-        });
-
-        reducerMap.set(
-            "savePublishProfile",
-            async (state: PublishDialogState, payload: { profileName?: string }) => {
-                if (payload?.profileName) {
-                    state.formState.profileName = payload.profileName;
-                }
-                this.updateState(state);
-                return state;
-            },
-        );
-
-        return reducerMap;
     }
 
-    protected getActiveFormComponents(_state: PublishDialogState) {
-        return [...PublishProjectWebViewController.mainOptions];
+    protected getActiveFormComponents(state: PublishDialogState): (keyof IPublishForm)[] {
+        const activeComponents: (keyof IPublishForm)[] = [
+            "publishTarget",
+            "profileName",
+            "serverName",
+            "databaseName",
+        ];
+
+        if (state.formState.publishTarget === "localContainer") {
+            activeComponents.push(
+                "containerPort",
+                "containerAdminPassword",
+                "containerAdminPasswordConfirm",
+                "containerImageTag",
+                "acceptContainerLicense",
+            );
+        }
+
+        return activeComponents;
     }
 
     public async updateItemVisibility(): Promise<void> {
         const hidden: (keyof IPublishForm)[] = [];
-
-        // Example visibility: local container target doesn't require a server name
         if (this.state.formState?.publishTarget === "localContainer") {
             hidden.push("serverName");
         }
 
         for (const component of Object.values(this.state.formComponents)) {
-            // mark hidden if the property is in hidden list
             component.hidden = hidden.includes(component.propertyName as keyof IPublishForm);
         }
-
-        return;
     }
 }
