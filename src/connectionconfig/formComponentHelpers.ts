@@ -206,6 +206,64 @@ export async function completeFormComponents(
         required: false,
         type: FormItemType.Input,
         isAdvancedOption: false,
+        validate: (state: ConnectionDialogWebviewState, value: string) => {
+            // If a user provided a profile name, ensure it isn't already used by a different connection
+            if (value) {
+                const duplicate = (state.savedConnections || []).find(
+                    (c) => c.profileName === value && c.id !== state.connectionProfile.id,
+                );
+                if (duplicate) {
+                    // If the duplicate refers to the exact same connection (same server/db/user/profileName), don't allow it
+                    const sameBase =
+                        duplicate.server?.trim() === state.connectionProfile.server?.trim() &&
+                        (duplicate.database?.trim() || "") ===
+                            (state.connectionProfile.database?.trim() || "") &&
+                        (duplicate.user?.trim() || "") ===
+                            (state.connectionProfile.user?.trim() || "") &&
+                        (duplicate.profileName?.trim() || "") ===
+                            (state.connectionProfile.profileName?.trim() || "");
+                    if (sameBase) {
+                        return {
+                            isValid: false,
+                            validationMessage: Loc.profileNameAlreadyInUse,
+                        };
+                    }
+                }
+                // No problematic duplicate found
+                return {
+                    isValid: true,
+                    validationMessage: "",
+                };
+            } else {
+                // No profile name provided — if there are similar saved connections (without profile name)
+                const cleaned = (p: any) => ({
+                    server: p.server?.trim() || "",
+                    database: p.database?.trim() || "",
+                    user: p.user?.trim() || "",
+                    profileName: p.profileName?.trim() || "",
+                    id: p.id || undefined,
+                });
+                const current = cleaned(state.connectionProfile || ({} as any));
+                const similarExists = (state.savedConnections || []).find((c) => {
+                    const other = cleaned(c);
+                    return (
+                        other.server === current.server &&
+                        other.database === current.database &&
+                        other.user === current.user &&
+                        other.profileName === current.profileName &&
+                        other.id !== current.id
+                    );
+                });
+                // if adding a new connection and there is a similar existing one (but not the same), require a profile name
+                if (similarExists) {
+                    return {
+                        isValid: false,
+                        validationMessage: Loc.profileNameTipAdd,
+                    };
+                }
+                return { isValid: true, validationMessage: "" };
+            }
+        },
     };
 
     components["groupId"] = getGroupIdFormItem(

@@ -675,6 +675,12 @@ export class ConnectionDialog {
     public static profileNameTooltip = l10n.t(
         "[Optional] Enter a display name for this connection profile",
     );
+    public static profileNameAlreadyInUse = l10n.t(
+        "Profile name already exists for a different connection. Choose a different name.",
+    );
+    public static profileNameTipAdd = l10n.t(
+        "There is a connection already with the same properties, add a profile name to distinguish similar connections.",
+    );
     public static connectionGroup = l10n.t("Connection Group");
     public static serverIsRequired = l10n.t("Server is required");
     public static usernameIsRequired = l10n.t("User name is required");

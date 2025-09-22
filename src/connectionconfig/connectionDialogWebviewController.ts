@@ -772,6 +772,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             false,
         );
 
+        // Run the validator for profileName only so any validation messages
+        // are populated and visible immediately when editing a saved connection.
+        // This is needed to be done separately from the full validation above
+        // since profileName is optional and shouldn't block the user from connecting.
+        // But we still want to show validation messages if there are issues with it.
+        await this.validateForm(this.state.connectionProfile, "profileName", true);
+
         this.state.readyToConnect = fullValidation.length === 0;
     }
 
@@ -811,7 +818,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     protected getActiveFormComponents(
         state: ConnectionDialogWebviewState,
     ): (keyof IConnectionDialogProfile)[] {
-        return [...state.connectionComponents.mainOptions, "groupId"];
+        return [...state.connectionComponents.mainOptions, "groupId", "profileName"];
     }
 
     /** Returns a copy of `connection` that's been cleaned up by clearing the properties that aren't being used
@@ -1155,6 +1162,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             await this.checkReadyToConnect();
+
+            // Run the validator for profileName so any validation messages
+            // are populated and visible immediately when editing a saved connection.
+            await this.validateForm(this.state.connectionProfile, "profileName", true);
 
             this.updateState();
         }
