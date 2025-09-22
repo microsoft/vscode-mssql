@@ -170,6 +170,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
                         c.columnName === "Microsoft SQL Server 2005 XML Showplan"
                             ? locConstants.queryResult.showplanXML
                             : escape(c.columnName),
+                    toolTip: c.columnName,
                     field: i.toString(),
                     formatter:
                         c.isXml || c.isJson
@@ -317,6 +318,19 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
     useEffect(() => {
         createTableIfNeeded();
     }, [props.resultSetSummary?.rowCount]);
+
+    // Trigger auto-sizing when result data is available and auto-sizing is enabled
+    useEffect(() => {
+        if (tableRef.current && props.resultSetSummary && autoSizeColumns) {
+            // Use a small delay to ensure the grid and data are fully rendered
+            const timeoutId = setTimeout(() => {
+                if (tableRef.current) {
+                    tableRef.current.autosizeColumns();
+                }
+            }, 100);
+            return () => clearTimeout(timeoutId);
+        }
+    }, [props.resultSetSummary, autoSizeColumns]);
 
     return <div id="gridContainter" ref={gridContainerRef}></div>;
 });
