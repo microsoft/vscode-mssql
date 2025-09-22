@@ -2328,6 +2328,9 @@
     <trans-unit id="++CODE++8a0d6f1276ee19a91fb06f73344d1d60f2d1f1c8d7e0454c8bb31ea00c2b9a30">
       <source xml:lang="en">Profile created successfully</source>
     </trans-unit>
+    <trans-unit id="++CODE++2ad597b910803330f2a06b88cd6b6d1a68369268ea567fe650c05e3f1a3221eb">
+      <source xml:lang="en">Profile name already exists for a different connection. Choose a different name.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
       <source xml:lang="en">Profile removed successfully</source>
     </trans-unit>
@@ -3073,6 +3076,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
       <source xml:lang="en">The table which contains the primary or unique key column.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6c2ea4407ae8ceb0caeee88fb312a42a020f47b8e1f269758d78989dde6ca481">
+      <source xml:lang="en">There is a connection already with the same properties, add a profile name to distinguish similar connections.</source>
     </trans-unit>
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>
