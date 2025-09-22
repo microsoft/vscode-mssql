@@ -2062,7 +2062,7 @@ suite("OE Service Tests", () => {
             expect(
                 mockAzureController.refreshAccessToken.args[0][3],
                 "Database resource should match",
-            ).to.equal(getCloudSettings(mockAccount.key.providerId).resources.databaseResource);
+            ).to.equal(getCloudSettings(mockAccount.key.providerId).settings.sqlResource);
 
             // Verify connection credentials were updated with new token
             expect(

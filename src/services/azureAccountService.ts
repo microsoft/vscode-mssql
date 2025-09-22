@@ -39,7 +39,7 @@ export class AzureAccountService implements IAzureAccountService {
         return await this._azureController.getAccountSecurityToken(
             account,
             tenantId,
-            getCloudSettings(account.key.providerId).resources.azureManagementResource,
+            getCloudSettings(account.key.providerId).settings.armResource,
         );
     }
 

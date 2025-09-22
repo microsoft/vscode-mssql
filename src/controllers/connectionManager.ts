@@ -1258,7 +1258,7 @@ export default class ConnectionManager {
             account,
             this.accountStore,
             profile.tenantId,
-            getCloudSettings(account.key.providerId).resources.databaseResource!,
+            getCloudSettings(account.key.providerId).settings.sqlResource!,
         );
 
         if (!azureAccountToken) {
@@ -1271,7 +1271,7 @@ export default class ConnectionManager {
                 await this.azureController.populateAccountProperties(
                     profile,
                     this.accountStore,
-                    getCloudSettings(account.key.providerId).resources.databaseResource!,
+                    getCloudSettings(account.key.providerId).settings.sqlResource!,
                 );
             } else {
                 throw new Error(LocalizedConstants.cannotConnect);
@@ -1856,7 +1856,7 @@ export default class ConnectionManager {
         const token = await this.azureController.getAccountSecurityToken(
             account,
             tenant,
-            getCloudSettings(account.key.providerId).resources.azureKeyVaultResource,
+            getCloudSettings(account.key.providerId).settings.azureKeyVaultResource,
         );
 
         this._keyVaultTokenCache.set(JSON.stringify(params), token);

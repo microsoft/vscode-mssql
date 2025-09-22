@@ -190,7 +190,7 @@ export class VsCodeAzureHelper {
         sub: AzureSubscription,
     ): Promise<GenericResourceExpanded[]> {
         const client = new ResourceManagementClient(sub.credential, sub.subscriptionId, {
-            endpoint: getCloudSettings().resources.azureManagementResource.endpoint,
+            endpoint: getCloudSettings().settings.armResource.endpoint,
         });
         const resources = await listAllIterator<GenericResourceExpanded>(client.resources.list());
         return resources;
@@ -505,8 +505,8 @@ export function extractFromResourceId(resourceId: string, property: string): str
 
 export function buildServerUri(serverResource: GenericResourceExpanded): string {
     const suffix = serverResource.kind.includes("analytics")
-        ? getCloudSettings().resources.databaseResource.analyticsDnsSuffix
-        : getCloudSettings().resources.databaseResource.dnsSuffix;
+        ? getCloudSettings().settings.sqlResource.analyticsDnsSuffix
+        : getCloudSettings().settings.sqlResource.dnsSuffix;
 
     // Construct the URI based on the server kind
     return `${serverResource.name}${suffix}`;

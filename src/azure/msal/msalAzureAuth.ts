@@ -68,7 +68,7 @@ export abstract class MsalAzureAuth {
         let loginComplete: IDeferred<void, Error> | undefined = undefined;
         try {
             this.logger.verbose("Starting login");
-            if (!this.providerSettings.resources.windowsManagementResource) {
+            if (!this.providerSettings.settings.windowsManagementResource) {
                 throw new Error(
                     LocalizedConstants.azureNoMicrosoftResource(this.providerSettings.displayName),
                 );
@@ -164,7 +164,7 @@ export abstract class MsalAzureAuth {
         }
 
         let newScope: string[];
-        if (settings.id === this.providerSettings.resources.windowsManagementResource.id) {
+        if (settings.id === this.providerSettings.settings.windowsManagementResource.id) {
             newScope = [`${endpoint}user_impersonation`];
         } else {
             newScope = [`${endpoint}.default`];
@@ -285,7 +285,7 @@ export abstract class MsalAzureAuth {
 
     public async getTenants(token: string): Promise<ITenant[]> {
         const tenantUri = url.resolve(
-            this.providerSettings.resources.azureManagementResource.endpoint,
+            this.providerSettings.settings.armResource.endpoint,
             "tenants?api-version=2019-11-01",
         );
         try {

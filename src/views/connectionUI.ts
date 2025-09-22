@@ -635,7 +635,7 @@ export class ConnectionUI {
                         await this.connectionManager.azureController.populateAccountProperties(
                             profile as IConnectionProfile,
                             this._accountStore,
-                            getCloudSettings().resources.azureManagementResource, // TODO: confirm selection of correct cloud in this instance
+                            getCloudSettings().settings.armResource, // TODO: confirm selection of correct cloud in this instance
                         );
                 }
                 let account = await this._accountStore.getAccount(profile.accountId);

@@ -171,7 +171,7 @@ export class MsalAzureController extends AzureController {
             newAccount = await azureAuth!.refreshAccessToken(
                 account,
                 AzureConstants.organizationTenant.id,
-                getCloudSettings(account.key.providerId).resources.windowsManagementResource,
+                getCloudSettings(account.key.providerId).settings.windowsManagementResource,
             );
 
             if (newAccount!.isStale === true) {

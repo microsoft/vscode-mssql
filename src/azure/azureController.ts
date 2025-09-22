@@ -161,7 +161,7 @@ export abstract class AzureController {
             const token = await this.getAccountSecurityToken(
                 account,
                 tenantId,
-                getCloudSettings(account.key.providerId).resources.azureManagementResource,
+                getCloudSettings(account.key.providerId).settings.armResource,
             );
             const subClient = this._subscriptionClientFactory(token!);
             const newSubPages = await subClient.subscriptions.list();
@@ -200,7 +200,7 @@ export abstract class AzureController {
                 session.account,
                 accountStore,
                 undefined,
-                getCloudSettings(session.account.key.providerId).resources.azureManagementResource,
+                getCloudSettings(session.account.key.providerId).settings.armResource,
             );
             session.token = token!;
             this.logger.verbose(`Access Token refreshed for account: ${session?.account?.key.id}`);

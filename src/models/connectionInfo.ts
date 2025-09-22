@@ -295,14 +295,12 @@ export function getServerTypes(connection: IConnectionInfo): ServerType[] {
     }
 
     try {
-        if (connection.server.includes(getCloudSettings().resources.databaseResource.dnsSuffix)) {
+        if (connection.server.includes(getCloudSettings().settings.sqlResource.dnsSuffix)) {
             return [ServerType.Azure, ServerType.Sql];
         }
 
         if (
-            connection.server.includes(
-                getCloudSettings().resources.databaseResource.analyticsDnsSuffix,
-            )
+            connection.server.includes(getCloudSettings().settings.sqlResource.analyticsDnsSuffix)
         ) {
             return [ServerType.Azure, ServerType.DataWarehouse];
         }

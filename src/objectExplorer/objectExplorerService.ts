@@ -1012,7 +1012,7 @@ export class ObjectExplorerService {
                 account,
                 this._connectionManager.accountStore,
                 connectionCredentials.tenantId,
-                getCloudSettings(account.key.providerId).resources.databaseResource,
+                getCloudSettings(account.key.providerId).settings.sqlResource,
             );
             if (!azureAccountToken) {
                 this._logger.verbose("Access token could not be refreshed for connection profile.");
@@ -1027,7 +1027,7 @@ export class ObjectExplorerService {
                     let updatedProfile = await azureController.populateAccountProperties(
                         profile,
                         this._connectionManager.accountStore,
-                        getCloudSettings(account.key.providerId).resources.databaseResource,
+                        getCloudSettings(account.key.providerId).settings.sqlResource,
                     );
                     connectionCredentials.azureAccountToken = updatedProfile.azureAccountToken;
                     connectionCredentials.expiresOn = updatedProfile.expiresOn;

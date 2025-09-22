@@ -127,7 +127,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                                 profile,
                                 accountStore,
                                 accountAnswer,
-                                getCloudSettings(account.key.providerId).resources.databaseResource,
+                                getCloudSettings(account.key.providerId).settings.sqlResource,
                             );
                         } catch (error) {
                             console.log(`Refreshing tokens failed: ${error}`);
@@ -137,7 +137,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                             profile = await azureController.populateAccountProperties(
                                 profile,
                                 accountStore,
-                                getCloudSettings().resources.databaseResource,
+                                getCloudSettings().settings.sqlResource,
                             );
                             if (profile) {
                                 vscode.window.showInformationMessage(

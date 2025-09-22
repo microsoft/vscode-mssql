@@ -20,18 +20,18 @@ export const publicAzureSettings: IProviderSettings = {
     loginEndpoint: azureCloudInfo.activeDirectoryEndpointUrl,
     portalEndpoint: azureCloudInfo.portalUrl,
     redirectUri: "http://localhost",
-    resources: {
+    settings: {
         windowsManagementResource: {
             id: "marm",
             resource: "MicrosoftResourceManagement",
             endpoint: azureCloudInfo.managementEndpointUrl,
         },
-        azureManagementResource: {
+        armResource: {
             id: "arm",
             resource: "AzureResourceManagement",
             endpoint: azureCloudInfo.resourceManagerEndpointUrl,
         },
-        databaseResource: {
+        sqlResource: {
             id: "sql",
             resource: "Sql",
             endpoint: "https://database.windows.net/",
@@ -64,18 +64,18 @@ const usGovernmentAzureSettings: IProviderSettings = {
     loginEndpoint: usGovernmentCloudInfo.activeDirectoryEndpointUrl,
     portalEndpoint: usGovernmentCloudInfo.portalUrl,
     redirectUri: "http://localhost",
-    resources: {
+    settings: {
         windowsManagementResource: {
             id: "marm",
             resource: "MicrosoftResourceManagement",
             endpoint: usGovernmentCloudInfo.managementEndpointUrl,
         },
-        azureManagementResource: {
+        armResource: {
             id: "arm",
             resource: "AzureResourceManagement",
             endpoint: usGovernmentCloudInfo.resourceManagerEndpointUrl,
         },
-        databaseResource: {
+        sqlResource: {
             id: "sql",
             resource: "Sql",
             endpoint: "https://database.usgovcloudapi.net/",

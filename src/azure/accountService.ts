@@ -88,7 +88,7 @@ export class AccountService {
             account,
             this._accountStore,
             tenantId,
-            getCloudSettings(account.key.providerId).resources.azureManagementResource,
+            getCloudSettings(account.key.providerId).settings.armResource,
         );
     }
 

@@ -129,8 +129,8 @@ export interface IProviderSettings {
     loginEndpoint: string;
     portalEndpoint: string;
     redirectUri: string;
-    resources: IProviderResources;
-    settings: Settings;
+    settings: IProviderResources;
+    settings2?: Settings; // TODO: remove probably
     fabric: {
         sqlDbDnsSuffix: string;
         dataWarehouseSuffix: string;
@@ -255,9 +255,9 @@ export enum AzureResource {
 
 export interface IProviderResources {
     windowsManagementResource: IAADResource;
-    azureManagementResource: IAADResource;
+    armResource: IAADResource;
     graphResource?: IAADResource;
-    databaseResource?: IAADResource & { analyticsDnsSuffix?: string };
+    sqlResource?: IAADResource & { analyticsDnsSuffix?: string };
     ossRdbmsResource?: IAADResource;
     azureKeyVaultResource?: IAADResource;
     azureDevopsResource?: IAADResource;
