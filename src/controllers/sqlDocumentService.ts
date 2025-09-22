@@ -15,13 +15,21 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import MainController from "./mainController";
 import * as vscodeMssql from "vscode-mssql";
+import { Deferred } from "../protocol";
+import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
+import { sendActionEvent } from "../telemetry/telemetry";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { IConnectionProfile } from "../models/interfaces";
+
 /**
  * Service for creating untitled documents for SQL query
  */
 export default class SqlDocumentService implements vscode.Disposable {
     private _disposables: vscode.Disposable[] = [];
-
-    public skipCopyConnectionUris: Set<string> = new Set();
+    // Track documents created by this service to avoid auto-connecting them on open.
+    // WeakSet ensures entries are garbage collected with the documents.
+    private _ownedDocuments: WeakSet<vscode.TextDocument> = new WeakSet();
     private _ongoingCreates: Map<string, Promise<vscode.TextEditor>> = new Map();
 
     private _lastSavedUri: string | undefined;
@@ -41,6 +49,14 @@ export default class SqlDocumentService implements vscode.Disposable {
         this._outputContentProvider = this._mainController?.outputContentProvider;
         this._statusview = this._mainController?.statusview;
         this.setupListeners();
+    }
+
+    public get objectExplorerService(): ObjectExplorerService | undefined {
+        return this._mainController?.objectEpxplorerProvider?.objectExplorerService;
+    }
+
+    public get objectExplorerTree(): vscode.TreeView<TreeNodeInfo> {
+        return this._mainController?.objectExplorerTree;
     }
 
     private setupListeners(): void {
@@ -75,6 +91,69 @@ export default class SqlDocumentService implements vscode.Disposable {
                 ),
             );
         }
+    }
+
+    /**
+     * Opens a new query and creates new connection. Connection precedence is:
+     * 1. User right-clicked on an OE node and selected "New Query": use that node's connection profile
+     * 2. User triggered "New Query" from command palette and the active document has a connection: copy that to the new document
+     * 3. User triggered "New Query" from command palette while they have a connected OE node selected: use that node's connection profile
+     * 4. User triggered "New Query" from command palette and there's no reasonable context: prompt for connection to use
+     */
+    public async handleNewQueryCommand(node?: TreeNodeInfo, content?: string): Promise<boolean> {
+        if (!this._connectionMgr || !this._mainController) {
+            return false;
+        }
+
+        let connectionCreds: vscodeMssql.IConnectionInfo | undefined;
+        let connectionStrategy: ConnectionStrategy;
+        let nodeType: string | undefined;
+
+        if (node) {
+            // Case 1: User right-clicked on an OE node and selected "New Query"
+            connectionCreds = node.connectionProfile;
+            nodeType = node.nodeType;
+            connectionStrategy = ConnectionStrategy.CopyConnectionFromInfo;
+        } else if (this._lastActiveConnectionInfo) {
+            // Case 2: User triggered "New Query" from command palette and the active document has a connection
+            connectionCreds = undefined;
+            nodeType = "previousEditor";
+            connectionStrategy = ConnectionStrategy.CopyLastActive;
+        } else if (this.objectExplorerTree.selection?.length === 1) {
+            // Case 3: User triggered "New Query" from command palette while they have a connected OE node selected
+            connectionCreds = this.objectExplorerTree.selection[0].connectionProfile;
+            nodeType = this.objectExplorerTree.selection[0].nodeType;
+            connectionStrategy = ConnectionStrategy.CopyConnectionFromInfo;
+        } else {
+            // Case 4: User triggered "New Query" from command palette and there's no reasonable context
+            connectionStrategy = ConnectionStrategy.PromptForConnection;
+        }
+
+        if (connectionCreds) {
+            await this._connectionMgr.handlePasswordBasedCredentials(connectionCreds);
+        }
+
+        await this.newQuery({
+            content,
+            connectionStrategy: connectionStrategy,
+            connectionInfo: connectionCreds,
+        });
+
+        await this._connectionMgr.connectionStore.removeRecentlyUsed(
+            connectionCreds as IConnectionProfile,
+        );
+
+        sendActionEvent(
+            TelemetryViews.CommandPalette,
+            TelemetryActions.NewQuery,
+            {
+                nodeType: nodeType,
+                isContainer: connectionCreds?.containerName ? "true" : "false",
+            },
+            undefined,
+            connectionCreds as IConnectionProfile,
+            this._connectionMgr.getServerInfo(connectionCreds),
+        );
     }
 
     dispose() {
@@ -142,9 +221,6 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         // Delete filters and dimension states for the closed document
         store.deleteMainKey(closedDocumentUri);
-        if (this.skipCopyConnectionUris.has(closedDocumentUri)) {
-            this.skipCopyConnectionUris.delete(closedDocumentUri);
-        }
     }
 
     /**
@@ -159,12 +235,11 @@ export default class SqlDocumentService implements vscode.Disposable {
         this._connectionMgr.onDidOpenTextDocument(doc);
 
         await this.waitForOngoingCreates();
-        const skipCopyConnection = this.shouldSkipCopyConnection(getUriKey(doc.uri));
 
         if (
             this._lastActiveConnectionInfo &&
             doc.languageId === Constants.languageId &&
-            !skipCopyConnection
+            !this._ownedDocuments.has(doc)
         ) {
             await this._connectionMgr.connect(
                 getUriKey(doc.uri),
@@ -190,17 +265,19 @@ export default class SqlDocumentService implements vscode.Disposable {
     }
 
     public async onDidChangeActiveTextEditor(editor: vscode.TextEditor | undefined): Promise<void> {
+        this._statusview?.hideLastShownStatusBar(); // hide the last shown status bar since the active editor has changed
+
         if (!editor?.document) {
             return;
         }
 
         const activeDocumentUri = getUriKey(editor.document.uri);
-        const activeConnection =
-            await this._connectionMgr?.getConnectionInfoFromUri(activeDocumentUri);
+        const activeConnection = this._connectionMgr?.getConnectionInfoFromUri(activeDocumentUri);
 
         if (activeConnection) {
             this._lastActiveConnectionInfo = Utils.deepClone(activeConnection);
         }
+        this._statusview?.updateStatusBarForEditor(editor, activeConnection !== undefined);
     }
 
     /**
@@ -245,59 +322,164 @@ export default class SqlDocumentService implements vscode.Disposable {
     /**
      * Wait for all ongoing create operations to complete
      */
-    public async waitForOngoingCreates(): Promise<vscode.TextEditor[]> {
-        const pendingPromises = Array.from(this._ongoingCreates.values());
-        return Promise.all(pendingPromises);
+    /**
+     * Waits for any in-flight newQuery create operations to settle.
+     * Does not throw if any creation failed.
+     */
+    public async waitForOngoingCreates(): Promise<void> {
+        const pending = Array.from(this._ongoingCreates.values());
+        if (pending.length === 0) {
+            return;
+        }
+        await Promise.allSettled(pending);
     }
 
     /**
-     * Creates new untitled document for SQL query and opens in new editor tab
-     * with optional content
+     * Creates a new untitled SQL document and shows it in an editor.
+     * @param options Options for creating the new document
+     * @returns The newly created text editor
      */
-    public async newQuery(
-        content?: string,
-        shouldCopyLastActiveConnection: boolean = false,
-    ): Promise<vscode.TextEditor> {
-        // Create a unique key for this operation to handle potential duplicates
-        const operationKey = `${Date.now()}-${Math.random()}`;
-        try {
-            const newQueryPromise = new Promise<vscode.TextEditor>(async (resolve) => {
-                const editor = await this.createDocument(content, shouldCopyLastActiveConnection);
-                resolve(editor);
-            });
-            this._ongoingCreates.set(operationKey, newQueryPromise);
+    public async newQuery(options: NewQueryOptions = {}): Promise<vscode.TextEditor> {
+        const operationKey = Utils.generateGuid();
 
+        try {
+            const newQueryPromise = this.createNewQueryDocument(options);
+            this._ongoingCreates.set(operationKey, newQueryPromise);
             return await newQueryPromise;
         } finally {
-            // Clean up the pending operation
             this._ongoingCreates.delete(operationKey);
         }
     }
 
-    private async createDocument(
-        content?: string,
-        shouldCopyLastActiveConnection?: boolean,
-    ): Promise<vscode.TextEditor> {
+    private async createNewQueryDocument(options: NewQueryOptions): Promise<vscode.TextEditor> {
+        // Create the document
+        const editor = await this.createDocument(options.content);
+
+        // Resolve connection strategy and info
+        const connectionConfig = await this.resolveConnectionConfig(options);
+
+        const documentKey = getUriKey(editor.document.uri);
+
+        // Establish connection if needed
+        if (
+            connectionConfig?.shouldConnect &&
+            connectionConfig?.connectionInfo &&
+            this._connectionMgr
+        ) {
+            const connectionPromise = new Deferred<boolean>();
+
+            await this._connectionMgr.connect(
+                documentKey,
+                connectionConfig.connectionInfo,
+                connectionPromise,
+            );
+
+            const connectionResult = await connectionPromise.promise;
+            if (connectionResult) {
+                /**
+                 * Skip creating an Object Explorer session if one already exists for the connection.
+                 */
+                if (!this.objectExplorerService?.hasSession(connectionConfig.connectionInfo)) {
+                    await this._mainController.createObjectExplorerSession(
+                        connectionConfig.connectionInfo,
+                    );
+                }
+            }
+        }
+
+        // Update status views
+        this._statusview?.languageFlavorChanged(documentKey, Constants.mssqlProviderName);
+        this._statusview?.sqlCmdModeChanged(documentKey, false);
+
+        return editor;
+    }
+
+    private async resolveConnectionConfig(
+        options: NewQueryOptions,
+    ): Promise<ResolvedConnectionConfig> {
+        const strategy = options.connectionStrategy ?? ConnectionStrategy.CopyLastActive;
+
+        switch (strategy) {
+            case ConnectionStrategy.DoNotConnect:
+                return { shouldConnect: false };
+
+            case ConnectionStrategy.CopyConnectionFromInfo:
+                if (!options.connectionInfo) {
+                    throw new Error(
+                        "connectionInfo is required when using CopyConnectionFromInfo connection strategy",
+                    );
+                }
+                return {
+                    shouldConnect: true,
+                    connectionInfo: Utils.deepClone(options.connectionInfo),
+                };
+
+            case ConnectionStrategy.CopyFromUri:
+                if (!options.sourceUri) {
+                    throw new Error(
+                        "sourceUri is required when using CopyFromUri connection strategy",
+                    );
+                }
+
+                if (!this._connectionMgr) {
+                    throw new Error("Connection manager is not available");
+                }
+
+                const resolvedConnectionInfo = this._connectionMgr.getConnectionInfoFromUri(
+                    options.sourceUri,
+                );
+
+                /**
+                 * In case there is no connection info associated with the provided URI,
+                 * we return shouldConnect: false as we don't want to fail but still
+                 * show a new query editor without a connection. The user can then manually
+                 * connect if they want to.
+                 */
+                return resolvedConnectionInfo
+                    ? {
+                          shouldConnect: true,
+                          connectionInfo: Utils.deepClone(resolvedConnectionInfo),
+                      }
+                    : { shouldConnect: false };
+
+            case ConnectionStrategy.CopyLastActive:
+                /**
+                 * In case there is no connection info associated with the last active document,
+                 * we return shouldConnect: false as we don't want to fail but still
+                 * show a new query editor without a connection. The user can then manually
+                 * connect if they want to.
+                 */
+                return this._lastActiveConnectionInfo
+                    ? {
+                          shouldConnect: true,
+                          connectionInfo: Utils.deepClone(this._lastActiveConnectionInfo),
+                      }
+                    : { shouldConnect: false };
+
+            case ConnectionStrategy.PromptForConnection:
+            default:
+                const credentials = await this._connectionMgr.onNewConnection();
+                return { shouldConnect: true, connectionInfo: Utils.deepClone(credentials) };
+        }
+    }
+
+    private async createDocument(content?: string): Promise<vscode.TextEditor> {
+        // Create and open the document
         const doc = await vscode.workspace.openTextDocument({
             language: "sql",
             content: content,
         });
 
+        // Mark as owned immediately
+        this._ownedDocuments.add(doc);
+
+        // Show the document in editor
         const editor = await vscode.window.showTextDocument(doc, {
             viewColumn: vscode.ViewColumn.One,
             preserveFocus: false,
             preview: false,
         });
-
-        if (!shouldCopyLastActiveConnection) {
-            this.skipCopyConnectionUris.add(getUriKey(editor.document.uri));
-        }
-
         return editor;
-    }
-
-    public shouldSkipCopyConnection(uri: string): boolean {
-        return this.skipCopyConnectionUris.has(uri);
     }
 
     private async updateUri(oldUri: string, newUri: string) {
@@ -310,4 +492,63 @@ export default class SqlDocumentService implements vscode.Disposable {
         // Update the URI in the output content provider query result map
         this._outputContentProvider?.onUntitledFileSaved(oldUri, newUri);
     }
+}
+
+/**
+ * Connection strategy for new SQL documents.
+ */
+export enum ConnectionStrategy {
+    /**
+     * No connection will be established.
+     */
+    DoNotConnect = "doNotConnect",
+    /**
+     * Copy connection from the last active document
+     */
+    CopyLastActive = "copyLastActive",
+    /**
+     * Copy connection from explicitly provided connection info
+     */
+    CopyConnectionFromInfo = "copyConnectionFromInfo",
+    /**
+     * Copy connection from another document identified by URI
+     */
+    CopyFromUri = "copyFromUri",
+    /**
+     * Prompt the user to select a connection
+     */
+    PromptForConnection = "promptForConnection",
+}
+
+/**
+ * Options for creating a new SQL document.
+ */
+export type NewQueryOptions = {
+    /**
+     * Initial document content.
+     */
+    content?: string;
+
+    /**
+     * Connection strategy to use (default: CopyLastActive)
+     */
+    connectionStrategy?: ConnectionStrategy;
+
+    /**
+     * Connection info to use when connectionStrategy is CopyConnectionFromInfo
+     */
+    connectionInfo?: vscodeMssql.IConnectionInfo;
+
+    /**
+     * Source URI to use when connectionStrategy is CopyFromUri
+     */
+    sourceUri?: string;
+};
+
+/**
+ * Internal type for resolved connection configuration
+ */
+interface ResolvedConnectionConfig {
+    shouldConnect: boolean;
+    connectionInfo?: vscodeMssql.IConnectionInfo;
 }

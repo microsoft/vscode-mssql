@@ -87,7 +87,7 @@ export class ObjectExplorerService {
         const rootId = this._connectionManager.connectionStore.rootGroupId;
 
         if (!this._connectionGroupNodes.has(rootId)) {
-            this._logger.error(
+            this._logger.verbose(
                 "Root server group is not defined. Cannot get root nodes for Object Explorer.",
             );
             return [];
@@ -338,12 +338,14 @@ export class ObjectExplorerService {
     }
 
     /**
-     * Helper to show the Add Connection node; only displayed when there are no saved connections
+     * Helper to show the Add Connection node; only displayed when there are no saved connections under the node
+     * @returns An array containing the Add Connection node
      */
-    private getAddConnectionNodes(): AddConnectionTreeNode[] {
-        let nodeList = [new AddConnectionTreeNode()];
+    private getAddConnectionNodes(parent?: TreeNodeInfo): AddConnectionTreeNode[] {
+        const nodeList: AddConnectionTreeNode[] = [];
+        nodeList.push(new AddConnectionTreeNode(parent));
         if (this._isRichExperienceEnabled) {
-            nodeList.push(new NewDeploymentTreeNode());
+            nodeList.push(new NewDeploymentTreeNode(parent));
         }
 
         return nodeList;
@@ -366,6 +368,12 @@ export class ObjectExplorerService {
         }
 
         if (element instanceof ConnectionGroupNode) {
+            // If the connection group has no children, show the add connection nodes
+            // so users can easily add a new connection under an empty group (same behavior
+            // as when there are no saved connections in the root).
+            if (!element.children || element.children.length === 0) {
+                return this.getAddConnectionNodes(element);
+            }
             return element.children;
         }
 
@@ -1240,7 +1248,7 @@ export class ObjectExplorerService {
      * @param connectionProfile The connection profile to get the node for
      * @returns The connection node for the profile, or undefined if not found.
      */
-    private getConnectionNodeFromProfile(
+    public getConnectionNodeFromProfile(
         connectionProfile: IConnectionProfile,
     ): ConnectionNode | undefined {
         const foundNode = this._connectionNodes.get(connectionProfile.id);
@@ -1294,6 +1302,11 @@ export class ObjectExplorerService {
         }
 
         return serverGroupNode;
+    }
+
+    public hasSession(connectionInfo: IConnectionInfo): boolean {
+        const node = this.getConnectionNodeFromProfile(connectionInfo as IConnectionProfile);
+        return node?.sessionId ? true : false;
     }
 }
 

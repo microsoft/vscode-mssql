@@ -66,6 +66,7 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     fontSettings: FontSettings;
     autoSizeColumns?: boolean;
     inMemoryDataProcessingThreshold?: number;
+    initializationError?: string;
 }
 
 export interface QueryResultReducers extends Omit<ExecutionPlanReducers, "getExecutionPlan"> {
@@ -296,11 +297,36 @@ export namespace CopyAsJsonRequest {
     export const type = new RequestType<CopyAsJsonRequest, void, void>("copyAsJson");
 }
 
+export interface CopyAsInClauseRequest {
+    uri: string;
+    batchId: number;
+    resultId: number;
+    selection: ISlickRange[];
+}
+
+export namespace CopyAsInClauseRequest {
+    export const type = new RequestType<CopyAsInClauseRequest, void, void>("copyAsInClause");
+}
+
+export interface CopyAsInsertIntoRequest {
+    uri: string;
+    batchId: number;
+    resultId: number;
+    selection: ISlickRange[];
+}
+
+export namespace CopyAsInsertIntoRequest {
+    export const type = new RequestType<CopyAsInsertIntoRequest, void, void>("copyAsInsertInto");
+}
+
 export interface SetSelectionSummary {
-    summary: SelectionSummaryStats;
+    uri: string;
+    batchId: number;
+    resultId: number;
+    selection: ISlickRange[];
 }
 export namespace SetSelectionSummaryRequest {
-    export const type = new RequestType<SetSelectionSummary, void, void>("setSelectionSummary");
+    export const type = new NotificationType<SetSelectionSummary>("setSelectionSummary");
 }
 
 export interface OpenInNewTabParams {
@@ -420,4 +446,6 @@ export enum GridContextMenuAction {
     CopyWithHeaders = "copy-with-headers",
     CopyAsCsv = "copy-as-csv",
     CopyAsJson = "copy-as-json",
+    CopyAsInClause = "copy-as-in-clause",
+    CopyAsInsertInto = "copy-as-insert-into",
 }

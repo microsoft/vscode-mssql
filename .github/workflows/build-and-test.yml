@@ -216,13 +216,13 @@ jobs:
         continue-on-error: true
         run: |
           set +e  # Don't exit on errors
-          VS_CODE_VERSION=stable
-          SERVER_NAME=localhost
-          AUTHENTICATION_TYPE="SQL Login"
-          USER_NAME=sa
-          PASSWORD=${{ env.PASSWORD }}
-          SAVE_PASSWORD=No
-          PROFILE_NAME=test-server
+          export VS_CODE_VERSION=stable
+          export SERVER_NAME=localhost
+          export AUTHENTICATION_TYPE="SQL Login"
+          export USER_NAME=sa
+          export PASSWORD=${{ env.PASSWORD }}
+          export SAVE_PASSWORD=No
+          export PROFILE_NAME=test-server
           cd pr
           export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
           DISPLAY=:10 yarn smoketest
@@ -251,13 +251,13 @@ jobs:
       - name: Run smoke tests for target branch # for calculating coverage comparison
         continue-on-error: true
         run: |
-          VS_CODE_VERSION=stable
-          SERVER_NAME=localhost
-          AUTHENTICATION_TYPE="SQL Login"
-          USER_NAME=sa
-          PASSWORD=${{ env.PASSWORD }}
-          SAVE_PASSWORD=No
-          PROFILE_NAME=test-server
+          export VS_CODE_VERSION=stable
+          export SERVER_NAME=localhost
+          export AUTHENTICATION_TYPE="SQL Login"
+          export USER_NAME=sa
+          export PASSWORD=${{ env.PASSWORD }}
+          export SAVE_PASSWORD=No
+          export PROFILE_NAME=test-server
           cd target
           export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" | head -n 1)
           DISPLAY=:10 yarn smoketest

@@ -38,6 +38,7 @@ export async function initializeFabricProvisioningState(
     deploymentController: DeploymentWebviewController,
     groupOptions: FormItemOptions[],
     logger: Logger,
+    selectedGroupId: string | undefined,
 ): Promise<fp.FabricProvisioningState> {
     const startTime = Date.now();
     const state = new fp.FabricProvisioningState();
@@ -65,7 +66,7 @@ export async function initializeFabricProvisioningState(
 
     state.formState = {
         accountId: defaultAccountId,
-        groupId: groupOptions[0].value,
+        groupId: selectedGroupId || groupOptions[0]?.value,
         tenantId: defaultTenantId,
         workspace: "",
         databaseName: "",

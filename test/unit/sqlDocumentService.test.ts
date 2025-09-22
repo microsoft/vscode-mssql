@@ -12,8 +12,10 @@ import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
-import SqlDocumentService from "../../src/controllers/sqlDocumentService";
+import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
+import * as Telemetry from "../../src/telemetry/telemetry";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
+import { IConnectionInfo } from "vscode-mssql";
 
 chai.use(sinonChai);
 
@@ -58,6 +60,16 @@ suite("SqlDocumentService Tests", () => {
         // Create main controller
         mainController = new MainController(mockContext);
         mainController.connectionManager = connectionManager;
+        mainController.createObjectExplorerSession = sandbox.stub().resolves();
+
+        // Mock objectExplorerProvider for SqlDocumentService
+        const mockObjectExplorerService = {
+            hasSession: sandbox.stub().returns(false),
+            getConnectionNodeFromProfile: sandbox.stub().returns(null),
+        };
+        (mainController as any)._objectExplorerProvider = {
+            objectExplorerService: mockObjectExplorerService,
+        };
 
         sqlDocumentService = new SqlDocumentService(mainController);
         mainController.sqlDocumentService = sqlDocumentService;
@@ -86,6 +98,118 @@ suite("SqlDocumentService Tests", () => {
 
     teardown(() => {
         sandbox.restore();
+    });
+
+    test("handleNewQueryCommand should create a new query and update recents", async () => {
+        const editor: vscode.TextEditor = {
+            document: { uri: "test_uri" },
+        } as any;
+
+        const newQueryStub = sandbox.stub(sqlDocumentService as any, "newQuery").resolves(editor);
+        (connectionManager as any).connectionStore = {
+            removeRecentlyUsed: sandbox.stub().resolves(),
+        };
+        connectionManager.getServerInfo.returns(undefined as any);
+        connectionManager.handlePasswordBasedCredentials.resolves();
+        const sendActionStub = sandbox.stub(Telemetry, "sendActionEvent");
+
+        const node: any = { connectionProfile: {}, nodeType: "Server" };
+        await sqlDocumentService.handleNewQueryCommand(node, undefined);
+
+        expect(newQueryStub).to.have.been.calledOnce;
+        expect((connectionManager as any).connectionStore.removeRecentlyUsed).to.have.been
+            .calledOnce;
+        expect(connectionManager.handlePasswordBasedCredentials).to.have.been.calledOnce;
+        expect(sendActionStub).to.have.been.calledOnce;
+
+        newQueryStub.restore();
+        sendActionStub.restore();
+    });
+
+    test("handleNewQueryCommand should not create a new connection if new query fails", async () => {
+        const newQueryStub = sandbox
+            .stub(sqlDocumentService as any, "newQuery")
+            .rejects(new Error("boom"));
+
+        connectionManager.handlePasswordBasedCredentials.resolves();
+        const node: any = { connectionProfile: {}, nodeType: "Server" };
+        try {
+            await sqlDocumentService.handleNewQueryCommand(node, undefined);
+            expect.fail("Expected rejection");
+        } catch (e) {
+            expect((e as Error).message).to.match(/boom/);
+        } finally {
+            newQueryStub.restore();
+        }
+
+        expect(connectionManager.onNewConnection).to.not.have.been.called;
+    });
+
+    test("handleNewQueryCommand uses CopyLastActive when last active connection exists", async () => {
+        const editor: vscode.TextEditor = { document: { uri: "test_uri" } } as any;
+        const newQueryStub = sandbox.stub(sqlDocumentService, "newQuery").callsFake((opts: any) => {
+            expect(opts.connectionStrategy).to.equal(ConnectionStrategy.CopyLastActive);
+            expect(opts.connectionInfo).to.equal(undefined);
+            return Promise.resolve(editor);
+        });
+
+        // simulate last active connection
+        sqlDocumentService["_lastActiveConnectionInfo"] = { server: "localhost" } as any;
+        // remove OE selection influence
+        mainController.objectExplorerTree = { selection: [] } as any;
+        connectionManager.connectionStore = {
+            removeRecentlyUsed: sandbox.stub().resolves(),
+        } as any;
+
+        await sqlDocumentService.handleNewQueryCommand(undefined, "SELECT 1");
+
+        expect(newQueryStub).to.have.been.calledOnce;
+        newQueryStub.restore();
+    });
+
+    test("handleNewQueryCommand uses OE selection when exactly one node is selected", async () => {
+        const nodeConnection = { server: "oeServer" } as any;
+        mainController.objectExplorerTree = {
+            selection: [{ connectionProfile: nodeConnection, nodeType: "Database" }],
+        } as any;
+        connectionManager.handlePasswordBasedCredentials.resolves();
+        connectionManager.connectionStore = {
+            removeRecentlyUsed: sandbox.stub().resolves(),
+        } as any;
+
+        const editor: vscode.TextEditor = { document: { uri: "t" } } as any;
+        const newQueryStub = sandbox.stub(sqlDocumentService, "newQuery").callsFake((opts: any) => {
+            expect(opts.connectionStrategy).to.equal(ConnectionStrategy.CopyConnectionFromInfo);
+            expect(opts.connectionInfo).to.equal(nodeConnection);
+            return Promise.resolve(editor);
+        });
+
+        await sqlDocumentService.handleNewQueryCommand(undefined, undefined);
+        expect(connectionManager.handlePasswordBasedCredentials).to.have.been.calledOnceWith(
+            nodeConnection,
+        );
+        expect(newQueryStub).to.have.been.calledOnce;
+        newQueryStub.restore();
+    });
+
+    test("handleNewQueryCommand prompts for connection when no context", async () => {
+        // clear last active and OE selection
+        sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
+        mainController.objectExplorerTree = { selection: [] } as any;
+        connectionManager.connectionStore = {
+            removeRecentlyUsed: sandbox.stub().resolves(),
+        } as any;
+
+        const editor: vscode.TextEditor = { document: { uri: "x" } } as any;
+        const newQueryStub = sandbox.stub(sqlDocumentService, "newQuery").callsFake((opts: any) => {
+            expect(opts.connectionStrategy).to.equal(ConnectionStrategy.PromptForConnection);
+            expect(opts.connectionInfo).to.equal(undefined);
+            return Promise.resolve(editor);
+        });
+
+        await sqlDocumentService.handleNewQueryCommand(undefined, undefined);
+        expect(newQueryStub).to.have.been.calledOnce;
+        newQueryStub.restore();
     });
 
     // Standard closed document event test
@@ -219,12 +343,95 @@ suite("SqlDocumentService Tests", () => {
         } as any;
 
         const mockCreateDocument = sandbox.stub(sqlDocumentService as any, "createDocument");
-        mockCreateDocument.withArgs(undefined, true).resolves(editor);
+        mockCreateDocument.resolves(editor);
 
-        const result = await sqlDocumentService.newQuery(undefined, true);
+        const result = await sqlDocumentService.newQuery({
+            connectionStrategy: ConnectionStrategy.CopyLastActive,
+        });
 
         expect(result).to.equal(editor);
-        expect(mockCreateDocument).to.have.been.calledOnceWithExactly(undefined, true);
+        expect(mockCreateDocument).to.have.been.calledOnce;
+
+        mockCreateDocument.restore();
+    });
+
+    test("newQuery should copy connection from URI when copyConnectionFromUri is provided", async () => {
+        let editor: vscode.TextEditor = {
+            document: {
+                uri: "test_uri",
+            },
+            viewColumn: vscode.ViewColumn.One,
+            selection: undefined,
+        } as any;
+
+        const mockCreateDocument = sandbox.stub(sqlDocumentService as any, "createDocument");
+        mockCreateDocument.resolves(editor);
+
+        const mockConnectionInfo = { server: "localhost", database: "testdb" };
+        const mockGetConnectionInfoFromUri = sandbox.stub();
+        mockGetConnectionInfoFromUri.returns(mockConnectionInfo);
+        const mockConnect = sandbox.stub().callsFake(async (uri, connectionInfo, promise) => {
+            if (promise && promise.resolve) {
+                promise.resolve(true);
+            }
+        });
+
+        // Mock the connection manager
+        (sqlDocumentService as any)._connectionMgr = {
+            getConnectionInfoFromUri: mockGetConnectionInfoFromUri,
+            connect: mockConnect,
+        };
+
+        const testUri = "file:///test.sql";
+        const result = await sqlDocumentService.newQuery({
+            sourceUri: testUri,
+            connectionStrategy: ConnectionStrategy.CopyFromUri,
+            content: "SELECT 1",
+        });
+
+        expect(result).to.equal(editor);
+        expect(mockCreateDocument).to.have.been.calledOnceWith("SELECT 1");
+        expect(mockGetConnectionInfoFromUri).to.have.been.calledOnceWith(testUri);
+
+        mockCreateDocument.restore();
+    });
+
+    test("newQuery should fallback to copyLastActiveConnection when URI has no connection", async () => {
+        let editor: vscode.TextEditor = {
+            document: {
+                uri: "test_uri",
+            },
+            viewColumn: vscode.ViewColumn.One,
+            selection: undefined,
+        } as any;
+
+        const mockCreateDocument = sandbox.stub(sqlDocumentService as any, "createDocument");
+        mockCreateDocument.resolves(editor);
+
+        const mockGetConnectionInfoFromUri = sandbox.stub();
+        mockGetConnectionInfoFromUri.returns(undefined); // No connection found
+        const mockConnect = sandbox.stub().callsFake(async (uri, connectionInfo, promise) => {
+            if (promise && promise.resolve) {
+                promise.resolve(true);
+            }
+        });
+
+        // Mock the connection manager
+        (sqlDocumentService as any)._connectionMgr = {
+            getConnectionInfoFromUri: mockGetConnectionInfoFromUri,
+            connect: mockConnect,
+        };
+
+        const testUri = "file:///test.sql";
+        const result = await sqlDocumentService.newQuery({
+            sourceUri: testUri,
+            connectionStrategy: ConnectionStrategy.CopyFromUri,
+            content: "SELECT 1",
+        });
+
+        expect(result).to.equal(editor);
+        expect(mockCreateDocument).to.have.been.calledOnceWith("SELECT 1");
+        expect(mockGetConnectionInfoFromUri).to.have.been.calledOnceWith(testUri);
 
         mockCreateDocument.restore();
     });
@@ -288,4 +495,214 @@ suite("SqlDocumentService Tests", () => {
 
         return document;
     }
+
+    suite("Connection Strategy Tests", () => {
+        let editor: vscode.TextEditor;
+        let mockCreateDocument: sinon.SinonStub;
+        let mockConnect: sinon.SinonStub;
+        let mockGetConnectionInfoFromUri: sinon.SinonStub;
+        let mockOnNewConnection: sinon.SinonStub;
+
+        setup(() => {
+            editor = {
+                document: {
+                    uri: vscode.Uri.parse("test_uri.sql"),
+                },
+                viewColumn: vscode.ViewColumn.One,
+                selection: undefined,
+            } as any;
+
+            mockCreateDocument = sandbox.stub(sqlDocumentService as any, "createDocument");
+            mockCreateDocument.resolves(editor);
+
+            mockConnect = sandbox.stub().callsFake(async (uri, connectionInfo, promise) => {
+                if (promise && promise.resolve) {
+                    promise.resolve(true);
+                }
+            });
+
+            mockGetConnectionInfoFromUri = sandbox.stub();
+            mockOnNewConnection = sandbox.stub();
+
+            (sqlDocumentService as any)._connectionMgr = {
+                getConnectionInfoFromUri: mockGetConnectionInfoFromUri,
+                connect: mockConnect,
+                onNewConnection: mockOnNewConnection,
+            };
+        });
+
+        test("ConnectionStrategy.None should not establish any connection", async () => {
+            const result = await sqlDocumentService.newQuery({
+                connectionStrategy: ConnectionStrategy.DoNotConnect,
+                content: "SELECT 1",
+            });
+
+            expect(result).to.equal(editor);
+            expect(mockCreateDocument).to.have.been.calledOnceWith("SELECT 1");
+            expect(mockConnect).to.not.have.been.called;
+            expect(mockGetConnectionInfoFromUri).to.not.have.been.called;
+            expect(mockOnNewConnection).to.not.have.been.called;
+        });
+
+        test("ConnectionStrategy.CopyLastActive should use last active connection when available", async () => {
+            const lastActiveConnection = {
+                server: "localhost",
+                database: "testdb",
+            } as IConnectionInfo;
+            sqlDocumentService["_lastActiveConnectionInfo"] = lastActiveConnection;
+
+            const result = await sqlDocumentService.newQuery({
+                connectionStrategy: ConnectionStrategy.CopyLastActive,
+                content: "SELECT 2",
+            });
+
+            expect(result).to.equal(editor);
+            expect(mockCreateDocument).to.have.been.calledOnceWith("SELECT 2");
+            expect(mockConnect).to.have.been.calledOnce;
+            expect(mockGetConnectionInfoFromUri).to.not.have.been.called;
+            expect(mockOnNewConnection).to.not.have.been.called;
+        });
+
+        test("ConnectionStrategy.CopyLastActive should not connect when no last active connection", async () => {
+            sqlDocumentService["_lastActiveConnectionInfo"] = undefined;
+
+            const result = await sqlDocumentService.newQuery({
+                connectionStrategy: ConnectionStrategy.CopyLastActive,
+                content: "SELECT 3",
+            });
+
+            expect(result).to.equal(editor);
+            expect(mockCreateDocument).to.have.been.calledOnceWith("SELECT 3");
+            expect(mockConnect).to.not.have.been.called;
+            expect(mockGetConnectionInfoFromUri).to.not.have.been.called;
+            expect(mockOnNewConnection).to.not.have.been.called;
+        });
+
+        test("ConnectionStrategy.CopyConnectionFromInfo should use provided connection info", async () => {
+            const providedConnection = { server: "server1", database: "db1" } as IConnectionInfo;
+
+            const result = await sqlDocumentService.newQuery({
+                connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                connectionInfo: providedConnection,
+                content: "SELECT 4",
+            });
+
+            expect(result).to.equal(editor);
+            expect(mockCreateDocument).to.have.been.calledOnceWith("SELECT 4");
+            expect(mockConnect).to.have.been.calledOnce;
+            expect(mockGetConnectionInfoFromUri).to.not.have.been.called;
+            expect(mockOnNewConnection).to.not.have.been.called;
+        });
+
+        test("ConnectionStrategy.CopyConnectionFromInfo should throw error when connectionInfo is missing", async () => {
+            try {
+                await sqlDocumentService.newQuery({
+                    connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                    content: "SELECT 5",
+                });
+                expect.fail("Expected error to be thrown");
+            } catch (error) {
+                expect(error.message).to.contain("connectionInfo is required");
+            }
+
+            expect(mockCreateDocument).to.have.been.calledOnce;
+            expect(mockConnect).to.not.have.been.called;
+        });
+
+        test("ConnectionStrategy.CopyFromUri should copy connection from source URI when found", async () => {
+            const sourceConnection = { server: "sourceserver", database: "sourcedb" };
+            mockGetConnectionInfoFromUri.returns(sourceConnection);
+
+            const result = await sqlDocumentService.newQuery({
+                connectionStrategy: ConnectionStrategy.CopyFromUri,
+                sourceUri: "file:///source.sql",
+                content: "SELECT 6",
+            });
+
+            expect(result).to.equal(editor);
+            expect(mockCreateDocument).to.have.been.calledOnceWith("SELECT 6");
+            expect(mockGetConnectionInfoFromUri).to.have.been.calledOnceWith("file:///source.sql");
+            expect(mockConnect).to.have.been.calledOnce;
+            expect(mockOnNewConnection).to.not.have.been.called;
+        });
+
+        test("ConnectionStrategy.CopyFromUri should not connect when source URI has no connection", async () => {
+            mockGetConnectionInfoFromUri.returns(undefined);
+
+            const result = await sqlDocumentService.newQuery({
+                connectionStrategy: ConnectionStrategy.CopyFromUri,
+                sourceUri: "file:///source.sql",
+                content: "SELECT 7",
+            });
+
+            expect(result).to.equal(editor);
+            expect(mockCreateDocument).to.have.been.calledOnceWith("SELECT 7");
+            expect(mockGetConnectionInfoFromUri).to.have.been.calledOnceWith("file:///source.sql");
+            expect(mockConnect).to.not.have.been.called;
+            expect(mockOnNewConnection).to.not.have.been.called;
+        });
+
+        test("ConnectionStrategy.CopyFromUri should throw error when sourceUri is missing", async () => {
+            try {
+                await sqlDocumentService.newQuery({
+                    connectionStrategy: ConnectionStrategy.CopyFromUri,
+                    content: "SELECT 8",
+                });
+                expect.fail("Expected error to be thrown");
+            } catch (error) {
+                expect(error.message).to.contain("sourceUri is required");
+            }
+
+            expect(mockCreateDocument).to.have.been.calledOnce;
+            expect(mockGetConnectionInfoFromUri).to.not.have.been.called;
+        });
+
+        test("ConnectionStrategy.PromptForConnection should prompt user for connection", async () => {
+            const userSelectedConnection = { server: "userserver", database: "userdb" };
+            mockOnNewConnection.resolves(userSelectedConnection);
+
+            const result = await sqlDocumentService.newQuery({
+                connectionStrategy: ConnectionStrategy.PromptForConnection,
+                content: "SELECT 9",
+            });
+
+            expect(result).to.equal(editor);
+            expect(mockCreateDocument).to.have.been.calledOnceWith("SELECT 9");
+            expect(mockOnNewConnection).to.have.been.calledOnce;
+            expect(mockConnect).to.have.been.calledOnce;
+            expect(mockGetConnectionInfoFromUri).to.not.have.been.called;
+        });
+
+        test("should call createObjectExplorerSession when connection is established", async () => {
+            const connectionInfo = { server: "localhost", database: "testdb" } as IConnectionInfo;
+
+            await sqlDocumentService.newQuery({
+                connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+                connectionInfo: connectionInfo,
+                content: "SELECT 10",
+            });
+
+            expect(mainController.createObjectExplorerSession).to.have.been.calledWith(
+                connectionInfo,
+            );
+        });
+
+        test("should set status view properties correctly", async () => {
+            const mockLanguageFlavorChanged = sandbox.stub();
+            const mockSqlCmdModeChanged = sandbox.stub();
+
+            sqlDocumentService["_statusview"] = {
+                languageFlavorChanged: mockLanguageFlavorChanged,
+                sqlCmdModeChanged: mockSqlCmdModeChanged,
+            } as any;
+
+            await sqlDocumentService.newQuery({
+                connectionStrategy: ConnectionStrategy.DoNotConnect,
+                content: "SELECT 11",
+            });
+
+            expect(mockLanguageFlavorChanged).to.have.been.calledOnce;
+            expect(mockSqlCmdModeChanged).to.have.been.calledOnceWith(sinon.match.string, false);
+        });
+    });
 });
