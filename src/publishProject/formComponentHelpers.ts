@@ -12,8 +12,8 @@ import {
 import { PublishProject as Loc } from "../constants/locConstants";
 
 /**
- * Generate publish form components. Kept async to mirror the connection pattern and allow
- * future async population of options (e.g. reading project metadata or remote targets).
+ * Generate publish form components. Kept async for future extensibility
+ * (e.g. reading project metadata, fetching remote targets, etc.)
  */
 export async function generatePublishFormComponents(): Promise<
     Record<keyof IPublishForm | string, PublishDialogFormItemSpec>

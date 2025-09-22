@@ -45,16 +45,62 @@ type PublishFormContext = FormContextProps<
     savePublishProfile: (profileName: string) => void;
 };
 
-function PublishProjectInner() {
+// Type guard to check if context has the required publish methods
+function isPublishFormContext(context: unknown): context is PublishFormContext {
+    if (!context || typeof context !== "object") {
+        return false;
+    }
+
+    const ctx = context as Record<string, unknown>;
+    return (
+        "publishNow" in ctx &&
+        "generatePublishScript" in ctx &&
+        "selectPublishProfile" in ctx &&
+        "savePublishProfile" in ctx &&
+        typeof ctx.publishNow === "function" &&
+        typeof ctx.generatePublishScript === "function" &&
+        typeof ctx.selectPublishProfile === "function" &&
+        typeof ctx.savePublishProfile === "function"
+    );
+}
+
+function PublishProjectDialog() {
     const classes = useStyles();
     const formStyles = useFormStyles();
     const loc = LocConstants.getInstance().publishProject;
-    const context = useContext(PublishProjectContext) as PublishFormContext | undefined;
+    const context = useContext(PublishProjectContext);
+
     // Select pieces of state needed for this component
     const formComponents = usePublishDialogSelector((s) => s.formComponents, Object.is);
     const formState = usePublishDialogSelector((s) => s.formState, Object.is);
+    const inProgress = usePublishDialogSelector((s) => s.inProgress, Object.is);
+    const loading = !isPublishFormContext(context) || !formComponents || !formState;
 
-    const loading = !context || !formComponents || !formState;
+    // Check if all required fields are provided based on publish target
+    const isFormValid =
+        !loading &&
+        (() => {
+            // Always require publish target and database name
+            if (!formState.publishTarget || !formState.databaseName) {
+                return false;
+            }
+
+            // For existing server, require server name
+            if (formState.publishTarget === "existingServer") {
+                return !!formState.serverName;
+            }
+
+            // For local container, server name is not required
+            if (formState.publishTarget === "localContainer") {
+                return true; // Could add container-specific validations here if needed
+            }
+
+            return false;
+        })();
+
+    // Buttons should be disabled when loading, in progress, or form is invalid
+    const buttonsDisabled = loading || inProgress || !isFormValid;
+
     if (loading) {
         return <div className={classes.root}>Loading...</div>;
     }
@@ -72,10 +118,14 @@ function PublishProjectInner() {
                     <div className={classes.footer}>
                         <Button
                             appearance="secondary"
+                            disabled={buttonsDisabled}
                             onClick={() => context.generatePublishScript()}>
                             {loc.generateScript}
                         </Button>
-                        <Button appearance="primary" onClick={() => context.publishNow()}>
+                        <Button
+                            appearance="primary"
+                            disabled={buttonsDisabled}
+                            onClick={() => context.publishNow()}>
                             {loc.publish}
                         </Button>
                     </div>
@@ -85,10 +135,10 @@ function PublishProjectInner() {
     );
 }
 
-export default function PublishProjectPageWrapper() {
+export default function PublishProjectPage() {
     return (
         <PublishProjectStateProvider>
-            <PublishProjectInner />
+            <PublishProjectDialog />
         </PublishProjectStateProvider>
     );
 }

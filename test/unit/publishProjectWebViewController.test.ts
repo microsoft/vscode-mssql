@@ -55,9 +55,10 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(controller.state.projectFilePath).to.equal(projectPath);
         expect(controller.state.formState.databaseName).to.equal("MySampleProject");
 
-        // Allow async initializeDialog() to finish populating formComponents
-        await new Promise((r) => setTimeout(r, 0));
+        // Wait for async initializeDialog() to finish populating formComponents
+        await controller.initialized.promise;
 
+        // Form components should be initialized after async initialization
         const components = controller.state.formComponents;
         // Basic fields expected from generatePublishFormComponents()
         expect(components.profileName, "profileName component should exist").to.exist;

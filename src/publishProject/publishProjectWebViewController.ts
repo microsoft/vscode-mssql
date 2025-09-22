@@ -15,6 +15,7 @@ import {
     PublishDialogState,
 } from "../sharedInterfaces/publishDialog";
 import { generatePublishFormComponents } from "./formComponentHelpers";
+import { Deferred } from "../protocol";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -22,6 +23,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
     PublishDialogFormItemSpec,
     PublishDialogReducers
 > {
+    public readonly initialized: Deferred<void> = new Deferred<void>();
+
     public static mainOptions: readonly (keyof IPublishForm)[] = [
         "publishTarget",
         "profileName",
@@ -65,12 +68,22 @@ export class PublishProjectWebViewController extends FormWebviewController<
             },
         });
 
-        // Initialize so component generation can be async
-        void this.initializeDialog(projectFilePath);
+        // Register reducers after initialization
+        this.registerRpcHandlers();
+
+        // Initialize async to allow for future extensibility and proper error handling
+        void this.initializeDialog(projectFilePath)
+            .then(() => {
+                this.updateState();
+                this.initialized.resolve();
+            })
+            .catch((err) => {
+                this.initialized.reject(err);
+            });
     }
 
     private async initializeDialog(projectFilePath: string) {
-        // Load publish form components
+        // Load publish form components asynchronously for future extensibility
         this.state.formComponents = await generatePublishFormComponents();
 
         // keep initial project path and computed database name
@@ -82,14 +95,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
         this.updateState();
     }
 
-    protected get reducers() {
-        type ReducerFn = (
-            state: PublishDialogState,
-            payload: unknown,
-        ) => Promise<PublishDialogState>;
-        const reducerMap = new Map<string, ReducerFn>();
-
-        reducerMap.set(
+    private registerRpcHandlers(): void {
+        // setPublishValues
+        this.registerReducer(
             "setPublishValues",
             async (
                 state: PublishDialogState,
@@ -101,39 +109,38 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         state.projectFilePath = payload.projectFilePath;
                     }
                 }
-                this.updateState(state);
+                // Re-evaluate visibility if any controlling fields changed
+                await this.updateItemVisibility();
                 return state;
             },
         );
 
-        reducerMap.set("publishNow", async (state: PublishDialogState) => {
+        this.registerReducer("publishNow", async (state: PublishDialogState) => {
+            // TODO: implement actual publish logic (currently just clears inProgress)
             state.inProgress = false;
-            this.updateState(state);
             return state;
         });
 
-        reducerMap.set("generatePublishScript", async (state: PublishDialogState) => {
-            this.updateState(state);
+        this.registerReducer("generatePublishScript", async (state: PublishDialogState) => {
+            // TODO: implement script generation logic
             return state;
         });
 
-        reducerMap.set("selectPublishProfile", async (state: PublishDialogState) => {
-            this.updateState(state);
+        this.registerReducer("selectPublishProfile", async (state: PublishDialogState) => {
+            // TODO: implement profile selection logic
             return state;
         });
 
-        reducerMap.set(
+        this.registerReducer(
             "savePublishProfile",
             async (state: PublishDialogState, payload: { profileName?: string }) => {
                 if (payload?.profileName) {
                     state.formState.profileName = payload.profileName;
                 }
-                this.updateState(state);
+                // TODO: implement profile saving logic
                 return state;
             },
         );
-
-        return reducerMap;
     }
 
     protected getActiveFormComponents(_state: PublishDialogState) {
