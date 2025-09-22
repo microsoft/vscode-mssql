@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as constants from "../constants/constants";
 import { FormItemType } from "../sharedInterfaces/form";
 import {
     IPublishForm,
@@ -14,8 +15,8 @@ import { validateSqlServerPortNumber, isValidSqlAdminPassword } from "./dockerUt
 import { getPublishServerName } from "./projectUtils";
 
 /**
- * Generate publish form components. Kept async to mirror the connection pattern and allow
- * future async population of options (e.g. reading project metadata or remote targets).
+ * Generate publish form components. Kept async for future extensibility
+ * (e.g. reading project metadata, fetching remote targets, etc.)
  */
 export async function generatePublishFormComponents(): Promise<
     Record<keyof IPublishForm | string, PublishDialogFormItemSpec>
@@ -51,11 +52,11 @@ export async function generatePublishFormComponents(): Promise<
             options: [
                 {
                     displayName: Loc.PublishTargetExisting,
-                    value: "existingServer",
+                    value: constants.PublishTargets.EXISTING_SERVER,
                 },
                 {
                     displayName: Loc.PublishTargetContainer,
-                    value: "localContainer",
+                    value: constants.PublishTargets.LOCAL_CONTAINER,
                 },
             ],
         },
@@ -80,7 +81,7 @@ export async function generatePublishFormComponents(): Promise<
             type: FormItemType.Password,
             validate: (state: PublishDialogState, value) => {
                 const pwd = String(value ?? "");
-                const isValid = isValidSqlAdminPassword(pwd, "sa");
+                const isValid = isValidSqlAdminPassword(pwd, constants.DefaultAdminUsername);
                 return {
                     isValid,
                     validationMessage: isValid
@@ -118,7 +119,7 @@ export async function generatePublishFormComponents(): Promise<
             options: [],
             validate: (_state: PublishDialogState, value) => {
                 const v = String(value ?? "").trim();
-                return { isValid: !!v, validationMessage: v ? "" : "Required" };
+                return { isValid: !!v, validationMessage: v ? "" : constants.RequiredFieldMessage };
             },
         },
         acceptContainerLicense: {
@@ -132,7 +133,7 @@ export async function generatePublishFormComponents(): Promise<
                 const accepted = value === true || value === "true";
                 return {
                     isValid: accepted,
-                    validationMessage: accepted ? "" : "You must accept the license",
+                    validationMessage: accepted ? "" : constants.LicenseAcceptanceMessage,
                 };
             },
         },

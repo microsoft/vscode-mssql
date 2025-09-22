@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
+import * as constants from "../constants/constants";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { PublishProject as Loc } from "../constants/locConstants";
@@ -15,9 +16,10 @@ import {
     PublishDialogState,
 } from "../sharedInterfaces/publishDialog";
 import { generatePublishFormComponents } from "./formComponentHelpers";
-import { getDockerBaseImage, filterAndSortTags } from "./dockerUtils";
+import { loadDockerTags } from "./dockerUtils";
 import { readProjectProperties } from "./projectUtils";
 import { SqlProjectsService } from "../services/sqlProjectsService";
+import { Deferred } from "../protocol";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -25,6 +27,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
     PublishDialogFormItemSpec,
     PublishDialogReducers
 > {
+    public readonly initialized: Deferred<void> = new Deferred<void>();
+
     private readonly _sqlProjectsService?: SqlProjectsService;
 
     constructor(
@@ -37,7 +41,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
             profileName: "",
             serverName: "",
             databaseName: path.basename(projectFilePath, path.extname(projectFilePath)),
-            publishTarget: "existingServer",
+            publishTarget: constants.PublishTargets.EXISTING_SERVER,
             sqlCmdVariables: {},
         };
 
@@ -67,15 +71,22 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Store the SQL Projects Service
         this._sqlProjectsService = sqlProjectsService;
 
-        // Initialize so component generation can be async
-        void this.initializeDialog(projectFilePath);
+        // Register reducers after initialization
+        this.registerRpcHandlers();
 
-        // Register reducers (pure style)
-        this.registerReducers();
+        // Initialize async to allow for future extensibility and proper error handling
+        void this.initializeDialog(projectFilePath)
+            .then(() => {
+                this.updateState();
+                this.initialized.resolve();
+            })
+            .catch((err) => {
+                this.initialized.reject(err);
+            });
     }
 
     private async initializeDialog(projectFilePath: string) {
-        // Load publish form components
+        // Load publish form components asynchronously for future extensibility
         this.state.formComponents = await generatePublishFormComponents();
 
         // keep initial project path and computed database name
@@ -101,6 +112,18 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     };
                     // Update state to notify UI of the new project properties
                     this.updateState();
+
+                    // Fetch Docker tags for the container image dropdown
+                    if (props.targetVersion) {
+                        const tagComponent = this.state.formComponents["containerImageTag"];
+                        if (tagComponent) {
+                            await loadDockerTags(
+                                props.targetVersion,
+                                tagComponent,
+                                this.state.formState,
+                            );
+                        }
+                    }
                 }
             }
         } catch {
@@ -110,8 +133,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
         await this.updateItemVisibility();
         this.updateState();
     }
+
     /** Registers all reducers in pure (immutable) style */
-    private registerReducers() {
+    private registerRpcHandlers() {
         // setPublishValues
         this.registerReducer("setPublishValues", async (state, payload) => {
             const changes = payload || {};
@@ -126,18 +150,22 @@ export class PublishProjectWebViewController extends FormWebviewController<
         });
 
         this.registerReducer("publishNow", async (state) => {
+            // TODO: implement actual publish logic (currently just clears inProgress)
             return { ...state, inProgress: false };
         });
 
         this.registerReducer("generatePublishScript", async (state) => {
-            return { ...state }; // placeholder
+            // TODO: implement script generation logic
+            return { ...state };
         });
 
         this.registerReducer("selectPublishProfile", async (state) => {
-            return { ...state }; // placeholder for future selection logic
+            // TODO: implement profile selection logic
+            return { ...state };
         });
 
         this.registerReducer("savePublishProfile", async (state, payload) => {
+            // TODO: implement profile saving logic
             if (payload?.profileName) {
                 return {
                     ...state,
@@ -148,53 +176,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
         });
 
         this.registerReducer("openPublishAdvanced", async (state) => {
-            return { ...state }; // no-op placeholder
-        });
-
-        this.registerReducer("fetchDockerTags", async (state, payload) => {
-            const url = payload?.tagsUrl;
-            let tags: string[] = [];
-            if (url) {
-                try {
-                    const resp = await fetch(url, { method: "GET" });
-                    if (resp.ok) {
-                        const json = await resp.json();
-                        if (json?.tags && Array.isArray(json.tags)) {
-                            tags = json.tags as string[];
-                        }
-                    }
-                } catch {
-                    // ignore network errors; leave tags empty
-                }
-            }
-
-            const targetVersion = state.projectProperties?.targetVersion || "";
-            const baseImage = getDockerBaseImage(targetVersion, undefined);
-            const imageTags = filterAndSortTags(tags, baseImage, targetVersion, true);
-
-            // Update containerImageTag component options if present
-            const newFormComponents = { ...state.formComponents };
-            const tagComponent = newFormComponents["containerImageTag"] as
-                | PublishDialogFormItemSpec
-                | undefined;
-            if (tagComponent) {
-                const updatedTagComponent: PublishDialogFormItemSpec = {
-                    ...tagComponent,
-                    options: imageTags.map((t) => ({ value: t, displayName: t })),
-                };
-                newFormComponents["containerImageTag"] = updatedTagComponent;
-            }
-
-            let newSelectedTag = state.formState.containerImageTag;
-            if (imageTags.length > 0 && (!newSelectedTag || !imageTags.includes(newSelectedTag))) {
-                newSelectedTag = imageTags[0];
-            }
-
-            return {
-                ...state,
-                formComponents: newFormComponents,
-                formState: { ...state.formState, containerImageTag: newSelectedTag },
-            };
+            // TODO: implement advanced publish options
+            return { ...state };
         });
     }
 
@@ -206,7 +189,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
             "databaseName",
         ];
 
-        if (state.formState.publishTarget === "localContainer") {
+        if (state.formState.publishTarget === constants.PublishTargets.LOCAL_CONTAINER) {
             activeComponents.push(
                 "containerPort",
                 "containerAdminPassword",
@@ -221,7 +204,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
     public async updateItemVisibility(): Promise<void> {
         const hidden: (keyof IPublishForm)[] = [];
-        if (this.state.formState?.publishTarget === "localContainer") {
+        if (this.state.formState?.publishTarget === constants.PublishTargets.LOCAL_CONTAINER) {
             hidden.push("serverName");
         }
 

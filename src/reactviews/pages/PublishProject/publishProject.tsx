@@ -9,15 +9,12 @@ import { useFormStyles } from "../../common/forms/form.component";
 import { PublishProjectStateProvider, PublishProjectContext } from "./publishProjectStateProvider";
 import { usePublishDialogSelector } from "./publishDialogSelector";
 import { LocConstants } from "../../common/locConstants";
-import {
-    IPublishForm,
-    PublishDialogFormItemSpec,
-    PublishDialogState,
-} from "../../../sharedInterfaces/publishDialog";
-import { FormContextProps } from "../../../sharedInterfaces/form";
 import { PublishProfileField } from "./components/PublishProfileSection";
 import { PublishTargetSection } from "./components/PublishTargetSection";
 import { ConnectionSection } from "./components/ConnectionSection";
+import { validatePublishForm } from "../../../publishProject/projectUtils";
+import { PublishFormContext } from "./types";
+import * as constants from "../../../constants/constants";
 
 const useStyles = makeStyles({
     root: { padding: "12px" },
@@ -34,27 +31,48 @@ const useStyles = makeStyles({
     },
 });
 
-type PublishFormContext = FormContextProps<
-    IPublishForm,
-    PublishDialogState,
-    PublishDialogFormItemSpec
-> & {
-    publishNow: () => void;
-    generatePublishScript: () => void;
-    selectPublishProfile: () => void;
-    savePublishProfile: (profileName: string) => void;
-};
+// Type guard to check if context has the required publish methods
+function isPublishFormContext(context: unknown): context is PublishFormContext {
+    if (!context || typeof context !== "object") {
+        return false;
+    }
 
-function PublishProjectInner() {
+    const ctx = context as Record<string, unknown>;
+    return (
+        "publishNow" in ctx &&
+        "generatePublishScript" in ctx &&
+        "selectPublishProfile" in ctx &&
+        "savePublishProfile" in ctx &&
+        typeof ctx.publishNow === "function" &&
+        typeof ctx.generatePublishScript === "function" &&
+        typeof ctx.selectPublishProfile === "function" &&
+        typeof ctx.savePublishProfile === "function"
+    );
+}
+
+function PublishProjectDialog() {
     const classes = useStyles();
     const formStyles = useFormStyles();
     const loc = LocConstants.getInstance().publishProject;
-    const context = useContext(PublishProjectContext) as PublishFormContext | undefined;
-    // Select pieces of state needed for this component
-    const formComponents = usePublishDialogSelector((s) => s.formComponents, Object.is);
-    const formState = usePublishDialogSelector((s) => s.formState, Object.is);
+    const context = useContext(PublishProjectContext);
 
-    const loading = !context || !formComponents || !formState;
+    // Select pieces of state needed for this component
+    const formState = usePublishDialogSelector((s) => s.formState, Object.is);
+    const inProgress = usePublishDialogSelector((s) => s.inProgress, Object.is);
+    const hasFormComponents = usePublishDialogSelector((s) => !!s.formComponents, Object.is);
+
+    const loading = !isPublishFormContext(context) || !hasFormComponents || !formState;
+
+    // Check if all required fields are provided based on publish target
+    const isFormValid = !loading && validatePublishForm(formState);
+
+    // Buttons should be disabled when loading, in progress, or form is invalid
+    const buttonsDisabled = loading || inProgress || !isFormValid;
+
+    // Generate script should only be available for existing server target
+    const generateScriptDisabled =
+        buttonsDisabled || formState?.publishTarget !== constants.PublishTargets.EXISTING_SERVER;
+
     if (loading) {
         return <div className={classes.root}>Loading...</div>;
     }
@@ -72,10 +90,14 @@ function PublishProjectInner() {
                     <div className={classes.footer}>
                         <Button
                             appearance="secondary"
+                            disabled={generateScriptDisabled}
                             onClick={() => context.generatePublishScript()}>
                             {loc.generateScript}
                         </Button>
-                        <Button appearance="primary" onClick={() => context.publishNow()}>
+                        <Button
+                            appearance="primary"
+                            disabled={buttonsDisabled}
+                            onClick={() => context.publishNow()}>
                             {loc.publish}
                         </Button>
                     </div>
@@ -85,10 +107,10 @@ function PublishProjectInner() {
     );
 }
 
-export default function PublishProjectPageWrapper() {
+export default function PublishProjectPage() {
     return (
         <PublishProjectStateProvider>
-            <PublishProjectInner />
+            <PublishProjectDialog />
         </PublishProjectStateProvider>
     );
 }

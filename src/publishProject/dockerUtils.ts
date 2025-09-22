@@ -172,3 +172,42 @@ export function isValidSqlAdminPassword(password: string, userName = "sa"): bool
     const hasSymbol = /\W/.test(password) ? 1 : 0;
     return hasUpper + hasLower + hasDigit + hasSymbol >= 3;
 }
+
+/**
+ * Loads Docker tags for a given target version and updates form component options
+ */
+export async function loadDockerTags(
+    targetVersion: string,
+    tagComponent: { options?: { value: string; displayName: string }[] },
+    formState: { containerImageTag?: string },
+): Promise<void> {
+    const baseImage = getDockerBaseImage(targetVersion, undefined);
+    let tags: string[] = [];
+
+    try {
+        const resp = await fetch(baseImage.tagsUrl, { method: "GET" });
+        if (resp.ok) {
+            const json = await resp.json();
+            if (json?.tags && Array.isArray(json.tags)) {
+                tags = json.tags as string[];
+            }
+        }
+    } catch {
+        // ignore network errors; leave tags empty
+    }
+
+    const imageTags = filterAndSortTags(tags, baseImage, targetVersion, true);
+
+    // Update containerImageTag component options
+    if (tagComponent) {
+        tagComponent.options = imageTags.map((t) => ({ value: t, displayName: t }));
+
+        // Set default tag if none selected
+        if (
+            imageTags.length > 0 &&
+            (!formState.containerImageTag || !imageTags.includes(formState.containerImageTag))
+        ) {
+            formState.containerImageTag = imageTags[0];
+        }
+    }
+}

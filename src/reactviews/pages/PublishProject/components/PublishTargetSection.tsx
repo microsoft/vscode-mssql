@@ -12,21 +12,9 @@ import {
     PublishDialogState,
     PublishDialogFormItemSpec,
 } from "../../../../sharedInterfaces/publishDialog";
-import { FormContextProps } from "../../../../sharedInterfaces/form";
 import { FormField } from "../../../common/forms/form.component";
-import { getDockerBaseImage } from "../../../../publishProject/dockerUtils";
-
-// Context type used by provider
-type PublishFormContext = FormContextProps<
-    IPublishForm,
-    PublishDialogState,
-    PublishDialogFormItemSpec
-> & {
-    publishNow: () => void;
-    generatePublishScript: () => void;
-    selectPublishProfile: () => void;
-    savePublishProfile: (profileName: string) => void;
-};
+import { PublishFormContext } from "../types";
+import * as constants from "../../../../constants/constants";
 
 const useStyles = makeStyles({
     root: {
@@ -82,35 +70,29 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
         return undefined;
     }
 
-    const isContainer = publishTargetValue === "localContainer";
+    const isContainer = publishTargetValue === constants.PublishTargets.LOCAL_CONTAINER;
 
-    // Side-effects: default port + fetch docker tags when entering container mode
     useEffect(() => {
         if (!isContainer) {
             return;
         }
 
-        // Example: set default port once
+        // Set default port once when entering container mode
         if (!context.state.formState.containerPort) {
             context.formAction({
                 propertyName: "containerPort",
                 isAction: false,
-                value: "1433",
+                value: constants.DefaultSqlPortNumber,
             });
         }
 
-        const tagSpec = context.state.formComponents.containerImageTag as
-            | PublishDialogFormItemSpec
-            | undefined;
-        if (tagSpec && (!tagSpec.options || tagSpec.options.length === 0)) {
-            const targetVersion = context.state.projectProperties?.targetVersion || "";
-            const base = getDockerBaseImage(targetVersion, undefined);
-            const rpc: { action?: (type: string, payload: unknown) => void } | undefined = (
-                context as unknown as {
-                    extensionRpc?: { action?: (type: string, payload: unknown) => void };
-                }
-            ).extensionRpc;
-            rpc?.action?.("fetchDockerTags", { tagsUrl: base.tagsUrl });
+        // Set default image tag if none selected
+        if (!context.state.formState.containerImageTag) {
+            context.formAction({
+                propertyName: "containerImageTag",
+                isAction: false,
+                value: constants.dockerImageDefaultTag,
+            });
         }
     }, [isContainer, context]);
 
@@ -141,8 +123,16 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
 
                         // License checkbox special rendering
                         if (name === "acceptContainerLicense") {
+                            const isChecked =
+                                (context.state.formState[
+                                    comp.propertyName as keyof IPublishForm
+                                ] as boolean) ?? false;
+
+                            // License checkbox is required - show error only if validation has been attempted
                             const validation = comp.validation;
-                            const isError = validation ? !validation.isValid : false;
+                            const isError = validation !== undefined && !validation.isValid;
+                            const errorMessage = isError ? validation.validationMessage : undefined;
+
                             const licenseLabel = (
                                 <span
                                     className={classes.licenseLabel}
@@ -155,36 +145,30 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
                                     <Checkbox
                                         size="medium"
                                         label={licenseLabel}
-                                        checked={
-                                            (context.state.formState[
-                                                comp.propertyName as keyof IPublishForm
-                                            ] as boolean) ?? false
-                                        }
-                                        onChange={(_e, data) =>
-                                            context.formAction({
-                                                propertyName: comp.propertyName,
-                                                isAction: false,
-                                                value: data.checked,
-                                            })
+                                        required={true}
+                                        checked={isChecked}
+                                        onChange={
+                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                            (_: any, data: { checked?: boolean }) =>
+                                                context.formAction({
+                                                    propertyName: comp.propertyName,
+                                                    isAction: false,
+                                                    value: data.checked ?? false,
+                                                })
                                         }
                                         style={{ alignItems: "flex-start" }}
                                     />
-                                    {isError && validation?.validationMessage && (
+                                    {isError && errorMessage && (
                                         <span
                                             style={{
                                                 color: tokens.colorStatusDangerForeground1,
                                                 fontSize: 12,
                                             }}>
-                                            {validation.validationMessage}
+                                            {errorMessage}
                                         </span>
                                     )}
                                 </div>
                             );
-                        }
-
-                        // Ensure dropdown has options array
-                        if (name === "containerImageTag" && !comp.options) {
-                            comp.options = [];
                         }
 
                         return (

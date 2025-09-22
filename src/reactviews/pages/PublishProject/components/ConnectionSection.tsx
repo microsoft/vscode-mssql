@@ -12,16 +12,7 @@ import {
     PublishDialogState,
     PublishDialogFormItemSpec,
 } from "../../../../sharedInterfaces/publishDialog";
-import { FormContextProps } from "../../../../sharedInterfaces/form";
-
-// Context type reuse
-interface PublishFormContext
-    extends FormContextProps<IPublishForm, PublishDialogState, PublishDialogFormItemSpec> {
-    publishNow: () => void;
-    generatePublishScript: () => void;
-    selectPublishProfile: () => void;
-    savePublishProfile: (profileName: string) => void;
-}
+import { PublishFormContext } from "../types";
 
 export const ConnectionSection: React.FC<{ startIdx: number }> = ({ startIdx }) => {
     const context = useContext(PublishProjectContext) as PublishFormContext | undefined;

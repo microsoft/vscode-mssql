@@ -296,3 +296,14 @@ export const SqlServerDockerImageName = "SQL Server";
 export const MAX_PORT_NUMBER = 65535;
 export const SqlServerName = "SQL server";
 export const AzureSqlServerName = "Azure SQL server";
+export const DefaultSqlPortNumber = "1433";
+export const RequiredFieldMessage = "Required";
+export const DefaultAdminUsername = "sa";
+export const LicenseAcceptanceMessage = "You must accept the license";
+
+// Publish Project Target Constants
+export const PublishTargets = {
+    EXISTING_SERVER: "existingServer" as const,
+    LOCAL_CONTAINER: "localContainer" as const,
+} as const;
+export type PublishTargetType = (typeof PublishTargets)[keyof typeof PublishTargets];

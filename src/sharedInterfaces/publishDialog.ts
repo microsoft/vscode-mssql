@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as constants from "../constants/constants";
 import { FormItemSpec, FormState, FormReducers } from "./form";
 import { RequestType } from "vscode-jsonrpc/browser";
 
@@ -13,7 +14,7 @@ export interface IPublishForm {
     profileName?: string;
     serverName?: string;
     databaseName?: string;
-    publishTarget?: "existingServer" | "localContainer";
+    publishTarget?: constants.PublishTargetType;
     sqlCmdVariables?: { [key: string]: string };
     // Container deployment specific fields (only used when publishTarget === 'localContainer')
     containerPort?: string; // kept as string since form inputs are string-based
@@ -77,7 +78,6 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     };
     generatePublishScript: {};
     openPublishAdvanced: {};
-    fetchDockerTags: { tagsUrl: string };
     selectPublishProfile: {};
     savePublishProfile: { profileName: string };
 }

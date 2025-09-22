@@ -8,24 +8,12 @@ import { useContext } from "react";
 import { FormField, useFormStyles } from "../../../common/forms/form.component";
 import { LocConstants } from "../../../common/locConstants";
 import { PublishProjectContext } from "../publishProjectStateProvider";
-import { FormContextProps } from "../../../../sharedInterfaces/form";
 import {
     IPublishForm,
     PublishDialogFormItemSpec,
     PublishDialogState,
 } from "../../../../sharedInterfaces/publishDialog";
-
-/**
- * Extended context type including the extra publish profile actions we expose.
- */
-type PublishFormContext = FormContextProps<
-    IPublishForm,
-    PublishDialogState,
-    PublishDialogFormItemSpec
-> & {
-    selectPublishProfile?: () => void;
-    savePublishProfile?: (profileName: string) => void;
-};
+import { PublishFormContext } from "../types";
 
 const useStyles = makeStyles({
     root: {
