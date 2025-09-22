@@ -113,7 +113,14 @@ export function getCloudSettings(cloud?: string): IProviderSettings {
         // if microsoft-sovereign-cloud.environment is set, return the corresponding settings, otherwise return public Azure settings
         //check microsoft-sovereign-cloud.environment setting
         const config = vscode.workspace.getConfiguration();
-        cloud = config.get<string>("microsoft-sovereign-cloud.environment");
+        const cloudFromConfig = config.get<string>("microsoft-sovereign-cloud.environment");
+
+        cloud = cloudFromConfig || "PublicCloud";
+    } else {
+        // Map from provider names in cache to VS Code setting values
+        if (cloud === "azure_publicCloud") {
+            cloud = "PublicCloud";
+        }
     }
 
     switch (cloud) {
@@ -124,7 +131,8 @@ export function getCloudSettings(cloud?: string): IProviderSettings {
         case "Custom":
             throw new Error(`${cloud} is not supported yet.`);
         case "PublicCloud":
-        default:
             return publicAzureSettings;
+        default:
+            throw new Error(`Unexpected cloud ID: '${cloud}'`);
     }
 }

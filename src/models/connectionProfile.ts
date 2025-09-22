@@ -12,7 +12,7 @@ import * as utils from "./utils";
 import { ConnectionStore } from "./connectionStore";
 import { AzureController } from "../azure/azureController";
 import { AccountStore } from "../azure/accountStore";
-import providerSettings from "../azure/providerSettings";
+import { getCloudSettings } from "../azure/providerSettings";
 import { AzureAuthType, IAccount, ITenant } from "./contracts/azure";
 import { getEnableSqlAuthenticationProviderConfig } from "../azure/utils";
 import { sendActionEvent } from "../telemetry/telemetry";
@@ -127,7 +127,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                                 profile,
                                 accountStore,
                                 accountAnswer,
-                                providerSettings.resources.databaseResource,
+                                getCloudSettings(account.key.providerId).resources.databaseResource,
                             );
                         } catch (error) {
                             console.log(`Refreshing tokens failed: ${error}`);
@@ -137,7 +137,7 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
                             profile = await azureController.populateAccountProperties(
                                 profile,
                                 accountStore,
-                                providerSettings.resources.databaseResource,
+                                getCloudSettings().resources.databaseResource,
                             );
                             if (profile) {
                                 vscode.window.showInformationMessage(

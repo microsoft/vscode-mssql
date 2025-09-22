@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import { IAccount, IConnectionInfo, ITenant } from "vscode-mssql";
 import { AccountStore } from "../azure/accountStore";
-import providerSettings from "../azure/providerSettings";
+import { getCloudSettings } from "../azure/providerSettings";
 import * as constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
@@ -635,7 +635,7 @@ export class ConnectionUI {
                         await this.connectionManager.azureController.populateAccountProperties(
                             profile as IConnectionProfile,
                             this._accountStore,
-                            providerSettings.resources.azureManagementResource,
+                            getCloudSettings().resources.azureManagementResource, // TODO: confirm selection of correct cloud in this instance
                         );
                 }
                 let account = await this._accountStore.getAccount(profile.accountId);

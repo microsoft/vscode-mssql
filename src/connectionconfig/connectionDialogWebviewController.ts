@@ -360,6 +360,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         failure: err.Name,
                     },
                 );
+
+                return state;
             }
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule);

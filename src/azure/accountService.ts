@@ -8,7 +8,7 @@ import { IAzureSession } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 import { AzureController } from "./azureController";
 import { AccountStore } from "./accountStore";
-import providerSettings from "../azure/providerSettings";
+import { getCloudSettings } from "../azure/providerSettings";
 import { AzureAuthType, IAccount, IAccountKey, ITenant, IToken } from "../models/contracts/azure";
 
 export class AccountService {
@@ -59,7 +59,7 @@ export class AccountService {
                 tenants: [tenant],
                 owningTenant: tenant,
                 azureAuthType: AzureAuthType.AuthCodeGrant,
-                providerSettings: providerSettings,
+                providerSettings: getCloudSettings(),
                 isMsAccount: false,
             },
             isStale: this._isStale,
@@ -88,7 +88,7 @@ export class AccountService {
             account,
             this._accountStore,
             tenantId,
-            providerSettings.resources.azureManagementResource,
+            getCloudSettings(account.key.providerId).resources.azureManagementResource,
         );
     }
 

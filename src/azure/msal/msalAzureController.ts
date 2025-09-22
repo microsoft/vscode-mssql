@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as vscode from "vscode";
 import { ClientAuthError, ILoggerCallback, LogLevel as MsalLogLevel } from "@azure/msal-common";
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
 import * as Constants from "../../constants/constants";
@@ -20,6 +21,7 @@ import { promises as fsPromises } from "fs";
 import * as path from "path";
 import * as AzureConstants from "../constants";
 import { getErrorMessage } from "../../utils/utils";
+import { getCloudSettings } from "../providerSettings";
 
 export class MsalAzureController extends AzureController {
     private _authMappings = new Map<AzureAuthType, MsalAzureAuth>();
@@ -169,7 +171,7 @@ export class MsalAzureController extends AzureController {
             newAccount = await azureAuth!.refreshAccessToken(
                 account,
                 AzureConstants.organizationTenant.id,
-                this._providerSettings.resources.windowsManagementResource,
+                getCloudSettings(account.key.providerId).resources.windowsManagementResource,
             );
 
             if (newAccount!.isStale === true) {
@@ -276,8 +278,11 @@ export class MsalAzureController extends AzureController {
             );
             const msalConfiguration: Configuration = {
                 auth: {
-                    clientId: this._providerSettings.clientId,
-                    authority: "https://login.windows.net/common",
+                    clientId: getCloudSettings().clientId,
+                    authority: vscode.Uri.joinPath(
+                        vscode.Uri.parse(getCloudSettings().loginEndpoint),
+                        "common",
+                    ).toString(),
                 },
                 system: {
                     loggerOptions: {
@@ -301,7 +306,7 @@ export class MsalAzureController extends AzureController {
             this._authMappings.set(
                 AzureAuthType.AuthCodeGrant,
                 new MsalAzureCodeGrant(
-                    this._providerSettings,
+                    getCloudSettings(),
                     this.context,
                     this.clientApplication,
                     this._vscodeWrapper,
@@ -312,7 +317,7 @@ export class MsalAzureController extends AzureController {
             this._authMappings.set(
                 AzureAuthType.DeviceCode,
                 new MsalAzureDeviceCode(
-                    this._providerSettings,
+                    getCloudSettings(),
                     this.context,
                     this.clientApplication,
                     this._vscodeWrapper,

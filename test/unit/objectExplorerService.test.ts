@@ -50,7 +50,7 @@ import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtil
 import * as DockerUtils from "../../src/deployment/dockerUtils";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
-import providerSettings from "../../src/azure/providerSettings";
+import { getCloudSettings } from "../../src/azure/providerSettings";
 import {
     GetSessionIdRequest,
     GetSessionIdResponse,
@@ -2062,7 +2062,7 @@ suite("OE Service Tests", () => {
             expect(
                 mockAzureController.refreshAccessToken.args[0][3],
                 "Database resource should match",
-            ).to.equal(providerSettings.resources.databaseResource);
+            ).to.equal(getCloudSettings(mockAccount.key.providerId).resources.databaseResource);
 
             // Verify connection credentials were updated with new token
             expect(

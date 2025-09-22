@@ -36,7 +36,7 @@ import { ObjectExplorerUtils } from "./objectExplorerUtils";
 import * as Utils from "../models/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ConnectionProfile } from "../models/connectionProfile";
-import providerSettings from "../azure/providerSettings";
+import { getCloudSettings } from "../azure/providerSettings";
 import { IConnectionInfo } from "vscode-mssql";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { IAccount } from "../models/contracts/azure";
@@ -1012,7 +1012,7 @@ export class ObjectExplorerService {
                 account,
                 this._connectionManager.accountStore,
                 connectionCredentials.tenantId,
-                providerSettings.resources.databaseResource,
+                getCloudSettings(account.key.providerId).resources.databaseResource,
             );
             if (!azureAccountToken) {
                 this._logger.verbose("Access token could not be refreshed for connection profile.");
@@ -1027,7 +1027,7 @@ export class ObjectExplorerService {
                     let updatedProfile = await azureController.populateAccountProperties(
                         profile,
                         this._connectionManager.accountStore,
-                        providerSettings.resources.databaseResource,
+                        getCloudSettings(account.key.providerId).resources.databaseResource,
                     );
                     connectionCredentials.azureAccountToken = updatedProfile.azureAccountToken;
                     connectionCredentials.expiresOn = updatedProfile.expiresOn;

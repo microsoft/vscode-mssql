@@ -8,7 +8,8 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { EncryptOptions } from "../models/interfaces";
 import * as Interfaces from "./interfaces";
-import providerSettings from "../azure/providerSettings";
+import { getCloudSettings } from "../azure/providerSettings";
+import { getErrorMessage } from "../utils/utils";
 
 /**
  * Sets sensible defaults for key connection properties, especially
@@ -287,26 +288,34 @@ export enum ServerType {
 }
 
 export function getServerTypes(connection: IConnectionInfo): ServerType[] {
+    // TODO: update for multi-cloud
+
     if (connection?.server === undefined) {
         return [ServerType.Unknown];
     }
 
-    if (connection.server.includes(providerSettings.resources.databaseResource.dnsSuffix)) {
-        return [ServerType.Azure, ServerType.Sql];
-    }
+    try {
+        if (connection.server.includes(getCloudSettings().resources.databaseResource.dnsSuffix)) {
+            return [ServerType.Azure, ServerType.Sql];
+        }
 
-    if (
-        connection.server.includes(providerSettings.resources.databaseResource.analyticsDnsSuffix)
-    ) {
-        return [ServerType.Azure, ServerType.DataWarehouse];
-    }
+        if (
+            connection.server.includes(
+                getCloudSettings().resources.databaseResource.analyticsDnsSuffix,
+            )
+        ) {
+            return [ServerType.Azure, ServerType.DataWarehouse];
+        }
 
-    if (connection.server.includes(providerSettings.fabric.sqlDbDnsSuffix)) {
-        return [ServerType.Fabric, ServerType.Sql];
-    }
+        if (connection.server.includes(getCloudSettings().fabric.sqlDbDnsSuffix)) {
+            return [ServerType.Fabric, ServerType.Sql];
+        }
 
-    if (connection.server.includes(providerSettings.fabric.dataWarehouseSuffix)) {
-        return [ServerType.Fabric, ServerType.DataWarehouse];
+        if (connection.server.includes(getCloudSettings().fabric.dataWarehouseSuffix)) {
+            return [ServerType.Fabric, ServerType.DataWarehouse];
+        }
+    } catch (error) {
+        console.error("Error checking server types:", getErrorMessage(error));
     }
 
     // check if it's a local connection

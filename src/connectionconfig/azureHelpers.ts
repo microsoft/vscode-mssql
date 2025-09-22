@@ -13,7 +13,7 @@ import {
 import { GenericResourceExpanded, ResourceManagementClient } from "@azure/arm-resources";
 
 import { Azure as Loc } from "../constants/locConstants";
-import providerSettings from "../azure/providerSettings";
+import { getCloudSettings } from "../azure/providerSettings";
 import { IAccount, ITenant } from "../models/contracts/azure";
 import { FormItemOptions } from "../sharedInterfaces/form";
 import { AzureAccountService } from "../services/azureAccountService";
@@ -189,7 +189,9 @@ export class VsCodeAzureHelper {
     public static async fetchResourcesForSubscription(
         sub: AzureSubscription,
     ): Promise<GenericResourceExpanded[]> {
-        const client = new ResourceManagementClient(sub.credential, sub.subscriptionId);
+        const client = new ResourceManagementClient(sub.credential, sub.subscriptionId, {
+            endpoint: getCloudSettings().resources.azureManagementResource.endpoint,
+        });
         const resources = await listAllIterator<GenericResourceExpanded>(client.resources.list());
         return resources;
     }
@@ -455,7 +457,7 @@ export async function constructAzureAccountForTenant(azureAccountInfo: {
         properties: {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             azureAuthType: 0 as any,
-            providerSettings: undefined,
+            providerSettings: getCloudSettings(),
             isMsAccount: false,
             owningTenant: undefined,
             tenants: [
@@ -503,11 +505,11 @@ export function extractFromResourceId(resourceId: string, property: string): str
 
 export function buildServerUri(serverResource: GenericResourceExpanded): string {
     const suffix = serverResource.kind.includes("analytics")
-        ? providerSettings.resources.databaseResource.analyticsDnsSuffix
-        : providerSettings.resources.databaseResource.dnsSuffix;
+        ? getCloudSettings().resources.databaseResource.analyticsDnsSuffix
+        : getCloudSettings().resources.databaseResource.dnsSuffix;
 
     // Construct the URI based on the server kind
-    return `${serverResource.name}.${suffix}`;
+    return `${serverResource.name}${suffix}`;
 }
 
 //#endregion

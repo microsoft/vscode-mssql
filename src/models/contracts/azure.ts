@@ -130,10 +130,127 @@ export interface IProviderSettings {
     portalEndpoint: string;
     redirectUri: string;
     resources: IProviderResources;
+    settings: Settings;
     fabric: {
         sqlDbDnsSuffix: string;
         dataWarehouseSuffix: string;
     };
+}
+
+interface Settings {
+    /**
+     * Host of the authority
+     */
+    host: string;
+
+    /**
+     * Identifier of the client application
+     */
+    clientId: string;
+
+    /**
+     * Information that describes the Azure resource management resource
+     */
+    armResource: Resource;
+
+    /**
+     * Information that describes the SQL Azure resource
+     */
+    sqlResource?: Resource;
+
+    /**
+     * A list of tenant IDs to authenticate against. If defined, then these IDs will be used
+     * instead of querying the tenants endpoint of the armResource
+     */
+    adTenants?: string[];
+
+    // AuthorizationCodeGrantFlowSettings //////////////////////////////////
+
+    /**
+     * Redirect URI that is used to signify the end of the interactive aspect of sign in
+     */
+    redirectUri: string;
+
+    scopes: string[];
+
+    portalEndpoint?: string;
+}
+
+/**
+ * Represents a resource exposed by a Microsoft Entra identity
+ */
+export interface Resource {
+    /**
+     * Identifier of the resource
+     */
+    id: string;
+
+    /**
+     * Endpoint url used to access the resource
+     */
+    endpoint: string;
+
+    /**
+     * Endpoint suffix used to access the resource
+     */
+    endpointSuffix?: string;
+
+    /**
+     * Resource ID for azdata
+     */
+    azureResourceId?: AzureResource;
+}
+
+export enum AzureResource {
+    /**
+     * Azure Resource Management (ARM)
+     */
+    ResourceManagement = 0,
+    /**
+     * SQL Azure
+     */
+    Sql = 1,
+    /**
+     * OSS RDMS
+     */
+    OssRdbms = 2,
+    /**
+     * Azure Key Vault
+     */
+    AzureKeyVault = 3,
+    // 4 (formerly Azure Graph) is no longer used.
+    /**
+     * Microsoft Resource Management
+     */
+    MicrosoftResourceManagement = 5,
+    /**
+     * Azure Dev Ops
+     */
+    AzureDevOps = 6,
+    /**
+     * Microsoft Graph
+     */
+    MsGraph = 7,
+    /**
+     * Azure Log Analytics
+     */
+    AzureLogAnalytics = 8,
+    /**
+     * Azure Storage
+     */
+    AzureStorage = 9,
+    /**
+     * Kusto
+     */
+    AzureKusto = 10,
+    /**
+     * Power BI
+     */
+    PowerBi = 11,
+    /**
+     * Represents custom resource URIs as received from server endpoint.
+     */
+    Custom = 12,
 }
 
 export interface IProviderResources {
@@ -144,6 +261,7 @@ export interface IProviderResources {
     ossRdbmsResource?: IAADResource;
     azureKeyVaultResource?: IAADResource;
     azureDevopsResource?: IAADResource;
+    fabric?: IAADResource & { sqlDbDnsSuffix?: string; dataWarehouseSuffix: string };
 }
 
 export interface IAADResource {

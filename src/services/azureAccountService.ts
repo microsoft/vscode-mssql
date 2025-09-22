@@ -6,7 +6,7 @@
 import { IAzureAccountService, IAzureAccountSession } from "vscode-mssql";
 import { AccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
-import providerSettings from "../azure/providerSettings";
+import { getCloudSettings } from "../azure/providerSettings";
 import { IAccount, IToken } from "../models/contracts/azure";
 
 export class AzureAccountService implements IAzureAccountService {
@@ -39,7 +39,7 @@ export class AzureAccountService implements IAzureAccountService {
         return await this._azureController.getAccountSecurityToken(
             account,
             tenantId,
-            providerSettings.resources.azureManagementResource,
+            getCloudSettings(account.key.providerId).resources.azureManagementResource,
         );
     }
 
