@@ -2129,7 +2129,11 @@ export default class MainController implements vscode.Disposable {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
             let credentials = await this._connectionMgr.onNewConnection();
             if (credentials) {
-                await this.createObjectExplorerSession(credentials);
+                try {
+                    await this.createObjectExplorerSession(credentials);
+                } catch (error) {
+                    this._connectionMgr.client.logger.error(error);
+                }
                 return true;
             }
         }
