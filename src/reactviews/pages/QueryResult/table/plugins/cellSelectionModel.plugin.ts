@@ -134,12 +134,15 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     public setSelectedRanges(ranges: Array<Slick.Range>): void {
-        // simple check for: empty selection didn't change, prevent firing onSelectedRangesChanged
-        if ((!this.ranges || this.ranges.length === 0) && (!ranges || ranges.length === 0)) {
+        // Normalize incoming ranges first
+        const normalized = this.removeInvalidRanges(ranges ?? []);
+
+        // Short-circuit if nothing actually changed (prevents duplicate notifications)
+        if (this.areRangesEqual(this.ranges ?? [], normalized)) {
             return;
         }
 
-        this.ranges = this.removeInvalidRanges(ranges);
+        this.ranges = normalized;
         this.onSelectedRangesChanged.notify(this.ranges);
         void this.updateSummaryText(this.ranges);
     }
@@ -712,5 +715,31 @@ export class CellSelectionModel<T extends Slick.SlickData>
         if (activeCell) {
             this.setSelectedRanges([new Slick.Range(activeCell.row, activeCell.cell)]);
         }
+    }
+
+    // Compare two range arrays for deep equality
+    private areRangesEqual(a: Slick.Range[], b: Slick.Range[]): boolean {
+        if (a === b) {
+            return true;
+        }
+        if (!a || !b) {
+            return false;
+        }
+        if (a.length !== b.length) {
+            return false;
+        }
+        for (let i = 0; i < a.length; i++) {
+            const r1 = a[i];
+            const r2 = b[i];
+            if (
+                r1.fromRow !== r2.fromRow ||
+                r1.toRow !== r2.toRow ||
+                r1.fromCell !== r2.fromCell ||
+                r1.toCell !== r2.toCell
+            ) {
+                return false;
+            }
+        }
+        return true;
     }
 }
