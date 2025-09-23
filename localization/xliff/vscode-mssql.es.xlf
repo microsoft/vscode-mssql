@@ -219,7 +219,7 @@
       <trans-unit id="++CODE++381d558ea8ee3e00d772e070932d5a334e7743c399dda1ddd675e1962d6e32bc">
         <source xml:lang="en">An error occurred while retrieving rows: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">An error occurred while retrieving rows: {0}</target>
+        <target state="translated">Error al recuperar filas: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
         <source xml:lang="en">An error occurred while searching database objects</source>
@@ -566,7 +566,7 @@
       </trans-unit>
       <trans-unit id="++CODE++6822b8489308b650f2e36cb439297b0c4a43859fe39e164aea3ad453f4bd14d7">
         <source xml:lang="en">Chat command not available in this VS Code version</source>
-        <target state="new">Chat command not available in this VS Code version</target>
+        <target state="translated">El comando de chat no está disponible en esta versión de VS Code</target>
       </trans-unit>
       <trans-unit id="++CODE++c8cabf4a998e678eb3213d46a3e9e80217b7839fb5f3537ee550a65e3b2202c9">
         <source xml:lang="en">Check Constraint</source>
@@ -712,7 +712,7 @@
       </trans-unit>
       <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
         <source xml:lang="en">Close properties pane</source>
-        <target state="new">Close properties pane</target>
+        <target state="translated">Cerrar panel de propiedades</target>
       </trans-unit>
       <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
         <source xml:lang="en">Close the current connection</source>
@@ -1042,11 +1042,11 @@
       </trans-unit>
       <trans-unit id="++CODE++5f7261cbf4eef17922f168d487b4e92de9bb9b118350254bfff4ea732bf0e1d9">
         <source xml:lang="en">Copy as IN clause</source>
-        <target state="new">Copy as IN clause</target>
+        <target state="translated">Copiar como cláusula IN</target>
       </trans-unit>
       <trans-unit id="++CODE++20e0663f2c175c2d6a5a11120ce06def7ecea5fd1cfb3cb837232bbd0aab34cd">
         <source xml:lang="en">Copy as INSERT INTO</source>
-        <target state="new">Copy as INSERT INTO</target>
+        <target state="translated">Copiar como INSERT INTO</target>
       </trans-unit>
       <trans-unit id="++CODE++fd4aee4cb3fa5d5963fc78a7261f20700d94a8ddbbb5b963e97a84c441149508">
         <source xml:lang="en">Copy as JSON</source>
@@ -1639,7 +1639,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
         <source xml:lang="en">Expand properties pane</source>
-        <target state="new">Expand properties pane</target>
+        <target state="translated">Expandir panel de propiedades</target>
       </trans-unit>
       <trans-unit id="++CODE++c39d646f10769b078ae82be4da7a0079ca91182b241e749be4276e08c215c654">
         <source xml:lang="en">Explorer</source>
@@ -1793,7 +1793,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++08e3cce193c1731c751f4e68352687632cb9edb3e01e8bc9200742d0bd5f7b2c">
         <source xml:lang="en">Failed to start query.</source>
-        <target state="new">Failed to start query.</target>
+        <target state="translated">No se pudo iniciar la consulta.</target>
       </trans-unit>
       <trans-unit id="++CODE++8d966abf7ce439608c05903323ea676d64af27e6119ddcc6edebd6db2cd5c479">
         <source xml:lang="en">Failed to start {0}.</source>
@@ -2419,7 +2419,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297">
         <source xml:lang="en">Loading results...</source>
-        <target state="new">Loading results...</target>
+        <target state="translated">Cargando resultados...</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -3198,7 +3198,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++26b4293018ea72418733109f2e245387d9dfcfe7d4083c0c1f29eb1155c98365">
         <source xml:lang="en">Restore properties pane</source>
-        <target state="new">Restore properties pane</target>
+        <target state="translated">Restaurar panel de propiedades</target>
       </trans-unit>
       <trans-unit id="++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c">
         <source xml:lang="en">Result Set {0}</source>
@@ -3344,7 +3344,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++49e889d19cb98b87430fab55b6c5203e191463e874e2d94eb44d43f38395e226">
         <source xml:lang="en">Save as INSERT</source>
-        <target state="new">Save as INSERT</target>
+        <target state="translated">Guardar como INSERT</target>
       </trans-unit>
       <trans-unit id="++CODE++910ed5e0c43df2bc1a2c71f1d5ecd2168b919fd4dc9f6d4b1f13f660cba9c524">
         <source xml:lang="en">Save as JSON</source>
@@ -4528,7 +4528,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="mssql.autoRevealResultsPanel">
         <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</source>
-        <target state="new">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</target>
+        <target state="translated">Mostrar automáticamente el panel de resultados al cambiar a un editor con resultados de consulta. Solo se aplica cuando está habilitada la opción "Abrir resultados en la pestaña".</target>
       </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
@@ -4536,7 +4536,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
         <source xml:lang="en">Change Connection</source>
-        <target state="new">Change Connection</target>
+        <target state="translated">Cambiar conexión</target>
       </trans-unit>
       <trans-unit id="mssql.changeDatabase">
         <source xml:lang="en">Change Database</source>
