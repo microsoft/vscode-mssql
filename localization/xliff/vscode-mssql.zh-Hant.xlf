@@ -219,7 +219,7 @@
       <trans-unit id="++CODE++381d558ea8ee3e00d772e070932d5a334e7743c399dda1ddd675e1962d6e32bc">
         <source xml:lang="en">An error occurred while retrieving rows: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">An error occurred while retrieving rows: {0}</target>
+        <target state="translated">擷取資料列時發生錯誤: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
         <source xml:lang="en">An error occurred while searching database objects</source>
@@ -1793,7 +1793,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++08e3cce193c1731c751f4e68352687632cb9edb3e01e8bc9200742d0bd5f7b2c">
         <source xml:lang="en">Failed to start query.</source>
-        <target state="new">Failed to start query.</target>
+        <target state="translated">無法開始查詢。</target>
       </trans-unit>
       <trans-unit id="++CODE++8d966abf7ce439608c05903323ea676d64af27e6119ddcc6edebd6db2cd5c479">
         <source xml:lang="en">Failed to start {0}.</source>
@@ -2419,7 +2419,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297">
         <source xml:lang="en">Loading results...</source>
-        <target state="new">Loading results...</target>
+        <target state="translated">正在載入結果...</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -4528,7 +4528,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="mssql.autoRevealResultsPanel">
         <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</source>
-        <target state="new">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</target>
+        <target state="translated">切換至包含查詢結果的編輯器時，自動顯示結果面板。此功能僅在啟用「在索引標籤中開啟結果」時生效。</target>
       </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
@@ -4536,7 +4536,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
         <source xml:lang="en">Change Connection</source>
-        <target state="new">Change Connection</target>
+        <target state="translated">變更連線</target>
       </trans-unit>
       <trans-unit id="mssql.changeDatabase">
         <source xml:lang="en">Change Database</source>
