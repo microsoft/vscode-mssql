@@ -1094,8 +1094,8 @@ export default class QueryRunner {
                     arguments: [this.uri],
                 },
                 continue: waitForUserContinuation,
-                text: `${totalRows} row selected, click to load summary`,
-                tooltip: "Click to load summary",
+                text: `$(play-circle) ${LocalizedConstants.QueryResult.summaryFetchConfirmation(totalRows)}`,
+                tooltip: LocalizedConstants.QueryResult.clickToFetchSummary,
                 uri: this.uri,
             });
 
@@ -1113,8 +1113,8 @@ export default class QueryRunner {
                 arguments: [this.uri],
             },
             continue: cancelConfirmation,
-            text: `Loading summary... 0/${totalRows} (0%) (Click to cancel)`,
-            tooltip: "Click to cancel loading summary",
+            text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(0, totalRows)}`,
+            tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
             uri: this.uri,
         });
 
@@ -1139,8 +1139,8 @@ export default class QueryRunner {
             for (const range of selection) {
                 if (isCanceled) {
                     this._onSummaryChangedEmitter.fire({
-                        text: "Summary loading canceled",
-                        tooltip: "Summary loading was canceled by user",
+                        text: LocalizedConstants.QueryResult.summaryLoadingCanceled,
+                        tooltip: LocalizedConstants.QueryResult.summaryLoadingCanceledTooltip,
                         uri: this.uri,
                         command: undefined,
                         continue: undefined,
@@ -1156,8 +1156,8 @@ export default class QueryRunner {
                 ) {
                     if (isCanceled) {
                         this._onSummaryChangedEmitter.fire({
-                            text: "Summary loading canceled",
-                            tooltip: "Summary loading was canceled by user",
+                            text: LocalizedConstants.QueryResult.summaryLoadingCanceled,
+                            tooltip: LocalizedConstants.QueryResult.summaryLoadingCanceledTooltip,
                             uri: this.uri,
                             command: undefined,
                             continue: undefined,
@@ -1167,20 +1167,6 @@ export default class QueryRunner {
 
                     const endRow = Math.min(startRow + batchThreshold - 1, range.toRow);
                     const batchSize = endRow - startRow + 1;
-
-                    // Update progress before fetching batch
-                    const progressPercentage = Math.round((processedRows / totalRows) * 100);
-                    this._onSummaryChangedEmitter.fire({
-                        command: {
-                            title: "mssql.cancelSummaryOperation",
-                            command: "mssql.cancelSummaryOperation",
-                            arguments: [this.uri],
-                        },
-                        continue: cancelConfirmation,
-                        text: `Loading summary... ${processedRows}/${totalRows} (${progressPercentage}%) (Click to cancel)`,
-                        tooltip: "Click to cancel loading summary",
-                        uri: this.uri,
-                    });
 
                     // Fetch the batch
                     const result = await this.getRows(startRow, batchSize, batchId, resultId);
@@ -1202,8 +1188,6 @@ export default class QueryRunner {
 
                     processedRows += batchSize;
 
-                    // Update progress after processing batch
-                    const newProgressPercentage = Math.round((processedRows / totalRows) * 100);
                     this._onSummaryChangedEmitter.fire({
                         command: {
                             title: "mssql.cancelSummaryOperation",
@@ -1211,8 +1195,8 @@ export default class QueryRunner {
                             arguments: [this.uri],
                         },
                         continue: cancelConfirmation,
-                        text: `Loading summary... ${processedRows}/${totalRows} (${newProgressPercentage}%)`,
-                        tooltip: "Click to cancel loading summary",
+                        text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(processedRows, totalRows)}`,
+                        tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
                         uri: this.uri,
                     });
                 }
@@ -1220,8 +1204,8 @@ export default class QueryRunner {
 
             if (isCanceled) {
                 this._onSummaryChangedEmitter.fire({
-                    text: "Summary loading canceled",
-                    tooltip: "Summary loading was canceled by user",
+                    text: LocalizedConstants.QueryResult.summaryLoadingCanceled,
+                    tooltip: LocalizedConstants.QueryResult.summaryLoadingCanceledTooltip,
                     uri: this.uri,
                     command: undefined,
                     continue: undefined,
@@ -1282,8 +1266,10 @@ export default class QueryRunner {
             }
 
             this._onSummaryChangedEmitter.fire({
-                text: "Error loading summary",
-                tooltip: `Error occurred while loading summary: ${getErrorMessage(error)}`,
+                text: `$(error) ${LocalizedConstants.QueryResult.errorLoadingSummary}`,
+                tooltip: LocalizedConstants.QueryResult.errorLoadingSummaryTooltip(
+                    getErrorMessage(error),
+                ),
                 uri: this.uri,
                 command: undefined,
                 continue: undefined,
