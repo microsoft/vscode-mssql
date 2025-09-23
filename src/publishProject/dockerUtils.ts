@@ -174,6 +174,32 @@ export function isValidSqlAdminPassword(password: string, userName = "sa"): bool
 }
 
 /**
+ * Parses license text with HTML link and returns safe components for rendering
+ */
+export function parseLicenseText(licenseText: string) {
+    const linkMatch = licenseText.match(/<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>/);
+
+    if (linkMatch) {
+        const linkUrl = linkMatch[1];
+        const linkText = linkMatch[2];
+        const parts = licenseText.split(linkMatch[0]);
+
+        return {
+            hasLink: true,
+            beforeText: parts[0] || "",
+            linkText,
+            linkUrl,
+            afterText: parts[1] || "",
+        };
+    }
+
+    return {
+        hasLink: false,
+        plainText: licenseText,
+    };
+}
+
+/**
  * Loads Docker tags for a given target version and updates form component options
  */
 export async function loadDockerTags(
@@ -185,15 +211,67 @@ export async function loadDockerTags(
     let tags: string[] = [];
 
     try {
-        const resp = await fetch(baseImage.tagsUrl, { method: "GET" });
-        if (resp.ok) {
+        // Security: Validate URL is from trusted Microsoft registry
+        const url = new URL(baseImage.tagsUrl);
+        if (!url.hostname.endsWith(".microsoft.com") && url.hostname !== "mcr.microsoft.com") {
+            console.warn("Untrusted registry URL blocked:", baseImage.tagsUrl);
+            return;
+        }
+
+        // Create AbortController for timeout control
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+        try {
+            const resp = await fetch(baseImage.tagsUrl, {
+                method: "GET",
+                signal: controller.signal,
+                headers: {
+                    Accept: "application/json",
+                    "User-Agent": "vscode-mssql-extension",
+                },
+                // Security: Prevent credentials from being sent
+                credentials: "omit",
+                // Security: Follow redirects only to same origin
+                redirect: "follow",
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!resp.ok) {
+                console.warn(`Failed to fetch Docker tags: ${resp.status} ${resp.statusText}`);
+                return;
+            }
+
+            // Security: Check content type
+            const contentType = resp.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                console.warn("Invalid content type for Docker tags response:", contentType);
+                return;
+            }
+
             const json = await resp.json();
             if (json?.tags && Array.isArray(json.tags)) {
-                tags = json.tags as string[];
+                // Security: Validate tag format to prevent injection
+                tags = (json.tags as string[]).filter(
+                    (tag) =>
+                        typeof tag === "string" &&
+                        /^[a-zA-Z0-9._-]+$/.test(tag) &&
+                        tag.length <= 128,
+                );
             }
+        } catch (fetchError: unknown) {
+            clearTimeout(timeoutId);
+            if (fetchError instanceof Error && fetchError.name === "AbortError") {
+                console.warn("Docker tags request timed out");
+            } else {
+                console.warn("Network error fetching Docker tags:", fetchError);
+            }
+            return;
         }
-    } catch {
-        // ignore network errors; leave tags empty
+    } catch (urlError: unknown) {
+        console.warn("Invalid Docker tags URL:", urlError);
+        return;
     }
 
     const imageTags = filterAndSortTags(tags, baseImage, targetVersion, true);

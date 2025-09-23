@@ -14,6 +14,7 @@ import {
 } from "../../../../sharedInterfaces/publishDialog";
 import { FormField } from "../../../common/forms/form.component";
 import { PublishFormContext } from "../types";
+import { parseLicenseText } from "../../../../publishProject/dockerUtils";
 import * as constants from "../../../../constants/constants";
 
 const useStyles = makeStyles({
@@ -39,6 +40,20 @@ const useStyles = makeStyles({
     },
     licenseLabel: {
         lineHeight: "1.3",
+    },
+    licenseContainer: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+    },
+    licenseLink: {
+        textDecoration: "underline",
+        color: "var(--vscode-textLink-foreground)",
+    },
+    licenseError: {
+        color: tokens.colorStatusDangerForeground1,
+        fontSize: "12px",
+        marginLeft: "24px",
     },
 });
 
@@ -131,46 +146,44 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
                                     comp.propertyName as keyof IPublishForm
                                 ] as boolean) ?? false;
 
-                            // License checkbox is required - show error only if validation has been attempted
                             const validation = comp.validation;
                             const isError = validation !== undefined && !validation.isValid;
                             const errorMessage = isError ? validation.validationMessage : undefined;
 
-                            const licenseLabel = (
-                                <span
-                                    className={classes.licenseLabel}
-                                    dangerouslySetInnerHTML={{ __html: comp.label ?? "" }}
-                                />
-                            );
+                            const licenseInfo = parseLicenseText(comp.label || "");
 
                             return (
                                 <div key={String(name)} className={classes.licenseBlock}>
-                                    <Checkbox
-                                        size="medium"
-                                        label={licenseLabel}
-                                        required={true}
-                                        checked={isChecked}
-                                        onChange={(
-                                            _: React.ChangeEvent<HTMLInputElement>,
-                                            data: CheckboxOnChangeData,
-                                        ) => {
-                                            const isChecked = data.checked === true;
-                                            context.formAction({
-                                                propertyName: comp.propertyName,
-                                                isAction: false,
-                                                value: isChecked,
-                                            });
-                                        }}
-                                        style={{ alignItems: "flex-start" }}
-                                    />
-                                    {isError && errorMessage && (
-                                        <span
-                                            style={{
-                                                color: tokens.colorStatusDangerForeground1,
-                                                fontSize: 12,
-                                            }}>
-                                            {errorMessage}
+                                    <div className={classes.licenseContainer}>
+                                        <Checkbox
+                                            size="medium"
+                                            required={true}
+                                            checked={isChecked}
+                                            onChange={(
+                                                _: React.ChangeEvent<HTMLInputElement>,
+                                                data: CheckboxOnChangeData,
+                                            ) => {
+                                                context.formAction({
+                                                    propertyName: comp.propertyName,
+                                                    isAction: false,
+                                                    value: data.checked === true,
+                                                });
+                                            }}
+                                        />
+                                        <span className={classes.licenseLabel}>
+                                            {licenseInfo.beforeText}
+                                            <a
+                                                href={licenseInfo.linkUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className={classes.licenseLink}>
+                                                {licenseInfo.linkText}
+                                            </a>
+                                            {licenseInfo.afterText}
                                         </span>
+                                    </div>
+                                    {isError && errorMessage && (
+                                        <span className={classes.licenseError}>{errorMessage}</span>
                                     )}
                                 </div>
                             );

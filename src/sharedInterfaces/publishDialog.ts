@@ -59,7 +59,7 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
         profileName?: string;
         serverName?: string;
         databaseName?: string;
-        publishTarget?: "existingServer" | "localContainer";
+        publishTarget?: constants.PublishTargetType;
         sqlCmdVariables?: { [key: string]: string };
         containerPort?: string;
         containerAdminPassword?: string;
