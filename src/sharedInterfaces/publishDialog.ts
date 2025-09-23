@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as constants from "../constants/constants";
 import { FormItemSpec, FormState, FormReducers } from "./form";
-import { RequestType } from "vscode-jsonrpc/browser";
 
 /**
  * Data fields shown in the Publish form.
@@ -13,12 +13,17 @@ export interface IPublishForm {
     profileName?: string;
     serverName?: string;
     databaseName?: string;
-    publishTarget?: "existingServer" | "localContainer";
+    publishTarget?: constants.PublishTargetType;
     sqlCmdVariables?: { [key: string]: string };
+    // Container deployment specific fields (only used when publishTarget === 'localContainer')
+    containerPort?: string;
+    containerAdminPassword?: string;
+    containerAdminPasswordConfirm?: string;
+    containerImageTag?: string;
+    acceptContainerLicense?: boolean;
 }
 
 /**
- * Inner state (domain + form) analogous to ExecutionPlanState in executionPlan.ts
  * Extends generic FormState so form system works unchanged.
  */
 export interface PublishDialogState
@@ -26,6 +31,12 @@ export interface PublishDialogState
     projectFilePath: string;
     inProgress: boolean;
     lastPublishResult?: { success: boolean; details?: string };
+    // Optional project metadata (target version, etc.) loaded asynchronously
+    projectProperties?: {
+        targetVersion?: string;
+        // Additional properties can be added here as needed
+        [key: string]: unknown;
+    };
 }
 
 /**
@@ -46,8 +57,13 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
         profileName?: string;
         serverName?: string;
         databaseName?: string;
-        publishTarget?: "existingServer" | "localContainer";
+        publishTarget?: constants.PublishTargetType;
         sqlCmdVariables?: { [key: string]: string };
+        containerPort?: string;
+        containerAdminPassword?: string;
+        containerAdminPasswordConfirm?: string;
+        containerImageTag?: string;
+        acceptContainerLicense?: boolean;
         projectFilePath?: string;
     };
 
@@ -62,11 +78,4 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     openPublishAdvanced: {};
     selectPublishProfile: {};
     savePublishProfile: { profileName: string };
-}
-
-/**
- * Example request pattern retained for future preview scenarios.
- */
-export namespace GetPublishPreviewRequest {
-    export const type = new RequestType<void, string, void>("getPublishPreview");
 }

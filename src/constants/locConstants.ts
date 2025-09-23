@@ -1202,6 +1202,30 @@ export class PublishProject {
     public static PublishTargetContainer = l10n.t("Local development container");
     public static GenerateScript = l10n.t("Generate Script");
     public static Publish = l10n.t("Publish");
+    public static SqlServerPortNumber = l10n.t("SQL Server port number");
+    public static SqlServerAdminPassword = l10n.t("SQL Server admin password");
+    public static SqlServerAdminPasswordConfirm = l10n.t("Confirm SQL Server admin password");
+    public static SqlServerImageTag = l10n.t("Image tag");
+    public static UserLicenseAgreement = (licenseUrl: string) =>
+        l10n.t({
+            message:
+                'I accept the <a href="{0}" target="_blank" rel="noopener noreferrer">Microsoft SQL Server License Agreement</a>',
+            args: [licenseUrl],
+            comment: [
+                "{0} is the hyperlink URL to the Microsoft SQL Server License Agreement used in an HTML anchor tag",
+            ],
+        });
+    // Validation messages
+    public static InvalidPortMessage = l10n.t("Port must be a number between 1 and 65535");
+    public static InvalidSQLPasswordMessage(name: string) {
+        return l10n.t(
+            "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy",
+            name,
+        );
+    }
+    public static PasswordNotMatchMessage = (name: string) => {
+        return l10n.t("{0} password doesn't match the confirmation password", name);
+    };
 }
 
 export class SchemaCompare {

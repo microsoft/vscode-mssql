@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
+import * as constants from "../constants/constants";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { PublishProject as Loc } from "../constants/locConstants";
@@ -15,6 +16,9 @@ import {
     PublishDialogState,
 } from "../sharedInterfaces/publishDialog";
 import { generatePublishFormComponents } from "./formComponentHelpers";
+import { loadDockerTags } from "./dockerUtils";
+import { readProjectProperties } from "./projectUtils";
+import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 
 export class PublishProjectWebViewController extends FormWebviewController<
@@ -25,23 +29,19 @@ export class PublishProjectWebViewController extends FormWebviewController<
 > {
     public readonly initialized: Deferred<void> = new Deferred<void>();
 
-    public static mainOptions: readonly (keyof IPublishForm)[] = [
-        "publishTarget",
-        "profileName",
-        "serverName",
-        "databaseName",
-    ];
+    private readonly _sqlProjectsService?: SqlProjectsService;
 
     constructor(
         context: vscode.ExtensionContext,
         _vscodeWrapper: VscodeWrapper,
         projectFilePath: string,
+        sqlProjectsService?: SqlProjectsService,
     ) {
         const initialFormState: IPublishForm = {
             profileName: "",
             serverName: "",
             databaseName: path.basename(projectFilePath, path.extname(projectFilePath)),
-            publishTarget: "existingServer",
+            publishTarget: constants.PublishTargets.EXISTING_SERVER,
             sqlCmdVariables: {},
         };
 
@@ -68,6 +68,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
             },
         });
 
+        // Store the SQL Projects Service
+        this._sqlProjectsService = sqlProjectsService;
+
         // Register reducers after initialization
         this.registerRpcHandlers();
 
@@ -91,75 +94,138 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this.state.projectFilePath = projectFilePath;
         }
 
+        // Attempt to load project properties (non-blocking). This enriches state with targetVersion
+        // and other metadata used for default selections (e.g., docker image tags)
+        try {
+            if (this._sqlProjectsService && projectFilePath) {
+                const props = await readProjectProperties(
+                    this._sqlProjectsService,
+                    projectFilePath,
+                );
+                if (props) {
+                    // Copy into loose index-signature shape expected by state
+                    this.state.projectProperties = {
+                        ...props,
+                    } as {
+                        [key: string]: unknown;
+                        targetVersion?: string;
+                    };
+                    // Update state to notify UI of the new project properties
+                    this.updateState();
+
+                    // Fetch Docker tags for the container image dropdown
+                    if (props.targetVersion) {
+                        const tagComponent =
+                            this.state.formComponents[
+                                constants.PublishFormFields.ContainerImageTag
+                            ];
+                        if (tagComponent) {
+                            await loadDockerTags(
+                                props.targetVersion,
+                                tagComponent,
+                                this.state.formState,
+                            );
+                        }
+                    }
+                }
+            }
+        } catch {
+            // swallow errors; keep dialog resilient
+        }
+
         await this.updateItemVisibility();
         this.updateState();
     }
 
-    private registerRpcHandlers(): void {
+    /** Registers all reducers in pure (immutable) style */
+    private registerRpcHandlers() {
         // setPublishValues
-        this.registerReducer(
-            "setPublishValues",
-            async (
-                state: PublishDialogState,
-                payload: Partial<IPublishForm> & { projectFilePath?: string },
-            ) => {
-                if (payload) {
-                    state.formState = { ...state.formState, ...payload };
-                    if (payload.projectFilePath) {
-                        state.projectFilePath = payload.projectFilePath;
-                    }
-                }
-                // Re-evaluate visibility if any controlling fields changed
-                await this.updateItemVisibility();
-                return state;
-            },
-        );
+        this.registerReducer("setPublishValues", async (state, payload) => {
+            const changes = payload || {};
+            const newFormState = { ...state.formState, ...changes };
+            const newState: PublishDialogState = {
+                ...state,
+                formState: newFormState,
+                projectFilePath: changes.projectFilePath ?? state.projectFilePath,
+            };
+            await this.updateItemVisibility(newState);
+            return newState;
+        });
 
-        this.registerReducer("publishNow", async (state: PublishDialogState) => {
+        this.registerReducer("publishNow", async (state) => {
             // TODO: implement actual publish logic (currently just clears inProgress)
-            state.inProgress = false;
-            return state;
+            return { ...state, inProgress: false };
         });
 
-        this.registerReducer("generatePublishScript", async (state: PublishDialogState) => {
+        this.registerReducer("generatePublishScript", async (state) => {
             // TODO: implement script generation logic
-            return state;
+            return { ...state };
         });
 
-        this.registerReducer("selectPublishProfile", async (state: PublishDialogState) => {
+        this.registerReducer("selectPublishProfile", async (state) => {
             // TODO: implement profile selection logic
+            return { ...state };
+        });
+
+        this.registerReducer("savePublishProfile", async (state, payload) => {
+            // TODO: implement profile saving logic
+            if (payload?.profileName) {
+                return {
+                    ...state,
+                    formState: { ...state.formState, profileName: payload.profileName },
+                };
+            }
             return state;
         });
 
-        this.registerReducer(
-            "savePublishProfile",
-            async (state: PublishDialogState, payload: { profileName?: string }) => {
-                if (payload?.profileName) {
-                    state.formState.profileName = payload.profileName;
-                }
-                // TODO: implement profile saving logic
-                return state;
-            },
-        );
+        this.registerReducer("openPublishAdvanced", async (state) => {
+            // TODO: implement advanced publish options
+            return { ...state };
+        });
     }
 
-    protected getActiveFormComponents(_state: PublishDialogState) {
-        return [...PublishProjectWebViewController.mainOptions];
+    protected getActiveFormComponents(state: PublishDialogState): (keyof IPublishForm)[] {
+        const activeComponents: (keyof IPublishForm)[] = [
+            constants.PublishFormFields.PublishTarget,
+            constants.PublishFormFields.ProfileName,
+            constants.PublishFormFields.ServerName,
+            constants.PublishFormFields.DatabaseName,
+        ] as (keyof IPublishForm)[];
+
+        if (state.formState.publishTarget === constants.PublishTargets.LOCAL_CONTAINER) {
+            activeComponents.push(
+                constants.PublishFormFields.ContainerPort,
+                constants.PublishFormFields.ContainerAdminPassword,
+                constants.PublishFormFields.ContainerAdminPasswordConfirm,
+                constants.PublishFormFields.ContainerImageTag,
+                constants.PublishFormFields.AcceptContainerLicense,
+            );
+        }
+
+        return activeComponents;
     }
 
-    public async updateItemVisibility(): Promise<void> {
-        const hidden: (keyof IPublishForm)[] = [];
+    public async updateItemVisibility(state?: PublishDialogState): Promise<void> {
+        const currentState = state || this.state;
+        const target = currentState.formState?.publishTarget;
+        const hidden: string[] = [];
 
-        // Example visibility: local container target doesn't require a server name
-        if (this.state.formState?.publishTarget === "localContainer") {
-            hidden.push("serverName");
+        if (target === constants.PublishTargets.LOCAL_CONTAINER) {
+            // Hide server-specific fields when targeting local container
+            hidden.push(constants.PublishFormFields.ServerName);
+        } else if (target === constants.PublishTargets.EXISTING_SERVER) {
+            // Hide container-specific fields when targeting existing server
+            hidden.push(
+                constants.PublishFormFields.ContainerPort,
+                constants.PublishFormFields.ContainerAdminPassword,
+                constants.PublishFormFields.ContainerAdminPasswordConfirm,
+                constants.PublishFormFields.ContainerImageTag,
+                constants.PublishFormFields.AcceptContainerLicense,
+            );
         }
 
-        for (const component of Object.values(this.state.formComponents)) {
-            // mark hidden if the property is in hidden list
-            component.hidden = hidden.includes(component.propertyName as keyof IPublishForm);
+        for (const component of Object.values(currentState.formComponents)) {
+            component.hidden = hidden.includes(component.propertyName);
         }
-
-        return;
     }
 }

@@ -624,6 +624,9 @@
     <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
       <source xml:lang="en">Configure and customize SQL Server containers</source>
     </trans-unit>
+    <trans-unit id="++CODE++73dd96f4085ccfca56f43ca281a29ab8d195fe5fc79b4cb45be11d7830230d63">
+      <source xml:lang="en">Confirm SQL Server admin password</source>
+    </trans-unit>
     <trans-unit id="++CODE++eb83f1820ce359dc5c9aa6ca4d08fad60256a9808c58ad93f89db3c182908364">
       <source xml:lang="en">Confirm to clear recent connections list</source>
     </trans-unit>
@@ -1596,6 +1599,10 @@
     <trans-unit id="++CODE++4d7056f0e9bef4870b289d7b77634cead0e646a63708a1eb500c6eab11c1328e">
       <source xml:lang="en">Hue</source>
     </trans-unit>
+    <trans-unit id="++CODE++70c28ff8eecf388a53fbc8ff288f471398bdb9860e438b3eae4b7ef6c8f187e5">
+      <source xml:lang="en">I accept the &lt;a href=&quot;{0}&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;Microsoft SQL Server License Agreement&lt;/a&gt;</source>
+      <note>{0} is the hyperlink URL to the Microsoft SQL Server License Agreement used in an HTML anchor tag</note>
+    </trans-unit>
     <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
       <source xml:lang="en">I have read the summary and understand the potential risks.</source>
     </trans-unit>
@@ -1604,6 +1611,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1d59e3e131d04ce9ba04c0f297dbd4eddb83c0bfe977b2a6bf19bdeb73f2d5c3">
       <source xml:lang="en">Ignore Tenant</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c4a77afa3d5cd701f32b5f09c195c635b256db8595687828c3ea0785ab5b72f4">
+      <source xml:lang="en">Image tag</source>
     </trans-unit>
     <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
       <source xml:lang="en">Importance</source>
@@ -1655,6 +1665,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4480c895a6e66acfc4e43550d8a60598168463e52699be5ed28eae3ecf7200c7">
       <source xml:lang="en">Invalid IP Address</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0c2f118ad5933157d00e2025f7cc3d3c3da84db32e18ffbb4f1032471cc643ef">
+      <source xml:lang="en">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</source>
     </trans-unit>
     <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
       <source xml:lang="en">Invalid column width</source>
@@ -2287,6 +2300,9 @@
     <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
       <source xml:lang="en">Port</source>
     </trans-unit>
+    <trans-unit id="++CODE++ed66c5818178010b7908ff51b8195453260bb97629cc433ea0b53795840b8645">
+      <source xml:lang="en">Port must be a number between 1 and 65535</source>
+    </trans-unit>
     <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
       <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
     </trans-unit>
@@ -2519,8 +2535,14 @@
     <trans-unit id="++CODE++8553f640204422619af23f71ce8e01bb39f23579ff44b08e5da1cd2eb4482c27">
       <source xml:lang="en">SQL Server Container SA Password</source>
     </trans-unit>
+    <trans-unit id="++CODE++8fb9e52bba9bdebaf10c130eca428ca15b770d0ba41c5f854c47db14a380f8ae">
+      <source xml:lang="en">SQL Server admin password</source>
+    </trans-unit>
     <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
       <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80">
+      <source xml:lang="en">SQL Server port number</source>
     </trans-unit>
     <trans-unit id="++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8">
       <source xml:lang="en">SQL Server {0} - latest</source>
@@ -3389,6 +3411,9 @@
       <source xml:lang="en">{0} of {1}</source>
       <note>{0} is the number of active elements
 {1} is the total number of elements</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
+      <source xml:lang="en">{0} password doesn&apos;t match the confirmation password</source>
     </trans-unit>
     <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
       <source xml:lang="en">{0} properties</source>

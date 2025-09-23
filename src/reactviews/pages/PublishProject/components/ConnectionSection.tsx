@@ -12,23 +12,18 @@ import {
     PublishDialogState,
     PublishDialogFormItemSpec,
 } from "../../../../sharedInterfaces/publishDialog";
-import { FormContextProps } from "../../../../sharedInterfaces/form";
+import { PublishFormContext } from "../types";
+import * as constants from "../../../../constants/constants";
 
-// Context type reuse
-interface PublishFormContext
-    extends FormContextProps<IPublishForm, PublishDialogState, PublishDialogFormItemSpec> {
-    publishNow: () => void;
-    generatePublishScript: () => void;
-    selectPublishProfile: () => void;
-    savePublishProfile: (profileName: string) => void;
-}
-
-export const ConnectionSection: React.FC<{ startIdx: number }> = ({ startIdx }) => {
+export const ConnectionSection: React.FC<{ idx: number }> = ({ idx }) => {
     const context = useContext(PublishProjectContext) as PublishFormContext | undefined;
 
-    const serverComponent = usePublishDialogSelector((s) => s.formComponents.serverName, Object.is);
+    const serverComponent = usePublishDialogSelector(
+        (s) => s.formComponents[constants.PublishFormFields.ServerName],
+        Object.is,
+    );
     const databaseComponent = usePublishDialogSelector(
-        (s) => s.formComponents.databaseName,
+        (s) => s.formComponents[constants.PublishFormFields.DatabaseName],
         Object.is,
     );
 
@@ -47,7 +42,7 @@ export const ConnectionSection: React.FC<{ startIdx: number }> = ({ startIdx }) 
                 >
                     context={context}
                     component={serverComponent}
-                    idx={startIdx}
+                    idx={idx}
                     props={{ orientation: "horizontal" }}
                 />
             )}
@@ -60,7 +55,7 @@ export const ConnectionSection: React.FC<{ startIdx: number }> = ({ startIdx }) 
                 >
                     context={context}
                     component={databaseComponent}
-                    idx={startIdx + 1}
+                    idx={idx + 1}
                     props={{ orientation: "horizontal" }}
                 />
             )}

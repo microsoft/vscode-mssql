@@ -1657,6 +1657,19 @@
   "Publish Target": "Publish Target",
   "Existing SQL server": "Existing SQL server",
   "Local development container": "Local development container",
+  "SQL Server port number": "SQL Server port number",
+  "SQL Server admin password": "SQL Server admin password",
+  "Confirm SQL Server admin password": "Confirm SQL Server admin password",
+  "Image tag": "Image tag",
+  "I accept the <a href=\"{0}\" target=\"_blank\" rel=\"noopener noreferrer\">Microsoft SQL Server License Agreement</a>/{0} is the hyperlink URL to the Microsoft SQL Server License Agreement used in an HTML anchor tag": {
+    "message": "I accept the <a href=\"{0}\" target=\"_blank\" rel=\"noopener noreferrer\">Microsoft SQL Server License Agreement</a>",
+    "comment": [
+      "{0} is the hyperlink URL to the Microsoft SQL Server License Agreement used in an HTML anchor tag"
+    ]
+  },
+  "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
+  "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy": "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy",
+  "{0} password doesn't match the confirmation password": "{0} password doesn't match the confirmation password",
   "Schema Compare": "Schema Compare",
   "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
   "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {

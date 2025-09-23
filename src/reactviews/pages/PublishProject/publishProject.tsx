@@ -9,15 +9,12 @@ import { useFormStyles } from "../../common/forms/form.component";
 import { PublishProjectStateProvider, PublishProjectContext } from "./publishProjectStateProvider";
 import { usePublishDialogSelector } from "./publishDialogSelector";
 import { LocConstants } from "../../common/locConstants";
-import {
-    IPublishForm,
-    PublishDialogFormItemSpec,
-    PublishDialogState,
-} from "../../../sharedInterfaces/publishDialog";
-import { FormContextProps } from "../../../sharedInterfaces/form";
 import { PublishProfileField } from "./components/PublishProfileSection";
 import { PublishTargetSection } from "./components/PublishTargetSection";
 import { ConnectionSection } from "./components/ConnectionSection";
+import { validatePublishForm } from "../../../publishProject/projectUtils";
+import { PublishFormContext } from "./types";
+import * as constants from "../../../constants/constants";
 
 const useStyles = makeStyles({
     root: { padding: "12px" },
@@ -33,17 +30,6 @@ const useStyles = makeStyles({
         borderTop: "1px solid transparent",
     },
 });
-
-type PublishFormContext = FormContextProps<
-    IPublishForm,
-    PublishDialogState,
-    PublishDialogFormItemSpec
-> & {
-    publishNow: () => void;
-    generatePublishScript: () => void;
-    selectPublishProfile: () => void;
-    savePublishProfile: (profileName: string) => void;
-};
 
 // Type guard to check if context has the required publish methods
 function isPublishFormContext(context: unknown): context is PublishFormContext {
@@ -79,26 +65,7 @@ function PublishProjectDialog() {
     const isComponentReady = isPublishFormContext(context) && !!formComponents && !!formState;
 
     // Check if all required fields are provided based on publish target
-    const isFormValid =
-        isComponentReady &&
-        (() => {
-            // Always require publish target and database name
-            if (!formState.publishTarget || !formState.databaseName) {
-                return false;
-            }
-
-            // For existing server, require server name
-            if (formState.publishTarget === "existingServer") {
-                return !!formState.serverName;
-            }
-
-            // For local container, server name is not required
-            if (formState.publishTarget === "localContainer") {
-                return true; // Could add container-specific validations here if needed
-            }
-
-            return false;
-        })();
+    const isFormValid = isComponentReady && validatePublishForm(formState);
 
     // Buttons should be disabled when:
     // - Component is not ready (missing context, form components, or form state)
@@ -106,11 +73,13 @@ function PublishProjectDialog() {
     // - Form validation fails
     const buttonsDisabled = !isComponentReady || inProgress || !isFormValid;
 
+    // Generate script should only be available for existing server target
+    const generateScriptDisabled =
+        buttonsDisabled || formState?.publishTarget !== constants.PublishTargets.EXISTING_SERVER;
+
     if (!isComponentReady) {
         return <div className={classes.root}>Loading...</div>;
     }
-
-    // Static ordering now expressed via explicit section components.
 
     return (
         <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
@@ -118,12 +87,12 @@ function PublishProjectDialog() {
                 <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
                     <PublishTargetSection idx={0} />
                     <PublishProfileField idx={1} />
-                    <ConnectionSection startIdx={2} />
+                    <ConnectionSection idx={2} />
 
                     <div className={classes.footer}>
                         <Button
                             appearance="secondary"
-                            disabled={buttonsDisabled}
+                            disabled={generateScriptDisabled}
                             onClick={() => context.generatePublishScript()}>
                             {loc.generateScript}
                         </Button>

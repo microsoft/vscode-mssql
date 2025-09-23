@@ -283,3 +283,37 @@ export const x64 = "x64";
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";
 export const docker = "docker";
 export const dockerDeploymentLoggerChannelName = "Docker Deployment";
+
+// SQL Database Projects Constants
+export const DSP_PREFIX = "Microsoft.Data.Tools.Schema.Sql.Sql";
+export const DSP_SUFFIX = "DatabaseSchemaProvider";
+export const sqlServerDockerRegistry = "mcr.microsoft.com";
+export const sqlServerDockerRepository = "mssql/server";
+export const sqlServerEulaLink = "https://aka.ms/mssql-container-license";
+export const dockerImageDefaultTag = "latest";
+export const AzureSqlDbFullDockerImageName = "Azure SQL Database (Edge emulation)";
+export const SqlServerDockerImageName = "SQL Server";
+export const MAX_PORT_NUMBER = 65535;
+export const SqlServerName = "SQL server";
+export const AzureSqlServerName = "Azure SQL server";
+export const DefaultSqlPortNumber = "1433";
+export const RequiredFieldMessage = "Required";
+export const DefaultAdminUsername = "sa";
+export const LicenseAcceptanceMessage = "You must accept the license";
+export const PublishTargets = {
+    EXISTING_SERVER: "existingServer" as const,
+    LOCAL_CONTAINER: "localContainer" as const,
+} as const;
+export type PublishTargetType = (typeof PublishTargets)[keyof typeof PublishTargets];
+export const PublishFormFields = {
+    ProfileName: "profileName",
+    ServerName: "serverName",
+    DatabaseName: "databaseName",
+    PublishTarget: "publishTarget",
+    SqlCmdVariables: "sqlCmdVariables",
+    ContainerPort: "containerPort",
+    ContainerAdminPassword: "containerAdminPassword",
+    ContainerAdminPasswordConfirm: "containerAdminPasswordConfirm",
+    ContainerImageTag: "containerImageTag",
+    AcceptContainerLicense: "acceptContainerLicense",
+} as const;
