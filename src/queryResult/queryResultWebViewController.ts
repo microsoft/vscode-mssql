@@ -136,7 +136,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         );
 
         context.subscriptions.push(
-            vscode.commands.registerCommand("mssql.cancelSummaryOperation", async (uri) => {
+            vscode.commands.registerCommand(Constants.cmdHandleSummaryOperation, async (uri) => {
                 const state = this._queryResultStateMap.get(uri);
                 if (!state) {
                     return;

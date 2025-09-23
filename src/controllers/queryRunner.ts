@@ -1089,8 +1089,8 @@ export default class QueryRunner {
             const waitForUserContinuation = new Deferred<void>();
             this._onSummaryChangedEmitter.fire({
                 command: {
-                    title: "mssql.cancelSummaryOperation",
-                    command: "mssql.cancelSummaryOperation",
+                    title: Constants.cmdHandleSummaryOperation,
+                    command: Constants.cmdHandleSummaryOperation,
                     arguments: [this.uri],
                 },
                 continue: waitForUserContinuation,
@@ -1108,8 +1108,8 @@ export default class QueryRunner {
 
         this._onSummaryChangedEmitter.fire({
             command: {
-                title: "mssql.cancelSummaryOperation",
-                command: "mssql.cancelSummaryOperation",
+                title: Constants.cmdHandleSummaryOperation,
+                command: Constants.cmdHandleSummaryOperation,
                 arguments: [this.uri],
             },
             continue: cancelConfirmation,
@@ -1190,8 +1190,8 @@ export default class QueryRunner {
 
                     this._onSummaryChangedEmitter.fire({
                         command: {
-                            title: "mssql.cancelSummaryOperation",
-                            command: "mssql.cancelSummaryOperation",
+                            title: Constants.cmdHandleSummaryOperation,
+                            command: Constants.cmdHandleSummaryOperation,
                             arguments: [this.uri],
                         },
                         continue: cancelConfirmation,
