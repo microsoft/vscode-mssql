@@ -1090,7 +1090,16 @@ export default class ConnectionManager {
             "setContext",
             "mssql.connections",
             Object.keys(this._connections).map((key) => {
-                return vscode.Uri.parse(key).toString();
+                try {
+                    key = vscode.Uri.parse(key).toString();
+                } catch (error) {
+                    // ignore errors from invalid URIs. Most probably an OE based key
+                    this._logger.verbose(
+                        "Error parsing URI, most probably an OE based key:",
+                        getErrorMessage(error),
+                    );
+                }
+                return key;
             }),
         );
     }
