@@ -5,14 +5,17 @@
 
 import * as constants from "../constants/constants";
 import { FormItemType } from "../sharedInterfaces/form";
+import { PublishProject as Loc } from "../constants/locConstants";
 import {
     IPublishForm,
     PublishDialogFormItemSpec,
     PublishDialogState,
 } from "../sharedInterfaces/publishDialog";
-import { PublishProject as Loc } from "../constants/locConstants";
-import { validateSqlServerPortNumber, isValidSqlAdminPassword } from "./dockerUtils";
-import { getPublishServerName } from "./projectUtils";
+import {
+    getPublishServerName,
+    validateSqlServerPortNumber,
+    isValidSqlAdminPassword,
+} from "./projectUtils";
 
 /**
  * Generate publish form components. Kept async for future extensibility
@@ -22,20 +25,20 @@ export async function generatePublishFormComponents(): Promise<
     Record<keyof IPublishForm | string, PublishDialogFormItemSpec>
 > {
     const components: Record<keyof IPublishForm | string, PublishDialogFormItemSpec> = {
-        profileName: {
-            propertyName: "profileName",
+        [constants.PublishFormFields.ProfileName]: {
+            propertyName: constants.PublishFormFields.ProfileName,
             label: Loc.ProfileLabel,
             required: false,
             type: FormItemType.Input,
         },
-        serverName: {
-            propertyName: "serverName",
+        [constants.PublishFormFields.ServerName]: {
+            propertyName: constants.PublishFormFields.ServerName,
             label: Loc.ServerLabel,
             required: false,
             type: FormItemType.Input,
         },
-        databaseName: {
-            propertyName: "databaseName",
+        [constants.PublishFormFields.DatabaseName]: {
+            propertyName: constants.PublishFormFields.DatabaseName,
             label: Loc.DatabaseLabel,
             required: true,
             type: FormItemType.Input,
@@ -44,8 +47,8 @@ export async function generatePublishFormComponents(): Promise<
                 return { isValid, validationMessage: isValid ? "" : Loc.DatabaseRequiredMessage };
             },
         },
-        publishTarget: {
-            propertyName: "publishTarget",
+        [constants.PublishFormFields.PublishTarget]: {
+            propertyName: constants.PublishFormFields.PublishTarget,
             label: Loc.PublishTargetLabel,
             required: true,
             type: FormItemType.Dropdown,
@@ -60,8 +63,8 @@ export async function generatePublishFormComponents(): Promise<
                 },
             ],
         },
-        containerPort: {
-            propertyName: "containerPort",
+        [constants.PublishFormFields.ContainerPort]: {
+            propertyName: constants.PublishFormFields.ContainerPort,
             label: Loc.SqlServerPortNumber,
             required: true,
             type: FormItemType.Input,
@@ -74,8 +77,8 @@ export async function generatePublishFormComponents(): Promise<
                 };
             },
         },
-        containerAdminPassword: {
-            propertyName: "containerAdminPassword",
+        [constants.PublishFormFields.ContainerAdminPassword]: {
+            propertyName: constants.PublishFormFields.ContainerAdminPassword,
             label: Loc.SqlServerAdminPassword,
             required: true,
             type: FormItemType.Password,
@@ -92,8 +95,8 @@ export async function generatePublishFormComponents(): Promise<
                 };
             },
         },
-        containerAdminPasswordConfirm: {
-            propertyName: "containerAdminPasswordConfirm",
+        [constants.PublishFormFields.ContainerAdminPasswordConfirm]: {
+            propertyName: constants.PublishFormFields.ContainerAdminPasswordConfirm,
             label: Loc.SqlServerAdminPasswordConfirm,
             required: true,
             type: FormItemType.Password,
@@ -111,8 +114,8 @@ export async function generatePublishFormComponents(): Promise<
                 };
             },
         },
-        containerImageTag: {
-            propertyName: "containerImageTag",
+        [constants.PublishFormFields.ContainerImageTag]: {
+            propertyName: constants.PublishFormFields.ContainerImageTag,
             label: Loc.SqlServerImageTag,
             required: true,
             type: FormItemType.Dropdown,
@@ -122,8 +125,8 @@ export async function generatePublishFormComponents(): Promise<
                 return { isValid: !!v, validationMessage: v ? "" : constants.RequiredFieldMessage };
             },
         },
-        acceptContainerLicense: {
-            propertyName: "acceptContainerLicense",
+        [constants.PublishFormFields.AcceptContainerLicense]: {
+            propertyName: constants.PublishFormFields.AcceptContainerLicense,
             label: Loc.UserLicenseAgreement(
                 "https://github.com/microsoft/containerregistry/blob/main/legal/Container-Images-Legal-Notice.md",
             ),

@@ -83,7 +83,7 @@ function PublishProjectDialog() {
                 <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
                     <PublishTargetSection idx={0} />
                     <PublishProfileField idx={1} />
-                    <ConnectionSection startIdx={2} />
+                    <ConnectionSection idx={2} />
 
                     <div className={classes.footer}>
                         <Button

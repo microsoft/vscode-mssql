@@ -115,7 +115,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
                     // Fetch Docker tags for the container image dropdown
                     if (props.targetVersion) {
-                        const tagComponent = this.state.formComponents["containerImageTag"];
+                        const tagComponent =
+                            this.state.formComponents[
+                                constants.PublishFormFields.ContainerImageTag
+                            ];
                         if (tagComponent) {
                             await loadDockerTags(
                                 props.targetVersion,

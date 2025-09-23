@@ -173,3 +173,44 @@ export function validatePublishForm(formState: IPublishForm): boolean {
 
     return false;
 }
+
+/*
+ * Validates the SQL Server port number.
+ */
+export function validateSqlServerPortNumber(port: string | number | undefined): boolean {
+    if (port === undefined) {
+        return false;
+    }
+    const str = String(port).trim();
+    if (str.length === 0) {
+        return false;
+    }
+    // Must be all digits
+    if (!/^[0-9]+$/.test(str)) {
+        return false;
+    }
+    const n = Number(str);
+    return n >= 1 && n <= constants.MAX_PORT_NUMBER;
+}
+
+/**
+ * Returns true if password meets SQL complexity (length 8-128, does not contain login name,
+ * and contains at least 3 of 4 categories: upper, lower, digit, symbol).
+ */
+export function isValidSqlAdminPassword(password: string, userName = "sa"): boolean {
+    if (!password) {
+        return false;
+    }
+    const containsUserName = !!userName && password.toUpperCase().includes(userName.toUpperCase());
+    if (containsUserName) {
+        return false;
+    }
+    if (password.length < 8 || password.length > 128) {
+        return false;
+    }
+    const hasUpper = /[A-Z]/.test(password) ? 1 : 0;
+    const hasLower = /[a-z]/.test(password) ? 1 : 0;
+    const hasDigit = /\d/.test(password) ? 1 : 0;
+    const hasSymbol = /\W/.test(password) ? 1 : 0;
+    return hasUpper + hasLower + hasDigit + hasSymbol >= 3;
+}

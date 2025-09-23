@@ -5,7 +5,6 @@
 
 import * as constants from "../constants/constants";
 import { FormItemSpec, FormState, FormReducers } from "./form";
-import { RequestType } from "vscode-jsonrpc/browser";
 
 /**
  * Data fields shown in the Publish form.
@@ -17,7 +16,7 @@ export interface IPublishForm {
     publishTarget?: constants.PublishTargetType;
     sqlCmdVariables?: { [key: string]: string };
     // Container deployment specific fields (only used when publishTarget === 'localContainer')
-    containerPort?: string; // kept as string since form inputs are string-based
+    containerPort?: string;
     containerAdminPassword?: string;
     containerAdminPasswordConfirm?: string;
     containerImageTag?: string;
@@ -25,7 +24,6 @@ export interface IPublishForm {
 }
 
 /**
- * Inner state (domain + form) analogous to ExecutionPlanState in executionPlan.ts
  * Extends generic FormState so form system works unchanged.
  */
 export interface PublishDialogState
@@ -80,11 +78,4 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     openPublishAdvanced: {};
     selectPublishProfile: {};
     savePublishProfile: { profileName: string };
-}
-
-/**
- * Example request pattern retained for future preview scenarios.
- */
-export namespace GetPublishPreviewRequest {
-    export const type = new RequestType<void, string, void>("getPublishPreview");
 }

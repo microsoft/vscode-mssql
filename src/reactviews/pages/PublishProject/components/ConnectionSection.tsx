@@ -15,7 +15,7 @@ import {
 import { PublishFormContext } from "../types";
 import * as constants from "../../../../constants/constants";
 
-export const ConnectionSection: React.FC<{ startIdx: number }> = ({ startIdx }) => {
+export const ConnectionSection: React.FC<{ idx: number }> = ({ idx }) => {
     const context = useContext(PublishProjectContext) as PublishFormContext | undefined;
 
     const serverComponent = usePublishDialogSelector(
@@ -42,7 +42,7 @@ export const ConnectionSection: React.FC<{ startIdx: number }> = ({ startIdx }) 
                 >
                     context={context}
                     component={serverComponent}
-                    idx={startIdx}
+                    idx={idx}
                     props={{ orientation: "horizontal" }}
                 />
             )}
@@ -55,7 +55,7 @@ export const ConnectionSection: React.FC<{ startIdx: number }> = ({ startIdx }) 
                 >
                     context={context}
                     component={databaseComponent}
-                    idx={startIdx + 1}
+                    idx={idx + 1}
                     props={{ orientation: "horizontal" }}
                 />
             )}
