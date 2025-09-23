@@ -53,9 +53,11 @@ suite("PublishProjectWebViewController", () => {
             projectPath,
         );
 
+        // Wait for async initialization to complete
+        await controller.initialized.promise;
+
         // Access internal reducer handlers map to invoke reducers directly
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const reducerHandlers = (controller as any)._reducerHandlers as Map<string, Function>;
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
         const setPublishValues = reducerHandlers.get("setPublishValues");
         expect(setPublishValues, "setPublishValues reducer should be registered").to.exist;
 
@@ -64,9 +66,6 @@ suite("PublishProjectWebViewController", () => {
             publishTarget: constants.PublishTargets.LOCAL_CONTAINER,
         });
         controller.updateState(newState);
-
-        // Wait for async form component generation
-        await new Promise((r) => setTimeout(r, 0));
 
         // Act - Test updating container port
         newState = await setPublishValues(controller.state, {
@@ -134,9 +133,11 @@ suite("PublishProjectWebViewController", () => {
             projectPath,
         );
 
+        // Wait for async initialization to complete
+        await controller.initialized.promise;
+
         // Access internal reducer handlers map to invoke reducers directly
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const reducerHandlers = (controller as any)._reducerHandlers as Map<string, Function>;
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
         const setPublishValues = reducerHandlers.get("setPublishValues");
         expect(setPublishValues, "setPublishValues reducer should be registered").to.exist;
 
@@ -145,9 +146,6 @@ suite("PublishProjectWebViewController", () => {
             publishTarget: constants.PublishTargets.EXISTING_SERVER,
         });
         controller.updateState(newState);
-
-        // Wait for async form component generation
-        await new Promise((r) => setTimeout(r, 0));
 
         // Assert - Verify container components are hidden when target is existingServer
         expect(controller.state.formComponents.containerPort?.hidden).to.be.true;

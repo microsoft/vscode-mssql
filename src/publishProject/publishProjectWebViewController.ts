@@ -145,7 +145,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 formState: newFormState,
                 projectFilePath: changes.projectFilePath ?? state.projectFilePath,
             };
-            await this.updateItemVisibility();
+            await this.updateItemVisibility(newState);
             return newState;
         });
 
@@ -183,33 +183,46 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
     protected getActiveFormComponents(state: PublishDialogState): (keyof IPublishForm)[] {
         const activeComponents: (keyof IPublishForm)[] = [
-            "publishTarget",
-            "profileName",
-            "serverName",
-            "databaseName",
-        ];
+            constants.PublishFormFields.PublishTarget,
+            constants.PublishFormFields.ProfileName,
+            constants.PublishFormFields.ServerName,
+            constants.PublishFormFields.DatabaseName,
+        ] as (keyof IPublishForm)[];
 
         if (state.formState.publishTarget === constants.PublishTargets.LOCAL_CONTAINER) {
             activeComponents.push(
-                "containerPort",
-                "containerAdminPassword",
-                "containerAdminPasswordConfirm",
-                "containerImageTag",
-                "acceptContainerLicense",
+                constants.PublishFormFields.ContainerPort,
+                constants.PublishFormFields.ContainerAdminPassword,
+                constants.PublishFormFields.ContainerAdminPasswordConfirm,
+                constants.PublishFormFields.ContainerImageTag,
+                constants.PublishFormFields.AcceptContainerLicense,
             );
         }
 
         return activeComponents;
     }
 
-    public async updateItemVisibility(): Promise<void> {
-        const hidden: (keyof IPublishForm)[] = [];
-        if (this.state.formState?.publishTarget === constants.PublishTargets.LOCAL_CONTAINER) {
-            hidden.push("serverName");
+    public async updateItemVisibility(state?: PublishDialogState): Promise<void> {
+        const currentState = state || this.state;
+        const target = currentState.formState?.publishTarget;
+        const hidden: string[] = [];
+
+        if (target === constants.PublishTargets.LOCAL_CONTAINER) {
+            // Hide server-specific fields when targeting local container
+            hidden.push(constants.PublishFormFields.ServerName);
+        } else if (target === constants.PublishTargets.EXISTING_SERVER) {
+            // Hide container-specific fields when targeting existing server
+            hidden.push(
+                constants.PublishFormFields.ContainerPort,
+                constants.PublishFormFields.ContainerAdminPassword,
+                constants.PublishFormFields.ContainerAdminPasswordConfirm,
+                constants.PublishFormFields.ContainerImageTag,
+                constants.PublishFormFields.AcceptContainerLicense,
+            );
         }
 
-        for (const component of Object.values(this.state.formComponents)) {
-            component.hidden = hidden.includes(component.propertyName as keyof IPublishForm);
+        for (const component of Object.values(currentState.formComponents)) {
+            component.hidden = hidden.includes(component.propertyName);
         }
     }
 }

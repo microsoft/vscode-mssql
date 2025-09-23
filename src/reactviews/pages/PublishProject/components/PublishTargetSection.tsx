@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect } from "react";
-import { makeStyles, Checkbox, tokens } from "@fluentui/react-components";
+import { makeStyles, Checkbox, tokens, CheckboxOnChangeData } from "@fluentui/react-components";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
 import {
@@ -43,12 +43,12 @@ const useStyles = makeStyles({
 });
 
 const containerFieldOrder: (keyof IPublishForm)[] = [
-    "containerPort",
-    "containerAdminPassword",
-    "containerAdminPasswordConfirm",
-    "containerImageTag",
-    "acceptContainerLicense",
-];
+    constants.PublishFormFields.ContainerPort,
+    constants.PublishFormFields.ContainerAdminPassword,
+    constants.PublishFormFields.ContainerAdminPasswordConfirm,
+    constants.PublishFormFields.ContainerImageTag,
+    constants.PublishFormFields.AcceptContainerLicense,
+] as (keyof IPublishForm)[];
 
 export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
     const classes = useStyles();
@@ -56,13 +56,16 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
 
     // Select just the publishTarget FormItemSpec
     const targetSpec = usePublishDialogSelector(
-        (s) => s.formComponents.publishTarget as PublishDialogFormItemSpec | undefined,
+        (s) =>
+            s.formComponents[constants.PublishFormFields.PublishTarget] as
+                | PublishDialogFormItemSpec
+                | undefined,
         Object.is,
     );
 
     // Select the current target value
     const publishTargetValue = usePublishDialogSelector(
-        (s) => s.formState.publishTarget,
+        (s) => s.formState[constants.PublishFormFields.PublishTarget],
         (a, b) => a === b,
     );
 
@@ -80,7 +83,7 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
         // Set default port once when entering container mode
         if (!context.state.formState.containerPort) {
             context.formAction({
-                propertyName: "containerPort",
+                propertyName: constants.PublishFormFields.ContainerPort,
                 isAction: false,
                 value: constants.DefaultSqlPortNumber,
             });
@@ -89,7 +92,7 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
         // Set default image tag if none selected
         if (!context.state.formState.containerImageTag) {
             context.formAction({
-                propertyName: "containerImageTag",
+                propertyName: constants.PublishFormFields.ContainerImageTag,
                 isAction: false,
                 value: constants.dockerImageDefaultTag,
             });
@@ -122,7 +125,7 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
                         }
 
                         // License checkbox special rendering
-                        if (name === "acceptContainerLicense") {
+                        if (name === constants.PublishFormFields.AcceptContainerLicense) {
                             const isChecked =
                                 (context.state.formState[
                                     comp.propertyName as keyof IPublishForm
@@ -147,15 +150,17 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
                                         label={licenseLabel}
                                         required={true}
                                         checked={isChecked}
-                                        onChange={
-                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                            (_: any, data: { checked?: boolean }) =>
-                                                context.formAction({
-                                                    propertyName: comp.propertyName,
-                                                    isAction: false,
-                                                    value: data.checked ?? false,
-                                                })
-                                        }
+                                        onChange={(
+                                            _: React.ChangeEvent<HTMLInputElement>,
+                                            data: CheckboxOnChangeData,
+                                        ) => {
+                                            const isChecked = data.checked === true;
+                                            context.formAction({
+                                                propertyName: comp.propertyName,
+                                                isAction: false,
+                                                value: isChecked,
+                                            });
+                                        }}
                                         style={{ alignItems: "flex-start" }}
                                     />
                                     {isError && errorMessage && (

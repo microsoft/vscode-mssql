@@ -13,13 +13,17 @@ import {
     PublishDialogFormItemSpec,
 } from "../../../../sharedInterfaces/publishDialog";
 import { PublishFormContext } from "../types";
+import * as constants from "../../../../constants/constants";
 
 export const ConnectionSection: React.FC<{ startIdx: number }> = ({ startIdx }) => {
     const context = useContext(PublishProjectContext) as PublishFormContext | undefined;
 
-    const serverComponent = usePublishDialogSelector((s) => s.formComponents.serverName, Object.is);
+    const serverComponent = usePublishDialogSelector(
+        (s) => s.formComponents[constants.PublishFormFields.ServerName],
+        Object.is,
+    );
     const databaseComponent = usePublishDialogSelector(
-        (s) => s.formComponents.databaseName,
+        (s) => s.formComponents[constants.PublishFormFields.DatabaseName],
         Object.is,
     );
 
