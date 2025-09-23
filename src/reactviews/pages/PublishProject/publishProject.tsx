@@ -74,11 +74,13 @@ function PublishProjectDialog() {
     const formComponents = usePublishDialogSelector((s) => s.formComponents, Object.is);
     const formState = usePublishDialogSelector((s) => s.formState, Object.is);
     const inProgress = usePublishDialogSelector((s) => s.inProgress, Object.is);
-    const loading = !isPublishFormContext(context) || !formComponents || !formState;
+
+    // Check if component is properly initialized and ready for user interaction
+    const isComponentReady = isPublishFormContext(context) && !!formComponents && !!formState;
 
     // Check if all required fields are provided based on publish target
     const isFormValid =
-        !loading &&
+        isComponentReady &&
         (() => {
             // Always require publish target and database name
             if (!formState.publishTarget || !formState.databaseName) {
@@ -98,10 +100,13 @@ function PublishProjectDialog() {
             return false;
         })();
 
-    // Buttons should be disabled when loading, in progress, or form is invalid
-    const buttonsDisabled = loading || inProgress || !isFormValid;
+    // Buttons should be disabled when:
+    // - Component is not ready (missing context, form components, or form state)
+    // - Operation is in progress
+    // - Form validation fails
+    const buttonsDisabled = !isComponentReady || inProgress || !isFormValid;
 
-    if (loading) {
+    if (!isComponentReady) {
         return <div className={classes.root}>Loading...</div>;
     }
 
