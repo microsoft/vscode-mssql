@@ -57,23 +57,27 @@ function PublishProjectDialog() {
     const context = useContext(PublishProjectContext);
 
     // Select pieces of state needed for this component
+    const formComponents = usePublishDialogSelector((s) => s.formComponents, Object.is);
     const formState = usePublishDialogSelector((s) => s.formState, Object.is);
     const inProgress = usePublishDialogSelector((s) => s.inProgress, Object.is);
-    const hasFormComponents = usePublishDialogSelector((s) => !!s.formComponents, Object.is);
 
-    const loading = !isPublishFormContext(context) || !hasFormComponents || !formState;
+    // Check if component is properly initialized and ready for user interaction
+    const isComponentReady = isPublishFormContext(context) && !!formComponents && !!formState;
 
     // Check if all required fields are provided based on publish target
-    const isFormValid = !loading && validatePublishForm(formState);
+    const isFormValid = isComponentReady && validatePublishForm(formState);
 
-    // Buttons should be disabled when loading, in progress, or form is invalid
-    const buttonsDisabled = loading || inProgress || !isFormValid;
+    // Buttons should be disabled when:
+    // - Component is not ready (missing context, form components, or form state)
+    // - Operation is in progress
+    // - Form validation fails
+    const buttonsDisabled = !isComponentReady || inProgress || !isFormValid;
 
     // Generate script should only be available for existing server target
     const generateScriptDisabled =
         buttonsDisabled || formState?.publishTarget !== constants.PublishTargets.EXISTING_SERVER;
 
-    if (loading) {
+    if (!isComponentReady) {
         return <div className={classes.root}>Loading...</div>;
     }
 
