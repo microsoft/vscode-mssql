@@ -8,6 +8,17 @@ import { IProviderSettings } from "../models/contracts/azure";
 import * as AzureEnvironments from "@azure/ms-rest-azure-env";
 import { Azure as Loc } from "../constants/locConstants";
 
+/**
+ * Identifiers for the various Azure clouds.  Settings should match the "microsoft-sovereign-cloud.environment" setting values.
+ */
+export enum CloudId {
+    PublicCloud = "PublicCloud", // also unset/empty value for "microsoft-sovereign-cloud.environment"
+    USGovernment = "USGovernment",
+    // ChinaCloud = "ChinaCloud",
+    // GermanyCloud = "GermanyCloud",
+    // Custom = "Custom", // requires reading from the "microsoft-sovereign-cloud.customCloud" setting
+}
+
 const azureCloudInfo = AzureEnvironments.Environment.get("AzureCloud");
 const usGovernmentCloudInfo = AzureEnvironments.Environment.get("USGovernment");
 // const chinaCloudInfo = AzureEnvironments.Environment.get("AzureChinaCloud");
@@ -108,31 +119,43 @@ const usGovernmentAzureSettings: IProviderSettings = {
  * @param cloud (optional) the cloud environment name.  Valid values are the options for the "microsoft-sovereign-cloud.environment" setting.
  * @returns Provider settings for the specified cloud
  */
-export function getCloudSettings(cloud?: string): IProviderSettings {
+export function getCloudSettings(cloud?: CloudId | string): IProviderSettings {
+    const cloudId = getCloudId(cloud);
+
+    switch (cloudId) {
+        case CloudId.USGovernment:
+            return usGovernmentAzureSettings;
+        // case "ChinaCloud":
+        // case "GermanyCloud":
+        // case "Custom":
+        //     throw new Error(`${cloud} is not supported yet.`);
+        case CloudId.PublicCloud:
+            return publicAzureSettings;
+        default:
+            throw new Error(`Unexpected cloud ID: '${cloud}'`);
+    }
+}
+
+export function getCloudId(cloud?: CloudId | string): CloudId {
     if (!cloud) {
         // if microsoft-sovereign-cloud.environment is set, return the corresponding settings, otherwise return public Azure settings
         //check microsoft-sovereign-cloud.environment setting
         const config = vscode.workspace.getConfiguration();
-        const cloudFromConfig = config.get<string>("microsoft-sovereign-cloud.environment");
+        const cloudFromConfig = config.get<CloudId.PublicCloud>(
+            "microsoft-sovereign-cloud.environment",
+        );
 
-        cloud = cloudFromConfig || "PublicCloud";
+        return cloudFromConfig || CloudId.PublicCloud;
     } else {
         // Map from provider names in cache to VS Code setting values
         if (cloud === "azure_publicCloud") {
-            cloud = "PublicCloud";
-        }
-    }
-
-    switch (cloud) {
-        case "USGovernment":
-            return usGovernmentAzureSettings;
-        case "ChinaCloud":
-        case "GermanyCloud":
-        case "Custom":
-            throw new Error(`${cloud} is not supported yet.`);
-        case "PublicCloud":
-            return publicAzureSettings;
-        default:
+            return CloudId.PublicCloud;
+        } else {
+            // If cloud is already a CloudId value, return it. Otherwise throw.
+            if ((Object.values(CloudId) as string[]).includes(cloud)) {
+                return cloud as CloudId;
+            }
             throw new Error(`Unexpected cloud ID: '${cloud}'`);
+        }
     }
 }

@@ -21,12 +21,18 @@ import { promises as fsPromises } from "fs";
 import * as path from "path";
 import * as AzureConstants from "../constants";
 import { getErrorMessage } from "../../utils/utils";
-import { getCloudSettings } from "../providerSettings";
+import { CloudId, getCloudId, getCloudSettings } from "../providerSettings";
+import { Deferred } from "../../protocol";
+import { IPrompter } from "../../prompts/question";
+import { ICredentialStore } from "../../credentialstore/icredentialstore";
+import * as azureUtils from ".././utils";
+import VscodeWrapper from "../../controllers/vscodeWrapper";
+import { Logger } from "../../models/logger";
 
 export class MsalAzureController extends AzureController {
-    private _authMappings = new Map<AzureAuthType, MsalAzureAuth>();
-    private _cachePluginProvider: MsalCachePluginProvider | undefined = undefined;
-    protected clientApplication: PublicClientApplication;
+    private _cachePluginProvider: MsalCachePluginProvider;
+
+    private _cloudAuthMappings: Map<CloudId, CloudAuthApplication> = new Map();
 
     private getLoggerCallback(): ILoggerCallback {
         return (level: number, message: string, containsPii: boolean) => {
@@ -49,6 +55,55 @@ export class MsalAzureController extends AzureController {
         };
     }
 
+    private _storagePath: string;
+
+    public initialized: Deferred<void> = new Deferred<void>();
+
+    constructor(
+        protected context: vscode.ExtensionContext,
+        protected prompter: IPrompter,
+        protected _credentialStore: ICredentialStore,
+        protected _subscriptionClientFactory: azureUtils.SubscriptionClientFactory = azureUtils.defaultSubscriptionClientFactory,
+    ) {
+        super(context, prompter, _credentialStore, _subscriptionClientFactory);
+
+        void this.initialize();
+    }
+
+    private async initialize(): Promise<void> {
+        this._storagePath = await this.findOrMakeStoragePath();
+
+        this._cachePluginProvider = new MsalCachePluginProvider(
+            Constants.msalCacheFileName,
+            this._storagePath,
+            this._vscodeWrapper,
+            this.logger,
+            this._credentialStore,
+        );
+
+        const cloudIds = [CloudId.PublicCloud, CloudId.USGovernment];
+
+        // if (isCustomCloudSet()) { // TODO: Enable when custom cloud is supported
+        //     cloudIds.push(CloudId.CustomCloud);
+        // }
+
+        for (const cloudId of cloudIds) {
+            const cloudAuthApp = new CloudAuthApplication(
+                cloudId,
+                this._cachePluginProvider,
+                this.getLoggerCallback(),
+                this.context,
+                this._vscodeWrapper,
+                this.logger,
+            );
+
+            await cloudAuthApp.initialize();
+            this._cloudAuthMappings.set(cloudId, cloudAuthApp);
+        }
+
+        this.initialized.resolve();
+    }
+
     public init(): void {
         // Since this setting is only applicable to MSAL, we can enable it safely only for MSAL Controller
         if (getEnableSqlAuthenticationProviderConfig()) {
@@ -57,18 +112,18 @@ export class MsalAzureController extends AzureController {
     }
 
     public async loadTokenCache(): Promise<void> {
-        let authType = getAzureActiveDirectoryConfig();
-        if (!this._authMappings.has(authType)) {
-            await this.handleAuthMapping();
-        }
-
-        let azureAuth = await this.getAzureAuthInstance(authType!);
         await this.clearOldCacheIfExists();
-        void azureAuth.loadTokenCache();
+
+        for (const cloud of this._cloudAuthMappings.values()) {
+            await cloud.loadTokenCache(); // TODO: do all share a cache?  can this be cleared just once?
+        }
     }
 
     public async clearTokenCache(): Promise<void> {
-        this.clientApplication.clearCache();
+        for (const cloud of this._cloudAuthMappings.values()) {
+            cloud.clientApplication.clearCache();
+        }
+
         await this._cachePluginProvider.unlinkMsalCache();
 
         // Delete Encryption Keys
@@ -79,10 +134,9 @@ export class MsalAzureController extends AzureController {
      * Clears old cache file that is no longer needed on system.
      */
     private async clearOldCacheIfExists(): Promise<void> {
-        let filePath = path.join(
-            await this.findOrMakeStoragePath(),
-            AzureConstants.oldMsalCacheFileName,
-        );
+        await this.initialized;
+        const filePath = path.join(this._storagePath, AzureConstants.oldMsalCacheFileName);
+
         try {
             await fsPromises.access(filePath);
             await fsPromises.rm(filePath);
@@ -95,26 +149,29 @@ export class MsalAzureController extends AzureController {
     }
 
     public async login(authType: AzureAuthType): Promise<IAccount | undefined> {
-        let azureAuth = await this.getAzureAuthInstance(authType);
-        let response = await azureAuth!.startLogin();
+        let cloudAuth = this.getCloudAuth();
+
+        let response = await cloudAuth.msalAuthInstance(authType).startLogin();
         return response ? (response as IAccount) : undefined;
     }
 
     public async isAccountInCache(account: IAccount): Promise<boolean> {
-        let authType = getAzureActiveDirectoryConfig();
-        let azureAuth = await this.getAzureAuthInstance(authType!);
+        let cloudAuth = this.getCloudAuthForAccount(account);
+
         await this.clearOldCacheIfExists();
-        let accountInfo = await azureAuth.getAccountFromMsalCache(account.key.id);
+        let accountInfo = await cloudAuth
+            .msalAuthInstance(account.properties.azureAuthType)
+            .getAccountFromMsalCache(account.key.id);
         return accountInfo !== undefined;
     }
 
-    private async getAzureAuthInstance(
-        authType: AzureAuthType,
-    ): Promise<MsalAzureAuth | undefined> {
-        if (!this._authMappings.has(authType)) {
-            await this.handleAuthMapping();
-        }
-        return this._authMappings!.get(authType);
+    private getCloudAuth(cloud?: CloudId): CloudAuthApplication {
+        return this._cloudAuthMappings.get(cloud || getCloudId())!;
+    }
+
+    private getCloudAuthForAccount(account: IAccount): CloudAuthApplication | undefined {
+        const cloudId = getCloudId(account.key.providerId);
+        return this.getCloudAuth(cloudId);
     }
 
     public async getAccountSecurityToken(
@@ -122,15 +179,18 @@ export class MsalAzureController extends AzureController {
         tenantId: string,
         settings: IAADResource,
     ): Promise<IToken | undefined> {
-        let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
-        if (azureAuth) {
+        let cloudAuth = this.getCloudAuthForAccount(account);
+
+        if (cloudAuth) {
             this.logger.piiSanitized(
                 `Getting account security token for ${JSON.stringify(account?.key)} (tenant ${tenantId}). Auth Method = ${AzureAuthType[account?.properties.azureAuthType]}`,
                 [],
                 [],
             );
             tenantId = tenantId || account.properties.owningTenant.id;
-            let result = await azureAuth.getToken(account, tenantId, settings);
+            let result = await cloudAuth
+                .msalAuthInstance(account.properties.azureAuthType)
+                .getToken(account, tenantId, settings);
             if (!result || !result.account || !result.account.idTokenClaims) {
                 this.logger.error(`MSAL: getToken call failed`);
                 throw Error("Failed to get token");
@@ -167,12 +227,14 @@ export class MsalAzureController extends AzureController {
     ): Promise<IToken | undefined> {
         let newAccount: IAccount;
         try {
-            let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
-            newAccount = await azureAuth!.refreshAccessToken(
-                account,
-                AzureConstants.organizationTenant.id,
-                getCloudSettings(account.key.providerId).settings.windowsManagementResource,
-            );
+            const cloudAuth = this.getCloudAuthForAccount(account);
+            newAccount = await cloudAuth
+                .msalAuthInstance(account.properties.azureAuthType)
+                .refreshAccessToken(
+                    account,
+                    AzureConstants.organizationTenant.id,
+                    getCloudSettings(account.key.providerId).settings.windowsManagementResource,
+                );
 
             if (newAccount!.isStale === true) {
                 return undefined;
@@ -262,65 +324,167 @@ export class MsalAzureController extends AzureController {
     }
 
     public async removeAccount(account: IAccount): Promise<void> {
-        let azureAuth = await this.getAzureAuthInstance(getAzureActiveDirectoryConfig());
-        await azureAuth!.clearCredentials(account);
+        const cloudAuth = this.getCloudAuthForAccount(account);
+        await cloudAuth
+            .msalAuthInstance(account.properties.azureAuthType)
+            .clearCredentials(account);
     }
 
-    public async handleAuthMapping(): Promise<void> {
-        if (!this.clientApplication) {
-            let storagePath = await this.findOrMakeStoragePath();
-            this._cachePluginProvider = new MsalCachePluginProvider(
-                Constants.msalCacheFileName,
-                storagePath!,
-                this._vscodeWrapper,
-                this.logger,
-                this._credentialStore,
-            );
-            const msalConfiguration: Configuration = {
-                auth: {
-                    clientId: getCloudSettings().clientId,
-                    authority: vscode.Uri.joinPath(
-                        vscode.Uri.parse(getCloudSettings().loginEndpoint),
-                        "common",
-                    ).toString(),
-                },
-                system: {
-                    loggerOptions: {
-                        loggerCallback: this.getLoggerCallback(),
-                        logLevel: MsalLogLevel.Trace,
-                        piiLoggingEnabled: true,
-                    },
-                },
-                cache: {
-                    cachePlugin: this._cachePluginProvider?.getCachePlugin(),
-                },
-            };
-            this.clientApplication = new PublicClientApplication(msalConfiguration);
+    public async handleAuthMapping(cloudId?: CloudId): Promise<void> {
+        if (cloudId) {
+            return await this.handleAuthMappingHelper(cloudId);
+        } else {
+            for (const cloud of Object.values(CloudId)) {
+                await this.handleAuthMappingHelper(cloud);
+            }
+            return;
         }
+    }
 
-        this._authMappings.clear();
+    private async handleAuthMappingHelper(_cloudId: CloudId): Promise<void> {
+        await this.initialized;
+        // if (!this._cloudAuthMappings.has(cloudId)) {
+        //     this._cachePluginProvider = new MsalCachePluginProvider(
+        //         Constants.msalCacheFileName,
+        //         this._storagePath!,
+        //         this._vscodeWrapper,
+        //         this.logger,
+        //         this._credentialStore,
+        //     );
 
-        const configuration = getAzureActiveDirectoryConfig();
+        //     const msalConfiguration: Configuration = {
+        //         auth: {
+        //             clientId: getCloudSettings().clientId,
+        //             authority: vscode.Uri.joinPath(
+        //                 vscode.Uri.parse(getCloudSettings().loginEndpoint),
+        //                 "common",
+        //             ).toString(),
+        //         },
+        //         system: {
+        //             loggerOptions: {
+        //                 loggerCallback: this.getLoggerCallback(),
+        //                 logLevel: MsalLogLevel.Trace,
+        //                 piiLoggingEnabled: true,
+        //             },
+        //         },
+        //         cache: {
+        //             cachePlugin: this._cachePluginProvider?.getCachePlugin(),
+        //         },
+        //     };
+        //     this._cloudAuthMappings.set(cloudId, {
+        //         authMappings: new Map<AzureAuthType, MsalAzureAuth>(),
+        //         clientApplication: new PublicClientApplication(msalConfiguration),
+        //     });
+        // }
 
-        if (configuration === AzureAuthType.AuthCodeGrant) {
+        // this._authMappings.clear();
+
+        // const configuration = getAzureActiveDirectoryConfig();
+
+        // if (configuration === AzureAuthType.AuthCodeGrant) {
+        //     this._authMappings.set(
+        //         AzureAuthType.AuthCodeGrant,
+        //         new MsalAzureCodeGrant(
+        //             getCloudSettings(),
+        //             this.context,
+        //             this.clientApplications.get(cloudId),
+        //             this._vscodeWrapper,
+        //             this.logger,
+        //         ),
+        //     );
+        // } else if (configuration === AzureAuthType.DeviceCode) {
+        //     this._authMappings.set(
+        //         AzureAuthType.DeviceCode,
+        //         new MsalAzureDeviceCode(
+        //             getCloudSettings(),
+        //             this.context,
+        //             this.clientApplications.get(cloudId),
+        //             this._vscodeWrapper,
+        //             this.logger,
+        //         ),
+        //     );
+        // }
+    }
+}
+
+class CloudAuthApplication {
+    private _authMappings: Map<AzureAuthType, MsalAzureAuth>;
+    private _clientApplication: PublicClientApplication;
+    private _msalAuthInstance: MsalAzureAuth;
+
+    public get clientApplication(): PublicClientApplication {
+        return this._clientApplication;
+    }
+
+    public msalAuthInstance(authType): MsalAzureAuth {
+        return this._msalAuthInstance;
+    }
+
+    constructor(
+        public readonly cloudId: CloudId,
+        private _cachePluginProvider: MsalCachePluginProvider,
+        private loggerCallback: ILoggerCallback,
+        private readonly context: vscode.ExtensionContext,
+        private readonly vscodeWrapper: VscodeWrapper,
+        private readonly logger: Logger,
+    ) {}
+
+    public async initialize(): Promise<void> {
+        await this.createClientApplication();
+        await this.createMsalAuth();
+    }
+
+    public async loadTokenCache(): Promise<void> {
+        await this._msalAuthInstance.loadTokenCache();
+    }
+
+    private async createClientApplication(): Promise<void> {
+        const msalConfiguration: Configuration = {
+            auth: {
+                clientId: getCloudSettings().clientId,
+                authority: vscode.Uri.joinPath(
+                    vscode.Uri.parse(getCloudSettings().loginEndpoint),
+                    "common",
+                ).toString(),
+            },
+            system: {
+                loggerOptions: {
+                    loggerCallback: this.loggerCallback,
+                    logLevel: MsalLogLevel.Trace,
+                    piiLoggingEnabled: true,
+                },
+            },
+            cache: {
+                cachePlugin: this._cachePluginProvider?.getCachePlugin(),
+            },
+        };
+        this._clientApplication = new PublicClientApplication(msalConfiguration);
+    }
+
+    private async createMsalAuth(): Promise<void> {
+        // TODO: does this need to potentially support both auth types at the same time, or is reading the config once sufficient?
+        // Yes, we probably should
+        const authType = getAzureActiveDirectoryConfig();
+
+        if (authType === AzureAuthType.AuthCodeGrant) {
             this._authMappings.set(
                 AzureAuthType.AuthCodeGrant,
                 new MsalAzureCodeGrant(
-                    getCloudSettings(),
+                    getCloudSettings(this.cloudId),
                     this.context,
                     this.clientApplication,
-                    this._vscodeWrapper,
+                    this.vscodeWrapper,
                     this.logger,
                 ),
             );
-        } else if (configuration === AzureAuthType.DeviceCode) {
+        } else if (authType === AzureAuthType.DeviceCode) {
             this._authMappings.set(
                 AzureAuthType.DeviceCode,
                 new MsalAzureDeviceCode(
-                    getCloudSettings(),
+                    getCloudSettings(this.cloudId),
                     this.context,
                     this.clientApplication,
-                    this._vscodeWrapper,
+                    this.vscodeWrapper,
                     this.logger,
                 ),
             );
