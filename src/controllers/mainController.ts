@@ -2290,14 +2290,13 @@ export default class MainController implements vscode.Disposable {
                 return;
             }
 
-            // create new connection
-            if (!this.connectionManager.isConnected(uri)) {
-                await this.onNewConnection();
-                sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
+            // Trim down the selection. If it is empty after selecting, then we don't execute
+            let selectionToTrim = editor.selection.isEmpty ? undefined : editor.selection;
+            if (editor.document.getText(selectionToTrim).trim().length === 0) {
+                return;
             }
-            // check if current connection is still valid / active - if not, refresh azure account token
-            await this._connectionMgr.refreshAzureAccountToken(uri);
 
+            // Save the query selection, so that we request execution for the right block
             let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
             // Calculate the selection if we have a selection, otherwise we'll treat null as
@@ -2312,11 +2311,14 @@ export default class MainController implements vscode.Disposable {
                 };
             }
 
-            // Trim down the selection. If it is empty after selecting, then we don't execute
-            let selectionToTrim = editor.selection.isEmpty ? undefined : editor.selection;
-            if (editor.document.getText(selectionToTrim).trim().length === 0) {
-                return;
+            // create new connection
+            if (!this.connectionManager.isConnected(uri)) {
+                await this.onNewConnection();
+                sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
             }
+            // check if current connection is still valid / active - if not, refresh azure account token
+            await this._connectionMgr.refreshAzureAccountToken(uri);
+
             // Delete stored filters and dimension states for result grid when a new query is executed
             store.deleteMainKey(uri);
 
