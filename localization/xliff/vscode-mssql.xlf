@@ -2529,6 +2529,9 @@
     <trans-unit id="++CODE++c15c5b93db5aa2d000fa6a98f1eaad96beff26347b410388dc524f19a0f0aeee">
       <source xml:lang="en">SQL database in Fabric (Preview)</source>
     </trans-unit>
+    <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
+      <source xml:lang="en">SQLCMD Variables</source>
+    </trans-unit>
     <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
       <source xml:lang="en">SVG</source>
     </trans-unit>
