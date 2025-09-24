@@ -16,9 +16,9 @@ import { PublishProject as Loc } from "../constants/locConstants";
  * (e.g. reading project metadata, fetching remote targets, etc.)
  */
 export async function generatePublishFormComponents(): Promise<
-    Record<keyof IPublishForm | string, PublishDialogFormItemSpec>
+    Record<keyof IPublishForm, PublishDialogFormItemSpec>
 > {
-    const components: Record<keyof IPublishForm | string, PublishDialogFormItemSpec> = {
+    const components: Record<keyof IPublishForm, PublishDialogFormItemSpec> = {
         profileName: {
             propertyName: "profileName",
             label: Loc.ProfileLabel,
@@ -28,7 +28,7 @@ export async function generatePublishFormComponents(): Promise<
         serverName: {
             propertyName: "serverName",
             label: Loc.ServerLabel,
-            required: false,
+            required: true,
             type: FormItemType.Input,
         },
         databaseName: {
@@ -57,7 +57,14 @@ export async function generatePublishFormComponents(): Promise<
                 },
             ],
         },
-    } as Record<keyof IPublishForm | string, PublishDialogFormItemSpec>;
+        sqlCmdVariables: {
+            propertyName: "sqlCmdVariables",
+            label: Loc.SqlCmdVariablesLabel,
+            required: false,
+            type: FormItemType.Input,
+            hidden: true,
+        },
+    };
 
     return components;
 }

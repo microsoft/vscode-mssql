@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FormItemSpec, FormState, FormReducers } from "./form";
+import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
 import { RequestType } from "vscode-jsonrpc/browser";
 
 /**
@@ -33,9 +33,8 @@ export interface PublishDialogState
  */
 export interface PublishDialogFormItemSpec
     extends FormItemSpec<IPublishForm, PublishDialogState, PublishDialogFormItemSpec> {
-    isAdvancedOption?: boolean;
-    optionCategory?: string;
-    optionCategoryLabel?: string;
+    // (Removed advanced option metadata: was isAdvancedOption/optionCategory/optionCategoryLabel)
+    // Reintroduce when the Publish dialog gains an "Advanced" section with grouped fields.
 }
 
 /**
@@ -62,6 +61,38 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     openPublishAdvanced: {};
     selectPublishProfile: {};
     savePublishProfile: { profileName: string };
+}
+
+/**
+ * Public operations + form dispatch surface for the Publish Project webview.
+ * React context a stable, typed contract while keeping implementation details (raw RPC naming, snapshot plumbing) encapsulated.
+ */
+export interface PublishProjectProvider {
+    /** Dispatch a single field value change or field-level action */
+    formAction(event: FormEvent<IPublishForm>): void;
+    /** Execute an immediate publish using current (or overridden) form values */
+    publishNow(payload?: {
+        projectFilePath?: string;
+        databaseName?: string;
+        connectionUri?: string;
+        sqlCmdVariables?: { [key: string]: string };
+        publishProfilePath?: string;
+    }): void;
+    /** Generate (but do not execute) a publish script */
+    generatePublishScript(): void;
+    /** Choose a publish profile file and apply (may partially override form state) */
+    selectPublishProfile(): void;
+    /** Persist current form state as a named profile */
+    savePublishProfile(profileName: string): void;
+    /** Bulk set form values (e.g., after loading a profile) */
+    setPublishValues(values: {
+        profileName?: string;
+        serverName?: string;
+        databaseName?: string;
+        publishTarget?: "existingServer" | "localContainer";
+        sqlCmdVariables?: { [key: string]: string };
+        projectFilePath?: string;
+    }): void;
 }
 
 /**

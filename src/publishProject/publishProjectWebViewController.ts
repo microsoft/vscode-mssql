@@ -92,7 +92,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
         }
 
         await this.updateItemVisibility();
-        this.updateState();
     }
 
     private registerRpcHandlers(): void {
