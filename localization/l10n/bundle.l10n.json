@@ -1486,10 +1486,29 @@
       "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum"
     ]
   },
-  "You have selected data across {0} rows, it might take a while to load the data and calculate the summary, do you want to continue?/{0} is the number of rows to fetch summary statistics for": {
-    "message": "You have selected data across {0} rows, it might take a while to load the data and calculate the summary, do you want to continue?",
+  "{0} rows selected, click to load summary/{0} is the number of rows to fetch summary statistics for": {
+    "message": "{0} rows selected, click to load summary",
     "comment": [
       "{0} is the number of rows to fetch summary statistics for"
+    ]
+  },
+  "Click to load summary": "Click to load summary",
+  "Loading summary {0}/{1} ({2}%) (Click to cancel)/{0} is the current row{1} is the total number of rows{2} is the percentage of rows loaded": {
+    "message": "Loading summary {0}/{1} ({2}%) (Click to cancel)",
+    "comment": [
+      "{0} is the current row",
+      "{1} is the total number of rows",
+      "{2} is the percentage of rows loaded"
+    ]
+  },
+  "Click to cancel loading summary": "Click to cancel loading summary",
+  "Summary loading canceled": "Summary loading canceled",
+  "Summary loading was canceled by user": "Summary loading was canceled by user",
+  "Error loading summary": "Error loading summary",
+  "Error loading summary: {0}/{0} is the error message": {
+    "message": "Error loading summary: {0}",
+    "comment": [
+      "{0} is the error message"
     ]
   },
   "An error occurred while retrieving rows: {0}/{0} is the error message": {

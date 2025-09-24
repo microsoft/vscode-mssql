@@ -247,7 +247,7 @@ export class SqlOutputContentProvider {
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-    ): Promise<qr.SelectionSummaryStats> {
+    ): Promise<void> {
         return this._queryResultsMap
             .get(uri)
             .queryRunner.generateSelectionSummaryData(selection, batchId, resultId);
@@ -593,6 +593,20 @@ export class SqlOutputContentProvider {
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
             });
 
+            const onSelectionSummaryListener = queryRunner.onSummaryChanged(async (e) => {
+                const state = this._queryResultWebviewController.getQueryResultState(e.uri);
+                if (!state) {
+                    return;
+                }
+                state.selectionSummary = {
+                    text: e.text,
+                    command: e.command,
+                    tooltip: e.tooltip,
+                    continue: e.continue,
+                };
+                this._queryResultWebviewController.updateSelectionSummary();
+            });
+
             const queryRunnerState = new QueryRunnerState(queryRunner);
             queryRunnerState.listeners.push(
                 startFailedListener,
@@ -604,6 +618,7 @@ export class SqlOutputContentProvider {
                 onMessageListener,
                 onCompleteListener,
                 onExecutionPlanListener,
+                onSelectionSummaryListener,
             );
 
             this._queryResultsMap.set(uri, queryRunnerState);

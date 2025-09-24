@@ -51,7 +51,7 @@ import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { SelectionSummaryStats } from "../sharedInterfaces/queryResult";
+import { SelectionSummary } from "../sharedInterfaces/queryResult";
 import { calculateSelectionSummaryFromData } from "../queryResult/utils";
 
 export interface IResultSet {
@@ -70,6 +70,10 @@ export interface ExecutionPlanEvent {
     xml: string;
     batchId: number;
     resultId: number;
+}
+
+export interface SummaryChanged extends SelectionSummary {
+    uri: string;
 }
 
 export const editorEol =
@@ -132,6 +136,10 @@ export default class QueryRunner {
     private _completeEmitter: vscode.EventEmitter<QueryExecutionCompleteEvent> =
         new vscode.EventEmitter<QueryExecutionCompleteEvent>();
     public onComplete: vscode.Event<QueryExecutionCompleteEvent> = this._completeEmitter.event;
+
+    private _onSummaryChangedEmitter: vscode.EventEmitter<SummaryChanged> =
+        new vscode.EventEmitter<SummaryChanged>();
+    public onSummaryChanged: vscode.Event<SummaryChanged> = this._onSummaryChangedEmitter.event;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -1055,11 +1063,15 @@ export default class QueryRunner {
         await this.writeStringToClipboard(insertIntoString);
     }
 
+    private _cancelConfirmation: Deferred<void>;
     public async generateSelectionSummaryData(
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-    ): Promise<SelectionSummaryStats> {
+    ): Promise<void> {
+        if (this._cancelConfirmation) {
+            this._cancelConfirmation.resolve();
+        }
         // Keep copy order deterministic
         selection.sort((a, b) => a.fromRow - b.fromRow);
 
@@ -1074,34 +1086,196 @@ export default class QueryRunner {
                 .get<number>(Constants.configInMemoryDataProcessingThreshold) ?? 5000;
 
         if (totalRows > summaryFetchThreshold) {
-            let confirm = await vscode.window.showInformationMessage(
-                LocalizedConstants.QueryResult.summaryFetchConfirmation(totalRows),
-                { modal: false },
-                LocalizedConstants.msgYes,
-            );
-            if (confirm !== LocalizedConstants.msgYes) {
-                return;
-            }
+            const waitForUserContinuation = new Deferred<void>();
+            this._onSummaryChangedEmitter.fire({
+                command: {
+                    title: Constants.cmdHandleSummaryOperation,
+                    command: Constants.cmdHandleSummaryOperation,
+                    arguments: [this.uri],
+                },
+                continue: waitForUserContinuation,
+                text: `$(play-circle) ${LocalizedConstants.QueryResult.summaryFetchConfirmation(totalRows)}`,
+                tooltip: LocalizedConstants.QueryResult.clickToFetchSummary,
+                uri: this.uri,
+            });
+
+            await waitForUserContinuation.promise;
         }
+
+        this._cancelConfirmation = new Deferred<void>();
+        const cancelConfirmation = this._cancelConfirmation;
+        let isCanceled = false;
+
+        this._onSummaryChangedEmitter.fire({
+            command: {
+                title: Constants.cmdHandleSummaryOperation,
+                command: Constants.cmdHandleSummaryOperation,
+                arguments: [this.uri],
+            },
+            continue: cancelConfirmation,
+            text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(0, totalRows)}`,
+            tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
+            uri: this.uri,
+        });
+
+        // Set up cancellation handling
+        cancelConfirmation.promise
+            .then(() => {
+                isCanceled = true;
+            })
+            .catch(() => {
+                // Ignore rejection, just means operation completed normally
+            });
 
         const rowIdToSelectionMap = new Map<number, ISlickRange[]>();
         const rowIdToRowMap = new Map<number, DbCellValue[]>();
 
-        // Fetch all ranges in parallel; fill the maps as results come in
-        await Promise.all(
-            selection.map(async (range) => {
-                const count = range.toRow - range.fromRow + 1;
-                const result = await this.getRows(range.fromRow, count, batchId, resultId);
-                this.getRowMappings(
-                    result.resultSubset.rows,
-                    range,
-                    rowIdToSelectionMap,
-                    rowIdToRowMap,
-                );
-            }),
-        );
+        // Calculate batch threshold for processing rows in smaller chunks
+        const batchThreshold = Math.min(1000, summaryFetchThreshold / 5);
+        let processedRows = 0;
 
-        return calculateSelectionSummaryFromData(rowIdToRowMap, rowIdToSelectionMap);
+        try {
+            // Process each selection range with batching
+            for (const range of selection) {
+                if (isCanceled) {
+                    this._onSummaryChangedEmitter.fire({
+                        text: LocalizedConstants.QueryResult.summaryLoadingCanceled,
+                        tooltip: LocalizedConstants.QueryResult.summaryLoadingCanceledTooltip,
+                        uri: this.uri,
+                        command: undefined,
+                        continue: undefined,
+                    });
+                    return;
+                }
+
+                // Split large ranges into smaller batches
+                for (
+                    let startRow = range.fromRow;
+                    startRow <= range.toRow;
+                    startRow += batchThreshold
+                ) {
+                    if (isCanceled) {
+                        this._onSummaryChangedEmitter.fire({
+                            text: LocalizedConstants.QueryResult.summaryLoadingCanceled,
+                            tooltip: LocalizedConstants.QueryResult.summaryLoadingCanceledTooltip,
+                            uri: this.uri,
+                            command: undefined,
+                            continue: undefined,
+                        });
+                        return;
+                    }
+
+                    const endRow = Math.min(startRow + batchThreshold - 1, range.toRow);
+                    const batchSize = endRow - startRow + 1;
+
+                    // Fetch the batch
+                    const result = await this.getRows(startRow, batchSize, batchId, resultId);
+
+                    // Create a sub-range for this batch
+                    const batchRange: ISlickRange = {
+                        fromRow: startRow,
+                        toRow: endRow,
+                        fromCell: range.fromCell,
+                        toCell: range.toCell,
+                    };
+
+                    this.getRowMappings(
+                        result.resultSubset.rows,
+                        batchRange,
+                        rowIdToSelectionMap,
+                        rowIdToRowMap,
+                    );
+
+                    processedRows += batchSize;
+
+                    this._onSummaryChangedEmitter.fire({
+                        command: {
+                            title: Constants.cmdHandleSummaryOperation,
+                            command: Constants.cmdHandleSummaryOperation,
+                            arguments: [this.uri],
+                        },
+                        continue: cancelConfirmation,
+                        text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(processedRows, totalRows)}`,
+                        tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
+                        uri: this.uri,
+                    });
+                }
+            }
+
+            if (isCanceled) {
+                this._onSummaryChangedEmitter.fire({
+                    text: LocalizedConstants.QueryResult.summaryLoadingCanceled,
+                    tooltip: LocalizedConstants.QueryResult.summaryLoadingCanceledTooltip,
+                    uri: this.uri,
+                    command: undefined,
+                    continue: undefined,
+                });
+                return;
+            }
+
+            // Calculate final summary
+            const selectionSummary = calculateSelectionSummaryFromData(
+                rowIdToRowMap,
+                rowIdToSelectionMap,
+            );
+
+            let text = "";
+            let tooltip = "";
+
+            // the selection is numeric
+            if (selectionSummary.average) {
+                text = LocalizedConstants.QueryResult.numericSelectionSummary(
+                    selectionSummary.average,
+                    selectionSummary.count,
+                    selectionSummary.sum,
+                );
+                tooltip = LocalizedConstants.QueryResult.numericSelectionSummaryTooltip(
+                    selectionSummary.average,
+                    selectionSummary.count,
+                    selectionSummary.distinctCount,
+                    selectionSummary.max,
+                    selectionSummary.min,
+                    selectionSummary.nullCount,
+                    selectionSummary.sum,
+                );
+            } else {
+                text = LocalizedConstants.QueryResult.nonNumericSelectionSummary(
+                    selectionSummary.count,
+                    selectionSummary.distinctCount,
+                    selectionSummary.nullCount,
+                );
+                tooltip = text;
+            }
+
+            // Resolve the cancel confirmation to clean up
+            if (!isCanceled) {
+                cancelConfirmation.resolve();
+            }
+
+            this._onSummaryChangedEmitter.fire({
+                text,
+                tooltip,
+                uri: this.uri,
+                command: undefined,
+                continue: undefined,
+            });
+        } catch (error) {
+            // Clean up on error
+            if (!isCanceled) {
+                cancelConfirmation.reject(error);
+            }
+
+            this._onSummaryChangedEmitter.fire({
+                text: `$(error) ${LocalizedConstants.QueryResult.errorLoadingSummary}`,
+                tooltip: LocalizedConstants.QueryResult.errorLoadingSummaryTooltip(
+                    getErrorMessage(error),
+                ),
+                uri: this.uri,
+                command: undefined,
+                continue: undefined,
+            });
+            throw error;
+        }
     }
 
     public async toggleSqlCmd(): Promise<boolean> {

@@ -67,6 +67,18 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     autoSizeColumns?: boolean;
     inMemoryDataProcessingThreshold?: number;
     initializationError?: string;
+    selectionSummary?: SelectionSummary;
+}
+
+export interface SelectionSummary {
+    text: string;
+    command: {
+        title: string;
+        command: string;
+        arguments: any[];
+    };
+    tooltip: string;
+    continue?: any;
 }
 
 export interface QueryResultReducers extends Omit<ExecutionPlanReducers, "getExecutionPlan"> {

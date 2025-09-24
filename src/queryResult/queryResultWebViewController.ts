@@ -23,7 +23,7 @@ import {
     recordLength,
     registerCommonRequestHandlers,
 } from "./utils";
-import { QueryResult } from "../constants/locConstants";
+import { Deferred } from "../protocol";
 
 export class QueryResultWebviewController extends ReactWebviewViewController<
     qr.QueryResultWebviewState,
@@ -61,6 +61,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
 
         context.subscriptions.push(
             vscode.window.onDidChangeActiveTextEditor((editor) => {
+                this.updateSelectionSummary();
                 const uri = editor?.document?.uri?.toString(true);
                 const hasPanel = uri && this.hasPanel(uri);
                 const hasWebviewViewState = uri && this._queryResultStateMap.has(uri);
@@ -131,6 +132,16 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                         this._queryResultStateMap.set(uri, state);
                     }
                 }
+            }),
+        );
+
+        context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdHandleSummaryOperation, async (uri) => {
+                const state = this._queryResultStateMap.get(uri);
+                if (!state) {
+                    return;
+                }
+                (state.selectionSummary.continue as Deferred<void>).resolve();
             }),
         );
     }
@@ -432,38 +443,29 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return total;
     }
 
-    public updateSelectionSummaryStatusItem(selectionSummary: qr.SelectionSummaryStats) {
-        if (selectionSummary.removeSelectionStats) {
-            this._selectionSummaryStatusBarItem.text = "";
+    public updateSelectionSummary() {
+        let activeUri = Array.from(this._queryResultWebviewPanelControllerMap.keys()).find(
+            (uri) => this._queryResultWebviewPanelControllerMap.get(uri).panel.active,
+        );
+
+        if (!activeUri) {
+            activeUri = vscode.window.activeTextEditor?.document.uri.toString(true);
+        }
+
+        if (!this._queryResultStateMap.has(activeUri)) {
             this._selectionSummaryStatusBarItem.hide();
-        } else {
-            // the selection is numeric
-            if (selectionSummary.average) {
-                this._selectionSummaryStatusBarItem.text = QueryResult.numericSelectionSummary(
-                    selectionSummary.average,
-                    selectionSummary.count,
-                    selectionSummary.sum,
-                );
-                this._selectionSummaryStatusBarItem.tooltip =
-                    QueryResult.numericSelectionSummaryTooltip(
-                        selectionSummary.average,
-                        selectionSummary.count,
-                        selectionSummary.distinctCount,
-                        selectionSummary.max,
-                        selectionSummary.min,
-                        selectionSummary.nullCount,
-                        selectionSummary.sum,
-                    );
-            } else {
-                this._selectionSummaryStatusBarItem.text = QueryResult.nonNumericSelectionSummary(
-                    selectionSummary.count,
-                    selectionSummary.distinctCount,
-                    selectionSummary.nullCount,
-                );
-                this._selectionSummaryStatusBarItem.tooltip =
-                    this._selectionSummaryStatusBarItem.text;
-            }
+            return;
+        }
+
+        const state = this._queryResultStateMap.get(activeUri);
+
+        if (state?.selectionSummary) {
+            this._selectionSummaryStatusBarItem.text = state.selectionSummary.text;
+            this._selectionSummaryStatusBarItem.tooltip = state.selectionSummary.tooltip;
+            this._selectionSummaryStatusBarItem.command = state.selectionSummary.command;
             this._selectionSummaryStatusBarItem.show();
+        } else {
+            this._selectionSummaryStatusBarItem.hide();
         }
     }
 }

@@ -20,7 +20,6 @@ import { QueryResultWebviewController } from "./queryResultWebViewController";
 import store, { SubKeys } from "./singletonStore";
 import { JsonFormattingEditProvider } from "../utils/jsonFormatter";
 import * as LocalizedConstants from "../constants/locConstants";
-import { generateGuid } from "../models/utils";
 
 export const MAX_VIEW_COLUMN = 9;
 
@@ -313,13 +312,9 @@ export function registerCommonRequestHandlers(
         return store.get(message.uri, SubKeys.PaneScrollPosition) ?? { scrollTop: 0 };
     });
 
-    let lastSummaryRequestId = "";
     webviewController.onNotification(qr.SetSelectionSummaryRequest.type, async (message) => {
-        let currentId = generateGuid();
-        lastSummaryRequestId = currentId;
-
         // Fetch all the data needed for the summary
-        const summaryData = await webviewViewController
+        await webviewViewController
             .getSqlOutputContentProvider()
             .generateSelectionSummaryData(
                 message.uri,
@@ -327,20 +322,6 @@ export function registerCommonRequestHandlers(
                 message.resultId,
                 message.selection,
             );
-
-        const controller =
-            webviewController instanceof QueryResultWebviewPanelController
-                ? webviewController.getQueryResultWebviewViewController()
-                : webviewController;
-
-        /**
-         * Only update the summary if this is the latest request. This ensures that if multiple
-         * requests are made in quick succession, we don't overwrite the summary with stale data.
-         */
-        if (lastSummaryRequestId !== currentId) {
-            return;
-        }
-        controller.updateSelectionSummaryStatusItem(summaryData);
     });
 
     webviewController.registerReducer("setResultTab", async (state, payload) => {
