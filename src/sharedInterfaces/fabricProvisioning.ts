@@ -91,6 +91,13 @@ export interface FabricProvisioningContextProps
      * Handles the request for the database provisioning process
      */
     createDatabase(): void;
+    /**
+     * Handles the request for retrying the database
+     * provisioning process
+     */
+    retryCreateDatabase(): void;
+    /** Used to reset the form validation state */
+    resetFormValidationState(): void;
 }
 
 export interface FabricProvisioningReducers extends FormReducers<FabricProvisioningFormState> {
@@ -107,4 +114,11 @@ export interface FabricProvisioningReducers extends FormReducers<FabricProvision
      * Handles the request for the database provisioning process
      */
     createDatabase: {};
+    /**
+     * Handles the request for retrying the database
+     * provisioning process
+     */
+    retryCreateDatabase: {};
+    /** Used to reset the form validation state */
+    resetFormValidationState: {};
 }
