@@ -8,7 +8,7 @@
 import * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
 import { SqlProjectsService } from "../services/sqlProjectsService";
-import { IPublishForm } from "../sharedInterfaces/publishDialog";
+// (Removed validatePublishForm; field-level validation now handled via individual FormItemSpec validators)
 
 // Shape returned by sqlProjectsService.getProjectProperties (partial, only fields we use)
 export interface ProjectProperties {
@@ -128,50 +128,6 @@ export function getPublishServerName(target: string) {
         targetPlatformToVersion.get("Azure SQL Database" /* SqlTargetPlatform.sqlAzure */)
         ? constants.AzureSqlServerName
         : constants.SqlServerName;
-}
-
-/**
- * Validates the publish form state to determine if all required fields are provided
- * based on the selected publish target.
- *
- * @param formState The current form state to validate
- * @returns true if the form is valid and ready for publish/script generation, false otherwise
- */
-export function validatePublishForm(formState: IPublishForm): boolean {
-    // Always require publish target and database name
-    if (!formState.publishTarget || !formState.databaseName) {
-        return false;
-    }
-
-    // For existing server, require server name
-    if (formState.publishTarget === constants.PublishTargets.EXISTING_SERVER) {
-        return !!formState.serverName;
-    }
-
-    // For local container, validate container-specific required fields
-    if (formState.publishTarget === constants.PublishTargets.LOCAL_CONTAINER) {
-        // Check required container fields
-        const hasContainerPort = !!formState.containerPort;
-        const hasAdminPassword = !!formState.containerAdminPassword;
-        const hasPasswordConfirm = !!formState.containerAdminPasswordConfirm;
-        const hasImageTag = !!formState.containerImageTag;
-        const hasAcceptedLicense = !!formState.acceptContainerLicense;
-
-        // Passwords must match
-        const passwordsMatch =
-            formState.containerAdminPassword === formState.containerAdminPasswordConfirm;
-
-        return (
-            hasContainerPort &&
-            hasAdminPassword &&
-            hasPasswordConfirm &&
-            hasImageTag &&
-            hasAcceptedLicense &&
-            passwordsMatch
-        );
-    }
-
-    return false;
 }
 
 /*

@@ -317,3 +317,14 @@ export const PublishFormFields = {
     ContainerImageTag: "containerImageTag",
     AcceptContainerLicense: "acceptContainerLicense",
 } as const;
+
+// Group of all container-specific publish form field identifiers used together when
+// the target is a local container. Centralizing this list avoids duplication in
+// controllers (e.g., building active component arrays and computing hidden fields).
+export const PublishFormContainerFields = [
+    PublishFormFields.ContainerPort,
+    PublishFormFields.ContainerAdminPassword,
+    PublishFormFields.ContainerAdminPasswordConfirm,
+    PublishFormFields.ContainerImageTag,
+    PublishFormFields.AcceptContainerLicense,
+] as const;

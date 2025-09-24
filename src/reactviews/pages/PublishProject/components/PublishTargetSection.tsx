@@ -55,6 +55,11 @@ const useStyles = makeStyles({
         fontSize: "12px",
         marginLeft: "24px",
     },
+    requiredAsterisk: {
+        color: tokens.colorStatusDangerForeground1,
+        fontWeight: 600,
+        marginLeft: "4px",
+    },
 });
 
 const containerFieldOrder: (keyof IPublishForm)[] = [
@@ -95,22 +100,32 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
             return;
         }
 
-        // Set default port once when entering container mode
-        if (!context.state.formState.containerPort) {
+        const { formState, formComponents } = context.state;
+
+        // Default container port if not already set (requested behavior: default to 1433)
+        if (!formState.containerPort) {
             context.formAction({
                 propertyName: constants.PublishFormFields.ContainerPort,
                 isAction: false,
                 value: constants.DefaultSqlPortNumber,
+                updateValidation: true,
             });
         }
 
-        // Set default image tag if none selected
-        if (!context.state.formState.containerImageTag) {
-            context.formAction({
-                propertyName: constants.PublishFormFields.ContainerImageTag,
-                isAction: false,
-                value: constants.dockerImageDefaultTag,
-            });
+        // If image tag options were populated and user hasn't chosen yet, pick the first option.
+        if (!formState.containerImageTag) {
+            const tagComp = formComponents[constants.PublishFormFields.ContainerImageTag] as
+                | PublishDialogFormItemSpec
+                | undefined;
+            const firstOption = tagComp?.options?.[0];
+            if (firstOption) {
+                context.formAction({
+                    propertyName: tagComp.propertyName,
+                    isAction: false,
+                    value: firstOption.value,
+                    updateValidation: true,
+                });
+            }
         }
     }, [isContainer, context]);
 
@@ -157,8 +172,8 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
                                     <div className={classes.licenseContainer}>
                                         <Checkbox
                                             size="medium"
-                                            required={true}
                                             checked={isChecked}
+                                            aria-required={comp.required}
                                             onChange={(
                                                 _: React.ChangeEvent<HTMLInputElement>,
                                                 data: CheckboxOnChangeData,
@@ -167,6 +182,7 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
                                                     propertyName: comp.propertyName,
                                                     isAction: false,
                                                     value: data.checked === true,
+                                                    updateValidation: true,
                                                 });
                                             }}
                                         />
@@ -180,10 +196,17 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
                                                 {licenseInfo.linkText}
                                             </a>
                                             {licenseInfo.afterText}
+                                            <span
+                                                className={classes.requiredAsterisk}
+                                                aria-hidden="true">
+                                                *
+                                            </span>
                                         </span>
                                     </div>
                                     {isError && errorMessage && (
-                                        <span className={classes.licenseError}>{errorMessage}</span>
+                                        <span className={classes.licenseError} role="alert">
+                                            {errorMessage}
+                                        </span>
                                     )}
                                 </div>
                             );

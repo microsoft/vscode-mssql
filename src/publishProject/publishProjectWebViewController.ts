@@ -134,7 +134,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
         }
 
         await this.updateItemVisibility();
-        this.updateState();
     }
 
     /** Registers all reducers in pure (immutable) style */
@@ -193,13 +192,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         ] as (keyof IPublishForm)[];
 
         if (state.formState.publishTarget === constants.PublishTargets.LOCAL_CONTAINER) {
-            activeComponents.push(
-                constants.PublishFormFields.ContainerPort,
-                constants.PublishFormFields.ContainerAdminPassword,
-                constants.PublishFormFields.ContainerAdminPasswordConfirm,
-                constants.PublishFormFields.ContainerImageTag,
-                constants.PublishFormFields.AcceptContainerLicense,
-            );
+            activeComponents.push(...constants.PublishFormContainerFields);
         }
 
         return activeComponents;
@@ -211,17 +204,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
         const hidden: string[] = [];
 
         if (target === constants.PublishTargets.LOCAL_CONTAINER) {
-            // Hide server-specific fields when targeting local container
             hidden.push(constants.PublishFormFields.ServerName);
         } else if (target === constants.PublishTargets.EXISTING_SERVER) {
-            // Hide container-specific fields when targeting existing server
-            hidden.push(
-                constants.PublishFormFields.ContainerPort,
-                constants.PublishFormFields.ContainerAdminPassword,
-                constants.PublishFormFields.ContainerAdminPasswordConfirm,
-                constants.PublishFormFields.ContainerImageTag,
-                constants.PublishFormFields.AcceptContainerLicense,
-            );
+            hidden.push(...constants.PublishFormContainerFields);
         }
 
         for (const component of Object.values(currentState.formComponents)) {

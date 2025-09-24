@@ -22,9 +22,9 @@ import {
  * (e.g. reading project metadata, fetching remote targets, etc.)
  */
 export async function generatePublishFormComponents(): Promise<
-    Record<keyof IPublishForm | string, PublishDialogFormItemSpec>
+    Record<keyof IPublishForm, PublishDialogFormItemSpec>
 > {
-    const components: Record<keyof IPublishForm | string, PublishDialogFormItemSpec> = {
+    const components: Record<keyof IPublishForm, PublishDialogFormItemSpec> = {
         [constants.PublishFormFields.ProfileName]: {
             propertyName: constants.PublishFormFields.ProfileName,
             label: Loc.ProfileLabel,
@@ -34,7 +34,7 @@ export async function generatePublishFormComponents(): Promise<
         [constants.PublishFormFields.ServerName]: {
             propertyName: constants.PublishFormFields.ServerName,
             label: Loc.ServerLabel,
-            required: false,
+            required: true,
             type: FormItemType.Input,
         },
         [constants.PublishFormFields.DatabaseName]: {
@@ -140,7 +140,14 @@ export async function generatePublishFormComponents(): Promise<
                 };
             },
         },
-    } as Record<keyof IPublishForm | string, PublishDialogFormItemSpec>;
+        sqlCmdVariables: {
+            propertyName: "sqlCmdVariables",
+            label: Loc.SqlCmdVariablesLabel,
+            required: false,
+            type: FormItemType.Input,
+            hidden: true,
+        },
+    };
 
     return components;
 }
