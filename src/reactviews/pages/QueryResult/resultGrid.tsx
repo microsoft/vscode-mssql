@@ -53,11 +53,63 @@ export interface ResultGridHandle {
 
 const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultGridProps, ref) => {
     const tableRef = useRef<Table<any> | null>(null);
+    const gridContainerRef = useRef<HTMLDivElement>(null);
 
     const context = useContext(QueryResultCommandsContext);
     if (!context) {
         return undefined;
     }
+    // Helper to get selected columns from the grid selection
+    const getSelectedColumns = () => {
+        if (!tableRef.current) return [];
+        const ranges = tableRef.current.getSelectedRanges();
+        const columns: Set<number> = new Set();
+        ranges.forEach((range) => {
+            for (let c = range.fromCell; c <= range.toCell; c++) {
+                columns.add(c);
+            }
+        });
+        // Skip row selector column (usually index 0)
+        return Array.from(columns).filter((idx) => idx > 0);
+    };
+
+    // Resize selected columns by delta px
+    const resizeSelectedColumns = (delta: number) => {
+        if (!tableRef.current) return;
+        const grid = tableRef.current.grid;
+        const columns = grid.getColumns();
+        const selectedCols = getSelectedColumns();
+        let changed = false;
+        selectedCols.forEach((colIdx) => {
+            const col = columns[colIdx];
+            if (col && col.width) {
+                col.width = Math.max(40, Math.min(col.width + delta, 800));
+                changed = true;
+            }
+        });
+        if (changed) {
+            grid.setColumns(columns);
+            grid.render();
+        }
+    };
+
+    // Wheel event handler for CTRL + scroll
+    useEffect(() => {
+        const gridDiv = gridContainerRef.current;
+        if (!gridDiv) return;
+        const wheelHandler = (event: WheelEvent) => {
+            if (event.ctrlKey && getSelectedColumns().length > 0) {
+                event.preventDefault();
+                if (event.deltaY < 0) {
+                    resizeSelectedColumns(20); // Expand
+                } else if (event.deltaY > 0) {
+                    resizeSelectedColumns(-20); // Contract
+                }
+            }
+        };
+        gridDiv.addEventListener("wheel", wheelHandler, { passive: false });
+        return () => gridDiv.removeEventListener("wheel", wheelHandler);
+    }, [tableRef.current]);
 
     const inMemoryDataProcessingThreshold = useQueryResultSelector<number | undefined>(
         (state) => state.inMemoryDataProcessingThreshold,
@@ -66,7 +118,6 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
     const autoSizeColumns = useQueryResultSelector((state) => state.autoSizeColumns);
     const { themeKind } = useVscodeWebview2();
 
-    const gridContainerRef = useRef<HTMLDivElement>(null);
     const isTableCreated = useRef<boolean>(false);
     if (!props.gridParentRef) {
         return undefined;
