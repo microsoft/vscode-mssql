@@ -155,6 +155,13 @@ export function registerFabricProvisioningReducers(
         let fabricProvisioningState = state.deploymentTypeState as fp.FabricProvisioningState;
         fabricProvisioningState.errorMessage = "";
 
+        sendActionEvent(
+            TelemetryViews.FabricProvisioning,
+            TelemetryActions.RetryProvisionFabricDatabase,
+            {},
+            {},
+        );
+
         state.deploymentTypeState = handleCreateDatabase(
             deploymentController,
             fabricProvisioningState,

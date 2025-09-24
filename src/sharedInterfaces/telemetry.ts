@@ -120,6 +120,7 @@ export enum TelemetryActions {
     GetFabricDatabases = "GetFabricDatabases",
     ProvisionFabricDatabase = "ProvisionFabricDatabase",
     ConnectToFabricDatabase = "ConnectToFabricDatabase",
+    RetryProvisionFabricDatabase = "RetryProvisionFabricDatabase",
     LoadFromConnectionString = "LoadFromConnectionString",
     MigrateLegacyConnections = "MigrateLegacyConnections",
     FilterAzureSubscriptions = "FilterAzureSubscriptions",
