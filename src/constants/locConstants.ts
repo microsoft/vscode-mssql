@@ -1032,11 +1032,11 @@ export class LocalContainers {
         });
     public static selectImage = l10n.t("Select image");
     public static selectImageTooltip = l10n.t("Select the SQL Server Container Image");
-    public static sqlServerVersionImage = (version: string) =>
+    public static sqlServerVersionImage = (versionTag: string) =>
         l10n.t({
-            message: "SQL Server {0} - latest",
-            args: [version],
-            comment: ["{0} is the SQL Server version"],
+            message: "SQL Server {0}",
+            args: [versionTag],
+            comment: ["{0} is the SQL Server version tag"],
         });
     public static sqlServerPasswordTooltip = l10n.t("SQL Server Container SA Password");
     public static pleaseChooseUniqueProfileName = l10n.t(

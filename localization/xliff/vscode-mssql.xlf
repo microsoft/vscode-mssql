@@ -2523,9 +2523,9 @@
     <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
       <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
     </trans-unit>
-    <trans-unit id="++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8">
-      <source xml:lang="en">SQL Server {0} - latest</source>
-      <note>{0} is the SQL Server version</note>
+    <trans-unit id="++CODE++87838c66e0fd9c65621ace33cfbe4e7889a4317c9fcd060ab5aa482f6f07126d">
+      <source xml:lang="en">SQL Server {0}</source>
+      <note>{0} is the SQL Server version tag</note>
     </trans-unit>
     <trans-unit id="++CODE++c15c5b93db5aa2d000fa6a98f1eaad96beff26347b410388dc524f19a0f0aeee">
       <source xml:lang="en">SQL database in Fabric (Preview)</source>

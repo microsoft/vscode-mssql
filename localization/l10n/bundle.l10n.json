@@ -1561,10 +1561,10 @@
   },
   "Select image": "Select image",
   "Select the SQL Server Container Image": "Select the SQL Server Container Image",
-  "SQL Server {0} - latest/{0} is the SQL Server version": {
-    "message": "SQL Server {0} - latest",
+  "SQL Server {0}/{0} is the SQL Server version tag": {
+    "message": "SQL Server {0}",
     "comment": [
-      "{0} is the SQL Server version"
+      "{0} is the SQL Server version tag"
     ]
   },
   "SQL Server Container SA Password": "SQL Server Container SA Password",
