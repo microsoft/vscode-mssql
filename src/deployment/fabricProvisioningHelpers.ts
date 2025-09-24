@@ -88,7 +88,7 @@ export async function initializeFabricProvisioningState(
         TelemetryActions.StartFabricProvisioningDeployment,
         {},
         {
-            localContainersInitTimeInMs: Date.now() - startTime,
+            fabricProvisioningInitTimeInMs: Date.now() - startTime,
         },
     );
 

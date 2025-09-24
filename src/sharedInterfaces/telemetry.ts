@@ -111,7 +111,6 @@ export enum TelemetryActions {
     StopContainer = "StopContainer",
     DeleteContainer = "DeleteContainer",
     RestartContainer = "RestartContainer",
-    PullImage = "PullImage",
     RunDockerStep = "RunDockerStep",
     RetryDockerStep = "RetryDockerStep",
     GetWorkspaces = "GetWorkspaces",
