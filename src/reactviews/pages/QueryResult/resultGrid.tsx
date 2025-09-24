@@ -83,7 +83,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         selectedCols.forEach((colIdx) => {
             const col = columns[colIdx];
             if (col && col.width) {
-                col.width = Math.max(40, Math.min(col.width + delta, 800));
+                col.width = Math.max(40, col.width + delta);
                 changed = true;
             }
         });
