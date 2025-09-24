@@ -690,9 +690,17 @@
         <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
         <target state="translated">接続にアクセスするためのすべての拡張機能のアクセス許可をクリアします</target>
       </trans-unit>
+      <trans-unit id="++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36">
+        <source xml:lang="en">Click to cancel loading summary</source>
+        <target state="new">Click to cancel loading summary</target>
+      </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
         <target state="translated">クリックすると、データベースに接続します</target>
+      </trans-unit>
+      <trans-unit id="++CODE++66abaeec0367ba4920e21447dfa2dafb94c7f38dc262dfb91e76799022a436d5">
+        <source xml:lang="en">Click to load summary</source>
+        <target state="new">Click to load summary</target>
       </trans-unit>
       <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
         <source xml:lang="en">Click to sign into an Azure account</source>
@@ -1541,6 +1549,15 @@
         <source xml:lang="en">Error loading preview</source>
         <target state="translated">プレビューの読み込みエラー</target>
       </trans-unit>
+      <trans-unit id="++CODE++fa8002fe1d41e09812880f2bfb97ef0849885d8a4de95a67b26294b7e83e912f">
+        <source xml:lang="en">Error loading summary</source>
+        <target state="new">Error loading summary</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8108929d06fb4fe87c58e7407990ec8d46dc422dfa3ee467d2f5f622abd9840d">
+        <source xml:lang="en">Error loading summary: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Error loading summary: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++3ba789024640c6f231695bdf0d82e6845483cf65f092b3c3646910e60c638761">
         <source xml:lang="en">Error loading workspaces</source>
         <target state="translated">ワークスペースの読み込みエラー</target>
@@ -2138,9 +2155,9 @@ Error:
         <source xml:lang="en">Insufficient Capacity Permissions</source>
         <target state="translated">容量のアクセス許可が不十分です</target>
       </trans-unit>
-      <trans-unit id="++CODE++ece3ecedb5f57c84cc9749995b62f69213c0cb04b1578a713fda486ff04f8fdb">
-        <source xml:lang="en">Insufficient Worskpace Permissions</source>
-        <target state="translated">ワークスペースのアクセス許可が不十分です</target>
+      <trans-unit id="++CODE++207b04072a822fa8e76629bcd504bc8c19525b86f444ac77a6f3be1c88a502eb">
+        <source xml:lang="en">Insufficient Workspace Permissions</source>
+        <target state="new">Insufficient Workspace Permissions</target>
       </trans-unit>
       <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
         <source xml:lang="en">Integrated</source>
@@ -2420,6 +2437,13 @@ Error:
       <trans-unit id="++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297">
         <source xml:lang="en">Loading results...</source>
         <target state="translated">結果を読み込んでいます...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ba622a4c63bd7d102bdc3057b04b4cfd8d2af5b2adb230bebc98414fc46afae0">
+        <source xml:lang="en">Loading summary {0}/{1} ({2}%) (Click to cancel)</source>
+        <note>{0} is the current row
+{1} is the total number of rows
+{2} is the percentage of rows loaded</note>
+        <target state="new">Loading summary {0}/{1} ({2}%) (Click to cancel)</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -3831,6 +3855,14 @@ Query: {1}</source>
         <source xml:lang="en">Successfully saved results to </source>
         <target state="translated">次の場所に結果が正常に保存されました:</target>
       </trans-unit>
+      <trans-unit id="++CODE++17888248578c82867c18ea2dc512a96eabbbbb8184442d219746c3b8b8ff6030">
+        <source xml:lang="en">Summary loading canceled</source>
+        <target state="new">Summary loading canceled</target>
+      </trans-unit>
+      <trans-unit id="++CODE++93775107b302b7d63191a5c2a8ea3803d44d17781da939eb367d7555f25c1752">
+        <source xml:lang="en">Summary loading was canceled by user</source>
+        <target state="new">Summary loading was canceled by user</target>
+      </trans-unit>
       <trans-unit id="++CODE++175f5352107a324eb25f4342a9114e2685b64a1ef54a5ff6ba3a24d0ac215ea7">
         <source xml:lang="en">Switch Direction</source>
         <target state="translated">方向の切り替え</target>
@@ -4232,11 +4264,6 @@ Query: {1}</source>
         <source xml:lang="en">You are not connected to any database.</source>
         <target state="translated">どのデータベースにも接続されていません。</target>
       </trans-unit>
-      <trans-unit id="++CODE++9b358aeeb5265d934737d601151f0982e0b833eaa6abb54c40be62ed494882b8">
-        <source xml:lang="en">You have selected data across {0} rows, it might take a while to load the data and calculate the summary, do you want to continue?</source>
-        <note>{0} is the number of rows to fetch summary statistics for</note>
-        <target state="new">You have selected data across {0} rows, it might take a while to load the data and calculate the summary, do you want to continue?</target>
-      </trans-unit>
       <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
         <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
         <target state="translated">SQL データベースを参照するには、Azure にサインインする必要があります。</target>
@@ -4419,6 +4446,11 @@ Query: {1}</source>
         <source xml:lang="en">{0} properties</source>
         <note>{0} is the object type</note>
         <target state="translated">{0} 個のプロパティ</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2bd22e3b4b0281a2ffa3bc8bdd3e1f2b49dedcdde97d4cc83fdf598d1208d103">
+        <source xml:lang="en">{0} rows selected, click to load summary</source>
+        <note>{0} is the number of rows to fetch summary statistics for</note>
+        <target state="new">{0} rows selected, click to load summary</target>
       </trans-unit>
       <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
         <source xml:lang="en">{0} started successfully.</source>
