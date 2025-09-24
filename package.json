@@ -1689,6 +1689,12 @@
                     ],
                     "scope": "resource"
                 },
+                "mssql.query.preventAutoExecuteScript": {
+                    "type": "boolean",
+                    "description": "%mssql.preventAutoExecuteScript%",
+                    "default": false,
+                    "scope": "resource"
+                },
                 "mssql.enableSqlAuthenticationProvider": {
                     "type": "boolean",
                     "description": "%mssql.enableSqlAuthenticationProvider%",
