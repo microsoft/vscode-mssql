@@ -11,7 +11,9 @@ import { ObjectExplorerUtils } from "../objectExplorerUtils";
 import * as ConnInfo from "../../models/connectionInfo";
 import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
 import { disconnectedDockerContainer, dockerContainer } from "../../constants/constants";
-import { getConnectionTooltip } from "./connectionTooltip";
+import { IConnectionProfile } from "../../models/interfaces";
+import { AzureAuthType } from "../../models/contracts/azure";
+import * as Constants from "../../constants/constants";
 
 // Constants for node types and icon names
 export const SERVER_NODE_DISCONNECTED = "disconnectedServer";
@@ -62,7 +64,46 @@ export class ConnectionNode extends TreeNodeInfo {
         }
 
         // Tooltip logic: show all non-default properties except those in the label (database, user, server)
-        this.tooltip = getConnectionTooltip(connectionProfile);
+        this.tooltip = this.getConnectionTooltip(connectionProfile);
+    }
+
+    private getConnectionTooltip(connectionProfile: IConnectionProfile): string {
+        // Properties to exclude (already in label)
+        const exclude = ["database", "user", "server", "profileName", "id", "groupId"];
+        // Default values for comparison
+        const defaultValues = {
+            encrypt: "Mandatory",
+            trustServerCertificate: false,
+            persistSecurityInfo: false,
+            azureAuthType: AzureAuthType.AuthCodeGrant,
+            multipleActiveResultSets: false,
+            connectTimeout: Constants.defaultConnectionTimeout,
+            commandTimeout: Constants.defaultCommandTimeout,
+            applicationName: Constants.connectionApplicationName,
+            savePassword: false,
+            emptyPasswordInput: false,
+            profileSource: 0,
+        };
+
+        let props: string[] = [];
+
+        Object.keys(connectionProfile).forEach((key) => {
+            const value = (connectionProfile as any)[key];
+            if (exclude.includes(key)) {
+                return;
+            }
+            if (!value || value === "") {
+                return;
+            }
+
+            if (key in defaultValues && value === defaultValues[key]) {
+                return;
+            }
+
+            props.push(`${key}: ${value}`);
+        });
+
+        return props.length > 0 ? props.join("\n") : "";
     }
 
     protected override generateId(): string {
