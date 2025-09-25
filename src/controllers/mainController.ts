@@ -1308,8 +1308,6 @@ export default class MainController implements vscode.Disposable {
                 this.isRichExperiencesEnabled,
             );
 
-        await this._objectExplorerProvider.initialize();
-
         this.objectExplorerTree = vscode.window.createTreeView("objectExplorer", {
             treeDataProvider: this._objectExplorerProvider,
             canSelectMany: false,

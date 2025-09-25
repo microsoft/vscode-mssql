@@ -40,10 +40,6 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         );
     }
 
-    public async initialize(): Promise<void> {
-        await this._objectExplorerService.initialize();
-    }
-
     public getParent(element: TreeNodeInfo) {
         return element.parentNode;
     }
