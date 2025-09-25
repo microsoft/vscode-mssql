@@ -27,8 +27,24 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
     // Convert resultSet data to SlickGrid format
     useEffect(() => {
         if (resultSet?.columnNames && resultSet?.subset) {
+            // Create a simple row number column
+            const rowNumberColumn: Column = {
+                id: "rowNumber",
+                name: "",
+                field: "rowNumber",
+                width: 50,
+                minWidth: 40,
+                maxWidth: 80,
+                sortable: false,
+                resizable: true,
+                focusable: false,
+                selectable: false,
+                formatter: (row: number) =>
+                    `<span style="color: var(--vscode-foreground); padding: 0 8px;">${row + 1}</span>`,
+            };
+
             // Create columns using the columnNames from resultSet
-            const generatedColumns: Column[] = resultSet.columnNames.map((columnName, index) => {
+            const dataColumns: Column[] = resultSet.columnNames.map((columnName, index) => {
                 return {
                     id: `col${index}`,
                     name: columnName,
@@ -37,11 +53,17 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
                     minWidth: 100,
                 };
             });
-            setColumns(generatedColumns);
+
+            // Add row number column as the first column
+            const allColumns = [rowNumberColumn, ...dataColumns];
+            setColumns(allColumns);
 
             // Convert rows to dataset
             const convertedDataset = resultSet.subset.map((row, rowIndex) => {
-                const dataRow: any = { id: rowIndex };
+                const dataRow: any = {
+                    id: rowIndex,
+                    rowNumber: rowIndex, // Add rowNumber field for the row number column
+                };
                 row.cells.forEach((cell, cellIndex) => {
                     dataRow[`col${cellIndex}`] = cell.displayValue;
                 });
