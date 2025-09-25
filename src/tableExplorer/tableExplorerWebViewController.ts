@@ -187,4 +187,23 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         //     return this.invokeReducer("getTableInfo", state, {});
         // });
     }
+
+    /**
+     * Disposes the Table Explorer webview controller and cleans up resources.
+     * This is called when the webview tab is closed.
+     */
+    public override dispose(): void {
+        // Dispose of the table explorer service resources if ownerUri is set
+        if (this.state.ownerUri) {
+            this.logger.info(
+                `Disposing Table Explorer resources for ownerUri: ${this.state.ownerUri}`,
+            );
+            void this._tableExplorerService.dispose(this.state.ownerUri).catch((error) => {
+                this.logger.error(`Error disposing table explorer service: ${error}`);
+            });
+        }
+
+        // Call parent dispose to clean up webview resources
+        super.dispose();
+    }
 }
