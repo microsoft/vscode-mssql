@@ -68,7 +68,7 @@ export class ConnectionNode extends TreeNodeInfo {
     }
 
     private getConnectionTooltip(connectionProfile: IConnectionProfile): string {
-        // Properties to exclude (already in label)
+        // Properties to exclude
         const exclude = ["database", "user", "server", "profileName", "id", "groupId"];
         // Default values for comparison
         const defaultValues = {
