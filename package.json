@@ -82,7 +82,7 @@
     },
     "devDependencies": {
         "@azure/core-paging": "^1.6.2",
-        "@ctrl/tinycolor": "^4.1.0",
+        "@ctrl/tinycolor": "^4.2.0",
         "@dagrejs/dagre": "^1.1.4",
         "@eslint/compat": "^1.1.0",
         "@fluentui-contrib/react-data-grid-react-window": "^1.2.0",
