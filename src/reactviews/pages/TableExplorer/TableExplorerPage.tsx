@@ -31,13 +31,7 @@ export const TableExplorerPage: React.FC = () => {
             {state?.resultSet ? (
                 <div>
                     <h2>Table Data</h2>
-                    <TableDataGrid
-                        resultSet={state.resultSet}
-                        tableMetadata={state.tableMetadata}
-                        tableName={state.tableName}
-                        schemaName={state.schemaName}
-                        themeKind={context?.themeKind}
-                    />
+                    <TableDataGrid resultSet={state.resultSet} themeKind={context?.themeKind} />
                 </div>
             ) : state?.isLoading ? (
                 <p>Loading table data...</p>
