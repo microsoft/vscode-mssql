@@ -937,6 +937,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++17888248578c82867c18ea2dc512a96eabbbbb8184442d219746c3b8b8ff6030" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Summary loading canceled]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Laden der Zusammenfassung wurde abgebrochen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++1806851cf9209ecb674faf6fe227aa165f6dbc4df5d05ea9f0cc71e3d00245c7" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Using {0} ({1})...]]></Val>
@@ -1662,6 +1671,15 @@
           <Val><![CDATA[{0}: {1}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[{0}: {1}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++2bd22e3b4b0281a2ffa3bc8bdd3e1f2b49dedcdde97d4cc83fdf598d1208d103" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} rows selected, click to load summary]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0} Zeilen ausgewählt, klicken Sie, um die Zusammenfassung zu laden]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -2944,6 +2962,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Click to cancel loading summary]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Klicken, um das Laden der Zusammenfassung abzubrechen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++4e16c2dab3b093c189f6f41be6961a3e5a42e6c8c2d3609ce6398e1bd9c8f60c" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Running query is not supported when the editor is in multiple selection mode.]]></Val>
@@ -3894,6 +3921,15 @@
           <Val><![CDATA[Length mismatch: Column '{0}' ({1}) incompatible with '{2}' ({3})]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Längenkonflikt: Spalte "{0}" ({1}) ist nicht kompatibel mit "{2}" ({3}).]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++66abaeec0367ba4920e21447dfa2dafb94c7f38dc262dfb91e76799022a436d5" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Click to load summary]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Klicken, um die Zusammenfassung zu laden]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -4861,6 +4897,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++8108929d06fb4fe87c58e7407990ec8d46dc422dfa3ee467d2f5f622abd9840d" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error loading summary: {0}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Laden der Zusammenfassung: {0}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++810e6bf829af848a6ab728e3b8f94dde597f95f47f11b160ca7eaa9f0d21395b" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Disconnecting from connection '{0}']]></Val>
@@ -5541,6 +5586,15 @@
           <Val><![CDATA[Found pending reconnect promise for uri {0}, failed.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ausstehende Zusage für Verbindungswiederherstellung für URI {0} gefunden, fehlgeschlagen.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++93775107b302b7d63191a5c2a8ea3803d44d17781da939eb367d7555f25c1752" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Summary loading was canceled by user]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Laden der Zusammenfassung wurde vom Benutzer abgebrochen]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6873,6 +6927,15 @@
           <Val><![CDATA[Not started]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nicht gestartet]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++ba622a4c63bd7d102bdc3057b04b4cfd8d2af5b2adb230bebc98414fc46afae0" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loading summary {0}/{1} ({2}%) (Click to cancel)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Zusammenfassung wird geladen {0}/{1} ({2} %) (Zum Abbrechen klicken)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -9231,6 +9294,15 @@
           <Val><![CDATA[Database]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Datenbank]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++fa8002fe1d41e09812880f2bfb97ef0849885d8a4de95a67b26294b7e83e912f" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error loading summary]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fehler beim Laden der Zusammenfassung]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
