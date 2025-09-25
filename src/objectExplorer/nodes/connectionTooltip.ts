@@ -28,14 +28,22 @@ export function getConnectionTooltip(connectionProfile: IConnectionProfile): str
     };
 
     let props: string[] = [];
-    for (const key in connectionProfile) {
-        if (exclude.includes(key)) continue;
-        const value = connectionProfile[key];
-        if (value || value === "") continue;
-        if (key in defaultValues && value === defaultValues[key]) continue;
-        // Show boolean as true/false, objects as JSON
-        let displayValue = typeof value === "object" ? JSON.stringify(value) : value;
-        props.push(`${key}: ${displayValue}`);
-    }
+
+    Object.keys(connectionProfile).forEach((key) => {
+        const value = (connectionProfile as any)[key];
+        if (exclude.includes(key)) {
+            return;
+        }
+        if (value || value === "") {
+            return;
+        }
+
+        if (key in defaultValues && value === defaultValues[key]) {
+            return;
+        }
+
+        props.push(`${key}: ${value}`);
+    });
+
     return props.length > 0 ? props.join("\n") : "";
 }
