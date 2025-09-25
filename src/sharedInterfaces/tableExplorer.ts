@@ -89,6 +89,7 @@ export interface EditSubsetParams extends IEditSessionOperationParams {
 export interface EditSubsetResult {
     rowCount: number;
     subset: EditRow[];
+    columnNames: string[];
 }
 
 //#endregion

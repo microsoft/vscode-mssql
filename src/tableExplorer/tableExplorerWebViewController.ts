@@ -9,7 +9,6 @@ import {
     TableExplorerWebViewState,
     TableExplorerReducers,
     EditSessionReadyParams,
-    EditSubsetResult,
 } from "../sharedInterfaces/tableExplorer";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
@@ -140,14 +139,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     }
 
     private async loadResultSet(): Promise<void> {
-        const subsetResult = await this._tableExplorerService.subset(this.state.ownerUri, 0, 200);
-
-        const result: EditSubsetResult = {
-            rowCount: subsetResult.rowCount,
-            subset: subsetResult.subset,
-        };
-
-        this.state.resultSet = result;
+        const subsetResult = await this._tableExplorerService.subset(
+            this.state.ownerUri,
+            0,
+            200 - 1,
+        );
+        this.state.resultSet = subsetResult;
 
         this.updateState();
     }
