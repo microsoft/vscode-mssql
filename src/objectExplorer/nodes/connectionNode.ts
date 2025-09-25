@@ -11,6 +11,7 @@ import { ObjectExplorerUtils } from "../objectExplorerUtils";
 import * as ConnInfo from "../../models/connectionInfo";
 import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
 import { disconnectedDockerContainer, dockerContainer } from "../../constants/constants";
+import { getConnectionTooltip } from "./connectionTooltip";
 
 // Constants for node types and icon names
 export const SERVER_NODE_DISCONNECTED = "disconnectedServer";
@@ -59,6 +60,9 @@ export class ConnectionNode extends TreeNodeInfo {
         } else {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_SERVER_DISCONNECTED);
         }
+
+        // Tooltip logic: show all non-default properties except those in the label (database, user, server)
+        this.tooltip = getConnectionTooltip(connectionProfile);
     }
 
     protected override generateId(): string {
