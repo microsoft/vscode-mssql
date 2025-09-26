@@ -267,6 +267,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
                 inMemoryDataProcessing: true,
                 inMemoryDataCountThreshold: inMemoryDataProcessingThreshold,
             },
+            context,
             undefined,
             undefined,
         );

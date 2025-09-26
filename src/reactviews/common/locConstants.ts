@@ -161,6 +161,9 @@ export class LocConstants {
                     args: [objectType],
                     comment: ["{0} is the object type"],
                 }),
+            expandPropertiesPane: l10n.t("Expand properties pane"),
+            restorePropertiesPane: l10n.t("Restore properties pane"),
+            closePropertiesPane: l10n.t("Close properties pane"),
             tableName: l10n.t("Table name"),
             remove: (objectType: string) =>
                 l10n.t({
@@ -172,6 +175,15 @@ export class LocConstants {
             backToPreview: l10n.t("Back to preview"),
             copy: l10n.t("Copy"),
             youMustReviewAndAccept: l10n.t("You must review and accept the terms to proceed"),
+        };
+    }
+
+    public get publishDialog() {
+        return {
+            publishChanges: l10n.t("Publish Changes"),
+            publish: l10n.t("Publish"),
+            openPublishScript: l10n.t("Open Publish Script"),
+            confirmationText: l10n.t("I have read the summary and understand the potential risks."),
         };
     }
 
@@ -491,10 +503,12 @@ export class LocConstants {
                     comment: ["{0} is the index of the result set"],
                 }),
             loadingTextView: l10n.t("Loading text view..."),
+            loadingResultsMessage: l10n.t("Loading results..."),
             noResultsHeader: l10n.t("No results for the active editor"),
             noResultMessage: l10n.t(
                 "Run a query in the current editor, or switch to an editor that has results.",
             ),
+            failedToStartQuery: l10n.t("Failed to start query."),
         };
     }
 

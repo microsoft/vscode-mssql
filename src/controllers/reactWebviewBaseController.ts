@@ -47,6 +47,8 @@ import {
     RequestType,
 } from "vscode-jsonrpc/node";
 import { MessageReader } from "vscode-languageclient";
+import { Deferred } from "../protocol";
+
 class WebviewControllerMessageReader extends AbstractMessageReader implements MessageReader {
     private _onData: Emitter<Message>;
     private _disposables: vscode.Disposable[] = [];
@@ -126,6 +128,11 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
     private _isDisposed: boolean = false;
     private _onDisposed: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
     public readonly onDisposed: vscode.Event<void> = this._onDisposed.event;
+
+    /**
+     * A one-time promise that resolves when the webview is ready to receive messages.
+     */
+    private _webviewReady: Deferred<void> = new Deferred<void>();
 
     private _state: State;
     private _isFirstLoad: boolean = true;
@@ -288,6 +295,12 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
             const timeStamp = message.loadCompleteTimeStamp;
             const timeToLoad = timeStamp - this._loadStartTime;
             if (this._isFirstLoad) {
+                /**
+                 * This notification is sent from the webview when it has finished loading. We use
+                 * this to track when the webview is ready to receive messages.
+                 */
+                this._webviewReady.resolve();
+
                 console.log(
                     `Load stats for ${this._sourceFile}` + "\n" + `Total time: ${timeToLoad} ms`,
                 );
@@ -496,6 +509,21 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
         this._onDisposed.fire();
         this._disposables.forEach((d) => d.dispose());
         this._isDisposed = true;
+    }
+
+    /**
+     * Returns a promise that resolves when the webview has finished its initial load
+     * and is ready to receive JSON-RPC requests/notifications. Use this before sending
+     * any messages that require the webview script side to be active.
+     * Typical usage:
+     * ```typescript
+     * await controller.whenWebviewReady();
+     * await controller.sendRequest(...); // safe to send requests now
+     * ```
+     * @returns
+     */
+    public whenWebviewReady(): Promise<void> {
+        return this._webviewReady.promise;
     }
 }
 

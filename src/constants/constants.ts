@@ -34,6 +34,7 @@ export const cmdrevealQueryResult = "mssql.revealQueryResult";
 export const cmdCopyAll = "mssql.copyAll";
 export const cmdConnect = "mssql.connect";
 export const cmdDisconnect = "mssql.disconnect";
+export const cmdChangeConnection = "mssql.changeConnection";
 export const cmdChangeDatabase = "mssql.changeDatabase";
 export const cmdChooseDatabase = "mssql.chooseDatabase";
 export const cmdChooseLanguageFlavor = "mssql.chooseLanguageFlavor";
@@ -112,6 +113,7 @@ export const cmdDeployNewDatabase = "mssql.deployNewDatabase";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
+export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
@@ -241,6 +243,7 @@ export const configSchemaDesignerEnableExpandCollapseButtons =
     "mssql.schemaDesigner.enableExpandCollapseButtons";
 export const configSavePasswordsUntilRestart =
     "mssql.connectionManagement.rememberPasswordsUntilRestart";
+export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";

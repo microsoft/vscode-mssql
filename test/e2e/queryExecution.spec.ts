@@ -37,7 +37,7 @@ test.describe("MSSQL Extension - Query Execution", async () => {
     test.beforeAll(async () => {
         // Launch with new UI off
         const { electronApp, page } = await launchVsCodeWithMssqlExtension({
-            useNewUI: false,
+            useNewUI: true,
         });
         vsCodeApp = electronApp;
         vsCodePage = page;
@@ -65,7 +65,7 @@ test.describe("MSSQL Extension - Query Execution", async () => {
     });
 
     test("Create table, insert data, and execute query", async ({}, testInfo) => {
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage);
         await screenshot(vsCodePage, testInfo, "NewEditorOpened");
 
         const createTestDB = "CREATE DATABASE TestDB;";
@@ -75,7 +75,7 @@ test.describe("MSSQL Extension - Query Execution", async () => {
         await screenshot(vsCodePage, testInfo, "CreateDbExecuted");
 
         await screenshot(vsCodePage, testInfo, "NewEditorOpened2");
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage);
 
         const sqlScript = `
 USE TestDB;
@@ -97,7 +97,7 @@ SELECT Name FROM TestTable;`;
     });
 
     test.afterAll(async () => {
-        await openNewQueryEditor(vsCodePage, profileName, password);
+        await openNewQueryEditor(vsCodePage);
         const dropTestDatabaseScript = `
 USE master
 ALTER DATABASE TestDB SET SINGLE_USER WITH ROLLBACK IMMEDIATE

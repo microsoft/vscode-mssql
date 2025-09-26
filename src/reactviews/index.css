@@ -35,7 +35,7 @@ button[role="combobox"] {
     color: var(--vscode-settings-dropdownForeground, var(--vscode-dropdown-foreground)) !important;
     border: 1px solid var(--vscode-settings-dropdownBorder, var(--vscode-input-border, transparent)) !important;
     border-radius: 2px;
-    min-height: 26px !important;
+    min-height: 22px !important;
     line-height: 19px !important;
     outline: none !important;
 }
