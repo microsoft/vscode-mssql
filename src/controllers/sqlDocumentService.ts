@@ -133,11 +133,15 @@ export default class SqlDocumentService implements vscode.Disposable {
             await this._connectionMgr.handlePasswordBasedCredentials(connectionCreds);
         }
 
-        await this.newQuery({
+        const newEditor = await this.newQuery({
             content,
             connectionStrategy: connectionStrategy,
             connectionInfo: connectionCreds,
         });
+
+        const newEditorUri = getUriKey(newEditor.document.uri);
+
+        const connectionResult = this._connectionMgr.getConnectionInfo(newEditorUri);
 
         await this._connectionMgr.connectionStore.removeRecentlyUsed(
             connectionCreds as IConnectionProfile,
@@ -152,7 +156,7 @@ export default class SqlDocumentService implements vscode.Disposable {
             },
             undefined,
             connectionCreds as IConnectionProfile,
-            this._connectionMgr.getServerInfo(connectionCreds),
+            this._connectionMgr.getServerInfo(connectionResult?.credentials),
         );
     }
 
@@ -272,12 +276,17 @@ export default class SqlDocumentService implements vscode.Disposable {
         }
 
         const activeDocumentUri = getUriKey(editor.document.uri);
-        const activeConnection = this._connectionMgr?.getConnectionInfoFromUri(activeDocumentUri);
+        const connectionInfo = this._connectionMgr?.getConnectionInfo(activeDocumentUri);
 
-        if (activeConnection) {
-            this._lastActiveConnectionInfo = Utils.deepClone(activeConnection);
+        /**
+         * Update the last active connection info only if:
+         * 1. Active connection has been established (has connectionId), AND
+         * 2. It's not still in the process of connecting (connecting is false)
+         */
+        if (connectionInfo?.connectionId && !connectionInfo?.connecting) {
+            this._lastActiveConnectionInfo = Utils.deepClone(connectionInfo.credentials);
         }
-        this._statusview?.updateStatusBarForEditor(editor, activeConnection !== undefined);
+        this._statusview?.updateStatusBarForEditor(editor, connectionInfo);
     }
 
     /**
