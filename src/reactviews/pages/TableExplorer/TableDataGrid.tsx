@@ -27,9 +27,35 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
     const [options, setOptions] = useState<GridOption | undefined>(undefined);
     const reactGridRef = useRef<SlickgridReactInstance | null>(null);
     const [commandQueue] = useState<EditCommand[]>([]);
+    const [cellChanges, setCellChanges] = useState<Map<string, any>>(new Map());
 
     function reactGridReady(reactGrid: SlickgridReactInstance) {
         reactGridRef.current = reactGrid;
+    }
+
+    function handleCellChange(_e: CustomEvent, args: any) {
+        const rowIndex = args.row;
+        const columnIndex = args.cell - 1; // -1 because first column is row number
+        const column = columns[args.cell];
+
+        console.log(`Cell Changed - Row: ${rowIndex}, Column: ${columnIndex}`);
+        console.log(`Column ID: ${column?.id}, Field: ${column?.field}`);
+        console.log(`New Value: ${args.item[column?.field]}`);
+
+        // Store the change with a unique key (row-column)
+        const changeKey = `${rowIndex}-${columnIndex}`;
+        const newChanges = new Map(cellChanges);
+        newChanges.set(changeKey, {
+            rowIndex,
+            columnIndex,
+            columnId: column?.id,
+            field: column?.field,
+            newValue: args.item[column?.field],
+            item: args.item,
+        });
+        setCellChanges(newChanges);
+
+        console.log(`Total changes tracked: ${newChanges.size}`);
     }
 
     // Convert resultSet data to SlickGrid format
@@ -94,6 +120,7 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
                 enableCellNavigation: true,
                 enableSorting: true,
                 editCommandHandler: (_item, _column, editCommand) => {
+                    // Add to command queue for undo functionality
                     commandQueue.push(editCommand);
                     editCommand.execute();
                 },
@@ -118,6 +145,7 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
                 options={options}
                 dataset={dataset}
                 onReactGridCreated={($event) => reactGridReady($event.detail)}
+                onCellChange={($event) => handleCellChange($event, $event.detail.args)}
             />
         </div>
     );
