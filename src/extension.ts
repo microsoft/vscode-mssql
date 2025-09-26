@@ -100,12 +100,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
                 includeApplicationName,
             );
         },
-        promptForFirewallRule: (connectionUri: string, connectionInfo: IConnectionInfo) => {
-            const connectionProfile = new ConnectionProfile(connectionInfo);
-            return controller.connectionManager.connectionUI.addFirewallRule(
-                connectionUri,
-                connectionProfile,
-            );
+        promptForFirewallRule: async (_connectionUri: string, _connectionInfo: IConnectionInfo) => {
+            return false;
         },
         azureAccountService: controller.azureAccountService,
         azureResourceService: controller.azureResourceService,
