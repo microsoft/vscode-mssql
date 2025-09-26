@@ -163,6 +163,7 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.statusLanguageService);
         this.showStatusBarItem(fileUri, bar.sqlCmdMode);
         this.showStatusBarItem(fileUri, bar.rowCount);
+        this.showStatusBarItem(fileUri, bar.executionTime);
     }
 
     public notConnected(fileUri: string): void {
@@ -486,19 +487,14 @@ export default class StatusView implements vscode.Disposable {
                      * If there is a connection ID, then the editor is connected
                      * so set the status bar to connected state
                      */
-                    this.showStatusBarItem(fileUri, bar.statusConnection);
-                    this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
-                    this.showStatusBarItem(fileUri, bar.statusQuery);
-                    this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
-                    this.showStatusBarItem(fileUri, bar.statusLanguageService);
-                    this.showStatusBarItem(fileUri, bar.sqlCmdMode);
-                    this.showStatusBarItem(fileUri, bar.rowCount);
-                    this.showStatusBarItem(fileUri, bar.executionTime);
+                    this.show(fileUri);
+                    return;
                 } else {
                     /**
                      * Default to not connected state
                      */
                     this.notConnected(fileUri);
+                    return;
                 }
             }
         }
