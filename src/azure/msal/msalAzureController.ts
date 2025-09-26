@@ -81,7 +81,7 @@ export class MsalAzureController extends AzureController {
             this._credentialStore,
         );
 
-        const cloudIds = [CloudId.PublicCloud, CloudId.USGovernment];
+        const cloudIds = [CloudId.AzureCloud, CloudId.USGovernment];
 
         // if (isCustomCloudSet()) { // TODO: Enable when custom cloud is supported
         //     cloudIds.push(CloudId.CustomCloud);
@@ -148,10 +148,11 @@ export class MsalAzureController extends AzureController {
         }
     }
 
-    public async login(authType: AzureAuthType): Promise<IAccount | undefined> {
-        let cloudAuth = this.getCloudAuth();
+    public async login(authType: AzureAuthType, cloud?: CloudId): Promise<IAccount | undefined> {
+        let cloudAuth = this.getCloudAuth(cloud);
 
         let response = await cloudAuth.msalAuthInstance(authType).startLogin();
+        // TODO: response could be two different types, but the successful response is assumed here.
         return response ? (response as IAccount) : undefined;
     }
 
@@ -253,7 +254,10 @@ export class MsalAzureController extends AzureController {
             ) {
                 try {
                     // Account needs re-authentication
-                    newAccount = await this.login(account.properties.azureAuthType);
+                    newAccount = await this.login(
+                        account.properties.azureAuthType,
+                        getCloudId(account.key.providerId),
+                    );
                     if (newAccount!.isStale === true) {
                         return undefined;
                     }
@@ -427,7 +431,9 @@ class CloudAuthApplication {
         private readonly context: vscode.ExtensionContext,
         private readonly vscodeWrapper: VscodeWrapper,
         private readonly logger: Logger,
-    ) {}
+    ) {
+        this._authMappings = new Map<AzureAuthType, MsalAzureAuth>();
+    }
 
     public async initialize(): Promise<void> {
         await this.createClientApplication();
@@ -489,5 +495,7 @@ class CloudAuthApplication {
                 ),
             );
         }
+
+        this._msalAuthInstance = this._authMappings.get(authType)!;
     }
 }

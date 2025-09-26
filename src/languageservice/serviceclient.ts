@@ -361,11 +361,8 @@ export default class SqlToolsServiceClient {
             let resourcePath = path.join(path.dirname(serverPath), executablePath);
             // See if the override path exists and has the resource client as well, and if so use that instead
 
-            const resourceClientOverridePath =
-                "C:\\Users\\benjind\\Source\\sqltoolsservice\\src\\Microsoft.SqlTools.ResourceProvider\\bin\\Debug\\net8.0\\publish";
-
-            if (resourceClientOverridePath) {
-                const overrideDir = path.dirname(resourceClientOverridePath);
+            if (overridePath) {
+                const overrideDir = path.dirname(overridePath);
                 const resourceOverridePath = path.join(overrideDir, executablePath);
                 const resourceClientOverrideExists = await exists(resourceOverridePath);
                 if (resourceClientOverrideExists) {
