@@ -28,7 +28,6 @@ import {
     IAzureAccount,
     GetSqlAnalyticsEndpointUriFromFabricRequest,
 } from "../sharedInterfaces/connectionDialog";
-import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
 import {
     ConnectionDialog as Loc,
@@ -82,6 +81,7 @@ import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureS
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { FabricHelper } from "../fabric/fabricHelper";
 import { FabricSqlDbInfo, FabricWorkspaceInfo } from "../sharedInterfaces/fabric";
+import { ConnectionInfo } from "../controllers/connectionManager";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 
@@ -945,13 +945,17 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         try {
             try {
-                const result = await this._mainController.connectionManager.connectDialog(
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const tempConnectionUri = Utils.generateGuid();
+                const result = await this._mainController.connectionManager.connect(
                     cleanedConnection as any,
+                    tempConnectionUri,
                 );
 
-                if (result.errorMessage) {
-                    return await this.handleConnectionErrorCodes(result, state);
+                const connectionInfo =
+                    this._mainController.connectionManager?.getConnectionInfo(tempConnectionUri);
+
+                if (!result) {
+                    return await this.handleConnectionErrorCodes(connectionInfo, state);
                 }
             } catch (error) {
                 this.state.formError = getErrorMessage(error);
@@ -1063,7 +1067,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private async handleConnectionErrorCodes(
-        result: ConnectionCompleteParams,
+        result: ConnectionInfo,
         state: ConnectionDialogWebviewState,
     ): Promise<ConnectionDialogWebviewState> {
         if (result.errorNumber === errorSSLCertificateValidationFailed) {
