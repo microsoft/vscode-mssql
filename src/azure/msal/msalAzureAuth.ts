@@ -21,9 +21,9 @@ import {
     AzureAuthType,
     IAADResource,
     IAccount,
-    IPromptFailedResult,
     IProviderSettings,
     ITenant,
+    LoginResult,
 } from "../../models/contracts/azure";
 import { IDeferred } from "../../models/interfaces";
 import { Logger } from "../../models/logger";
@@ -31,6 +31,7 @@ import { AzureAuthError } from "../azureAuthError";
 import * as Constants from "../constants";
 import { ErrorResponseBody } from "@azure/arm-subscriptions";
 import { HttpHelper } from "../../http/httpHelper";
+import { getErrorMessage } from "../../utils/utils";
 
 export type GetTenantsResponseData = {
     value: ITenantResponse[];
@@ -44,7 +45,7 @@ export abstract class MsalAzureAuth {
     protected readonly scopesString: string;
     protected readonly clientId: string;
     protected readonly resources: Resource[];
-    private readonly httpHelper: HttpHelper;
+    private readonly _httpHelper: HttpHelper;
 
     constructor(
         protected readonly providerSettings: IProviderSettings,
@@ -61,10 +62,10 @@ export abstract class MsalAzureAuth {
         this.scopes = [...this.providerSettings.scopes];
         this.scopesString = this.scopes.join(" ");
 
-        this.httpHelper = new HttpHelper(logger);
+        this._httpHelper = new HttpHelper(logger);
     }
 
-    public async startLogin(): Promise<IAccount | IPromptFailedResult> {
+    public async startLogin(): Promise<LoginResult> {
         let loginComplete: IDeferred<void, Error> | undefined = undefined;
         try {
             this.logger.verbose("Starting login");
@@ -75,21 +76,31 @@ export abstract class MsalAzureAuth {
             }
             const result = await this.login(Constants.organizationTenant);
             loginComplete = result.authComplete;
+
             if (!result?.response || !result.response?.account) {
                 this.logger.error(`Authentication failed: ${loginComplete}`);
+
                 return {
+                    success: false,
                     canceled: false,
+                    error: loginComplete.toString(),
                 };
             }
+
             const token: IToken = {
                 token: result.response.accessToken,
                 key: result.response.account.homeAccountId,
                 tokenType: result.response.tokenType,
             };
+
             const tokenClaims = <ITokenClaims>result.response.idTokenClaims;
             const account = await this.hydrateAccount(token, tokenClaims);
             loginComplete?.resolve();
-            return account;
+
+            return {
+                success: true,
+                account,
+            };
         } catch (ex) {
             this.logger.error(`Login failed: ${ex}`);
             if (ex instanceof AzureAuthError) {
@@ -104,7 +115,9 @@ export abstract class MsalAzureAuth {
                 this.logger.error(ex);
             }
             return {
+                success: false,
                 canceled: false,
+                error: getErrorMessage(ex),
             };
         }
     }
@@ -138,9 +151,9 @@ export abstract class MsalAzureAuth {
         let accountInfo: AccountInfo | null;
         try {
             accountInfo = await this.getAccountFromMsalCache(account.key.id);
-        } catch (e) {
+        } catch (ex) {
             this.logger.error(
-                "Error: Could not fetch account from MSAL cache, re-authentication needed.",
+                `Error: Could not fetch account from MSAL cache, re-authentication needed: ${getErrorMessage(ex)}`,
             );
             // build refresh token request
             const tenant: ITenant = {
@@ -291,7 +304,7 @@ export abstract class MsalAzureAuth {
         try {
             this.logger.verbose("Fetching tenants with uri {0}", tenantUri);
             let tenantList: string[] = [];
-            const tenantResponse = await this.httpHelper.makeGetRequest<GetTenantsResponseData>(
+            const tenantResponse = await this._httpHelper.makeGetRequest<GetTenantsResponseData>(
                 tenantUri,
                 token,
             );

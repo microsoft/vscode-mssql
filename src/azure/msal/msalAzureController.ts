@@ -149,11 +149,16 @@ export class MsalAzureController extends AzureController {
     }
 
     public async login(authType: AzureAuthType, cloud?: CloudId): Promise<IAccount | undefined> {
-        let cloudAuth = this.getCloudAuth(cloud);
+        const cloudAuth = this.getCloudAuth(cloud);
 
-        let response = await cloudAuth.msalAuthInstance(authType).startLogin();
-        // TODO: response could be two different types, but the successful response is assumed here.
-        return response ? (response as IAccount) : undefined;
+        const response = await cloudAuth.msalAuthInstance(authType).startLogin();
+
+        if (response.success === true) {
+            return response.account;
+        } else {
+            this.logger.error(`Login failed: ${response.error}`);
+            return undefined;
+        }
     }
 
     public async isAccountInCache(account: IAccount): Promise<boolean> {

@@ -271,16 +271,21 @@ export interface IAADResource {
     dnsSuffix?: string;
 }
 
-/**
- * Error to be used when the user has cancelled the prompt or refresh methods. When
- * AccountProvider.refresh or AccountProvider.prompt are rejected with this error, the error
- * will not be reported to the user.
- */
-export interface IPromptFailedResult {
-    /**
-     * Type guard for differentiating user cancelled sign in errors from other errors
-     */
+export type LoginResult = ISuccessfulLoginResult | IFailedLoginResult;
+
+export interface ILoginResultBase {
+    success: boolean;
+}
+
+export interface ISuccessfulLoginResult extends ILoginResultBase {
+    success: true;
+    account: IAccount;
+}
+
+export interface IFailedLoginResult extends ILoginResultBase {
+    success: false;
     canceled: boolean;
+    error?: string;
 }
 
 export interface ITokenKey {
