@@ -949,6 +949,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 const result = await this._mainController.connectionManager.connect(
                     cleanedConnection as any,
                     tempConnectionUri,
+                    false, // Connect should not handle errors, as we want to handle them here
                 );
 
                 const connectionInfo =
