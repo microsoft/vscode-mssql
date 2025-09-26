@@ -6,12 +6,15 @@
 import * as assert from "assert";
 import * as sinon from "sinon";
 // eslint-disable-next-line custom-eslint-rules/banned-imports
-import { selectionSummaryHelper } from "../../src/reactviews/pages/QueryResult/table/plugins/cellSelectionModel.plugin";
-import { SelectionSummaryStats } from "../../src/sharedInterfaces/queryResult";
+import { SelectionSummaryStats, ISlickRange } from "../../src/sharedInterfaces/queryResult";
+import { selectionSummaryHelper } from "../../src/queryResult/utils";
 
 suite("Query Result Selection Stats", () => {
     let sandbox: sinon.SinonSandbox;
-    let mockGrid: Slick.Grid<any>;
+    let mockGrid: {
+        getCellNode: (row: number, col: number) => HTMLElement | undefined;
+        getColumns: () => any[];
+    };
     let mockData: string[][];
 
     const createRange = (
@@ -19,14 +22,11 @@ suite("Query Result Selection Stats", () => {
         toRow: number,
         fromCell: number,
         toCell: number,
-    ): Slick.Range => ({
+    ): ISlickRange => ({
         fromRow,
         toRow,
         fromCell,
         toCell,
-        isSingleRow: undefined,
-        isSingleCell: undefined,
-        contains: undefined,
     });
 
     setup(() => {
@@ -39,11 +39,11 @@ suite("Query Result Selection Stats", () => {
         ];
 
         mockGrid = {
-            getColumns: () => [{ id: "col1" }, { id: "col2" }],
+            getColumns: () => [{ id: "col1" }, { id: "col2" }, { id: "col3" }],
             getCellNode: (row: number, col: number) => {
                 return { innerText: mockData[row]?.[col] } as HTMLElement;
             },
-        } as Slick.Grid<any>;
+        };
     });
 
     teardown(() => {
@@ -70,10 +70,14 @@ suite("Query Result Selection Stats", () => {
     test("Non-numeric Range: only count/distinct/null stats are calculated", async () => {
         const range = createRange(0, 2, 1, 2); // rows 0-2, cols 1-2
         const expectedResult: SelectionSummaryStats = {
+            average: "",
             count: 6,
-            distinctCount: 3, // NULL, Test, Other
+            distinctCount: 2, // Test, Other (NULL doesn't count in distinct)
+            max: 0,
+            min: 0,
             nullCount: 2,
             removeSelectionStats: false,
+            sum: 0,
         };
 
         const result = await selectionSummaryHelper([range], mockGrid, true);
@@ -85,7 +89,7 @@ suite("Query Result Selection Stats", () => {
         const expectedResult: SelectionSummaryStats = {
             average: "4.233", // (1 + 3 + 8.7) / 3
             count: 9,
-            distinctCount: 6,
+            distinctCount: 5, // 1, 3, 8.7, Test, Other (NULL doesn't count in distinct)
             max: 8.7,
             min: 1,
             nullCount: 2,
@@ -100,10 +104,14 @@ suite("Query Result Selection Stats", () => {
     test("Empty Range: returns default summary", async () => {
         const result = await selectionSummaryHelper([], mockGrid, true);
         const expectedResult: SelectionSummaryStats = {
+            average: "",
             count: -1,
             distinctCount: -1,
+            max: 0,
+            min: 0,
             nullCount: -1,
             removeSelectionStats: false,
+            sum: 0,
         };
         assert.deepStrictEqual(result, expectedResult);
     });
@@ -112,15 +120,19 @@ suite("Query Result Selection Stats", () => {
         const gridWithNoColumns = {
             ...mockGrid,
             getColumns: () => [],
-        } as Slick.Grid<any>;
+        };
 
         const range = createRange(0, 2, 0, 2); // full grid
         const result = await selectionSummaryHelper([range], gridWithNoColumns, true);
         const expectedResult: SelectionSummaryStats = {
+            average: "",
             count: -1,
             distinctCount: -1,
+            max: 0,
+            min: 0,
             nullCount: -1,
             removeSelectionStats: false,
+            sum: 0,
         };
         assert.deepStrictEqual(result, expectedResult);
     });
@@ -129,27 +141,35 @@ suite("Query Result Selection Stats", () => {
         const range = createRange(0, 2, 0, 2); // full grid
         const result = await selectionSummaryHelper([range], mockGrid, false);
         const expectedResult: SelectionSummaryStats = {
+            average: "",
             count: -1,
             distinctCount: -1,
+            max: 0,
+            min: 0,
             nullCount: -1,
             removeSelectionStats: true,
+            sum: 0,
         };
         assert.deepStrictEqual(result, expectedResult);
     });
 
     test("Grid cell is missing: should skip without crashing", async () => {
-        mockGrid = {
+        const gridWithMissingCells = {
             getColumns: () => [{ id: "col1" }, { id: "col2" }],
             getCellNode: (row: number, col: number) => undefined,
-        } as Slick.Grid<any>;
+        };
 
         const range = createRange(0, 1, 0, 0);
-        const result = await selectionSummaryHelper([range], mockGrid, true);
+        const result = await selectionSummaryHelper([range], gridWithMissingCells, true);
         const expectedResult: SelectionSummaryStats = {
+            average: "",
             count: 0,
             distinctCount: 0,
+            max: 0,
+            min: 0,
             nullCount: 0,
             removeSelectionStats: false,
+            sum: 0,
         };
         assert.deepStrictEqual(result, expectedResult);
     });

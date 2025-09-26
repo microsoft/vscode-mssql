@@ -67,6 +67,18 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     autoSizeColumns?: boolean;
     inMemoryDataProcessingThreshold?: number;
     initializationError?: string;
+    selectionSummary?: SelectionSummary;
+}
+
+export interface SelectionSummary {
+    text: string;
+    command: {
+        title: string;
+        command: string;
+        arguments: any[];
+    };
+    tooltip: string;
+    continue?: any;
 }
 
 export interface QueryResultReducers extends Omit<ExecutionPlanReducers, "getExecutionPlan"> {
@@ -320,10 +332,13 @@ export namespace CopyAsInsertIntoRequest {
 }
 
 export interface SetSelectionSummary {
-    summary: SelectionSummaryStats;
+    uri: string;
+    batchId: number;
+    resultId: number;
+    selection: ISlickRange[];
 }
 export namespace SetSelectionSummaryRequest {
-    export const type = new RequestType<SetSelectionSummary, void, void>("setSelectionSummary");
+    export const type = new NotificationType<SetSelectionSummary>("setSelectionSummary");
 }
 
 export interface OpenInNewTabParams {

@@ -82,7 +82,7 @@
     },
     "devDependencies": {
         "@azure/core-paging": "^1.6.2",
-        "@ctrl/tinycolor": "^4.1.0",
+        "@ctrl/tinycolor": "^4.2.0",
         "@dagrejs/dagre": "^1.1.4",
         "@eslint/compat": "^1.1.0",
         "@fluentui-contrib/react-data-grid-react-window": "^1.2.0",
@@ -370,7 +370,7 @@
                 },
                 {
                     "command": "mssql.revealQueryResult",
-                    "when": "editorLangId == sql && resource in mssql.connections && !isInDiffEditor && view.queryResult.visible == false",
+                    "when": "editorLangId == sql && resource in mssql.connections && !isInDiffEditor",
                     "group": "navigation@2"
                 },
                 {
@@ -2028,6 +2028,12 @@
                     "type": "boolean",
                     "default": true,
                     "description": "%mssql.connectionManagement.rememberPasswordsUntilRestart%"
+                },
+                "mssql.autoRevealResultsPanel": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.autoRevealResultsPanel%",
+                    "scope": "window"
                 }
             }
         },
@@ -2478,6 +2484,88 @@
                 "toolReferenceName": "mssql_run_query",
                 "userDescription": "Execute a SQL query against a connected MSSQL database.",
                 "icon": "$(play)"
+            }
+        ],
+        "colors": [
+            {
+                "id": "mssql.resultsGridNullBackground",
+                "description": "Color for null background in results grid",
+                "defaults": {
+                    "light": "editor.wordHighlightBackground",
+                    "dark": "editor.wordHighlightBackground"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullForeground",
+                "description": "Color for null foreground in results grid",
+                "defaults": {
+                    "light": "editor.foreground",
+                    "dark": "editor.foreground"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullSelectedBackground",
+                "description": "Background color for null selected cells in results grid",
+                "defaults": {
+                    "light": "editor.selectionBackground",
+                    "dark": "editor.selectionBackground"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullSelectedForeground",
+                "description": "Foreground color for null selected cells in results grid",
+                "defaults": {
+                    "light": "editor.selectionForeground",
+                    "dark": "editor.selectionForeground"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullSelectedActiveBackground",
+                "description": "Background color for null selected active cells in results grid",
+                "defaults": {
+                    "light": "list.focusBackground",
+                    "dark": "list.focusBackground"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullSelectedActiveForeground",
+                "description": "Foreground color for null selected active cells in results grid",
+                "defaults": {
+                    "light": "list.focusForeground",
+                    "dark": "list.focusForeground"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullHoverSelectionBackground",
+                "description": "Background color for null hover selection cells in results grid",
+                "defaults": {
+                    "light": "list.hoverBackground",
+                    "dark": "list.hoverBackground"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullHoverSelectionForeground",
+                "description": "Foreground color for null hover selection cells in results grid",
+                "defaults": {
+                    "light": "list.hoverForeground",
+                    "dark": "list.hoverForeground"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullHoverBackground",
+                "description": "Background color for null hover cells in results grid",
+                "defaults": {
+                    "light": "list.hoverBackground",
+                    "dark": "list.hoverBackground"
+                }
+            },
+            {
+                "id": "mssql.resultsGridNullHoverForeground",
+                "description": "Foreground color for null hover cells in results grid",
+                "defaults": {
+                    "light": "list.hoverForeground",
+                    "dark": "list.hoverForeground"
+                }
             }
         ]
     }

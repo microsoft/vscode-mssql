@@ -432,7 +432,7 @@ export default class StatusView implements vscode.Disposable {
         }
     }
 
-    private hideLastShownStatusBar(): void {
+    public hideLastShownStatusBar(): void {
         if (typeof this._lastShownStatusBar !== "undefined") {
             this._lastShownStatusBar.statusLanguageFlavor.hide();
             this._lastShownStatusBar.statusConnection.hide();
@@ -445,11 +445,9 @@ export default class StatusView implements vscode.Disposable {
         }
     }
 
-    public onDidChangeActiveTextEditor(editor: vscode.TextEditor, isConnected: boolean): void {
-        // Change the status bar to match the open file
+    public updateStatusBarForEditor(editor: vscode.TextEditor, isConnected: boolean): void {
+        // Change the status bar to match the newly active editor
         if (typeof editor !== "undefined") {
-            // Hide the most recently shown status bar
-            this.hideLastShownStatusBar();
             const fileUri = getUriKey(editor.document.uri);
             const bar = this._statusBars[fileUri];
             if (bar) {

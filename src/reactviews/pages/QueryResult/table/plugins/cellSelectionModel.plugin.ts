@@ -8,7 +8,7 @@
 
 import { CellRangeSelector, ICellRangeSelector } from "./cellRangeSelector";
 import {
-    SelectionSummaryStats,
+    ResultSetSummary,
     SetSelectionSummaryRequest,
 } from "../../../../../sharedInterfaces/queryResult";
 
@@ -48,6 +48,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
     constructor(
         private options: ICellSelectionModelOptions = defaults,
         private context: QueryResultReactProvider,
+        private uri: string,
+        private resultSetSummary: ResultSetSummary,
     ) {
         this.options = mixin(this.options, defaults, false);
         if (this.options.cellRangeSelector) {
@@ -132,13 +134,17 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     public setSelectedRanges(ranges: Array<Slick.Range>): void {
-        // simple check for: empty selection didn't change, prevent firing onSelectedRangesChanged
-        if ((!this.ranges || this.ranges.length === 0) && (!ranges || ranges.length === 0)) {
+        // Normalize incoming ranges first
+        const normalized = this.removeInvalidRanges(ranges ?? []);
+
+        // Short-circuit if nothing actually changed (prevents duplicate notifications)
+        if (this.areRangesEqual(this.ranges ?? [], normalized)) {
             return;
         }
 
-        this.ranges = this.removeInvalidRanges(ranges);
+        this.ranges = normalized;
         this.onSelectedRangesChanged.notify(this.ranges);
+        void this.updateSummaryText(this.ranges);
     }
 
     public getSelectedRanges(): Slick.Range[] {
@@ -155,14 +161,13 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     private async handleCellRangeSelected(_e: Event, range: Slick.Range, append: boolean) {
         this.grid.setActiveCell(range.fromRow, range.fromCell, false, false, true);
-
+        let ranges: Slick.Range[] = [];
         if (append) {
-            this.setSelectedRanges(this.insertIntoSelections(this.getSelectedRanges(), range));
+            ranges = this.insertIntoSelections(this.getSelectedRanges(), range);
         } else {
-            this.setSelectedRanges([range]);
+            ranges = [range];
         }
-
-        await this.setSelectionSummaryText(true);
+        this.setSelectedRanges(ranges);
     }
 
     private isMultiSelection(_e: MouseEvent): boolean {
@@ -573,8 +578,6 @@ export class CellSelectionModel<T extends Slick.SlickData>
             ? { cell: 1, row: args.row }
             : { cell: args.cell, row: args.row };
         this.grid.setActiveCell(newActiveCell.row, newActiveCell.cell);
-
-        await this.setSelectionSummaryText();
     }
 
     public async handleSelectAll() {
@@ -599,29 +602,111 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
-        let handled = false;
-        if (this.isMac) {
-            // Cmd + A
-            if (e.metaKey && e.key === Keys.a) {
-                handled = true;
-                await this.handleSelectAll();
-            }
-        } else {
-            if (e.ctrlKey && e.key === Keys.a) {
-                handled = true;
-                await this.handleSelectAll();
-            }
-        }
+        const key = e.key; // e.g., 'a', 'ArrowLeft'
+        const metaOrCtrlPressed = this.isMac ? e.metaKey : e.ctrlKey;
 
-        if (handled) {
+        // --- 1) Select All (Cmd/Ctrl + A) ---
+        if (metaOrCtrlPressed && key === Keys?.a) {
             e.preventDefault();
             e.stopPropagation();
+            await this.handleSelectAll();
+            return;
         }
+
+        // --- 2) Range selection via Shift + Arrow (no Alt, no Meta/Ctrl) ---
+        const isArrow =
+            key === (Keys?.ArrowLeft ?? "ArrowLeft") ||
+            key === (Keys?.ArrowRight ?? "ArrowRight") ||
+            key === (Keys?.ArrowUp ?? "ArrowUp") ||
+            key === (Keys?.ArrowDown ?? "ArrowDown");
+
+        if (!isArrow || !e.shiftKey || metaOrCtrlPressed || e.altKey) {
+            return; // Not our concern—let the default handler run
+        }
+
+        const active = this.grid.getActiveCell();
+        if (!active) {
+            return; // Nothing to extend from
+        }
+
+        // Grab existing ranges; ensure we have at least one range rooted at active
+        let ranges = this.getSelectedRanges();
+        if (!ranges?.length) {
+            ranges = [new Slick.Range(active.row, active.cell)];
+        }
+
+        // keyboard can work with last range only
+        let last = ranges.pop()!;
+
+        // If the active cell isn't inside the last range, start a fresh one
+        if (!last.contains(active.row, active.cell)) {
+            last = new Slick.Range(active.row, active.cell);
+        }
+
+        // Determine the "growth" direction relative to the active anchor
+        const dirRow = active.row === last.fromRow ? 1 : -1;
+        const dirCell = active.cell === last.fromCell ? 1 : -1;
+
+        // Current deltas
+        let dRow = last.toRow - last.fromRow;
+        let dCell = last.toCell - last.fromCell;
+
+        // Nudge the deltas based on the pressed arrow
+        switch (key) {
+            case Keys?.ArrowLeft ?? "ArrowLeft":
+                dCell -= dirCell;
+                break;
+            case Keys?.ArrowRight ?? "ArrowRight":
+                dCell += dirCell;
+                break;
+            case Keys?.ArrowUp ?? "ArrowUp":
+                dRow -= dirRow;
+                break;
+            case Keys?.ArrowDown ?? "ArrowDown":
+                dRow += dirRow;
+                break;
+        }
+
+        // Compute new candidate range
+        const newRange = new Slick.Range(
+            active.row,
+            active.cell,
+            active.row + dirRow * dRow,
+            active.cell + dirCell * dCell,
+        );
+
+        // Validate and apply; fall back to previous range if invalid
+        const valid = this.removeInvalidRanges([newRange]).length > 0;
+        const finalRange = valid ? newRange : last;
+        ranges.push(finalRange);
+
+        // Keep the new edge in view
+        const viewRow = dirRow > 0 ? finalRange.toRow : finalRange.fromRow;
+        const viewCell = dirCell > 0 ? finalRange.toCell : finalRange.fromCell;
+        this.grid.scrollRowIntoView(viewRow, false);
+        this.grid.scrollCellIntoView(viewRow, viewCell, false);
+
+        // Commit selection and swallow the event
+        this.setSelectedRanges(ranges);
+        e.preventDefault();
+        e.stopPropagation();
     }
 
-    private async setSelectionSummaryText(isSelection?: boolean) {
-        await this.context.extensionRpc.sendRequest(SetSelectionSummaryRequest.type, {
-            summary: await selectionSummaryHelper(this.getSelectedRanges(), this.grid, isSelection),
+    private async updateSummaryText(ranges?: Slick.Range[]): Promise<void> {
+        if (!ranges) {
+            ranges = this.getSelectedRanges();
+        }
+        const simplifiedRanges = ranges.map((range) => ({
+            fromRow: range.fromRow,
+            fromCell: range.fromCell - 1, // adjust for number column
+            toRow: range.toRow,
+            toCell: range.toCell - 1, // adjust for number column
+        }));
+        await this.context.extensionRpc.sendNotification(SetSelectionSummaryRequest.type, {
+            selection: simplifiedRanges,
+            uri: this.uri,
+            batchId: this.resultSetSummary.batchId,
+            resultId: this.resultSetSummary.id,
         });
     }
 
@@ -631,77 +716,30 @@ export class CellSelectionModel<T extends Slick.SlickData>
             this.setSelectedRanges([new Slick.Range(activeCell.row, activeCell.cell)]);
         }
     }
-}
 
-// Public for testing
-export async function selectionSummaryHelper(
-    selectedRanges: Slick.Range[],
-    grid: Slick.Grid<any>,
-    isSelection?: boolean,
-): Promise<SelectionSummaryStats> {
-    let summary: SelectionSummaryStats = {
-        count: -1,
-        distinctCount: -1,
-        nullCount: -1,
-        removeSelectionStats: !isSelection,
-    };
-
-    if (isSelection) {
-        const firstRange = selectedRanges[0];
-        if (!firstRange) return summary;
-
-        const column = grid.getColumns()[firstRange.fromCell];
-        if (!column) return summary;
-
-        const values: any[] = [];
-        let nullCount = 0;
-        let numCount = 0;
-        let sum = 0;
-        let min = Infinity;
-        let max = -Infinity;
-
-        for (let row = firstRange.fromRow; row <= firstRange.toRow; row++) {
-            for (let col = firstRange.fromCell; col <= firstRange.toCell; col++) {
-                const cell = grid.getCellNode(row, col);
-                if (!cell) continue;
-                const value = cell.innerText;
-                if (value === "NULL") {
-                    nullCount++;
-                } else if (!isNaN(Number(value))) {
-                    numCount++;
-                    min = Math.min(min, Number(value));
-                    max = Math.max(max, Number(value));
-                    sum += Number(value);
-                }
-                values.push(value);
+    // Compare two range arrays for deep equality
+    private areRangesEqual(a: Slick.Range[], b: Slick.Range[]): boolean {
+        if (a === b) {
+            return true;
+        }
+        if (!a || !b) {
+            return false;
+        }
+        if (a.length !== b.length) {
+            return false;
+        }
+        for (let i = 0; i < a.length; i++) {
+            const r1 = a[i];
+            const r2 = b[i];
+            if (
+                r1.fromRow !== r2.fromRow ||
+                r1.toRow !== r2.toRow ||
+                r1.fromCell !== r2.fromCell ||
+                r1.toCell !== r2.toCell
+            ) {
+                return false;
             }
         }
-
-        const count = values.length;
-        const distinctCount = new Set(values).size;
-
-        if (numCount) {
-            // format average into decimal, up to three places, with no trailing zeros
-            const average = (sum / numCount).toFixed(3).replace(/\.?0+$/, "");
-            summary = {
-                average: average,
-                count: count,
-                distinctCount: distinctCount,
-                max: max,
-                min: min,
-                nullCount: nullCount,
-                sum: sum,
-                removeSelectionStats: false,
-            };
-        } else {
-            summary = {
-                count: count,
-                distinctCount: distinctCount,
-                nullCount: nullCount,
-                removeSelectionStats: false,
-            };
-        }
+        return true;
     }
-
-    return summary;
 }

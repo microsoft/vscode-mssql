@@ -216,6 +216,11 @@
         <note>{0} is the error message</note>
         <target state="translated">移除 Microsoft Entra 帐户时出错: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++381d558ea8ee3e00d772e070932d5a334e7743c399dda1ddd675e1962d6e32bc">
+        <source xml:lang="en">An error occurred while retrieving rows: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">检索行时出错: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
         <source xml:lang="en">An error occurred while searching database objects</source>
         <target state="translated">搜索数据库对象时出错</target>
@@ -561,7 +566,7 @@
       </trans-unit>
       <trans-unit id="++CODE++6822b8489308b650f2e36cb439297b0c4a43859fe39e164aea3ad453f4bd14d7">
         <source xml:lang="en">Chat command not available in this VS Code version</source>
-        <target state="new">Chat command not available in this VS Code version</target>
+        <target state="translated">聊天命令在此 VS Code 版本中不可用</target>
       </trans-unit>
       <trans-unit id="++CODE++c8cabf4a998e678eb3213d46a3e9e80217b7839fb5f3537ee550a65e3b2202c9">
         <source xml:lang="en">Check Constraint</source>
@@ -685,9 +690,17 @@
         <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
         <target state="translated">清除所有扩展访问你的连接的权限</target>
       </trans-unit>
+      <trans-unit id="++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36">
+        <source xml:lang="en">Click to cancel loading summary</source>
+        <target state="new">Click to cancel loading summary</target>
+      </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
         <target state="translated">单击以连接到数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++66abaeec0367ba4920e21447dfa2dafb94c7f38dc262dfb91e76799022a436d5">
+        <source xml:lang="en">Click to load summary</source>
+        <target state="new">Click to load summary</target>
       </trans-unit>
       <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
         <source xml:lang="en">Click to sign into an Azure account</source>
@@ -707,7 +720,7 @@
       </trans-unit>
       <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
         <source xml:lang="en">Close properties pane</source>
-        <target state="new">Close properties pane</target>
+        <target state="translated">关闭属性窗格</target>
       </trans-unit>
       <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
         <source xml:lang="en">Close the current connection</source>
@@ -1037,11 +1050,11 @@
       </trans-unit>
       <trans-unit id="++CODE++5f7261cbf4eef17922f168d487b4e92de9bb9b118350254bfff4ea732bf0e1d9">
         <source xml:lang="en">Copy as IN clause</source>
-        <target state="new">Copy as IN clause</target>
+        <target state="translated">复制为 IN 子句</target>
       </trans-unit>
       <trans-unit id="++CODE++20e0663f2c175c2d6a5a11120ce06def7ecea5fd1cfb3cb837232bbd0aab34cd">
         <source xml:lang="en">Copy as INSERT INTO</source>
-        <target state="new">Copy as INSERT INTO</target>
+        <target state="translated">复制为 INSERT INTO</target>
       </trans-unit>
       <trans-unit id="++CODE++fd4aee4cb3fa5d5963fc78a7261f20700d94a8ddbbb5b963e97a84c441149508">
         <source xml:lang="en">Copy as JSON</source>
@@ -1536,6 +1549,15 @@
         <source xml:lang="en">Error loading preview</source>
         <target state="translated">加载预览时出错</target>
       </trans-unit>
+      <trans-unit id="++CODE++fa8002fe1d41e09812880f2bfb97ef0849885d8a4de95a67b26294b7e83e912f">
+        <source xml:lang="en">Error loading summary</source>
+        <target state="new">Error loading summary</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8108929d06fb4fe87c58e7407990ec8d46dc422dfa3ee467d2f5f622abd9840d">
+        <source xml:lang="en">Error loading summary: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Error loading summary: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++3ba789024640c6f231695bdf0d82e6845483cf65f092b3c3646910e60c638761">
         <source xml:lang="en">Error loading workspaces</source>
         <target state="translated">加载工作区时出错</target>
@@ -1634,7 +1656,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
         <source xml:lang="en">Expand properties pane</source>
-        <target state="new">Expand properties pane</target>
+        <target state="translated">展开属性窗格</target>
       </trans-unit>
       <trans-unit id="++CODE++c39d646f10769b078ae82be4da7a0079ca91182b241e749be4276e08c215c654">
         <source xml:lang="en">Explorer</source>
@@ -1788,7 +1810,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++08e3cce193c1731c751f4e68352687632cb9edb3e01e8bc9200742d0bd5f7b2c">
         <source xml:lang="en">Failed to start query.</source>
-        <target state="new">Failed to start query.</target>
+        <target state="translated">无法启动查询。</target>
       </trans-unit>
       <trans-unit id="++CODE++8d966abf7ce439608c05903323ea676d64af27e6119ddcc6edebd6db2cd5c479">
         <source xml:lang="en">Failed to start {0}.</source>
@@ -2133,9 +2155,9 @@ Error:
         <source xml:lang="en">Insufficient Capacity Permissions</source>
         <target state="translated">容量权限不足</target>
       </trans-unit>
-      <trans-unit id="++CODE++ece3ecedb5f57c84cc9749995b62f69213c0cb04b1578a713fda486ff04f8fdb">
-        <source xml:lang="en">Insufficient Worskpace Permissions</source>
-        <target state="translated">工作区权限不足</target>
+      <trans-unit id="++CODE++207b04072a822fa8e76629bcd504bc8c19525b86f444ac77a6f3be1c88a502eb">
+        <source xml:lang="en">Insufficient Workspace Permissions</source>
+        <target state="new">Insufficient Workspace Permissions</target>
       </trans-unit>
       <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
         <source xml:lang="en">Integrated</source>
@@ -2414,7 +2436,14 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297">
         <source xml:lang="en">Loading results...</source>
-        <target state="new">Loading results...</target>
+        <target state="translated">正在加载结果...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ba622a4c63bd7d102bdc3057b04b4cfd8d2af5b2adb230bebc98414fc46afae0">
+        <source xml:lang="en">Loading summary {0}/{1} ({2}%) (Click to cancel)</source>
+        <note>{0} is the current row
+{1} is the total number of rows
+{2} is the percentage of rows loaded</note>
+        <target state="new">Loading summary {0}/{1} ({2}%) (Click to cancel)</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -3193,7 +3222,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++26b4293018ea72418733109f2e245387d9dfcfe7d4083c0c1f29eb1155c98365">
         <source xml:lang="en">Restore properties pane</source>
-        <target state="new">Restore properties pane</target>
+        <target state="translated">还原属性窗格</target>
       </trans-unit>
       <trans-unit id="++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c">
         <source xml:lang="en">Result Set {0}</source>
@@ -3339,7 +3368,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++49e889d19cb98b87430fab55b6c5203e191463e874e2d94eb44d43f38395e226">
         <source xml:lang="en">Save as INSERT</source>
-        <target state="new">Save as INSERT</target>
+        <target state="translated">另存为 INSERT</target>
       </trans-unit>
       <trans-unit id="++CODE++910ed5e0c43df2bc1a2c71f1d5ecd2168b919fd4dc9f6d4b1f13f660cba9c524">
         <source xml:lang="en">Save as JSON</source>
@@ -3825,6 +3854,14 @@ Query: {1}</source>
       <trans-unit id="++CODE++9c85106af25fd7656e977d5453607973955ae5d79fce0a78264cd714a628e981">
         <source xml:lang="en">Successfully saved results to </source>
         <target state="translated">已成功保存结果至</target>
+      </trans-unit>
+      <trans-unit id="++CODE++17888248578c82867c18ea2dc512a96eabbbbb8184442d219746c3b8b8ff6030">
+        <source xml:lang="en">Summary loading canceled</source>
+        <target state="new">Summary loading canceled</target>
+      </trans-unit>
+      <trans-unit id="++CODE++93775107b302b7d63191a5c2a8ea3803d44d17781da939eb367d7555f25c1752">
+        <source xml:lang="en">Summary loading was canceled by user</source>
+        <target state="new">Summary loading was canceled by user</target>
       </trans-unit>
       <trans-unit id="++CODE++175f5352107a324eb25f4342a9114e2685b64a1ef54a5ff6ba3a24d0ac215ea7">
         <source xml:lang="en">Switch Direction</source>
@@ -4410,6 +4447,11 @@ Query: {1}</source>
         <note>{0} is the object type</note>
         <target state="translated">{0} 属性</target>
       </trans-unit>
+      <trans-unit id="++CODE++2bd22e3b4b0281a2ffa3bc8bdd3e1f2b49dedcdde97d4cc83fdf598d1208d103">
+        <source xml:lang="en">{0} rows selected, click to load summary</source>
+        <note>{0} is the number of rows to fetch summary statistics for</note>
+        <target state="new">{0} rows selected, click to load summary</target>
+      </trans-unit>
       <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
         <source xml:lang="en">{0} started successfully.</source>
         <note>{0} started successfully.</note>
@@ -4516,13 +4558,17 @@ Query: {1}</source>
         <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
         <target state="translated">在新选项卡而不是查询窗格中自动显示查询结果。仅当启用了 `mssql.enableRichExperiences` 时，此选项才会生效。</target>
       </trans-unit>
+      <trans-unit id="mssql.autoRevealResultsPanel">
+        <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</source>
+        <target state="translated">切换到包含查询结果的编辑器时自动显示结果面板。仅在启用“在选项卡中打开结果”时适用。</target>
+      </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
         <target state="translated">取消查询</target>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
         <source xml:lang="en">Change Connection</source>
-        <target state="new">Change Connection</target>
+        <target state="translated">更改连接</target>
       </trans-unit>
       <trans-unit id="mssql.changeDatabase">
         <source xml:lang="en">Change Database</source>
