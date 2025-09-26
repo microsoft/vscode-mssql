@@ -9,7 +9,6 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as ConnInfo from "../models/connectionInfo";
-import * as ConnectionContracts from "../models/contracts/connection";
 import * as Utils from "../models/utils";
 import { ConnectionStore } from "../models/connectionStore";
 import { IConnectionProfile } from "../models/interfaces";
