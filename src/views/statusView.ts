@@ -154,7 +154,7 @@ export default class StatusView implements vscode.Disposable {
         return bar;
     }
 
-    public show(fileUri: string): void {
+    public connected(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
         this.showStatusBarItem(fileUri, bar.statusConnection);
@@ -487,7 +487,7 @@ export default class StatusView implements vscode.Disposable {
                      * If there is a connection ID, then the editor is connected
                      * so set the status bar to connected state
                      */
-                    this.show(fileUri);
+                    this.connected(fileUri);
                     return;
                 } else {
                     /**
