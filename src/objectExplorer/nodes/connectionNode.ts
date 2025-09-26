@@ -64,12 +64,27 @@ export class ConnectionNode extends TreeNodeInfo {
         }
 
         // Tooltip logic: show all non-default properties except those in the label (database, user, server)
-        this.tooltip = this.getConnectionTooltip(connectionProfile);
+        const connectionTooltip = this.getConnectionTooltip(connectionProfile);
+        if (connectionTooltip) {
+            this.tooltip = connectionTooltip;
+        }
     }
 
-    private getConnectionTooltip(connectionProfile: IConnectionProfile): string {
+    private getConnectionTooltip(connectionProfile: IConnectionProfile): string | undefined {
         // Properties to exclude
-        const exclude = ["database", "user", "server", "profileName", "id", "groupId"];
+        const exclude = [
+            "database",
+            "user",
+            "server",
+            "profileName",
+            "id",
+            "groupId",
+            "profileSource",
+            "savePassword",
+            "emptyPasswordInput",
+            "azureAuthType",
+            "password",
+        ];
         // Default values for comparison
         const defaultValues = {
             encrypt: "Mandatory",
@@ -87,6 +102,21 @@ export class ConnectionNode extends TreeNodeInfo {
 
         let props: string[] = [];
 
+        //handle auth types properly, if auth type is integrated or azureMfa don't show user in tooltip
+        if (
+            connectionProfile.authenticationType === Constants.integratedauth ||
+            connectionProfile.authenticationType === Constants.azureMfa
+        ) {
+            exclude.push("user");
+        }
+
+        // if connection has a profile name, don't exclude server, user and database from tooltip
+        if (connectionProfile.profileName) {
+            exclude.splice(exclude.indexOf("server"), 1);
+            exclude.splice(exclude.indexOf("user"), 1);
+            exclude.splice(exclude.indexOf("database"), 1);
+        }
+
         Object.keys(connectionProfile).forEach((key) => {
             const value = (connectionProfile as any)[key];
             if (exclude.includes(key)) {
@@ -103,7 +133,7 @@ export class ConnectionNode extends TreeNodeInfo {
             props.push(`${key}: ${value}`);
         });
 
-        return props.length > 0 ? props.join("\n") : "";
+        return props.length > 0 ? props.join("\n") : undefined;
     }
 
     protected override generateId(): string {
