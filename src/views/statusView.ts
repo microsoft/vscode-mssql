@@ -14,6 +14,7 @@ import * as Utils from "../models/utils";
 import { ConnectionStore } from "../models/connectionStore";
 import { IConnectionProfile } from "../models/interfaces";
 import { getUriKey } from "../utils/utils";
+import { ConnectionInfo } from "../controllers/connectionManager";
 
 // Status bar element for each file in the editor
 class FileStatusBar {
@@ -276,7 +277,11 @@ export default class StatusView implements vscode.Disposable {
     public connectError(
         fileUri: string,
         credentials: IConnectionInfo,
-        error: ConnectionContracts.ConnectionCompleteParams,
+        error: {
+            errorNumber: number;
+            errorMessage: string;
+            messages: string;
+        },
     ): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdConnect;
@@ -445,14 +450,26 @@ export default class StatusView implements vscode.Disposable {
         }
     }
 
-    public updateStatusBarForEditor(editor: vscode.TextEditor, isConnected: boolean): void {
+    public updateStatusBarForEditor(
+        editor: vscode.TextEditor,
+        connectionInfo: ConnectionInfo,
+    ): void {
         // Change the status bar to match the newly active editor
         if (typeof editor !== "undefined") {
             const fileUri = getUriKey(editor.document.uri);
             const bar = this._statusBars[fileUri];
             if (bar) {
-                if (!isConnected) {
-                    this.notConnected(fileUri);
+                if (!connectionInfo?.connectionId) {
+                    if (connectionInfo?.errorMessage || connectionInfo?.errorNumber) {
+                        this.connectError(fileUri, connectionInfo?.credentials, {
+                            errorNumber: connectionInfo?.errorNumber,
+                            errorMessage: connectionInfo?.errorMessage,
+                            messages: "",
+                        });
+                        return;
+                    } else {
+                        this.notConnected(fileUri);
+                    }
                 } else {
                     this.showStatusBarItem(fileUri, bar.statusConnection);
                     this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
