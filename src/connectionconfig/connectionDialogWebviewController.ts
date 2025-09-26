@@ -947,8 +947,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             try {
                 const tempConnectionUri = Utils.generateGuid();
                 const result = await this._mainController.connectionManager.connect(
-                    cleanedConnection as any,
                     tempConnectionUri,
+                    cleanedConnection as any,
                     false, // Connect should not handle errors, as we want to handle them here
                 );
 

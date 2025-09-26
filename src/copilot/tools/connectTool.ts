@@ -131,13 +131,10 @@ export class ConnectTool extends ToolBase<ConnectToolParams> {
             const handlePwdResult =
                 await this._connectionManager.handlePasswordBasedCredentials(connInfo);
             if (handlePwdResult) {
-                success = await this._connectionManager.connect(
-                    {
-                        ...connInfo,
-                        database: targetDatabase,
-                    },
-                    connectionId,
-                );
+                success = await this._connectionManager.connect(connectionId, {
+                    ...connInfo,
+                    database: targetDatabase,
+                });
             } else {
                 success = false;
             }

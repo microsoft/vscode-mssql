@@ -411,8 +411,8 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             targetConnection.database = databaseName; // Set the database if provided
         }
         const connectionResult = await this._connectionManager.connect(
-            targetConnection,
             connectionUri,
+            targetConnection,
         );
 
         if (!connectionResult) {

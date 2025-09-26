@@ -742,7 +742,7 @@ export default class ConnectionManager {
                 ),
             );
             await this.disconnect(fileUri);
-            await this.connect(newDatabaseCredentials, fileUri);
+            await this.connect(fileUri, newDatabaseCredentials);
             this.vscodeWrapper.logToOutputChannel(
                 LocalizedConstants.msgChangedDatabase(
                     newDatabaseCredentials.database,
@@ -780,7 +780,7 @@ export default class ConnectionManager {
             return false;
         }
         await this.disconnect(fileUri);
-        await this.connect(newDatabaseCredentials, fileUri);
+        await this.connect(fileUri, newDatabaseCredentials);
         this.vscodeWrapper.logToOutputChannel(
             LocalizedConstants.msgChangedDatabase(
                 newDatabaseCredentials.database,
@@ -907,7 +907,7 @@ export default class ConnectionManager {
             // close active connection
             await this.disconnect(fileUri);
             // connect to the server/database
-            let result = await this.connect(connectionCreds, fileUri);
+            let result = await this.connect(fileUri, connectionCreds);
             if (result) {
                 return connectionCreds;
             } else {
@@ -1105,8 +1105,8 @@ export default class ConnectionManager {
      * @returns true if connection was successful, false otherwise.
      */
     public async connect(
+        fileUri: string,
         credentials: IConnectionInfo,
-        fileUri?: string,
         shouldHandleErrors: boolean = true,
     ): Promise<boolean> {
         if (!fileUri) {
@@ -1220,7 +1220,7 @@ export default class ConnectionManager {
                 );
 
                 if (errorHandlingResult.isHandled) {
-                    return await this.connect(errorHandlingResult.updatedCredentials, fileUri);
+                    return await this.connect(fileUri, errorHandlingResult.updatedCredentials);
                 }
             }
 
@@ -1606,7 +1606,7 @@ export default class ConnectionManager {
 
         // Connect the saved uri and disconnect the untitled uri on successful connection
         let creds: IConnectionInfo = this._connections[oldFileUri].credentials;
-        await this.connect(creds, newFileUri);
+        await this.connect(newFileUri, creds);
     }
 
     public async refreshAzureAccountToken(uri: string): Promise<void> {

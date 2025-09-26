@@ -804,7 +804,7 @@ export class ObjectExplorerService {
             !this._connectionManager.isConnected(nodeUri) &&
             !this._connectionManager.isConnecting(nodeUri)
         ) {
-            await this._connectionManager.connect(connectionNode.connectionProfile, nodeUri);
+            await this._connectionManager.connect(nodeUri, connectionNode.connectionProfile);
         }
         if (isNewConnection) {
             this.addConnectionNode(connectionNode);

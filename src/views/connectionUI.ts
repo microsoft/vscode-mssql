@@ -531,7 +531,7 @@ export class ConnectionUI {
             uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
         }
 
-        const success = await this.connectionManager.connect(profile, uri);
+        const success = await this.connectionManager.connect(uri, profile);
         if (success) {
             // Success! save it
             return await this.saveProfile(profile);

@@ -718,8 +718,8 @@ export default class MainController implements vscode.Disposable {
                 connectionCreds.database = databaseName;
                 if (!this.connectionManager.isConnecting(nodeUri)) {
                     const isConnected = await this.connectionManager.connect(
-                        connectionCreds,
                         nodeUri,
+                        connectionCreds,
                     );
                     if (!isConnected) {
                         /**
@@ -1090,8 +1090,8 @@ export default class MainController implements vscode.Disposable {
 
                     if (!this.connectionManager.isConnecting(connectionUri)) {
                         const connectionResult = await this.connectionManager.connect(
-                            connectionCreds,
                             connectionUri,
+                            connectionCreds,
                         );
                         if (!connectionResult) {
                             return;
@@ -2183,7 +2183,7 @@ export default class MainController implements vscode.Disposable {
         saveConnection?: boolean,
     ): Promise<boolean> {
         if (this.canRunCommand() && uri && connectionInfo) {
-            const connectedSuccessfully = await this._connectionMgr.connect(connectionInfo, uri);
+            const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo);
             if (connectedSuccessfully) {
                 if (saveConnection) {
                     await this.createObjectExplorerSession(connectionInfo);

@@ -245,8 +245,8 @@ export default class SqlDocumentService implements vscode.Disposable {
             !this._ownedDocuments.has(doc)
         ) {
             await this._connectionMgr.connect(
-                Utils.deepClone(this._lastActiveConnectionInfo),
                 getUriKey(doc.uri),
+                Utils.deepClone(this._lastActiveConnectionInfo),
             );
         }
 
@@ -375,8 +375,8 @@ export default class SqlDocumentService implements vscode.Disposable {
             this._connectionMgr
         ) {
             const connectionResult = await this._connectionMgr.connect(
-                connectionConfig.connectionInfo,
                 documentKey,
+                connectionConfig.connectionInfo,
             );
 
             if (connectionResult) {
