@@ -12,8 +12,8 @@ import * as ConnInfo from "../../models/connectionInfo";
 import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
 import { disconnectedDockerContainer, dockerContainer } from "../../constants/constants";
 import { IConnectionProfile } from "../../models/interfaces";
-import { AzureAuthType } from "../../models/contracts/azure";
 import * as Constants from "../../constants/constants";
+import { getDefaultConnection } from "../../models/connectionInfo";
 
 // Constants for node types and icon names
 export const SERVER_NODE_DISCONNECTED = "disconnectedServer";
@@ -86,18 +86,22 @@ export class ConnectionNode extends TreeNodeInfo {
             "password",
         ];
         // Default values for comparison
+        const connectionNodeDefaults: Partial<IConnectionProfile> = getDefaultConnection();
+
         const defaultValues = {
-            encrypt: "Mandatory",
-            trustServerCertificate: false,
-            persistSecurityInfo: false,
-            azureAuthType: AzureAuthType.AuthCodeGrant,
-            multipleActiveResultSets: false,
-            connectTimeout: Constants.defaultConnectionTimeout,
-            commandTimeout: Constants.defaultCommandTimeout,
-            applicationName: Constants.connectionApplicationName,
-            savePassword: false,
-            emptyPasswordInput: false,
-            profileSource: 0,
+            encrypt: (connectionNodeDefaults as any).encrypt,
+            trustServerCertificate: (connectionNodeDefaults as any).trustServerCertificate,
+            persistSecurityInfo: (connectionNodeDefaults as any).persistSecurityInfo,
+            azureAuthType: (connectionNodeDefaults as any).azureAuthType,
+            multipleActiveResultSets: (connectionNodeDefaults as any).multipleActiveResultSets,
+            connectTimeout: (connectionNodeDefaults as any).connectTimeout,
+            commandTimeout: (connectionNodeDefaults as any).commandTimeout,
+            applicationName: (connectionNodeDefaults as any).applicationName,
+            savePassword: (connectionNodeDefaults as any).savePassword,
+            emptyPasswordInput: (connectionNodeDefaults as any).emptyPasswordInput,
+            profileSource: (connectionNodeDefaults as any).profileSource,
+            authenticationType: (connectionNodeDefaults as any).authenticationType,
+            applicationIntent: (connectionNodeDefaults as any).applicationIntent,
         };
 
         let props: string[] = [];

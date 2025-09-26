@@ -7,7 +7,6 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
-import * as Constants from "../../src/constants/constants";
 
 suite("ConnectionNode Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -42,7 +41,39 @@ suite("ConnectionNode Tests", () => {
         // Tooltip should include keys that differ from defaults and should not include excluded keys
         expect(node.tooltip).to.be.a("string");
         expect(node.tooltip).to.contain("encrypt: None");
-        expect(node.tooltip).to.contain("savePassword: true");
+        expect(node.tooltip).to.contain("connectTimeout: 10");
+        expect(node.tooltip).to.contain("applicationName: MyApp");
+        expect(node.tooltip).to.contain("server:");
+        expect(node.tooltip).to.contain("database:");
+        expect(node.tooltip).to.contain("user:");
+
+        // Excluded keys should not be present
+        expect(node.tooltip).to.not.contain("profileName:");
+        expect(node.tooltip).to.not.contain("id:");
+        expect(node.tooltip).to.not.contain("groupId:");
+        expect(node.tooltip).to.not.contain("savePassword: true");
+    });
+
+    test("constructor should set tooltip including non-default properties for connection with profileName should include server, db and user", () => {
+        const profile: any = {
+            id: "1",
+            server: "myServer",
+            database: "myDb",
+            user: "myUser",
+            password: "", // keep empty to avoid exposing password in tooltip
+            savePassword: true, // default is false -> should appear
+            encrypt: "None", // default is "Mandatory" -> should appear
+            connectTimeout: 10, // default differs -> should appear
+            applicationName: "MyApp", // default differs -> should appear
+            profileName: "",
+            groupId: "shouldBeExcluded",
+        };
+
+        const node = new ConnectionNode(profile as any);
+
+        // Tooltip should include keys that differ from defaults and should not include 'excluded' keys
+        expect(node.tooltip).to.be.a("string");
+        expect(node.tooltip).to.contain("encrypt: None");
         expect(node.tooltip).to.contain("connectTimeout: 10");
         expect(node.tooltip).to.contain("applicationName: MyApp");
 
@@ -53,24 +84,6 @@ suite("ConnectionNode Tests", () => {
         expect(node.tooltip).to.not.contain("profileName:");
         expect(node.tooltip).to.not.contain("id:");
         expect(node.tooltip).to.not.contain("groupId:");
-    });
-
-    test("constructor should produce empty tooltip when only default/empty properties provided", () => {
-        const profileDefault: any = {
-            id: "2",
-            server: "s",
-            database: undefined,
-            user: "",
-            password: "",
-            // use the same defaults as in ConnectionNode so nothing should be shown
-            encrypt: Constants.defaultConnectionTimeout === undefined ? undefined : "Mandatory",
-            savePassword: false,
-            connectTimeout: Constants.defaultConnectionTimeout,
-            commandTimeout: Constants.defaultCommandTimeout,
-            applicationName: Constants.connectionApplicationName,
-        };
-
-        const node = new ConnectionNode(profileDefault as any);
-        expect(node.tooltip).to.be.a("string").that.is.empty;
+        expect(node.tooltip).to.not.contain("savePassword");
     });
 });

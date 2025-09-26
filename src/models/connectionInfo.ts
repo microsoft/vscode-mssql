@@ -9,6 +9,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { EncryptOptions } from "../models/interfaces";
 import * as Interfaces from "./interfaces";
 import providerSettings from "../azure/providerSettings";
+import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 
 /**
  * Sets sensible defaults for key connection properties, especially
@@ -68,6 +69,19 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
         }
     }
     return connCreds;
+}
+
+/**
+ * Gets a connection profile with default values for key properties
+ * @returns the default connection profile
+ */
+export function getDefaultConnection(): IConnectionDialogProfile {
+    return {
+        authenticationType: AuthenticationType.SqlLogin,
+        connectTimeout: 30, // seconds
+        applicationName: "vscode-mssql",
+        applicationIntent: "ReadWrite",
+    } as IConnectionDialogProfile;
 }
 
 export function updateEncrypt(connection: IConnectionInfo): {

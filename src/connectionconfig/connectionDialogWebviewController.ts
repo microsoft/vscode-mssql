@@ -53,7 +53,11 @@ import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { UserSurvey } from "../nps/userSurvey";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { getConnectionDisplayName, getServerTypes } from "../models/connectionInfo";
+import {
+    getConnectionDisplayName,
+    getServerTypes,
+    getDefaultConnection,
+} from "../models/connectionInfo";
 import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
 import {
@@ -537,7 +541,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 let connectionString = "";
 
                 // if the current connection is the untouched default connection, connection string is left empty
-                if (!shallowEqualObjects(state.connectionProfile, this.getDefaultConnection())) {
+                if (!shallowEqualObjects(state.connectionProfile, getDefaultConnection())) {
                     const cleanedConnection = this.cleanConnection(state.connectionProfile);
 
                     const connectionDetails =
@@ -1160,17 +1164,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
     }
 
-    private getDefaultConnection(): IConnectionDialogProfile {
-        return {
-            authenticationType: AuthenticationType.SqlLogin,
-            connectTimeout: 30, // seconds
-            applicationName: "vscode-mssql",
-            applicationIntent: "ReadWrite",
-        } as IConnectionDialogProfile;
-    }
-
     private loadEmptyConnection() {
-        this.state.connectionProfile = this.getDefaultConnection();
+        this.state.connectionProfile = getDefaultConnection();
     }
 
     private async initializeConnectionForDialog(
