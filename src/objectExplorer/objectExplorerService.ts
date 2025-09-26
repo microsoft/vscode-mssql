@@ -37,7 +37,6 @@ import * as Utils from "../models/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionInfo } from "vscode-mssql";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
-import * as AzureConstants from "../azure/constants";
 import {
     ActivityObject,
     ActivityStatus,
@@ -177,27 +176,6 @@ export class ObjectExplorerService {
             this.cleanNodeChildren(node);
             this._refreshCallback(node);
         }
-    }
-
-    /**
-     * Checks if the account needs to be refreshed based on the error message.
-     * @param result The result of the session creation.
-     * @param username The username of the account.
-     * @returns
-     */
-    private needsAccountRefresh(result: SessionCreatedParameters, username: string): boolean {
-        let email = username?.includes(" - ")
-            ? username.substring(username.indexOf("-") + 2)
-            : username;
-        return (
-            result.errorMessage.includes(AzureConstants.AADSTS70043) ||
-            result.errorMessage.includes(AzureConstants.AADSTS50173) ||
-            result.errorMessage.includes(AzureConstants.AADSTS50020) ||
-            result.errorMessage.includes(AzureConstants.mdsUserAccountNotReceived) ||
-            result.errorMessage.includes(
-                Utils.formatString(AzureConstants.mdsUserAccountNotFound, email),
-            )
-        );
     }
 
     /**
@@ -858,8 +836,6 @@ export class ObjectExplorerService {
         connectionProfile: IConnectionProfile,
         telemetryActivty: ActivityObject,
     ): Promise<boolean> {
-        let error = LocalizedConstants.StatusBar.connectErrorLabel;
-        let errorNumber: number;
         if (failureResponse.errorNumber) {
             telemetryActivty.update(
                 {
@@ -869,75 +845,30 @@ export class ObjectExplorerService {
                     errorNumber: failureResponse.errorNumber,
                 },
             );
-            errorNumber = failureResponse.errorNumber;
         }
-        if (failureResponse.errorMessage) {
-            error += `: ${failureResponse.errorMessage}`;
+
+        const errorHandlingResult = await this._connectionManager.handleConnectionErrors(
+            failureResponse.errorNumber,
+            failureResponse.errorMessage,
+            connectionProfile,
+        );
+
+        telemetryActivty.update({
+            connectionType: connectionProfile.authenticationType,
+            errorHandled: errorHandlingResult.errorHandled,
+            isFixed: errorHandlingResult.errorHandled ? "true" : "false",
+        });
+
+        if (errorHandlingResult.isHandled) {
+            const connectionNode = this.getConnectionNodeFromProfile(connectionProfile);
+            if (connectionNode) {
+                connectionNode.updateConnectionProfile(
+                    errorHandlingResult.updatedCredentials as IConnectionProfile,
+                );
+            }
         }
-        if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
-            this._logger.verbose("Fixing SSL trust server certificate error.");
-            const fixedProfile: IConnectionProfile = (await this._connectionManager.handleSSLError(
-                connectionProfile,
-            )) as IConnectionProfile;
-            telemetryActivty.update({
-                connectionType: connectionProfile.authenticationType,
-                errorHandled: "trustServerCertificate",
-                isFixed: fixedProfile ? "true" : "false",
-            });
-            if (fixedProfile) {
-                const connectionNode = this.getConnectionNodeFromProfile(fixedProfile);
-                if (connectionNode) {
-                    connectionNode.updateConnectionProfile(fixedProfile);
-                }
-                return true;
-            }
-        } else if (ObjectExplorerUtils.isFirewallError(failureResponse.errorNumber)) {
-            let handleFirewallResult =
-                await this._connectionManager.firewallService.handleFirewallRule(
-                    Constants.errorFirewallRule,
-                    failureResponse.errorMessage,
-                );
-            if (handleFirewallResult.result && handleFirewallResult.ipAddress) {
-                this._logger.verbose(
-                    `Firewall rule added for IP address ${handleFirewallResult.ipAddress}`,
-                );
-                const isFirewallAdded = await this._connectionManager.handleFirewallError(
-                    connectionProfile,
-                    failureResponse.errorMessage,
-                );
-                telemetryActivty.update({
-                    connectionType: connectionProfile.authenticationType,
-                    errorHandled: "firewallRule",
-                    isFixed: isFirewallAdded ? "true" : "false",
-                });
-                if (isFirewallAdded) {
-                    this._logger.verbose(
-                        `Firewall rule added for IP address ${handleFirewallResult.ipAddress}`,
-                    );
-                } else {
-                    this._logger.error(
-                        `Firewall rule not added for IP address ${handleFirewallResult.ipAddress}`,
-                    );
-                }
-                return isFirewallAdded;
-            }
-        } else if (
-            connectionProfile.authenticationType === Constants.azureMfa &&
-            this.needsAccountRefresh(failureResponse, connectionProfile.user)
-        ) {
-            this._logger.verbose(`Refreshing account token for ${connectionProfile.accountId}}`);
-            try {
-                await this._connectionManager.confirmEntraTokenValidity(connectionProfile);
-                return true;
-            } catch (err) {
-                this._logger.error(`Error refreshing account token: ${getErrorMessage(err)}`);
-                return false;
-            }
-        } else {
-            this._logger.error("Session creation failed: " + error);
-            this._vscodeWrapper.showErrorMessage(error);
-        }
-        return false;
+
+        return errorHandlingResult.isHandled;
     }
 
     /**
