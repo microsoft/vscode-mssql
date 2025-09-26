@@ -11,7 +11,6 @@ import { ConnectionDetails, IConnectionInfo, IExtension } from "vscode-mssql";
 import * as utils from "./models/utils";
 import { ObjectExplorerUtils } from "./objectExplorer/objectExplorerUtils";
 import SqlToolsServerClient from "./languageservice/serviceclient";
-import { ConnectionProfile } from "./models/connectionProfile";
 import { RequestType } from "vscode-languageclient";
 import { createSqlAgentRequestHandler, ISqlChatResult } from "./copilot/chatAgentRequestHandler";
 import { sendActionEvent } from "./telemetry/telemetry";
