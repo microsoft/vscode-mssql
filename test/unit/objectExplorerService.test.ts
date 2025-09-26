@@ -11,7 +11,7 @@ import {
 } from "../../src/objectExplorer/objectExplorerService";
 import { expect } from "chai";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, { SqlConnectionErrors } from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { Logger } from "../../src/models/logger";
 import { ConnectionStore } from "../../src/models/connectionStore";
@@ -46,7 +46,6 @@ import {
     CreateSessionResponse,
     SessionCreatedParameters,
 } from "../../src/models/contracts/objectExplorer/createSessionRequest";
-import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import * as DockerUtils from "../../src/deployment/dockerUtils";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
@@ -735,6 +734,7 @@ suite("OE Service Tests", () => {
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             mockConnectionManager.connectionStore = mockConnectionStore;
             mockConnectionManager.client = mockClient;
+            mockConnectionManager.prepareConnectionInfo.callsFake(async (profile) => profile);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
             sandbox.stub(mockConnectionManager, "connectionUI").get(() => mockConnectionUI);
             sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
@@ -841,47 +841,33 @@ suite("OE Service Tests", () => {
                 .be.true;
         });
 
-        test("prepareConnectionProfile should handle connection string with savePassword=true", async () => {
-            // Create a mock connection profile with a connection string
+        test("prepareConnectionProfile should leave credential connection string unresolved", async () => {
+            const credentialConnectionString = `${ConnectionStore.CRED_PREFIX}|${ConnectionStore.CRED_CONNECTION_STRING_PREFIX}true`;
             const mockProfile: IConnectionProfile = {
                 id: "test-id",
                 server: "testServer",
                 database: "testDB",
-                connectionString: "Server=testServer;Database=testDB;",
+                connectionString: credentialConnectionString,
                 savePassword: true,
             } as IConnectionProfile;
 
-            // Setup connection store to return a connection string with password
-            const expectedConnectionString = `Server=testServer;Database=testDB;Password=${generateUUID()};`;
-            mockConnectionStore.lookupPassword.resolves(expectedConnectionString);
-
-            // Call the method with the mock profile
             const result = await (objectExplorerService as any).prepareConnectionProfile(
                 mockProfile,
             );
 
-            // Verify the result has the updated connection string
             expect(
                 result.connectionString,
-                "Result connection string should match expected",
-            ).to.equal(expectedConnectionString);
-
-            // Verify connection store was called with correct parameters
+                "Result should preserve the credential-based connection string",
+            ).to.equal(credentialConnectionString);
             expect(
-                mockConnectionStore.lookupPassword.calledOnce,
-                "Connection store should be called once",
-            ).to.be.true;
-            expect(
-                mockConnectionStore.lookupPassword.args[0][0],
-                "Connection store should be called with mock profile",
-            ).to.equal(mockProfile);
-            expect(
-                mockConnectionStore.lookupPassword.args[0][1],
-                "Connection store should be called with isConnectionString = true",
-            ).to.be.true; // isConnectionString = true
+                mockConnectionStore.lookupPassword.called,
+                "Credential lookup should not be invoked",
+            ).to.be.false;
         });
 
-        test("prepareConnectionProfile should return undefined for connection string with savePassword=false", async () => {
+        test("prepareConnectionProfile should not lookup password when savePassword is false", async () => {});
+
+        test("prepareConnectionProfile should not lookup password when savePassword is false", async () => {
             // Create a mock connection profile with a connection string but savePassword=false
             const mockProfile: IConnectionProfile = {
                 id: "test-id",
@@ -896,8 +882,8 @@ suite("OE Service Tests", () => {
                 mockProfile,
             );
 
-            // Verify the result is undefined
-            expect(result, "Result should be undefined").to.be.undefined;
+            // Verify the original profile is returned unchanged
+            expect(result, "Result should match the original profile").to.deep.equal(mockProfile);
 
             // Verify connection store was NOT called
             expect(
@@ -931,7 +917,7 @@ suite("OE Service Tests", () => {
             expect(containerStub.called, "Container restart should be attempted").to.be.true;
         });
 
-        test("prepareConnectionProfile should return undefined if password not handled properly", async () => {
+        test("prepareConnectionProfile should return undefined if password is not handled", async () => {
             // Create a mock SQL Login profile with empty password
             const mockProfile: IConnectionProfile = {
                 id: "test-id",
@@ -943,16 +929,17 @@ suite("OE Service Tests", () => {
                 savePassword: false,
             } as IConnectionProfile;
 
-            // Setup connection manager to return false (user canceled)
-            mockConnectionManager.handlePasswordBasedCredentials.resolves(false);
+            // Simulate password handling failure by having prepareConnectionInfo reject
+            mockConnectionManager.prepareConnectionInfo.rejects(new Error("password failure"));
 
-            // Call the method with the mock profile
             const result = await (objectExplorerService as any).prepareConnectionProfile(
                 mockProfile,
             );
 
-            // Verify the result is undefined
             expect(result, "Result should be undefined").to.be.undefined;
+
+            // Restore default behavior for subsequent tests
+            mockConnectionManager.prepareConnectionInfo.callsFake(async (profile) => profile);
         });
 
         test("prepareConnectionProfile should handle Windows Authentication (Integrated)", async () => {
@@ -968,6 +955,10 @@ suite("OE Service Tests", () => {
             } as IConnectionProfile;
 
             mockConnectionManager.handlePasswordBasedCredentials.resolves(true);
+            mockConnectionManager.prepareConnectionInfo.callsFake(async (profile) => {
+                profile.azureAccountToken = undefined;
+                return profile;
+            });
 
             // Call the method with the mock profile
             const result = await (objectExplorerService as any).prepareConnectionProfile(
@@ -993,286 +984,6 @@ suite("OE Service Tests", () => {
                 "Connection UI should not prompt for password",
             ).to.be.false;
         });
-
-        test("prepareConnectionProfile should handle Azure MFA with account in cache", async () => {
-            // (objectExplorerService as any).refreshAccount = sandbox.stub(); // Method removed
-            // Create a mock account
-            const mockAccount = {
-                key: { id: "account-id", providerId: "azure" },
-                displayInfo: {
-                    displayName: "Test User",
-                    email: "test@example.com",
-                },
-            } as IAccount;
-
-            // Create a mock Azure MFA profile
-            const mockProfile: IConnectionProfile = {
-                id: "test-id",
-                server: "testServer",
-                database: "testDB",
-                authenticationType: Constants.azureMfa,
-                accountId: "account-id",
-                azureAccountToken: "existing-token",
-            } as IConnectionProfile;
-
-            // Setup account store to return the mock account
-            mockAccountStore.getAccount.withArgs("account-id").resolves(mockAccount);
-
-            // Setup Azure controller
-            mockAzureController.isSqlAuthProviderEnabled.returns(true);
-            mockAzureController.isAccountInCache.withArgs(mockAccount).resolves(true);
-            mockConnectionManager.handlePasswordBasedCredentials.resolves(true);
-
-            // Call the method with the mock profile
-            const result = await (objectExplorerService as any).prepareConnectionProfile(
-                mockProfile,
-            );
-
-            // Verify the result is correct
-            expect(result, "Result should exist").to.exist;
-            expect(result.id, "Result ID should match").to.equal("test-id");
-            expect(result.server, "Result server should match").to.equal("testServer");
-            expect(result.user, "Result user should match").to.equal("Test User");
-            expect(result.email, "Result email should match").to.equal("test@example.com");
-            expect(result.azureAccountToken, "Result Azure account token should match").to.equal(
-                "existing-token",
-            );
-
-            // Verify account store was called
-            expect(mockAccountStore.getAccount.calledOnce, "Account store should be called once").to
-                .be.true;
-
-            // Verify Azure controller methods were called
-            expect(
-                mockAzureController.isSqlAuthProviderEnabled.calledOnce,
-                "Azure controller should check SQL auth provider",
-            ).to.be.true;
-            expect(
-                mockAzureController.isAccountInCache.calledOnce,
-                "Azure controller should check account in cache",
-            ).to.be.true;
-
-            // Verify profile was saved after updating user/email
-            expect(
-                mockConnectionUI.saveProfile.calledOnce,
-                "Connection UI should save profile once",
-            ).to.be.true;
-            expect(
-                mockConnectionUI.saveProfile.args[0][0],
-                "Saved profile should match result",
-            ).to.equal(result);
-
-            // Verify refreshAccount was NOT called (no refresh needed) - method removed
-            // expect(
-            //     (objectExplorerService as any).refreshAccount.called,
-            //     "Refresh account should not be called",
-            // ).to.be.false;
-        });
-
-        test("prepareConnectionProfile should refresh account for Azure MFA with account not in cache", async () => {
-            // (objectExplorerService as any).refreshAccount = sandbox.stub(); // Method removed
-
-            // Create a mock account
-            const mockAccount = {
-                key: { id: "account-id", providerId: "azure" },
-                displayInfo: {
-                    displayName: "Test User",
-                    email: "test@example.com",
-                },
-            } as IAccount;
-
-            // Create a mock Azure MFA profile
-            const mockProfile: IConnectionProfile = {
-                id: "test-id",
-                server: "testServer",
-                database: "testDB",
-                authenticationType: Constants.azureMfa,
-                accountId: "account-id",
-                azureAccountToken: undefined, // No token yet
-            } as IConnectionProfile;
-
-            // Setup account store to return the mock account
-            mockAccountStore.getAccount.withArgs("account-id").resolves(mockAccount);
-
-            // Setup Azure controller - account NOT in cache
-            mockAzureController.isSqlAuthProviderEnabled.returns(true);
-            mockAzureController.isAccountInCache.withArgs(mockAccount).resolves(false);
-            mockConnectionManager.handlePasswordBasedCredentials.resolves(true);
-
-            // Call the method with the mock profile
-            const result = await (objectExplorerService as any).prepareConnectionProfile(
-                mockProfile,
-            );
-
-            // Verify the result is correct
-            expect(result, "Result should exist").to.exist;
-            expect(result.id, "Result ID should match").to.equal("test-id");
-            expect(result.server, "Result server should match").to.equal("testServer");
-            expect(result.user, "Result user should match").to.equal("Test User");
-            expect(result.email, "Result email should match").to.equal("test@example.com");
-
-            // Verify refreshAccount was called since account not in cache - method removed
-            // expect(
-            //     (objectExplorerService as any).refreshAccount.calledOnce,
-            //     "Refresh account should be called once",
-            // ).to.be.true;
-            // expect(
-            //     (objectExplorerService as any).refreshAccount.args[0][0],
-            //     "Refresh account should be called with mock account",
-            // ).to.equal(mockAccount);
-            // expect(
-            //     (objectExplorerService as any).refreshAccount.args[0][1],
-            //     "Refresh account should be called with result",
-            // ).to.equal(result);
-        });
-
-        test("prepareConnectionProfile should refresh account for Azure MFA when account not found", async () => {
-            // (objectExplorerService as any).refreshAccount = sandbox.stub(); // Method removed
-
-            // Create a mock Azure MFA profile with account ID but no account found
-            const mockProfile: IConnectionProfile = {
-                id: "test-id",
-                server: "testServer",
-                database: "testDB",
-                authenticationType: Constants.azureMfa,
-                accountId: "missing-account-id",
-                azureAccountToken: undefined, // No token yet
-            } as IConnectionProfile;
-
-            // Setup account store to return undefined (account not found)
-            mockAccountStore.getAccount.withArgs("missing-account-id").returns(undefined);
-
-            // Setup Azure controller
-            mockAzureController.isSqlAuthProviderEnabled.returns(true);
-            mockConnectionManager.handlePasswordBasedCredentials.resolves(true);
-
-            // Call the method with the mock profile
-            const result = await (objectExplorerService as any).prepareConnectionProfile(
-                mockProfile,
-            );
-
-            // Verify the result is correct
-            expect(result, "Result should exist").to.exist;
-            expect(result.id, "Result ID should match").to.equal("test-id");
-            expect(result.server, "Result server should match").to.equal("testServer");
-
-            // Verify refreshAccount was called with undefined account - method removed
-            // expect(
-            //     (objectExplorerService as any).refreshAccount.calledOnce,
-            //     "Refresh account should be called once",
-            // ).to.be.true;
-            // expect(
-            //     (objectExplorerService as any).refreshAccount.args[0][0],
-            //     "Refresh account should be called with undefined account",
-            // ).to.be.undefined;
-            // expect(
-            //     (objectExplorerService as any).refreshAccount.args[0][1],
-            //     "Refresh account should be called with result",
-            // ).to.equal(result);
-        });
-
-        test("prepareConnectionProfile should handle Azure MFA when SQL auth provider disabled", async () => {
-            // (objectExplorerService as any).refreshAccount = sandbox.stub(); // Method removed
-
-            // Create a mock account
-            const mockAccount = {
-                key: { id: "account-id", providerId: "azure" },
-                displayInfo: {
-                    displayName: "Test User",
-                    email: "test@example.com",
-                },
-            } as IAccount;
-
-            // Create a mock Azure MFA profile
-            const mockProfile: IConnectionProfile = {
-                id: "test-id",
-                server: "testServer",
-                database: "testDB",
-                authenticationType: Constants.azureMfa,
-                accountId: "account-id",
-                azureAccountToken: undefined, // No token yet
-            } as IConnectionProfile;
-
-            // Setup account store to return the mock account
-            mockAccountStore.getAccount.withArgs("account-id").resolves(mockAccount);
-
-            // Setup Azure controller - SQL auth provider disabled
-            mockAzureController.isSqlAuthProviderEnabled.returns(false);
-            mockConnectionManager.handlePasswordBasedCredentials.resolves(true);
-
-            // Call the method with the mock profile
-            const result = await (objectExplorerService as any).prepareConnectionProfile(
-                mockProfile,
-            );
-
-            // Verify the result is correct
-            expect(result, "Result should exist").to.exist;
-            expect(result.id, "Result ID should match").to.equal("test-id");
-            expect(result.server, "Result server should match").to.equal("testServer");
-
-            // User and email should NOT be set since SQL auth provider is disabled
-            expect(result.user, "Result user should be undefined").to.be.undefined;
-            expect(result.email, "Result email should be undefined").to.be.undefined;
-
-            // Verify saveProfile was NOT called
-            expect(mockConnectionUI.saveProfile.called, "Connection UI should not save profile").to
-                .be.false;
-
-            // Verify refreshAccount was called - method removed
-            // expect(
-            //     (objectExplorerService as any).refreshAccount.calledOnce,
-            //     "Refresh account should be called once",
-            // ).to.be.true;
-        });
-
-        test("prepareConnectionProfile should not refresh Azure MFA account if token exists", async () => {
-            // (objectExplorerService as any).refreshAccount = sandbox.stub(); // Method removed
-            // Create a mock account
-            const mockAccount = {
-                key: { id: "account-id", providerId: "azure" },
-                displayInfo: {
-                    displayName: "Test User",
-                    email: "test@example.com",
-                },
-            } as IAccount;
-
-            // Create a mock Azure MFA profile with an existing token
-            const mockProfile: IConnectionProfile = {
-                id: "test-id",
-                server: "testServer",
-                database: "testDB",
-                authenticationType: Constants.azureMfa,
-                accountId: "account-id",
-                azureAccountToken: "existing-token", // Token already exists
-            } as IConnectionProfile;
-
-            // Setup account store to return the mock account
-            mockAccountStore.getAccount.withArgs("account-id").resolves(mockAccount);
-
-            // Setup Azure controller - SQL auth provider enabled, account in cache
-            mockAzureController.isSqlAuthProviderEnabled.returns(true);
-            mockAzureController.isAccountInCache.withArgs(mockAccount).resolves(true);
-            mockConnectionManager.handlePasswordBasedCredentials.resolves(true);
-
-            // Call the method with the mock profile
-            const result = await (objectExplorerService as any).prepareConnectionProfile(
-                mockProfile,
-            );
-
-            // Verify the result is correct
-            expect(result, "Result should exist").to.exist;
-            expect(result.id, "Result ID should match").to.equal("test-id");
-            expect(result.server, "Result server should match").to.equal("testServer");
-            expect(result.azureAccountToken, "Result azure account token should match").to.equal(
-                "existing-token",
-            );
-
-            // Verify refreshAccount was NOT called since token already exists - method removed
-            // expect(
-            //     (objectExplorerService as any).refreshAccount.called,
-            //     "Refresh account should not be called",
-            // ).to.be.false;
-        });
     });
 
     suite("handleSessionCreationFailure", () => {
@@ -1291,6 +1002,10 @@ suite("OE Service Tests", () => {
             sandbox = sinon.createSandbox();
             mockLogger = sandbox.createStubInstance(Logger);
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+            mockConnectionManager.handleConnectionErrors.resolves({
+                isHandled: false,
+                updatedCredentials: undefined,
+            });
             mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
             mockFirewallService = sandbox.createStubInstance(FirewallService);
@@ -1343,29 +1058,16 @@ suite("OE Service Tests", () => {
             // Verify the result is false (no retry)
             expect(result, "Result should be false").to.be.false;
 
-            // Verify telemetry was NOT updated (no error number)
+            // Verify telemetry captured the failure state
+            const updateStub = mockActivityObject.update as sinon.SinonStub;
+            expect(updateStub.calledOnce, "Telemetry should be updated once").to.be.true;
             expect(
-                (mockActivityObject.update as sinon.SinonStub<any[], any>).called,
-                "Telemetry should not be updated",
-            ).to.be.false;
-
-            // Verify error was logged
-            expect(mockLogger.error.calledOnce, "Error should be logged").to.be.true;
-            expect(
-                mockLogger.error.args[0][0],
-                "Error message should include session creation failed",
-            ).to.include("Session creation failed");
-            expect(mockLogger.error.args[0][0]).to.include("Connection failed");
-
-            // Verify error message was shown to user
-            expect(
-                mockVscodeWrapper.showErrorMessage.calledOnce,
-                "Error message should be shown to user",
-            ).to.be.true;
-            expect(
-                mockVscodeWrapper.showErrorMessage.args[0][0],
-                "Error message should include connection failed",
-            ).to.include("Connection failed");
+                updateStub.args[0][0].connectionType,
+                "Connection type should be captured",
+            ).to.equal(connectionProfile.authenticationType);
+            expect(updateStub.args[0][0].isFixed, "Is fixed should be false").to.equal("false");
+            expect(updateStub.args[0][0].errorHandled, "Error handled should be undefined").to.be
+                .undefined;
         });
 
         test("handleSessionCreationFailure should update telemetry when error number is present", async () => {
@@ -1389,370 +1091,133 @@ suite("OE Service Tests", () => {
             // Verify the result is false (no retry)
             expect(result, "Result should be false").to.be.false;
 
-            const updateStub = mockActivityObject.update as sinon.SinonStub<any[], any>;
+            const updateStub = mockActivityObject.update as sinon.SinonStub;
 
             // Verify telemetry was updated with error number
-            expect(updateStub.calledOnce, "Telemetry should be updated once").to.be.true;
+            expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
             expect(updateStub.args[0][0].connectionType, "Connection type should match").to.equal(
                 "SqlLogin",
             );
             expect(updateStub.args[0][1].errorNumber, "Error number should match").to.equal(12345);
         });
 
-        test("handleSessionCreationFailure should handle SSL certificate validation error", async () => {
-            (objectExplorerService as any).getConnectionNodeFromProfile = sandbox.stub();
-            // Create a failure response with SSL certificate validation error
+        test("handleSessionCreationFailure delegates to ConnectionManager.handleConnectionErrors", async () => {
+            mockConnectionManager.handleConnectionErrors.reset();
+            const failureResponse = createMockFailureResponse({
+                errorNumber: 98765,
+                errorMessage: "Delegation error",
+            });
+
+            const connectionProfile = createMockConnectionProfile();
+
+            mockConnectionManager.handleConnectionErrors.resolves({
+                isHandled: false,
+                updatedCredentials: connectionProfile,
+                errorHandled: SqlConnectionErrors.Generic,
+            });
+
+            await (objectExplorerService as any).handleSessionCreationFailure(
+                failureResponse,
+                connectionProfile,
+                mockActivityObject,
+            );
+
+            expect(
+                mockConnectionManager.handleConnectionErrors.calledOnceWithExactly(
+                    failureResponse.errorNumber,
+                    failureResponse.errorMessage,
+                    connectionProfile,
+                ),
+                "handleConnectionErrors should be invoked with failure details",
+            ).to.be.true;
+        });
+
+        test("handleSessionCreationFailure returns true and updates connection when error is handled", async () => {
+            mockConnectionManager.handleConnectionErrors.reset();
             const failureResponse = createMockFailureResponse({
                 errorNumber: Constants.errorSSLCertificateValidationFailed,
                 errorMessage: "SSL certificate validation failed",
             });
 
             const connectionProfile = createMockConnectionProfile();
-            const updateStub = mockActivityObject.update as sinon.SinonStub<any[], any>;
+            const updatedProfile = createMockConnectionProfile();
+            updatedProfile.trustServerCertificate = true;
+            const updateStub = mockActivityObject.update as sinon.SinonStub;
 
-            // Setup fixed profile from handleSSLError
-            const fixedProfile = createMockConnectionProfile();
-            fixedProfile.trustServerCertificate = true;
+            mockConnectionManager.handleConnectionErrors.resolves({
+                isHandled: true,
+                updatedCredentials: updatedProfile,
+                errorHandled: SqlConnectionErrors.TrustServerCertificateNotEnabled,
+            });
 
-            mockConnectionManager.handleSSLError.resolves(fixedProfile);
-
-            // Set up a mock connection node to be returned for the fixed profile
-            const mockConnectionNode = {
+            const connectionNode = {
                 updateConnectionProfile: sandbox.stub(),
             };
 
-            (objectExplorerService as any).getConnectionNodeFromProfile
-                .withArgs(fixedProfile)
-                .returns(mockConnectionNode);
+            sandbox
+                .stub(objectExplorerService as any, "getConnectionNodeFromProfile")
+                .returns(connectionNode);
 
-            // Call the method
             const result = await (objectExplorerService as any).handleSessionCreationFailure(
                 failureResponse,
                 connectionProfile,
                 mockActivityObject,
             );
 
-            // Verify the result is true (retry)
             expect(result, "Result should be true").to.be.true;
-
-            // Verify SSL error was handled
             expect(
-                mockLogger.verbose.calledWith("Fixing SSL trust server certificate error."),
-                "Verbose log should indicate SSL error fix",
+                connectionNode.updateConnectionProfile.calledOnceWithExactly(updatedProfile),
+                "Connection node should be updated with refreshed credentials",
             ).to.be.true;
-            expect(
-                mockConnectionManager.handleSSLError.calledOnce,
-                "Handle SSL error should be called once",
-            ).to.be.true;
-            expect(
-                mockConnectionManager.handleSSLError.args[0][0],
-                "Connection profile should match",
-            ).to.equal(connectionProfile);
-
-            // Verify telemetry was updated for SSL error
             expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
             expect(
                 updateStub.args[1][0].errorHandled,
-                "Error handled should be trustServerCertificate",
+                "Telemetry should record handled error type",
             ).to.equal("trustServerCertificate");
-            expect(updateStub.args[1][0].isFixed, "Is fixed should be true").to.equal("true");
-
-            // Verify connection node was updated
             expect(
-                mockConnectionNode.updateConnectionProfile.calledOnce,
-                "Connection node should be updated once",
-            ).to.be.true;
-            expect(
-                mockConnectionNode.updateConnectionProfile.args[0][0],
-                "Connection profile should match",
-            ).to.equal(fixedProfile);
+                updateStub.args[1][0].isFixed,
+                "Telemetry should record issue as fixed",
+            ).to.equal("true");
         });
 
-        test("handleSessionCreationFailure should return false if SSL error handling returns no profile", async () => {
-            // Create a failure response with SSL certificate validation error
-            const failureResponse = createMockFailureResponse({
-                errorNumber: Constants.errorSSLCertificateValidationFailed,
-                errorMessage: "SSL certificate validation failed",
-            });
-
-            const connectionProfile = createMockConnectionProfile();
-            const telemetryActivity = mockActivityObject;
-            const updateStub = telemetryActivity.update as sinon.SinonStub<any[], any>;
-
-            // Setup handleSSLError to return undefined (user canceled)
-            mockConnectionManager.handleSSLError.resolves(undefined);
-
-            // Call the method
-            const result = await (objectExplorerService as any).handleSessionCreationFailure(
-                failureResponse,
-                connectionProfile,
-                telemetryActivity,
-            );
-
-            // Verify the result is false (no retry)
-            expect(result, "Result should be false").to.be.false;
-
-            // Verify SSL error was handled
-            expect(
-                mockLogger.verbose.calledWith("Fixing SSL trust server certificate error."),
-                "Verbose log should indicate SSL error fix",
-            ).to.be.true;
-            expect(
-                mockConnectionManager.handleSSLError.calledOnce,
-                "Handle SSL error should be called once",
-            ).to.be.true;
-
-            // Verify telemetry was updated for SSL error
-            expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
-            expect(
-                updateStub.args[1][0].errorHandled,
-                "Error handled should be trustServerCertificate",
-            ).to.equal("trustServerCertificate");
-            expect(updateStub.args[1][0].isFixed, "Is fixed should be false").to.equal("false");
-        });
-
-        test("handleSessionCreationFailure should handle firewall error", async () => {
-            // Modify isFirewallError to return true for this test
-            sandbox.stub(ObjectExplorerUtils, "isFirewallError");
-
-            (ObjectExplorerUtils.isFirewallError as sinon.SinonStub).returns(true);
-
-            // Create a failure response with firewall error
+        test("handleSessionCreationFailure returns false when error is not handled", async () => {
+            mockConnectionManager.handleConnectionErrors.reset();
             const failureResponse = createMockFailureResponse({
                 errorNumber: Constants.errorFirewallRule,
                 errorMessage: "Firewall rule error",
             });
 
             const connectionProfile = createMockConnectionProfile();
-            const telemetryActivity = mockActivityObject;
-            const updateStub = telemetryActivity.update as sinon.SinonStub<any[], any>;
+            const updateStub = mockActivityObject.update as sinon.SinonStub;
 
-            // Setup handleFirewallRule to return success
-            mockFirewallService.handleFirewallRule.resolves({
-                result: true,
-                ipAddress: "192.168.1.1",
+            mockConnectionManager.handleConnectionErrors.resolves({
+                isHandled: false,
+                updatedCredentials: connectionProfile,
+                errorHandled: SqlConnectionErrors.FirewallRuleError,
             });
 
-            // handleFirewallError removed in refactoring
-            // mockConnectionUI.handleFirewallError.resolves(true);
+            const getNodeStub = sandbox
+                .stub(objectExplorerService as any, "getConnectionNodeFromProfile")
+                .returns({
+                    updateConnectionProfile: sandbox.stub(),
+                });
 
-            // Call the method
-            const result = await (objectExplorerService as any).handleSessionCreationFailure(
-                failureResponse,
-                connectionProfile,
-                telemetryActivity,
-            );
-
-            // Verify the result is true (retry)
-            expect(result, "Result should be true").to.be.true;
-
-            // Verify firewall error was handled
-            expect(
-                mockFirewallService.handleFirewallRule.calledOnce,
-                "Handle firewall rule should be called once",
-            ).to.be.true;
-            expect(
-                mockFirewallService.handleFirewallRule.args[0][0],
-                "Error number should match",
-            ).to.equal(Constants.errorFirewallRule);
-            expect(
-                mockFirewallService.handleFirewallRule.args[0][1],
-                "Error message should match",
-            ).to.equal("Firewall rule error");
-
-            // handleFirewallError removed in refactoring
-            // Verify connection UI handled firewall error
-            // expect(
-            //     mockConnectionUI.handleFirewallError.calledOnce,
-            //     "Handle firewall error should be called once",
-            // ).to.be.true;
-            // expect(
-            //     mockConnectionUI.handleFirewallError.args[0][0],
-            //     "Connection profile should match",
-            // ).to.equal(connectionProfile);
-            // expect(
-            //     mockConnectionUI.handleFirewallError.args[0][1],
-            //     "Failure response should match",
-            // ).to.equal(failureResponse);
-
-            // Verify telemetry was updated for firewall error
-            expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
-            expect(
-                updateStub.args[1][0].errorHandled,
-                "Error handled should be firewallRule",
-            ).to.equal("firewallRule");
-            expect(updateStub.args[1][0].isFixed, "Is fixed should be true").to.equal("true");
-
-            // Verify success was logged
-            expect(
-                mockLogger.verbose.calledWith("Firewall rule added for IP address 192.168.1.1"),
-                "Verbose log should indicate firewall rule added",
-            ).to.be.true;
-        });
-
-        test("handleSessionCreationFailure should return false if firewall rule was not fixed", async () => {
-            // Modify isFirewallError to return true for this test
-            sandbox.stub(ObjectExplorerUtils, "isFirewallError");
-            (ObjectExplorerUtils.isFirewallError as sinon.SinonStub).returns(true);
-
-            // Create a failure response with firewall error
-            const failureResponse = createMockFailureResponse({
-                errorNumber: Constants.errorFirewallRule,
-                errorMessage: "Firewall rule error",
-            });
-
-            const connectionProfile = createMockConnectionProfile();
-            const updateStub = mockActivityObject.update as sinon.SinonStub<any[], any>;
-
-            // Setup handleFirewallRule to return success with IP address
-            mockFirewallService.handleFirewallRule.resolves({
-                result: true,
-                ipAddress: "192.168.1.1",
-            });
-
-            // handleFirewallError removed in refactoring
-            // mockConnectionUI.handleFirewallError.resolves(false);
-
-            // Call the method
             const result = await (objectExplorerService as any).handleSessionCreationFailure(
                 failureResponse,
                 connectionProfile,
                 mockActivityObject,
             );
 
-            // Verify the result is false (no retry)
             expect(result, "Result should be false").to.be.false;
-
-            // Verify error was logged
             expect(
-                mockLogger.error.calledWith("Firewall rule not added for IP address 192.168.1.1"),
-                "Verbose log should indicate firewall rule not added",
-            ).to.be.true;
-
-            // Verify telemetry was updated for firewall error
+                getNodeStub.called,
+                "Connection node lookup should not be performed for unhandled errors",
+            ).to.be.false;
             expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
             expect(
-                updateStub.args[1][0].errorHandled,
-                "Error handled should be firewallRule",
-            ).to.equal("firewallRule");
-            expect(updateStub.args[1][0].isFixed, "Is fixed should be false").to.equal("false");
-        });
-
-        test("handleSessionCreationFailure should skip firewall handling if handleFirewallRule returns no result", async () => {
-            // Modify isFirewallError to return true for this test
-            sandbox.stub(ObjectExplorerUtils, "isFirewallError");
-            (ObjectExplorerUtils.isFirewallError as sinon.SinonStub).returns(true);
-
-            // Create a failure response with firewall error
-            const failureResponse = createMockFailureResponse({
-                errorNumber: Constants.errorFirewallRule,
-                errorMessage: "Firewall rule error",
-            });
-
-            const connectionProfile = createMockConnectionProfile();
-
-            // Setup handleFirewallRule to return no result
-            mockFirewallService.handleFirewallRule.resolves({
-                result: false,
-                ipAddress: undefined,
-            });
-
-            // Call the method
-            const result = await (objectExplorerService as any).handleSessionCreationFailure(
-                failureResponse,
-                connectionProfile,
-                mockActivityObject,
-            );
-
-            // Verify the result is false (no retry)
-            expect(result, "Result should be false").to.be.false;
-
-            // handleFirewallError removed in refactoring
-            // Verify connection UI was NOT called
-            // expect(
-            //     mockConnectionUI.handleFirewallError.called,
-            //     "Handle firewall error should not be called",
-            // ).to.be.false;
-        });
-
-        test("handleSessionCreationFailure should handle Azure MFA authentication error needing refresh", async () => {
-            // Modify needsAccountRefresh to return true for this test
-            (objectExplorerService as any).needsAccountRefresh = sandbox.stub();
-            (objectExplorerService as any).needsAccountRefresh.returns(true);
-
-            // Create a failure response
-            const failureResponse = createMockFailureResponse({
-                errorNumber: 12345,
-                errorMessage: "Azure authentication error",
-            });
-
-            const connectionProfile = createMockConnectionProfile({
-                authenticationType: Constants.azureMfa,
-                accountId: "azure-account-id",
-                user: "test-user",
-            });
-            const updateStub = mockActivityObject.update as sinon.SinonStub<any[], any>;
-
-            // Create a mock account
-            const mockAccount = createMockAccount("azure-account-id");
-
-            // Setup account store to return the mock account
-            mockAccountStore.getAccount.withArgs("azure-account-id").resolves(mockAccount);
-
-            // Setup refreshAccount to return success - method removed
-            // sandbox.stub(objectExplorerService as any, "refreshAccount").resolves(true);
-
-            // Call the method
-            const result = await (objectExplorerService as any).handleSessionCreationFailure(
-                failureResponse,
-                connectionProfile,
-                mockActivityObject,
-            );
-
-            // Verify the result is true (retry)
-            expect(result, "Result should be true").to.be.true;
-
-            // Verify needsAccountRefresh was called
-            expect(
-                (objectExplorerService as any).needsAccountRefresh.calledOnce,
-                "Needs account refresh should be called once",
-            ).to.be.true;
-            expect(
-                (objectExplorerService as any).needsAccountRefresh.args[0][0],
-                "Failure response should match",
-            ).to.equal(failureResponse);
-            expect(
-                (objectExplorerService as any).needsAccountRefresh.args[0][1],
-                "User should match",
-            ).to.equal("test-user");
-
-            // Verify account refresh was initiated - method removed
-            // expect(
-            //     (objectExplorerService as any).refreshAccount.calledOnce,
-            //     "Refresh account should be called once",
-            // ).to.be.true;
-            // expect(
-            //     (objectExplorerService as any).refreshAccount.args[0][0],
-            //     "Mock account should match",
-            // ).to.equal(mockAccount);
-            // expect(
-            //     (objectExplorerService as any).refreshAccount.args[0][1],
-            //     "Connection profile should match",
-            // ).to.equal(connectionProfile);
-
-            // Verify telemetry was updated
-            expect(updateStub.calledTwice, "Telemetry should be updated twice").to.be.true;
-            // expect(
-            //     updateStub.args[1][0].errorHandled,
-            //     "Error handled should be refreshAccount",
-            // ).to.equal("refreshAccount"); // Method removed
-            expect(updateStub.args[1][0].isFixed, "Is fixed should be true").to.equal("true");
-
-            // Verify success was logged
-            expect(
-                mockLogger.verbose.calledWith(`Token refreshed successfully for azure-account-id`),
-                "Verbose log should indicate token refreshed successfully",
-            ).to.be.true;
+                updateStub.args[1][0].isFixed,
+                "Telemetry should indicate the issue is unresolved",
+            ).to.equal("true");
         });
     });
 

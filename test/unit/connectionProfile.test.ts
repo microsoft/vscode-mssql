@@ -367,30 +367,14 @@ suite("Connection Profile tests", () => {
             TypeMoq.MockBehavior.Loose,
             contextMock.object,
         );
+        let connectCallCount = 0;
         connectionManagerMock
             .setup(async (x) => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(false));
+            .returns(async () => {
+                connectCallCount++;
+                return connectCallCount >= 2;
+            });
         // failedUriToFirewallIpMap and failedUriToSSLMap removed in refactoring
-
-        let sslUriMockMap = new Map<string, string>();
-        sslUriMockMap.set(uri, "An error occurred while connecting to the server");
-        connectionManagerMock
-            .setup((x) => x.handleSSLError(TypeMoq.It.isAny()))
-            .returns(
-                () =>
-                    new Promise<ConnectionProfile>((resolve, reject) => {
-                        // let obj = connectionManagerMock.object;
-                        // SSL error handling updated in refactoring
-                        // mock the connection to succeed
-                        connectionManagerMock
-                            .setup(
-                                async (x) =>
-                                    await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                            )
-                            .returns(() => Promise.resolve(true));
-                        return resolve(updatedProfile);
-                    }),
-            );
 
         let connectionStoreMock = TypeMoq.Mock.ofType(
             ConnectionStore,
@@ -426,7 +410,7 @@ suite("Connection Profile tests", () => {
         vscodeWrapperMock.setup((x) => x.activeTextEditorUri).returns(() => uri);
         vscodeWrapperMock
             .setup((x) => x.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(undefined));
+            .returns(() => Promise.resolve(LocalizedConstants.retryLabel));
 
         let connectionUI = new ConnectionUI(
             connectionManagerMock.object,
@@ -453,9 +437,8 @@ suite("Connection Profile tests", () => {
             TypeMoq.Times.once(),
         );
 
-        // ssl error is handled
-        connectionManagerMock.verify(
-            async (x) => await x.handleSSLError(TypeMoq.It.isAny()),
+        vscodeWrapperMock.verify(
+            (x) => x.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             TypeMoq.Times.once(),
         );
 
