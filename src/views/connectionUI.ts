@@ -536,124 +536,13 @@ export class ConnectionUI {
             uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
         }
 
-        const success = await this.connectionManager.connect(uri, profile);
-
+        const success = await this.connectionManager.connect(profile, uri);
         if (success) {
             // Success! save it
             return await this.saveProfile(profile);
         } else {
-            // Check whether the error was for firewall rule or not
-            if (this.connectionManager.failedUriToFirewallIpMap.has(uri)) {
-                let success = await this.addFirewallRule(uri, profile);
-                if (success) {
-                    return await this.validateAndSaveProfile(profile);
-                }
-                return undefined;
-            } else if (this.connectionManager.failedUriToSSLMap.has(uri)) {
-                // SSL error
-                let updatedConn = await this.connectionManager.handleSSLError(uri, profile);
-                if (updatedConn) {
-                    return await this.validateAndSaveProfile(updatedConn as IConnectionProfile);
-                }
-                return undefined;
-            } else {
-                // Normal connection error! Let the user try again, prefilling values that they already entered
-                return await this.promptToRetryAndSaveProfile(profile);
-            }
-        }
-    }
-
-    /**
-     * Validate a connection profile by connecting to it, and save it if we are successful.
-     */
-    public async validateAndSaveProfileFromDialog(
-        profile: IConnectionProfile,
-    ): Promise<ConnectionCompleteParams> {
-        const result = await this.connectionManager.connectDialog(profile);
-        return result;
-    }
-
-    public async addFirewallRule(uri: string, profile: IConnectionProfile): Promise<boolean> {
-        if (this.connectionManager.failedUriToFirewallIpMap.has(uri)) {
-            // Firewall rule error
-            const firewallResponse = this.connectionManager.failedUriToFirewallIpMap.get(uri);
-            let success = await this.handleFirewallError(profile, firewallResponse);
-            if (success) {
-                // Retry creating the profile if firewall rule
-                // was successful
-                this.connectionManager.failedUriToFirewallIpMap.delete(uri);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Method to handle a firewall error. Returns true if a firewall rule was successfully added, and
-     * false otherwise
-     */
-    public async handleFirewallError(
-        profile: IConnectionInfo,
-        connectionResponse: ConnectionCompleteParams | SessionCreatedParameters,
-    ): Promise<boolean> {
-        if (!this._useLegacyConnectionExperience) {
-            if (connectionResponse.errorNumber !== constants.errorFirewallRule) {
-                Utils.logDebug(
-                    `handleFirewallError called with non-firewall-error response; error number: '${connectionResponse.errorNumber}'`,
-                );
-            }
-
-            const addFirewallRuleController = new AddFirewallRuleWebviewController(
-                this._context,
-                this._vscodeWrapper,
-                {
-                    serverName: profile.server,
-                    errorMessage: connectionResponse.errorMessage,
-                },
-                this.connectionManager.firewallService,
-            );
-            addFirewallRuleController.panel.reveal();
-
-            const wasCreated = await addFirewallRuleController.dialogResult;
-
-            return wasCreated === true; // dialog closed is undefined
-        } else {
-            // TODO: Access account which firewall error needs to be added from:
-            // Try to match accountId to an account in account storage
-            if (profile.accountId) {
-                let account = await this._accountStore.getAccount(profile.accountId);
-                this.connectionManager.accountService.setAccount(account);
-                // take that account from account storage and refresh tokens and create firewall rule
-            } else {
-                // If no match or no accountId present, need to add an azure account
-                let selection = await this._vscodeWrapper.showInformationMessage(
-                    LocalizedConstants.msgPromptRetryFirewallRuleNotSignedIn,
-                    LocalizedConstants.azureAddAccount,
-                );
-                if (selection === LocalizedConstants.azureAddAccount) {
-                    profile =
-                        await this.connectionManager.azureController.populateAccountProperties(
-                            profile as IConnectionProfile,
-                            this._accountStore,
-                            providerSettings.resources.azureManagementResource,
-                        );
-                }
-                let account = await this._accountStore.getAccount(profile.accountId);
-                this.connectionManager.accountService.setAccount(account!);
-            }
-
-            const handleResponse = await this.connectionManager.firewallService.handleFirewallRule(
-                connectionResponse.errorNumber,
-                connectionResponse.errorMessage,
-            );
-
-            let success = handleResponse.result;
-
-            if (success) {
-                success = await this.createFirewallRule(profile.server, handleResponse.ipAddress);
-            }
-
-            return success;
+            // Normal connection error! Let the user try again, prefilling values that they already entered
+            return await this.promptToRetryAndSaveProfile(profile);
         }
     }
 
