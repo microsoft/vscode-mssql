@@ -366,7 +366,10 @@ export default class ConnectionManager {
         return (
             fileUri in this._connections &&
             this._connections[fileUri].connectionId &&
-            Utils.isNotEmpty(this._connections[fileUri].connectionId)
+            Utils.isNotEmpty(this._connections[fileUri].connectionId) &&
+            this._connections[fileUri].connecting === false &&
+            this._connections[fileUri].errorNumber === undefined &&
+            this._connections[fileUri].errorMessage === undefined
         );
     }
 
@@ -876,18 +879,20 @@ export default class ConnectionManager {
         vscode.commands.executeCommand(
             "setContext",
             "mssql.connections",
-            Object.keys(this._connections).map((key) => {
-                try {
-                    key = vscode.Uri.parse(key).toString();
-                } catch (error) {
-                    // ignore errors from invalid URIs. Most probably an OE based key
-                    this._logger.verbose(
-                        "Error parsing URI, most probably an OE based key:",
-                        getErrorMessage(error),
-                    );
-                }
-                return key;
-            }),
+            Object.keys(this._connections)
+                .filter((key) => this.isConnected(key))
+                .map((key) => {
+                    try {
+                        key = vscode.Uri.parse(key).toString();
+                    } catch (error) {
+                        // ignore errors from invalid URIs. Most probably an OE based key
+                        this._logger.verbose(
+                            "Error parsing URI, most probably an OE based key:",
+                            getErrorMessage(error),
+                        );
+                    }
+                    return key;
+                }),
         );
     }
 
