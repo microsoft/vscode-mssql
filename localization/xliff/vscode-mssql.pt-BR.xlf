@@ -692,7 +692,7 @@
       </trans-unit>
       <trans-unit id="++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36">
         <source xml:lang="en">Click to cancel loading summary</source>
-        <target state="new">Click to cancel loading summary</target>
+        <target state="translated">Clique para cancelar o carregamento do resumo</target>
       </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
@@ -700,7 +700,7 @@
       </trans-unit>
       <trans-unit id="++CODE++66abaeec0367ba4920e21447dfa2dafb94c7f38dc262dfb91e76799022a436d5">
         <source xml:lang="en">Click to load summary</source>
-        <target state="new">Click to load summary</target>
+        <target state="translated">Clique para carregar o resumo</target>
       </trans-unit>
       <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
         <source xml:lang="en">Click to sign into an Azure account</source>
@@ -1551,12 +1551,12 @@
       </trans-unit>
       <trans-unit id="++CODE++fa8002fe1d41e09812880f2bfb97ef0849885d8a4de95a67b26294b7e83e912f">
         <source xml:lang="en">Error loading summary</source>
-        <target state="new">Error loading summary</target>
+        <target state="translated">Erro ao carregar o resumo</target>
       </trans-unit>
       <trans-unit id="++CODE++8108929d06fb4fe87c58e7407990ec8d46dc422dfa3ee467d2f5f622abd9840d">
         <source xml:lang="en">Error loading summary: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Error loading summary: {0}</target>
+        <target state="translated">Erro ao carregar o resumo: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++3ba789024640c6f231695bdf0d82e6845483cf65f092b3c3646910e60c638761">
         <source xml:lang="en">Error loading workspaces</source>
@@ -2443,7 +2443,7 @@ Erro:
         <note>{0} is the current row
 {1} is the total number of rows
 {2} is the percentage of rows loaded</note>
-        <target state="new">Loading summary {0}/{1} ({2}%) (Click to cancel)</target>
+        <target state="translated">Carregando o resumo {0}/{1} ({2}%) (Clique para cancelar)</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -3857,11 +3857,11 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++17888248578c82867c18ea2dc512a96eabbbbb8184442d219746c3b8b8ff6030">
         <source xml:lang="en">Summary loading canceled</source>
-        <target state="new">Summary loading canceled</target>
+        <target state="translated">Carregamento de resumo cancelado</target>
       </trans-unit>
       <trans-unit id="++CODE++93775107b302b7d63191a5c2a8ea3803d44d17781da939eb367d7555f25c1752">
         <source xml:lang="en">Summary loading was canceled by user</source>
-        <target state="new">Summary loading was canceled by user</target>
+        <target state="translated">O carregamento de resumo foi cancelado pelo usuário</target>
       </trans-unit>
       <trans-unit id="++CODE++175f5352107a324eb25f4342a9114e2685b64a1ef54a5ff6ba3a24d0ac215ea7">
         <source xml:lang="en">Switch Direction</source>
@@ -4450,7 +4450,7 @@ Consulta: {1}</target>
       <trans-unit id="++CODE++2bd22e3b4b0281a2ffa3bc8bdd3e1f2b49dedcdde97d4cc83fdf598d1208d103">
         <source xml:lang="en">{0} rows selected, click to load summary</source>
         <note>{0} is the number of rows to fetch summary statistics for</note>
-        <target state="new">{0} rows selected, click to load summary</target>
+        <target state="translated">{0} linhas selecionadas, clique para carregar o resumo</target>
       </trans-unit>
       <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
         <source xml:lang="en">{0} started successfully.</source>
