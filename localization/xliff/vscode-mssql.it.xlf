@@ -4984,6 +4984,10 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <source xml:lang="en">Pause Query History Capture</source>
         <target state="translated">Sospendi acquisizione della cronologia delle query</target>
       </trans-unit>
+      <trans-unit id="mssql.preventAutoExecuteScript">
+        <source xml:lang="en">Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.</source>
+        <target state="new">Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.</target>
+      </trans-unit>
       <trans-unit id="mssql.authCodeGrant.description">
         <source xml:lang="en">Prompts users to sign in using their browser.</source>
         <target state="translated">Richiede agli utenti di accedere con il browser.</target>
