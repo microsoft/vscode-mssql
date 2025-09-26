@@ -299,11 +299,11 @@ suite("Per File Connection Tests", () => {
         connectionCreds2.database = "my_other_db";
 
         manager
-            .connect(testFile1, connectionCreds)
+            .connect(connectionCreds, testFile1)
             .then((result) => {
                 assert.equal(result, true);
                 manager
-                    .connect(testFile2, connectionCreds)
+                    .connect(connectionCreds, testFile2)
                     .then((result2) => {
                         assert.equal(result2, true);
 
@@ -361,11 +361,11 @@ suite("Per File Connection Tests", () => {
         connectionCreds2.database = "my_other_db";
 
         manager
-            .connect(testFile1, connectionCreds)
+            .connect(connectionCreds, testFile1)
             .then((result) => {
                 assert.equal(result, true);
                 manager
-                    .connect(testFile2, connectionCreds)
+                    .connect(connectionCreds, testFile2)
                     .then((result2) => {
                         assert.equal(result2, true);
 
@@ -439,11 +439,11 @@ suite("Per File Connection Tests", () => {
         connectionCreds2.database = "my_other_db";
 
         manager
-            .connect(testFile1, connectionCreds)
+            .connect(connectionCreds, testFile1)
             .then((result) => {
                 assert.equal(result, true);
                 manager
-                    .connect(testFile2, connectionCreds)
+                    .connect(connectionCreds, testFile2)
                     .then((result2) => {
                         assert.equal(result2, true);
 
@@ -465,7 +465,7 @@ suite("Per File Connection Tests", () => {
 
                                 // Reconnect the second file
                                 manager
-                                    .connect(testFile2, connectionCreds2)
+                                    .connect(connectionCreds2, testFile2)
                                     .then((result4) => {
                                         assert.equal(result4, true);
 
@@ -557,7 +557,7 @@ suite("Per File Connection Tests", () => {
         let connectionCreds = createTestCredentials();
 
         manager
-            .connect(testFile, connectionCreds)
+            .connect(connectionCreds, testFile)
             .then((result) => {
                 assert.equal(result, true);
 
@@ -671,7 +671,7 @@ suite("Per File Connection Tests", () => {
         let connectionCreds = createTestCredentials();
 
         manager
-            .connect(testFile, connectionCreds)
+            .connect(connectionCreds, testFile)
             .then((result) => {
                 assert.equal(result, true);
 
@@ -770,7 +770,7 @@ suite("Per File Connection Tests", () => {
         // Open a connection using the connection manager
         let connectionCreds = createTestCredentials();
 
-        void connectionManager.connect(testFile, connectionCreds).then((result) => {
+        void connectionManager.connect(connectionCreds, testFile).then((result) => {
             assert.equal(result, true);
 
             // Check that the connection was established
@@ -839,7 +839,7 @@ suite("Per File Connection Tests", () => {
 
         // Then on connecting expect 'master' to be the database used in status view and URI mapping
         manager
-            .connect(testFile, connectionCreds)
+            .connect(connectionCreds, testFile)
             .then((result) => {
                 assert.equal(result, true);
                 assert.equal(
@@ -938,7 +938,7 @@ suite("Per File Connection Tests", () => {
 
         // Then on connecting expect 'master' to be the database used in status view and URI mapping
         manager
-            .connect(testFile, connectionCreds)
+            .connect(connectionCreds, testFile)
             .then((result) => {
                 assert.equal(result, true);
                 connectionStoreMock.verify(
@@ -984,7 +984,7 @@ suite("Per File Connection Tests", () => {
 
         // Connect
         manager
-            .connect(testFile, createTestCredentials())
+            .connect(createTestCredentials(), testFile)
             .then((result) => {
                 assert.equal(result, true);
                 statusViewMock.verify(

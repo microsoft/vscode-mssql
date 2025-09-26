@@ -1198,72 +1198,7 @@ export default class ConnectionManager {
              * Connection was successful
              */
 
-            // MAYBE GET RID OF THIS.
-            if (connectionInfo.credentials.connectionString) {
-                connectionInfo.credentials = await this.populateCredentialsFromConnectionString(
-                    connectionInfo.credentials,
-                    result.connectionSummary,
-                );
-            }
-            // END MAYBE GET RID OF THIS.
-
-            // Saving server info to the map
-            this._connectionCredentialsToServerInfoMap.set(
-                connectionInfo.credentials,
-                result.serverInfo,
-            );
-
-            let newCredentials: IConnectionInfo = <any>{};
-            Object.assign<IConnectionInfo, IConnectionInfo>(
-                newCredentials,
-                connectionInfo.credentials,
-            );
-
-            if (result.connectionSummary?.databaseName) {
-                newCredentials.database = result.connectionSummary.databaseName;
-            }
-
-            connectionInfo.connectionId = result.connectionId;
-            connectionInfo.serverInfo = result.serverInfo;
-            connectionInfo.credentials = newCredentials;
-            connectionInfo.errorNumber = undefined;
-            connectionInfo.errorMessage = undefined;
-
-            void this.statusView.connectSuccess(fileUri, newCredentials, connectionInfo.serverInfo);
-
-            this.statusView.languageServiceStatusChanged(
-                fileUri,
-                LocalizedConstants.updatingIntelliSenseStatus,
-            );
-
-            this._onSuccessfulConnectionEmitter.fire({
-                connection: connectionInfo,
-                fileUri: fileUri,
-            });
-
-            this._vscodeWrapper.logToOutputChannel(
-                LocalizedConstants.msgConnectedServerInfo(
-                    connectionInfo?.credentials?.server,
-                    fileUri,
-                    JSON.stringify(connectionInfo.serverInfo),
-                ),
-            );
-            sendActionEvent(
-                TelemetryViews.ConnectionPrompt,
-                TelemetryActions.CreateConnectionResult,
-                undefined,
-                undefined,
-                newCredentials as IConnectionProfile,
-                result.serverInfo,
-            );
-
-            await this.handlePasswordStorageOnConnect(
-                connectionInfo.credentials as IConnectionProfile,
-            );
-
-            await this.tryAddMruConnection(connectionInfo);
-
-            await this.addActiveConnection(fileUri, connectionInfo);
+            await this.handleConnectionSuccess(fileUri, connectionInfo, result);
             return true;
         } else {
             if (shouldHandleErrors) {
@@ -1341,6 +1276,78 @@ export default class ConnectionManager {
             credentials.azureAccountToken = undefined;
         }
         return credentials;
+    }
+
+    private async handleConnectionSuccess(
+        fileUri: string,
+        connectionInfo: ConnectionInfo,
+        result: ConnectionContracts.ConnectionCompleteParams,
+    ): Promise<void> {
+        /**
+         * Connection was successful
+         */
+
+        // Legacy connection string code. TODO: MAYBE GET RID OF THIS.
+        if (connectionInfo.credentials.connectionString) {
+            connectionInfo.credentials = await this.populateCredentialsFromConnectionString(
+                connectionInfo.credentials,
+                result.connectionSummary,
+            );
+        }
+        // END legacy connection string code.
+
+        // Saving server info to the map
+        this._connectionCredentialsToServerInfoMap.set(
+            connectionInfo.credentials,
+            result.serverInfo,
+        );
+
+        let newCredentials: IConnectionInfo = <any>{};
+        Object.assign<IConnectionInfo, IConnectionInfo>(newCredentials, connectionInfo.credentials);
+
+        if (result.connectionSummary?.databaseName) {
+            newCredentials.database = result.connectionSummary.databaseName;
+        }
+
+        connectionInfo.connectionId = result.connectionId;
+        connectionInfo.serverInfo = result.serverInfo;
+        connectionInfo.credentials = newCredentials;
+        connectionInfo.errorNumber = undefined;
+        connectionInfo.errorMessage = undefined;
+
+        void this.statusView.connectSuccess(fileUri, newCredentials, connectionInfo.serverInfo);
+
+        this.statusView.languageServiceStatusChanged(
+            fileUri,
+            LocalizedConstants.updatingIntelliSenseStatus,
+        );
+
+        this._onSuccessfulConnectionEmitter.fire({
+            connection: connectionInfo,
+            fileUri: fileUri,
+        });
+
+        this._vscodeWrapper.logToOutputChannel(
+            LocalizedConstants.msgConnectedServerInfo(
+                connectionInfo?.credentials?.server,
+                fileUri,
+                JSON.stringify(connectionInfo.serverInfo),
+            ),
+        );
+        sendActionEvent(
+            TelemetryViews.ConnectionPrompt,
+            TelemetryActions.CreateConnectionResult,
+            undefined,
+            undefined,
+            newCredentials as IConnectionProfile,
+            result.serverInfo,
+        );
+
+        await this.handlePasswordStorageOnConnect(connectionInfo.credentials as IConnectionProfile);
+
+        await this.tryAddMruConnection(connectionInfo);
+
+        await this.addActiveConnection(fileUri, connectionInfo);
     }
 
     public async handleConnectionErrors(

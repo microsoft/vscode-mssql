@@ -370,18 +370,17 @@ suite("Connection Profile tests", () => {
         connectionManagerMock
             .setup(async (x) => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(false));
-        connectionManagerMock.setup((x) => x.failedUriToFirewallIpMap).returns(() => new Map());
+        // failedUriToFirewallIpMap and failedUriToSSLMap removed in refactoring
 
         let sslUriMockMap = new Map<string, string>();
         sslUriMockMap.set(uri, "An error occurred while connecting to the server");
-        connectionManagerMock.setup((x) => x.failedUriToSSLMap).returns(() => sslUriMockMap);
         connectionManagerMock
-            .setup((x) => x.handleSSLError(uri, TypeMoq.It.isAny()))
+            .setup((x) => x.handleSSLError(TypeMoq.It.isAny()))
             .returns(
                 () =>
                     new Promise<ConnectionProfile>((resolve, reject) => {
-                        let obj = connectionManagerMock.object;
-                        obj.failedUriToSSLMap.delete(uri);
+                        // let obj = connectionManagerMock.object;
+                        // SSL error handling updated in refactoring
                         // mock the connection to succeed
                         connectionManagerMock
                             .setup(
@@ -425,6 +424,9 @@ suite("Connection Profile tests", () => {
 
         let vscodeWrapperMock = TypeMoq.Mock.ofType(VscodeWrapper);
         vscodeWrapperMock.setup((x) => x.activeTextEditorUri).returns(() => uri);
+        vscodeWrapperMock
+            .setup((x) => x.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+            .returns(() => Promise.resolve(undefined));
 
         let connectionUI = new ConnectionUI(
             connectionManagerMock.object,
@@ -453,7 +455,7 @@ suite("Connection Profile tests", () => {
 
         // ssl error is handled
         connectionManagerMock.verify(
-            async (x) => await x.handleSSLError(uri, TypeMoq.It.isAny()),
+            async (x) => await x.handleSSLError(TypeMoq.It.isAny()),
             TypeMoq.Times.once(),
         );
 
@@ -475,7 +477,7 @@ suite("Connection Profile tests", () => {
         connectionManagerMock
             .setup(async (x) => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(false));
-        connectionManagerMock.setup((x) => x.failedUriToFirewallIpMap).returns(() => new Map());
+        // failedUriToFirewallIpMap removed in refactoring
 
         let connectionStoreMock = TypeMoq.Mock.ofType(
             ConnectionStore,
