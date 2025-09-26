@@ -736,20 +736,26 @@ export default class MainController implements vscode.Disposable {
                 connectionInfo: connectionCreds,
             });
             if (executeScript) {
-                const uri = getUriKey(editor.document.uri);
-                const queryPromise = new Deferred<boolean>();
-                await this._outputContentProvider.runQuery(
-                    this._statusview,
-                    uri,
-                    undefined,
-                    title,
-                    undefined,
-                    queryPromise,
-                );
-                await queryPromise;
-                await this.connectionManager.connectionStore.removeRecentlyUsed(
-                    <IConnectionProfile>connectionCreds,
-                );
+                const preventAutoExecute = vscode.workspace
+                    .getConfiguration()
+                    .get<boolean>(Constants.configPreventAutoExecuteScript);
+
+                if (!preventAutoExecute) {
+                    const uri = getUriKey(editor.document.uri);
+                    const queryPromise = new Deferred<boolean>();
+                    await this._outputContentProvider.runQuery(
+                        this._statusview,
+                        uri,
+                        undefined,
+                        title,
+                        undefined,
+                        queryPromise,
+                    );
+                    await queryPromise;
+                    await this.connectionManager.connectionStore.removeRecentlyUsed(
+                        <IConnectionProfile>connectionCreds,
+                    );
+                }
             }
 
             let scriptType;
