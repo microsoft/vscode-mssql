@@ -35,7 +35,7 @@ import * as telemetry from "../../src/telemetry/telemetry";
 import { RefreshRequest } from "../../src/models/contracts/objectExplorer/refreshSessionRequest";
 import { ExpandErrorNode } from "../../src/objectExplorer/nodes/expandErrorNode";
 import * as LocalizedConstants from "../../src/constants/locConstants";
-import { IAccount, IConnectionInfo, IServerInfo } from "vscode-mssql";
+import { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import * as Utils from "../../src/models/utils";
 import * as Constants from "../../src/constants/constants";
@@ -49,7 +49,6 @@ import {
 import * as DockerUtils from "../../src/deployment/dockerUtils";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
-// import providerSettings from "../../src/azure/providerSettings"; // unused
 import {
     GetSessionIdRequest,
     GetSessionIdResponse,
@@ -2854,21 +2853,6 @@ function createMockConnectionProfile(
         tenantId: options.tenantId,
         groupId: TEST_ROOT_GROUP_ID,
     } as IConnectionProfile;
-}
-
-// Helper function to create a mock account
-function createMockAccount(id: string = "account-id"): IAccount {
-    return {
-        key: {
-            id: id,
-            providerId: "azure",
-        },
-        displayInfo: {
-            displayName: "Test User",
-            email: "test@example.com",
-            userId: id,
-        },
-    } as IAccount;
 }
 
 function createMockSuccessResponse(success: boolean = true): SessionCreatedParameters {

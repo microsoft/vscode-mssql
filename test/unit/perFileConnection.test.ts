@@ -5,13 +5,11 @@
 
 import * as assert from "assert";
 import * as TypeMoq from "typemoq";
-import { OutputChannel } from "vscode";
 
 import { IPrompter } from "../../src/prompts/question";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 
 import { IConnectionInfo, IServerInfo } from "vscode-mssql";
-import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import MainController from "../../src/controllers/mainController";
@@ -32,17 +30,6 @@ function createTestConnectionResult(
     let result = new ConnectionContracts.ConnectionCompleteParams();
     result.connectionId = Utils.generateGuid();
     result.messages = "";
-    result.ownerUri = ownerUri;
-    return result;
-}
-
-function createTestFailedConnectionResult(
-    ownerUri?: string,
-    error?: number,
-): ConnectionContracts.ConnectionCompleteParams {
-    let result = new ConnectionContracts.ConnectionCompleteParams();
-    result.errorNumber = error;
-    result.errorMessage = "connection failed";
     result.ownerUri = ownerUri;
     return result;
 }
