@@ -26,6 +26,7 @@ import { ISlickRange, ISelectionData } from "../../src/models/interfaces";
 import * as stubs from "./stubs";
 import * as vscode from "vscode";
 import { expect } from "chai";
+import * as os from "os";
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const standardUri = "uri";
@@ -1512,7 +1513,7 @@ suite("Query Runner tests", () => {
             );
 
             // Verify the IN clause format
-            const expectedInClause = "IN\n(\n    'USA',\n    'Canada'\n)";
+            const expectedInClause = `IN${os.EOL}(${os.EOL}    'USA',${os.EOL}    'Canada'${os.EOL})`;
             assert.equal(capturedClipboardContent, expectedInClause);
         });
 
@@ -1584,7 +1585,7 @@ suite("Query Runner tests", () => {
             await queryRunner.copyResultsAsInClause(testRange, 0, 0);
 
             // Verify the IN clause format with numeric values (no quotes)
-            const expectedInClause = "IN\n(\n    247199264,\n    247199265,\n    247199266\n)";
+            const expectedInClause = `IN${os.EOL}(${os.EOL}    247199264,${os.EOL}    247199265,${os.EOL}    247199266${os.EOL})`;
             assert.equal(capturedClipboardContent, expectedInClause);
         });
 
@@ -1655,7 +1656,7 @@ suite("Query Runner tests", () => {
             await queryRunner.copyResultsAsInClause(testRange, 0, 0);
 
             // Verify the IN clause format with NULL values
-            const expectedInClause = "IN\n(\n    'Valid',\n    NULL\n)";
+            const expectedInClause = `IN${os.EOL}(${os.EOL}    'Valid',${os.EOL}    NULL${os.EOL})`;
             assert.equal(capturedClipboardContent, expectedInClause);
         });
     });
@@ -1773,8 +1774,7 @@ suite("Query Runner tests", () => {
             await queryRunner.copyResultsAsInsertInto(testRange, 0, 0);
 
             // Verify the INSERT INTO format
-            const expectedInsert =
-                "INSERT INTO [TableName] ([ID], [FirstName], [LastName])\nVALUES\n    (1, 'John', 'Doe'),\n    (2, 'Jane', 'Smith');";
+            const expectedInsert = `INSERT INTO [TableName] ([ID], [FirstName], [LastName])${os.EOL}VALUES${os.EOL}    (1, 'John', 'Doe'),${os.EOL}    (2, 'Jane', 'Smith');`;
             assert.equal(capturedClipboardContent, expectedInsert);
         });
 
@@ -1857,8 +1857,7 @@ suite("Query Runner tests", () => {
             await queryRunner.copyResultsAsInsertInto(testRange, 0, 0);
 
             // Verify the INSERT INTO format with NULL values and mixed data types
-            const expectedInsert =
-                "INSERT INTO [TableName] ([Amount], [CreatedDate], [Status])\nVALUES\n    (100, NULL, 'Active'),\n    (200, '2023-01-01', NULL);";
+            const expectedInsert = `INSERT INTO [TableName] ([Amount], [CreatedDate], [Status])${os.EOL}VALUES${os.EOL}    (100, NULL, 'Active'),${os.EOL}    (200, '2023-01-01', NULL);`;
             assert.equal(capturedClipboardContent, expectedInsert);
         });
 
@@ -1943,12 +1942,14 @@ suite("Query Runner tests", () => {
 
             // Verify that statements are separated by double newlines
             assert.ok(
-                capturedClipboardContent.includes("\n\nINSERT INTO"),
+                capturedClipboardContent.includes(`${os.EOL}${os.EOL}INSERT INTO`),
                 "Statements should be separated by double newlines",
             );
 
             // Verify first statement contains exactly 1000 rows (plus header)
-            const firstStatement = capturedClipboardContent.split("\n\nINSERT INTO")[0];
+            const firstStatement = capturedClipboardContent.split(
+                `${os.EOL}${os.EOL}INSERT INTO`,
+            )[0];
             const firstStatementRowCount = (firstStatement.match(/\(/g) || []).length - 1; // Subtract 1 for column list parentheses
             assert.equal(firstStatementRowCount, 1000, "First statement should contain 1000 rows");
         });
