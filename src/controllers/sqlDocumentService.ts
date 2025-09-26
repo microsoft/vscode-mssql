@@ -15,7 +15,6 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import MainController from "./mainController";
 import * as vscodeMssql from "vscode-mssql";
-import { Deferred } from "../protocol";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
@@ -242,8 +241,8 @@ export default class SqlDocumentService implements vscode.Disposable {
             !this._ownedDocuments.has(doc)
         ) {
             await this._connectionMgr.connect(
-                getUriKey(doc.uri),
                 Utils.deepClone(this._lastActiveConnectionInfo),
+                getUriKey(doc.uri),
             );
         }
 
@@ -272,12 +271,12 @@ export default class SqlDocumentService implements vscode.Disposable {
         }
 
         const activeDocumentUri = getUriKey(editor.document.uri);
-        const activeConnection = this._connectionMgr?.getConnectionInfoFromUri(activeDocumentUri);
+        const conenctionInfo = this._connectionMgr.getConnectionInfo(activeDocumentUri);
 
-        if (activeConnection) {
-            this._lastActiveConnectionInfo = Utils.deepClone(activeConnection);
+        // Update the last active connection info only if the connection was successful.
+        if (conenctionInfo.connectionId) {
+            this._lastActiveConnectionInfo = Utils.deepClone(conenctionInfo.credentials);
         }
-        this._statusview?.updateStatusBarForEditor(editor, activeConnection !== undefined);
     }
 
     /**
@@ -366,15 +365,11 @@ export default class SqlDocumentService implements vscode.Disposable {
             connectionConfig?.connectionInfo &&
             this._connectionMgr
         ) {
-            const connectionPromise = new Deferred<boolean>();
-
-            await this._connectionMgr.connect(
-                documentKey,
+            const connectionResult = await this._connectionMgr.connect(
                 connectionConfig.connectionInfo,
-                connectionPromise,
+                documentKey,
             );
 
-            const connectionResult = await connectionPromise.promise;
             if (connectionResult) {
                 /**
                  * Skip creating an Object Explorer session if one already exists for the connection.

@@ -57,8 +57,8 @@ export class ChangeDatabaseTool extends ToolBase<ChangeDatabaseToolParams> {
             // Disconnect from current database and reconnect to new one
             await this._connectionManager.disconnect(connectionId);
             const connectResult = await this._connectionManager.connect(
-                connectionId,
                 newConnectionCreds,
+                connectionId,
             );
 
             if (connectResult) {

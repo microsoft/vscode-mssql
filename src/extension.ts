@@ -8,12 +8,10 @@ import * as vscodeMssql from "vscode-mssql";
 import MainController from "./controllers/mainController";
 import VscodeWrapper from "./controllers/vscodeWrapper";
 import { ConnectionDetails, IConnectionInfo, IExtension } from "vscode-mssql";
-import { Deferred } from "./protocol";
 import * as utils from "./models/utils";
 import { ObjectExplorerUtils } from "./objectExplorer/objectExplorerUtils";
 import SqlToolsServerClient from "./languageservice/serviceclient";
 import { ConnectionProfile } from "./models/connectionProfile";
-import { FirewallRuleError } from "./languageservice/interfaces";
 import { RequestType } from "vscode-languageclient";
 import { createSqlAgentRequestHandler, ISqlChatResult } from "./copilot/chatAgentRequestHandler";
 import { sendActionEvent } from "./telemetry/telemetry";
@@ -75,30 +73,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         },
         connect: async (connectionInfo: IConnectionInfo, saveConnection?: boolean) => {
             const uri = utils.generateQueryUri().toString();
-            const connectionPromise = new Deferred<boolean>();
             // First wait for initial connection request to succeed
-            const requestSucceeded = await controller.connect(
-                uri,
-                connectionInfo,
-                connectionPromise,
-                saveConnection,
-            );
+            const requestSucceeded = await controller.connect(uri, connectionInfo, saveConnection);
             if (!requestSucceeded) {
-                if (controller.connectionManager.failedUriToFirewallIpMap.has(uri)) {
-                    throw new FirewallRuleError(
-                        uri,
-                        `Connection request for ${JSON.stringify(connectionInfo)} failed because of invalid firewall rule settings`,
-                    );
-                } else {
-                    throw new Error(
-                        `Connection request for ${JSON.stringify(connectionInfo)} failed`,
-                    );
-                }
-            }
-            // Next wait for the actual connection to be made
-            const connectionSucceeded = await connectionPromise;
-            if (!connectionSucceeded) {
-                throw new Error(`Connection for ${JSON.stringify(connectionInfo)} failed`);
+                throw new Error(`Connection request for ${JSON.stringify(connectionInfo)} failed`);
             }
             return uri;
         },
