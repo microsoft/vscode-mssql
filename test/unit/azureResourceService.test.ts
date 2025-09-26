@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from "assert";
-import * as TypeMoq from "typemoq";
+import * as sinon from "sinon";
 import { AzureAuthType, IAccount } from "../../src/models/contracts/azure";
 import {
     SubscriptionClient,
@@ -16,15 +16,14 @@ import { PagedAsyncIterableIterator } from "@azure/core-paging";
 import { ResourceGroup, ResourceGroups, ResourceManagementClient } from "@azure/arm-resources";
 import { AzureResourceController } from "../../src/azure/azureResourceController";
 import { AzureAccountService } from "../../src/services/azureAccountService";
-import { TokenCredentialWrapper } from "../../src/azure/credentialWrapper";
 import allSettings from "../../src/azure/providerSettings";
 import { IAzureAccountSession } from "vscode-mssql";
 
 export interface ITestContext {
-    azureAccountService: TypeMoq.IMock<AzureAccountService>;
+    azureAccountService: sinon.SinonStubbedInstance<AzureAccountService>;
     accounts: IAccount[];
     session: IAzureAccountSession;
-    subscriptionClient: TypeMoq.IMock<SubscriptionClient>;
+    subscriptionClient: sinon.SinonStubbedInstance<SubscriptionClient>;
     subscriptions: Subscription[];
     locations: Location[];
     groups: ResourceGroup[];
@@ -80,43 +79,34 @@ export function createContext(): ITestContext {
             tokenType: "",
         },
     };
-    const azureAccountService = TypeMoq.Mock.ofType(AzureAccountService, undefined, undefined);
-    azureAccountService.setup((x) => x.getAccounts()).returns(() => Promise.resolve(accounts));
-    azureAccountService.setup((x) => x.addAccount()).returns(() => Promise.resolve(accounts[0]));
-    azureAccountService
-        .setup((x) => x.getAccountSecurityToken(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-        .returns(() =>
-            Promise.resolve({
-                key: "",
-                token: "",
-                tokenType: "",
-            }),
-        );
-    azureAccountService
-        .setup((x) => x.getAccountSessions(TypeMoq.It.isAny()))
-        .returns(() => Promise.resolve([session0, session1]));
+
+    const azureAccountService = sinon.createStubInstance(AzureAccountService);
+    azureAccountService.getAccounts.resolves(accounts);
+    azureAccountService.addAccount.resolves(accounts[0]);
+    azureAccountService.getAccountSecurityToken.resolves({
+        key: "",
+        token: "",
+        tokenType: "",
+    });
+    azureAccountService.getAccountSessions.resolves([session0, session1]);
+
+    const subscriptionClient = sinon.createStubInstance(SubscriptionClient);
 
     return {
         groups: groups,
         locations: locations,
         subscriptions: subscriptions,
-        subscriptionClient: TypeMoq.Mock.ofType(
-            SubscriptionClient,
-            undefined,
-            new TokenCredentialWrapper(session0.token),
-        ),
+        subscriptionClient,
         session: session0,
         accounts: accounts,
-        azureAccountService: azureAccountService,
+        azureAccountService,
     };
 }
 
 suite("Azure SQL client", function (): void {
     test("Should return locations successfully", async function (): Promise<void> {
         const testContext = createContext();
-        const azureSqlClient = new AzureResourceController(
-            () => testContext.subscriptionClient.object,
-        );
+        const azureSqlClient = new AzureResourceController(() => testContext.subscriptionClient);
 
         let index = 0;
         let maxLength = testContext.locations.length;
@@ -139,7 +129,10 @@ suite("Azure SQL client", function (): void {
             list: () => undefined!,
             get: () => undefined!,
         };
-        testContext.subscriptionClient.setup((x) => x.subscriptions).returns(() => subscriptions);
+
+        Object.defineProperty(testContext.subscriptionClient, "subscriptions", {
+            get: () => subscriptions,
+        });
 
         const result = await azureSqlClient.getLocations(testContext.session);
         assert.deepStrictEqual(result.length, testContext.locations.length);
@@ -147,7 +140,8 @@ suite("Azure SQL client", function (): void {
 
     test("Should return resource groups successfully", async function (): Promise<void> {
         const testContext = createContext();
-        const azureSqlClient = new AzureResourceController(undefined, () => groupClient.object);
+        const groupClient = sinon.createStubInstance(ResourceManagementClient);
+        const azureSqlClient = new AzureResourceController(undefined, () => groupClient);
 
         let index = 0;
         let maxLength = testContext.groups.length;
@@ -176,13 +170,10 @@ suite("Azure SQL client", function (): void {
             createOrUpdate: undefined!,
             update: undefined!,
         };
-        const groupClient = TypeMoq.Mock.ofType(
-            ResourceManagementClient,
-            undefined,
-            new TokenCredentialWrapper(testContext.session.token),
-            testContext.subscriptions[0].subscriptionId,
-        );
-        groupClient.setup((x) => x.resourceGroups).returns(() => resourceGroups);
+
+        Object.defineProperty(groupClient, "resourceGroups", {
+            get: () => resourceGroups,
+        });
 
         const result = await azureSqlClient.getResourceGroups(testContext.session);
         assert.deepStrictEqual(result.length, testContext.groups.length);
