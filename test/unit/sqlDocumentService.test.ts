@@ -593,11 +593,7 @@ suite("SqlDocumentService Tests", () => {
             mockCreateDocument = sandbox.stub(sqlDocumentService as any, "createDocument");
             mockCreateDocument.resolves(editor);
 
-            mockConnect = sandbox.stub().callsFake(async (uri, connectionInfo, promise) => {
-                if (promise && promise.resolve) {
-                    promise.resolve(true);
-                }
-            });
+            mockConnect = sandbox.stub().resolves(true);
 
             mockGetConnectionInfoFromUri = sandbox.stub();
             mockOnNewConnection = sandbox.stub();

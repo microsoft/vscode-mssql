@@ -130,14 +130,7 @@ suite("Extension API Tests", () => {
             let passedUri: string;
 
             mockMainController
-                .setup((m) =>
-                    m.connect(
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                    ),
-                )
+                .setup((m) => m.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
                 .returns(
                     (
                         uri: string,
