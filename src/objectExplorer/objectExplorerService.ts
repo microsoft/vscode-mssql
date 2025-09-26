@@ -35,11 +35,8 @@ import * as Constants from "../constants/constants";
 import { ObjectExplorerUtils } from "./objectExplorerUtils";
 import * as Utils from "../models/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
-import { ConnectionProfile } from "../models/connectionProfile";
-import providerSettings from "../azure/providerSettings";
 import { IConnectionInfo } from "vscode-mssql";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
-import { IAccount } from "../models/contracts/azure";
 import * as AzureConstants from "../azure/constants";
 import {
     ActivityObject,
@@ -777,64 +774,17 @@ export class ObjectExplorerService {
                 );
             }
         }
-        if (connectionProfile.connectionString) {
-            if (connectionProfile.savePassword) {
-                // look up connection string
-                let connectionString = await this._connectionManager.connectionStore.lookupPassword(
-                    connectionProfile,
-                    true,
-                );
-                connectionProfile.connectionString = connectionString;
-                return connectionProfile;
-            } else {
-                return undefined;
-            }
-        }
 
-        const isPasswordHandled =
-            await this._connectionManager.handlePasswordBasedCredentials(connectionProfile);
-        if (!isPasswordHandled) {
+        try {
+            connectionProfile = (await this._connectionManager.prepareConnectionInfo(
+                connectionProfile,
+            )) as IConnectionProfile;
+        } catch (error) {
+            this._logger.error(
+                `Error when attempting to prepare connection profile.  Attempting to proceed normally.\n\nError:\n${getErrorMessage(error)}`,
+            );
             return undefined;
         }
-
-        if (
-            connectionProfile.authenticationType ===
-            Utils.authTypeToString(AuthenticationTypes.Integrated)
-        ) {
-            connectionProfile.azureAccountToken = undefined;
-            return connectionProfile;
-        }
-
-        if (connectionProfile.authenticationType === Constants.azureMfa) {
-            let azureController = this._connectionManager.azureController;
-            let account = await this._connectionManager.accountStore.getAccount(
-                connectionProfile.accountId,
-            );
-            let needsRefresh = false;
-            if (!account) {
-                needsRefresh = true;
-            } else if (azureController.isSqlAuthProviderEnabled()) {
-                connectionProfile.user = account.displayInfo.displayName;
-                connectionProfile.email = account.displayInfo.email;
-                // Update profile after updating user/email
-                await this._connectionManager.connectionUI.saveProfile(
-                    connectionProfile as IConnectionProfile,
-                );
-                const isAccountCache = await azureController.isAccountInCache(account);
-                if (!isAccountCache) {
-                    needsRefresh = true;
-                }
-            }
-            if (
-                !connectionProfile.azureAccountToken &&
-                (!azureController.isSqlAuthProviderEnabled() || needsRefresh)
-            ) {
-                void this.refreshAccount(account, connectionProfile);
-            }
-
-            return connectionProfile;
-        }
-
         return connectionProfile;
     }
 
@@ -876,7 +826,7 @@ export class ObjectExplorerService {
             !this._connectionManager.isConnected(nodeUri) &&
             !this._connectionManager.isConnecting(nodeUri)
         ) {
-            await this._connectionManager.connect(nodeUri, connectionNode.connectionProfile);
+            await this._connectionManager.connect(connectionNode.connectionProfile, nodeUri);
         }
         if (isNewConnection) {
             this.addConnectionNode(connectionNode);
@@ -927,7 +877,6 @@ export class ObjectExplorerService {
         if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
             this._logger.verbose("Fixing SSL trust server certificate error.");
             const fixedProfile: IConnectionProfile = (await this._connectionManager.handleSSLError(
-                undefined,
                 connectionProfile,
             )) as IConnectionProfile;
             telemetryActivty.update({
@@ -952,11 +901,10 @@ export class ObjectExplorerService {
                 this._logger.verbose(
                     `Firewall rule added for IP address ${handleFirewallResult.ipAddress}`,
                 );
-                const isFirewallAdded =
-                    await this._connectionManager.connectionUI.handleFirewallError(
-                        connectionProfile,
-                        failureResponse,
-                    );
+                const isFirewallAdded = await this._connectionManager.handleFirewallError(
+                    connectionProfile,
+                    failureResponse.errorMessage,
+                );
                 telemetryActivty.update({
                     connectionType: connectionProfile.authenticationType,
                     errorHandled: "firewallRule",
@@ -978,100 +926,18 @@ export class ObjectExplorerService {
             this.needsAccountRefresh(failureResponse, connectionProfile.user)
         ) {
             this._logger.verbose(`Refreshing account token for ${connectionProfile.accountId}}`);
-            let account = await this._connectionManager.accountStore.getAccount(
-                connectionProfile.accountId,
-            );
-
-            const tokenAdded = this.refreshAccount(account, connectionProfile);
-            telemetryActivty.update({
-                connectionType: connectionProfile.authenticationType,
-                errorHandled: "refreshAccount",
-                isFixed: tokenAdded ? "true" : "false",
-            });
-            if (!tokenAdded) {
-                this._logger.error(`Token refresh failed for ${connectionProfile.accountId}`);
-            } else {
-                this._logger.verbose(
-                    `Token refreshed successfully for ${connectionProfile.accountId}`,
-                );
+            try {
+                await this._connectionManager.confirmEntraTokenValidity(connectionProfile);
+                return true;
+            } catch (err) {
+                this._logger.error(`Error refreshing account token: ${getErrorMessage(err)}`);
+                return false;
             }
-            return tokenAdded;
         } else {
             this._logger.error("Session creation failed: " + error);
             this._vscodeWrapper.showErrorMessage(error);
         }
         return false;
-    }
-
-    /**
-     * Refreshes the account token for the given connection credentials.
-     * @param account The account to refresh.
-     * @param connectionCredentials The connection credentials to refresh.
-     * @returns True if the refresh was successful, false if it was cancelled or failed.
-     */
-    private async refreshAccount(
-        account: IAccount,
-        connectionCredentials: ConnectionCredentials,
-    ): Promise<boolean> {
-        const refreshTask = async () => {
-            let azureController = this._connectionManager.azureController;
-            let profile = new ConnectionProfile(connectionCredentials);
-            let azureAccountToken = await azureController.refreshAccessToken(
-                account,
-                this._connectionManager.accountStore,
-                connectionCredentials.tenantId,
-                providerSettings.resources.databaseResource,
-            );
-            if (!azureAccountToken) {
-                this._logger.verbose("Access token could not be refreshed for connection profile.");
-                let errorMessage = LocalizedConstants.msgAccountRefreshFailed;
-
-                const response = await this._vscodeWrapper.showErrorMessage(
-                    errorMessage,
-                    LocalizedConstants.refreshTokenLabel,
-                );
-
-                if (response === LocalizedConstants.refreshTokenLabel) {
-                    let updatedProfile = await azureController.populateAccountProperties(
-                        profile,
-                        this._connectionManager.accountStore,
-                        providerSettings.resources.databaseResource,
-                    );
-                    connectionCredentials.azureAccountToken = updatedProfile.azureAccountToken;
-                    connectionCredentials.expiresOn = updatedProfile.expiresOn;
-                } else {
-                    this._logger.error("Credentials not refreshed by user.");
-                    return undefined;
-                }
-            } else {
-                connectionCredentials.azureAccountToken = azureAccountToken.token;
-                connectionCredentials.expiresOn = azureAccountToken.expiresOn;
-            }
-        };
-
-        return await new Promise<boolean>((resolve) => {
-            vscode.window.withProgress(
-                {
-                    location: vscode.ProgressLocation.Notification,
-                    title: LocalizedConstants.ObjectExplorer.AzureSignInMessage,
-                    cancellable: true,
-                },
-                async (progress, token) => {
-                    token.onCancellationRequested(() => {
-                        this._logger.verbose("Azure sign in cancelled by user.");
-                        resolve(false);
-                    });
-                    try {
-                        await refreshTask();
-                        resolve(true);
-                    } catch (error) {
-                        this._logger.error("Error refreshing account: " + error);
-                        this._vscodeWrapper.showErrorMessage(error.message);
-                        resolve(false);
-                    }
-                },
-            );
-        });
     }
 
     /**
