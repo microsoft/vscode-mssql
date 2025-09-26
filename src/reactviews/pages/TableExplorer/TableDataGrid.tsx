@@ -31,7 +31,7 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
             const rowNumberColumn: Column = {
                 id: "rowNumber",
                 name: "",
-                field: "rowNumber",
+                field: "id", // Can use any existing field since formatter ignores the value
                 width: 50,
                 minWidth: 40,
                 maxWidth: 80,
@@ -62,7 +62,6 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
             const convertedDataset = resultSet.subset.map((row, rowIndex) => {
                 const dataRow: any = {
                     id: rowIndex,
-                    rowNumber: rowIndex, // Add rowNumber field for the row number column
                 };
                 row.cells.forEach((cell, cellIndex) => {
                     dataRow[`col${cellIndex}`] = cell.displayValue;
