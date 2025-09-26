@@ -31,7 +31,10 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
             const rowNumberColumn: Column = {
                 id: "rowNumber",
                 name: "",
-                field: "id", // Can use any existing field since formatter ignores the value
+                field: "id",
+                excludeFromColumnPicker: true,
+                excludeFromGridMenu: true,
+                excludeFromHeaderMenu: true,
                 width: 50,
                 minWidth: 40,
                 maxWidth: 80,
