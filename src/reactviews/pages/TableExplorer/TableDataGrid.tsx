@@ -4,7 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import React, { useState, useEffect, useRef } from "react";
-import { SlickgridReactInstance, Column, GridOption, SlickgridReact } from "slickgrid-react";
+import {
+    SlickgridReactInstance,
+    Column,
+    GridOption,
+    SlickgridReact,
+    EditCommand,
+    Editors,
+} from "slickgrid-react";
 import { EditSubsetResult } from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
@@ -19,6 +26,7 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
     const [columns, setColumns] = useState<Column[]>([]);
     const [options, setOptions] = useState<GridOption | undefined>(undefined);
     const reactGridRef = useRef<SlickgridReactInstance | null>(null);
+    const [commandQueue] = useState<EditCommand[]>([]);
 
     function reactGridReady(reactGrid: SlickgridReactInstance) {
         reactGridRef.current = reactGrid;
@@ -54,6 +62,9 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
                     field: `col${index}`,
                     sortable: true,
                     minWidth: 100,
+                    editor: {
+                        model: Editors.text,
+                    },
                 };
             });
 
@@ -75,9 +86,17 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
 
             // Set grid options
             setOptions({
+                autoEdit: false,
+                autoCommitEdit: false,
+                editable: true,
                 enableAutoResize: true,
                 gridHeight: 400,
+                enableCellNavigation: true,
                 enableSorting: true,
+                editCommandHandler: (_item, _column, editCommand) => {
+                    commandQueue.push(editCommand);
+                    editCommand.execute();
+                },
                 darkMode:
                     themeKind === ColorThemeKind.Dark || themeKind === ColorThemeKind.HighContrast,
             });
