@@ -374,7 +374,6 @@ suite("Connection Profile tests", () => {
                 connectCallCount++;
                 return connectCallCount >= 2;
             });
-        // failedUriToFirewallIpMap and failedUriToSSLMap removed in refactoring
 
         let connectionStoreMock = TypeMoq.Mock.ofType(
             ConnectionStore,
@@ -460,7 +459,6 @@ suite("Connection Profile tests", () => {
         connectionManagerMock
             .setup(async (x) => await x.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
             .returns(() => Promise.resolve(false));
-        // failedUriToFirewallIpMap removed in refactoring
 
         let connectionStoreMock = TypeMoq.Mock.ofType(
             ConnectionStore,

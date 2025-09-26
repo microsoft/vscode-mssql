@@ -431,7 +431,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         suite("connect", () => {
             test("connect happy path", async () => {
                 // Set up mocks
-                stubTelemetry(sandbox); // sendErrorEvent check disabled in refactored code
+                stubTelemetry(sandbox);
 
                 mockObjectExplorerProvider
                     .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
@@ -482,9 +482,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 } as IConnectionDialogProfile;
 
                 await controller["_reducerHandlers"].get("connect")(controller.state, {});
-
-                // Note: sendErrorEvent might be called during connection flow in refactored code
-                // expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
             });
         });
 
