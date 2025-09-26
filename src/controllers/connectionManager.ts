@@ -89,6 +89,11 @@ export class ConnectionInfo {
      */
     public errorMessage: string;
 
+    /**
+     * Messages returned from the SQL Tools Service during connection
+     */
+    public messages: string;
+
     public get loginFailed(): boolean {
         return this.errorNumber !== undefined && this.errorNumber === Constants.errorLoginFailed;
     }
@@ -743,6 +748,7 @@ export default class ConnectionManager {
             }
             connection.errorNumber = result.errorNumber;
             connection.errorMessage = result.errorMessage;
+            connection.messages = result.messages;
         } else {
             const platformInfo = await PlatformInformation.getCurrent();
             if (

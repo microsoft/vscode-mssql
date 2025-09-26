@@ -9,11 +9,11 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as ConnInfo from "../models/connectionInfo";
-import * as ConnectionContracts from "../models/contracts/connection";
 import * as Utils from "../models/utils";
 import { ConnectionStore } from "../models/connectionStore";
 import { IConnectionProfile } from "../models/interfaces";
 import { getUriKey } from "../utils/utils";
+import { ConnectionInfo } from "../controllers/connectionManager";
 
 // Status bar element for each file in the editor
 class FileStatusBar {
@@ -276,7 +276,11 @@ export default class StatusView implements vscode.Disposable {
     public connectError(
         fileUri: string,
         credentials: IConnectionInfo,
-        error: ConnectionContracts.ConnectionCompleteParams,
+        error: {
+            errorNumber: number;
+            errorMessage: string;
+            messages: string;
+        },
     ): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.command = Constants.cmdConnect;
@@ -445,15 +449,43 @@ export default class StatusView implements vscode.Disposable {
         }
     }
 
-    public updateStatusBarForEditor(editor: vscode.TextEditor, isConnected: boolean): void {
+    public updateStatusBarForEditor(
+        editor: vscode.TextEditor,
+        connectionInfo: ConnectionInfo,
+    ): void {
         // Change the status bar to match the newly active editor
         if (typeof editor !== "undefined") {
             const fileUri = getUriKey(editor.document.uri);
             const bar = this._statusBars[fileUri];
             if (bar) {
-                if (!isConnected) {
+                if (!connectionInfo) {
+                    /**
+                     * If there is no connection info, then the editor is not connected
+                     * so set the status bar to not connected state
+                     */
                     this.notConnected(fileUri);
-                } else {
+                    return;
+                } else if (connectionInfo?.connecting) {
+                    /**
+                     * If the connection is still in progress, then set the status bar to connecting state
+                     */
+                    this.connecting(fileUri, connectionInfo?.credentials);
+                    return;
+                } else if (connectionInfo?.errorMessage || connectionInfo?.errorNumber) {
+                    /**
+                     * If there is an error message or number, then the connection attempt failed
+                     */
+                    this.connectError(fileUri, connectionInfo?.credentials, {
+                        errorNumber: connectionInfo?.errorNumber,
+                        errorMessage: connectionInfo?.errorMessage,
+                        messages: connectionInfo?.messages,
+                    });
+                    return;
+                } else if (connectionInfo?.connectionId) {
+                    /**
+                     * If there is a connection ID, then the editor is connected
+                     * so set the status bar to connected state
+                     */
                     this.showStatusBarItem(fileUri, bar.statusConnection);
                     this.showStatusBarItem(fileUri, bar.statusChangeDatabase);
                     this.showStatusBarItem(fileUri, bar.statusQuery);
@@ -462,6 +494,11 @@ export default class StatusView implements vscode.Disposable {
                     this.showStatusBarItem(fileUri, bar.sqlCmdMode);
                     this.showStatusBarItem(fileUri, bar.rowCount);
                     this.showStatusBarItem(fileUri, bar.executionTime);
+                } else {
+                    /**
+                     * Default to not connected state
+                     */
+                    this.notConnected(fileUri);
                 }
             }
         }
