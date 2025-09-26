@@ -633,6 +633,12 @@ export default class ConnectionManager {
         return updatedConn;
     }
 
+    /**
+     * Handles a firewall error by showing the Add Firewall Rule dialog to the user.
+     * @param credentials The connection info for the connection that had the firewall error
+     * @param errorMessage The error message from the firewall error
+     * @returns Whether the firewall error was handled (i.e. user added a rule)
+     */
     public async handleFirewallError(
         credentials: IConnectionInfo,
         errorMessage: string,

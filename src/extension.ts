@@ -99,8 +99,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
                 includeApplicationName,
             );
         },
-        promptForFirewallRule: async (_connectionUri: string, _connectionInfo: IConnectionInfo) => {
-            return false;
+        promptForFirewallRule: async (connectionUri: string, credentials: IConnectionInfo) => {
+            const connectionInfo = controller.connectionManager.getConnectionInfo(connectionUri);
+            if (!connectionInfo) {
+                throw new Error(
+                    `Could not find connection info for connection URI: ${connectionUri}`,
+                );
+            }
+            return controller.connectionManager.handleFirewallError(
+                credentials,
+                connectionInfo.errorMessage,
+            );
         },
         azureAccountService: controller.azureAccountService,
         azureResourceService: controller.azureResourceService,
