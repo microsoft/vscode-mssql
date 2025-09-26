@@ -784,7 +784,7 @@ export default class ConnectionManager {
                 Utils.showErrorMsg(LocalizedConstants.msgConnectionError2(result.messages));
             }
         }
-        this.statusView.connectError(fileUri, connection.credentials, result);
+        this.statusView.setConnectionError(fileUri, connection.credentials, result);
         this.vscodeWrapper.logToOutputChannel(
             LocalizedConstants.msgConnectionFailed(
                 connection.credentials.server,
@@ -1058,7 +1058,7 @@ export default class ConnectionManager {
                 disconnectParams,
             );
             if (this.statusView) {
-                this.statusView.notConnected(fileUri);
+                this.statusView.setNotConnected(fileUri);
             }
             if (result) {
                 this.vscodeWrapper.logToOutputChannel(LocalizedConstants.msgDisconnected(fileUri));
@@ -1407,7 +1407,7 @@ export default class ConnectionManager {
             // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
             if (this.statusView) {
                 this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
-                this.statusView.connecting(fileUri, connectionCreds);
+                this.statusView.setConnecting(fileUri, connectionCreds);
                 this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
             }
 
@@ -1500,7 +1500,7 @@ export default class ConnectionManager {
         // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
         if (this.statusView) {
             this.statusView.languageFlavorChanged(uri, Constants.mssqlProviderName);
-            this.statusView.connecting(uri, connectionCreds);
+            this.statusView.setConnecting(uri, connectionCreds);
             this.statusView.languageFlavorChanged(uri, Constants.mssqlProviderName);
         }
 
@@ -1568,7 +1568,7 @@ export default class ConnectionManager {
             cancelParams,
         );
         if (result) {
-            this.statusView.notConnected(fileUri);
+            this.statusView.setNotConnected(fileUri);
         }
     }
 
@@ -1611,7 +1611,7 @@ export default class ConnectionManager {
     public onDidOpenTextDocument(doc: vscode.TextDocument): void {
         let uri = doc.uri.toString(true);
         if (doc.languageId === "sql" && typeof this._connections[uri] === "undefined") {
-            this.statusView.notConnected(uri);
+            this.statusView.setNotConnected(uri);
         }
     }
 

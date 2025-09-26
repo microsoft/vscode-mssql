@@ -154,7 +154,7 @@ export default class StatusView implements vscode.Disposable {
         return bar;
     }
 
-    public connected(fileUri: string): void {
+    public setConnected(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
         this.showStatusBarItem(fileUri, bar.statusLanguageFlavor);
         this.showStatusBarItem(fileUri, bar.statusConnection);
@@ -166,7 +166,7 @@ export default class StatusView implements vscode.Disposable {
         this.showStatusBarItem(fileUri, bar.executionTime);
     }
 
-    public notConnected(fileUri: string): void {
+    public setNotConnected(fileUri: string): void {
         let bar = this.getStatusBar(fileUri);
 
         bar.connectionId = undefined;
@@ -188,7 +188,7 @@ export default class StatusView implements vscode.Disposable {
         clearInterval(bar.queryTimer);
     }
 
-    public connecting(fileUri: string, connCreds: IConnectionInfo): void {
+    public setConnecting(fileUri: string, connCreds: IConnectionInfo): void {
         let bar = this.getStatusBar(fileUri);
         bar.statusConnection.text = `$(loading~spin) ${LocalizedConstants.StatusBar.connectingLabel}`;
         bar.statusConnection.command = Constants.cmdDisconnect;
@@ -274,7 +274,7 @@ export default class StatusView implements vscode.Disposable {
         return (await this._connectionStore.getGroupForConnectionId(connectionId))?.color;
     }
 
-    public connectError(
+    public setConnectionError(
         fileUri: string,
         credentials: IConnectionInfo,
         error: {
@@ -460,40 +460,28 @@ export default class StatusView implements vscode.Disposable {
             const bar = this._statusBars[fileUri];
             if (bar) {
                 if (!connectionInfo) {
-                    /**
-                     * If there is no connection info, then the editor is not connected
-                     * so set the status bar to not connected state
-                     */
-                    this.notConnected(fileUri);
+                    // If there is no connection info, then the editor is not connected
+                    this.setNotConnected(fileUri);
                     return;
                 } else if (connectionInfo?.connecting) {
-                    /**
-                     * If the connection is still in progress, then set the status bar to connecting state
-                     */
-                    this.connecting(fileUri, connectionInfo?.credentials);
+                    // If the connection is still in progress, then set the status bar to connecting state
+                    this.setConnecting(fileUri, connectionInfo?.credentials);
                     return;
                 } else if (connectionInfo?.errorMessage || connectionInfo?.errorNumber) {
-                    /**
-                     * If there is an error message or number, then the connection attempt failed
-                     */
-                    this.connectError(fileUri, connectionInfo?.credentials, {
+                    // If there is an error message or number, then the connection attempt failed
+                    this.setConnectionError(fileUri, connectionInfo?.credentials, {
                         errorNumber: connectionInfo?.errorNumber,
                         errorMessage: connectionInfo?.errorMessage,
                         messages: connectionInfo?.messages,
                     });
                     return;
                 } else if (connectionInfo?.connectionId) {
-                    /**
-                     * If there is a connection ID, then the editor is connected
-                     * so set the status bar to connected state
-                     */
-                    this.connected(fileUri);
+                    // If there is a connectionId, then the editor is connected
+                    this.setConnected(fileUri);
                     return;
                 } else {
-                    /**
-                     * Default to not connected state
-                     */
-                    this.notConnected(fileUri);
+                    // default to not connected state
+                    this.setNotConnected(fileUri);
                     return;
                 }
             }
