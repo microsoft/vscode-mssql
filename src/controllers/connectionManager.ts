@@ -833,6 +833,11 @@ export default class ConnectionManager {
         return this.disconnect(this.vscodeWrapper.activeTextEditorUri);
     }
 
+    /**
+     * Disconnect from the database
+     * @param fileUri The URI of the file to disconnect
+     * @returns A promise that resolves to a boolean indicating success or failure
+     */
     public async disconnect(fileUri: string): Promise<boolean> {
         if (this.isConnected(fileUri)) {
             let disconnectParams = new ConnectionContracts.DisconnectParams();
@@ -1011,6 +1016,12 @@ export default class ConnectionManager {
             );
         };
 
+        /**
+         * Token refresh code cannot figure out if the user closed the browser window,
+         * so we wrap it in a cancellable progress dialog to allow the user to cancel
+         * the operation. If the user cancels, we resolve with undefined and handle
+         * that case below.
+         */
         const azureAccountToken = await new Promise<IToken | undefined>((resolve) => {
             vscode.window.withProgress(
                 {
@@ -1097,8 +1108,8 @@ export default class ConnectionManager {
 
     /**
      * Creates a new connection with provided credentials.
-     * @param credentials credentials to connect with
      * @param fileUri file URI for the connection. If not provided, a new URI will be generated.
+     * @param credentials credentials to connect with
      * @param shouldHandleErrors whether to handle connection errors with UI prompts.
      * If false, the method will return false on error instead of trying to fix it.
      * To be used by connection dialog where errors are handled in the dialog itself.
@@ -1255,6 +1266,11 @@ export default class ConnectionManager {
         }
     }
 
+    /**
+     * Does preparation steps on the connection info before trying to connect.
+     * @param credentials The connection info to prepare
+     * @returns The prepared connection info
+     */
     public async prepareConnectionInfo(credentials: IConnectionInfo): Promise<IConnectionInfo> {
         // Verify that the connection info has server or connection string
         if (!credentials.server && !credentials.connectionString) {
@@ -1290,6 +1306,13 @@ export default class ConnectionManager {
         return credentials;
     }
 
+    /**
+     * Handles the steps to take on a successful connection.
+     * @param fileUri uri of the file the connection is for
+     * @param connectionInfo the connection info object to update
+     * @param result the result of the connection
+     * @returns A promise that resolves when all steps are complete
+     */
     private async handleConnectionSuccess(
         fileUri: string,
         connectionInfo: ConnectionInfo,
@@ -1362,6 +1385,16 @@ export default class ConnectionManager {
         await this.addActiveConnection(fileUri, connectionInfo);
     }
 
+    /**
+     * General handler for sql client related connection errors. This is shared
+     * between object explorer and the connection manager.
+     * @param errorNumber Error number code
+     * @param errorMessage Error message
+     * @param credentials Credentials used for the connection
+     * @param message Additional message information
+     * @return An object indicating whether the error was handled, the updated credentials if applicable,
+     * and an optional string indicating the type of error that was handled (for telemetry purposes).
+     */
     public async handleConnectionErrors(
         errorNumber: number,
         errorMessage: string,
@@ -1370,7 +1403,7 @@ export default class ConnectionManager {
     ): Promise<{
         isHandled: boolean;
         updatedCredentials: IConnectionInfo;
-        errorHandled?: string;
+        errorHandled?: SqlConnectionErrors;
     }> {
         // Helper for "learn more" prompts
         const showWithHelp = async (message: string, helpLabel: string, helpUrl: string) => {
@@ -1392,7 +1425,7 @@ export default class ConnectionManager {
             return {
                 isHandled: false,
                 updatedCredentials: credentials,
-                errorHandled: "passwordExpired",
+                errorHandled: SqlConnectionErrors.PasswordExpired,
             };
         } else if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
             const updatedConnection = await this.handleSSLError(credentials as IConnectionProfile);
@@ -1400,13 +1433,13 @@ export default class ConnectionManager {
                 return {
                     isHandled: true,
                     updatedCredentials: updatedConnection,
-                    errorHandled: "trustServerCertificate",
+                    errorHandled: SqlConnectionErrors.TrustServerCertificateNotEnabled,
                 };
             } else {
                 return {
                     isHandled: false,
                     updatedCredentials: credentials,
-                    errorHandled: "trustServerCertificate",
+                    errorHandled: SqlConnectionErrors.TrustServerCertificateNotEnabled,
                 };
             }
         } else if (errorNumber === Constants.errorFirewallRule) {
@@ -1415,7 +1448,7 @@ export default class ConnectionManager {
                 return {
                     isHandled: true,
                     updatedCredentials: credentials,
-                    errorHandled: "firewallRule",
+                    errorHandled: SqlConnectionErrors.FirewallRuleError,
                 };
             } else {
                 Utils.showErrorMsg(
@@ -1424,7 +1457,7 @@ export default class ConnectionManager {
                 return {
                     isHandled: false,
                     updatedCredentials: credentials,
-                    errorHandled: "firewallRule",
+                    errorHandled: SqlConnectionErrors.FirewallRuleError,
                 };
             }
         } else if (!platformInfo.isWindows && errorMessage?.includes("Kerberos")) {
@@ -1436,7 +1469,7 @@ export default class ConnectionManager {
             return {
                 isHandled: false,
                 updatedCredentials: credentials,
-                errorHandled: "kerberosNonWindows",
+                errorHandled: SqlConnectionErrors.KerberosNonWindows,
             };
         } else if (
             platformInfo.runtimeId === Runtime.OSX_10_11_64 &&
@@ -1453,7 +1486,7 @@ export default class ConnectionManager {
             return {
                 isHandled: false,
                 updatedCredentials: credentials,
-                errorHandled: "macOpenSsl",
+                errorHandled: SqlConnectionErrors.MacOpenSsl,
             };
         } else if (
             credentials.authenticationType === Constants.azureMfa &&
@@ -1464,14 +1497,14 @@ export default class ConnectionManager {
                 return {
                     isHandled: true,
                     updatedCredentials: credentials,
-                    errorHandled: "entraTokenRefresh",
+                    errorHandled: SqlConnectionErrors.EntraTokenExpired,
                 };
             } catch (error) {
                 Utils.showErrorMsg(getErrorMessage(error));
                 return {
                     isHandled: false,
                     updatedCredentials: credentials,
-                    errorHandled: "entraTokenRefresh",
+                    errorHandled: SqlConnectionErrors.EntraTokenExpired,
                 };
             }
         } else {
@@ -1486,7 +1519,7 @@ export default class ConnectionManager {
             return {
                 isHandled: false,
                 updatedCredentials: credentials,
-                errorHandled: "generic",
+                errorHandled: SqlConnectionErrors.Generic,
             };
         }
     }
@@ -1944,4 +1977,14 @@ interface TenantQuickPickItem {
     label: string;
     description: string;
     tenant: string; // Replace with proper tenant type
+}
+
+export enum SqlConnectionErrors {
+    PasswordExpired = "passwordExpired",
+    TrustServerCertificateNotEnabled = "trustServerCertificate",
+    FirewallRuleError = "firewallRuleN",
+    KerberosNonWindows = "kerberosNonWindows",
+    MacOpenSsl = "macOpenSsl",
+    EntraTokenExpired = "entraTokenExpired",
+    Generic = "generic",
 }
