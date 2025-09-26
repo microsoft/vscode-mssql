@@ -70,8 +70,10 @@ declare module "vscode-mssql" {
         connect(connectionInfo: IConnectionInfo, saveConnection?: boolean): Promise<string>;
 
         /**
-         * @deprecated. Now firewall rules are handled internally during the connection.
-         * This method will always return false.
+         * Prompts the user to add firewall rule if connection failed with a firewall error.
+         * @param connectionUri The URI of the connection to add firewall rule to.
+         * @param connectionInfo The connection info
+         * @returns True if firewall rule added
          */
         promptForFirewallRule(
             connectionUri: string,
