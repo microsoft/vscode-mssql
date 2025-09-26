@@ -10,6 +10,8 @@ import { QueryEditor } from "../constants/locConstants";
 import { generateDatabaseDisplayName, generateServerDisplayName } from "../models/connectionInfo";
 import * as LocalizedConstants from "../constants/locConstants";
 
+export const connectionCodeLensRange = new vscode.Range(0, 0, 0, 0);
+
 export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disposable {
     private _disposables: vscode.Disposable[] = [];
     private _codeLensChangedEmitter = new vscode.EventEmitter<void>();
@@ -38,7 +40,7 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
         if (!connection) {
             // On no connection, show a single "Connect" CodeLens
             return [
-                new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
+                new vscode.CodeLens(connectionCodeLensRange, {
                     title: QueryEditor.codeLensConnect,
                     command: Constants.cmdConnect,
                 }),
@@ -46,11 +48,11 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
         } else if (connection.connectionId) {
             // If connected, show the connection change and database change CodeLenses
             return [
-                new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
+                new vscode.CodeLens(connectionCodeLensRange, {
                     title: generateServerDisplayName(connection.credentials),
                     command: Constants.cmdConnect,
                 }),
-                new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
+                new vscode.CodeLens(connectionCodeLensRange, {
                     title: generateDatabaseDisplayName(connection.credentials),
                     command: Constants.cmdChooseDatabase,
                 }),
@@ -61,7 +63,7 @@ export class SqlCodeLensProvider implements vscode.CodeLensProvider, vscode.Disp
                 ? `${connection.errorNumber}: ${connection.errorMessage}`
                 : connection.errorMessage;
             return [
-                new vscode.CodeLens(new vscode.Range(0, 0, 0, 0), {
+                new vscode.CodeLens(connectionCodeLensRange, {
                     title: `$(error) ${LocalizedConstants.StatusBar.connectErrorLabel}`,
                     tooltip: tooltipText,
                     command: Constants.cmdConnect,
