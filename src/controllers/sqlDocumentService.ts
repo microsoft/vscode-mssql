@@ -142,6 +142,10 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         const connectionResult = this._connectionMgr.getConnectionInfo(newEditorUri);
 
+        await this._connectionMgr.connectionStore.removeRecentlyUsed(
+            connectionCreds as IConnectionProfile,
+        );
+
         sendActionEvent(
             TelemetryViews.CommandPalette,
             TelemetryActions.NewQuery,
@@ -271,10 +275,14 @@ export default class SqlDocumentService implements vscode.Disposable {
         }
 
         const activeDocumentUri = getUriKey(editor.document.uri);
-        const connectionInfo = this._connectionMgr.getConnectionInfo(activeDocumentUri);
+        const connectionInfo = this._connectionMgr?.getConnectionInfo(activeDocumentUri);
 
-        // Update the last active connection info only if the connection was successful.
-        if (connectionInfo?.connectionId) {
+        /**
+         * Update the last active connection info only if:
+         * 1. Active connection has been established (has connectionId), AND
+         * 2. It's not still in the process of connecting (connecting is false)
+         */
+        if (connectionInfo?.connectionId && !connectionInfo?.connecting) {
             this._lastActiveConnectionInfo = Utils.deepClone(connectionInfo.credentials);
         }
         this._statusview?.updateStatusBarForEditor(editor, connectionInfo);
