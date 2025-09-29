@@ -638,8 +638,6 @@ suite("OE Service Tests", () => {
                 mockVscodeWrapper.showErrorMessage.args[0][0],
                 "Error message should be mock error message",
             ).to.equal(LocalizedConstants.msgUnableToExpand);
-
-            // Verify the result is undefined (already checked above)
         });
 
         test("expandNode should handle exception from SQL Tools client", async () => {
