@@ -1674,11 +1674,7 @@ export default class MainController implements vscode.Disposable {
                     if (node.collapsibleState === vscode.TreeItemCollapsibleState.Collapsed) {
                         await this._objectExplorerProvider.refreshNode(node);
                     } else if (node.collapsibleState === vscode.TreeItemCollapsibleState.Expanded) {
-                        await this._objectExplorerProvider.expandNode(
-                            node,
-                            node.sessionId,
-                            undefined,
-                        );
+                        await this._objectExplorerProvider.expandNode(node, node.sessionId);
                     }
                     await this.objectExplorerTree.reveal(node, {
                         select: true,
@@ -2658,18 +2654,7 @@ export default class MainController implements vscode.Disposable {
             return;
         }
 
-        let errorFoundWhileRefreshing = false;
-        (await this._objectExplorerProvider.getChildren()).forEach((n: TreeNodeInfo) => {
-            try {
-                void this._objectExplorerProvider.refreshNode(n);
-            } catch (e) {
-                errorFoundWhileRefreshing = true;
-                this._connectionMgr.client.logger.error(e);
-            }
-        });
-        if (errorFoundWhileRefreshing) {
-            Utils.showErrorMsg(LocalizedConstants.objectExplorerNodeRefreshError);
-        }
+        this._objectExplorerProvider.refreshConnectedNodes();
     }
 
     /**
