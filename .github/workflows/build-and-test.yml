@@ -419,6 +419,12 @@ jobs:
             PIPELINE_FAILED=true
           fi
 
+          # Check code coverage
+          if [ "${{ env.line_rate_pr }}" -lt 60 ]; then
+            echo "  ❌ Code Coverage check failed. ${{ env.line_rate_pr }}"
+            PIPELINE_FAILED=true
+          fi
+
           # Check VSIX percentage change (if variables exist)
           if [ "${{ env.vsix_percentage_change }}" != "" ] && [ $(echo "${{ env.vsix_percentage_change }} > 5" | bc -l) -eq 1 ]; then
             echo "  ❌ VSIX size increased by more than 5% (${{ env.vsix_percentage_change }}%)"
