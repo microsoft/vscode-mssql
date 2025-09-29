@@ -258,7 +258,6 @@ suite("OE Service Tests", () => {
             );
 
             const mockSessionId = "session123";
-            const mockPromise = new Deferred<vscode.TreeItem[]>();
 
             // Setup child nodes that will be returned
             const mockChildNodes = [
@@ -287,11 +286,7 @@ suite("OE Service Tests", () => {
             mockClient.sendRequest.withArgs(ExpandRequest.type, sinon.match.any).resolves(true);
 
             // Call the method to test
-            const expandPromise = objectExplorerService.expandNode(
-                mockNode,
-                mockSessionId,
-                mockPromise,
-            );
+            const expandPromise = objectExplorerService.expandNode(mockNode, mockSessionId);
 
             // Wait a bit and then resolve the pending expand with our mock response
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -308,7 +303,8 @@ suite("OE Service Tests", () => {
             const result = await expandPromise;
 
             // Verify the result
-            expect(result, "Expand node should return true").to.be.true;
+            expect(result, "Expand node should return children").to.be.not.undefined;
+            expect(result!.length, "Expand node should return 2 children").to.equal(2);
 
             // Verify telemetry was started correctly
             expect(startActivityStub.calledOnce, "Telemetry should be started once").to.be.true;
@@ -362,11 +358,8 @@ suite("OE Service Tests", () => {
                 "Telemetry children count should be 2",
             ).to.equal(2);
 
-            // Verify the promise was resolved with the children
-            const resolvedChildren = await mockPromise;
-            expect(resolvedChildren, "Resolved children should match mapped children").to.equal(
-                mappedChildren,
-            );
+            // Verify the result matches the mapped children
+            expect(result, "Result should match mapped children").to.equal(mappedChildren);
 
             // Verify shouldRefresh was reset
             expect(mockNode.shouldRefresh, "Node shouldRefresh should be false").to.be.false;
@@ -396,7 +389,6 @@ suite("OE Service Tests", () => {
             );
             mockNode.shouldRefresh = true;
             const mockSessionId = "session123";
-            const mockPromise = new Deferred<vscode.TreeItem[]>();
 
             // Setup child nodes that will be returned
             const mockChildNodes = [
@@ -419,11 +411,7 @@ suite("OE Service Tests", () => {
             mockClient.sendRequest.withArgs(RefreshRequest.type, sinon.match.any).resolves(true);
 
             // Call the method to test
-            const expandPromise = objectExplorerService.expandNode(
-                mockNode,
-                mockSessionId,
-                mockPromise,
-            );
+            const expandPromise = objectExplorerService.expandNode(mockNode, mockSessionId);
 
             // Wait a bit and then resolve the pending expand with our mock response
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -440,7 +428,8 @@ suite("OE Service Tests", () => {
             const result = await expandPromise;
 
             // Verify the result
-            expect(result, "Expand node should return true").to.be.true;
+            expect(result, "Expand node should return children").to.be.not.undefined;
+            expect(result!.length, "Expand node should return 1 child").to.equal(1);
 
             // Verify the RefreshRequest was used instead of ExpandRequest
             expect(mockClient.sendRequest.calledOnce, "Send request should be called once").to.be
@@ -477,7 +466,6 @@ suite("OE Service Tests", () => {
                 undefined,
             );
             const mockSessionId = "session123";
-            const mockPromise = new Deferred<vscode.TreeItem[]>();
 
             // Mock the error response
             const mockErrorMessage = "Test error from SQL Tools Service";
@@ -491,11 +479,7 @@ suite("OE Service Tests", () => {
             mockClient.sendRequest.withArgs(ExpandRequest.type, sinon.match.any).resolves(true);
 
             // Call the method to test
-            const expandPromise = objectExplorerService.expandNode(
-                mockNode,
-                mockSessionId,
-                mockPromise,
-            );
+            const expandPromise = objectExplorerService.expandNode(mockNode, mockSessionId);
 
             // Wait a bit and then resolve the pending expand with our error response
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -511,8 +495,9 @@ suite("OE Service Tests", () => {
             // Wait for the expandNode promise to resolve
             const result = await expandPromise;
 
-            // Verify the result (should still be true because we received a response)
-            expect(result, "Expand node should return true").to.be.true;
+            // Verify the result (should be an error node)
+            expect(result, "Expand node should return error node").to.be.not.undefined;
+            expect(result!.length, "Expand node should return 1 error node").to.equal(1);
 
             // Verify error was logged
             expect(mockLogger.error.called, "Error should be logged").to.be.true;
@@ -553,15 +538,13 @@ suite("OE Service Tests", () => {
                 "Telemetry message should be mock error message",
             ).to.equal(mockErrorMessage);
 
-            // Verify the promise was resolved with the error node
-            const resolvedChildren = await mockPromise;
+            // Verify the result contains the error node
+            expect(result![0], "Result child should be an ExpandErrorNode").to.be.instanceOf(
+                ExpandErrorNode,
+            );
             expect(
-                resolvedChildren[0],
-                "Resolved child should be an ExpandErrorNode",
-            ).to.be.instanceOf(ExpandErrorNode);
-            expect(
-                (resolvedChildren[0] as ExpandErrorNode).tooltip,
-                "Resolved child tooltip should be mock error message",
+                (result![0] as ExpandErrorNode).tooltip,
+                "Result child tooltip should be mock error message",
             ).to.equal(mockErrorMessage);
         });
 
@@ -588,17 +571,12 @@ suite("OE Service Tests", () => {
                 undefined,
             );
             const mockSessionId = "session123";
-            const mockPromise = new Deferred<vscode.TreeItem[]>();
 
             // Setup client to return true for the expand request
             mockClient.sendRequest.withArgs(ExpandRequest.type, sinon.match.any).resolves(true);
 
             // Call the method to test
-            const expandPromise = objectExplorerService.expandNode(
-                mockNode,
-                mockSessionId,
-                mockPromise,
-            );
+            const expandPromise = objectExplorerService.expandNode(mockNode, mockSessionId);
 
             // Wait a bit and then resolve the pending expand with null
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -616,10 +594,6 @@ suite("OE Service Tests", () => {
 
             // Verify the result (should be undefined)
             expect(result, "Result should be undefined").to.be.undefined;
-
-            // Verify the promise was resolved with undefined
-            const resolvedChildren = await mockPromise;
-            expect(resolvedChildren, "Resolved children should be undefined").to.be.undefined;
         });
 
         test("expandNode should handle false response from SQL Tools client", async () => {
@@ -645,17 +619,12 @@ suite("OE Service Tests", () => {
                 undefined,
             );
             const mockSessionId = "session123";
-            const mockPromise = new Deferred<vscode.TreeItem[]>();
 
             // Setup client to return false for the expand request (indicates failure)
             mockClient.sendRequest.withArgs(ExpandRequest.type, sinon.match.any).resolves(false);
 
             // Call the method to test
-            const result = await objectExplorerService.expandNode(
-                mockNode,
-                mockSessionId,
-                mockPromise,
-            );
+            const result = await objectExplorerService.expandNode(mockNode, mockSessionId);
 
             // Verify the result (should be undefined)
             expect(result, "Result should be undefined").to.be.undefined;
@@ -669,10 +638,6 @@ suite("OE Service Tests", () => {
                 mockVscodeWrapper.showErrorMessage.args[0][0],
                 "Error message should be mock error message",
             ).to.equal(LocalizedConstants.msgUnableToExpand);
-
-            // Verify the promise was resolved with undefined
-            const resolvedChildren = await mockPromise;
-            expect(resolvedChildren, "Resolved children should be undefined").to.be.undefined;
         });
 
         test("expandNode should handle exception from SQL Tools client", async () => {
@@ -698,7 +663,6 @@ suite("OE Service Tests", () => {
                 undefined,
             );
             const mockSessionId = "session123";
-            const mockPromise = new Deferred<vscode.TreeItem[]>();
 
             // Setup client to throw an error
             const testError = new Error("Test client error");
@@ -707,7 +671,7 @@ suite("OE Service Tests", () => {
 
             try {
                 // Call the method to test
-                await objectExplorerService.expandNode(mockNode, mockSessionId, mockPromise);
+                await objectExplorerService.expandNode(mockNode, mockSessionId);
             } catch (e) {
                 expect(e, "Error should be test error").to.equal(testError);
             }
