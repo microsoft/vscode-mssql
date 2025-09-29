@@ -59,6 +59,7 @@ export const dockerLogger = Logger.create(
 );
 
 const dockerInstallErrorLink = "https://www.docker.com/products/docker-desktop/";
+const sqlServerImageListLink = "https://mcr.microsoft.com/v2/mssql/server/tags/list";
 // Exported for testing purposes
 export const windowsContainersErrorLink =
     "https://learn.microsoft.com/en-us/virtualization/windowscontainers/deploy-containers/set-up-linux-containers";
@@ -227,7 +228,7 @@ export const COMMANDS = {
     }),
     GET_SQL_SERVER_CONTAINER_VERSIONS: (): DockerCommand => ({
         command: "curl",
-        args: ["-s", "https://mcr.microsoft.com/v2/mssql/server/tags/list"],
+        args: ["-s", sqlServerImageListLink],
     }),
 };
 
@@ -587,14 +588,15 @@ export async function getDockerPath(executable: string): Promise<string> {
 /**
  * Temp fix for the SQL Server 2025 version issue on Mac.
  * Returns the last working version of SQL Server 2025 for Mac.
+ * If we are getting the display name, add some formatting
  */
-export function constructVersionTag(version: string): string {
+export function constructVersionTag(version: string, isVersionDisplayName?: boolean): string {
     let versionYear = version.substring(0, yearStringLength);
     // Hard Coded until this issue is fixed for mac: https://github.com/microsoft/mssql-docker/issues/940#issue
     if (platform() === Platform.Mac && arch() !== x64 && versionYear === "2025") {
-        return "2025-CTP2.0-ubuntu-22.04"; // Last working version of SQL Server 2025 for Mac
+        return isVersionDisplayName ? "2025 - CTP2.0-ubuntu-22.04" : "2025-CTP2.0-ubuntu-22.04"; // Last working version of SQL Server 2025 for Mac
     }
-    return `${versionYear}-latest`;
+    return isVersionDisplayName ? `${versionYear} - latest` : `${versionYear}-latest`;
 }
 
 /**
@@ -1007,7 +1009,7 @@ export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]
 
         const versionOptions = uniqueYears
             .map((year) => ({
-                displayName: LocalContainers.sqlServerVersionImage(year),
+                displayName: LocalContainers.sqlServerVersionImage(constructVersionTag(year, true)),
                 value: year,
             }))
             .reverse();
