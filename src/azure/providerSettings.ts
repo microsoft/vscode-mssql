@@ -18,7 +18,7 @@ export enum CloudId {
     // Custom = "Custom", // requires reading from the "microsoft-sovereign-cloud.customCloud" setting
 }
 
-const azureCloudProviderId = "azure_publicCloud"; // ID from previous version of extension; keep for backwards compatibility
+export const azureCloudProviderId = "azure_publicCloud"; // ID from previous version of extension; keep for backwards compatibility
 const azureCloudInfo = AzureEnvironments.Environment.get(CloudId.AzureCloud);
 const usGovernmentCloudInfo = AzureEnvironments.Environment.get(CloudId.USGovernment);
 // const chinaCloudInfo = AzureEnvironments.Environment.get("AzureChinaCloud");

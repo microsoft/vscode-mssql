@@ -19,6 +19,7 @@ import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/mode
 import { ParseConnectionStringRequest } from "../../src/models/contracts/connection";
 import { RequestSecurityTokenParams } from "../../src/models/contracts/azure";
 import { AzureController } from "../../src/azure/azureController";
+import { azureCloudProviderId } from "../../src/azure/providerSettings";
 
 suite("ConnectionManager Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -363,7 +364,9 @@ suite("ConnectionManager Tests", () => {
             };
 
             connectionManager["_keyVaultTokenCache"].clear();
-            connectionManager["selectAccount"] = sinon.stub();
+            connectionManager["selectAccount"] = sinon
+                .stub()
+                .resolves({ key: { providerId: azureCloudProviderId } });
             connectionManager["selectTenantId"] = sinon.stub();
             const stubbedAzureController = TypeMoq.Mock.ofType<AzureController>();
             const token: IToken = {

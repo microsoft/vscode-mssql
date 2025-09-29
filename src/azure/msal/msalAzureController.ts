@@ -81,7 +81,7 @@ export class MsalAzureController extends AzureController {
             this._credentialStore,
         );
 
-        const cloudIds = [CloudId.AzureCloud, CloudId.USGovernment];
+        const cloudIds = Object.values(CloudId);
 
         // if (isCustomCloudSet()) { // TODO: Enable when custom cloud is supported
         //     cloudIds.push(CloudId.CustomCloud);
@@ -355,7 +355,10 @@ export class MsalAzureController extends AzureController {
     }
 }
 
-class CloudAuthApplication {
+/**
+ * Class to handle authentication for a given Azure cloud
+ */
+export class CloudAuthApplication {
     private _authMappings: Map<AzureAuthType, MsalAzureAuth>;
     private _clientApplication: PublicClientApplication;
 
