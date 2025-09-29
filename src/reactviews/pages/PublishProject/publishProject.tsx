@@ -66,10 +66,20 @@ function PublishProjectDialog() {
                   }
                   const key = component.propertyName as keyof IPublishForm;
                   const raw = formState[key];
+                  // Missing if undefined/null
                   if (raw === undefined) {
                       return true;
                   }
-                  return typeof raw === "string" && raw.trim().length === 0;
+                  // For strings, empty/whitespace is missing
+                  if (typeof raw === "string") {
+                      return raw.trim().length === 0;
+                  }
+                  // For booleans (e.g. required checkbox), must be true
+                  if (typeof raw === "boolean") {
+                      return raw !== true;
+                  }
+                  // For numbers, allow 0 (not missing) - adjust if a field ever requires >0
+                  return false;
               })
             : true; // if not ready, treat as missing
 

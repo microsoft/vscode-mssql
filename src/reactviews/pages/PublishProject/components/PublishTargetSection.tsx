@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useEffect } from "react";
-import { makeStyles, Checkbox, tokens, CheckboxOnChangeData } from "@fluentui/react-components";
+import { makeStyles } from "@fluentui/react-components";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
 import {
@@ -14,7 +14,6 @@ import {
 } from "../../../../sharedInterfaces/publishDialog";
 import { FormField } from "../../../common/forms/form.component";
 import { PublishFormContext } from "../types";
-import { parseLicenseText } from "../../../../publishProject/dockerUtils";
 import * as constants from "../../../../constants/constants";
 
 const useStyles = makeStyles({
@@ -32,34 +31,7 @@ const useStyles = makeStyles({
         paddingLeft: "16px",
         borderLeft: "2px solid var(--vscode-editorWidget-border, #8883)",
     },
-    licenseBlock: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "4px",
-        maxWidth: "100%",
-    },
-    licenseLabel: {
-        lineHeight: "1.3",
-    },
-    licenseContainer: {
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-    },
-    licenseLink: {
-        textDecoration: "underline",
-        color: "var(--vscode-textLink-foreground)",
-    },
-    licenseError: {
-        color: tokens.colorStatusDangerForeground1,
-        fontSize: "12px",
-        marginLeft: "24px",
-    },
-    requiredAsterisk: {
-        color: tokens.colorStatusDangerForeground1,
-        fontWeight: 600,
-        marginLeft: "4px",
-    },
+    // (License-specific styles removed; using generic FormField rendering now)
 });
 
 const containerFieldOrder: (keyof IPublishForm)[] = [
@@ -86,6 +58,16 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
     // Select the current target value
     const publishTargetValue = usePublishDialogSelector(
         (s) => s.formState[constants.PublishFormFields.PublishTarget],
+        (a, b) => a === b,
+    );
+
+    // Track password & confirm password values for cross-field validation
+    const containerPassword = usePublishDialogSelector(
+        (s) => s.formState[constants.PublishFormFields.ContainerAdminPassword],
+        (a, b) => a === b,
+    );
+    const containerPasswordConfirm = usePublishDialogSelector(
+        (s) => s.formState[constants.PublishFormFields.ContainerAdminPasswordConfirm],
         (a, b) => a === b,
     );
 
@@ -129,6 +111,24 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
         }
     }, [isContainer, context]);
 
+    // Revalidate confirm password whenever the primary password changes so stale
+    // (previously matching) confirm value doesn't remain marked valid.
+    useEffect(() => {
+        if (!isContainer) {
+            return;
+        }
+        // Only attempt revalidation if the user has entered something in confirm field.
+        // We still want the presence logic to handle the empty confirm case as "missing".
+        if (containerPasswordConfirm !== undefined && containerPasswordConfirm !== "") {
+            context.formAction({
+                propertyName: constants.PublishFormFields.ContainerAdminPasswordConfirm,
+                isAction: false,
+                value: containerPasswordConfirm as string,
+                updateValidation: true,
+            });
+        }
+    }, [containerPassword, isContainer, containerPasswordConfirm, context]);
+
     return (
         <div className={classes.root}>
             <FormField<
@@ -152,64 +152,6 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
 
                         if (!comp || comp.hidden) {
                             return undefined;
-                        }
-
-                        // License checkbox special rendering
-                        if (name === constants.PublishFormFields.AcceptContainerLicense) {
-                            const isChecked =
-                                (context.state.formState[
-                                    comp.propertyName as keyof IPublishForm
-                                ] as boolean) ?? false;
-
-                            const validation = comp.validation;
-                            const isError = validation !== undefined && !validation.isValid;
-                            const errorMessage = isError ? validation.validationMessage : undefined;
-
-                            const licenseInfo = parseLicenseText(comp.label || "");
-
-                            return (
-                                <div key={String(name)} className={classes.licenseBlock}>
-                                    <div className={classes.licenseContainer}>
-                                        <Checkbox
-                                            size="medium"
-                                            checked={isChecked}
-                                            aria-required={comp.required}
-                                            onChange={(
-                                                _: React.ChangeEvent<HTMLInputElement>,
-                                                data: CheckboxOnChangeData,
-                                            ) => {
-                                                context.formAction({
-                                                    propertyName: comp.propertyName,
-                                                    isAction: false,
-                                                    value: data.checked === true,
-                                                    updateValidation: true,
-                                                });
-                                            }}
-                                        />
-                                        <span className={classes.licenseLabel}>
-                                            {licenseInfo.beforeText}
-                                            <a
-                                                href={licenseInfo.linkUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className={classes.licenseLink}>
-                                                {licenseInfo.linkText}
-                                            </a>
-                                            {licenseInfo.afterText}
-                                            <span
-                                                className={classes.requiredAsterisk}
-                                                aria-hidden="true">
-                                                *
-                                            </span>
-                                        </span>
-                                    </div>
-                                    {isError && errorMessage && (
-                                        <span className={classes.licenseError} role="alert">
-                                            {errorMessage}
-                                        </span>
-                                    )}
-                                </div>
-                            );
                         }
 
                         return (
