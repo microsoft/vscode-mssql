@@ -3,9 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
+import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
+import { expect } from "chai";
+import * as chai from "chai";
 import PromptFactory from "../../src/prompts/factory";
-import { assert } from "chai";
 import InputPrompt from "../../src/prompts/input";
 import PasswordPrompt from "../../src/prompts/password";
 import ListPrompt from "../../src/prompts/list";
@@ -14,76 +16,84 @@ import CheckboxPrompt from "../../src/prompts/checkbox";
 import ExpandPrompt from "../../src/prompts/expand";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
+chai.use(sinonChai);
+
 suite("Prompts test", () => {
-    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let sandbox: sinon.SinonSandbox;
+    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     setup(() => {
-        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
+        sandbox = sinon.createSandbox();
+        vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+    });
+
+    teardown(() => {
+        sandbox.restore();
     });
 
     test("Test string prompt", () => {
-        let question: any = {
+        const question: any = {
             type: "string",
         };
-        let prompt = PromptFactory.createPrompt(question, vscodeWrapper.object);
-        assert.equal(prompt instanceof InputPrompt, true);
+        const prompt = PromptFactory.createPrompt(question, vscodeWrapper);
+        expect(prompt).to.be.instanceOf(InputPrompt);
     });
 
     test("Test input prompt", () => {
-        let question: any = {
+        const question: any = {
             type: "input",
             default: Error("test"),
             placeHolder: "test_placeHolder",
         };
-        let prompt = PromptFactory.createPrompt(question, vscodeWrapper.object);
-        assert.equal(prompt instanceof InputPrompt, true);
-        assert.equal(question.type, InputPrompt.promptType);
+        const prompt = PromptFactory.createPrompt(question, vscodeWrapper);
+        expect(prompt).to.be.instanceOf(InputPrompt);
+        expect(question.type).to.equal(InputPrompt.promptType);
     });
 
     test("Test password prompt", () => {
-        let question: any = {
+        const question: any = {
             type: "password",
         };
-        let prompt = PromptFactory.createPrompt(question, vscodeWrapper.object);
-        assert.equal(prompt instanceof PasswordPrompt, true);
+        const prompt = PromptFactory.createPrompt(question, vscodeWrapper);
+        expect(prompt).to.be.instanceOf(PasswordPrompt);
     });
 
     test("Test list prompt", () => {
-        let question: any = {
+        const question: any = {
             type: "list",
         };
-        let prompt = PromptFactory.createPrompt(question, vscodeWrapper.object);
-        assert.equal(prompt instanceof ListPrompt, true);
+        const prompt = PromptFactory.createPrompt(question, vscodeWrapper);
+        expect(prompt).to.be.instanceOf(ListPrompt);
     });
 
     test("Test confirm prompt", () => {
-        let question: any = {
+        const question: any = {
             type: "confirm",
         };
-        let prompt = PromptFactory.createPrompt(question, vscodeWrapper.object);
-        assert.equal(prompt instanceof ConfirmPrompt, true);
+        const prompt = PromptFactory.createPrompt(question, vscodeWrapper);
+        expect(prompt).to.be.instanceOf(ConfirmPrompt);
     });
 
     test("Test checkbox prompt", () => {
-        let question: any = {
+        const question: any = {
             type: "checkbox",
         };
-        let prompt = PromptFactory.createPrompt(question, vscodeWrapper.object);
-        assert.equal(prompt instanceof CheckboxPrompt, true);
+        const prompt = PromptFactory.createPrompt(question, vscodeWrapper);
+        expect(prompt).to.be.instanceOf(CheckboxPrompt);
     });
 
     test("Test expand prompt", () => {
-        let question: any = {
+        const question: any = {
             type: "expand",
         };
-        let prompt = PromptFactory.createPrompt(question, vscodeWrapper.object);
-        assert.equal(prompt instanceof ExpandPrompt, true);
+        const prompt = PromptFactory.createPrompt(question, vscodeWrapper);
+        expect(prompt).to.be.instanceOf(ExpandPrompt);
     });
 
     test("Test bogus prompt", () => {
-        let question: any = {
+        const question: any = {
             type: "fail",
         };
-        assert.Throw(() => PromptFactory.createPrompt(question, vscodeWrapper.object));
+        expect(() => PromptFactory.createPrompt(question, vscodeWrapper)).to.throw();
     });
 });
