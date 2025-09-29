@@ -204,11 +204,10 @@ export class ObjectExplorerService {
     }
 
     /**
-     * Expands a node in the tree and retrieves its children.
+     * Expands a node in the Object Explorer tree. If the node has the shouldRefresh flag set, it will be refreshed.
      * @param node The node to expand
      * @param sessionId The session ID to use for the expansion
-     * @param promise A deferred promise to resolve with the children of the node
-     * @returns A boolean indicating whether the expansion was successful
+     * @returns The children of the expanded node
      */
     public async expandNode(
         node: TreeNodeInfo,
