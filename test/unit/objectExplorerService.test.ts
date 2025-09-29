@@ -188,6 +188,34 @@ suite("OE Service Tests", () => {
             const rootConnection = rootLevelNodes.connections[0] as ConnectionNode;
             expect(rootConnection.connectionProfile.id).to.equal(rootConnections[0].id);
         });
+
+        test("initialize should populate connection groups without console errors", async () => {
+            // Set up mock data with connection groups and connections
+            const mockGroups = createMockConnectionGroups(1);
+            const mockConnections = createMockConnectionProfiles(1);
+
+            // Mock the store methods to return our test data
+            mockConnectionStore.readAllConnectionGroups.resolves(mockGroups);
+            mockConnectionStore.readAllConnections.resolves(mockConnections);
+
+            // Verify that service is not initialized initially
+            expect((objectExplorerService as any)._isInitialized).to.be.false;
+
+            // Call initialize method
+            await objectExplorerService.initialize();
+
+            // Verify that service is now initialized
+            expect((objectExplorerService as any)._isInitialized).to.be.true;
+
+            // Verify that connection groups were populated
+            const connectionGroupNodes = (objectExplorerService as any)._connectionGroupNodes;
+            expect(connectionGroupNodes.size).to.be.greaterThan(0);
+
+            // Verify that calling initialize again doesn't re-initialize
+            const beforeSecondCall = connectionGroupNodes.size;
+            await objectExplorerService.initialize();
+            expect(connectionGroupNodes.size).to.equal(beforeSecondCall);
+        });
     });
 
     suite("expandNode", () => {
