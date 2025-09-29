@@ -213,8 +213,7 @@ export class ObjectExplorerService {
     public async expandNode(
         node: TreeNodeInfo,
         sessionId: string,
-        promise: Deferred<vscode.TreeItem[]>,
-    ): Promise<boolean | undefined> {
+    ): Promise<vscode.TreeItem[] | undefined> {
         const expandActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.ExpandNode,
@@ -226,82 +225,71 @@ export class ObjectExplorerService {
             },
         );
         this._logger.verbose(`Expanding node ${node.label} with session ID ${sessionId}`);
-        try {
-            const expandParams: ExpandParams = {
-                sessionId: sessionId,
-                nodePath: node.nodePath,
-                filters: node.filters,
-            };
-            const expandResponse = new Deferred<ExpandResponse>();
-            this._pendingExpands.set(`${sessionId}${node.nodePath}`, expandResponse);
 
-            let response: boolean;
-            if (node.shouldRefresh) {
-                this._logger.verbose(`Refreshing node ${node.label} with session ID ${sessionId}`);
-                response = await this._connectionManager.client.sendRequest(
-                    RefreshRequest.type,
-                    expandParams,
-                );
-            } else {
-                this._logger.verbose(`Expanding node ${node.label} with session ID ${sessionId}`);
-                response = await this._connectionManager.client.sendRequest(
-                    ExpandRequest.type,
-                    expandParams,
-                );
-            }
+        const expandParams: ExpandParams = {
+            sessionId: sessionId,
+            nodePath: node.nodePath,
+            filters: node.filters,
+        };
+        const expandResponse = new Deferred<ExpandResponse>();
+        this._pendingExpands.set(`${sessionId}${node.nodePath}`, expandResponse);
 
-            if (response) {
-                const result = await expandResponse;
-                this._logger.verbose(
-                    `Expand node response: ${JSON.stringify(result)} for sessionId ${sessionId}`,
-                );
-                if (!result) {
-                    promise.resolve(undefined);
-                    return undefined;
-                }
+        let response: boolean;
+        if (node.shouldRefresh) {
+            this._logger.verbose(`Refreshing node ${node.label} with session ID ${sessionId}`);
+            response = await this._connectionManager.client.sendRequest(
+                RefreshRequest.type,
+                expandParams,
+            );
+        } else {
+            this._logger.verbose(`Expanding node ${node.label} with session ID ${sessionId}`);
+            response = await this._connectionManager.client.sendRequest(
+                ExpandRequest.type,
+                expandParams,
+            );
+        }
 
-                if (result.nodes && !result.errorMessage) {
-                    this._logger.verbose(
-                        `Received ${result.nodes.length} children for node ${node.label} for sessionId ${sessionId}`,
-                    );
-                    // successfully received children from SQL Tools Service
-                    const children = result.nodes.map((n) =>
-                        TreeNodeInfo.fromNodeInfo(
-                            n,
-                            result.sessionId,
-                            node,
-                            node.connectionProfile,
-                        ),
-                    );
-                    this._treeNodeToChildrenMap.set(node, children);
-                    expandActivity.end(ActivityStatus.Succeeded, undefined, {
-                        childrenCount: children.length,
-                    });
-                    promise.resolve(children);
-                } else {
-                    // failure to expand node; display error
-                    if (result.errorMessage) {
-                        this._logger.error(
-                            `Expand node failed: ${result.errorMessage} for sessionId ${sessionId}`,
-                        );
-                        this._vscodeWrapper.showErrorMessage(result.errorMessage);
-                    }
-                    const errorNode = new ExpandErrorNode(node, result.errorMessage);
-                    this._treeNodeToChildrenMap.set(node, [errorNode]);
-                    expandActivity.endFailed(new Error(result.errorMessage), false);
-                    promise.resolve([errorNode]);
-                }
-                return response;
-            } else {
-                this._logger.error(
-                    `Expand node failed: Didn't receive a response from SQL Tools Service for sessionId ${sessionId}`,
-                );
-                await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgUnableToExpand);
-                promise.resolve(undefined);
+        if (response) {
+            const result = await expandResponse;
+            this._logger.verbose(
+                `Expand node response: ${JSON.stringify(result)} for sessionId ${sessionId}`,
+            );
+            if (!result) {
                 return undefined;
             }
-        } finally {
-            node.shouldRefresh = false;
+
+            if (result.nodes && !result.errorMessage) {
+                this._logger.verbose(
+                    `Received ${result.nodes.length} children for node ${node.label} for sessionId ${sessionId}`,
+                );
+                // successfully received children from SQL Tools Service
+                const children = result.nodes.map((n) =>
+                    TreeNodeInfo.fromNodeInfo(n, result.sessionId, node, node.connectionProfile),
+                );
+                this._treeNodeToChildrenMap.set(node, children);
+                expandActivity.end(ActivityStatus.Succeeded, undefined, {
+                    childrenCount: children.length,
+                });
+                return children;
+            } else {
+                // failure to expand node; display error
+                if (result.errorMessage) {
+                    this._logger.error(
+                        `Expand node failed: ${result.errorMessage} for sessionId ${sessionId}`,
+                    );
+                    this._vscodeWrapper.showErrorMessage(result.errorMessage);
+                }
+                const errorNode = new ExpandErrorNode(node, result.errorMessage);
+                this._treeNodeToChildrenMap.set(node, [errorNode]);
+                expandActivity.endFailed(new Error(result.errorMessage), false);
+                return [errorNode];
+            }
+        } else {
+            this._logger.error(
+                `Expand node failed: Didn't receive a response from SQL Tools Service for sessionId ${sessionId}`,
+            );
+            await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgUnableToExpand);
+            return undefined;
         }
     }
 
@@ -524,6 +512,7 @@ export class ObjectExplorerService {
             }
         }
 
+        element.shouldRefresh = false;
         /**
          * If no children are cached, return a temporary loading node to keep the UI responsive
          * and trigger the async call to fetch real children.
@@ -574,20 +563,13 @@ export class ObjectExplorerService {
      * @returns The children of the node
      */
     private async expandExistingNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        const promise = new Deferred<TreeNodeInfo[]>();
-        await this.expandNode(element, element.sessionId, promise);
-        const children = await promise;
-
-        if (children) {
-            if (children.length === 0) {
-                const noItemsNode = [new NoItemsNode(element)];
-                this._treeNodeToChildrenMap.set(element, noItemsNode);
-                return noItemsNode;
-            }
-            return children;
-        } else {
-            return undefined;
+        const children = await this.expandNode(element, element.sessionId);
+        if (children?.length === 0) {
+            const noItemsNode = [new NoItemsNode(element)];
+            this._treeNodeToChildrenMap.set(element, noItemsNode);
+            return noItemsNode;
         }
+        return children;
     }
 
     /**
