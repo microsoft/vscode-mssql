@@ -11,7 +11,7 @@ import {
 } from "../../src/objectExplorer/objectExplorerService";
 import { expect } from "chai";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import ConnectionManager, { SqlConnectionErrors } from "../../src/controllers/connectionManager";
+import ConnectionManager, { SqlConnectionErrorType } from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { Logger } from "../../src/models/logger";
 import { ConnectionStore } from "../../src/models/connectionStore";
@@ -1074,7 +1074,7 @@ suite("OE Service Tests", () => {
             mockConnectionManager.handleConnectionErrors.resolves({
                 isHandled: false,
                 updatedCredentials: connectionProfile,
-                errorHandled: SqlConnectionErrors.Generic,
+                errorHandled: SqlConnectionErrorType.Generic,
             });
 
             await (objectExplorerService as any).handleSessionCreationFailure(
@@ -1085,8 +1085,7 @@ suite("OE Service Tests", () => {
 
             expect(
                 mockConnectionManager.handleConnectionErrors.calledOnceWithExactly(
-                    failureResponse.errorNumber,
-                    failureResponse.errorMessage,
+                    failureResponse,
                     connectionProfile,
                 ),
                 "handleConnectionErrors should be invoked with failure details",
@@ -1108,7 +1107,7 @@ suite("OE Service Tests", () => {
             mockConnectionManager.handleConnectionErrors.resolves({
                 isHandled: true,
                 updatedCredentials: updatedProfile,
-                errorHandled: SqlConnectionErrors.TrustServerCertificateNotEnabled,
+                errorHandled: SqlConnectionErrorType.TrustServerCertificateNotEnabled,
             });
 
             const connectionNode = {
@@ -1154,7 +1153,7 @@ suite("OE Service Tests", () => {
             mockConnectionManager.handleConnectionErrors.resolves({
                 isHandled: false,
                 updatedCredentials: connectionProfile,
-                errorHandled: SqlConnectionErrors.FirewallRuleError,
+                errorHandled: SqlConnectionErrorType.FirewallRuleError,
             });
 
             const getNodeStub = sandbox

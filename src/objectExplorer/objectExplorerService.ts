@@ -837,8 +837,7 @@ export class ObjectExplorerService {
         }
 
         const errorHandlingResult = await this._connectionManager.handleConnectionErrors(
-            failureResponse.errorNumber,
-            failureResponse.errorMessage,
+            failureResponse,
             connectionProfile,
         );
 

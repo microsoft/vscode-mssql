@@ -65,11 +65,7 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import {
-    configSelectedAzureSubscriptions,
-    errorFirewallRule,
-    errorSSLCertificateValidationFailed,
-} from "../constants/constants";
+import { configSelectedAzureSubscriptions } from "../constants/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
 import {
@@ -81,7 +77,11 @@ import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureS
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { FabricHelper } from "../fabric/fabricHelper";
 import { FabricSqlDbInfo, FabricWorkspaceInfo } from "../sharedInterfaces/fabric";
-import { ConnectionInfo } from "../controllers/connectionManager";
+import {
+    ConnectionInfo,
+    getSqlConnectionErrorType,
+    SqlConnectionErrorType,
+} from "../controllers/connectionManager";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 
@@ -1071,79 +1071,92 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         result: ConnectionInfo,
         state: ConnectionDialogWebviewState,
     ): Promise<ConnectionDialogWebviewState> {
-        if (result.errorNumber === errorSSLCertificateValidationFailed) {
-            this.state.connectionStatus = ApiStatus.Error;
-            this.state.dialog = {
-                type: "trustServerCert",
-                message: result.errorMessage,
-            } as TrustServerCertDialogProps;
+        const errorType = await getSqlConnectionErrorType(
+            {
+                errorNumber: result.errorNumber,
+                errorMessage: result.errorMessage,
+                message: result.messages,
+            },
+            result.credentials,
+        );
+        switch (errorType) {
+            case SqlConnectionErrorType.TrustServerCertificateNotEnabled:
+                this.state.connectionStatus = ApiStatus.Error;
+                this.state.dialog = {
+                    type: "trustServerCert",
+                    message: result.errorMessage,
+                } as TrustServerCertDialogProps;
 
-            // connection failing because the user didn't trust the server cert is not an error worth logging;
-            // just prompt the user to trust the cert
+                // connection failing because the user didn't trust the server cert is not an error worth logging;
+                // just prompt the user to trust the cert
 
-            return state;
-        } else if (result.errorNumber === errorFirewallRule) {
-            this.state.connectionStatus = ApiStatus.Error;
+                return state;
+            case SqlConnectionErrorType.FirewallRuleError:
+                this.state.connectionStatus = ApiStatus.Error;
 
-            const handleFirewallErrorResult =
-                await this._mainController.connectionManager.firewallService.handleFirewallRule(
-                    result.errorNumber,
-                    result.errorMessage,
-                );
+                const handleFirewallErrorResult =
+                    await this._mainController.connectionManager.firewallService.handleFirewallRule(
+                        result.errorNumber,
+                        result.errorMessage,
+                    );
 
-            if (!handleFirewallErrorResult.result) {
-                sendErrorEvent(
+                if (!handleFirewallErrorResult.result) {
+                    sendErrorEvent(
+                        TelemetryViews.ConnectionDialog,
+                        TelemetryActions.AddFirewallRule,
+                        new Error(result.errorMessage),
+                        true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
+                        undefined, // errorCode
+                        "parseIP", // errorType
+                    );
+
+                    // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
+                    handleFirewallErrorResult.ipAddress = "0.0.0.0";
+                }
+
+                const addFirewallDialogState: AddFirewallRuleState = {
+                    message: result.errorMessage,
+                    clientIp: handleFirewallErrorResult.ipAddress,
+                    accounts: [],
+                    tenants: {},
+                    isSignedIn: true,
+                    serverName: this.state.connectionProfile.server,
+                    addFirewallRuleStatus: ApiStatus.NotStarted,
+                };
+
+                if (addFirewallDialogState.isSignedIn) {
+                    await populateAzureAccountInfo(
+                        addFirewallDialogState,
+                        false /* forceSignInPrompt */,
+                    );
+                }
+
+                addFirewallDialogState.isSignedIn = await VsCodeAzureHelper.isSignedIn();
+
+                this.state.dialog = {
+                    type: "addFirewallRule",
+                    props: addFirewallDialogState,
+                } as AddFirewallRuleDialogProps;
+
+                return state;
+            default:
+                this.state.formError = result.errorMessage;
+                this.state.connectionStatus = ApiStatus.Error;
+
+                sendActionEvent(
                     TelemetryViews.ConnectionDialog,
-                    TelemetryActions.AddFirewallRule,
-                    new Error(result.errorMessage),
-                    true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
-                    undefined, // errorCode
-                    "parseIP", // errorType
+                    TelemetryActions.CreateConnection,
+                    {
+                        result: "connectionError",
+                        errorNumber: String(result.errorNumber),
+                        newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
+                        connectionInputType: this.state.selectedInputMode,
+                        authMode: this.state.connectionProfile.authenticationType,
+                    },
                 );
 
-                // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
-                handleFirewallErrorResult.ipAddress = "0.0.0.0";
-            }
-
-            const addFirewallDialogState: AddFirewallRuleState = {
-                message: result.errorMessage,
-                clientIp: handleFirewallErrorResult.ipAddress,
-                accounts: [],
-                tenants: {},
-                isSignedIn: true,
-                serverName: this.state.connectionProfile.server,
-                addFirewallRuleStatus: ApiStatus.NotStarted,
-            };
-
-            if (addFirewallDialogState.isSignedIn) {
-                await populateAzureAccountInfo(
-                    addFirewallDialogState,
-                    false /* forceSignInPrompt */,
-                );
-            }
-
-            addFirewallDialogState.isSignedIn = await VsCodeAzureHelper.isSignedIn();
-
-            this.state.dialog = {
-                type: "addFirewallRule",
-                props: addFirewallDialogState,
-            } as AddFirewallRuleDialogProps;
-
-            return state;
+                return state;
         }
-
-        this.state.formError = result.errorMessage;
-        this.state.connectionStatus = ApiStatus.Error;
-
-        sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
-            result: "connectionError",
-            errorNumber: String(result.errorNumber),
-            newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
-            connectionInputType: this.state.selectedInputMode,
-            authMode: this.state.connectionProfile.authenticationType,
-        });
-
-        return state;
     }
 
     private async loadConnectionToEdit(connectionToEdit: IConnectionInfo) {

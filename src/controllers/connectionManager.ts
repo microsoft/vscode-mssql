@@ -1230,10 +1230,8 @@ export default class ConnectionManager {
         } else {
             if (shouldHandleErrors) {
                 const errorHandlingResult = await this.handleConnectionErrors(
-                    result.errorNumber,
-                    result.errorMessage,
+                    result,
                     connectionInfo.credentials,
-                    result.messages,
                 );
 
                 if (errorHandlingResult.isHandled) {
@@ -1402,14 +1400,12 @@ export default class ConnectionManager {
      * and an optional string indicating the type of error that was handled (for telemetry purposes).
      */
     public async handleConnectionErrors(
-        errorNumber: number,
-        errorMessage: string,
+        error: SqlConnectionError,
         credentials: IConnectionInfo,
-        message?: string,
     ): Promise<{
         isHandled: boolean;
         updatedCredentials: IConnectionInfo;
-        errorHandled?: SqlConnectionErrors;
+        errorHandled?: SqlConnectionErrorType;
     }> {
         // Helper for "learn more" prompts
         const showWithHelp = async (message: string, helpLabel: string, helpUrl: string) => {
@@ -1418,135 +1414,114 @@ export default class ConnectionManager {
                 await vscode.env.openExternal(vscode.Uri.parse(helpUrl));
             }
         };
-        const platformInfo = await PlatformInformation.getCurrent();
 
-        if (
-            errorNumber === Constants.errorPasswordExpired ||
-            errorNumber === Constants.errorPasswordNeedsReset
-        ) {
-            // TODO: we should allow the user to change their password here once corefx supports SqlConnection.ChangePassword()
-            Utils.showErrorMsg(
-                LocalizedConstants.msgConnectionErrorPasswordExpired(errorNumber, errorMessage),
-            );
-            return {
-                isHandled: false,
-                updatedCredentials: credentials,
-                errorHandled: SqlConnectionErrors.PasswordExpired,
-            };
-        } else if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
-            const updatedConnection = await this.handleSSLError(credentials as IConnectionProfile);
-            if (updatedConnection) {
-                return {
-                    isHandled: true,
-                    updatedCredentials: updatedConnection,
-                    errorHandled: SqlConnectionErrors.TrustServerCertificateNotEnabled,
-                };
-            } else {
-                return {
-                    isHandled: false,
-                    updatedCredentials: credentials,
-                    errorHandled: SqlConnectionErrors.TrustServerCertificateNotEnabled,
-                };
-            }
-        } else if (errorNumber === Constants.errorFirewallRule) {
-            const wasCreated = await this.handleFirewallError(credentials, errorMessage);
-            if (wasCreated === true /** dialog closed is undefined */) {
-                return {
-                    isHandled: true,
-                    updatedCredentials: credentials,
-                    errorHandled: SqlConnectionErrors.FirewallRuleError,
-                };
-            } else {
+        const errorType = await getSqlConnectionErrorType(error, credentials);
+        const { errorNumber, errorMessage, message } = error;
+
+        switch (errorType) {
+            case SqlConnectionErrorType.PasswordExpired:
+                // TODO: we should allow the user to change their password here once corefx supports SqlConnection.ChangePassword()
                 Utils.showErrorMsg(
-                    LocalizedConstants.msgConnectionError(errorNumber, errorMessage),
+                    LocalizedConstants.msgConnectionErrorPasswordExpired(errorNumber, errorMessage),
                 );
                 return {
                     isHandled: false,
                     updatedCredentials: credentials,
-                    errorHandled: SqlConnectionErrors.FirewallRuleError,
+                    errorHandled: SqlConnectionErrorType.PasswordExpired,
                 };
-            }
-        } else if (!platformInfo.isWindows && errorMessage?.includes("Kerberos")) {
-            await showWithHelp(
-                LocalizedConstants.msgConnectionError2(errorMessage),
-                LocalizedConstants.macOpenSslHelpButton,
-                Constants.integratedAuthHelpLink,
-            );
-            return {
-                isHandled: false,
-                updatedCredentials: credentials,
-                errorHandled: SqlConnectionErrors.KerberosNonWindows,
-            };
-        } else if (
-            platformInfo.runtimeId === Runtime.OSX_10_11_64 &&
-            (message?.includes("Unable to load DLL 'System.Security.Cryptography.Native'") ||
-                errorMessage?.includes("Unable to load DLL 'System.Security.Cryptography.Native'"))
-        ) {
-            // macOS 10.11 OpenSSL shim missing
-
-            await showWithHelp(
-                LocalizedConstants.msgConnectionError2(LocalizedConstants.macOpenSslErrorMessage),
-                LocalizedConstants.macOpenSslHelpButton,
-                Constants.macOpenSslHelpLink,
-            );
-            return {
-                isHandled: false,
-                updatedCredentials: credentials,
-                errorHandled: SqlConnectionErrors.MacOpenSsl,
-            };
-        } else if (
-            credentials.authenticationType === Constants.azureMfa &&
-            this.needsAccountRefresh(errorMessage, credentials.user)
-        ) {
-            try {
-                await this.confirmEntraTokenValidity(credentials);
-                return {
-                    isHandled: true,
-                    updatedCredentials: credentials,
-                    errorHandled: SqlConnectionErrors.EntraTokenExpired,
-                };
-            } catch (error) {
-                Utils.showErrorMsg(getErrorMessage(error));
+            case SqlConnectionErrorType.TrustServerCertificateNotEnabled:
+                const updatedConnection = await this.handleSSLError(
+                    credentials as IConnectionProfile,
+                );
+                if (updatedConnection) {
+                    return {
+                        isHandled: true,
+                        updatedCredentials: updatedConnection,
+                        errorHandled: SqlConnectionErrorType.TrustServerCertificateNotEnabled,
+                    };
+                } else {
+                    return {
+                        isHandled: false,
+                        updatedCredentials: credentials,
+                        errorHandled: SqlConnectionErrorType.TrustServerCertificateNotEnabled,
+                    };
+                }
+            case SqlConnectionErrorType.FirewallRuleError:
+                const wasCreated = await this.handleFirewallError(credentials, errorMessage);
+                if (wasCreated === true /** dialog closed is undefined */) {
+                    return {
+                        isHandled: true,
+                        updatedCredentials: credentials,
+                        errorHandled: SqlConnectionErrorType.FirewallRuleError,
+                    };
+                } else {
+                    Utils.showErrorMsg(
+                        LocalizedConstants.msgConnectionError(errorNumber, errorMessage),
+                    );
+                    return {
+                        isHandled: false,
+                        updatedCredentials: credentials,
+                        errorHandled: SqlConnectionErrorType.FirewallRuleError,
+                    };
+                }
+            case SqlConnectionErrorType.KerberosNonWindows:
+                await showWithHelp(
+                    LocalizedConstants.msgConnectionError2(errorMessage),
+                    LocalizedConstants.macOpenSslHelpButton,
+                    Constants.integratedAuthHelpLink,
+                );
                 return {
                     isHandled: false,
                     updatedCredentials: credentials,
-                    errorHandled: SqlConnectionErrors.EntraTokenExpired,
+                    errorHandled: SqlConnectionErrorType.KerberosNonWindows,
                 };
-            }
-        } else {
-            // Generic error handling
-            if (errorNumber) {
-                Utils.showErrorMsg(
-                    LocalizedConstants.msgConnectionError(errorNumber, errorMessage),
+            case SqlConnectionErrorType.MacOpenSsl:
+                // macOS 10.11 OpenSSL shim missing
+
+                await showWithHelp(
+                    LocalizedConstants.msgConnectionError2(
+                        LocalizedConstants.macOpenSslErrorMessage,
+                    ),
+                    LocalizedConstants.macOpenSslHelpButton,
+                    Constants.macOpenSslHelpLink,
                 );
-            } else {
-                Utils.showErrorMsg(LocalizedConstants.msgConnectionError2(message));
-            }
-            return {
-                isHandled: false,
-                updatedCredentials: credentials,
-                errorHandled: SqlConnectionErrors.Generic,
-            };
+                return {
+                    isHandled: false,
+                    updatedCredentials: credentials,
+                    errorHandled: SqlConnectionErrorType.MacOpenSsl,
+                };
+            case SqlConnectionErrorType.EntraTokenExpired:
+                try {
+                    await this.confirmEntraTokenValidity(credentials);
+                    return {
+                        isHandled: true,
+                        updatedCredentials: credentials,
+                        errorHandled: SqlConnectionErrorType.EntraTokenExpired,
+                    };
+                } catch (error) {
+                    Utils.showErrorMsg(getErrorMessage(error));
+                    return {
+                        isHandled: false,
+                        updatedCredentials: credentials,
+                        errorHandled: SqlConnectionErrorType.EntraTokenExpired,
+                    };
+                }
+            case SqlConnectionErrorType.Generic:
+            default:
+                // Generic error handling
+                if (errorNumber) {
+                    Utils.showErrorMsg(
+                        LocalizedConstants.msgConnectionError(errorNumber, errorMessage),
+                    );
+                } else {
+                    Utils.showErrorMsg(LocalizedConstants.msgConnectionError2(message));
+                }
+                return {
+                    isHandled: false,
+                    updatedCredentials: credentials,
+                    errorHandled: SqlConnectionErrorType.Generic,
+                };
         }
-    }
-
-    /**
-     * Checks if the account needs to be refreshed based on the error message.
-     * @param result The result of the session creation.
-     * @param username The username of the account.
-     * @returns
-     */
-    private needsAccountRefresh(errorMessage: string, username: string): boolean {
-        let email = username?.includes(" - ")
-            ? username.substring(username.indexOf("-") + 2)
-            : username;
-        return (
-            errorMessage.includes(AzureConstants.AADSTS70043) ||
-            errorMessage.includes(AzureConstants.AADSTS50173) ||
-            errorMessage.includes(AzureConstants.AADSTS50020) ||
-            errorMessage.includes(AzureConstants.mdsUserAccountNotReceived) ||
-            errorMessage.includes(Utils.formatString(AzureConstants.mdsUserAccountNotFound, email))
-        );
     }
 
     private addActiveConnection(fileUri: string, connectionInfo: ConnectionInfo) {
@@ -1985,12 +1960,74 @@ interface TenantQuickPickItem {
     tenant: string; // Replace with proper tenant type
 }
 
-export enum SqlConnectionErrors {
+export interface SqlConnectionError {
+    message?: string;
+    errorNumber?: number;
+    errorMessage?: string;
+}
+
+export enum SqlConnectionErrorType {
     PasswordExpired = "passwordExpired",
     TrustServerCertificateNotEnabled = "trustServerCertificate",
-    FirewallRuleError = "firewallRuleN",
+    FirewallRuleError = "firewallRule",
     KerberosNonWindows = "kerberosNonWindows",
     MacOpenSsl = "macOpenSsl",
     EntraTokenExpired = "entraTokenExpired",
     Generic = "generic",
+}
+
+export async function getSqlConnectionErrorType(
+    error: SqlConnectionError,
+    credentials: IConnectionInfo,
+): Promise<SqlConnectionErrorType> {
+    const platformInfo = await PlatformInformation.getCurrent();
+
+    const { errorNumber, errorMessage, message } = error;
+    if (
+        errorNumber === Constants.errorPasswordExpired ||
+        errorNumber === Constants.errorPasswordNeedsReset
+    ) {
+        return SqlConnectionErrorType.PasswordExpired;
+    } else if (errorNumber === Constants.errorSSLCertificateValidationFailed) {
+        return SqlConnectionErrorType.TrustServerCertificateNotEnabled;
+    } else if (errorNumber === Constants.errorFirewallRule) {
+        return SqlConnectionErrorType.FirewallRuleError;
+    } else if (
+        !platformInfo.isWindows &&
+        errorMessage?.includes(Constants.errorKerberosSubString)
+    ) {
+        return SqlConnectionErrorType.KerberosNonWindows;
+    } else if (
+        platformInfo.runtimeId === Runtime.OSX_10_11_64 &&
+        (message?.includes(Constants.errorMacOsOpenSSLErrorSubstring) ||
+            errorMessage?.includes(Constants.errorMacOsOpenSSLErrorSubstring))
+    ) {
+        return SqlConnectionErrorType.MacOpenSsl;
+    } else if (
+        credentials.authenticationType === Constants.azureMfa &&
+        needsAccountRefresh(errorMessage, credentials.user)
+    ) {
+        return SqlConnectionErrorType.EntraTokenExpired;
+    } else {
+        return SqlConnectionErrorType.Generic;
+    }
+}
+
+/**
+ * Checks if the account needs to be refreshed based on the error message.
+ * @param result The result of the session creation.
+ * @param username The username of the account.
+ * @returns
+ */
+function needsAccountRefresh(errorMessage: string, username: string): boolean {
+    let email = username?.includes(" - ")
+        ? username.substring(username.indexOf("-") + 2)
+        : username;
+    return (
+        errorMessage.includes(AzureConstants.AADSTS70043) ||
+        errorMessage.includes(AzureConstants.AADSTS50173) ||
+        errorMessage.includes(AzureConstants.AADSTS50020) ||
+        errorMessage.includes(AzureConstants.mdsUserAccountNotReceived) ||
+        errorMessage.includes(Utils.formatString(AzureConstants.mdsUserAccountNotFound, email))
+    );
 }
