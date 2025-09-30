@@ -431,7 +431,7 @@ export default class MainController implements vscode.Disposable {
                     } else {
                         // The editor was somehow not created
                         this._vscodeWrapper.showErrorMessage(
-                            "Chat with database: unable to open editor",
+                            "Chat with database: unable to open editor FROM FORKED CODE",
                         );
                     }
                 }
