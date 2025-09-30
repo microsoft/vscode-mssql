@@ -139,7 +139,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     }
 
     private async loadResultSet(): Promise<void> {
-        const subsetResult = await this._tableExplorerService.subset(this.state.ownerUri, 0, 200);
+        const subsetResult = await this._tableExplorerService.subset(this.state.ownerUri, 0, 100);
         this.state.resultSet = subsetResult;
 
         this.updateState();
