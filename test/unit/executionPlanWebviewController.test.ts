@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { ExecutionPlanWebviewController } from "../../src/controllers/executionPlanWebviewController";
@@ -17,6 +19,8 @@ import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { GetExecutionPlanRequest } from "../../src/models/contracts/executionPlan";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { stubVscodeWrapper } from "./utils";
+
+chai.use(sinonChai);
 
 suite("ExecutionPlanWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
@@ -61,7 +65,7 @@ suite("ExecutionPlanWebviewController", () => {
 
         controller = new ExecutionPlanWebviewController(
             mockContext,
-            vscodeWrapper as unknown as VscodeWrapper,
+            vscodeWrapper,
             mockExecutionPlanService,
             mockSqlDocumentService,
             executionPlanContents,
@@ -89,20 +93,14 @@ suite("ExecutionPlanWebviewController", () => {
             {},
         );
 
-        expect(
-            createExecutionPlanGraphsStub.calledOnce,
-            "createExecutionPlanGraphs should be called once",
-        ).to.be.true;
+        expect(createExecutionPlanGraphsStub).to.have.been.calledOnce;
 
-        expect(
-            createExecutionPlanGraphsStub.firstCall.args,
-            "createExecutionPlanGraphs should be called with correct arguments",
-        ).to.deep.equal([
+        expect(createExecutionPlanGraphsStub).to.have.been.calledWithExactly(
             mockInitialState,
             controller.executionPlanService,
             [controller.executionPlanContents],
             "SqlplanFile",
-        ]);
+        );
 
         expect(
             result,
@@ -126,13 +124,9 @@ suite("ExecutionPlanWebviewController", () => {
             mockPayload,
         );
 
-        expect(saveExecutionPlanStub.calledOnce, "saveExecutionPlan should be called once").to.be
-            .true;
+        expect(saveExecutionPlanStub).to.have.been.calledOnce;
 
-        expect(
-            saveExecutionPlanStub.firstCall.args,
-            "saveExecutionPlan should be called with correct arguments",
-        ).to.deep.equal([mockInitialState, mockPayload]);
+        expect(saveExecutionPlanStub).to.have.been.calledWithExactly(mockInitialState, mockPayload);
 
         expect(result, "State should not be changed").to.deep.equal(mockInitialState);
 
@@ -151,12 +145,9 @@ suite("ExecutionPlanWebviewController", () => {
             mockPayload,
         );
 
-        expect(showPlanXmlStub.calledOnce, "showPlanXml should be called once").to.be.true;
+        expect(showPlanXmlStub).to.have.been.calledOnce;
 
-        expect(
-            showPlanXmlStub.firstCall.args,
-            "showPlanXml should be called with correct arguments",
-        ).to.deep.equal([mockInitialState, mockPayload]);
+        expect(showPlanXmlStub).to.have.been.calledWithExactly(mockInitialState, mockPayload);
 
         expect(result, "State should not be changed").to.deep.equal(mockInitialState);
 
@@ -175,12 +166,13 @@ suite("ExecutionPlanWebviewController", () => {
             mockPayload,
         );
 
-        expect(showQueryStub.calledOnce, "showQuery should be called once").to.be.true;
+        expect(showQueryStub).to.have.been.calledOnce;
 
-        expect(
-            showQueryStub.firstCall.args,
-            "showQuery should be called with correct arguments",
-        ).to.deep.equal([mockInitialState, mockPayload, controller.sqlDocumentService]);
+        expect(showQueryStub).to.have.been.calledWithExactly(
+            mockInitialState,
+            mockPayload,
+            controller.sqlDocumentService,
+        );
 
         expect(result, "State should not be changed").to.deep.equal(mockInitialState);
 
@@ -205,12 +197,9 @@ suite("ExecutionPlanWebviewController", () => {
             mockPayload,
         );
 
-        expect(updateTotalCostStub.calledOnce, "updateTotalCost should be called once").to.be.true;
+        expect(updateTotalCostStub).to.have.been.calledOnce;
 
-        expect(
-            updateTotalCostStub.firstCall.args,
-            "showQuery should be called with correct arguments",
-        ).to.deep.equal([mockInitialState, mockPayload]);
+        expect(updateTotalCostStub).to.have.been.calledWithExactly(mockInitialState, mockPayload);
 
         expect(result, "State should have an updated total cost").to.deep.equal(mockResultState);
 
@@ -247,14 +236,11 @@ suite("Execution Plan Utilities", () => {
         };
 
         client = sandbox.createStubInstance(SqlToolsServiceClient);
-        client.logger = { error: sandbox.stub() } as unknown as SqlToolsServiceClient["logger"];
         client.sendRequest
             .withArgs(GetExecutionPlanRequest.type, sinon.match.any)
             .resolves(mockResult);
 
-        mockExecutionPlanService = new ExecutionPlanService(
-            client as unknown as SqlToolsServiceClient,
-        );
+        mockExecutionPlanService = new ExecutionPlanService(client);
         mockSqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
     });
 
@@ -282,8 +268,7 @@ suite("Execution Plan Utilities", () => {
 
         expect(result, "State should not change").to.deep.equal(mockInitialState);
 
-        // Checks the file was saved
-        sinon.assert.calledOnce(writeFileStub);
+        expect(writeFileStub).to.have.been.calledOnce;
 
         showSaveDialogStub.restore();
     });
@@ -294,7 +279,7 @@ suite("Execution Plan Utilities", () => {
         const mockPayload = { sqlPlanContent: executionPlanContents };
 
         const result = await epUtils.showPlanXml(mockInitialState, mockPayload);
-        sinon.assert.calledOnce(openDocumentStub);
+        expect(openDocumentStub).to.have.been.calledOnce;
         expect(result, "The state should be returned unchanged.").to.equal(mockInitialState);
     });
 
@@ -312,7 +297,9 @@ suite("Execution Plan Utilities", () => {
         );
 
         expect(result, "The state should be returned unchanged.").to.equal(mockInitialState);
-        sinon.assert.calledOnceWithExactly(mockSqlDocumentService.newQuery as sinon.SinonStub, {
+        expect(
+            mockSqlDocumentService.newQuery as sinon.SinonStub,
+        ).to.have.been.calledOnceWithExactly({
             content: mockPayload.query,
             connectionStrategy: ConnectionStrategy.CopyFromUri,
             sourceUri: mockUri,
@@ -331,7 +318,9 @@ suite("Execution Plan Utilities", () => {
         );
 
         expect(result, "The state should be returned unchanged.").to.equal(mockInitialState);
-        sinon.assert.calledOnceWithExactly(mockSqlDocumentService.newQuery as sinon.SinonStub, {
+        expect(
+            mockSqlDocumentService.newQuery as sinon.SinonStub,
+        ).to.have.been.calledOnceWithExactly({
             content: mockPayload.query,
             connectionStrategy: ConnectionStrategy.DoNotConnect,
             sourceUri: undefined,
@@ -359,7 +348,7 @@ suite("Execution Plan Utilities", () => {
             graphFileType: `.sqlplan`,
         };
 
-        sinon.assert.calledOnceWithExactly(getExecutionPlanStub, planFile);
+        expect(getExecutionPlanStub).to.have.been.calledOnceWithExactly(planFile);
 
         expect(result).to.not.equal(undefined);
         expect(
@@ -385,7 +374,7 @@ suite("Execution Plan Utilities", () => {
             graphFileType: `.sqlplan`,
         };
 
-        sinon.assert.calledOnceWithExactly(getExecutionPlanStub, planFile);
+        expect(getExecutionPlanStub).to.have.been.calledOnceWithExactly(planFile);
 
         expect(result, "The resulting state should be defined").to.not.deep.equal(undefined);
         expect(result.executionPlanState.loadState, "The load state should be updated").to.equal(
@@ -409,7 +398,7 @@ suite("Execution Plan Utilities", () => {
     });
 
     test("calculateTotalCost: should return 0 and set loadState to Error if executionPlanGraphs is undefined", () => {
-        let mockState: any = {
+        let mockState: ep.ExecutionPlanWebviewState = {
             executionPlanState: {
                 executionPlanGraphs: undefined,
                 loadState: ApiStatus.Loading,
@@ -425,11 +414,11 @@ suite("Execution Plan Utilities", () => {
     });
 
     test("calculateTotalCost: should correctly calculate the total cost for a valid state", () => {
-        const mockInitialState: any = {
+        const mockInitialState: ep.ExecutionPlanWebviewState = {
             executionPlanState: {
                 executionPlanGraphs: [
-                    { root: { cost: 10, subTreeCost: 20 } },
-                    { root: { cost: 5, subTreeCost: 15 } },
+                    { root: { cost: 10, subTreeCost: 20 } } as ep.ExecutionPlanGraph,
+                    { root: { cost: 5, subTreeCost: 15 } } as ep.ExecutionPlanGraph,
                 ],
                 loadState: ApiStatus.Loaded,
             },

@@ -42,7 +42,7 @@ suite("ExtConfig Tests", () => {
             extensionConfigGet.withArgs(toolsKey(configKey)).returns(expectedFromExtension);
         }
 
-        return new ExtConfig(config as unknown as IConfigUtils, extensionConfig, workspaceConfig);
+        return new ExtConfig(config, extensionConfig, workspaceConfig);
     };
 
     setup(() => {

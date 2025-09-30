@@ -29,9 +29,9 @@ suite("Metadata Service Tests", () => {
         };
 
         client.sendRequest.resolves(mockMetadata);
-        connectionManager.client = client as unknown as SqlToolsServiceClient;
+        connectionManager.client = client;
 
-        metadataService = new MetadataService(connectionManager as unknown as ConnectionManager);
+        metadataService = new MetadataService(connectionManager);
     });
 
     teardown(() => {
