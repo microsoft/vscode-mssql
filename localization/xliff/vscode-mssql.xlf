@@ -277,6 +277,9 @@
       <source xml:lang="en">Average: {0}  Count: {1}  Sum: {2}</source>
       <note>{0} is the average, {1} is the count, {2} is the sum</note>
     </trans-unit>
+    <trans-unit id="++CODE++994c049faf0fd65f191759cacf91508d01743fda1b2f06cfc7f779fc49ae4991">
+      <source xml:lang="en">Azure (China)</source>
+    </trans-unit>
     <trans-unit id="++CODE++cdf9c75db21efc1ddc557d567de91e9bc67533606ce4bbc049c592d77f122e68">
       <source xml:lang="en">Azure (Public)</source>
     </trans-unit>

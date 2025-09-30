@@ -7,21 +7,28 @@ import * as vscode from "vscode";
 import { IProviderSettings } from "../models/contracts/azure";
 import * as AzureEnvironments from "@azure/ms-rest-azure-env";
 import { Azure as Loc } from "../constants/locConstants";
+import * as AzureAuth from "@microsoft/vscode-azext-azureauth";
 
 /**
  * Identifiers for the various Azure clouds.  Settings should match the "microsoft-sovereign-cloud.environment" setting values.
  */
 export enum CloudId {
-    AzureCloud = "AzureCloud", // "microsoft-sovereign-cloud.environment" doesn't actually have a value for the public cloud; default is to use public Azure if setting is not set
+    /**
+     * `microsoft-sovereign-cloud.environment` doesn't actually have a value for the public cloud; default is to use public Azure if setting is not set
+     */
+    AzureCloud = "AzureCloud",
     USGovernment = "USGovernment",
-    // ChinaCloud = "ChinaCloud",
-    // Custom = "Custom", // requires reading from the "microsoft-sovereign-cloud.customCloud" setting
+    ChinaCloud = "ChinaCloud",
+    /**
+     * Requires reading from the "microsoft-sovereign-cloud.customCloud" setting
+     */
+    Custom = "custom",
 }
 
 export const azureCloudProviderId = "azure_publicCloud"; // ID from previous version of extension; keep for backwards compatibility
-const azureCloudInfo = AzureEnvironments.Environment.get(CloudId.AzureCloud);
-const usGovernmentCloudInfo = AzureEnvironments.Environment.get(CloudId.USGovernment);
-// const chinaCloudInfo = AzureEnvironments.Environment.get("AzureChinaCloud");
+const azureCloudInfo = AzureEnvironments.Environment.AzureCloud;
+const usGovernmentCloudInfo = AzureEnvironments.Environment.USGovernment;
+const chinaCloudInfo = AzureEnvironments.Environment.ChinaCloud;
 
 export const publicAzureSettings: IProviderSettings = {
     displayName: Loc.PublicCloud,
@@ -67,7 +74,7 @@ export const publicAzureSettings: IProviderSettings = {
     ],
 };
 
-const usGovernmentAzureSettings: IProviderSettings = {
+const usGovernmentCloudSettings: IProviderSettings = {
     displayName: Loc.USGovernmentCloud,
     id: CloudId.USGovernment,
     clientId: "a69788c6-1d43-44ed-9ca3-b83e194da255",
@@ -99,8 +106,8 @@ const usGovernmentAzureSettings: IProviderSettings = {
         },
     },
     fabric: {
-        sqlDbDnsSuffix: "database.fabric.microsoft.com",
-        dataWarehouseSuffix: "datawarehouse.fabric.microsoft.com",
+        sqlDbDnsSuffix: undefined,
+        dataWarehouseSuffix: undefined,
     },
     scopes: [
         "openid",
@@ -110,6 +117,113 @@ const usGovernmentAzureSettings: IProviderSettings = {
         `${usGovernmentCloudInfo.resourceManagerEndpointUrl}/user_impersonation`,
     ],
 };
+
+const chinaCloudSettings: IProviderSettings = {
+    displayName: Loc.ChinaCloud,
+    id: CloudId.ChinaCloud,
+    clientId: "a69788c6-1d43-44ed-9ca3-b83e194da255",
+    loginEndpoint: chinaCloudInfo.activeDirectoryEndpointUrl,
+    portalEndpoint: chinaCloudInfo.portalUrl,
+    redirectUri: "http://localhost",
+    settings: {
+        windowsManagementResource: {
+            id: "marm",
+            resource: "MicrosoftResourceManagement",
+            endpoint: chinaCloudInfo.managementEndpointUrl,
+        },
+        armResource: {
+            id: "arm",
+            resource: "AzureResourceManagement",
+            endpoint: chinaCloudInfo.resourceManagerEndpointUrl,
+        },
+        sqlResource: {
+            id: "sql",
+            resource: "Sql",
+            endpoint: "https://database.chinacloudapi.cn/",
+            dnsSuffix: chinaCloudInfo.sqlServerHostnameSuffix,
+            analyticsDnsSuffix: undefined, // TODO: check what this should be for China
+        },
+        azureKeyVaultResource: {
+            id: "vault",
+            resource: "AzureKeyVault",
+            endpoint: "https://vault.chinacloudapi.cn/",
+        },
+    },
+    fabric: {
+        sqlDbDnsSuffix: undefined,
+        dataWarehouseSuffix: undefined,
+    },
+    scopes: [
+        "openid",
+        "email",
+        "profile",
+        "offline_access",
+        `${chinaCloudInfo.resourceManagerEndpointUrl}/user_impersonation`,
+    ],
+};
+
+interface MssqlEnvironment extends AzureEnvironments.Environment {
+    isCustomCloud: boolean;
+    clientId?: string;
+    sqlEndpoint?: string;
+    sqlDnsSuffix?: string;
+    analyticsDnsSuffix?: string;
+    keyVaultEndpoint?: string;
+    fabricSqlDbDnsSuffix?: string;
+    fabricDataWarehouseSuffix?: string;
+}
+
+function getCustomCloudSettings(): IProviderSettings {
+    const customCloud: MssqlEnvironment = AzureAuth.getConfiguredAzureEnv();
+
+    if (!customCloud.isCustomCloud) {
+        throw new Error("Attempted to read custom cloud, but got preconfigured one instead.");
+    }
+
+    return {
+        displayName: customCloud.name,
+        id: CloudId.Custom,
+        clientId: customCloud.clientId || "a69788c6-1d43-44ed-9ca3-b83e194da255",
+        loginEndpoint: customCloud.activeDirectoryEndpointUrl,
+        portalEndpoint: customCloud.portalUrl,
+        redirectUri: "http://localhost",
+        settings: {
+            windowsManagementResource: {
+                id: "marm",
+                resource: "MicrosoftResourceManagement",
+                endpoint: customCloud.managementEndpointUrl,
+            },
+            armResource: {
+                id: "arm",
+                resource: "AzureResourceManagement",
+                endpoint: customCloud.resourceManagerEndpointUrl,
+            },
+            sqlResource: {
+                id: "sql",
+                resource: "Sql",
+                endpoint: customCloud.sqlEndpoint,
+                dnsSuffix: customCloud.sqlServerHostnameSuffix,
+                analyticsDnsSuffix: undefined, // TODO: check what this shoudl be for USGov
+            },
+            azureKeyVaultResource: {
+                id: "vault",
+                resource: "AzureKeyVault",
+                endpoint: customCloud.keyVaultEndpoint,
+            },
+        },
+        fabric: {
+            sqlDbDnsSuffix: customCloud.fabricSqlDbDnsSuffix,
+            dataWarehouseSuffix: customCloud.fabricDataWarehouseSuffix,
+        },
+        scopes: [
+            "openid",
+            "email",
+            "profile",
+            "offline_access",
+            `${customCloud.resourceManagerEndpointUrl}/user_impersonation`,
+        ],
+    };
+}
 
 /**
  * Fetches the provider settings for the specified cloud.
@@ -122,16 +236,16 @@ export function getCloudSettings(cloud?: CloudId | string): IProviderSettings {
     const cloudId = getCloudId(cloud);
 
     switch (cloudId) {
-        case CloudId.USGovernment:
-            return usGovernmentAzureSettings;
-        // case "ChinaCloud":
-        // case "GermanyCloud":
-        // case "Custom":
-        //     throw new Error(`${cloud} is not supported yet.`);
         case CloudId.AzureCloud:
             return publicAzureSettings;
+        case CloudId.USGovernment:
+            return usGovernmentCloudSettings;
+        case CloudId.ChinaCloud:
+            return chinaCloudSettings;
+        case CloudId.Custom:
+            return getCustomCloudSettings();
         default:
-            throw new Error(`Unexpected cloud ID: '${cloud}'`);
+            throw new Error(`Unexpected cloud ID: '${cloud}'.  It may not be supported yet.`);
     }
 }
 

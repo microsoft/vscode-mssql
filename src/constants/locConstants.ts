@@ -773,6 +773,7 @@ export class Azure {
 
     public static PublicCloud = l10n.t("Azure (Public)");
     public static USGovernmentCloud = l10n.t("Azure (US Government)");
+    public static ChinaCloud = l10n.t("Azure (China)");
 }
 
 export class Fabric {
