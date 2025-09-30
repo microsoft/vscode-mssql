@@ -13,21 +13,22 @@ import {
     IHandleFirewallRuleResponse,
     CreateFirewallRuleRequest,
     ICreateFirewallRuleResponse,
+    ICreateFirewallRuleParams,
 } from "../../src/models/contracts/firewall/firewallRequest";
 import * as Constants from "../../src/constants/constants";
 
 suite("Firewall Service Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let client: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let accountService: AccountService;
+    let accountService: sinon.SinonStubbedInstance<AccountService>;
     let firewallService: FirewallService;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         client = sandbox.createStubInstance(SqlToolsServiceClient);
-        accountService = {
-            client: client as unknown as SqlToolsServiceClient,
-        } as AccountService;
+        accountService = sandbox.createStubInstance(AccountService);
+
+        sandbox.stub(accountService, "client").get(() => client);
         firewallService = new FirewallService(accountService);
     });
 
@@ -70,7 +71,7 @@ suite("Firewall Service Tests", () => {
             endIpAddress: "1.2.3.255",
             serverName: "test_server",
             securityTokenMappings: {},
-        };
+        } as ICreateFirewallRuleParams;
 
         const result = await firewallService.createFirewallRule(request);
 
