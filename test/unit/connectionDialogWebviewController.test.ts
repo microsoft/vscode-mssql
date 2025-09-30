@@ -28,7 +28,6 @@ import {
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import { IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-// import { ConnectionCompleteParams } from "../../src/models/contracts/connection";
 import { stubTelemetry } from "./utils";
 import {
     stubVscodeAzureSignIn,
