@@ -6,8 +6,10 @@
 import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
+import * as chai from "chai";
 import { expect } from "chai";
-import { ConnectionDetails, IToken } from "vscode-mssql";
+import { ConnectionDetails, IToken, IConnectionInfo } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { Logger } from "../../src/models/logger";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
@@ -19,6 +21,11 @@ import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/mode
 import { ParseConnectionStringRequest } from "../../src/models/contracts/connection";
 import { RequestSecurityTokenParams } from "../../src/models/contracts/azure";
 import { AzureController } from "../../src/azure/azureController";
+import { ConnectionUI } from "../../src/views/connectionUI";
+import { AccountStore } from "../../src/azure/accountStore";
+import { TestPrompter } from "./stubs";
+
+chai.use(sinonChai);
 
 suite("ConnectionManager Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -399,6 +406,217 @@ suite("ConnectionManager Tests", () => {
             expect(
                 connectionManager["_keyVaultTokenCache"].get(JSON.stringify(params)),
             ).to.deep.equal(token, "New token should be cached");
+        });
+    });
+
+    suite("prepareConnectionInfo", () => {
+        let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
+        let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
+        let mockAccountStore: sinon.SinonStubbedInstance<AccountStore>;
+        let mockAzureController: sinon.SinonStubbedInstance<AzureController>;
+        let testConnectionManager: ConnectionManager;
+        let handlePasswordBasedCredentialsStub: sinon.SinonStub;
+        let confirmEntraTokenValidityStub: sinon.SinonStub;
+
+        setup(() => {
+            mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
+            mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
+            mockAccountStore = sandbox.createStubInstance(AccountStore);
+            mockAzureController = sandbox.createStubInstance(AzureController);
+
+            const mockPrompter = sandbox.createStubInstance(TestPrompter);
+
+            // Create a new connection manager instance for this test suite
+            testConnectionManager = new ConnectionManager(
+                mockContext.object,
+                mockStatusView.object,
+                mockPrompter,
+                false, // useLegacyConnectionExperience
+                mockLogger.object,
+            );
+
+            testConnectionManager.connectionStore = mockConnectionStore;
+            testConnectionManager["_connectionUI"] = mockConnectionUI;
+            testConnectionManager["_accountStore"] = mockAccountStore;
+            testConnectionManager.azureController = mockAzureController;
+
+            // Setup default behaviors
+            mockConnectionStore.lookupPassword.resolves("");
+            handlePasswordBasedCredentialsStub = sandbox
+                .stub(testConnectionManager, "handlePasswordBasedCredentials")
+                .resolves(true);
+            confirmEntraTokenValidityStub = sandbox
+                .stub(testConnectionManager, "confirmEntraTokenValidity")
+                .resolves();
+        });
+
+        teardown(() => {
+            sandbox.restore();
+        });
+
+        test("should throw error when neither server nor connectionString is provided", async () => {
+            const mockConnectionInfo = {
+                database: "testDB",
+                authenticationType: "SqlLogin",
+                user: "testUser",
+                password: "testPass",
+            } as unknown as IConnectionInfo;
+
+            try {
+                await testConnectionManager.prepareConnectionInfo(mockConnectionInfo);
+                expect.fail("Should have thrown an error");
+            } catch (error) {
+                expect(error.message).to.contain("Server name not set");
+            }
+        });
+
+        test("should handle Entra/Azure MFA authentication", async () => {
+            const mockConnectionInfo = {
+                server: "testServer",
+                database: "testDB",
+                authenticationType: "AzureMFA",
+                user: "testUser",
+            } as unknown as IConnectionInfo;
+
+            const result = await testConnectionManager.prepareConnectionInfo(mockConnectionInfo);
+
+            expect(result).to.exist;
+            expect(confirmEntraTokenValidityStub).to.have.been.calledOnceWith(mockConnectionInfo);
+            expect(handlePasswordBasedCredentialsStub).to.have.been.calledOnceWith(
+                mockConnectionInfo,
+            );
+        });
+
+        test("should throw error when password handling fails", async () => {
+            handlePasswordBasedCredentialsStub.resolves(false);
+
+            const mockConnectionInfo = {
+                server: "testServer",
+                database: "testDB",
+                authenticationType: "SqlLogin",
+                user: "testUser",
+                password: "testPass",
+            } as unknown as IConnectionInfo;
+
+            try {
+                await testConnectionManager.prepareConnectionInfo(mockConnectionInfo);
+                expect.fail("Should have thrown an error");
+            } catch (error) {
+                expect(error.message).to.contain("Cannot connect");
+            }
+        });
+
+        test("should resolve credential-based connection string", async () => {
+            const credentialConnectionString = `${ConnectionStore.CRED_PREFIX}|isConnectionString:true`;
+            const resolvedConnectionString =
+                "Server=testServer;Database=testDB;User=testUser;Password=testPass;";
+
+            mockConnectionStore.lookupPassword.resolves(resolvedConnectionString);
+
+            const mockConnectionInfo = {
+                server: "testServer",
+                database: "testDB",
+                connectionString: credentialConnectionString,
+                savePassword: true,
+                user: "",
+                password: "",
+                email: "",
+                accountId: "",
+                tenantId: "",
+            } as unknown as IConnectionInfo;
+
+            const result = await testConnectionManager.prepareConnectionInfo(mockConnectionInfo);
+
+            expect(result.connectionString).to.equal(resolvedConnectionString);
+            expect(mockConnectionStore.lookupPassword).to.have.been.calledOnceWith(
+                mockConnectionInfo,
+                true,
+            );
+        });
+
+        test("should clear Azure account token for Integrated authentication", async () => {
+            const mockConnectionInfo = {
+                server: "testServer",
+                database: "testDB",
+                authenticationType: "Integrated",
+                user: "",
+                password: "",
+                email: "",
+                accountId: "",
+                tenantId: "",
+                azureAccountToken: "some-token",
+            } as unknown as IConnectionInfo;
+
+            const result = await testConnectionManager.prepareConnectionInfo(mockConnectionInfo);
+
+            expect(result.azureAccountToken).to.be.undefined;
+            expect(result.server).to.equal("testServer");
+        });
+
+        test("should handle SQL Login authentication successfully", async () => {
+            const mockConnectionInfo = {
+                server: "testServer",
+                database: "testDB",
+                authenticationType: "SqlLogin",
+                user: "testUser",
+                password: "testPass",
+                email: "",
+                accountId: "",
+                tenantId: "",
+            } as unknown as IConnectionInfo;
+
+            const result = await testConnectionManager.prepareConnectionInfo(mockConnectionInfo);
+
+            expect(result).to.exist;
+            expect(result.server).to.equal("testServer");
+            expect(result.user).to.equal("testUser");
+            expect(handlePasswordBasedCredentialsStub).to.have.been.calledOnceWith(
+                mockConnectionInfo,
+            );
+        });
+
+        test("should handle connection string without credential prefix", async () => {
+            const regularConnectionString =
+                "Server=testServer;Database=testDB;Integrated Security=true;";
+
+            const mockConnectionInfo = {
+                connectionString: regularConnectionString,
+                authenticationType: "",
+                user: "",
+                password: "",
+                email: "",
+                accountId: "",
+                tenantId: "",
+            } as unknown as IConnectionInfo;
+
+            const result = await testConnectionManager.prepareConnectionInfo(mockConnectionInfo);
+
+            expect(result.connectionString).to.equal(regularConnectionString);
+            expect(mockConnectionStore.lookupPassword).to.not.have.been.called;
+        });
+
+        test("should preserve other properties while processing", async () => {
+            const mockConnectionInfo = {
+                server: "testServer",
+                database: "testDB",
+                port: 1433,
+                authenticationType: "SqlLogin",
+                user: "testUser",
+                password: "testPass",
+                email: "test@example.com",
+                accountId: "account123",
+                tenantId: "tenant456",
+                options: { encrypt: true },
+            } as unknown as IConnectionInfo;
+
+            const result = await testConnectionManager.prepareConnectionInfo(mockConnectionInfo);
+
+            expect(result.server).to.equal("testServer");
+            expect(result.database).to.equal("testDB");
+            expect(result.port).to.equal(1433);
+            expect(result.email).to.equal("test@example.com");
+            expect(result.accountId).to.equal("account123");
+            expect(result.tenantId).to.equal("tenant456");
         });
     });
 });

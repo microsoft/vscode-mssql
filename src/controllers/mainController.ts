@@ -717,9 +717,18 @@ export default class MainController implements vscode.Disposable {
                 // make a new connection
                 connectionCreds.database = databaseName;
                 if (!this.connectionManager.isConnecting(nodeUri)) {
-                    const promise = new Deferred<boolean>();
-                    await this.connectionManager.connect(nodeUri, connectionCreds, promise);
-                    await promise;
+                    const isConnected = await this.connectionManager.connect(
+                        nodeUri,
+                        connectionCreds,
+                    );
+                    if (!isConnected) {
+                        /**
+                         * The connection wasn't successful. Stopping scripting operation.
+                         * Not throwing an error because the user is already notified of
+                         * the connection failure in the connection manager.
+                         */
+                        return;
+                    }
                 }
             }
 
@@ -1080,13 +1089,13 @@ export default class MainController implements vscode.Disposable {
                     }
 
                     if (!this.connectionManager.isConnecting(connectionUri)) {
-                        const promise = new Deferred<boolean>();
-                        await this.connectionManager.connect(
+                        const connectionResult = await this.connectionManager.connect(
                             connectionUri,
                             connectionCreds,
-                            promise,
                         );
-                        await promise;
+                        if (!connectionResult) {
+                            return;
+                        }
                     }
                 }
             } else {
@@ -2169,15 +2178,10 @@ export default class MainController implements vscode.Disposable {
     public async connect(
         uri: string,
         connectionInfo: IConnectionInfo,
-        connectionPromise: Deferred<boolean>,
         saveConnection?: boolean,
     ): Promise<boolean> {
         if (this.canRunCommand() && uri && connectionInfo) {
-            const connectedSuccessfully = await this._connectionMgr.connect(
-                uri,
-                connectionInfo,
-                connectionPromise,
-            );
+            const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo);
             if (connectedSuccessfully) {
                 if (saveConnection) {
                     await this.createObjectExplorerSession(connectionInfo);
