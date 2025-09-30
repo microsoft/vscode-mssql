@@ -157,6 +157,23 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             }
             return state;
         });
+
+        this.registerReducer("loadSubset", async (state, payload) => {
+            this.logger.info(`Loading subset with rowCount: ${payload.rowCount}`);
+            try {
+                const subsetResult = await this._tableExplorerService.subset(
+                    state.ownerUri,
+                    0,
+                    payload.rowCount,
+                );
+                state.resultSet = subsetResult;
+                this.logger.info(`Loaded ${subsetResult.rowCount} rows`);
+            } catch (error) {
+                this.logger.error(`Error loading subset: ${error}`);
+                vscode.window.showErrorMessage(`Failed to load data: ${error}`);
+            }
+            return state;
+        });
     }
 
     /**

@@ -30,6 +30,10 @@ export const TableExplorerStateProvider: React.FC<{
                 commitChanges: function (): void {
                     webViewState?.extensionRpc.action("commitChanges", {});
                 },
+
+                loadSubset: function (rowCount: number): void {
+                    webViewState?.extensionRpc.action("loadSubset", { rowCount });
+                },
             }}>
             {children}
         </TableExplorerContext.Provider>

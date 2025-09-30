@@ -184,8 +184,10 @@ export interface TableExplorerContextProps {
     state: TableExplorerWebViewState;
     themeKind: ColorThemeKind;
     commitChanges: () => void;
+    loadSubset: (rowCount: number) => void;
 }
 
 export interface TableExplorerReducers {
     commitChanges: {};
+    loadSubset: { rowCount: number };
 }
