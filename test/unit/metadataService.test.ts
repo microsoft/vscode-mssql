@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
-import * as TypeMoq from "typemoq";
+import { expect } from "chai";
+import * as sinon from "sinon";
 import { MetadataService } from "../../src/metadata/metadataService";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
@@ -12,35 +12,38 @@ import {
     MetadataQueryRequest,
     MetadataQueryResult,
 } from "../../src/models/contracts/metadata/metadataRequest";
-import { assert } from "chai";
 
 suite("Metadata Service Tests", () => {
-    let metdataService: MetadataService;
-    let connectionManager: TypeMoq.IMock<ConnectionManager>;
-    let client: TypeMoq.IMock<SqlToolsServiceClient>;
+    let sandbox: sinon.SinonSandbox;
+    let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let client: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
+    let metadataService: MetadataService;
 
     setup(() => {
-        let mockContext: TypeMoq.IMock<vscode.ExtensionContext> =
-            TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        connectionManager = TypeMoq.Mock.ofType(
-            ConnectionManager,
-            TypeMoq.MockBehavior.Loose,
-            mockContext.object,
-        );
-        connectionManager.setup((c) => c.client).returns(() => client.object);
-        client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
+        sandbox = sinon.createSandbox();
+        connectionManager = sandbox.createStubInstance(ConnectionManager);
+        client = sandbox.createStubInstance(SqlToolsServiceClient);
+
         const mockMetadata: MetadataQueryResult = {
-            metadata: TypeMoq.It.isAny(),
+            metadata: [],
         };
-        client
-            .setup((c) => c.sendRequest(MetadataQueryRequest.type, TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(mockMetadata));
-        connectionManager.object.client = client.object;
-        metdataService = new MetadataService(connectionManager.object);
+
+        client.sendRequest.resolves(mockMetadata);
+        connectionManager.client = client as unknown as SqlToolsServiceClient;
+
+        metadataService = new MetadataService(connectionManager as unknown as ConnectionManager);
+    });
+
+    teardown(() => {
+        sandbox.restore();
     });
 
     test("Test getMetadata function", async () => {
-        let metadata = await metdataService.getMetadata("test_uri");
-        assert.notEqual(metadata, undefined);
+        const metadata = await metadataService.getMetadata("test_uri");
+
+        expect(metadata).to.deep.equal([]);
+        sinon.assert.calledOnceWithExactly(client.sendRequest, MetadataQueryRequest.type, {
+            ownerUri: "test_uri",
+        });
     });
 });
