@@ -14,25 +14,9 @@ export const TableExplorerPage: React.FC = () => {
 
     return (
         <div style={{ padding: "20px" }}>
-            <h1>Table Explorer</h1>
-            {state?.tableName && (
-                <div style={{ marginBottom: "20px" }}>
-                    <p>
-                        <strong>Table:</strong> {state.tableName}
-                    </p>
-                    <p>
-                        <strong>Database:</strong> {state.databaseName}
-                    </p>
-                    <p>
-                        <strong>Server:</strong> {state.serverName}
-                    </p>
-                </div>
-            )}
-
             <TableExplorerToolbar />
             {state?.resultSet ? (
                 <div>
-                    <h2>Table Data</h2>
                     <TableDataGrid resultSet={state.resultSet} themeKind={context?.themeKind} />
                 </div>
             ) : state?.isLoading ? (
