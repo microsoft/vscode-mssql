@@ -295,6 +295,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           directory: './pr/coverage'
+          exclude: 'coverage-e2e' # coverage for smoke tests is already merged above
 
       - name: Code coverage
         run: |
