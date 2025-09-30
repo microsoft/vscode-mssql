@@ -420,7 +420,7 @@ jobs:
           fi
 
           # Check code coverage
-          if [ "${{ env.line_rate_pr }}" -lt 60 ]; then
+          if [ $(echo "${{ env.line_rate_pr }} < 60" | bc -l) -eq 1 ]; then
             echo "  ❌ Code Coverage check failed. ${{ env.line_rate_pr }}"
             PIPELINE_FAILED=true
           fi
