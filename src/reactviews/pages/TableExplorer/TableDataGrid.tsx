@@ -27,7 +27,7 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
     const [options, setOptions] = useState<GridOption | undefined>(undefined);
     const reactGridRef = useRef<SlickgridReactInstance | null>(null);
     const [commandQueue] = useState<EditCommand[]>([]);
-    const [cellChanges, setCellChanges] = useState<Map<string, any>>(new Map());
+    const cellChangesRef = useRef<Map<string, any>>(new Map());
 
     function reactGridReady(reactGrid: SlickgridReactInstance) {
         reactGridRef.current = reactGrid;
@@ -35,17 +35,20 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
 
     function handleCellChange(_e: CustomEvent, args: any) {
         const rowIndex = args.row;
-        const columnIndex = args.cell - 1; // -1 because first column is row number
-        const column = columns[args.cell];
+        const cellIndex = args.cell; // The actual cell index in the grid
+        const columnIndex = cellIndex - 1; // -1 because first column is row number
+        const column = columns[cellIndex]; // Use cellIndex to get the correct column
 
-        console.log(`Cell Changed - Row: ${rowIndex}, Column: ${columnIndex}`);
+        console.log(
+            `Cell Changed - Row: ${rowIndex}, Cell: ${cellIndex}, Column Index: ${columnIndex}`,
+        );
         console.log(`Column ID: ${column?.id}, Field: ${column?.field}`);
         console.log(`New Value: ${args.item[column?.field]}`);
 
-        // Store the change with a unique key (row-column)
+        // Store the change with a unique key (row-columnIndex)
+        // Use columnIndex (which excludes row number column) for consistency with formatter
         const changeKey = `${rowIndex}-${columnIndex}`;
-        const newChanges = new Map(cellChanges);
-        newChanges.set(changeKey, {
+        cellChangesRef.current.set(changeKey, {
             rowIndex,
             columnIndex,
             columnId: column?.id,
@@ -53,12 +56,17 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
             newValue: args.item[column?.field],
             item: args.item,
         });
-        setCellChanges(newChanges);
 
-        console.log(`Total changes tracked: ${newChanges.size}`);
+        console.log(`Total changes tracked: ${cellChangesRef.current.size}`);
+
+        // Force grid to re-render to show background color change
+        if (reactGridRef.current?.slickGrid) {
+            reactGridRef.current.slickGrid.invalidate();
+            reactGridRef.current.slickGrid.render();
+        }
     }
 
-    // Convert resultSet data to SlickGrid format
+    // Convert resultSet data to SlickGrid format (initial setup)
     useEffect(() => {
         if (resultSet?.columnNames && resultSet?.subset) {
             // Create a simple row number column
@@ -90,6 +98,15 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
                     minWidth: 100,
                     editor: {
                         model: Editors.text,
+                    },
+                    formatter: (row: number, cell: number, value: any) => {
+                        // The first column is row number, so data columns start at cell 1
+                        const changeKey = `${row}-${cell - 1}`;
+                        const isModified = cellChangesRef.current.has(changeKey);
+                        if (isModified) {
+                            return `<div style="background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%;">${value ?? ""}</div>`;
+                        }
+                        return value ?? "";
                     },
                 };
             });
@@ -128,7 +145,7 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
                     themeKind === ColorThemeKind.Dark || themeKind === ColorThemeKind.HighContrast,
             });
         }
-    }, [resultSet, themeKind]);
+    }, [resultSet, themeKind, commandQueue]);
 
     if (!resultSet || columns.length === 0 || !options) {
         return null;
