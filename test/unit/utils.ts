@@ -10,6 +10,9 @@ import * as vscode from "vscode";
 import { IExtension } from "vscode-mssql";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as path from "path";
+import SqlToolsServerClient from "../../src/languageservice/serviceclient";
+import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
+import { buildCapabilitiesResult } from "./mocks";
 
 // Launches and activates the extension
 export async function activateExtension(): Promise<IExtension> {
@@ -45,6 +48,17 @@ export function stubVscodeWrapper(
     });
 
     return vscodeWrapper;
+}
+
+export function stubGetCapabilitiesRequest(
+    sandbox?: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<SqlToolsServerClient> {
+    const stubber = sandbox || sinon;
+    const serviceClientMock = stubber.createStubInstance(SqlToolsServerClient);
+    serviceClientMock.sendRequest
+        .withArgs(GetCapabilitiesRequest.type, sinon.match.any)
+        .resolves(buildCapabilitiesResult());
+    return serviceClientMock;
 }
 
 export function initializeIconUtils(): void {
