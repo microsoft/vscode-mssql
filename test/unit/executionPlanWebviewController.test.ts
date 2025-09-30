@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
+import { expect } from "chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { ExecutionPlanWebviewController } from "../../src/controllers/executionPlanWebviewController";
@@ -13,10 +13,10 @@ import * as ep from "../../src/sharedInterfaces/executionPlan";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import * as epUtils from "../../src/controllers/sharedExecutionPlanUtils";
 import { contents } from "../resources/testsqlplan";
-import * as TypeMoq from "typemoq";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { GetExecutionPlanRequest } from "../../src/models/contracts/executionPlan";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { stubVscodeWrapper } from "./utils";
 
 suite("ExecutionPlanWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
@@ -26,7 +26,7 @@ suite("ExecutionPlanWebviewController", () => {
     let controller: ExecutionPlanWebviewController;
     let mockInitialState: ep.ExecutionPlanWebviewState;
     let mockResultState: ep.ExecutionPlanWebviewState;
-    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     const executionPlanContents = contents;
     const xmlPlanFileName = "testPlan.sqlplan";
@@ -41,7 +41,7 @@ suite("ExecutionPlanWebviewController", () => {
         mockExecutionPlanService = sandbox.createStubInstance(ExecutionPlanService);
         mockSqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
 
-        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
+        vscodeWrapper = stubVscodeWrapper(sandbox);
 
         mockInitialState = {
             executionPlanState: {
@@ -61,7 +61,7 @@ suite("ExecutionPlanWebviewController", () => {
 
         controller = new ExecutionPlanWebviewController(
             mockContext,
-            vscodeWrapper.object,
+            vscodeWrapper as unknown as VscodeWrapper,
             mockExecutionPlanService,
             mockSqlDocumentService,
             executionPlanContents,
@@ -74,12 +74,8 @@ suite("ExecutionPlanWebviewController", () => {
     });
 
     test("should initialize with correct state and webview title", () => {
-        assert.deepStrictEqual(controller.state, mockInitialState, "Initial state should match");
-        assert.deepStrictEqual(
-            controller.panel.title,
-            xmlPlanFileName,
-            "Webview Title should match",
-        );
+        expect(controller.state, "Initial state should match").to.deep.equal(mockInitialState);
+        expect(controller.panel.title, "Webview Title should match").to.equal(xmlPlanFileName);
     });
 
     test("should call createExecutionPlanGraphs in getExecutionPlan reducer", async () => {
@@ -93,27 +89,25 @@ suite("ExecutionPlanWebviewController", () => {
             {},
         );
 
-        assert.ok(
+        expect(
             createExecutionPlanGraphsStub.calledOnce,
             "createExecutionPlanGraphs should be called once",
-        );
+        ).to.be.true;
 
-        assert.deepStrictEqual(
+        expect(
             createExecutionPlanGraphsStub.firstCall.args,
-            [
-                mockInitialState,
-                controller.executionPlanService,
-                [controller.executionPlanContents],
-                "SqlplanFile",
-            ],
             "createExecutionPlanGraphs should be called with correct arguments",
-        );
+        ).to.deep.equal([
+            mockInitialState,
+            controller.executionPlanService,
+            [controller.executionPlanContents],
+            "SqlplanFile",
+        ]);
 
-        assert.deepStrictEqual(
+        expect(
             result,
-            mockResultState,
             "State should have an updated total cost, api status, and graphs",
-        );
+        ).to.deep.equal(mockResultState);
 
         createExecutionPlanGraphsStub.restore();
     });
@@ -132,15 +126,15 @@ suite("ExecutionPlanWebviewController", () => {
             mockPayload,
         );
 
-        assert.ok(saveExecutionPlanStub.calledOnce, "saveExecutionPlan should be called once");
+        expect(saveExecutionPlanStub.calledOnce, "saveExecutionPlan should be called once").to.be
+            .true;
 
-        assert.deepStrictEqual(
+        expect(
             saveExecutionPlanStub.firstCall.args,
-            [mockInitialState, mockPayload],
             "saveExecutionPlan should be called with correct arguments",
-        );
+        ).to.deep.equal([mockInitialState, mockPayload]);
 
-        assert.deepStrictEqual(result, mockInitialState, "State should not be changed");
+        expect(result, "State should not be changed").to.deep.equal(mockInitialState);
 
         saveExecutionPlanStub.restore();
     });
@@ -157,15 +151,14 @@ suite("ExecutionPlanWebviewController", () => {
             mockPayload,
         );
 
-        assert.ok(showPlanXmlStub.calledOnce, "showPlanXml should be called once");
+        expect(showPlanXmlStub.calledOnce, "showPlanXml should be called once").to.be.true;
 
-        assert.deepStrictEqual(
+        expect(
             showPlanXmlStub.firstCall.args,
-            [mockInitialState, mockPayload],
             "showPlanXml should be called with correct arguments",
-        );
+        ).to.deep.equal([mockInitialState, mockPayload]);
 
-        assert.deepStrictEqual(result, mockInitialState, "State should not be changed");
+        expect(result, "State should not be changed").to.deep.equal(mockInitialState);
 
         showPlanXmlStub.restore();
     });
@@ -182,15 +175,14 @@ suite("ExecutionPlanWebviewController", () => {
             mockPayload,
         );
 
-        assert.ok(showQueryStub.calledOnce, "showQuery should be called once");
+        expect(showQueryStub.calledOnce, "showQuery should be called once").to.be.true;
 
-        assert.deepStrictEqual(
+        expect(
             showQueryStub.firstCall.args,
-            [mockInitialState, mockPayload, controller.sqlDocumentService],
             "showQuery should be called with correct arguments",
-        );
+        ).to.deep.equal([mockInitialState, mockPayload, controller.sqlDocumentService]);
 
-        assert.deepStrictEqual(result, mockInitialState, "State should not be changed");
+        expect(result, "State should not be changed").to.deep.equal(mockInitialState);
 
         showQueryStub.restore();
     });
@@ -213,15 +205,14 @@ suite("ExecutionPlanWebviewController", () => {
             mockPayload,
         );
 
-        assert.ok(updateTotalCostStub.calledOnce, "updateTotalCost should be called once");
+        expect(updateTotalCostStub.calledOnce, "updateTotalCost should be called once").to.be.true;
 
-        assert.deepStrictEqual(
+        expect(
             updateTotalCostStub.firstCall.args,
-            [mockInitialState, mockPayload],
             "showQuery should be called with correct arguments",
-        );
+        ).to.deep.equal([mockInitialState, mockPayload]);
 
-        assert.deepStrictEqual(result, mockResultState, "State should have an updated total cost");
+        expect(result, "State should have an updated total cost").to.deep.equal(mockResultState);
 
         updateTotalCostStub.restore();
     });
@@ -232,7 +223,7 @@ suite("Execution Plan Utilities", () => {
     let mockExecutionPlanService: ExecutionPlanService;
     let mockSqlDocumentService: SqlDocumentService;
     let executionPlanContents: string;
-    let client: TypeMoq.IMock<SqlToolsServiceClient>;
+    let client: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let mockResult: ep.GetExecutionPlanResult;
     let mockInitialState: ep.ExecutionPlanWebviewState;
 
@@ -242,9 +233,9 @@ suite("Execution Plan Utilities", () => {
         executionPlanContents = contents;
 
         mockResult = {
-            graphs: TypeMoq.It.isAny(),
-            success: TypeMoq.It.isAny(),
-            errorMessage: TypeMoq.It.isAny(),
+            graphs: [],
+            success: true,
+            errorMessage: "",
         };
 
         mockInitialState = {
@@ -255,12 +246,15 @@ suite("Execution Plan Utilities", () => {
             },
         };
 
-        client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
-        client
-            .setup((c) => c.sendRequest(GetExecutionPlanRequest.type, TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(mockResult));
+        client = sandbox.createStubInstance(SqlToolsServiceClient);
+        client.logger = { error: sandbox.stub() } as unknown as SqlToolsServiceClient["logger"];
+        client.sendRequest
+            .withArgs(GetExecutionPlanRequest.type, sinon.match.any)
+            .resolves(mockResult);
 
-        mockExecutionPlanService = new ExecutionPlanService(client.object);
+        mockExecutionPlanService = new ExecutionPlanService(
+            client as unknown as SqlToolsServiceClient,
+        );
         mockSqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
     });
 
@@ -286,7 +280,7 @@ suite("Execution Plan Utilities", () => {
 
         const result = await epUtils.saveExecutionPlan(mockInitialState, mockPayload);
 
-        assert.deepEqual(result, mockInitialState, "State should not change");
+        expect(result, "State should not change").to.deep.equal(mockInitialState);
 
         // Checks the file was saved
         sinon.assert.calledOnce(writeFileStub);
@@ -301,7 +295,7 @@ suite("Execution Plan Utilities", () => {
 
         const result = await epUtils.showPlanXml(mockInitialState, mockPayload);
         sinon.assert.calledOnce(openDocumentStub);
-        assert.strictEqual(result, mockInitialState, "The state should be returned unchanged.");
+        expect(result, "The state should be returned unchanged.").to.equal(mockInitialState);
     });
 
     test("showQuery: should call newQuery with copyConnectionFromUri when URI is provided", async () => {
@@ -317,7 +311,7 @@ suite("Execution Plan Utilities", () => {
             mockUri,
         );
 
-        assert.strictEqual(result, mockInitialState, "The state should be returned unchanged.");
+        expect(result, "The state should be returned unchanged.").to.equal(mockInitialState);
         sinon.assert.calledOnceWithExactly(mockSqlDocumentService.newQuery as sinon.SinonStub, {
             content: mockPayload.query,
             connectionStrategy: ConnectionStrategy.CopyFromUri,
@@ -336,7 +330,7 @@ suite("Execution Plan Utilities", () => {
             mockSqlDocumentService,
         );
 
-        assert.strictEqual(result, mockInitialState, "The state should be returned unchanged.");
+        expect(result, "The state should be returned unchanged.").to.equal(mockInitialState);
         sinon.assert.calledOnceWithExactly(mockSqlDocumentService.newQuery as sinon.SinonStub, {
             content: mockPayload.query,
             connectionStrategy: ConnectionStrategy.DoNotConnect,
@@ -367,12 +361,11 @@ suite("Execution Plan Utilities", () => {
 
         sinon.assert.calledOnceWithExactly(getExecutionPlanStub, planFile);
 
-        assert.notEqual(result, undefined);
-        assert.deepStrictEqual(
+        expect(result).to.not.equal(undefined);
+        expect(
             result.executionPlanState.loadState,
-            ApiStatus.Loaded,
             "The api status of the state should be properly updated",
-        );
+        ).to.equal(ApiStatus.Loaded);
     });
 
     test("createExecutionPlanGraphs: should register error and update the state", async () => {
@@ -394,17 +387,14 @@ suite("Execution Plan Utilities", () => {
 
         sinon.assert.calledOnceWithExactly(getExecutionPlanStub, planFile);
 
-        assert.notDeepEqual(result, undefined, "The resulting state should be defined");
-        assert.deepStrictEqual(
-            result.executionPlanState.loadState,
+        expect(result, "The resulting state should be defined").to.not.deep.equal(undefined);
+        expect(result.executionPlanState.loadState, "The load state should be updated").to.equal(
             ApiStatus.Error,
-            "The load state should be updated",
         );
-        assert.deepStrictEqual(
+        expect(
             result.executionPlanState.errorMessage,
-            "Mock Error",
             "The correct error message should be updated in state",
-        );
+        ).to.equal("Mock Error");
     });
 
     test("updateTotalCost: should call updateTotalCost with the added cost and return the updated state", async () => {
@@ -412,11 +402,10 @@ suite("Execution Plan Utilities", () => {
 
         const result = await epUtils.updateTotalCost(mockInitialState, mockPayload);
 
-        assert.strictEqual(
+        expect(
             result.executionPlanState.totalCost,
-            100,
             "The state should be returned with new cost.",
-        );
+        ).to.equal(100);
     });
 
     test("calculateTotalCost: should return 0 and set loadState to Error if executionPlanGraphs is undefined", () => {
@@ -429,15 +418,9 @@ suite("Execution Plan Utilities", () => {
 
         const result = epUtils.calculateTotalCost(mockState);
 
-        assert.strictEqual(
-            result,
-            0,
-            "Total cost should be 0 when executionPlanGraphs is undefined",
-        );
-        assert.strictEqual(
-            mockState.executionPlanState.loadState,
+        expect(result, "Total cost should be 0 when executionPlanGraphs is undefined").to.equal(0);
+        expect(mockState.executionPlanState.loadState, "loadState should be set to Error").to.equal(
             ApiStatus.Error,
-            "loadState should be set to Error",
         );
     });
 
@@ -454,26 +437,20 @@ suite("Execution Plan Utilities", () => {
 
         const result = epUtils.calculateTotalCost(mockInitialState);
 
-        assert.strictEqual(
-            result,
+        expect(result, "Total cost should correctly sum up the costs and subtree costs").to.equal(
             50,
-            "Total cost should correctly sum up the costs and subtree costs",
         );
     });
 
     test("calculateTotalCost: should return 0 if executionPlanGraphs is empty", () => {
         const result = epUtils.calculateTotalCost(mockInitialState);
 
-        assert.strictEqual(
-            result,
-            0,
-            "Total cost should be 0 for an empty executionPlanGraphs array",
-        );
+        expect(result, "Total cost should be 0 for an empty executionPlanGraphs array").to.equal(0);
     });
 
     test("formatXml: should return original xml contents if it is not a valid xml file", () => {
         const invalidXml = "</";
         const result = epUtils.formatXml(invalidXml);
-        assert.strictEqual(result, invalidXml, "Xml input should not be changed if invalid format");
+        expect(result, "Xml input should not be changed if invalid format").to.equal(invalidXml);
     });
 });
