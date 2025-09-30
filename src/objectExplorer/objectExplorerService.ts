@@ -71,6 +71,7 @@ export interface CreateSessionResult {
 export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
     private _logger: Logger;
+    public initialized: Deferred<void> = new Deferred<void>();
 
     /**
      * Flat map of tree nodes to their children
@@ -137,6 +138,7 @@ export class ObjectExplorerService {
         this._client.onNotification(ExpandCompleteNotification.type, (e) =>
             this.handleExpandNodeNotification(e),
         );
+        void this.initialize();
     }
 
     /**
@@ -204,17 +206,15 @@ export class ObjectExplorerService {
     }
 
     /**
-     * Expands a node in the tree and retrieves its children.
+     * Expands a node in the Object Explorer tree. If the node has the shouldRefresh flag set, it will be refreshed.
      * @param node The node to expand
      * @param sessionId The session ID to use for the expansion
-     * @param promise A deferred promise to resolve with the children of the node
-     * @returns A boolean indicating whether the expansion was successful
+     * @returns The children of the expanded node
      */
     public async expandNode(
         node: TreeNodeInfo,
         sessionId: string,
-        promise: Deferred<vscode.TreeItem[]>,
-    ): Promise<boolean | undefined> {
+    ): Promise<vscode.TreeItem[] | undefined> {
         const expandActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.ExpandNode,
@@ -256,7 +256,6 @@ export class ObjectExplorerService {
                     `Expand node response: ${JSON.stringify(result)} for sessionId ${sessionId}`,
                 );
                 if (!result) {
-                    promise.resolve(undefined);
                     return undefined;
                 }
 
@@ -277,7 +276,7 @@ export class ObjectExplorerService {
                     expandActivity.end(ActivityStatus.Succeeded, undefined, {
                         childrenCount: children.length,
                     });
-                    promise.resolve(children);
+                    return children;
                 } else {
                     // failure to expand node; display error
                     if (result.errorMessage) {
@@ -289,15 +288,13 @@ export class ObjectExplorerService {
                     const errorNode = new ExpandErrorNode(node, result.errorMessage);
                     this._treeNodeToChildrenMap.set(node, [errorNode]);
                     expandActivity.endFailed(new Error(result.errorMessage), false);
-                    promise.resolve([errorNode]);
+                    return [errorNode];
                 }
-                return response;
             } else {
                 this._logger.error(
                     `Expand node failed: Didn't receive a response from SQL Tools Service for sessionId ${sessionId}`,
                 );
                 await this._vscodeWrapper.showErrorMessage(LocalizedConstants.msgUnableToExpand);
-                promise.resolve(undefined);
                 return undefined;
             }
         } finally {
@@ -363,6 +360,7 @@ export class ObjectExplorerService {
 
     // Main method that routes to the appropriate handler
     public async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        await this.initialized;
         if (!element) {
             return this.getRootNodes();
         }
@@ -565,6 +563,7 @@ export class ObjectExplorerService {
         } else {
             await this.createSessionAndExpandNode(element);
         }
+        element.shouldRefresh = false;
         this._refreshCallback(element);
     }
 
@@ -574,20 +573,13 @@ export class ObjectExplorerService {
      * @returns The children of the node
      */
     private async expandExistingNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        const promise = new Deferred<TreeNodeInfo[]>();
-        await this.expandNode(element, element.sessionId, promise);
-        const children = await promise;
-
-        if (children) {
-            if (children.length === 0) {
-                const noItemsNode = [new NoItemsNode(element)];
-                this._treeNodeToChildrenMap.set(element, noItemsNode);
-                return noItemsNode;
-            }
-            return children;
-        } else {
-            return undefined;
+        const children = await this.expandNode(element, element.sessionId);
+        if (children?.length === 0) {
+            const noItemsNode = [new NoItemsNode(element)];
+            this._treeNodeToChildrenMap.set(element, noItemsNode);
+            return noItemsNode;
         }
+        return children;
     }
 
     /**
@@ -621,6 +613,12 @@ export class ObjectExplorerService {
         }
     }
 
+    private async initialize(): Promise<void> {
+        // Pre-load root nodes to ensure connection/group maps are populated
+        await this.getRootNodes();
+        this.initialized.resolve();
+    }
+
     /**
      * Create an OE session for the given connection credentials
      * otherwise prompt the user to create a new connection profile
@@ -631,6 +629,7 @@ export class ObjectExplorerService {
     public async createSession(
         connectionInfo?: IConnectionInfo,
     ): Promise<CreateSessionResult | undefined> {
+        await this.initialized;
         if (!this._rootTreeNodeArray) {
             // Ensure root nodes are loaded.
             // This is needed when connection attempts are made before OE has been activated

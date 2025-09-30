@@ -87,6 +87,7 @@ suite("OE Service Tests", () => {
                 mockConnectionManager,
                 () => {},
             );
+            objectExplorerService.initialized.resolve();
         });
 
         teardown(() => {
@@ -228,6 +229,7 @@ suite("OE Service Tests", () => {
                 mockConnectionManager,
                 () => {},
             );
+            objectExplorerService.initialized.resolve();
         });
 
         teardown(() => {
@@ -235,6 +237,7 @@ suite("OE Service Tests", () => {
         });
 
         test("expandNode should handle standard node expansion successfully", async () => {
+            sandbox.stub(ObjectExplorerUtils, "iconPath").callsFake((_: string) => undefined);
             // Mock node and session ID
             const mockNode = new TreeNodeInfo(
                 "testNode",
@@ -258,7 +261,6 @@ suite("OE Service Tests", () => {
             );
 
             const mockSessionId = "session123";
-            const mockPromise = new Deferred<vscode.TreeItem[]>();
 
             // Setup child nodes that will be returned
             const mockChildNodes = [
@@ -287,11 +289,7 @@ suite("OE Service Tests", () => {
             mockClient.sendRequest.withArgs(ExpandRequest.type, sinon.match.any).resolves(true);
 
             // Call the method to test
-            const expandPromise = objectExplorerService.expandNode(
-                mockNode,
-                mockSessionId,
-                mockPromise,
-            );
+            const expandPromise = objectExplorerService.expandNode(mockNode, mockSessionId);
 
             // Wait a bit and then resolve the pending expand with our mock response
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -308,10 +306,11 @@ suite("OE Service Tests", () => {
             const result = await expandPromise;
 
             // Verify the result
-            expect(result, "Expand node should return true").to.be.true;
+            expect(result, "Expand node should return children").to.be.not.undefined;
+            expect(result!.length, "Expand node should return 2 children").to.equal(2);
 
-            // Verify telemetry was started correctly
-            expect(startActivityStub.calledOnce, "Telemetry should be started once").to.be.true;
+            // Verify telemetry was started correctly; it should have been called for the expand but also on constructor initialization
+            expect(startActivityStub.calledTwice, "Telemetry should be started once").to.be.true;
             expect(
                 startActivityStub.args[0][0],
                 "Telemetry view should be ObjectExplorer",
@@ -362,11 +361,8 @@ suite("OE Service Tests", () => {
                 "Telemetry children count should be 2",
             ).to.equal(2);
 
-            // Verify the promise was resolved with the children
-            const resolvedChildren = await mockPromise;
-            expect(resolvedChildren, "Resolved children should match mapped children").to.equal(
-                mappedChildren,
-            );
+            // Verify the result matches the mapped children
+            expect(result, "Result should match mapped children").to.equal(mappedChildren);
 
             // Verify shouldRefresh was reset
             expect(mockNode.shouldRefresh, "Node shouldRefresh should be false").to.be.false;
@@ -396,7 +392,6 @@ suite("OE Service Tests", () => {
             );
             mockNode.shouldRefresh = true;
             const mockSessionId = "session123";
-            const mockPromise = new Deferred<vscode.TreeItem[]>();
 
             // Setup child nodes that will be returned
             const mockChildNodes = [
@@ -419,11 +414,7 @@ suite("OE Service Tests", () => {
             mockClient.sendRequest.withArgs(RefreshRequest.type, sinon.match.any).resolves(true);
 
             // Call the method to test
-            const expandPromise = objectExplorerService.expandNode(
-                mockNode,
-                mockSessionId,
-                mockPromise,
-            );
+            const expandPromise = objectExplorerService.expandNode(mockNode, mockSessionId);
 
             // Wait a bit and then resolve the pending expand with our mock response
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -440,7 +431,8 @@ suite("OE Service Tests", () => {
             const result = await expandPromise;
 
             // Verify the result
-            expect(result, "Expand node should return true").to.be.true;
+            expect(result, "Expand node should return children").to.be.not.undefined;
+            expect(result!.length, "Expand node should return 1 child").to.equal(1);
 
             // Verify the RefreshRequest was used instead of ExpandRequest
             expect(mockClient.sendRequest.calledOnce, "Send request should be called once").to.be
@@ -477,7 +469,6 @@ suite("OE Service Tests", () => {
                 undefined,
             );
             const mockSessionId = "session123";
-            const mockPromise = new Deferred<vscode.TreeItem[]>();
 
             // Mock the error response
             const mockErrorMessage = "Test error from SQL Tools Service";
@@ -491,11 +482,7 @@ suite("OE Service Tests", () => {
             mockClient.sendRequest.withArgs(ExpandRequest.type, sinon.match.any).resolves(true);
 
             // Call the method to test
-            const expandPromise = objectExplorerService.expandNode(
-                mockNode,
-                mockSessionId,
-                mockPromise,
-            );
+            const expandPromise = objectExplorerService.expandNode(mockNode, mockSessionId);
 
             // Wait a bit and then resolve the pending expand with our error response
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -511,8 +498,9 @@ suite("OE Service Tests", () => {
             // Wait for the expandNode promise to resolve
             const result = await expandPromise;
 
-            // Verify the result (should still be true because we received a response)
-            expect(result, "Expand node should return true").to.be.true;
+            // Verify the result (should be an error node)
+            expect(result, "Expand node should return error node").to.be.not.undefined;
+            expect(result!.length, "Expand node should return 1 error node").to.equal(1);
 
             // Verify error was logged
             expect(mockLogger.error.called, "Error should be logged").to.be.true;
@@ -553,15 +541,13 @@ suite("OE Service Tests", () => {
                 "Telemetry message should be mock error message",
             ).to.equal(mockErrorMessage);
 
-            // Verify the promise was resolved with the error node
-            const resolvedChildren = await mockPromise;
+            // Verify the result contains the error node
+            expect(result![0], "Result child should be an ExpandErrorNode").to.be.instanceOf(
+                ExpandErrorNode,
+            );
             expect(
-                resolvedChildren[0],
-                "Resolved child should be an ExpandErrorNode",
-            ).to.be.instanceOf(ExpandErrorNode);
-            expect(
-                (resolvedChildren[0] as ExpandErrorNode).tooltip,
-                "Resolved child tooltip should be mock error message",
+                (result![0] as ExpandErrorNode).tooltip,
+                "Result child tooltip should be mock error message",
             ).to.equal(mockErrorMessage);
         });
 
@@ -588,17 +574,12 @@ suite("OE Service Tests", () => {
                 undefined,
             );
             const mockSessionId = "session123";
-            const mockPromise = new Deferred<vscode.TreeItem[]>();
 
             // Setup client to return true for the expand request
             mockClient.sendRequest.withArgs(ExpandRequest.type, sinon.match.any).resolves(true);
 
             // Call the method to test
-            const expandPromise = objectExplorerService.expandNode(
-                mockNode,
-                mockSessionId,
-                mockPromise,
-            );
+            const expandPromise = objectExplorerService.expandNode(mockNode, mockSessionId);
 
             // Wait a bit and then resolve the pending expand with null
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -616,10 +597,6 @@ suite("OE Service Tests", () => {
 
             // Verify the result (should be undefined)
             expect(result, "Result should be undefined").to.be.undefined;
-
-            // Verify the promise was resolved with undefined
-            const resolvedChildren = await mockPromise;
-            expect(resolvedChildren, "Resolved children should be undefined").to.be.undefined;
         });
 
         test("expandNode should handle false response from SQL Tools client", async () => {
@@ -645,17 +622,12 @@ suite("OE Service Tests", () => {
                 undefined,
             );
             const mockSessionId = "session123";
-            const mockPromise = new Deferred<vscode.TreeItem[]>();
 
             // Setup client to return false for the expand request (indicates failure)
             mockClient.sendRequest.withArgs(ExpandRequest.type, sinon.match.any).resolves(false);
 
             // Call the method to test
-            const result = await objectExplorerService.expandNode(
-                mockNode,
-                mockSessionId,
-                mockPromise,
-            );
+            const result = await objectExplorerService.expandNode(mockNode, mockSessionId);
 
             // Verify the result (should be undefined)
             expect(result, "Result should be undefined").to.be.undefined;
@@ -669,10 +641,6 @@ suite("OE Service Tests", () => {
                 mockVscodeWrapper.showErrorMessage.args[0][0],
                 "Error message should be mock error message",
             ).to.equal(LocalizedConstants.msgUnableToExpand);
-
-            // Verify the promise was resolved with undefined
-            const resolvedChildren = await mockPromise;
-            expect(resolvedChildren, "Resolved children should be undefined").to.be.undefined;
         });
 
         test("expandNode should handle exception from SQL Tools client", async () => {
@@ -698,7 +666,6 @@ suite("OE Service Tests", () => {
                 undefined,
             );
             const mockSessionId = "session123";
-            const mockPromise = new Deferred<vscode.TreeItem[]>();
 
             // Setup client to throw an error
             const testError = new Error("Test client error");
@@ -707,7 +674,7 @@ suite("OE Service Tests", () => {
 
             try {
                 // Call the method to test
-                await objectExplorerService.expandNode(mockNode, mockSessionId, mockPromise);
+                await objectExplorerService.expandNode(mockNode, mockSessionId);
             } catch (e) {
                 expect(e, "Error should be test error").to.equal(testError);
             }
@@ -749,6 +716,7 @@ suite("OE Service Tests", () => {
                 mockConnectionManager,
                 () => {},
             );
+            objectExplorerService.initialized.resolve();
         });
 
         teardown(() => {
@@ -1316,6 +1284,7 @@ suite("OE Service Tests", () => {
                 mockConnectionManager,
                 () => {},
             );
+            objectExplorerService.initialized.resolve();
             (objectExplorerService as any).logger = mockLogger;
             (objectExplorerService as any).connectionUI = mockConnectionUI;
             (objectExplorerService as any).firewallService = mockFirewallService;
@@ -1784,6 +1753,7 @@ suite("OE Service Tests", () => {
                 mockConnectionManager,
                 () => {},
             );
+            objectExplorerService.initialized.resolve();
             (objectExplorerService as any).logger = mockLogger;
         });
 
@@ -2011,6 +1981,7 @@ suite("OE Service Tests", () => {
                 mockConnectionManager,
                 () => {},
             );
+            objectExplorerService.initialized.resolve();
             (objectExplorerService as any).logger = mockLogger;
             (objectExplorerService as any).connectionUI = mockConnectionUI;
             (objectExplorerService as any).firewallService = mockFirewallService;
@@ -2265,6 +2236,7 @@ suite("OE Service Tests", () => {
                 mockConnectionManager,
                 () => {},
             );
+            objectExplorerService.initialized.resolve();
         });
 
         teardown(() => {
@@ -2349,6 +2321,7 @@ suite("OE Service Tests", () => {
                 mockConnectionManager,
                 () => {},
             );
+            objectExplorerService.initialized.resolve();
         });
 
         teardown(() => {
@@ -2388,16 +2361,16 @@ suite("OE Service Tests", () => {
                 "Prepare connection profile should be called with connection info",
             ).to.equal(connectionInfo);
 
-            // Verify telemetry was started
-            expect(startActivityStub.calledOnce, "Telemetry should be started once").to.be.true;
-            expect(startActivityStub.args[0][0], "Telemetry view should match").to.equal(
+            // Verify telemetry was started, it should have been called twice because of getRootNodes is called in the initialization
+            expect(startActivityStub.calledTwice, "Telemetry should be started twice").to.be.true;
+            expect(startActivityStub.args[1][0], "Telemetry view should match").to.equal(
                 TelemetryViews.ObjectExplorer,
             );
-            expect(startActivityStub.args[0][1], "Telemetry action should match").to.equal(
+            expect(startActivityStub.args[1][1], "Telemetry action should match").to.equal(
                 TelemetryActions.CreateSession,
             );
             expect(
-                startActivityStub.args[0][3].connectionType,
+                startActivityStub.args[1][3].connectionType,
                 "Connection type should match",
             ).to.equal("SqlLogin");
         });
@@ -2463,8 +2436,8 @@ suite("OE Service Tests", () => {
                 sessionCreationSuccessResponse,
             );
 
-            // Verify telemetry was started and ended with success
-            expect(startActivityStub.calledOnce, "Telemetry should be started once").to.be.true;
+            // Verify telemetry was started and ended with success start should have been called twice because of getRootNodes is called in the initialization
+            expect(startActivityStub.calledTwice, "Telemetry should be started twice").to.be.true;
             expect(endStub.calledOnce, "Telemetry should be ended once").to.be.true;
             expect(endStub.args[0][0], "Telemetry status should be succeeded").to.equal(
                 ActivityStatus.Succeeded,
@@ -2777,11 +2750,11 @@ suite("OE Service Tests", () => {
 
             // Verify telemetry was started with correct connection type
             expect(
-                startActivityStub.calledOnce,
+                startActivityStub.calledTwice,
                 "Telemetry should be started with correct connection type",
             ).to.be.true;
             expect(
-                startActivityStub.args[0][3].connectionType,
+                startActivityStub.args[1][3].connectionType,
                 "Connection type should match",
             ).to.equal("AzureMFA");
 
@@ -3051,6 +3024,13 @@ suite("OE Service Tests", () => {
             mockConnectionStore.readAllConnections.resolves([]);
             mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
 
+            // recreate service to reset any cached nodes
+            objectExplorerService = new ObjectExplorerService(
+                mockVscodeWrapper,
+                mockConnectionManager,
+                () => {},
+            );
+
             // Setup getAddConnectionNodes to return a mock nodes
             const mockAddConnectionNodes = [
                 { label: "Add Connection" },
@@ -3069,34 +3049,37 @@ suite("OE Service Tests", () => {
 
             // Verify connection store was called
             expect(
-                mockConnectionStore.readAllConnections.calledOnce,
-                "Connection store should be called once",
+                mockConnectionStore.readAllConnections.calledThrice,
+                "Connection store should be called 3 times",
             ).to.be.true;
 
             // Verify getAddConnectionNodes was called
-            expect((objectExplorerService as any).getAddConnectionNodes.calledOnce).to.be.true;
+            expect(
+                (objectExplorerService as any).getAddConnectionNodes.calledTwice,
+                "getAddConnectionNodes should be called twice",
+            ).to.be.true;
 
             // Verify telemetry was tracked
-            expect(startActivityStub.calledOnce, "Telemetry start should be called once").to.be
+            expect(startActivityStub.calledThrice, "Telemetry start should be called 3 times").to.be
                 .true;
             expect(
-                startActivityStub.args[0][0],
+                startActivityStub.args[1][0],
                 "Telemetry view should be ObjectExplorer",
             ).to.equal(TelemetryViews.ObjectExplorer);
-            expect(startActivityStub.args[0][1], "Telemetry action should be ExpandNode").to.equal(
+            expect(startActivityStub.args[1][1], "Telemetry action should be ExpandNode").to.equal(
                 TelemetryActions.ExpandNode,
             );
-            expect(startActivityStub.args[0][3].nodeType, "Node type should be root").to.equal(
+            expect(startActivityStub.args[1][3].nodeType, "Node type should be root").to.equal(
                 "root",
             );
 
             // Verify activity ended with success
-            expect(endStub.calledOnce, "Telemetry end should be called once").to.be.true;
-            expect(endStub.args[0][0], "Telemetry end status should be Succeeded").to.equal(
+            expect(endStub.calledTwice, "Telemetry end should be called twice").to.be.true;
+            expect(endStub.args[1][0], "Telemetry end status should be Succeeded").to.equal(
                 ActivityStatus.Succeeded,
             );
             expect(
-                endStub.args[0][2].childrenCount,
+                endStub.args[1][2].childrenCount,
                 "Telemetry end should have zero children",
             ).to.equal(0);
         });
@@ -3119,10 +3102,10 @@ suite("OE Service Tests", () => {
                 mockConnections[1].profileName,
             );
 
-            // Verify connection store was called
+            // Verify connection store was called (twice because of initial getRootNodes call in constructor initialization)
             expect(
-                mockConnectionStore.readAllConnections.calledOnce,
-                "Connection store should be called once",
+                mockConnectionStore.readAllConnections.calledTwice,
+                "Connection store should be called twice",
             ).to.be.true;
 
             // Verify telemetry ended with correct node count
@@ -3147,8 +3130,8 @@ suite("OE Service Tests", () => {
                 expect(error, "Error should be passed through").to.equal(testError);
 
                 // Verify telemetry was started but not ended
-                expect(startActivityStub.calledOnce, "Telemetry start should be called once").to.be
-                    .true;
+                expect(startActivityStub.calledTwice, "Telemetry start should be called twice").to
+                    .be.true;
                 expect(endStub.called, "Telemetry end should not be called").to.be.false;
                 expect(endFailedStub.called, "Telemetry end failed should not be called").to.be
                     .false; // We're letting the error propagate
@@ -3373,6 +3356,7 @@ suite("OE Service Tests", () => {
                 mockConnectionManager,
                 mockRefreshCallback,
             );
+            objectExplorerService.initialized.resolve();
         });
 
         teardown(() => {
@@ -3542,17 +3526,17 @@ suite("OE Service Tests", () => {
             ).to.equal(connectionInfo);
 
             // Verify telemetry was started
-            expect(startActivityStub.calledOnce, "Telemetry should be started once").to.be.true;
+            expect(startActivityStub.calledTwice, "Telemetry should be started twice").to.be.true;
             expect(
-                startActivityStub.args[0][0],
+                startActivityStub.args[1][0],
                 "First argument should be TelemetryViews.ObjectExplorer",
             ).to.equal(TelemetryViews.ObjectExplorer);
             expect(
-                startActivityStub.args[0][1],
+                startActivityStub.args[1][1],
                 "Second argument should be TelemetryActions.CreateSession",
             ).to.equal(TelemetryActions.CreateSession);
             expect(
-                startActivityStub.args[0][3].connectionType,
+                startActivityStub.args[1][3].connectionType,
                 "Connection type should be SqlLogin",
             ).to.equal("SqlLogin");
         });
