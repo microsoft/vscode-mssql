@@ -26,6 +26,10 @@ export const TableExplorerStateProvider: React.FC<{
             value={{
                 state: tableExplorerState,
                 themeKind: webViewState?.themeKind,
+
+                commitChanges: function (): void {
+                    webViewState?.extensionRpc.action("commitChanges", {});
+                },
             }}>
             {children}
         </TableExplorerContext.Provider>

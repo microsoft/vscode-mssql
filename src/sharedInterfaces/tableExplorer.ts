@@ -183,6 +183,9 @@ export interface TableExplorerWebViewState {
 export interface TableExplorerContextProps {
     state: TableExplorerWebViewState;
     themeKind: ColorThemeKind;
+    commitChanges: () => void;
 }
 
-export interface TableExplorerReducers {}
+export interface TableExplorerReducers {
+    commitChanges: {};
+}

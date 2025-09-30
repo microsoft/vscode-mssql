@@ -6,9 +6,14 @@
 import { Toolbar, ToolbarButton } from "@fluentui/react-components";
 import { SaveRegular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../common/locConstants";
+import { useTableExplorerContext } from "./TableExplorerStateProvider";
 
 export const TableExplorerToolbar: React.FC = () => {
-    const handleSave = () => {};
+    const context = useTableExplorerContext();
+
+    const handleSave = () => {
+        context.commitChanges();
+    };
 
     return (
         <Toolbar>

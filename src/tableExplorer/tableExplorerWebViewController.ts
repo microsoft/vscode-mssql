@@ -146,39 +146,17 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     }
 
     private registerRpcHandlers(): void {
-        // this.registerReducer("getTableInfo", async (state) => {
-        //     this.logger.verbose(
-        //         `Getting table information for: ${state.tableName}`,
-        //     );
-        //     state.isLoading = true;
-        //     this.updateState(state);
-        //     try {
-        //         // Get connection URI for the current connection
-        //         const connectionUri = await this._connectionManager.getUriForConnection(
-        //             state.connectionProfile!
-        //         );
-        //         // Get table metadata from the service
-        //         const metadata = await this._tableExplorerService.getTableMetadata(
-        //             connectionUri,
-        //             state.tableName,
-        //             state.schemaName || "dbo"
-        //         );
-        //         state.tableMetadata = metadata;
-        //         state.isLoading = false;
-        //     } catch (error) {
-        //         this.logger.error(`Error getting table info: ${error}`);
-        //         state.isLoading = false;
-        //     }
-        //     this.updateState(state);
-        //     return state;
-        // });
-        // this.registerReducer("refreshTableInfo", async (state) => {
-        //     this.logger.info(
-        //         `Refreshing table information for: ${state.tableName}`,
-        //     );
-        //     // Refresh logic - same as getTableInfo for now
-        //     return this.invokeReducer("getTableInfo", state, {});
-        // });
+        this.registerReducer("commitChanges", async (state) => {
+            this.logger.info(`Committing changes for: ${state.tableName}`);
+            try {
+                await this._tableExplorerService.commit(state.ownerUri);
+                vscode.window.showInformationMessage("Changes saved successfully");
+            } catch (error) {
+                this.logger.error(`Error committing changes: ${error}`);
+                vscode.window.showErrorMessage(`Failed to save changes: ${error}`);
+            }
+            return state;
+        });
     }
 
     /**
