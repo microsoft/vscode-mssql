@@ -777,12 +777,28 @@ export class Azure {
 }
 
 export class Fabric {
-    public static failedToGetWorkspacesForTenant = (tenantName: string, tenantId: string) => {
-        return l10n.t({
-            message: "Failed to get Fabric workspaces for tenant '{0} ({1})'.",
-            args: [tenantName, tenantId],
-            comment: ["{0} is the tenant name", "{1} is the tenant id"],
-        });
+    public static failedToGetWorkspacesForTenant = (
+        tenantName: string,
+        tenantId: string,
+        errorMessage?: string,
+    ) => {
+        if (errorMessage) {
+            return l10n.t({
+                message: "Failed to get Fabric workspaces for tenant '{0} ({1})': {2}",
+                args: [tenantName, tenantId, errorMessage],
+                comment: [
+                    "{0} is the tenant name",
+                    "{1} is the tenant id",
+                    "{2} is the error message",
+                ],
+            });
+        } else {
+            return l10n.t({
+                message: "Failed to get Fabric workspaces for tenant '{0} ({1})'.",
+                args: [tenantName, tenantId],
+                comment: ["{0} is the tenant name", "{1} is the tenant id"],
+            });
+        }
     };
 
     public static listingCapacitiesForTenant = (tenantId: string) => {
@@ -892,6 +908,15 @@ export class Fabric {
     public static workspaceIsRequired = l10n.t("Workspace is required");
     public static insufficientWorkspacePermissions = l10n.t("Insufficient Workspace Permissions");
     public static insufficientCapacityPermissions = l10n.t("Insufficient Capacity Permissions");
+
+    public static fabricNotSupportedInCloud = (cloudName: string, settingName: string) => {
+        return l10n.t({
+            message:
+                "Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.",
+            args: [cloudName, settingName],
+            comment: ["{0} is the cloud name", "{1} is the setting name"],
+        });
+    };
 }
 
 export class Accounts {

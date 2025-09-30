@@ -19,12 +19,39 @@ import { HttpHelper } from "../http/httpHelper";
 import { AxiosResponse } from "axios";
 import { getErrorMessage } from "../utils/utils";
 import { Fabric as Loc } from "../constants/locConstants";
+import { getCloudSettings } from "../azure/providerSettings";
 
 export class FabricHelper {
-    static readonly fabricUriBase = vscode.Uri.parse("https://api.fabric.microsoft.com/v1/");
-    static readonly fabricScopeUriBase = vscode.Uri.parse(
-        "https://analysis.windows.net/powerbi/api/",
-    );
+    static getFabricApiUriBase(): vscode.Uri {
+        const cloudSettings = getCloudSettings();
+
+        if (!cloudSettings.fabric.fabricApiUriBase) {
+            throw new Error(
+                Loc.fabricNotSupportedInCloud(
+                    cloudSettings.displayName,
+                    "mssql.customCloud.fabricApiUriBase",
+                ),
+            );
+        }
+
+        return vscode.Uri.parse(cloudSettings.fabric.fabricApiUriBase);
+    }
+
+    static getFabricScopeUriBase(): vscode.Uri {
+        const cloudSettings = getCloudSettings();
+
+        if (!cloudSettings.fabric.fabricScopeUriBase) {
+            throw new Error(
+                Loc.fabricNotSupportedInCloud(
+                    cloudSettings.displayName,
+                    "mssql.customCloud.fabricScopeUriBase",
+                ),
+            );
+        }
+
+        return vscode.Uri.parse(cloudSettings.fabric.fabricScopeUriBase);
+    }
+
     static readonly longRunningOperationCode = 202;
     static readonly defaultRetryInMs = 30;
     static readonly defaultScope = ".default";
@@ -270,7 +297,7 @@ export class FabricHelper {
         reason: string,
         tenantId: string | undefined,
     ): Promise<TResponse> {
-        const uri = vscode.Uri.joinPath(this.fabricUriBase, api);
+        const uri = vscode.Uri.joinPath(this.getFabricScopeUriBase(), api);
         const httpHelper = new HttpHelper();
 
         const session = await this.createScopedFabricSession(tenantId, reason);
@@ -293,7 +320,7 @@ export class FabricHelper {
         tenantId?: string,
         scopes?: string[],
     ): Promise<TResponse> {
-        const uri = vscode.Uri.joinPath(this.fabricUriBase, api);
+        const uri = vscode.Uri.joinPath(this.getFabricApiUriBase(), api);
         const httpHelper = new HttpHelper();
 
         const session = await this.createScopedFabricSession(tenantId, reason, scopes);
@@ -330,6 +357,7 @@ export class FabricHelper {
         location: string,
         httpHelper: HttpHelper,
         token?: string,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ): Promise<AxiosResponse<TResponse, any>> {
         const retryAfterInMs = parseInt(retryAfter, 10) || this.defaultRetryInMs;
 
@@ -373,7 +401,7 @@ export class FabricHelper {
         reason: string,
         fabricScopes: string[] = [this.defaultScope],
     ): Promise<vscode.AuthenticationSession> {
-        let scopes = fabricScopes.map((scope) => `${this.fabricScopeUriBase}${scope}`);
+        let scopes = fabricScopes.map((scope) => `${this.getFabricScopeUriBase()}${scope}`);
 
         if (tenantId) {
             scopes.push(`VSCODE_TENANT:${tenantId}`);

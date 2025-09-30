@@ -1062,6 +1062,8 @@ declare module "vscode-mssql" {
         redirectUri: string;
         settings: IProviderResources;
         fabric: {
+            fabricApiUriBase: string;
+            fabricScopeUriBase: string;
             sqlDbDnsSuffix: string;
             dataWarehouseSuffix: string;
         };

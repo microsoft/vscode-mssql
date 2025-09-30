@@ -8,6 +8,7 @@ import { IProviderSettings } from "../models/contracts/azure";
 import * as AzureEnvironments from "@azure/ms-rest-azure-env";
 import { Azure as Loc } from "../constants/locConstants";
 import * as AzureAuth from "@microsoft/vscode-azext-azureauth";
+import { parseEnum } from "../utils/utils";
 
 /**
  * Identifiers for the various Azure clouds.  Settings should match the "microsoft-sovereign-cloud.environment" setting values.
@@ -62,6 +63,8 @@ export const publicAzureSettings: IProviderSettings = {
         },
     },
     fabric: {
+        fabricApiUriBase: "https://api.fabric.microsoft.com/v1/",
+        fabricScopeUriBase: "https://analysis.windows.net/powerbi/api/",
         sqlDbDnsSuffix: "database.fabric.microsoft.com",
         dataWarehouseSuffix: "datawarehouse.fabric.microsoft.com",
     },
@@ -106,6 +109,8 @@ const usGovernmentCloudSettings: IProviderSettings = {
         },
     },
     fabric: {
+        fabricApiUriBase: undefined,
+        fabricScopeUriBase: undefined,
         sqlDbDnsSuffix: undefined,
         dataWarehouseSuffix: undefined,
     },
@@ -150,6 +155,8 @@ const chinaCloudSettings: IProviderSettings = {
         },
     },
     fabric: {
+        fabricApiUriBase: undefined,
+        fabricScopeUriBase: undefined,
         sqlDbDnsSuffix: undefined,
         dataWarehouseSuffix: undefined,
     },
@@ -168,6 +175,8 @@ interface MssqlEnvironmentAdditions {
     sqlDnsSuffix?: string;
     analyticsDnsSuffix?: string;
     keyVaultEndpoint?: string;
+    fabricApiUriBase?: string;
+    fabricScopeUriBase?: string;
     fabricSqlDbDnsSuffix?: string;
     fabricDataWarehouseSuffix?: string;
 }
@@ -224,6 +233,8 @@ function getCustomCloudSettings(): IProviderSettings {
             },
         },
         fabric: {
+            fabricApiUriBase: customCloud.fabricApiUriBase,
+            fabricScopeUriBase: customCloud.fabricScopeUriBase,
             sqlDbDnsSuffix: customCloud.fabricSqlDbDnsSuffix,
             dataWarehouseSuffix: customCloud.fabricDataWarehouseSuffix,
         },
@@ -272,9 +283,8 @@ export function getCloudId(cloud?: CloudId | string): CloudId {
 
         return cloudFromConfig || CloudId.AzureCloud;
     } else {
-        // Map from provider names in cache to VS Code setting values
-
-        const cloudId = CloudId[cloud as keyof typeof CloudId];
+        // Map from provider names to VS Code setting values
+        const cloudId = parseEnum(CloudId, cloud);
 
         if (cloudId !== undefined) {
             return cloudId;

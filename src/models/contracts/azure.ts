@@ -130,50 +130,12 @@ export interface IProviderSettings {
     portalEndpoint: string;
     redirectUri: string;
     settings: IProviderResources;
-    settings2?: Settings; // TODO: remove probably
     fabric: {
+        fabricApiUriBase: string;
+        fabricScopeUriBase: string;
         sqlDbDnsSuffix: string;
         dataWarehouseSuffix: string;
     };
-}
-
-interface Settings {
-    /**
-     * Host of the authority
-     */
-    host: string;
-
-    /**
-     * Identifier of the client application
-     */
-    clientId: string;
-
-    /**
-     * Information that describes the Azure resource management resource
-     */
-    armResource: Resource;
-
-    /**
-     * Information that describes the SQL Azure resource
-     */
-    sqlResource?: Resource;
-
-    /**
-     * A list of tenant IDs to authenticate against. If defined, then these IDs will be used
-     * instead of querying the tenants endpoint of the armResource
-     */
-    adTenants?: string[];
-
-    // AuthorizationCodeGrantFlowSettings //////////////////////////////////
-
-    /**
-     * Redirect URI that is used to signify the end of the interactive aspect of sign in
-     */
-    redirectUri: string;
-
-    scopes: string[];
-
-    portalEndpoint?: string;
 }
 
 /**

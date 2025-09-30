@@ -1300,6 +1300,11 @@
     <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
       <source xml:lang="en">Fabric Workspaces</source>
     </trans-unit>
+    <trans-unit id="++CODE++56dd693767481cc69348e746edb945f23807899ed5736241c47000f787be902a">
+      <source xml:lang="en">Fabric is not supported in the current cloud ({0}).  Ensure setting &apos;{1}&apos; is configured correctly.</source>
+      <note>{0} is the cloud name
+{1} is the setting name</note>
+    </trans-unit>
     <trans-unit id="++CODE++3db198c251ac68aeafbdfbb134d03b8be7bca7a5b2f612addb78f72b2da67a90">
       <source xml:lang="en">Fabric long-running API error with error code &apos;{0}&apos;: {1}</source>
       <note>{0} is the error code
@@ -1361,6 +1366,12 @@
       <source xml:lang="en">Failed to get Fabric workspaces for tenant &apos;{0} ({1})&apos;.</source>
       <note>{0} is the tenant name
 {1} is the tenant id</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b4130b296ab05c9b6d46fa30eb4c7256fb9880192dca9262d2a8e524852dc226">
+      <source xml:lang="en">Failed to get Fabric workspaces for tenant &apos;{0} ({1})&apos;: {2}</source>
+      <note>{0} is the tenant name
+{1} is the tenant id
+{2} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
       <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
@@ -3921,6 +3932,30 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.description">
       <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
     </trans-unit>
+    <trans-unit id="mssql.customEnvironment.sqlServerHostnameSuffix">
+      <source xml:lang="en">Sovereign cloud equivalent for `.database.windows.net` (including leading dot)</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
+      <source xml:lang="en">Sovereign cloud equivalent for `database.fabric.microsoft.com`</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.fabricDataWarehouseSuffix">
+      <source xml:lang="en">Sovereign cloud equivalent for `datawarehouse.fabric.microsoft.com`</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.mssql.customEnvironment.fabricScopeUriBase">
+      <source xml:lang="en">Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.mssql.customEnvironment.fabricApiUriBase">
+      <source xml:lang="en">Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.sqlEndpoint">
+      <source xml:lang="en">Sovereign cloud equivalent for `https://database.windows.net/`</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.keyVaultEndpoint">
+      <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.analyticsDnsSuffix">
+      <source xml:lang="en">Sovereign cloud equivalent for `sql.azuresynapse.net` (no leading dot)</source>
+    </trans-unit>
     <trans-unit id="mssql.startContainer">
       <source xml:lang="en">Start Container</source>
     </trans-unit>
@@ -3935,6 +3970,9 @@
     </trans-unit>
     <trans-unit id="mssql.connectionManagement.rememberPasswordsUntilRestart">
       <source xml:lang="en">Temporarily store passwords for connections with &apos;Saved Passwords&apos; disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment">
+      <source xml:lang="en">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroup.color">
       <source xml:lang="en">The color of the connection group.</source>

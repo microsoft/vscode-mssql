@@ -1625,6 +1625,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 const locMessage = LocFabric.failedToGetWorkspacesForTenant(
                     tenant.displayName,
                     tenant.tenantId,
+                    getErrorMessage(err),
                 );
 
                 this.logger.error(message);

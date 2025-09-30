@@ -113,3 +113,31 @@ export function getEditorEOL(): string {
         ? os.EOL
         : vscode.workspace.getConfiguration("files").get<string>("eol");
 }
+
+/**
+ * Parses a value into the corresponding enum type.  Example:
+ * enum ContentType {
+ *   Message = "messageContent",
+ *   Flag = "flagContent"
+ * }
+ * @param enumObj the enum type of the value being parsed (e.g. ContentType)
+ * @param value the enum value to be parsed (e.g. "Message" or "messageContent")
+ * @returns the enum (e.g. ContentType.Message), or undefined if not found
+ */
+export function parseEnum<T extends Record<string, string | number>>(
+    enumObj: T,
+    value: string | number,
+): T[keyof T] | undefined {
+    // Try key lookup
+    if (value in enumObj) {
+        return enumObj[value as keyof T];
+    }
+
+    // Try value lookup
+    const entry = Object.entries(enumObj).find(([_, v]) => v === value);
+    if (entry) {
+        return entry[1] as T[keyof T];
+    }
+
+    return undefined;
+}

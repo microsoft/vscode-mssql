@@ -2050,19 +2050,27 @@
                             "description": "%mssql.customEnvironment.sqlServerHostnameSuffix%"
                         },
                         "analyticsDnsSuffix": {
-                            "type": "string",
+                            "type": ["string", "null"],
                             "description": "%mssql.customEnvironment.analyticsDnsSuffix%"
                         },
                         "keyVaultEndpoint": {
-                            "type": "string",
+                            "type": ["string", "null"],
                             "description": "%mssql.customEnvironment.keyVaultEndpoint%"
                         },
+                        "fabricApiUriBase": {
+                            "type": ["string", "null"],
+                            "description": "%mssql.customEnvironment.fabricApiUriBase%"
+                        },
+                        "fabricScopeUriBase": {
+                            "type": ["string", "null"],
+                            "description": "%mssql.customEnvironment.fabricScopeUriBase%"
+                        },
                         "fabricSqlDbDnsSuffix": {
-                            "type": "string",
+                            "type": ["string", "null"],
                             "description": "%mssql.customEnvironment.fabricSqlDbDnsSuffix%"
                         },
                         "fabricDataWarehouseSuffix": {
-                            "type": "string",
+                            "type": ["string", "null"],
                             "description": "%mssql.customEnvironment.fabricDataWarehouseSuffix%"
                         }
                     }

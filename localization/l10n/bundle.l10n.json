@@ -1370,6 +1370,14 @@
   "Azure (Public)": "Azure (Public)",
   "Azure (US Government)": "Azure (US Government)",
   "Azure (China)": "Azure (China)",
+  "Failed to get Fabric workspaces for tenant '{0} ({1})': {2}/{0} is the tenant name{1} is the tenant id{2} is the error message": {
+    "message": "Failed to get Fabric workspaces for tenant '{0} ({1})': {2}",
+    "comment": [
+      "{0} is the tenant name",
+      "{1} is the tenant id",
+      "{2} is the error message"
+    ]
+  },
   "Failed to get Fabric workspaces for tenant '{0} ({1})'./{0} is the tenant name{1} is the tenant id": {
     "message": "Failed to get Fabric workspaces for tenant '{0} ({1})'.",
     "comment": [
@@ -1458,6 +1466,13 @@
   "Workspace is required": "Workspace is required",
   "Insufficient Workspace Permissions": "Insufficient Workspace Permissions",
   "Insufficient Capacity Permissions": "Insufficient Capacity Permissions",
+  "Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly./{0} is the cloud name{1} is the setting name": {
+    "message": "Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.",
+    "comment": [
+      "{0} is the cloud name",
+      "{1} is the setting name"
+    ]
+  },
   "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again./{0} is the number of invalid accounts that have been removed": {
     "message": "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.",
     "comment": [

@@ -227,5 +227,14 @@
     "mssql.statusBar.connectionInfoMaxLength.description": "The maximum number of characters to display for the connection info in the status bar. Set to -1 for no limit.",
     "mssql.schemaDesigner.enableExpandCollapseButtons": "Enable expand/collapse buttons in Schema Designer table nodes when tables have more than 10 columns",
     "mssql.connectionManagement.rememberPasswordsUntilRestart": "Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.",
-    "mssql.autoRevealResultsPanel": "Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled."
+    "mssql.autoRevealResultsPanel": "Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.",
+    "mssql.customEnvironment": "The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.",
+    "mssql.customEnvironment.sqlEndpoint": "Sovereign cloud equivalent for `https://database.windows.net/`",
+    "mssql.customEnvironment.sqlServerHostnameSuffix": "Sovereign cloud equivalent for `.database.windows.net` (including leading dot)",
+    "mssql.customEnvironment.analyticsDnsSuffix": "Sovereign cloud equivalent for `sql.azuresynapse.net` (no leading dot)",
+    "mssql.customEnvironment.keyVaultEndpoint": "Sovereign cloud equivalent for `https://vault.azure.net/`",
+    "mssql.customEnvironment.mssql.customEnvironment.fabricApiUriBase": "Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`",
+    "mssql.customEnvironment.mssql.customEnvironment.fabricScopeUriBase": "Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`",
+    "mssql.customEnvironment.fabricSqlDbDnsSuffix": "Sovereign cloud equivalent for `database.fabric.microsoft.com`",
+    "mssql.customEnvironment.fabricDataWarehouseSuffix": "Sovereign cloud equivalent for `datawarehouse.fabric.microsoft.com`"
 }
