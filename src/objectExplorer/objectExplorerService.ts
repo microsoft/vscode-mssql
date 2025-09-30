@@ -67,6 +67,7 @@ export interface CreateSessionResult {
 export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
     private _logger: Logger;
+    public initialized: Deferred<void> = new Deferred<void>();
 
     /**
      * Flat map of tree nodes to their children
@@ -133,6 +134,7 @@ export class ObjectExplorerService {
         this._client.onNotification(ExpandCompleteNotification.type, (e) =>
             this.handleExpandNodeNotification(e),
         );
+        void this.initialize();
     }
 
     /**
@@ -333,6 +335,7 @@ export class ObjectExplorerService {
 
     // Main method that routes to the appropriate handler
     public async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        await this.initialized;
         if (!element) {
             return this.getRootNodes();
         }
@@ -585,6 +588,12 @@ export class ObjectExplorerService {
         }
     }
 
+    private async initialize(): Promise<void> {
+        // Pre-load root nodes to ensure connection/group maps are populated
+        await this.getRootNodes();
+        this.initialized.resolve();
+    }
+
     /**
      * Create an OE session for the given connection credentials
      * otherwise prompt the user to create a new connection profile
@@ -595,6 +604,7 @@ export class ObjectExplorerService {
     public async createSession(
         connectionInfo?: IConnectionInfo,
     ): Promise<CreateSessionResult | undefined> {
+        await this.initialized;
         if (!this._rootTreeNodeArray) {
             // Ensure root nodes are loaded.
             // This is needed when connection attempts are made before OE has been activated
