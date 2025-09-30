@@ -3,151 +3,160 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
-import * as TypeMoq from "typemoq";
+import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
+import { expect } from "chai";
+import * as chai from "chai";
 import { IConfigUtils } from "../../src/languageservice/interfaces";
 import { WorkspaceConfiguration, workspace } from "vscode";
 import * as Constants from "../../src/constants/constants";
 import ExtConfig from "../../src/configurations/extConfig";
 import ConfigUtils from "../../src/configurations/configUtils";
 
-suite("ExtConfig Tests", () => {
-    let config: TypeMoq.IMock<IConfigUtils>;
-    let extensionConfig: TypeMoq.IMock<WorkspaceConfiguration>;
-    let workspaceConfig: TypeMoq.IMock<WorkspaceConfiguration>;
-    let fromConfig = "fromConfig";
-    let fromExtensionConfig = "fromExtensionConfig";
+chai.use(sinonChai);
 
-    function createExtConfigInstance(
+suite("ExtConfig Tests", () => {
+    let sandbox: sinon.SinonSandbox;
+    let config: sinon.SinonStubbedInstance<ConfigUtils>;
+    let extensionConfigGet: sinon.SinonStub;
+    let workspaceConfigGet: sinon.SinonStub;
+    let extensionConfig: WorkspaceConfiguration;
+    let workspaceConfig: WorkspaceConfiguration;
+    const fromConfig = "fromConfig";
+    const fromExtensionConfig = "fromExtensionConfig";
+
+    const toolsKey = (configKey: string): string =>
+        `${Constants.sqlToolsServiceConfigKey}.${configKey}`;
+
+    const createExtConfigInstance = (
         configKey: string,
-        expectedFromConfig: string,
-        expectedFromExtensionConfig: string,
-    ): ExtConfig {
-        let toolsConfigKey = `${Constants.sqlToolsServiceConfigKey}.${configKey}`;
-        config.setup((x) => x.getSqlToolsConfigValue(configKey)).returns(() => expectedFromConfig);
-        extensionConfig
-            .setup((x) => x.get(toolsConfigKey))
-            .returns(() => expectedFromExtensionConfig);
-        let extConfig = new ExtConfig(
-            config.object,
-            extensionConfig.object,
-            workspaceConfig.object,
-        );
-        return extConfig;
-    }
+        expectedFromConfig: string | undefined,
+        expectedFromExtension: string | undefined,
+    ): ExtConfig => {
+        config.getSqlToolsConfigValue.reset();
+        config.getSqlToolsConfigValue.returns(expectedFromConfig);
+
+        extensionConfigGet.reset();
+        extensionConfigGet.returns(undefined);
+        if (expectedFromExtension !== undefined) {
+            extensionConfigGet.withArgs(toolsKey(configKey)).returns(expectedFromExtension);
+        }
+
+        return new ExtConfig(config as unknown as IConfigUtils, extensionConfig, workspaceConfig);
+    };
 
     setup(() => {
-        config = TypeMoq.Mock.ofType(ConfigUtils, TypeMoq.MockBehavior.Strict);
-        let configInstance = workspace.getConfiguration();
-        extensionConfig = TypeMoq.Mock.ofInstance<WorkspaceConfiguration>(
-            configInstance,
-            TypeMoq.MockBehavior.Strict,
+        sandbox = sinon.createSandbox();
+
+        config = sandbox.createStubInstance(ConfigUtils);
+        config.getSqlToolsConfigValue.returns(undefined);
+        config.getSqlToolsExecutableFiles.returns([]);
+        config.getSqlToolsInstallDirectory?.returns?.("");
+
+        const baseConfig = workspace.getConfiguration();
+        extensionConfigGet = sandbox.stub();
+        workspaceConfigGet = sandbox.stub();
+
+        extensionConfig = {
+            ...baseConfig,
+            get: extensionConfigGet,
+        } as WorkspaceConfiguration;
+        workspaceConfig = {
+            ...baseConfig,
+            get: workspaceConfigGet,
+        } as WorkspaceConfiguration;
+
+        extensionConfigGet.returns(undefined);
+        workspaceConfigGet.returns(undefined);
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    test("getSqlToolsServiceDownloadUrl should return value from extension config first", () => {
+        const configKey = Constants.sqlToolsServiceDownloadUrlConfigKey;
+        const extConfig = createExtConfigInstance(configKey, fromConfig, fromExtensionConfig);
+        const actual = extConfig.getSqlToolsServiceDownloadUrl();
+        expect(actual).to.equal(fromExtensionConfig);
+    });
+
+    test("getSqlToolsServiceDownloadUrl should return value from config.json if not exist in extension config", () => {
+        const configKey = Constants.sqlToolsServiceDownloadUrlConfigKey;
+        const extConfig = createExtConfigInstance(configKey, fromConfig, undefined);
+        const actual = extConfig.getSqlToolsServiceDownloadUrl();
+        expect(actual).to.equal(fromConfig);
+    });
+
+    test("getSqlToolsConfigValue should return value from extension config first", () => {
+        const configKey = Constants.sqlToolsServiceInstallDirConfigKey;
+        const extConfig = createExtConfigInstance(configKey, fromConfig, fromExtensionConfig);
+        const actual = extConfig.getSqlToolsConfigValue(configKey);
+        expect(actual).to.equal(fromExtensionConfig);
+    });
+
+    test("getSqlToolsConfigValue should return value from config.json if not exist in extension config", () => {
+        const configKey = Constants.sqlToolsServiceInstallDirConfigKey;
+        const extConfig = createExtConfigInstance(configKey, fromConfig, undefined);
+        const actual = extConfig.getSqlToolsConfigValue(configKey);
+        expect(actual).to.equal(fromConfig);
+    });
+
+    test("getExtensionConfig should return value from extension config", () => {
+        const configKey = "config key";
+        extensionConfigGet.reset();
+        extensionConfigGet.returns(undefined);
+        extensionConfigGet.withArgs(configKey).returns(fromExtensionConfig);
+        const extConfig = new ExtConfig(
+            config as unknown as IConfigUtils,
+            extensionConfig,
+            workspaceConfig,
         );
-        workspaceConfig = TypeMoq.Mock.ofInstance<WorkspaceConfiguration>(
-            configInstance,
-            TypeMoq.MockBehavior.Strict,
+        const actual = extConfig.getExtensionConfig(configKey);
+        expect(actual).to.equal(fromExtensionConfig);
+    });
+
+    test("getExtensionConfig should return the default value if the extension does not have the config", () => {
+        const configKey = "config key";
+        const defaultValue = "default value";
+        extensionConfigGet.reset();
+        extensionConfigGet.returns(undefined);
+        extensionConfigGet.withArgs(configKey).returns(undefined);
+        const extConfig = new ExtConfig(
+            config as unknown as IConfigUtils,
+            extensionConfig,
+            workspaceConfig,
         );
+        const actual = extConfig.getExtensionConfig(configKey, defaultValue);
+        expect(actual).to.equal(defaultValue);
     });
 
-    test("getSqlToolsServiceDownloadUrl should return value from extension config first", (done) => {
-        return new Promise((resolve, reject) => {
-            let configKey = Constants.sqlToolsServiceDownloadUrlConfigKey;
-            let extConfig = createExtConfigInstance(configKey, fromConfig, fromExtensionConfig);
-            let actual = extConfig.getSqlToolsServiceDownloadUrl();
-            assert.equal(actual, fromExtensionConfig);
-            done();
-        });
+    test("getWorkspaceConfig should return value from workspace config", () => {
+        const configKey = "config key";
+        workspaceConfigGet.reset();
+        workspaceConfigGet.returns(undefined);
+        workspaceConfigGet.withArgs(configKey).returns(fromExtensionConfig);
+        const extConfig = new ExtConfig(
+            config as unknown as IConfigUtils,
+            extensionConfig,
+            workspaceConfig,
+        );
+        const actual = extConfig.getWorkspaceConfig(configKey);
+        expect(actual).to.equal(fromExtensionConfig);
     });
 
-    test("getSqlToolsServiceDownloadUrl should return value from config.json if not exit in extension config", (done) => {
-        return new Promise((resolve, reject) => {
-            let configKey = Constants.sqlToolsServiceDownloadUrlConfigKey;
-            let extConfig = createExtConfigInstance(configKey, fromConfig, undefined);
-            let actual = extConfig.getSqlToolsServiceDownloadUrl();
-            assert.equal(actual, fromConfig);
-            done();
-        });
-    });
-
-    test("getSqlToolsConfigValue should return value from extension config first", (done) => {
-        return new Promise((resolve, reject) => {
-            let configKey = Constants.sqlToolsServiceInstallDirConfigKey;
-            let extConfig = createExtConfigInstance(configKey, fromConfig, fromExtensionConfig);
-            let actual = extConfig.getSqlToolsConfigValue(configKey);
-            assert.equal(actual, fromExtensionConfig);
-            done();
-        });
-    });
-
-    test("getSqlToolsConfigValue should return value from config.json if not exit in extension config", (done) => {
-        return new Promise((resolve, reject) => {
-            let configKey = Constants.sqlToolsServiceInstallDirConfigKey;
-            let extConfig = createExtConfigInstance(configKey, fromConfig, undefined);
-            let actual = extConfig.getSqlToolsConfigValue(configKey);
-            assert.equal(actual, fromConfig);
-            done();
-        });
-    });
-
-    test("getExtensionConfig should return value from extension config", (done) => {
-        return new Promise((resolve, reject) => {
-            let configKey = "config key";
-            extensionConfig.setup((x) => x.get(configKey)).returns(() => fromExtensionConfig);
-            let extConfig = new ExtConfig(
-                config.object,
-                extensionConfig.object,
-                workspaceConfig.object,
-            );
-            let actual = extConfig.getExtensionConfig(configKey);
-            assert.equal(actual, fromExtensionConfig);
-            done();
-        });
-    });
-
-    test("getExtensionConfig should return the default value if the extension does not have the config", (done) => {
-        return new Promise((resolve, reject) => {
-            let configKey = "config key";
-            let defaultValue = "default value";
-            extensionConfig.setup((x) => x.get(configKey)).returns(() => undefined);
-            let extConfig = new ExtConfig(
-                config.object,
-                extensionConfig.object,
-                workspaceConfig.object,
-            );
-            let actual = extConfig.getExtensionConfig(configKey, defaultValue);
-            assert.equal(actual, defaultValue);
-            done();
-        });
-    });
-
-    test("getWorkspaceConfig should return value from workspace config", (done) => {
-        return new Promise((resolve, reject) => {
-            let configKey = "config key";
-            workspaceConfig.setup((x) => x.get(configKey)).returns(() => fromExtensionConfig);
-            let extConfig = new ExtConfig(
-                config.object,
-                extensionConfig.object,
-                workspaceConfig.object,
-            );
-            let actual = extConfig.getWorkspaceConfig(configKey);
-            assert.equal(actual, fromExtensionConfig);
-            done();
-        });
-    });
-
-    test("getWorkspaceConfig should return the default value if the workspace does not have the config", (done) => {
-        return new Promise((resolve, reject) => {
-            let configKey = "config key";
-            let defaultValue = "default value";
-            workspaceConfig.setup((x) => x.get(configKey)).returns(() => undefined);
-            let extConfig = new ExtConfig(
-                config.object,
-                extensionConfig.object,
-                workspaceConfig.object,
-            );
-            let actual = extConfig.getWorkspaceConfig(configKey, defaultValue);
-            assert.equal(actual, defaultValue);
-            done();
-        });
+    test("getWorkspaceConfig should return the default value if the workspace does not have the config", () => {
+        const configKey = "config key";
+        const defaultValue = "default value";
+        workspaceConfigGet.reset();
+        workspaceConfigGet.returns(undefined);
+        workspaceConfigGet.withArgs(configKey).returns(undefined);
+        const extConfig = new ExtConfig(
+            config as unknown as IConfigUtils,
+            extensionConfig,
+            workspaceConfig,
+        );
+        const actual = extConfig.getWorkspaceConfig(configKey, defaultValue);
+        expect(actual).to.equal(defaultValue);
     });
 });
