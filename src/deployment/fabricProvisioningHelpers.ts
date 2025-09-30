@@ -88,7 +88,7 @@ export async function initializeFabricProvisioningState(
         TelemetryActions.StartFabricProvisioningDeployment,
         {},
         {
-            localContainersInitTimeInMs: Date.now() - startTime,
+            fabricProvisioningInitTimeInMs: Date.now() - startTime,
         },
     );
 
@@ -154,6 +154,13 @@ export function registerFabricProvisioningReducers(
     deploymentController.registerReducer("retryCreateDatabase", async (state, _payload) => {
         let fabricProvisioningState = state.deploymentTypeState as fp.FabricProvisioningState;
         fabricProvisioningState.errorMessage = "";
+
+        sendActionEvent(
+            TelemetryViews.FabricProvisioning,
+            TelemetryActions.RetryProvisionFabricDatabase,
+            {},
+            {},
+        );
 
         state.deploymentTypeState = handleCreateDatabase(
             deploymentController,
