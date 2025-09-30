@@ -38,14 +38,20 @@ export function stubVscodeWrapper(
     const stubber = sandbox || sinon;
 
     const vscodeWrapper = stubber.createStubInstance(VscodeWrapper);
-    const outputChannel = stubber.stub({
-        append: () => stubber.stub(),
-        appendLine: () => stubber.stub(),
-    }) as unknown as vscode.OutputChannel;
 
-    stubber.stub(vscodeWrapper, "outputChannel").get(() => {
-        return outputChannel;
-    });
+    const outputChannel: vscode.OutputChannel = {
+        name: "",
+        append: stubber.stub(),
+        appendLine: stubber.stub(),
+        clear: stubber.stub(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        show: stubber.stub() as any,
+        replace: stubber.stub(),
+        hide: stubber.stub(),
+        dispose: stubber.stub(),
+    };
+
+    stubber.stub(vscodeWrapper, "outputChannel").get(() => outputChannel);
 
     return vscodeWrapper;
 }

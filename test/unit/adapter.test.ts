@@ -3,22 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import CodeAdapter from "../../src/prompts/adapter";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IQuestion } from "../../src/prompts/question";
 import { stubVscodeWrapper } from "./utils";
 
+chai.use(sinonChai);
+
 suite("Code Adapter Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let adapter: CodeAdapter;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
-    let outputChannel: {
-        append: sinon.SinonStub;
-        appendLine: sinon.SinonStub;
-        clear: sinon.SinonStub;
-        show: sinon.SinonStub;
-    };
+    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     const testMessage = {
         message: "test_message",
@@ -35,19 +34,11 @@ suite("Code Adapter Tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        vscodeWrapper = stubVscodeWrapper(sandbox);
+        mockVscodeWrapper = stubVscodeWrapper(sandbox);
 
-        outputChannel = {
-            append: sandbox.stub(),
-            appendLine: sandbox.stub(),
-            clear: sandbox.stub(),
-            show: sandbox.stub(),
-        };
+        mockVscodeWrapper.showErrorMessage.resolves(undefined);
 
-        sandbox.stub(vscodeWrapper, "outputChannel").get(() => outputChannel as any);
-        vscodeWrapper.showErrorMessage.resolves(undefined);
-
-        adapter = new CodeAdapter(vscodeWrapper as unknown as VscodeWrapper);
+        adapter = new CodeAdapter(mockVscodeWrapper);
     });
 
     teardown(() => {
@@ -56,22 +47,22 @@ suite("Code Adapter Tests", () => {
 
     test("logError should append message to the channel", () => {
         adapter.logError(testMessage);
-        sinon.assert.calledOnce(outputChannel.appendLine);
+        expect(mockVscodeWrapper.outputChannel.appendLine).to.have.been.calledOnce;
     });
 
     test("log should format message and append to the channel", () => {
         adapter.log(testMessage);
-        sinon.assert.calledOnce(outputChannel.appendLine);
+        expect(mockVscodeWrapper.outputChannel.appendLine).to.have.been.calledOnce;
     });
 
     test("clearLog should clear from output channel", () => {
         adapter.clearLog();
-        sinon.assert.calledOnce(outputChannel.clear);
+        expect(mockVscodeWrapper.outputChannel.clear).to.have.been.calledOnce;
     });
 
     test("showLog should show the output channel", () => {
         adapter.showLog();
-        sinon.assert.calledOnce(outputChannel.show);
+        expect(mockVscodeWrapper.outputChannel.show).to.have.been.calledOnce;
     });
 
     test("promptSingle and promptCallback should call prompt", async () => {
@@ -91,7 +82,8 @@ suite("Code Adapter Tests", () => {
         await adapter.promptSingle(formattedQuestion);
         const question: IQuestion = {
             ...formattedQuestion,
-            choices: ["test"],
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            choices: ["test" as any], // Intentionally wrong type to trigger fixQuestion
         };
         await adapter.promptSingle(question);
     });
