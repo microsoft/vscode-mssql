@@ -3,16 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
-import * as TypeMoq from "typemoq";
+import * as sinon from "sinon";
 import CodeAdapter from "../../src/prompts/adapter";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IQuestion } from "../../src/prompts/question";
+import { stubVscodeWrapper } from "./utils";
 
 suite("Code Adapter Tests", () => {
+    let sandbox: sinon.SinonSandbox;
     let adapter: CodeAdapter;
-    let outputChannel: TypeMoq.IMock<vscode.OutputChannel>;
-    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let outputChannel: {
+        append: sinon.SinonStub;
+        appendLine: sinon.SinonStub;
+        clear: sinon.SinonStub;
+        show: sinon.SinonStub;
+    };
+
     const testMessage = {
         message: "test_message",
         code: 123,
@@ -27,53 +34,65 @@ suite("Code Adapter Tests", () => {
     };
 
     setup(() => {
-        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-        outputChannel = TypeMoq.Mock.ofType<vscode.OutputChannel>();
-        outputChannel.setup((o) => o.appendLine(TypeMoq.It.isAnyString()));
-        outputChannel.setup((o) => o.clear());
-        outputChannel.setup((o) => o.show());
-        vscodeWrapper.setup((v) => v.outputChannel).returns(() => outputChannel.object);
-        vscodeWrapper.setup((v) => v.showErrorMessage(TypeMoq.It.isAnyString()));
-        adapter = new CodeAdapter(vscodeWrapper.object);
+        sandbox = sinon.createSandbox();
+        vscodeWrapper = stubVscodeWrapper(sandbox);
+
+        outputChannel = {
+            append: sandbox.stub(),
+            appendLine: sandbox.stub(),
+            clear: sandbox.stub(),
+            show: sandbox.stub(),
+        };
+
+        sandbox.stub(vscodeWrapper, "outputChannel").get(() => outputChannel as any);
+        vscodeWrapper.showErrorMessage.resolves(undefined);
+
+        adapter = new CodeAdapter(vscodeWrapper as unknown as VscodeWrapper);
+    });
+
+    teardown(() => {
+        sandbox.restore();
     });
 
     test("logError should append message to the channel", () => {
         adapter.logError(testMessage);
-        outputChannel.verify((o) => o.appendLine(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        sinon.assert.calledOnce(outputChannel.appendLine);
     });
 
     test("log should format message and append to the channel", () => {
         adapter.log(testMessage);
-        outputChannel.verify((o) => o.appendLine(TypeMoq.It.isAnyString()), TypeMoq.Times.once());
+        sinon.assert.calledOnce(outputChannel.appendLine);
     });
 
     test("clearLog should clear from output channel", () => {
         adapter.clearLog();
-        outputChannel.verify((o) => o.clear(), TypeMoq.Times.once());
+        sinon.assert.calledOnce(outputChannel.clear);
     });
 
     test("showLog should show the output channel", () => {
         adapter.showLog();
-        outputChannel.verify((o) => o.show(), TypeMoq.Times.once());
+        sinon.assert.calledOnce(outputChannel.show);
     });
 
-    test("promptSingle and promptCallback should call prompt", () => {
-        void adapter.promptSingle(testQuestion);
+    test("promptSingle and promptCallback should call prompt", async () => {
+        await adapter.promptSingle(testQuestion);
         adapter.promptCallback([testQuestion], () => true);
         // Error case
-        void adapter.prompt([{ type: "test", message: "test", name: "test" }]);
+        await adapter.prompt([{ type: "test", message: "test", name: "test" }]);
     });
 
-    test("prompting a checkbox question should call fixQuestion", () => {
-        let formattedQuestion: IQuestion = {
+    test("prompting a checkbox question should call fixQuestion", async () => {
+        const formattedQuestion: IQuestion = {
             type: "checkbox",
             message: "test",
             name: "test_checkbox",
             choices: [{ name: "test_choice", value: "test_choice" }],
         };
-        void adapter.promptSingle(formattedQuestion);
-        let question: any = Object.assign({}, formattedQuestion);
-        question.choices[0] = "test";
-        void adapter.promptSingle(question);
+        await adapter.promptSingle(formattedQuestion);
+        const question: IQuestion = {
+            ...formattedQuestion,
+            choices: ["test"],
+        };
+        await adapter.promptSingle(question);
     });
 });
