@@ -1,0 +1,15 @@
+coverage:
+  status:
+    patch:
+      default:
+        target: 70%
+    project:
+      default:
+        target: 50%
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+parsers:
+  cobertura:
+    partials_as_hits: true
+    handle_missing_conditons: true
