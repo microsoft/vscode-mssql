@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
-import * as TypeMoq from "typemoq";
+import { expect } from "chai";
+import * as sinon from "sinon";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { AccountService } from "../../src/azure/accountService";
@@ -14,123 +14,71 @@ import {
     CreateFirewallRuleRequest,
     ICreateFirewallRuleResponse,
 } from "../../src/models/contracts/firewall/firewallRequest";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { assert } from "chai";
-import { IAzureSession, IAzureResourceFilter } from "../../src/models/interfaces";
-import {
-    AzureAuthType,
-    IAccount,
-    ITenant,
-    IToken,
-    IAzureAccountProperties,
-} from "../../src/models/contracts/azure";
-import allSettings from "../../src/azure/providerSettings";
+import * as Constants from "../../src/constants/constants";
 
 suite("Firewall Service Tests", () => {
-    let firewallService: TypeMoq.IMock<FirewallService>;
-    let accountService: TypeMoq.IMock<AccountService>;
-    let client: TypeMoq.IMock<SqlToolsServiceClient>;
-    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let sandbox: sinon.SinonSandbox;
+    let client: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
+    let accountService: AccountService;
+    let firewallService: FirewallService;
 
     setup(() => {
-        client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
-        let mockHandleFirewallResponse: IHandleFirewallRuleResponse = {
-            result: true,
-            ipAddress: "128.0.0.0",
-        };
-        let mockCreateFirewallRuleResponse: ICreateFirewallRuleResponse = {
-            result: true,
-            errorMessage: "",
-        };
-        client
-            .setup((c) => c.sendResourceRequest(HandleFirewallRuleRequest.type, TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(mockHandleFirewallResponse));
-        client
-            .setup((c) => c.sendResourceRequest(CreateFirewallRuleRequest.type, TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(mockCreateFirewallRuleResponse));
-        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-        let mockSession: IAzureSession = {
-            environment: undefined,
-            userId: "test",
-            tenantId: "test",
-            credentials: undefined,
-        };
-        let mockSessions: IAzureSession[] = [mockSession];
-        let mockFilter: IAzureResourceFilter = {
-            sessions: mockSessions,
-            subscription: undefined,
-        };
-        let mockExtension: vscode.Extension<any> = {
-            id: "",
-            extensionKind: undefined,
-            extensionPath: "",
-            isActive: true,
-            packageJSON: undefined,
-            activate: undefined,
-            extensionUri: undefined,
-            exports: {
-                sessions: mockSessions,
-                filters: mockFilter,
-            },
-        };
-        vscodeWrapper.setup((v) => v.azureAccountExtension).returns(() => mockExtension);
-        accountService = TypeMoq.Mock.ofType(AccountService, TypeMoq.MockBehavior.Loose);
-        firewallService = TypeMoq.Mock.ofType(FirewallService, TypeMoq.MockBehavior.Loose);
+        sandbox = sinon.createSandbox();
+        client = sandbox.createStubInstance(SqlToolsServiceClient);
+        accountService = {
+            client: client as unknown as SqlToolsServiceClient,
+        } as AccountService;
+        firewallService = new FirewallService(accountService);
+    });
+
+    teardown(() => {
+        sandbox.restore();
     });
 
     test("Handle Firewall Rule test", async () => {
-        let handleResult = await firewallService.object.handleFirewallRule(
-            12345,
-            "firewall error!",
+        const mockResponse: IHandleFirewallRuleResponse = {
+            result: true,
+            ipAddress: "128.0.0.0",
+        };
+        client.sendResourceRequest.resolves(mockResponse);
+
+        const handleResult = await firewallService.handleFirewallRule(12345, "firewall error!");
+
+        expect(handleResult).to.deep.equal(mockResponse);
+        sinon.assert.calledOnceWithExactly(
+            client.sendResourceRequest,
+            HandleFirewallRuleRequest.type,
+            {
+                errorCode: 12345,
+                errorMessage: "firewall error!",
+                connectionTypeId: Constants.mssqlProviderName,
+            },
         );
-        assert.isNotNull(handleResult, "Handle Firewall Rule request is sent successfully");
     });
 
     test("Create Firewall Rule Test", async () => {
-        let server = "test_server";
-        let startIpAddress = "1.2.3.1";
-        let endIpAddress = "1.2.3.255";
-        let mockTenant: ITenant = {
-            id: "1",
-            displayName: undefined,
+        const mockResponse: ICreateFirewallRuleResponse = {
+            result: true,
+            errorMessage: "",
         };
-        let properties: IAzureAccountProperties = {
-            tenants: [mockTenant],
-            azureAuthType: AzureAuthType.AuthCodeGrant,
-            isMsAccount: false,
-            owningTenant: {
-                id: "1",
-                displayName: undefined,
-            },
-            providerSettings: allSettings,
-        };
-        let mockAccount: IAccount = {
-            properties: properties,
-            key: undefined,
-            displayInfo: undefined,
-            isStale: undefined,
-        };
-        let mockToken: IToken = {
-            key: "",
-            tokenType: "",
-            token: "",
-            expiresOn: 0,
-        };
-        accountService
-            .setup((v) => v.refreshToken(mockAccount, mockTenant.id))
-            .returns(() => Promise.resolve(mockToken));
-        accountService.object.setAccount(mockAccount);
-        let result = await firewallService.object.createFirewallRule({
-            account: mockAccount,
+        client.sendResourceRequest.resolves(mockResponse);
+
+        const request = {
+            account: { properties: { tenants: [] } },
             firewallRuleName: "Test Rule",
-            startIpAddress: startIpAddress,
-            endIpAddress: endIpAddress,
-            serverName: server,
-            securityTokenMappings: accountService.object.createSecurityTokenMapping(
-                mockAccount,
-                mockTenant.id,
-            ),
-        });
-        assert.isNotNull(result, "Create Firewall Rule request is sent successfully");
+            startIpAddress: "1.2.3.1",
+            endIpAddress: "1.2.3.255",
+            serverName: "test_server",
+            securityTokenMappings: {},
+        };
+
+        const result = await firewallService.createFirewallRule(request);
+
+        expect(result).to.deep.equal(mockResponse);
+        sinon.assert.calledOnceWithExactly(
+            client.sendResourceRequest,
+            CreateFirewallRuleRequest.type,
+            request,
+        );
     });
 });
