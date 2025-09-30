@@ -297,7 +297,7 @@ export class FabricHelper {
         reason: string,
         tenantId: string | undefined,
     ): Promise<TResponse> {
-        const uri = vscode.Uri.joinPath(this.getFabricScopeUriBase(), api);
+        const uri = vscode.Uri.joinPath(this.getFabricApiUriBase(), api);
         const httpHelper = new HttpHelper();
 
         const session = await this.createScopedFabricSession(tenantId, reason);
