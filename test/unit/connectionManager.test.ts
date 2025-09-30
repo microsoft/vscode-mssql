@@ -10,12 +10,9 @@ import sinonChai from "sinon-chai";
 import * as chai from "chai";
 import { expect } from "chai";
 import { ConnectionDetails, IToken, IConnectionInfo } from "vscode-mssql";
-
-chai.use(sinonChai);
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { Logger } from "../../src/models/logger";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { IPrompter } from "../../src/prompts/question";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import StatusView from "../../src/views/statusView";
@@ -26,6 +23,9 @@ import { RequestSecurityTokenParams } from "../../src/models/contracts/azure";
 import { AzureController } from "../../src/azure/azureController";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { AccountStore } from "../../src/azure/accountStore";
+import { TestPrompter } from "./stubs";
+
+chai.use(sinonChai);
 
 suite("ConnectionManager Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -424,12 +424,7 @@ suite("ConnectionManager Tests", () => {
             mockAccountStore = sandbox.createStubInstance(AccountStore);
             mockAzureController = sandbox.createStubInstance(AzureController);
 
-            // Create a mock prompter
-            const mockPrompter = {
-                promptSingle: sandbox.stub(),
-                prompt: sandbox.stub(),
-                promptCallback: sandbox.stub(),
-            } as IPrompter;
+            const mockPrompter = sandbox.createStubInstance(TestPrompter);
 
             // Create a new connection manager instance for this test suite
             testConnectionManager = new ConnectionManager(
