@@ -289,6 +289,12 @@ jobs:
         with:
           name: CoverageReport # Artifact name
           path: coveragereport # Directory containing files to upload
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: './pr/coverage/cobertura-coverage.xml'
 
       - name: Code coverage
         run: |
