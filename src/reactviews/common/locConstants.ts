@@ -988,6 +988,12 @@ export class LocConstants {
             ),
         };
     }
+
+    public get tableExplorer() {
+        return {
+            save: l10n.t("Save"),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();

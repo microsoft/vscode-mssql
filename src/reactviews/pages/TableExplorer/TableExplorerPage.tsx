@@ -6,6 +6,7 @@
 import React from "react";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { TableDataGrid } from "./TableDataGrid";
+import { TableExplorerToolbar } from "./TableExplorerToolbar";
 
 export const TableExplorerPage: React.FC = () => {
     const context = useTableExplorerContext();
@@ -28,6 +29,7 @@ export const TableExplorerPage: React.FC = () => {
                 </div>
             )}
 
+            <TableExplorerToolbar />
             {state?.resultSet ? (
                 <div>
                     <h2>Table Data</h2>
