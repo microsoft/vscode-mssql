@@ -593,16 +593,16 @@ suite("SqlDocumentService Tests", () => {
             mockCreateDocument = sandbox.stub(sqlDocumentService as any, "createDocument");
             mockCreateDocument.resolves(editor);
 
-            mockConnect = sandbox.stub().resolves(true);
+            const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+            mockConnect = mockConnectionManager.connect;
+            mockOnNewConnection = mockConnectionManager.onNewConnection;
+            mockGetConnectionInfoFromUri = mockConnectionManager.getConnectionInfoFromUri;
 
-            mockGetConnectionInfoFromUri = sandbox.stub();
-            mockOnNewConnection = sandbox.stub();
+            mockConnect.resolves(true);
+            mockOnNewConnection.resolves();
+            mockGetConnectionInfoFromUri.resolves();
 
-            (sqlDocumentService as any)._connectionMgr = {
-                getConnectionInfoFromUri: mockGetConnectionInfoFromUri,
-                connect: mockConnect,
-                onNewConnection: mockOnNewConnection,
-            };
+            sqlDocumentService["_connectionMgr"] = mockConnectionManager;
         });
 
         test("ConnectionStrategy.None should not establish any connection", async () => {
