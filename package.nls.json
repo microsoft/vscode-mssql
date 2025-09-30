@@ -237,5 +237,5 @@
     "mssql.customEnvironment.mssql.customEnvironment.fabricApiUriBase": "Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`",
     "mssql.customEnvironment.mssql.customEnvironment.fabricScopeUriBase": "Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`",
     "mssql.customEnvironment.fabricSqlDbDnsSuffix": "Sovereign cloud equivalent for `database.fabric.microsoft.com`",
-    "mssql.customEnvironment.fabricDataWarehouseSuffix": "Sovereign cloud equivalent for `datawarehouse.fabric.microsoft.com`"
+    "mssql.customEnvironment.fabricDataWarehouseDnsSuffix": "Sovereign cloud equivalent for `datawarehouse.fabric.microsoft.com`"
 }

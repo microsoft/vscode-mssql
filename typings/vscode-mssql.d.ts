@@ -1065,7 +1065,7 @@ declare module "vscode-mssql" {
             fabricApiUriBase: string;
             fabricScopeUriBase: string;
             sqlDbDnsSuffix: string;
-            dataWarehouseSuffix: string;
+            dataWarehouseDnsSuffix: string;
         };
     }
 

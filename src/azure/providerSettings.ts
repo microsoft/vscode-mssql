@@ -11,7 +11,7 @@ import * as AzureAuth from "@microsoft/vscode-azext-azureauth";
 import { parseEnum } from "../utils/utils";
 
 /**
- * Identifiers for the various Azure clouds.  Settings should match the "microsoft-sovereign-cloud.environment" setting values.
+ * Identifiers for the various Azure clouds.  Values must match the "microsoft-sovereign-cloud.environment" setting values.
  */
 export enum CloudId {
     /**
@@ -21,7 +21,7 @@ export enum CloudId {
     USGovernment = "USGovernment",
     ChinaCloud = "ChinaCloud",
     /**
-     * Requires reading from the "microsoft-sovereign-cloud.customCloud" setting
+     * Requires reading from the `microsoft-sovereign-cloud.customEnvironment` setting
      */
     Custom = "custom",
 }
@@ -66,7 +66,7 @@ export const publicAzureSettings: IProviderSettings = {
         fabricApiUriBase: "https://api.fabric.microsoft.com/v1/",
         fabricScopeUriBase: "https://analysis.windows.net/powerbi/api/",
         sqlDbDnsSuffix: "database.fabric.microsoft.com",
-        dataWarehouseSuffix: "datawarehouse.fabric.microsoft.com",
+        dataWarehouseDnsSuffix: "datawarehouse.fabric.microsoft.com",
     },
     scopes: [
         "openid",
@@ -112,7 +112,7 @@ const usGovernmentCloudSettings: IProviderSettings = {
         fabricApiUriBase: undefined,
         fabricScopeUriBase: undefined,
         sqlDbDnsSuffix: undefined,
-        dataWarehouseSuffix: undefined,
+        dataWarehouseDnsSuffix: undefined,
     },
     scopes: [
         "openid",
@@ -158,7 +158,7 @@ const chinaCloudSettings: IProviderSettings = {
         fabricApiUriBase: undefined,
         fabricScopeUriBase: undefined,
         sqlDbDnsSuffix: undefined,
-        dataWarehouseSuffix: undefined,
+        dataWarehouseDnsSuffix: undefined,
     },
     scopes: [
         "openid",
@@ -178,7 +178,7 @@ interface MssqlEnvironmentAdditions {
     fabricApiUriBase?: string;
     fabricScopeUriBase?: string;
     fabricSqlDbDnsSuffix?: string;
-    fabricDataWarehouseSuffix?: string;
+    fabricDataWarehouseDnsSuffix?: string;
 }
 
 interface MssqlEnvironment extends AzureEnvironments.Environment, MssqlEnvironmentAdditions {
@@ -236,7 +236,7 @@ function getCustomCloudSettings(): IProviderSettings {
             fabricApiUriBase: customCloud.fabricApiUriBase,
             fabricScopeUriBase: customCloud.fabricScopeUriBase,
             sqlDbDnsSuffix: customCloud.fabricSqlDbDnsSuffix,
-            dataWarehouseSuffix: customCloud.fabricDataWarehouseSuffix,
+            dataWarehouseDnsSuffix: customCloud.fabricDataWarehouseDnsSuffix,
         },
         scopes: [
             "openid",

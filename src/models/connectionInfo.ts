@@ -309,7 +309,7 @@ export function getServerTypes(connection: IConnectionInfo): ServerType[] {
             return [ServerType.Fabric, ServerType.Sql];
         }
 
-        if (connection.server.includes(getCloudSettings().fabric.dataWarehouseSuffix)) {
+        if (connection.server.includes(getCloudSettings().fabric.dataWarehouseDnsSuffix)) {
             return [ServerType.Fabric, ServerType.DataWarehouse];
         }
     } catch (error) {

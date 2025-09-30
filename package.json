@@ -2075,9 +2075,9 @@
                             "type": ["string", "null"],
                             "description": "%mssql.customEnvironment.fabricSqlDbDnsSuffix%"
                         },
-                        "fabricDataWarehouseSuffix": {
+                        "fabricDataWarehouseDnsSuffix": {
                             "type": ["string", "null"],
-                            "description": "%mssql.customEnvironment.fabricDataWarehouseSuffix%"
+                            "description": "%mssql.customEnvironment.fabricDataWarehouseDnsSuffix%"
                         }
                     }
                 }

@@ -3941,7 +3941,7 @@
     <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
       <source xml:lang="en">Sovereign cloud equivalent for `database.fabric.microsoft.com`</source>
     </trans-unit>
-    <trans-unit id="mssql.customEnvironment.fabricDataWarehouseSuffix">
+    <trans-unit id="mssql.customEnvironment.fabricDataWarehouseDnsSuffix">
       <source xml:lang="en">Sovereign cloud equivalent for `datawarehouse.fabric.microsoft.com`</source>
     </trans-unit>
     <trans-unit id="mssql.customEnvironment.mssql.customEnvironment.fabricScopeUriBase">

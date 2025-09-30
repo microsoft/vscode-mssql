@@ -134,7 +134,7 @@ export interface IProviderSettings {
         fabricApiUriBase: string;
         fabricScopeUriBase: string;
         sqlDbDnsSuffix: string;
-        dataWarehouseSuffix: string;
+        dataWarehouseDnsSuffix: string;
     };
 }
 
@@ -223,7 +223,7 @@ export interface IProviderResources {
     ossRdbmsResource?: IAADResource;
     azureKeyVaultResource?: IAADResource;
     azureDevopsResource?: IAADResource;
-    fabric?: IAADResource & { sqlDbDnsSuffix?: string; dataWarehouseSuffix: string };
+    fabric?: IAADResource & { sqlDbDnsSuffix?: string; dataWarehouseDnsSuffix: string };
 }
 
 export interface IAADResource {
