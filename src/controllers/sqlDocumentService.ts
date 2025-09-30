@@ -15,7 +15,6 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import MainController from "./mainController";
 import * as vscodeMssql from "vscode-mssql";
-import { Deferred } from "../protocol";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
@@ -375,15 +374,11 @@ export default class SqlDocumentService implements vscode.Disposable {
             connectionConfig?.connectionInfo &&
             this._connectionMgr
         ) {
-            const connectionPromise = new Deferred<boolean>();
-
-            await this._connectionMgr.connect(
+            const connectionResult = await this._connectionMgr.connect(
                 documentKey,
                 connectionConfig.connectionInfo,
-                connectionPromise,
             );
 
-            const connectionResult = await connectionPromise.promise;
             if (connectionResult) {
                 /**
                  * Skip creating an Object Explorer session if one already exists for the connection.
