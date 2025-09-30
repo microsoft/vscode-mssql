@@ -2035,6 +2035,37 @@
                     "default": true,
                     "description": "%mssql.autoRevealResultsPanel%",
                     "scope": "window"
+                },
+                "mssql.customEnvironment": {
+                    "type": "object",
+                    "description": "%mssql.customEnvironment%",
+                    "default": null,
+                    "properties": {
+                        "sqlEndpoint": {
+                            "type": "string",
+                            "description": "%mssql.customEnvironment.sqlEndpoint%"
+                        },
+                        "sqlServerHostnameSuffix": {
+                            "type": "string",
+                            "description": "%mssql.customEnvironment.sqlServerHostnameSuffix%"
+                        },
+                        "analyticsDnsSuffix": {
+                            "type": "string",
+                            "description": "%mssql.customEnvironment.analyticsDnsSuffix%"
+                        },
+                        "keyVaultEndpoint": {
+                            "type": "string",
+                            "description": "%mssql.customEnvironment.keyVaultEndpoint%"
+                        },
+                        "fabricSqlDbDnsSuffix": {
+                            "type": "string",
+                            "description": "%mssql.customEnvironment.fabricSqlDbDnsSuffix%"
+                        },
+                        "fabricDataWarehouseSuffix": {
+                            "type": "string",
+                            "description": "%mssql.customEnvironment.fabricDataWarehouseSuffix%"
+                        }
+                    }
                 }
             }
         },

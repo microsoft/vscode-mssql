@@ -162,8 +162,7 @@ const chinaCloudSettings: IProviderSettings = {
     ],
 };
 
-interface MssqlEnvironment extends AzureEnvironments.Environment {
-    isCustomCloud: boolean;
+interface MssqlEnvironmentAdditions {
     clientId?: string;
     sqlEndpoint?: string;
     sqlDnsSuffix?: string;
@@ -173,8 +172,21 @@ interface MssqlEnvironment extends AzureEnvironments.Environment {
     fabricDataWarehouseSuffix?: string;
 }
 
+interface MssqlEnvironment extends AzureEnvironments.Environment, MssqlEnvironmentAdditions {
+    isCustomCloud: boolean;
+}
+
 function getCustomCloudSettings(): IProviderSettings {
-    const customCloud: MssqlEnvironment = AzureAuth.getConfiguredAzureEnv();
+    let customCloud: MssqlEnvironment = AzureAuth.getConfiguredAzureEnv();
+
+    const mssqlCustomCloud = vscode.workspace
+        .getConfiguration("mssql")
+        .get<MssqlEnvironmentAdditions>("customEnvironment");
+
+    customCloud = {
+        ...customCloud,
+        ...mssqlCustomCloud,
+    };
 
     if (!customCloud.isCustomCloud) {
         throw new Error("Attempted to read custom cloud, but got preconfigured one instead.");
@@ -203,7 +215,7 @@ function getCustomCloudSettings(): IProviderSettings {
                 resource: "Sql",
                 endpoint: customCloud.sqlEndpoint,
                 dnsSuffix: customCloud.sqlServerHostnameSuffix,
-                analyticsDnsSuffix: undefined, // TODO: check what this shoudl be for USGov
+                analyticsDnsSuffix: customCloud.analyticsDnsSuffix,
             },
             azureKeyVaultResource: {
                 id: "vault",
