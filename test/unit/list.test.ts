@@ -29,7 +29,7 @@ suite("List Prompt Tests", () => {
     });
 
     test("Test list prompt render", async () => {
-        const listPrompt = new ListPrompt(question, vscodeWrapper as unknown as VscodeWrapper);
+        const listPrompt = new ListPrompt(question, vscodeWrapper);
         await listPrompt.render();
 
         sinon.assert.calledOnceWithExactly(
@@ -43,7 +43,7 @@ suite("List Prompt Tests", () => {
     test.skip("Test list prompt render with error", async () => {
         const errorWrapper = stubVscodeWrapper(sandbox);
         errorWrapper.showQuickPickStrings.resolves(undefined);
-        const errorPrompt = new ListPrompt(question, errorWrapper as unknown as VscodeWrapper);
+        const errorPrompt = new ListPrompt(question, errorWrapper);
         await errorPrompt.render();
         sinon.assert.calledOnce(errorWrapper.showQuickPickStrings);
     });
