@@ -6,7 +6,7 @@
 import { useContext } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { useFormStyles } from "../../common/forms/form.component";
-import { PublishProjectStateProvider, PublishProjectContext } from "./publishProjectStateProvider";
+import { PublishProjectContext } from "./publishProjectStateProvider";
 import { usePublishDialogSelector } from "./publishDialogSelector";
 import { LocConstants } from "../../common/locConstants";
 import { PublishProfileField } from "./components/PublishProfileSection";
@@ -91,9 +91,5 @@ function PublishProjectDialog() {
 }
 
 export default function PublishProjectPage() {
-    return (
-        <PublishProjectStateProvider>
-            <PublishProjectDialog />
-        </PublishProjectStateProvider>
-    );
+    return <PublishProjectDialog />;
 }
