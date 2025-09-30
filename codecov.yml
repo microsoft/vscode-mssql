@@ -9,3 +9,7 @@ coverage:
 comment:
   layout: "reach, diff, flags, files"
   behavior: default
+parsers:
+  cobertura:
+    partials_as_hits: true
+    handle_missing_conditons: true
