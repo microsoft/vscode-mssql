@@ -18,49 +18,12 @@ suite("PublishProjectWebViewController Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
 
-        const globalState = {
-            get: (<T>(_key: string, defaultValue?: T) => defaultValue) as {
-                <T>(key: string): T | undefined;
-                <T>(key: string, defaultValue: T): T;
-            },
-            update: async () => undefined,
-            keys: () => [] as readonly string[],
-            setKeysForSync: (_keys: readonly string[]) => undefined,
-        } as unknown as vscode.Memento & { setKeysForSync(keys: readonly string[]): void };
-
-        const rawContext = {
+        const rawContext: Partial<vscode.ExtensionContext> = {
             extensionUri: vscode.Uri.parse("file://ProjectPath"),
             extensionPath: "ProjectPath",
             subscriptions: [],
-            globalState,
-            workspaceState: globalState,
-            storagePath: undefined,
-            storageUri: undefined,
-            globalStoragePath: "",
-            globalStorageUri: vscode.Uri.parse("file://ProjectPath/global"),
-            logPath: "",
-            logUri: vscode.Uri.parse("file://ProjectPath/log"),
-            asAbsolutePath: (rel: string) => rel,
-            extensionMode: vscode.ExtensionMode.Test,
-            secrets: {
-                get: async () => undefined,
-                store: async () => undefined,
-                delete: async () => false,
-                onDidChange: new vscode.EventEmitter<vscode.SecretStorageChangeEvent>().event,
-            } as unknown as vscode.SecretStorage,
-            environmentVariableCollection: {
-                // minimal stub; tests here don't rely on it
-                persistent: true,
-                replace: () => undefined,
-                append: () => undefined,
-                get: () => undefined,
-                forEach: () => undefined,
-                delete: () => undefined,
-                clear: () => undefined,
-            } as unknown as vscode.EnvironmentVariableCollection,
-            extension: undefined as unknown as vscode.Extension<unknown>,
         };
-        contextStub = rawContext as unknown as vscode.ExtensionContext;
+        contextStub = rawContext as vscode.ExtensionContext;
 
         const outputChannel: vscode.OutputChannel = {
             name: "test",

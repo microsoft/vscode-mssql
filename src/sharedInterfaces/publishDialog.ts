@@ -35,21 +35,13 @@ export interface PublishDialogFormItemSpec
     extends FormItemSpec<IPublishForm, PublishDialogState, PublishDialogFormItemSpec> {
     // (Removed advanced option metadata: was isAdvancedOption/optionCategory/optionCategoryLabel)
     // Reintroduce when the Publish dialog gains an "Advanced" section with grouped fields.
+    // TODO: https://github.com/microsoft/vscode-mssql/issues/20248 task for advanced options
 }
 
 /**
  * Reducers (messages) the controller supports in addition to the generic form actions.
  */
 export interface PublishDialogReducers extends FormReducers<IPublishForm> {
-    setPublishValues: {
-        profileName?: string;
-        serverName?: string;
-        databaseName?: string;
-        publishTarget?: "existingServer" | "localContainer";
-        sqlCmdVariables?: { [key: string]: string };
-        projectFilePath?: string;
-    };
-
     publishNow: {
         projectFilePath?: string;
         databaseName?: string;
@@ -84,15 +76,6 @@ export interface PublishProjectProvider {
     selectPublishProfile(): void;
     /** Persist current form state as a named profile */
     savePublishProfile(profileName: string): void;
-    /** Bulk set form values (e.g., after loading a profile) */
-    setPublishValues(values: {
-        profileName?: string;
-        serverName?: string;
-        databaseName?: string;
-        publishTarget?: "existingServer" | "localContainer";
-        sqlCmdVariables?: { [key: string]: string };
-        projectFilePath?: string;
-    }): void;
 }
 
 /**

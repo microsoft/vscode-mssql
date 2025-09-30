@@ -66,9 +66,9 @@ function PublishProjectDialog() {
         <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
             <div className={classes.root}>
                 <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
-                    <PublishTargetSection idx={0} />
-                    <PublishProfileField idx={1} />
-                    <ConnectionSection startIdx={2} />
+                    <PublishTargetSection />
+                    <PublishProfileField />
+                    <ConnectionSection />
 
                     <div className={classes.footer}>
                         <Button

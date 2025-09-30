@@ -3,67 +3,86 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
+import { useContext, useState, useEffect } from "react";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
-import { FormField } from "../../../common/forms/form.component";
-import {
-    IPublishForm,
-    PublishDialogState,
-    PublishDialogFormItemSpec,
-} from "../../../../sharedInterfaces/publishDialog";
-import { FormContextProps } from "../../../../sharedInterfaces/form";
+import { Field, Input } from "@fluentui/react-components";
+import { FormItemType } from "../../../../sharedInterfaces/form";
+import type { IPublishForm } from "../../../../sharedInterfaces/publishDialog";
 
-// Context type reuse
-interface PublishFormContext
-    extends FormContextProps<IPublishForm, PublishDialogState, PublishDialogFormItemSpec> {
-    publishNow: () => void;
-    generatePublishScript: () => void;
-    selectPublishProfile: () => void;
-    savePublishProfile: (profileName: string) => void;
-}
+export const ConnectionSection: React.FC = () => {
+    const publishCtx = useContext(PublishProjectContext);
+    const serverComponent = usePublishDialogSelector((s) => s.formComponents.serverName);
+    const databaseComponent = usePublishDialogSelector((s) => s.formComponents.databaseName);
+    const serverValue = usePublishDialogSelector((s) => s.formState.serverName);
+    const databaseValue = usePublishDialogSelector((s) => s.formState.databaseName);
 
-export const ConnectionSection: React.FC<{ startIdx: number }> = ({ startIdx }) => {
-    const context = useContext(PublishProjectContext) as PublishFormContext | undefined;
+    const [localServer, setLocalServer] = useState(serverValue || "");
+    const [localDatabase, setLocalDatabase] = useState(databaseValue || "");
 
-    const serverComponent = usePublishDialogSelector((s) => s.formComponents.serverName, Object.is);
-    const databaseComponent = usePublishDialogSelector(
-        (s) => s.formComponents.databaseName,
-        Object.is,
-    );
+    useEffect(() => setLocalServer(serverValue || ""), [serverValue]);
+    useEffect(() => setLocalDatabase(databaseValue || ""), [databaseValue]);
 
-    if (!context) {
+    if (!publishCtx) {
         return undefined;
     }
 
+    const renderInput = (
+        component:
+            | {
+                  propertyName: string;
+                  hidden?: boolean;
+                  required?: boolean;
+                  label: string;
+                  placeholder?: string;
+                  validation?: { isValid: boolean; validationMessage?: string };
+                  type: FormItemType;
+              }
+            | undefined,
+        value: string,
+        setValue: (v: string) => void,
+    ) => {
+        if (!component || component.hidden) {
+            return undefined;
+        }
+        if (component.type !== FormItemType.Input) {
+            return undefined;
+        }
+        return (
+            <Field
+                key={component.propertyName}
+                required={component.required}
+                label={<span dangerouslySetInnerHTML={{ __html: component.label }} />}
+                validationMessage={component.validation?.validationMessage}
+                validationState={
+                    component.validation
+                        ? component.validation.isValid
+                            ? "none"
+                            : "error"
+                        : "none"
+                }
+                orientation="horizontal">
+                <Input
+                    size="small"
+                    value={value}
+                    placeholder={component.placeholder ?? ""}
+                    onChange={(_, data) => {
+                        setValue(data.value);
+                        publishCtx.formAction({
+                            propertyName: component.propertyName as keyof IPublishForm,
+                            isAction: false,
+                            value: data.value,
+                        });
+                    }}
+                />
+            </Field>
+        );
+    };
+
     return (
         <>
-            {serverComponent && !serverComponent.hidden && (
-                <FormField<
-                    IPublishForm,
-                    PublishDialogState,
-                    PublishDialogFormItemSpec,
-                    PublishFormContext
-                >
-                    context={context}
-                    component={serverComponent}
-                    idx={startIdx}
-                    props={{ orientation: "horizontal" }}
-                />
-            )}
-            {databaseComponent && !databaseComponent.hidden && (
-                <FormField<
-                    IPublishForm,
-                    PublishDialogState,
-                    PublishDialogFormItemSpec,
-                    PublishFormContext
-                >
-                    context={context}
-                    component={databaseComponent}
-                    idx={startIdx + 1}
-                    props={{ orientation: "horizontal" }}
-                />
-            )}
+            {renderInput(serverComponent, localServer, setLocalServer)}
+            {renderInput(databaseComponent, localDatabase, setLocalDatabase)}
         </>
     );
 };

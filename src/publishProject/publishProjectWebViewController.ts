@@ -95,25 +95,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
     }
 
     private registerRpcHandlers(): void {
-        // setPublishValues
-        this.registerReducer(
-            "setPublishValues",
-            async (
-                state: PublishDialogState,
-                payload: Partial<IPublishForm> & { projectFilePath?: string },
-            ) => {
-                if (payload) {
-                    state.formState = { ...state.formState, ...payload };
-                    if (payload.projectFilePath) {
-                        state.projectFilePath = payload.projectFilePath;
-                    }
-                }
-                // Re-evaluate visibility if any controlling fields changed
-                await this.updateItemVisibility();
-                return state;
-            },
-        );
-
         this.registerReducer("publishNow", async (state: PublishDialogState) => {
             // TODO: implement actual publish logic (currently just clears inProgress)
             state.inProgress = false;
