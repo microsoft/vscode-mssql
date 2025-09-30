@@ -40,7 +40,6 @@ suite("ConnectionNode Tests", () => {
 
         // Tooltip should include keys that differ from defaults and should not include excluded keys
         expect(node.tooltip).to.be.a("string");
-        expect(node.tooltip).to.contain("encrypt: None");
         expect(node.tooltip).to.contain("connectTimeout: 10");
         expect(node.tooltip).to.contain("applicationName: MyApp");
         expect(node.tooltip).to.contain("server:");
@@ -52,6 +51,7 @@ suite("ConnectionNode Tests", () => {
         expect(node.tooltip).to.not.contain("id:");
         expect(node.tooltip).to.not.contain("groupId:");
         expect(node.tooltip).to.not.contain("savePassword: true");
+        expect(node.tooltip).to.not.contain("encrypt");
     });
 
     test("constructor should set tooltip including non-default properties for connection with profileName should include server, db and user", () => {
@@ -73,7 +73,6 @@ suite("ConnectionNode Tests", () => {
 
         // Tooltip should include keys that differ from defaults and should not include 'excluded' keys
         expect(node.tooltip).to.be.a("string");
-        expect(node.tooltip).to.contain("encrypt: None");
         expect(node.tooltip).to.contain("connectTimeout: 10");
         expect(node.tooltip).to.contain("applicationName: MyApp");
 
@@ -85,5 +84,6 @@ suite("ConnectionNode Tests", () => {
         expect(node.tooltip).to.not.contain("id:");
         expect(node.tooltip).to.not.contain("groupId:");
         expect(node.tooltip).to.not.contain("savePassword");
+        expect(node.tooltip).to.not.contain("encrypt");
     });
 });
