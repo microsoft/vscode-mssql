@@ -149,7 +149,7 @@ export class MsalAzureController extends AzureController {
     }
 
     public async login(authType: AzureAuthType, cloud?: CloudId): Promise<IAccount | undefined> {
-        const cloudAuth = this.getCloudAuth(cloud);
+        const cloudAuth = this.getCloudAuthApp(cloud);
 
         const response = await cloudAuth.msalAuthInstance(authType).startLogin();
 
@@ -171,13 +171,13 @@ export class MsalAzureController extends AzureController {
         return accountInfo !== undefined;
     }
 
-    private getCloudAuth(cloud?: CloudId): CloudAuthApplication {
+    private getCloudAuthApp(cloud?: CloudId): CloudAuthApplication {
         return this._cloudAuthMappings.get(cloud || getCloudId())!;
     }
 
     private getCloudAuthForAccount(account: IAccount): CloudAuthApplication | undefined {
         const cloudId = getCloudId(account.key.providerId);
-        return this.getCloudAuth(cloudId);
+        return this.getCloudAuthApp(cloudId);
     }
 
     public async getAccountSecurityToken(
