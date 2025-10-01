@@ -103,10 +103,16 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
                         // The first column is row number, so data columns start at cell 1
                         const changeKey = `${row}-${cell - 1}`;
                         const isModified = cellChangesRef.current.has(changeKey);
+                        const displayValue = value ?? "";
+
+                        // Create tooltip with the cell value
+                        // Use \r for line breaks (like Example3.tsx) to support multiline tooltips
+                        const tooltipText = `Cell value:\r${displayValue}`;
+
                         if (isModified) {
-                            return `<div style="background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%;">${value ?? ""}</div>`;
+                            return `<span title="${tooltipText}" style="display: block; background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%;">${displayValue}</span>`;
                         }
-                        return value ?? "";
+                        return `<span title="${tooltipText}">${displayValue}</span>`;
                     },
                 };
             });
