@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { l10n } from "vscode";
-import { configSovereignCloudCustomEnvironment } from "./constants";
 
 // Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
 export class Common {
@@ -776,10 +775,12 @@ export class Azure {
     public static USGovernmentCloud = l10n.t("Azure (US Government)");
     public static ChinaCloud = l10n.t("Azure (China)");
 
-    public static customCloudNotConfigured = l10n.t(
-        "The custom cloud choice is not configured. Please configure the setting `{0}`.",
-        configSovereignCloudCustomEnvironment,
-    );
+    public static customCloudNotConfigured = (missingSetting: string) => {
+        return l10n.t(
+            "The custom cloud choice is not configured. Please configure the setting `{0}`.",
+            missingSetting,
+        );
+    };
 }
 
 export class Fabric {

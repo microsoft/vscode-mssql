@@ -21,7 +21,13 @@ import { promises as fsPromises } from "fs";
 import * as path from "path";
 import * as AzureConstants from "../constants";
 import { getErrorMessage } from "../../utils/utils";
-import { CloudId, getCloudId, getCloudProviderSettings } from "../providerSettings";
+import {
+    CloudId,
+    getAzureEnvironment,
+    getAzureEnvironmentAdditions,
+    getCloudId,
+    getCloudProviderSettings,
+} from "../providerSettings";
 import { Deferred } from "../../protocol";
 import { IPrompter } from "../../prompts/question";
 import { ICredentialStore } from "../../credentialstore/icredentialstore";
@@ -81,11 +87,16 @@ export class MsalAzureController extends AzureController {
             this._credentialStore,
         );
 
-        const cloudIds = Object.values(CloudId);
+        let cloudIds = Object.values(CloudId);
 
-        // if (isCustomCloudSet()) { // TODO: Enable when custom cloud is supported
-        //     cloudIds.push(CloudId.CustomCloud);
-        // }
+        // Check if custom cloud is configured. If not, don't initialize it.
+        // We check the settings directly because already-saved connections may still reference the custom cloud.
+        try {
+            getAzureEnvironment();
+            getAzureEnvironmentAdditions();
+        } catch {
+            cloudIds = cloudIds.filter((c) => c !== CloudId.Custom);
+        }
 
         for (const cloudId of cloudIds) {
             const cloudAuthApp = new CloudAuthApplication(
@@ -406,11 +417,10 @@ export class CloudAuthApplication {
         private readonly logger: Logger,
     ) {
         this._authMappings = new Map<AzureAuthType, MsalAzureAuth>();
+        this.createClientApplication();
     }
 
-    public async initialize(): Promise<void> {
-        await this.createClientApplication();
-    }
+    public async initialize(): Promise<void> {}
 
     public async loadTokenCache(): Promise<void> {
         // both MSAL auth types share the same client application, so loading its cache directly covers both auth types
@@ -418,12 +428,12 @@ export class CloudAuthApplication {
         void cache.getAllAccounts();
     }
 
-    private async createClientApplication(): Promise<void> {
+    private createClientApplication() {
         const msalConfiguration: Configuration = {
             auth: {
-                clientId: getCloudProviderSettings().clientId,
+                clientId: getCloudProviderSettings(this.cloudId).clientId,
                 authority: vscode.Uri.joinPath(
-                    vscode.Uri.parse(getCloudProviderSettings().loginEndpoint),
+                    vscode.Uri.parse(getCloudProviderSettings(this.cloudId).loginEndpoint),
                     "common",
                 ).toString(),
             },

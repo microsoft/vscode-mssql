@@ -8,7 +8,12 @@ import { IProviderSettings } from "../models/contracts/azure";
 import * as AzureEnvironments from "@azure/ms-rest-azure-env";
 import { Azure as Loc } from "../constants/locConstants";
 import { parseEnum } from "../utils/utils";
-import { customEnvironmentSettingName, sovereignCloudSectionName } from "../constants/constants";
+import {
+    configCustomEnvironment,
+    configSovereignCloudCustomEnvironment,
+    customEnvironmentSettingName,
+    sovereignCloudSectionName,
+} from "../constants/constants";
 
 /**
  * Identifiers for the various Azure clouds.  Values must match the "microsoft-sovereign-cloud.environment" setting values.
@@ -186,11 +191,8 @@ interface MssqlEnvironment extends AzureEnvironments.Environment, MssqlEnvironme
 }
 
 function getCustomCloudProviderSettings(): IProviderSettings {
-    let customCloud: MssqlEnvironment = getAzureEnvironment(CloudId.Custom);
-
-    const mssqlCustomCloud = vscode.workspace
-        .getConfiguration("mssql")
-        .get<MssqlEnvironmentAdditions>("customEnvironment");
+    let customCloud: MssqlEnvironment = getAzureEnvironment(CloudId.Custom); // just the base cloud info at first
+    const mssqlCustomCloud: MssqlEnvironmentAdditions = getAzureEnvironmentAdditions();
 
     customCloud = {
         ...customCloud,
@@ -307,9 +309,21 @@ export function getAzureEnvironment(cloud?: CloudId | string): AzureEnvironments
                 };
             }
 
-            throw new Error(Loc.customCloudNotConfigured);
+            throw new Error(Loc.customCloudNotConfigured(configSovereignCloudCustomEnvironment));
         default:
             throw new Error(`Unexpected cloud ID: '${cloud}'`);
+    }
+}
+
+export function getAzureEnvironmentAdditions(): MssqlEnvironmentAdditions {
+    const mssqlCustomCloud = vscode.workspace
+        .getConfiguration("mssql")
+        .get<MssqlEnvironmentAdditions>("customEnvironment");
+
+    if (mssqlCustomCloud) {
+        return mssqlCustomCloud;
+    } else {
+        throw new Error(Loc.customCloudNotConfigured(configCustomEnvironment));
     }
 }
 
