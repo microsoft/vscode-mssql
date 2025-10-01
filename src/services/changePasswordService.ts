@@ -8,7 +8,6 @@ import { IConnectionInfo } from "vscode-mssql";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionCredentials } from "../models/connectionCredentials";
-import { SqlConnectionError } from "../controllers/connectionManager";
 import { ChangePasswordWebviewController } from "../controllers/changePasswordWebviewController";
 import { ChangePasswordRequest } from "../models/contracts/changePassword";
 import { ChangePasswordResult } from "../sharedInterfaces/changePassword";
@@ -29,16 +28,12 @@ export class ChangePasswordService {
      * @param error The error that triggered the password change prompt.
      * @returns A promise that resolves to the new password or undefined if the operation was canceled.
      */
-    public async handleChangePassword(
-        credentials: IConnectionInfo,
-        error: SqlConnectionError,
-    ): Promise<string | undefined> {
+    public async handleChangePassword(credentials: IConnectionInfo): Promise<string | undefined> {
         const webview = new ChangePasswordWebviewController(
             this._context,
             this._vscodeWrapper,
             credentials,
             this,
-            error,
         );
 
         await webview.whenWebviewReady();

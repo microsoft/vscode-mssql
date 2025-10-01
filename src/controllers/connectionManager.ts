@@ -1431,10 +1431,7 @@ export default class ConnectionManager {
         const { errorNumber, errorMessage, message } = error;
 
         if (errorType === SqlConnectionErrorType.PasswordExpired) {
-            const result = await this._changePasswordService.handleChangePassword(
-                credentials,
-                error,
-            );
+            const result = await this._changePasswordService.handleChangePassword(credentials);
             if (result) {
                 credentials.password = result;
                 //save password to credential store if needed
