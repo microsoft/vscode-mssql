@@ -7,6 +7,7 @@ const vscodel10n = require("@vscode/l10n-dev");
 const fs = require("fs").promises;
 const path = require("path");
 const logger = require("./terminal-logger");
+const { writeJsonAndFormat, writeAndFormat } = require("./file-utils");
 
 /**
  * Scans the src directory for TypeScript files and extracts their content
@@ -94,15 +95,29 @@ async function extractLocalizationStrings() {
 
         // Write bundle L10n JSON file
         logger.step("Writing bundle localization file...");
-        const stringBundle = JSON.stringify(bundleJSON, null, 2);
-        await fs.writeFile("./localization/l10n/bundle.l10n.json", stringBundle);
-        logger.success("Created ./localization/l10n/bundle.l10n.json");
+        const formatted1 = await writeJsonAndFormat(
+            "./localization/l10n/bundle.l10n.json",
+            bundleJSON,
+        );
+        if (formatted1) {
+            logger.success("Created and formatted ./localization/l10n/bundle.l10n.json");
+        } else {
+            logger.warning("Created ./localization/l10n/bundle.l10n.json (formatting failed)");
+        }
 
         // Generate XLIFF file for translators
         logger.step("Generating XLIFF file for translation...");
         const stringXLIFF = vscodel10n.getL10nXlf(map);
-        await fs.writeFile("./localization/xliff/vscode-mssql.xlf", stringXLIFF);
-        logger.success("Created ./localization/xliff/vscode-mssql.xlf");
+        const formatted2 = await writeAndFormat(
+            "./localization/xliff/vscode-mssql.xlf",
+            stringXLIFF,
+            false, // We don't want to run prettier on XLIFF files
+        );
+        if (formatted2) {
+            logger.success("Created and formatted ./localization/xliff/vscode-mssql.xlf");
+        } else {
+            logger.warning("Created ./localization/xliff/vscode-mssql.xlf (formatting failed)");
+        }
 
         logger.success("Localization string extraction completed successfully!");
     } catch (error) {
