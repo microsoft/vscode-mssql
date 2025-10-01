@@ -27,6 +27,7 @@ async function formatWithPrettier(filePaths) {
  * Writes a file and formats it with Prettier
  * @param {string} filePath - Path to the file to write
  * @param {string} content - Content to write
+ * @param {boolean} [prettier=true] - Whether to format the file with Prettier
  * @returns {Promise<boolean>} True if formatting succeeded, false otherwise
  */
 async function writeAndFormat(filePath, content, prettier = true) {
