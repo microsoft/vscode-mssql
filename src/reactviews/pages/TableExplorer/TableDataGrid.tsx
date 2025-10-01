@@ -105,9 +105,7 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
                         const isModified = cellChangesRef.current.has(changeKey);
                         const displayValue = value ?? "";
 
-                        // Create tooltip with the cell value
-                        // Use \r for line breaks (like Example3.tsx) to support multiline tooltips
-                        const tooltipText = `Cell value:\r${displayValue}`;
+                        const tooltipText = displayValue;
 
                         if (isModified) {
                             return `<span title="${tooltipText}" style="display: block; background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%;">${displayValue}</span>`;
