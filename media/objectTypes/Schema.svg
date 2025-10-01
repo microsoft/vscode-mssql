@@ -1,36 +1,39 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-	<style>
-		.icon-canvas-transparent {
-			opacity: 0;
-			fill: #000000
-		}
+    <style>
+        .icon-canvas-transparent {
+            opacity: 0;
+            fill: #000000;
+        }
 
-		.icon-vs-out {
-			fill: #f6f6f6
-		}
+        .icon-vs-out {
+            fill: #f6f6f6;
+        }
 
-		.icon-vs-bg {
-			fill: #424242
-		}
+        .icon-vs-bg {
+            fill: #424242;
+        }
 
-		.icon-vs-fg {
-			fill: #f0eff1
-		}
+        .icon-vs-fg {
+            fill: #f0eff1;
+        }
 
-		.icon-vs-blue {
-			fill: #1ba1e2
-		}
-	</style>
-	<path class="icon-canvas-transparent" d="M16 0v16H0V0h16z" id="canvas" />
-	<path class="icon-vs-out"
-		d="M16 3v6c0 1.711-2.149 3-5 3-.345 0-.678-.021-1-.057V12h1v4H6v-4H5v4H0v-4h1V9h2V5h3V3c0-1.711 2.149-3 5-3s5 1.289 5 3z"
-		id="outline" />
-	<path class="icon-vs-fg"
-		d="M14.325 3c0 .527-1.326 1.325-3.325 1.325S7.675 3.527 7.675 3 9.001 1.675 11 1.675s3.325.798 3.325 1.325z"
-		id="iconFg" />
-	<g id="iconBg">
-		<path class="icon-vs-blue"
-			d="M11 1c-2.209 0-4 .896-4 2v2h1v4h2v1.93c.321.041.652.07 1 .07 2.209 0 4-.896 4-2V3c0-1.104-1.791-2-4-2zm0 3.325c-1.999 0-3.325-.798-3.325-1.325S9.001 1.675 11 1.675s3.325.798 3.325 1.325S12.999 4.325 11 4.325z" />
-		<path class="icon-vs-bg" d="M10 13v2H7v-2h1v-2H3v2h1v2H1v-2h1v-3h3V8H4V6h3v2H6v2h3v3h1z" />
-	</g>
+        .icon-vs-blue {
+            fill: #1ba1e2;
+        }
+    </style>
+    <path class="icon-canvas-transparent" d="M16 0v16H0V0h16z" id="canvas" />
+    <path
+        class="icon-vs-out"
+        d="M16 3v6c0 1.711-2.149 3-5 3-.345 0-.678-.021-1-.057V12h1v4H6v-4H5v4H0v-4h1V9h2V5h3V3c0-1.711 2.149-3 5-3s5 1.289 5 3z"
+        id="outline" />
+    <path
+        class="icon-vs-fg"
+        d="M14.325 3c0 .527-1.326 1.325-3.325 1.325S7.675 3.527 7.675 3 9.001 1.675 11 1.675s3.325.798 3.325 1.325z"
+        id="iconFg" />
+    <g id="iconBg">
+        <path
+            class="icon-vs-blue"
+            d="M11 1c-2.209 0-4 .896-4 2v2h1v4h2v1.93c.321.041.652.07 1 .07 2.209 0 4-.896 4-2V3c0-1.104-1.791-2-4-2zm0 3.325c-1.999 0-3.325-.798-3.325-1.325S9.001 1.675 11 1.675s3.325.798 3.325 1.325S12.999 4.325 11 4.325z" />
+        <path class="icon-vs-bg" d="M10 13v2H7v-2h1v-2H3v2h1v2H1v-2h1v-3h3V8H4V6h3v2H6v2h3v3h1z" />
+    </g>
 </svg>

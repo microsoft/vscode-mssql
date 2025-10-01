@@ -4,3 +4,4 @@
 2285966c88a83c3aa924f6c989b3d50e3f5ff701 # updating printWidth to 100 and enabling bracketSameLine rule, applying to all .ts, .tsx, and .json files
 1f83f62f411befea33642b72911e1a4f85d803cf # applying printWidth formatting rule to .d.ts files
 a24ef741db649b756d7c7eb5fd0ddacd81c49718 # applying formatting rules to .css files
+2e5ab73370eb00f313f9ac8d0b66a78ecdb0f043 # unifying line endings to LF

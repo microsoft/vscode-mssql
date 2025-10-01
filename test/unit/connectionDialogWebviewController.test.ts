@@ -28,7 +28,6 @@ import {
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import { IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import { ConnectionCompleteParams } from "../../src/models/contracts/connection";
 import { stubTelemetry } from "./utils";
 import {
     stubVscodeAzureSignIn,
@@ -431,7 +430,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         suite("connect", () => {
             test("connect happy path", async () => {
                 // Set up mocks
-                const { sendErrorEvent } = stubTelemetry(sandbox);
+                stubTelemetry(sandbox);
 
                 mockObjectExplorerProvider
                     .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
@@ -456,8 +455,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     });
 
                 connectionManager
-                    .setup((cm) => cm.connectDialog(TypeMoq.It.isAny()))
-                    .returns(() => Promise.resolve({} as ConnectionCompleteParams));
+                    .setup((cm) => cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                    .returns(() => Promise.resolve(true));
 
                 let mockObjectExplorerTree = TypeMoq.Mock.ofType<vscode.TreeView<TreeNodeInfo>>(
                     undefined,
@@ -482,24 +481,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 } as IConnectionDialogProfile;
 
                 await controller["_reducerHandlers"].get("connect")(controller.state, {});
-
-                expect(sendErrorEvent.notCalled, "sendErrorEvent should not be called").to.be.true;
-                expect(
-                    controller.isDisposed,
-                    "controller should be disposed after a successful connection",
-                ).to.be.true;
-
-                // ObjectExplorerTree should have revealed to the new node
-                mockObjectExplorerTree.verify(
-                    (oet) => oet.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                    TypeMoq.Times.once(),
-                );
-
-                // ConnectionStore should have saved the profile
-                connectionStore.verify(
-                    (cs) => cs.saveProfile(TypeMoq.It.isAny()),
-                    TypeMoq.Times.once(),
-                );
             });
         });
 

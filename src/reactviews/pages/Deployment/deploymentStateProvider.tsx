@@ -82,6 +82,12 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                 createDatabase: function (): void {
                     webviewState?.extensionRpc.action("createDatabase", {});
                 },
+                retryCreateDatabase: function (): void {
+                    webviewState?.extensionRpc.action("retryCreateDatabase", {});
+                },
+                resetFormValidationState: function (): void {
+                    webviewState?.extensionRpc.action("resetFormValidationState", {});
+                },
                 //#endregion
             }}>
             {children}
