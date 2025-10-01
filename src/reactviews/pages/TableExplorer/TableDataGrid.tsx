@@ -72,7 +72,7 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
             // Create a simple row number column
             const rowNumberColumn: Column = {
                 id: "rowNumber",
-                name: "",
+                name: '<span style="padding-left: 8px;">#</span>',
                 field: "id",
                 excludeFromColumnPicker: true,
                 excludeFromGridMenu: true,
@@ -85,7 +85,7 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
                 focusable: false,
                 selectable: false,
                 formatter: (row: number) =>
-                    `<span style="color: var(--vscode-foreground); padding: 0 8px;">${row + 1}</span>`,
+                    `<span style="color: var(--vscode-foreground); padding-left: 8px;">${row + 1}</span>`,
             };
 
             // Create columns using the columnNames from resultSet
@@ -94,7 +94,7 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
                     id: `col${index}`,
                     name: columnName,
                     field: `col${index}`,
-                    sortable: true,
+                    sortable: false,
                     minWidth: 100,
                     editor: {
                         model: Editors.text,
@@ -138,6 +138,7 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
                 editable: true,
                 enableAutoResize: true,
                 enableColumnReorder: false,
+                enableHeaderMenu: false,
                 gridHeight: 400,
                 enableCellNavigation: true,
                 enableSorting: false,
