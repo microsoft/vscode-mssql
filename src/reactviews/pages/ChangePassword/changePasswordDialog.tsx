@@ -67,7 +67,6 @@ export const ChangePasswordDialog = ({
 }: {
     onClose?: () => void;
     onSubmit?: (password: string) => Promise<ChangePasswordResult | undefined>;
-    errorMessage?: string;
     serverName?: string;
     userName?: string;
 }) => {

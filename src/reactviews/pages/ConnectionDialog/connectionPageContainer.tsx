@@ -142,7 +142,6 @@ export const ConnectionInfoFormContainer = () => {
                     <ChangePasswordDialog
                         serverName={changePasswordDialogState?.server}
                         userName={changePasswordDialogState?.userName}
-                        errorMessage={changePasswordDialogState?.errorMessage}
                         onSubmit={context.changePassword}
                         onClose={context.closeDialog}
                     />
