@@ -303,6 +303,7 @@ export const LicenseAcceptanceMessage = "You must accept the license";
 export const PublishTargets = {
     EXISTING_SERVER: "existingServer" as const,
     LOCAL_CONTAINER: "localContainer" as const,
+    NEW_AZURE_SERVER: "newAzureServer" as const,
 } as const;
 export type PublishTargetType = (typeof PublishTargets)[keyof typeof PublishTargets];
 export const PublishFormFields = {

@@ -7,86 +7,86 @@ import { useContext, useEffect } from "react";
 import { makeStyles } from "@fluentui/react-components";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
-import {
-    IPublishForm,
-    PublishDialogState,
-    PublishDialogFormItemSpec,
-} from "../../../../sharedInterfaces/publishDialog";
-import { FormField } from "../../../common/forms/form.component";
-import { PublishFormContext } from "../types";
 import * as constants from "../../../../constants/constants";
+import { InputField, DropdownField, CheckboxField } from "./FormFieldComponents";
+import { parseHtmlLabel } from "../../../../publishProject/projectUtils";
 
 const useStyles = makeStyles({
     root: {
         display: "flex",
         flexDirection: "column",
-        gap: "8px",
+        gap: "16px",
         maxWidth: "640px",
         width: "100%",
     },
     containerGroup: {
         display: "flex",
         flexDirection: "column",
-        gap: "8px",
+        gap: "16px",
         paddingLeft: "16px",
         borderLeft: "2px solid var(--vscode-editorWidget-border, #8883)",
     },
-    // (License-specific styles removed; using generic FormField rendering now)
 });
 
-const containerFieldOrder: (keyof IPublishForm)[] = [
-    constants.PublishFormFields.ContainerPort,
-    constants.PublishFormFields.ContainerAdminPassword,
-    constants.PublishFormFields.ContainerAdminPasswordConfirm,
-    constants.PublishFormFields.ContainerImageTag,
-    constants.PublishFormFields.AcceptContainerLicense,
-] as (keyof IPublishForm)[];
-
-export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
+export const PublishTargetSection: React.FC = () => {
     const classes = useStyles();
-    const context = useContext(PublishProjectContext) as PublishFormContext | undefined;
+    const publishCtx = useContext(PublishProjectContext);
 
-    // Select just the publishTarget FormItemSpec
-    const targetSpec = usePublishDialogSelector(
-        (s) =>
-            s.formComponents[constants.PublishFormFields.PublishTarget] as
-                | PublishDialogFormItemSpec
-                | undefined,
-        Object.is,
+    // Select form components and values - components needed for rendering, values for logic
+    const targetComponent = usePublishDialogSelector(
+        (s) => s.formComponents[constants.PublishFormFields.PublishTarget],
     );
-
-    // Select the current target value
-    const publishTargetValue = usePublishDialogSelector(
+    const targetValue = usePublishDialogSelector(
         (s) => s.formState[constants.PublishFormFields.PublishTarget],
-        (a, b) => a === b,
     );
 
-    // Track password & confirm password values for cross-field validation
-    const containerPassword = usePublishDialogSelector(
+    const isContainer = targetValue === constants.PublishTargets.LOCAL_CONTAINER;
+
+    // Container-specific fields (only select when needed)
+    const portComponent = usePublishDialogSelector(
+        (s) => s.formComponents[constants.PublishFormFields.ContainerPort],
+    );
+    const portValue = usePublishDialogSelector(
+        (s) => s.formState[constants.PublishFormFields.ContainerPort],
+    );
+
+    const passwordComponent = usePublishDialogSelector(
+        (s) => s.formComponents[constants.PublishFormFields.ContainerAdminPassword],
+    );
+    const passwordValue = usePublishDialogSelector(
         (s) => s.formState[constants.PublishFormFields.ContainerAdminPassword],
-        (a, b) => a === b,
     );
-    const containerPasswordConfirm = usePublishDialogSelector(
+
+    const confirmPasswordComponent = usePublishDialogSelector(
+        (s) => s.formComponents[constants.PublishFormFields.ContainerAdminPasswordConfirm],
+    );
+    const confirmPasswordValue = usePublishDialogSelector(
         (s) => s.formState[constants.PublishFormFields.ContainerAdminPasswordConfirm],
-        (a, b) => a === b,
     );
 
-    if (!context || !targetSpec || targetSpec.hidden) {
-        return undefined;
-    }
+    const imageTagComponent = usePublishDialogSelector(
+        (s) => s.formComponents[constants.PublishFormFields.ContainerImageTag],
+    );
+    const imageTagValue = usePublishDialogSelector(
+        (s) => s.formState[constants.PublishFormFields.ContainerImageTag],
+    );
 
-    const isContainer = publishTargetValue === constants.PublishTargets.LOCAL_CONTAINER;
+    const licenseComponent = usePublishDialogSelector(
+        (s) => s.formComponents[constants.PublishFormFields.AcceptContainerLicense],
+    );
+    const licenseValue = usePublishDialogSelector(
+        (s) => s.formState[constants.PublishFormFields.AcceptContainerLicense],
+    );
 
+    // Auto-populate defaults and revalidate passwords
     useEffect(() => {
-        if (!isContainer) {
+        if (!publishCtx || !isContainer) {
             return;
         }
 
-        const { formState, formComponents } = context.state;
-
-        // Default container port if not already set (requested behavior: default to 1433)
-        if (!formState.containerPort) {
-            context.formAction({
+        // Default container port if not set
+        if (!portValue) {
+            publishCtx.formAction({
                 propertyName: constants.PublishFormFields.ContainerPort,
                 isAction: false,
                 value: constants.DefaultSqlPortNumber,
@@ -94,81 +94,196 @@ export const PublishTargetSection: React.FC<{ idx: number }> = ({ idx }) => {
             });
         }
 
-        // If image tag options were populated and user hasn't chosen yet, pick the first option.
-        if (!formState.containerImageTag) {
-            const tagComp = formComponents[constants.PublishFormFields.ContainerImageTag] as
-                | PublishDialogFormItemSpec
-                | undefined;
-            const firstOption = tagComp?.options?.[0];
-            if (firstOption) {
-                context.formAction({
-                    propertyName: tagComp.propertyName,
-                    isAction: false,
-                    value: firstOption.value,
-                    updateValidation: true,
-                });
-            }
-        }
-    }, [isContainer, context]);
-
-    // Revalidate confirm password whenever the primary password changes so stale
-    // (previously matching) confirm value doesn't remain marked valid.
-    useEffect(() => {
-        if (!isContainer) {
-            return;
-        }
-        // Only attempt revalidation if the user has entered something in confirm field.
-        // We still want the presence logic to handle the empty confirm case as "missing".
-        if (containerPasswordConfirm !== undefined && containerPasswordConfirm !== "") {
-            context.formAction({
-                propertyName: constants.PublishFormFields.ContainerAdminPasswordConfirm,
+        // Auto-select first image tag if not set
+        if (!imageTagValue && imageTagComponent?.options?.[0]) {
+            publishCtx.formAction({
+                propertyName: constants.PublishFormFields.ContainerImageTag,
                 isAction: false,
-                value: containerPasswordConfirm as string,
+                value: imageTagComponent.options[0].value,
                 updateValidation: true,
             });
         }
-    }, [containerPassword, isContainer, containerPasswordConfirm, context]);
+    }, [isContainer, portValue, imageTagValue, imageTagComponent, publishCtx]);
+
+    // Revalidate confirm password when primary password changes (not when confirm password changes)
+    useEffect(() => {
+        if (!publishCtx || !isContainer) {
+            return;
+        }
+
+        // Only revalidate if confirm password field has a value
+        if (confirmPasswordValue !== undefined && confirmPasswordValue !== "") {
+            publishCtx.formAction({
+                propertyName: constants.PublishFormFields.ContainerAdminPasswordConfirm,
+                isAction: false,
+                value: confirmPasswordValue as string,
+                updateValidation: true,
+            });
+        }
+    }, [isContainer, passwordValue, publishCtx]); // Only depends on passwordValue, NOT confirmPasswordValue
+
+    if (!publishCtx || !targetComponent || targetComponent.hidden) {
+        return undefined;
+    }
+
+    if (
+        targetComponent.type !== "dropdown" ||
+        !("options" in targetComponent) ||
+        !targetComponent.options
+    ) {
+        return undefined;
+    }
+
+    const getValidationState = (validation: typeof targetComponent.validation) => {
+        return validation ? (validation.isValid ? "none" : "error") : "none";
+    };
 
     return (
         <div className={classes.root}>
-            <FormField<
-                IPublishForm,
-                PublishDialogState,
-                PublishDialogFormItemSpec,
-                PublishFormContext
-            >
-                context={context}
-                component={targetSpec}
-                idx={idx}
-                props={{ orientation: "horizontal" }}
+            {/* Publish Target Dropdown */}
+            <DropdownField
+                component={targetComponent}
+                value={targetValue}
+                onChange={(val) => {
+                    publishCtx.formAction({
+                        propertyName: targetComponent.propertyName,
+                        isAction: false,
+                        value: val,
+                    });
+                }}
+                getValidationState={getValidationState}
             />
 
+            {/* Container Fields - Shown only when local container is selected */}
             {isContainer && (
                 <div className={classes.containerGroup}>
-                    {containerFieldOrder.map((name, cIdx) => {
-                        const comp = context.state.formComponents[name] as
-                            | PublishDialogFormItemSpec
-                            | undefined;
-
-                        if (!comp || comp.hidden) {
-                            return undefined;
+                    {/* Container Port */}
+                    <InputField
+                        component={portComponent}
+                        value={portValue?.toString() || ""}
+                        onChange={(val) =>
+                            portComponent &&
+                            publishCtx.formAction({
+                                propertyName: portComponent.propertyName,
+                                isAction: false,
+                                value: val,
+                                updateValidation: false,
+                            })
                         }
+                        onBlur={(val) =>
+                            portComponent &&
+                            publishCtx.formAction({
+                                propertyName: portComponent.propertyName,
+                                isAction: false,
+                                value: val,
+                                updateValidation: true,
+                            })
+                        }
+                        getValidationState={getValidationState}
+                    />
 
-                        return (
-                            <FormField<
-                                IPublishForm,
-                                PublishDialogState,
-                                PublishDialogFormItemSpec,
-                                PublishFormContext
-                            >
-                                key={String(name)}
-                                context={context}
-                                component={comp}
-                                idx={idx + cIdx + 1}
-                                props={{ orientation: "horizontal" }}
-                            />
-                        );
-                    })}
+                    {/* Admin Password */}
+                    <InputField
+                        component={passwordComponent}
+                        value={passwordValue?.toString() || ""}
+                        type="password"
+                        onChange={(val) =>
+                            passwordComponent &&
+                            publishCtx.formAction({
+                                propertyName: passwordComponent.propertyName,
+                                isAction: false,
+                                value: val,
+                                updateValidation: false,
+                            })
+                        }
+                        onBlur={(val) =>
+                            passwordComponent &&
+                            publishCtx.formAction({
+                                propertyName: passwordComponent.propertyName,
+                                isAction: false,
+                                value: val,
+                                updateValidation: true,
+                            })
+                        }
+                        getValidationState={getValidationState}
+                    />
+
+                    {/* Confirm Password */}
+                    <InputField
+                        component={confirmPasswordComponent}
+                        value={confirmPasswordValue?.toString() || ""}
+                        type="password"
+                        onChange={(val) =>
+                            confirmPasswordComponent &&
+                            publishCtx.formAction({
+                                propertyName: confirmPasswordComponent.propertyName,
+                                isAction: false,
+                                value: val,
+                                updateValidation: false,
+                            })
+                        }
+                        onBlur={(val) =>
+                            confirmPasswordComponent &&
+                            publishCtx.formAction({
+                                propertyName: confirmPasswordComponent.propertyName,
+                                isAction: false,
+                                value: val,
+                                updateValidation: true,
+                            })
+                        }
+                        getValidationState={getValidationState}
+                    />
+
+                    {/* Container Image Tag */}
+                    <DropdownField
+                        component={imageTagComponent}
+                        value={imageTagValue?.toString()}
+                        onChange={(val) => {
+                            imageTagComponent &&
+                                publishCtx.formAction({
+                                    propertyName: imageTagComponent.propertyName,
+                                    isAction: false,
+                                    value: val,
+                                    updateValidation: true,
+                                });
+                        }}
+                        getValidationState={getValidationState}
+                    />
+
+                    {/* Accept License Checkbox */}
+                    <CheckboxField
+                        component={licenseComponent}
+                        checked={Boolean(licenseValue)}
+                        label={
+                            licenseComponent?.label ? (
+                                <>
+                                    {parseHtmlLabel(licenseComponent.label)?.parts.map((part, i) =>
+                                        typeof part === "string" ? (
+                                            part
+                                        ) : (
+                                            <a
+                                                key={i}
+                                                href={part.href}
+                                                target="_blank"
+                                                rel="noopener noreferrer">
+                                                {part.text}
+                                            </a>
+                                        ),
+                                    )}
+                                </>
+                            ) : undefined
+                        }
+                        onChange={(checked) => {
+                            licenseComponent &&
+                                publishCtx.formAction({
+                                    propertyName: licenseComponent.propertyName,
+                                    isAction: false,
+                                    value: checked,
+                                    updateValidation: true,
+                                });
+                        }}
+                        getValidationState={getValidationState}
+                    />
                 </div>
             )}
         </div>

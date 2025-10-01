@@ -3,27 +3,70 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as vscode from "vscode";
 import * as constants from "../constants/constants";
-import { FormItemType } from "../sharedInterfaces/form";
+import { FormItemType, FormItemOptions } from "../sharedInterfaces/form";
 import { PublishProject as Loc } from "../constants/locConstants";
 import {
     IPublishForm,
     PublishDialogFormItemSpec,
     PublishDialogState,
 } from "../sharedInterfaces/publishDialog";
-import {
-    getPublishServerName,
-    validateSqlServerPortNumber,
-    isValidSqlAdminPassword,
-} from "./projectUtils";
+import { getPublishServerName, validateSqlServerPortNumber } from "./projectUtils";
+import { validateSqlServerPassword } from "../deployment/dockerUtils";
+
+/**
+ * Configuration key for SQL database projects extension settings
+ */
+const DBProjectConfigurationKey = "sqlDatabaseProjects";
+const enablePreviewFeaturesKey = "enablePreviewFeatures";
+
+/**
+ * Generate publish target options based on project target version
+ * @param projectTargetVersion - The target version of the project (e.g., "AzureV12" for Azure SQL)
+ * @returns Array of publish target options
+ */
+function generatePublishTargetOptions(projectTargetVersion?: string): FormItemOptions[] {
+    // Check if this is an Azure SQL project
+    const isAzureSqlProject = projectTargetVersion === "AzureV12";
+    const options: FormItemOptions[] = [
+        {
+            displayName: isAzureSqlProject
+                ? Loc.PublishTargetExistingLogical
+                : Loc.PublishTargetExisting,
+            value: constants.PublishTargets.EXISTING_SERVER,
+        },
+        {
+            displayName: isAzureSqlProject
+                ? Loc.PublishTargetAzureEmulator
+                : Loc.PublishTargetContainer,
+            value: constants.PublishTargets.LOCAL_CONTAINER,
+        },
+    ];
+    if (isAzureSqlProject) {
+        // Only show "Publish to New Azure Server" option if preview features are enabled
+        const enablePreviewFeatures = vscode.workspace
+            .getConfiguration(DBProjectConfigurationKey)
+            .get<boolean>(enablePreviewFeaturesKey);
+        if (enablePreviewFeatures) {
+            options.push({
+                displayName: Loc.PublishTargetNewAzureServer,
+                value: constants.PublishTargets.NEW_AZURE_SERVER,
+            });
+        }
+    }
+
+    return options;
+}
 
 /**
  * Generate publish form components. Kept async for future extensibility
  * (e.g. reading project metadata, fetching remote targets, etc.)
+ * @param projectTargetVersion - The target version of the project (e.g., "AzureV12" for Azure SQL)
  */
-export async function generatePublishFormComponents(): Promise<
-    Record<keyof IPublishForm, PublishDialogFormItemSpec>
-> {
+export async function generatePublishFormComponents(
+    projectTargetVersion?: string,
+): Promise<Record<keyof IPublishForm, PublishDialogFormItemSpec>> {
     const components: Record<keyof IPublishForm, PublishDialogFormItemSpec> = {
         [constants.PublishFormFields.ProfileName]: {
             propertyName: constants.PublishFormFields.ProfileName,
@@ -52,16 +95,7 @@ export async function generatePublishFormComponents(): Promise<
             label: Loc.PublishTargetLabel,
             required: true,
             type: FormItemType.Dropdown,
-            options: [
-                {
-                    displayName: Loc.PublishTargetExisting,
-                    value: constants.PublishTargets.EXISTING_SERVER,
-                },
-                {
-                    displayName: Loc.PublishTargetContainer,
-                    value: constants.PublishTargets.LOCAL_CONTAINER,
-                },
-            ],
+            options: generatePublishTargetOptions(projectTargetVersion),
         },
         [constants.PublishFormFields.ContainerPort]: {
             propertyName: constants.PublishFormFields.ContainerPort,
@@ -82,16 +116,12 @@ export async function generatePublishFormComponents(): Promise<
             label: Loc.SqlServerAdminPassword,
             required: true,
             type: FormItemType.Password,
-            validate: (state: PublishDialogState, value) => {
+            validate: (_state: PublishDialogState, value) => {
                 const pwd = String(value ?? "");
-                const isValid = isValidSqlAdminPassword(pwd, constants.DefaultAdminUsername);
+                const errorMessage = validateSqlServerPassword(pwd);
                 return {
-                    isValid,
-                    validationMessage: isValid
-                        ? ""
-                        : Loc.InvalidSQLPasswordMessage(
-                              getPublishServerName(state.projectProperties?.targetVersion),
-                          ),
+                    isValid: !errorMessage,
+                    validationMessage: errorMessage,
                 };
             },
         },

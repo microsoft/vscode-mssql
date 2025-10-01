@@ -6,7 +6,7 @@
 import { useContext } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { useFormStyles } from "../../common/forms/form.component";
-import { PublishProjectStateProvider, PublishProjectContext } from "./publishProjectStateProvider";
+import { PublishProjectContext } from "./publishProjectStateProvider";
 import { IPublishForm } from "../../../sharedInterfaces/publishDialog";
 import { usePublishDialogSelector } from "./publishDialogSelector";
 import { LocConstants } from "../../common/locConstants";
@@ -37,9 +37,9 @@ function PublishProjectDialog() {
     const context = useContext(PublishProjectContext);
 
     // Select pieces of state needed for this component
-    const formComponents = usePublishDialogSelector((s) => s.formComponents, Object.is);
-    const formState = usePublishDialogSelector((s) => s.formState, Object.is);
-    const inProgress = usePublishDialogSelector((s) => s.inProgress, Object.is);
+    const formComponents = usePublishDialogSelector((s) => s.formComponents);
+    const formState = usePublishDialogSelector((s) => s.formState);
+    const inProgress = usePublishDialogSelector((s) => s.inProgress);
     console.debug();
     // Check if component is properly initialized and ready for user interaction
     const isComponentReady = !!context && !!formComponents && !!formState;
@@ -99,9 +99,9 @@ function PublishProjectDialog() {
         <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
             <div className={classes.root}>
                 <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
-                    <PublishTargetSection idx={0} />
-                    <PublishProfileField idx={1} />
-                    <ConnectionSection idx={2} />
+                    <PublishTargetSection />
+                    <PublishProfileField />
+                    <ConnectionSection />
 
                     <div className={classes.footer}>
                         <Button
@@ -124,9 +124,5 @@ function PublishProjectDialog() {
 }
 
 export default function PublishProjectPage() {
-    return (
-        <PublishProjectStateProvider>
-            <PublishProjectDialog />
-        </PublishProjectStateProvider>
-    );
+    return <PublishProjectDialog />;
 }
