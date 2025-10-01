@@ -816,6 +816,13 @@
       "{0} is the name of the server"
     ]
   },
+  "Password must be changed for '{0}' to continue logging into '{1}'/{0} is the username{1} is the name of the server": {
+    "message": "Password must be changed for '{0}' to continue logging into '{1}'",
+    "comment": [
+      "{0} is the username",
+      "{1} is the name of the server"
+    ]
+  },
   "Username": "Username",
   "New Password": "New Password",
   "Password is required": "Password is required",

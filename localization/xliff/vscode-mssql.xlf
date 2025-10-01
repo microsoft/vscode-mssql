@@ -2287,6 +2287,11 @@
     <trans-unit id="++CODE++7aeae1412484f6378e5877b660a41baa6a521988eb8b2620ca3223b05e2ff20c">
       <source xml:lang="en">Password is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++80dc52b50a4e9dc210b0dc44b71eaa2912aef3a1d931d41f51ad8bfc0061df16">
+      <source xml:lang="en">Password must be changed for &apos;{0}&apos; to continue logging into &apos;{1}&apos;</source>
+      <note>{0} is the username
+{1} is the name of the server</note>
+    </trans-unit>
     <trans-unit id="++CODE++9a6b795a5a551cedd30148a98d54756e10a329d6dbd317ef8007d2837abc1100">
       <source xml:lang="en">Password must be changed to continue logging into &apos;{0}&apos;</source>
       <note>{0} is the name of the server</note>
