@@ -105,7 +105,7 @@ const usGovernmentCloudProviderSettings: IProviderSettings = {
             resource: "Sql",
             endpoint: "https://database.usgovcloudapi.net/",
             dnsSuffix: usGovernmentCloudInfo.sqlServerHostnameSuffix,
-            analyticsDnsSuffix: undefined, // TODO: check what this shoudl be for USGov
+            analyticsDnsSuffix: ".sql.azuresynapse.usgovcloudapi.net",
         },
         azureKeyVaultResource: {
             id: "vault",
@@ -151,7 +151,7 @@ const chinaCloudProviderSettings: IProviderSettings = {
             resource: "Sql",
             endpoint: "https://database.chinacloudapi.cn/",
             dnsSuffix: chinaCloudInfo.sqlServerHostnameSuffix,
-            analyticsDnsSuffix: undefined, // TODO: check what this should be for China
+            analyticsDnsSuffix: ".sql.azuresynapse.chinacloudapi.cn",
         },
         azureKeyVaultResource: {
             id: "vault",
