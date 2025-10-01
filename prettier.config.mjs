@@ -5,6 +5,14 @@ const config = {
     printWidth: 100,
     bracketSameLine: true,
     endOfLine: "lf",
+    overrides: [
+        {
+            files: "*.svg",
+            options: {
+                parser: "html",
+            },
+        },
+    ],
 };
 
 export default config;
