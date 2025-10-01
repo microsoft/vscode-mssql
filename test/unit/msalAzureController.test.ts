@@ -46,17 +46,7 @@ suite("CloudAuthApplication Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
 
-        mockContext = {
-            // extensionUri: vscode.Uri.file("/test/path"),
-            // globalState: {
-            //     get: sandbox.stub(),
-            //     update: sandbox.stub(),
-            // },
-            // subscriptions: [],
-            // workspaceState: {} as vscode.Memento,
-            // secrets: {} as vscode.SecretStorage,
-            // extensionPath: "/test/path",
-        } as unknown as vscode.ExtensionContext;
+        mockContext = {} as vscode.ExtensionContext;
 
         // Create stubs for dependencies
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
@@ -119,6 +109,7 @@ suite("CloudAuthApplication Tests", () => {
 
         sandbox.stub(msalNode, "PublicClientApplication").callsFake(publicClientApplicationStub);
 
+        // Act
         const cloudAuthApp = new CloudAuthApplication(
             cloudId,
             mockCachePluginProvider,
@@ -128,12 +119,9 @@ suite("CloudAuthApplication Tests", () => {
             mockLogger,
         );
 
-        // Act
-        await cloudAuthApp.initialize();
-
         // Assert
         expect(publicClientApplicationStub).to.have.been.calledOnce;
-        expect(getCloudSettingsStub).to.have.been.calledWithExactly(); // Called with no arguments
+        expect(getCloudSettingsStub).to.have.been.calledTwice.calledWithExactly(cloudId);
         expect(cloudAuthApp.clientApplication).to.exist;
 
         await cloudAuthApp.loadTokenCache();
@@ -152,8 +140,6 @@ suite("CloudAuthApplication Tests", () => {
             mockVscodeWrapper,
             mockLogger,
         );
-
-        await cloudAuthApp.initialize();
 
         expect(
             cloudAuthApp["_authMappings"].size,
@@ -181,27 +167,6 @@ suite("CloudAuthApplication Tests", () => {
             cloudAuthApp["_authMappings"].size,
             "Should have two auth instances after both AuthcodeGrant and DeviceCode were fetched",
         ).to.equal(2);
-    });
-
-    test("should return clientApplication getter correctly", async () => {
-        // Arrange
-        const cloudId = CloudId.AzureCloud;
-        const cloudAuthApp = new CloudAuthApplication(
-            cloudId,
-            mockCachePluginProvider,
-            loggerCallback,
-            mockContext,
-            mockVscodeWrapper,
-            mockLogger,
-        );
-
-        // Act
-        await cloudAuthApp.initialize();
-        const clientApp = cloudAuthApp.clientApplication;
-
-        // Assert
-        expect(clientApp).to.exist;
-        expect(clientApp.getTokenCache).to.be.a("function");
     });
 });
 

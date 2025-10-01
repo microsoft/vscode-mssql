@@ -108,7 +108,6 @@ export class MsalAzureController extends AzureController {
                 this.logger,
             );
 
-            await cloudAuthApp.initialize();
             this._cloudAuthMappings.set(cloudId, cloudAuthApp);
         }
 
@@ -419,8 +418,6 @@ export class CloudAuthApplication {
         this._authMappings = new Map<AzureAuthType, MsalAzureAuth>();
         this.createClientApplication();
     }
-
-    public async initialize(): Promise<void> {}
 
     public async loadTokenCache(): Promise<void> {
         // both MSAL auth types share the same client application, so loading its cache directly covers both auth types
