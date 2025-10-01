@@ -111,6 +111,7 @@ async function extractLocalizationStrings() {
         const formatted2 = await writeAndFormat(
             "./localization/xliff/vscode-mssql.xlf",
             stringXLIFF,
+            false, // We don't want to run prettier on XLIFF files
         );
         if (formatted2) {
             logger.success("Created and formatted ./localization/xliff/vscode-mssql.xlf");

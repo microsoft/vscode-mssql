@@ -80,7 +80,7 @@
             "eslint --quiet --cache --fix",
             "prettier --write"
         ],
-        "*.{js,mjs,json,yml,yaml,md,html,css}": "prettier --write"
+        "*.{js,mjs,json,yml,yaml,md,html,svg,css}": "prettier --write"
     },
     "devDependencies": {
         "@azure/core-paging": "^1.6.2",
