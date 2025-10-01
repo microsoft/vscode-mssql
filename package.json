@@ -76,9 +76,15 @@
         "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\""
     },
     "lint-staged": {
-        "*.ts": "eslint --quiet --cache",
-        "*.tsx": "eslint --quiet --cache",
-        "*.css": "prettier --check"
+        "*.ts": [
+            "eslint --quiet --cache --fix",
+            "prettier --write"
+        ],
+        "*.tsx": [
+            "eslint --quiet --cache --fix",
+            "prettier --write"
+        ],
+        "*.{js,mjs,json,yml,yaml,md,html,css}": "prettier --write"
     },
     "devDependencies": {
         "@azure/core-paging": "^1.6.2",
