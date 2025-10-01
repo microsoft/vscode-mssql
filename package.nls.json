@@ -232,10 +232,10 @@
     "mssql.customEnvironment": "The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.",
     "mssql.customEnvironment.sqlEndpoint": "Sovereign cloud equivalent for `https://database.windows.net/`",
     "mssql.customEnvironment.sqlServerHostnameSuffix": "Sovereign cloud equivalent for `.database.windows.net` (including leading dot)",
-    "mssql.customEnvironment.analyticsDnsSuffix": "Sovereign cloud equivalent for `sql.azuresynapse.net` (no leading dot)",
+    "mssql.customEnvironment.analyticsDnsSuffix": "Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)",
     "mssql.customEnvironment.keyVaultEndpoint": "Sovereign cloud equivalent for `https://vault.azure.net/`",
     "mssql.customEnvironment.mssql.customEnvironment.fabricApiUriBase": "Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`",
     "mssql.customEnvironment.mssql.customEnvironment.fabricScopeUriBase": "Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`",
-    "mssql.customEnvironment.fabricSqlDbDnsSuffix": "Sovereign cloud equivalent for `database.fabric.microsoft.com`",
-    "mssql.customEnvironment.fabricDataWarehouseDnsSuffix": "Sovereign cloud equivalent for `datawarehouse.fabric.microsoft.com`"
+    "mssql.customEnvironment.fabricSqlDbDnsSuffix": "Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)",
+    "mssql.customEnvironment.fabricDataWarehouseDnsSuffix": "Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)"
 }

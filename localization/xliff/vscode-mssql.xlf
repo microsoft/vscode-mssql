@@ -3938,14 +3938,17 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.description">
       <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
     </trans-unit>
+    <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
+      <source xml:lang="en">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</source>
+    </trans-unit>
     <trans-unit id="mssql.customEnvironment.sqlServerHostnameSuffix">
       <source xml:lang="en">Sovereign cloud equivalent for `.database.windows.net` (including leading dot)</source>
     </trans-unit>
-    <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
-      <source xml:lang="en">Sovereign cloud equivalent for `database.fabric.microsoft.com`</source>
-    </trans-unit>
     <trans-unit id="mssql.customEnvironment.fabricDataWarehouseDnsSuffix">
-      <source xml:lang="en">Sovereign cloud equivalent for `datawarehouse.fabric.microsoft.com`</source>
+      <source xml:lang="en">Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)</source>
+    </trans-unit>
+    <trans-unit id="mssql.customEnvironment.analyticsDnsSuffix">
+      <source xml:lang="en">Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)</source>
     </trans-unit>
     <trans-unit id="mssql.customEnvironment.mssql.customEnvironment.fabricScopeUriBase">
       <source xml:lang="en">Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`</source>
@@ -3958,9 +3961,6 @@
     </trans-unit>
     <trans-unit id="mssql.customEnvironment.keyVaultEndpoint">
       <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
-    </trans-unit>
-    <trans-unit id="mssql.customEnvironment.analyticsDnsSuffix">
-      <source xml:lang="en">Sovereign cloud equivalent for `sql.azuresynapse.net` (no leading dot)</source>
     </trans-unit>
     <trans-unit id="mssql.startContainer">
       <source xml:lang="en">Start Container</source>

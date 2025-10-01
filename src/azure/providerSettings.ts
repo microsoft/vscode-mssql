@@ -54,7 +54,7 @@ export const publicAzureProviderSettings: IProviderSettings = {
             resource: "Sql",
             endpoint: "https://database.windows.net/",
             dnsSuffix: azureCloudInfo.sqlServerHostnameSuffix,
-            analyticsDnsSuffix: "sql.azuresynapse.net",
+            analyticsDnsSuffix: ".sql.azuresynapse.net",
         },
         azureKeyVaultResource: {
             id: "vault",
@@ -65,8 +65,8 @@ export const publicAzureProviderSettings: IProviderSettings = {
     fabric: {
         fabricApiUriBase: "https://api.fabric.microsoft.com/v1/",
         fabricScopeUriBase: "https://analysis.windows.net/powerbi/api/",
-        sqlDbDnsSuffix: "database.fabric.microsoft.com",
-        dataWarehouseDnsSuffix: "datawarehouse.fabric.microsoft.com",
+        sqlDbDnsSuffix: ".database.fabric.microsoft.com",
+        dataWarehouseDnsSuffix: ".datawarehouse.fabric.microsoft.com",
     },
     scopes: [
         "openid",

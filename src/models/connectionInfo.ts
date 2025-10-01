@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IConnectionInfo, IServerInfo } from "vscode-mssql";
+import { IAccount, IConnectionInfo, IServerInfo } from "vscode-mssql";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { EncryptOptions } from "../models/interfaces";
@@ -287,32 +287,42 @@ export enum ServerType {
     Unknown = "Unknown",
 }
 
-export function getServerTypes(connection: IConnectionInfo): ServerType[] {
-    // TODO: update for multi-cloud
-
+/**
+ * Attempts to determine the server type(s) of a connection based on the server name.
+ * @param account If provided, the account's cloud environment will be used to determine the server type.  Otherwise, the currently-selected cloud will be used.
+ * @returns Array of connection target tags that apply to the server
+ */
+export function getServerTypes(connection: IConnectionInfo, account?: IAccount): ServerType[] {
     if (connection?.server === undefined) {
         return [ServerType.Unknown];
     }
 
     try {
-        if (connection.server.includes(getCloudProviderSettings().settings.sqlResource.dnsSuffix)) {
-            return [ServerType.Azure, ServerType.Sql];
-        }
+        const providerSettings = getCloudProviderSettings(
+            account?.properties?.providerSettings?.id,
+        );
 
-        if (
-            connection.server.includes(
-                getCloudProviderSettings().settings.sqlResource.analyticsDnsSuffix,
-            )
-        ) {
-            return [ServerType.Azure, ServerType.DataWarehouse];
-        }
+        // Notes:
+        // Using includes() here instead of endsWith() because there may be additional suffixes (e.g. port: .database.windows.net,1433)
+        // Pre-prod environments may have different suffixes (e.g. msit-database.fabric.microsoft.com), so trim the leading dot.
 
-        if (connection.server.includes(getCloudProviderSettings().fabric.sqlDbDnsSuffix)) {
-            return [ServerType.Fabric, ServerType.Sql];
-        }
+        const typeMappings: Record<string, ServerType[]> = {
+            [providerSettings.settings.sqlResource.dnsSuffix]: [ServerType.Azure, ServerType.Sql],
+            [providerSettings.settings.sqlResource.analyticsDnsSuffix]: [
+                ServerType.Azure,
+                ServerType.DataWarehouse,
+            ],
+            [providerSettings.fabric.sqlDbDnsSuffix]: [ServerType.Fabric, ServerType.Sql],
+            [providerSettings.fabric.dataWarehouseDnsSuffix]: [
+                ServerType.Fabric,
+                ServerType.DataWarehouse,
+            ],
+        };
 
-        if (connection.server.includes(getCloudProviderSettings().fabric.dataWarehouseDnsSuffix)) {
-            return [ServerType.Fabric, ServerType.DataWarehouse];
+        for (const [name, types] of Object.entries(typeMappings)) {
+            if (connection.server.includes(name.startsWith(".") ? name.slice(1) : name)) {
+                return types;
+            }
         }
     } catch (error) {
         console.error("Error checking server types:", getErrorMessage(error));

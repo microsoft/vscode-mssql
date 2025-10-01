@@ -433,7 +433,6 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 // Set up mocks
                 stubTelemetry(sandbox);
                 stubUserSurvey(sandbox);
-                stubTelemetry(sandbox);
 
                 mockObjectExplorerProvider
                     .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
