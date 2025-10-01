@@ -29,7 +29,7 @@ async function formatWithPrettier(filePaths) {
  * @param {string} content - Content to write
  * @returns {Promise<boolean>} True if formatting succeeded, false otherwise
  */
-async function writeAndFormat(filePath, content, prettier = false) {
+async function writeAndFormat(filePath, content, prettier = true) {
     await fs.writeFile(filePath, content);
     return prettier ? await formatWithPrettier(filePath) : true;
 }
