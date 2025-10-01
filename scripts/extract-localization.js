@@ -6,6 +6,7 @@
 const vscodel10n = require("@vscode/l10n-dev");
 const fs = require("fs").promises;
 const path = require("path");
+const { execSync } = require("child_process");
 const logger = require("./terminal-logger");
 
 /**
@@ -103,6 +104,20 @@ async function extractLocalizationStrings() {
         const stringXLIFF = vscodel10n.getL10nXlf(map);
         await fs.writeFile("./localization/xliff/vscode-mssql.xlf", stringXLIFF);
         logger.success("Created ./localization/xliff/vscode-mssql.xlf");
+
+        // Format generated files with Prettier
+        logger.step("Formatting generated files with Prettier...");
+        try {
+            execSync(
+                "npx prettier --write ./localization/l10n/bundle.l10n.json ./localization/xliff/vscode-mssql.xlf",
+                {
+                    stdio: "inherit",
+                },
+            );
+            logger.success("Files formatted successfully");
+        } catch (error) {
+            logger.warning("Failed to format files with Prettier");
+        }
 
         logger.success("Localization string extraction completed successfully!");
     } catch (error) {

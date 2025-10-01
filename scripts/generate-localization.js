@@ -6,6 +6,7 @@
 const vscodel10n = require("@vscode/l10n-dev");
 const fs = require("fs").promises;
 const path = require("path");
+const { execSync } = require("child_process");
 const logger = require("./terminal-logger");
 
 /**
@@ -87,6 +88,19 @@ async function generateRuntimeLocalizationFiles() {
                 processedLanguages++;
             } catch (error) {
                 logger.error(`Failed to process ${xliffFile}: ${error.message}`);
+            }
+        }
+
+        // Format generated files with Prettier
+        if (generatedFiles > 0) {
+            logger.step("Formatting generated files with Prettier...");
+            try {
+                execSync("npx prettier --write ./localization/l10n/*.json ./package.nls.*.json", {
+                    stdio: "inherit",
+                });
+                logger.success("Files formatted successfully");
+            } catch (error) {
+                logger.warning("Failed to format files with Prettier");
             }
         }
 
