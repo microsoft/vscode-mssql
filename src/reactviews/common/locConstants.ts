@@ -1008,18 +1008,13 @@ export class LocConstants {
 
     public get changePasswordDialog() {
         return {
-            title: (servername: string | undefined) => {
-                if (servername) {
-                    return l10n.t({
-                        message: "Change Password on {0}",
-                        args: [servername],
-                        comment: ["{0} is the server name"],
-                    });
-                } else {
-                    return l10n.t("Change Password");
-                }
-            },
-            description: l10n.t("Change your password to access this server."),
+            title: l10n.t("Change Password"),
+            description: (serverName: string) =>
+                l10n.t({
+                    message: "Password must be changed to continue logging into '{0}'",
+                    args: [serverName],
+                    comment: ["{0} is the name of the server"],
+                }),
             username: l10n.t("Username"),
             newPassword: l10n.t("New Password"),
             passwordIsRequired: l10n.t("Password is required"),

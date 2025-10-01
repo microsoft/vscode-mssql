@@ -14,7 +14,6 @@ import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 import { ChangePasswordService as ChangePasswordService } from "../services/changePasswordService";
-import { SqlConnectionError } from "./connectionManager";
 
 export class ChangePasswordWebviewController extends ReactWebviewPanelController<
     ChangePasswordWebviewState,
@@ -26,7 +25,6 @@ export class ChangePasswordWebviewController extends ReactWebviewPanelController
         vscodeWrapper: VscodeWrapper,
         private credentials: IConnectionInfo,
         private changePasswordService: ChangePasswordService,
-        error: SqlConnectionError,
     ) {
         super(
             context,
@@ -36,8 +34,6 @@ export class ChangePasswordWebviewController extends ReactWebviewPanelController
             {
                 server: credentials.server,
                 userName: credentials.user,
-                errorNumber: error?.errorNumber,
-                errorMessage: error?.errorMessage,
             },
             {
                 title: LocConstants.Connection.ChangePassword,

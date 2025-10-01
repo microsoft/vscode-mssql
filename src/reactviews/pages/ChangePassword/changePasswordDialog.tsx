@@ -36,15 +36,6 @@ const useStyles = makeStyles({
         flexDirection: "column",
         gap: "16px",
     },
-    stickyError: {
-        fontSize: "14px",
-        lineHeight: "20px",
-        color: "var(--colorNeutralForeground1)",
-        backgroundColor: "var(--vscode-editorWidget-background)",
-        padding: "12px 16px",
-        borderRadius: "4px",
-        borderLeft: "3px solid var(--vscode-activityErrorBadge-background)",
-    },
     apiErrorMessage: {
         marginBottom: "0",
     },
@@ -71,7 +62,6 @@ const useStyles = makeStyles({
 export const ChangePasswordDialog = ({
     onClose,
     onSubmit,
-    errorMessage,
     serverName,
     userName,
 }: {
@@ -99,22 +89,17 @@ export const ChangePasswordDialog = ({
             <DialogSurface className={styles.root}>
                 <DialogBody>
                     <DialogTitle className={styles.title}>
-                        {locConstants.changePasswordDialog.title(serverName)}
+                        {locConstants.changePasswordDialog.title}
                     </DialogTitle>
                     <DialogContent>
                         <div className={styles.content}>
-                            {errorMessage && (
-                                <div className={styles.stickyError} role="alert" aria-live="polite">
-                                    {errorMessage}
-                                </div>
-                            )}
                             {resultApiError && (
                                 <MessageBar intent={"error"} className={styles.apiErrorMessage}>
                                     <MessageBarBody>{resultApiError}</MessageBarBody>
                                 </MessageBar>
                             )}
                             <div className={styles.description}>
-                                {locConstants.changePasswordDialog.description}
+                                {locConstants.changePasswordDialog.description(serverName ?? "")}
                             </div>
                             <div className={styles.fieldGroup}>
                                 <Field

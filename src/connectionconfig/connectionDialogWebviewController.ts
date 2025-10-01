@@ -1168,8 +1168,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 props: {
                     server: result.credentials.server,
                     userName: result.credentials.user,
-                    errorMessage: result.errorMessage,
-                    errorNumber: result.errorNumber,
                 } as ChangePasswordWebviewState,
             } as ChangePasswordDialogProps;
             return state;

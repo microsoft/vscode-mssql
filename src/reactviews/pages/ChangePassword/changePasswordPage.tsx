@@ -33,7 +33,6 @@ const useStyles = makeStyles({
 export const ChangePasswordPage = () => {
     const classes = useStyles();
     const context = useContext(ChangePasswordContext);
-    const error = useChangePasswordSelector((state) => state.errorMessage);
     const serverName = useChangePasswordSelector((state) => state.server);
     const userName = useChangePasswordSelector((state) => state.userName);
 
@@ -42,7 +41,6 @@ export const ChangePasswordPage = () => {
             <ChangePasswordDialog
                 serverName={serverName}
                 userName={userName}
-                errorMessage={error}
                 onSubmit={async (newPassword) => {
                     const result = await context?.extensionRpc?.sendRequest(
                         ChangePasswordWebviewRequest.type,

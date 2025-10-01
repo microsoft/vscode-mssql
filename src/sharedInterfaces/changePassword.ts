@@ -48,14 +48,6 @@ export interface ChangePasswordWebviewState {
      * The user name of the SQL Server login.
      */
     userName?: string;
-    /**
-     * The error number that caused the password change prompt.
-     */
-    errorNumber?: number;
-    /**
-     * The error message that caused the password change prompt.
-     */
-    errorMessage?: string;
 }
 
 /**
