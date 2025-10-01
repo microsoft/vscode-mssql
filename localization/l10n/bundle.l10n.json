@@ -809,14 +809,13 @@
   "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.": "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.",
   "Smart performance": "Smart performance",
   "Automatic tuning features like automatic index creation enabled by default.": "Automatic tuning features like automatic index creation enabled by default.",
-  "Change Password on {0}/{0} is the server name": {
-    "message": "Change Password on {0}",
+  "Change Password": "Change Password",
+  "Password must be changed to continue logging into '{0}'/{0} is the name of the server": {
+    "message": "Password must be changed to continue logging into '{0}'",
     "comment": [
-      "{0} is the server name"
+      "{0} is the name of the server"
     ]
   },
-  "Change Password": "Change Password",
-  "Change your password to access this server.": "Change your password to access this server.",
   "Username": "Username",
   "New Password": "New Password",
   "Password is required": "Password is required",

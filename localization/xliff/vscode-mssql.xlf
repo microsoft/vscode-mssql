@@ -403,17 +403,10 @@
     <trans-unit id="++CODE++a949f46230748d3f7496809b82cec6daa6ec8a671d17ac1ca03a17173cbcb2d6">
       <source xml:lang="en">Change Password</source>
     </trans-unit>
-    <trans-unit id="++CODE++6d1557f73214ec28e94abb7801e8cc8e007e8cae0f2f3b874bb3d8a040b6b94c">
-      <source xml:lang="en">Change Password on {0}</source>
-      <note>{0} is the server name</note>
-    </trans-unit>
     <trans-unit id="++CODE++00aecebb859a5ba020dd5aa5ffb71e7f9a4279e35f9c94e6d34ebf7c889a3f7e">
       <source xml:lang="en">Change database to &apos;{1}&apos; for connection &apos;{0}&apos;?</source>
       <note>{0} is the connection ID
 {1} is the database name</note>
-    </trans-unit>
-    <trans-unit id="++CODE++e161c7530dbced2c8a2ff5fb1930ee023fdb7adecb31024a0c2f998a62ac2fbf">
-      <source xml:lang="en">Change your password to access this server.</source>
     </trans-unit>
     <trans-unit id="++CODE++aa115b472e9ca1287d8404ed9c69fb8612db771dfcb9ec5f560662fd0a7d653b">
       <source xml:lang="en">Changed Tables</source>
@@ -2293,6 +2286,10 @@
     </trans-unit>
     <trans-unit id="++CODE++7aeae1412484f6378e5877b660a41baa6a521988eb8b2620ca3223b05e2ff20c">
       <source xml:lang="en">Password is required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9a6b795a5a551cedd30148a98d54756e10a329d6dbd317ef8007d2837abc1100">
+      <source xml:lang="en">Password must be changed to continue logging into &apos;{0}&apos;</source>
+      <note>{0} is the name of the server</note>
     </trans-unit>
     <trans-unit id="++CODE++b6eb82cd3300c838f99773b371b2f81d5ad517b3ba903de637d3e5920de7c04f">
       <source xml:lang="en">Passwords do not match</source>
