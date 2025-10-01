@@ -137,9 +137,10 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
                 autoCommitEdit: false,
                 editable: true,
                 enableAutoResize: true,
+                enableColumnReorder: false,
                 gridHeight: 400,
                 enableCellNavigation: true,
-                enableSorting: true,
+                enableSorting: false,
                 editCommandHandler: (_item, _column, editCommand) => {
                     // Add to command queue for undo functionality
                     commandQueue.push(editCommand);
