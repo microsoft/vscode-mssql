@@ -7,7 +7,6 @@ const vscodel10n = require("@vscode/l10n-dev");
 const fs = require("fs").promises;
 const path = require("path");
 const logger = require("./terminal-logger");
-const { writeJsonWithLF } = require("./file-utils");
 
 /**
  * Generates runtime localization files for the extension
@@ -66,7 +65,7 @@ async function generateRuntimeLocalizationFiles() {
                         }
 
                         const filePath = path.resolve(l10nDir, fileName);
-                        await writeJsonWithLF(filePath, fileContent.messages);
+                        await fs.writeFile(filePath, JSON.stringify(fileContent.messages, null, 2));
                         logger.success(`Created bundle file: ${fileName}`);
                         generatedFiles++;
                     } else if (fileContent.name === "package") {
@@ -79,7 +78,7 @@ async function generateRuntimeLocalizationFiles() {
                         // Generate package localization file
                         const fileName = `package.nls.${fileContent.language}.json`;
                         const filePath = path.resolve(packageDir, fileName);
-                        await writeJsonWithLF(filePath, fileContent.messages);
+                        await fs.writeFile(filePath, JSON.stringify(fileContent.messages, null, 2));
                         logger.success(`Created package file: ${fileName}`);
                         generatedFiles++;
                     }

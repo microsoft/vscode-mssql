@@ -7,7 +7,6 @@ const vscodel10n = require("@vscode/l10n-dev");
 const fs = require("fs").promises;
 const path = require("path");
 const logger = require("./terminal-logger");
-const { writeFileWithLF, writeJsonWithLF } = require("./file-utils");
 
 /**
  * Scans the src directory for TypeScript files and extracts their content
@@ -95,13 +94,14 @@ async function extractLocalizationStrings() {
 
         // Write bundle L10n JSON file
         logger.step("Writing bundle localization file...");
-        await writeJsonWithLF("./localization/l10n/bundle.l10n.json", bundleJSON);
+        const stringBundle = JSON.stringify(bundleJSON, null, 2);
+        await fs.writeFile("./localization/l10n/bundle.l10n.json", stringBundle);
         logger.success("Created ./localization/l10n/bundle.l10n.json");
 
         // Generate XLIFF file for translators
         logger.step("Generating XLIFF file for translation...");
         const stringXLIFF = vscodel10n.getL10nXlf(map);
-        await writeFileWithLF("./localization/xliff/vscode-mssql.xlf", stringXLIFF);
+        await fs.writeFile("./localization/xliff/vscode-mssql.xlf", stringXLIFF);
         logger.success("Created ./localization/xliff/vscode-mssql.xlf");
 
         logger.success("Localization string extraction completed successfully!");
