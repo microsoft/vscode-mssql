@@ -1370,6 +1370,7 @@
   "Azure (Public)": "Azure (Public)",
   "Azure (US Government)": "Azure (US Government)",
   "Azure (China)": "Azure (China)",
+  "The custom cloud choice is not configured. Please configure the setting `{0}`.": "The custom cloud choice is not configured. Please configure the setting `{0}`.",
   "Failed to get Fabric workspaces for tenant '{0} ({1})': {2}/{0} is the tenant name{1} is the tenant id{2} is the error message": {
     "message": "Failed to get Fabric workspaces for tenant '{0} ({1})': {2}",
     "comment": [

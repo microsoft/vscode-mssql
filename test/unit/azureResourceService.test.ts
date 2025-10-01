@@ -17,7 +17,7 @@ import { ResourceGroup, ResourceGroups, ResourceManagementClient } from "@azure/
 import { AzureResourceController } from "../../src/azure/azureResourceController";
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import { TokenCredentialWrapper } from "../../src/azure/credentialWrapper";
-import { getCloudSettings } from "../../src/azure/providerSettings";
+import { getCloudProviderSettings } from "../../src/azure/providerSettings";
 import { IAzureAccountSession } from "vscode-mssql";
 
 export interface ITestContext {
@@ -48,7 +48,7 @@ export function createContext(): ITestContext {
                     id: "",
                     displayName: "",
                 },
-                providerSettings: getCloudSettings(),
+                providerSettings: getCloudProviderSettings(),
             },
             isStale: false,
             isSignedIn: true,

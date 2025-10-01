@@ -24,7 +24,7 @@ import {
     IToken,
     IAzureAccountProperties,
 } from "../../src/models/contracts/azure";
-import { getCloudSettings } from "../../src/azure/providerSettings";
+import { getCloudProviderSettings } from "../../src/azure/providerSettings";
 
 suite("Firewall Service Tests", () => {
     let firewallService: TypeMoq.IMock<FirewallService>;
@@ -102,7 +102,7 @@ suite("Firewall Service Tests", () => {
                 id: "1",
                 displayName: undefined,
             },
-            providerSettings: getCloudSettings(),
+            providerSettings: getCloudProviderSettings(),
         };
         let mockAccount: IAccount = {
             properties: properties,

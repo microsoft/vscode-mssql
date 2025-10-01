@@ -21,7 +21,7 @@ import { promises as fsPromises } from "fs";
 import * as path from "path";
 import * as AzureConstants from "../constants";
 import { getErrorMessage } from "../../utils/utils";
-import { CloudId, getCloudId, getCloudSettings } from "../providerSettings";
+import { CloudId, getCloudId, getCloudProviderSettings } from "../providerSettings";
 import { Deferred } from "../../protocol";
 import { IPrompter } from "../../prompts/question";
 import { ICredentialStore } from "../../credentialstore/icredentialstore";
@@ -239,7 +239,8 @@ export class MsalAzureController extends AzureController {
                 .refreshAccessToken(
                     account,
                     AzureConstants.organizationTenant.id,
-                    getCloudSettings(account.key.providerId).settings.windowsManagementResource,
+                    getCloudProviderSettings(account.key.providerId).settings
+                        .windowsManagementResource,
                 );
 
             if (newAccount!.isStale === true) {
@@ -372,7 +373,7 @@ export class CloudAuthApplication {
                 this._authMappings.set(
                     AzureAuthType.AuthCodeGrant,
                     new MsalAzureCodeGrant(
-                        getCloudSettings(this.cloudId),
+                        getCloudProviderSettings(this.cloudId),
                         this.context,
                         this.clientApplication,
                         this.vscodeWrapper,
@@ -383,7 +384,7 @@ export class CloudAuthApplication {
                 this._authMappings.set(
                     AzureAuthType.DeviceCode,
                     new MsalAzureDeviceCode(
-                        getCloudSettings(this.cloudId),
+                        getCloudProviderSettings(this.cloudId),
                         this.context,
                         this.clientApplication,
                         this.vscodeWrapper,
@@ -420,9 +421,9 @@ export class CloudAuthApplication {
     private async createClientApplication(): Promise<void> {
         const msalConfiguration: Configuration = {
             auth: {
-                clientId: getCloudSettings().clientId,
+                clientId: getCloudProviderSettings().clientId,
                 authority: vscode.Uri.joinPath(
-                    vscode.Uri.parse(getCloudSettings().loginEndpoint),
+                    vscode.Uri.parse(getCloudProviderSettings().loginEndpoint),
                     "common",
                 ).toString(),
             },

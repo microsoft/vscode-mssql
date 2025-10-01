@@ -8,7 +8,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { EncryptOptions } from "../models/interfaces";
 import * as Interfaces from "./interfaces";
-import { getCloudSettings } from "../azure/providerSettings";
+import { getCloudProviderSettings } from "../azure/providerSettings";
 import { getErrorMessage } from "../utils/utils";
 
 /**
@@ -295,21 +295,23 @@ export function getServerTypes(connection: IConnectionInfo): ServerType[] {
     }
 
     try {
-        if (connection.server.includes(getCloudSettings().settings.sqlResource.dnsSuffix)) {
+        if (connection.server.includes(getCloudProviderSettings().settings.sqlResource.dnsSuffix)) {
             return [ServerType.Azure, ServerType.Sql];
         }
 
         if (
-            connection.server.includes(getCloudSettings().settings.sqlResource.analyticsDnsSuffix)
+            connection.server.includes(
+                getCloudProviderSettings().settings.sqlResource.analyticsDnsSuffix,
+            )
         ) {
             return [ServerType.Azure, ServerType.DataWarehouse];
         }
 
-        if (connection.server.includes(getCloudSettings().fabric.sqlDbDnsSuffix)) {
+        if (connection.server.includes(getCloudProviderSettings().fabric.sqlDbDnsSuffix)) {
             return [ServerType.Fabric, ServerType.Sql];
         }
 
-        if (connection.server.includes(getCloudSettings().fabric.dataWarehouseDnsSuffix)) {
+        if (connection.server.includes(getCloudProviderSettings().fabric.dataWarehouseDnsSuffix)) {
             return [ServerType.Fabric, ServerType.DataWarehouse];
         }
     } catch (error) {

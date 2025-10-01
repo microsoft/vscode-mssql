@@ -7,8 +7,8 @@ import * as vscode from "vscode";
 import { IProviderSettings } from "../models/contracts/azure";
 import * as AzureEnvironments from "@azure/ms-rest-azure-env";
 import { Azure as Loc } from "../constants/locConstants";
-import * as AzureAuth from "@microsoft/vscode-azext-azureauth";
 import { parseEnum } from "../utils/utils";
+import { customEnvironmentSettingName, sovereignCloudSectionName } from "../constants/constants";
 
 /**
  * Identifiers for the various Azure clouds.  Values must match the "microsoft-sovereign-cloud.environment" setting values.
@@ -27,11 +27,11 @@ export enum CloudId {
 }
 
 export const azureCloudProviderId = "azure_publicCloud"; // ID from previous version of extension; keep for backwards compatibility
-const azureCloudInfo = AzureEnvironments.Environment.AzureCloud;
-const usGovernmentCloudInfo = AzureEnvironments.Environment.USGovernment;
-const chinaCloudInfo = AzureEnvironments.Environment.ChinaCloud;
+const azureCloudInfo = getAzureEnvironment(CloudId.AzureCloud);
+const usGovernmentCloudInfo = getAzureEnvironment(CloudId.USGovernment);
+const chinaCloudInfo = getAzureEnvironment(CloudId.ChinaCloud);
 
-export const publicAzureSettings: IProviderSettings = {
+export const publicAzureProviderSettings: IProviderSettings = {
     displayName: Loc.PublicCloud,
     id: azureCloudProviderId, // ID from previous version of extension; keep for backwards compatibility
     clientId: "a69788c6-1d43-44ed-9ca3-b83e194da255",
@@ -77,7 +77,7 @@ export const publicAzureSettings: IProviderSettings = {
     ],
 };
 
-const usGovernmentCloudSettings: IProviderSettings = {
+const usGovernmentCloudProviderSettings: IProviderSettings = {
     displayName: Loc.USGovernmentCloud,
     id: CloudId.USGovernment,
     clientId: "a69788c6-1d43-44ed-9ca3-b83e194da255",
@@ -123,7 +123,7 @@ const usGovernmentCloudSettings: IProviderSettings = {
     ],
 };
 
-const chinaCloudSettings: IProviderSettings = {
+const chinaCloudProviderSettings: IProviderSettings = {
     displayName: Loc.ChinaCloud,
     id: CloudId.ChinaCloud,
     clientId: "a69788c6-1d43-44ed-9ca3-b83e194da255",
@@ -185,8 +185,8 @@ interface MssqlEnvironment extends AzureEnvironments.Environment, MssqlEnvironme
     isCustomCloud: boolean;
 }
 
-function getCustomCloudSettings(): IProviderSettings {
-    let customCloud: MssqlEnvironment = AzureAuth.getConfiguredAzureEnv();
+function getCustomCloudProviderSettings(): IProviderSettings {
+    let customCloud: MssqlEnvironment = getAzureEnvironment(CloudId.Custom);
 
     const mssqlCustomCloud = vscode.workspace
         .getConfiguration("mssql")
@@ -255,20 +255,61 @@ function getCustomCloudSettings(): IProviderSettings {
  * @param cloud (optional) the cloud environment name.  Valid values are the options for the "microsoft-sovereign-cloud.environment" setting.
  * @returns Provider settings for the specified cloud
  */
-export function getCloudSettings(cloud?: CloudId | string): IProviderSettings {
+export function getCloudProviderSettings(cloud?: CloudId | string): IProviderSettings {
     const cloudId = getCloudId(cloud);
 
     switch (cloudId) {
         case CloudId.AzureCloud:
-            return publicAzureSettings;
+            return publicAzureProviderSettings;
         case CloudId.USGovernment:
-            return usGovernmentCloudSettings;
+            return usGovernmentCloudProviderSettings;
         case CloudId.ChinaCloud:
-            return chinaCloudSettings;
+            return chinaCloudProviderSettings;
         case CloudId.Custom:
-            return getCustomCloudSettings();
+            return getCustomCloudProviderSettings();
         default:
-            throw new Error(`Unexpected cloud ID: '${cloud}'.  It may not be supported yet.`);
+            throw new Error(`Unexpected cloud ID: '${cloud}'.`);
+    }
+}
+
+export function getAzureEnvironment(cloud?: CloudId | string): AzureEnvironments.Environment & {
+    isCustomCloud: boolean;
+} {
+    const cloudId = getCloudId(cloud);
+
+    switch (cloudId) {
+        case CloudId.AzureCloud:
+            return {
+                ...AzureEnvironments.Environment.AzureCloud,
+                isCustomCloud: false,
+            };
+        case CloudId.USGovernment:
+            return {
+                ...AzureEnvironments.Environment.USGovernment,
+                isCustomCloud: false,
+            };
+        case CloudId.ChinaCloud:
+            return {
+                ...AzureEnvironments.Environment.ChinaCloud,
+                isCustomCloud: false,
+            };
+        case CloudId.Custom:
+            const customCloud = vscode.workspace
+                .getConfiguration(sovereignCloudSectionName)
+                .get<
+                    AzureEnvironments.EnvironmentParameters | undefined
+                >(customEnvironmentSettingName);
+
+            if (customCloud) {
+                return {
+                    ...new AzureEnvironments.Environment(customCloud),
+                    isCustomCloud: true,
+                };
+            }
+
+            throw new Error(Loc.customCloudNotConfigured);
+        default:
+            throw new Error(`Unexpected cloud ID: '${cloud}'`);
     }
 }
 

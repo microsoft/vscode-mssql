@@ -106,7 +106,7 @@ suite("CloudAuthApplication Tests", () => {
             scopes: ["https://database.windows.net/.default"],
         });
 
-        sandbox.stub(providerSettings, "getCloudSettings").callsFake(getCloudSettingsStub);
+        sandbox.stub(providerSettings, "getCloudProviderSettings").callsFake(getCloudSettingsStub);
 
         // Create mock token cache for this test
         const mockTokenCache = {

@@ -19,11 +19,11 @@ import { HttpHelper } from "../http/httpHelper";
 import { AxiosResponse } from "axios";
 import { getErrorMessage } from "../utils/utils";
 import { Fabric as Loc } from "../constants/locConstants";
-import { getCloudSettings } from "../azure/providerSettings";
+import { getCloudProviderSettings } from "../azure/providerSettings";
 
 export class FabricHelper {
     static getFabricApiUriBase(): vscode.Uri {
-        const cloudSettings = getCloudSettings();
+        const cloudSettings = getCloudProviderSettings();
 
         if (!cloudSettings.fabric.fabricApiUriBase) {
             throw new Error(
@@ -38,7 +38,7 @@ export class FabricHelper {
     }
 
     static getFabricScopeUriBase(): vscode.Uri {
-        const cloudSettings = getCloudSettings();
+        const cloudSettings = getCloudProviderSettings();
 
         if (!cloudSettings.fabric.fabricScopeUriBase) {
             throw new Error(

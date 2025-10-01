@@ -13,7 +13,7 @@ import {
 import { GenericResourceExpanded, ResourceManagementClient } from "@azure/arm-resources";
 
 import { Azure as Loc } from "../constants/locConstants";
-import { getCloudSettings } from "../azure/providerSettings";
+import { getCloudProviderSettings } from "../azure/providerSettings";
 import { IAccount, ITenant } from "../models/contracts/azure";
 import { FormItemOptions } from "../sharedInterfaces/form";
 import { AzureAccountService } from "../services/azureAccountService";
@@ -190,7 +190,7 @@ export class VsCodeAzureHelper {
         sub: AzureSubscription,
     ): Promise<GenericResourceExpanded[]> {
         const client = new ResourceManagementClient(sub.credential, sub.subscriptionId, {
-            endpoint: getCloudSettings().settings.armResource.endpoint,
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
         });
         const resources = await listAllIterator<GenericResourceExpanded>(client.resources.list());
         return resources;
@@ -457,7 +457,7 @@ export async function constructAzureAccountForTenant(azureAccountInfo: {
         properties: {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             azureAuthType: 0 as any,
-            providerSettings: getCloudSettings(),
+            providerSettings: getCloudProviderSettings(),
             isMsAccount: false,
             owningTenant: undefined,
             tenants: [
@@ -505,8 +505,8 @@ export function extractFromResourceId(resourceId: string, property: string): str
 
 export function buildServerUri(serverResource: GenericResourceExpanded): string {
     const suffix = serverResource.kind.includes("analytics")
-        ? getCloudSettings().settings.sqlResource.analyticsDnsSuffix
-        : getCloudSettings().settings.sqlResource.dnsSuffix;
+        ? getCloudProviderSettings().settings.sqlResource.analyticsDnsSuffix
+        : getCloudProviderSettings().settings.sqlResource.dnsSuffix;
 
     // Construct the URI based on the server kind
     return `${serverResource.name}${suffix}`;
