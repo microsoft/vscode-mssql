@@ -1015,6 +1015,12 @@ export class LocConstants {
                     args: [serverName],
                     comment: ["{0} is the name of the server"],
                 }),
+            dialogAriaLabel: (userName: string, serverName: string) =>
+                l10n.t({
+                    message: "Password must be changed for '{0}' to continue logging into '{1}'",
+                    args: [userName, serverName],
+                    comment: ["{0} is the username", "{1} is the name of the server"],
+                }),
             username: l10n.t("Username"),
             newPassword: l10n.t("New Password"),
             passwordIsRequired: l10n.t("Password is required"),

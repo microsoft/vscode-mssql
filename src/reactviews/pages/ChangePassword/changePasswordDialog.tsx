@@ -84,9 +84,14 @@ export const ChangePasswordDialog = ({
     const showPasswordMismatchError = !isConfirmPasswordEmpty && !passwordsMatch;
     const isSubmitDisabled = isPasswordEmpty || isConfirmPasswordEmpty || !passwordsMatch;
 
+    const ariaLabel = locConstants.changePasswordDialog.dialogAriaLabel(
+        userName ?? "",
+        serverName ?? "",
+    );
+
     return (
         <Dialog open={true} modalType="modal">
-            <DialogSurface className={styles.root}>
+            <DialogSurface className={styles.root} aria-label={ariaLabel}>
                 <DialogBody>
                     <DialogTitle className={styles.title}>
                         {locConstants.changePasswordDialog.title}
@@ -111,6 +116,8 @@ export const ChangePasswordDialog = ({
                                         disabled
                                         value={userName}
                                         onChange={(_, data) => setPassword(data.value)}
+                                        aria-label={locConstants.changePasswordDialog.username}
+                                        aria-readonly="true"
                                     />
                                 </Field>
                                 <Field
