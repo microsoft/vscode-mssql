@@ -1246,6 +1246,9 @@
     <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
       <source xml:lang="en">Execution Plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++b5f54c19df1649916f59331f9decf53dc337a2c241a3afb20d58810309ebe30f">
+      <source xml:lang="en">Existing Azure SQL logical server</source>
+    </trans-unit>
     <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
       <source xml:lang="en">Existing SQL server</source>
     </trans-unit>
@@ -1996,6 +1999,9 @@
     <trans-unit id="++CODE++ad4811485a0a0f3f000987d581730b04c0bf33a9d4ccf59a9ff1c127b33d76d1">
       <source xml:lang="en">Name of the primary key.</source>
     </trans-unit>
+    <trans-unit id="++CODE++47fcb7ca194ec7de1be8ea7b91df9b1e51e273673b6410255e55f48fe0061598">
+      <source xml:lang="en">New Azure SQL logical server (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7d029a3c1b85e562db8e25ceb52958e3c3da9e6e50b95ebf95f3fae85091a15">
       <source xml:lang="en">New Check Constraint</source>
     </trans-unit>
@@ -2016,6 +2022,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6334507f512e52b67d0a5a0fb392e35e5d3acc29acdce7218f66b6199150f589">
       <source xml:lang="en">New Microsoft Entra account could not be added.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++80e8f069713682d743cceecaad91cb538d199e18712328724d348491bfbb64af">
+      <source xml:lang="en">New SQL Server local development container</source>
     </trans-unit>
     <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
       <source xml:lang="en">New SQL database</source>
