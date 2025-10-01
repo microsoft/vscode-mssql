@@ -6,8 +6,8 @@
 const vscodel10n = require("@vscode/l10n-dev");
 const fs = require("fs").promises;
 const path = require("path");
-const { execSync } = require("child_process");
 const logger = require("./terminal-logger");
+const { writeJsonAndFormat, writeAndFormat } = require("./file-utils");
 
 /**
  * Scans the src directory for TypeScript files and extracts their content
@@ -95,28 +95,27 @@ async function extractLocalizationStrings() {
 
         // Write bundle L10n JSON file
         logger.step("Writing bundle localization file...");
-        const stringBundle = JSON.stringify(bundleJSON, null, 2);
-        await fs.writeFile("./localization/l10n/bundle.l10n.json", stringBundle);
-        logger.success("Created ./localization/l10n/bundle.l10n.json");
+        const formatted1 = await writeJsonAndFormat(
+            "./localization/l10n/bundle.l10n.json",
+            bundleJSON,
+        );
+        if (formatted1) {
+            logger.success("Created and formatted ./localization/l10n/bundle.l10n.json");
+        } else {
+            logger.warning("Created ./localization/l10n/bundle.l10n.json (formatting failed)");
+        }
 
         // Generate XLIFF file for translators
         logger.step("Generating XLIFF file for translation...");
         const stringXLIFF = vscodel10n.getL10nXlf(map);
-        await fs.writeFile("./localization/xliff/vscode-mssql.xlf", stringXLIFF);
-        logger.success("Created ./localization/xliff/vscode-mssql.xlf");
-
-        // Format generated files with Prettier
-        logger.step("Formatting generated files with Prettier...");
-        try {
-            execSync(
-                "npx prettier --write ./localization/l10n/bundle.l10n.json ./localization/xliff/vscode-mssql.xlf",
-                {
-                    stdio: "inherit",
-                },
-            );
-            logger.success("Files formatted successfully");
-        } catch (error) {
-            logger.warning("Failed to format files with Prettier");
+        const formatted2 = await writeAndFormat(
+            "./localization/xliff/vscode-mssql.xlf",
+            stringXLIFF,
+        );
+        if (formatted2) {
+            logger.success("Created and formatted ./localization/xliff/vscode-mssql.xlf");
+        } else {
+            logger.warning("Created ./localization/xliff/vscode-mssql.xlf (formatting failed)");
         }
 
         logger.success("Localization string extraction completed successfully!");

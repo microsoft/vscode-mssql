@@ -6,8 +6,8 @@
 const vscodel10n = require("@vscode/l10n-dev");
 const fs = require("fs").promises;
 const path = require("path");
-const { execSync } = require("child_process");
 const logger = require("./terminal-logger");
+const { writeJsonAndFormat } = require("./file-utils");
 
 /**
  * Generates runtime localization files for the extension
@@ -66,8 +66,12 @@ async function generateRuntimeLocalizationFiles() {
                         }
 
                         const filePath = path.resolve(l10nDir, fileName);
-                        await fs.writeFile(filePath, JSON.stringify(fileContent.messages, null, 2));
-                        logger.success(`Created bundle file: ${fileName}`);
+                        const formatted = await writeJsonAndFormat(filePath, fileContent.messages);
+                        if (formatted) {
+                            logger.success(`Created and formatted bundle file: ${fileName}`);
+                        } else {
+                            logger.warning(`Created bundle file: ${fileName} (formatting failed)`);
+                        }
                         generatedFiles++;
                     } else if (fileContent.name === "package") {
                         // Skip English package files (manually maintained)
@@ -79,8 +83,12 @@ async function generateRuntimeLocalizationFiles() {
                         // Generate package localization file
                         const fileName = `package.nls.${fileContent.language}.json`;
                         const filePath = path.resolve(packageDir, fileName);
-                        await fs.writeFile(filePath, JSON.stringify(fileContent.messages, null, 2));
-                        logger.success(`Created package file: ${fileName}`);
+                        const formatted = await writeJsonAndFormat(filePath, fileContent.messages);
+                        if (formatted) {
+                            logger.success(`Created and formatted package file: ${fileName}`);
+                        } else {
+                            logger.warning(`Created package file: ${fileName} (formatting failed)`);
+                        }
                         generatedFiles++;
                     }
                 }
@@ -88,19 +96,6 @@ async function generateRuntimeLocalizationFiles() {
                 processedLanguages++;
             } catch (error) {
                 logger.error(`Failed to process ${xliffFile}: ${error.message}`);
-            }
-        }
-
-        // Format generated files with Prettier
-        if (generatedFiles > 0) {
-            logger.step("Formatting generated files with Prettier...");
-            try {
-                execSync("npx prettier --write ./localization/l10n/*.json ./package.nls.*.json", {
-                    stdio: "inherit",
-                });
-                logger.success("Files formatted successfully");
-            } catch (error) {
-                logger.warning("Failed to format files with Prettier");
             }
         }
 

@@ -4,31 +4,50 @@
  *--------------------------------------------------------------------------------------------*/
 
 const fs = require("fs").promises;
+const { execSync } = require("child_process");
 
 /**
- * Writes a file with LF line endings, regardless of platform
- * @param {string} filePath - Path to the file to write
- * @param {string} content - Content to write
- * @returns {Promise<void>}
+ * Formats files using Prettier
+ * @param {string|string[]} filePaths - Single file path or array of file paths to format
+ * @returns {Promise<boolean>} True if formatting succeeded, false otherwise
  */
-async function writeFileWithLF(filePath, content) {
-    const normalizedContent = content.replace(/\r\n/g, "\n");
-    await fs.writeFile(filePath, normalizedContent);
+async function formatWithPrettier(filePaths) {
+    try {
+        const paths = Array.isArray(filePaths) ? filePaths.join(" ") : filePaths;
+        execSync(`npx prettier --write ${paths}`, {
+            stdio: "inherit",
+        });
+        return true;
+    } catch (error) {
+        return false;
+    }
 }
 
 /**
- * Writes a JSON object to a file with LF line endings and trailing newline
+ * Writes a file and formats it with Prettier
+ * @param {string} filePath - Path to the file to write
+ * @param {string} content - Content to write
+ * @returns {Promise<boolean>} True if formatting succeeded, false otherwise
+ */
+async function writeAndFormat(filePath, content) {
+    await fs.writeFile(filePath, content);
+    return await formatWithPrettier(filePath);
+}
+
+/**
+ * Writes a JSON file and formats it with Prettier
  * @param {string} filePath - Path to the file to write
  * @param {Object} data - JSON data to write
  * @param {number} indent - Number of spaces for indentation (default: 2)
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>} True if formatting succeeded, false otherwise
  */
-async function writeJsonWithLF(filePath, data, indent = 2) {
-    const content = JSON.stringify(data, null, indent) + "\n";
-    await writeFileWithLF(filePath, content);
+async function writeJsonAndFormat(filePath, data, indent = 2) {
+    const content = JSON.stringify(data, null, indent);
+    return await writeAndFormat(filePath, content);
 }
 
 module.exports = {
-    writeFileWithLF,
-    writeJsonWithLF,
+    formatWithPrettier,
+    writeAndFormat,
+    writeJsonAndFormat,
 };
