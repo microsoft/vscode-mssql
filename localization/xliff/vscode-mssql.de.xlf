@@ -4013,11 +4013,11 @@ Abfrage: {1}</target>
         <target state="translated">Der erste Wert muss für den {0}-Operator im {1}-Filter festgelegt werden.</target>
       </trans-unit>
       <trans-unit id="++CODE++9f0bbf0f3fc1ec45ca02debcaf080ecd6f40e8a11bae6e0189136badee4946a7">
-        <source xml:lang="en">The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it.
+        <source xml:lang="en">The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. 
 
  {0}</source>
         <note>{0} is the list of display names for the connections that have been ignored</note>
-        <target state="translated">In den folgenden Verbindungen mit Arbeitsbereichen oder Arbeitsbereichsordnern fehlt die Eigenschaft „id“. Sie werden ignoriert.  Fügen Sie die Eigenschaft „id“ manuell zur Verbindung hinzu, um sie zu verwenden.
+        <target state="translated">In den folgenden Verbindungen mit Arbeitsbereichen oder Arbeitsbereichsordnern fehlt die Eigenschaft „id“. Sie werden ignoriert.  Fügen Sie die Eigenschaft „id“ manuell zur Verbindung hinzu, um sie zu verwenden. 
 
  {0}</target>
       </trans-unit>
