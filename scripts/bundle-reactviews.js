@@ -26,6 +26,7 @@ const config = {
     'userSurvey': 'src/reactviews/pages/UserSurvey/index.tsx',
     'schemaDesigner': 'src/reactviews/pages/SchemaDesigner/index.tsx',
     'schemaCompare': 'src/reactviews/pages/SchemaCompare/index.tsx',
+    'changePassword': 'src/reactviews/pages/ChangePassword/index.tsx',
   },
   bundle: true,
   outdir: 'dist/views',

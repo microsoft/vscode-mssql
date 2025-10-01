@@ -1376,6 +1376,8 @@ export class Connection {
     );
     public static NoTenantSelected = l10n.t("No tenant selected");
     public static SelectTenant = l10n.t("Select a tenant");
+
+    public static ChangePassword = l10n.t("Change Password");
 }
 
 export class MssqlChatAgent {

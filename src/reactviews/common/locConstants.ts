@@ -1005,6 +1005,36 @@ export class LocConstants {
             ),
         };
     }
+
+    public get changePasswordDialog() {
+        return {
+            title: (servername: string | undefined) => {
+                if (servername) {
+                    return l10n.t({
+                        message: "Change Password on {0}",
+                        args: [servername],
+                        comment: ["{0} is the server name"],
+                    });
+                } else {
+                    return l10n.t("Change Password");
+                }
+            },
+            description: l10n.t("Change your password to access this server."),
+            username: l10n.t("Username"),
+            newPassword: l10n.t("New Password"),
+            passwordIsRequired: l10n.t("Password is required"),
+            newPasswordPlaceholder: l10n.t("Enter new password"),
+            showNewPassword: l10n.t("Show New Password"),
+            hideNewPassword: l10n.t("Hide New Password"),
+            confirmPassword: l10n.t("Confirm Password"),
+            confirmPasswordPlaceholder: l10n.t("Confirm new password"),
+            showConfirmPassword: l10n.t("Show Confirm Password"),
+            hideConfirmPassword: l10n.t("Hide Confirm Password"),
+            changePasswordButton: l10n.t("Change Password"),
+            cancelButton: l10n.t("Cancel"),
+            passwordsDoNotMatch: l10n.t("Passwords do not match"),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();
