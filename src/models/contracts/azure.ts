@@ -129,21 +129,24 @@ export interface IProviderSettings {
     loginEndpoint: string;
     portalEndpoint: string;
     redirectUri: string;
-    resources: IProviderResources;
+    settings: IProviderResources;
     fabric: {
+        fabricApiUriBase: string;
+        fabricScopeUriBase: string;
         sqlDbDnsSuffix: string;
-        dataWarehouseSuffix: string;
+        dataWarehouseDnsSuffix: string;
     };
 }
 
 export interface IProviderResources {
     windowsManagementResource: IAADResource;
-    azureManagementResource: IAADResource;
+    armResource: IAADResource;
     graphResource?: IAADResource;
-    databaseResource?: IAADResource & { analyticsDnsSuffix?: string };
+    sqlResource?: IAADResource & { analyticsDnsSuffix?: string };
     ossRdbmsResource?: IAADResource;
     azureKeyVaultResource?: IAADResource;
     azureDevopsResource?: IAADResource;
+    fabric?: IAADResource & { sqlDbDnsSuffix?: string; dataWarehouseDnsSuffix: string };
 }
 
 export interface IAADResource {
@@ -153,16 +156,21 @@ export interface IAADResource {
     dnsSuffix?: string;
 }
 
-/**
- * Error to be used when the user has cancelled the prompt or refresh methods. When
- * AccountProvider.refresh or AccountProvider.prompt are rejected with this error, the error
- * will not be reported to the user.
- */
-export interface IPromptFailedResult {
-    /**
-     * Type guard for differentiating user cancelled sign in errors from other errors
-     */
+export type LoginResult = ISuccessfulLoginResult | IFailedLoginResult;
+
+export interface ILoginResultBase {
+    success: boolean;
+}
+
+export interface ISuccessfulLoginResult extends ILoginResultBase {
+    success: true;
+    account: IAccount;
+}
+
+export interface IFailedLoginResult extends ILoginResultBase {
+    success: false;
     canceled: boolean;
+    error?: string;
 }
 
 export interface ITokenKey {

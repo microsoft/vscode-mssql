@@ -248,6 +248,14 @@ export const configSchemaDesignerEnableExpandCollapseButtons =
 export const configSavePasswordsUntilRestart =
     "mssql.connectionManagement.rememberPasswordsUntilRestart";
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
+export const configCustomEnvironment = "mssql.customEnvironment";
+
+// Built into VS Code
+export const sovereignCloudSectionName = "microsoft-sovereign-cloud";
+export const environmentSettingName = "environment";
+export const customEnvironmentSettingName = "customEnvironment";
+export const configSovereignCloudEnvironment = `${sovereignCloudSectionName}.${environmentSettingName}`;
+export const configSovereignCloudCustomEnvironment = `${sovereignCloudSectionName}.${customEnvironmentSettingName}`;
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";
