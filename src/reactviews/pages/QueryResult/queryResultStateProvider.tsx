@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ReactNode, createContext, useEffect, useMemo, useState } from "react";
+import { ReactNode, createContext, useCallback, useEffect, useMemo, useState } from "react";
 import { getCoreRPCs2 } from "../../common/utils";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { ExecutionPlanProvider } from "../../../sharedInterfaces/executionPlan";
@@ -17,6 +17,23 @@ import {
 } from "../../../sharedInterfaces/queryResult";
 import { WebviewRpc } from "../../common/rpc";
 import GridContextMenu from "./table/plugins/GridContextMenu";
+import FilterPopup, {
+    FilterPopupAnchorRect,
+    FilterPopupItem,
+    FilterValue,
+} from "./table/plugins/FilterPopup";
+
+export interface ColumnFilterPopupOptions {
+    columnId: string;
+    anchorRect: FilterPopupAnchorRect;
+    items: FilterPopupItem[];
+    initialSelected: FilterValue[];
+    onApply: (selected: FilterValue[]) => Promise<void> | void;
+    onClear: () => Promise<void> | void;
+    onDismiss?: () => void;
+    onSortAscending?: () => Promise<void> | void;
+    onSortDescending?: () => Promise<void> | void;
+}
 
 export interface QueryResultReactProvider
     extends Omit<ExecutionPlanProvider, "getExecutionPlan">,
@@ -31,6 +48,8 @@ export interface QueryResultReactProvider
         onAction: (action: GridContextMenuAction) => void | Promise<void>,
     ) => void;
     hideGridContextMenu: () => void;
+    showColumnFilterPopup: (options: ColumnFilterPopupOptions) => void;
+    hideColumnFilterPopup: () => void;
     /**
      * Gets the execution plan graph from the provider for a result set
      * @param uri the uri of the query result state this request is associated with
@@ -63,6 +82,19 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
         onAction?: (action: GridContextMenuAction) => void | Promise<void>;
     }>({ open: false, x: 0, y: 0 });
 
+    const [filterPopupState, setFilterPopupState] = useState<ColumnFilterPopupOptions | undefined>(
+        undefined,
+    );
+
+    const hideFilterPopup = useCallback(() => {
+        setFilterPopupState((state) => {
+            if (state?.onDismiss) {
+                state.onDismiss();
+            }
+            return undefined;
+        });
+    }, []);
+
     const commands = useMemo<QueryResultReactProvider>(
         () => ({
             extensionRpc,
@@ -76,11 +108,20 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
 
             // Grid context menu API
             showGridContextMenu: (x: number, y: number, onAction) => {
+                hideFilterPopup();
                 setMenuState({ open: true, x, y, onAction });
             },
             hideGridContextMenu: () => {
                 setMenuState((s) => ({ ...s, open: false }));
             },
+            showColumnFilterPopup: (options: ColumnFilterPopupOptions) => {
+                setMenuState((s) => (s.open ? { ...s, open: false } : s));
+                setFilterPopupState((state) => {
+                    state?.onDismiss?.();
+                    return { ...options };
+                });
+            },
+            hideColumnFilterPopup: hideFilterPopup,
 
             openFileThroughLink: (content: string, type: string) => {
                 extensionRpc.action("openFileThroughLink", { content, type });
@@ -124,24 +165,27 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                 extensionRpc.action("updateTotalCost", { addedCost });
             },
         }),
-        [extensionRpc],
+        [extensionRpc, hideFilterPopup],
     );
 
     // Close context menu when focus leaves the webview or it becomes hidden
     useEffect(() => {
-        const closeMenu = () => setMenuState((s) => (s.open ? { ...s, open: false } : s));
+        const closeOverlays = () => {
+            setMenuState((s) => (s.open ? { ...s, open: false } : s));
+            hideFilterPopup();
+        };
         const handleVisibilityChange = () => {
             if (document.visibilityState === "hidden") {
-                closeMenu();
+                closeOverlays();
             }
         };
-        window.addEventListener("blur", closeMenu);
+        window.addEventListener("blur", closeOverlays);
         document.addEventListener("visibilitychange", handleVisibilityChange);
         return () => {
-            window.removeEventListener("blur", closeMenu);
+            window.removeEventListener("blur", closeOverlays);
             document.removeEventListener("visibilitychange", handleVisibilityChange);
         };
-    }, []);
+    }, [hideFilterPopup]);
     return (
         <QueryResultCommandsContext.Provider value={commands}>
             {children}
@@ -155,6 +199,26 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                         setMenuState((s) => ({ ...s, open: false }));
                     }}
                     onClose={() => setMenuState((s) => ({ ...s, open: false }))}
+                />
+            )}
+            {filterPopupState && (
+                <FilterPopup
+                    anchorRect={filterPopupState.anchorRect}
+                    items={filterPopupState.items}
+                    initialSelected={filterPopupState.initialSelected}
+                    onApply={async (selected) => {
+                        await filterPopupState.onApply(selected);
+                        hideFilterPopup();
+                    }}
+                    onClear={async () => {
+                        await filterPopupState.onClear();
+                        hideFilterPopup();
+                    }}
+                    onDismiss={() => {
+                        hideFilterPopup();
+                    }}
+                    onSortAscending={filterPopupState.onSortAscending}
+                    onSortDescending={filterPopupState.onSortDescending}
                 />
             )}
         </QueryResultCommandsContext.Provider>

@@ -54,7 +54,7 @@
     cursor: pointer;
     display: inline-block;
     width: 16px;
-    background-image: url("filter.svg");
+    background-image: url("menu.svg");
     flex: 0 0 auto;
     margin-right: 2px;
     background-color: transparent;
@@ -346,18 +346,18 @@
 }
 
 /* Icons */
-/* Icon for filter button */
+/* Icon for menu button */
 .vscode-dark .slick-header-menubutton,
 .vscode-high-contrast .slick-header-menubutton {
-    background-image: url("filter_inverse.svg");
+    background-image: url("menu_inverse.svg");
 }
 
 .vscode-light .slick-header-menubutton,
 .vscode-high-contrast.vscode-high-contrast-light .slick-header-menubutton {
-    background-image: url("filter.svg");
+    background-image: url("menu.svg");
 }
 
-/* Icon for filter button when filter is applied */
+/* Icon for menu button when filter is applied */
 .vscode-dark .slick-header-menubutton.filtered,
 .vscode-high-contrast .slick-header-menubutton.filtered {
     background-image: url("filterFilled_inverse.svg");
@@ -399,4 +399,43 @@
 .vscode-light .slick-header-sortasc-button,
 .vscode-high-contrast.vscode-high-contrast-light .slick-header-sortasc-button {
     background-image: url("sort_asc.svg");
+}
+
+/* Sort indicator icon styling */
+.slick-sort-indicator-icon {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-left: 4px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 10px;
+    flex: 0 0 auto;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.slick-sort-indicator-icon.sorted-asc,
+.slick-sort-indicator-icon.sorted-desc {
+    opacity: 1;
+}
+
+.vscode-dark .slick-sort-indicator-icon.sorted-asc,
+.vscode-high-contrast .slick-sort-indicator-icon.sorted-asc {
+    background-image: url("sort_asc_inverse.svg");
+}
+
+.vscode-light .slick-sort-indicator-icon.sorted-asc,
+.vscode-high-contrast.vscode-high-contrast-light .slick-sort-indicator-icon.sorted-asc {
+    background-image: url("sort_asc.svg");
+}
+
+.vscode-dark .slick-sort-indicator-icon.sorted-desc,
+.vscode-high-contrast .slick-sort-indicator-icon.sorted-desc {
+    background-image: url("sort_desc_inverse.svg");
+}
+
+.vscode-light .slick-sort-indicator-icon.sorted-desc,
+.vscode-high-contrast.vscode-high-contrast-light .slick-sort-indicator-icon.sorted-desc {
+    background-image: url("sort_desc.svg");
 }

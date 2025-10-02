@@ -50,6 +50,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         private context: QueryResultReactProvider,
         private uri: string,
         private resultSetSummary: ResultSetSummary,
+        private headerFilter?: any,
     ) {
         this.options = mixin(this.options, defaults, false);
         if (this.options.cellRangeSelector) {
@@ -610,6 +611,19 @@ export class CellSelectionModel<T extends Slick.SlickData>
             e.preventDefault();
             e.stopPropagation();
             await this.handleSelectAll();
+            return;
+        }
+
+        // --- 1.5) Open Filter (Alt + F) ---
+        if (e.altKey && key === Keys?.ArrowDown && !e.shiftKey && !metaOrCtrlPressed) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (
+                this.headerFilter &&
+                typeof this.headerFilter.openFilterForActiveColumn === "function"
+            ) {
+                await this.headerFilter.openFilterForActiveColumn();
+            }
             return;
         }
 
