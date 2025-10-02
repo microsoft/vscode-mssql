@@ -11,6 +11,7 @@ import {
     SlickgridReact,
     EditCommand,
     Editors,
+    ContextMenu,
 } from "slickgrid-react";
 import { EditSubsetResult } from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
@@ -64,6 +65,45 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
             reactGridRef.current.slickGrid.invalidate();
             reactGridRef.current.slickGrid.render();
         }
+    }
+
+    function handleContextMenuCommand(_e: any, args: any) {
+        const command = args.command;
+        const dataContext = args.dataContext;
+
+        switch (command) {
+            case "delete-row":
+                // Remove from grid using dataView
+                reactGridRef.current?.dataView.deleteItem(dataContext.id);
+
+                // Also remove any tracked changes for this row
+                const keysToDelete: string[] = [];
+                cellChangesRef.current.forEach((_, key) => {
+                    if (key.startsWith(`${args.row}-`)) {
+                        keysToDelete.push(key);
+                    }
+                });
+                keysToDelete.forEach((key) => cellChangesRef.current.delete(key));
+                break;
+        }
+    }
+
+    function getContextMenuOptions(): ContextMenu {
+        return {
+            hideCloseButton: false,
+            commandTitle: "Commands",
+            commandItems: [
+                {
+                    command: "delete-row",
+                    title: "Delete Row",
+                    iconCssClass: "mdi mdi-close",
+                    cssClass: "red",
+                    textCssClass: "bold",
+                    positionOrder: 1,
+                },
+            ],
+            onCommand: (e, args) => handleContextMenuCommand(e, args),
+        };
     }
 
     // Convert resultSet data to SlickGrid format (initial setup)
@@ -142,6 +182,8 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
                 gridHeight: 400,
                 enableCellNavigation: true,
                 enableSorting: false,
+                enableContextMenu: true,
+                contextMenu: getContextMenuOptions(),
                 editCommandHandler: (_item, _column, editCommand) => {
                     // Add to command queue for undo functionality
                     commandQueue.push(editCommand);
