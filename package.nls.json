@@ -234,8 +234,8 @@
     "mssql.customEnvironment.sqlServerHostnameSuffix": "Sovereign cloud equivalent for `.database.windows.net` (including leading dot)",
     "mssql.customEnvironment.analyticsDnsSuffix": "Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)",
     "mssql.customEnvironment.keyVaultEndpoint": "Sovereign cloud equivalent for `https://vault.azure.net/`",
-    "mssql.customEnvironment.mssql.customEnvironment.fabricApiUriBase": "Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`",
-    "mssql.customEnvironment.mssql.customEnvironment.fabricScopeUriBase": "Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`",
+    "mssql.customEnvironment.fabricApiUriBase": "Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`",
+    "mssql.customEnvironment.fabricScopeUriBase": "Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`",
     "mssql.customEnvironment.fabricSqlDbDnsSuffix": "Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)",
     "mssql.customEnvironment.fabricDataWarehouseDnsSuffix": "Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)"
 }

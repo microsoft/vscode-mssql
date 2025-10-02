@@ -3950,10 +3950,10 @@
     <trans-unit id="mssql.customEnvironment.analyticsDnsSuffix">
       <source xml:lang="en">Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)</source>
     </trans-unit>
-    <trans-unit id="mssql.customEnvironment.mssql.customEnvironment.fabricScopeUriBase">
+    <trans-unit id="mssql.customEnvironment.fabricScopeUriBase">
       <source xml:lang="en">Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`</source>
     </trans-unit>
-    <trans-unit id="mssql.customEnvironment.mssql.customEnvironment.fabricApiUriBase">
+    <trans-unit id="mssql.customEnvironment.fabricApiUriBase">
       <source xml:lang="en">Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`</source>
     </trans-unit>
     <trans-unit id="mssql.customEnvironment.sqlEndpoint">
