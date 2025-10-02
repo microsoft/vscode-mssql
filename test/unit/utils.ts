@@ -67,6 +67,13 @@ export function stubGetCapabilitiesRequest(
     return serviceClientMock;
 }
 
+export function getMockContext(): vscode.ExtensionContext {
+    return {
+        extensionUri: vscode.Uri.parse("file://test"),
+        extensionPath: "path",
+    } as unknown as vscode.ExtensionContext;
+}
+
 export function initializeIconUtils(): void {
     const { IconUtils } = require("../../src/utils/iconUtils");
     IconUtils.initialize(vscode.Uri.file(path.join(__dirname, "..", "..")));

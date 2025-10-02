@@ -6,7 +6,6 @@
 import * as assert from "assert";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
-import * as TypeMoq from "typemoq";
 import * as tdTab from "../../src/tableDesigner/tableDesignerTabDefinition";
 import { TableDesignerWebviewController } from "../../src/tableDesigner/tableDesignerWebviewController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
@@ -15,16 +14,17 @@ import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { TableDesignerService } from "../../src/services/tableDesignerService";
 import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
 import ConnectionManager from "../../src/controllers/connectionManager";
+import { getMockContext } from "./utils";
 
 suite("TableDesignerWebviewController tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let controller: TableDesignerWebviewController;
-    let treeNode: TypeMoq.IMock<TreeNodeInfo>;
-    let mockConnectionManager: TypeMoq.IMock<ConnectionManager>;
-    let mockTableDesignerService: TableDesignerService;
-    let mockSqlDocumentService: SqlDocumentService;
+    let treeNode: sinon.SinonStubbedInstance<TreeNodeInfo>;
+    let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let mockTableDesignerService: sinon.SinonStubbedInstance<TableDesignerService>;
+    let mockSqlDocumentService: sinon.SinonStubbedInstance<SqlDocumentService>;
     let newQueryStub: sinon.SinonStub;
     const tableName = "TestTable";
     let mockResult: any;
@@ -33,15 +33,12 @@ suite("TableDesignerWebviewController tests", () => {
 
     setup(async () => {
         sandbox = sinon.createSandbox();
-        mockContext = {
-            extensionUri: vscode.Uri.parse("file://test"),
-            extensionPath: "path",
-        } as unknown as vscode.ExtensionContext;
+        mockContext = getMockContext();
 
-        mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
+        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         mockTableDesignerService = sandbox.createStubInstance(TableDesignerService);
         mockSqlDocumentService = sandbox.createStubInstance(SqlDocumentService);
-        mockConnectionManager = TypeMoq.Mock.ofType<ConnectionManager>();
+        mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
 
         const mockConnectionDetails = {
             server: "localhost",
@@ -50,30 +47,21 @@ suite("TableDesignerWebviewController tests", () => {
             authenticationType: "SqlLogin",
         };
 
-        mockConnectionManager
-            .setup((m) => m.createConnectionDetails(TypeMoq.It.isAny()))
-            .returns(() => mockConnectionDetails as any);
-        mockConnectionManager
-            .setup((m) =>
-                m.getConnectionString(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
-            .returns(() => Promise.resolve(mockConnectionDetails.connectionString));
-        mockConnectionManager
-            .setup((mgr) => mgr.getUriForConnection(TypeMoq.It.isAny()))
-            .returns(() => "localhost,1433_undefined_sa_undefined");
+        mockConnectionManager.createConnectionDetails.returns(mockConnectionDetails as any);
+        mockConnectionManager.getConnectionString.resolves(mockConnectionDetails.connectionString);
+        mockConnectionManager.getUriForConnection.returns("localhost,1433_undefined_sa_undefined");
+        mockConnectionManager.confirmEntraTokenValidity.resolves();
 
-        treeNode = TypeMoq.Mock.ofType(TreeNodeInfo, TypeMoq.MockBehavior.Loose);
-        treeNode.setup((t) => t.nodeType).returns(() => "Table");
-        treeNode.setup((t) => t.nodePath).returns(() => "localhost,1433/Databases");
-        treeNode.setup((t) => t.label).returns(() => tableName);
-        treeNode
-            .setup((t) => t.context)
-            .returns(
-                () =>
-                    ({
-                        subType: "Table",
-                    }) as any,
-            );
+        treeNode = sandbox.createStubInstance(TreeNodeInfo);
+        sandbox.stub(treeNode, "nodeType").get(() => "Table");
+        sandbox.stub(treeNode, "nodePath").get(() => "localhost,1433/Databases");
+        treeNode.label = tableName as any;
+        sandbox.stub(treeNode, "context").get(
+            () =>
+                ({
+                    subType: "Table",
+                }) as any,
+        );
 
         // Arrange
         const mockConnectionProfile = {
@@ -87,11 +75,11 @@ suite("TableDesignerWebviewController tests", () => {
             name: tableName,
         };
 
-        treeNode.setup((t) => t.connectionProfile).returns(() => mockConnectionProfile as any);
-        treeNode.setup((t) => t.metadata).returns(() => mockMetadata as any);
+        sandbox.stub(treeNode, "connectionProfile").get(() => mockConnectionProfile as any);
+        sandbox.stub(treeNode, "metadata").get(() => mockMetadata as any);
 
         assert.deepStrictEqual(
-            treeNode.object.connectionProfile,
+            treeNode.connectionProfile,
             mockConnectionProfile,
             "Connection profile should be defined",
         );
@@ -110,8 +98,8 @@ suite("TableDesignerWebviewController tests", () => {
         };
 
         mockTableChangeInfo = {
-            type: treeNode.object.nodeType,
-            source: treeNode.object.nodePath,
+            type: treeNode.nodeType,
+            source: treeNode.nodePath,
         };
 
         mockPayload = {
@@ -119,19 +107,19 @@ suite("TableDesignerWebviewController tests", () => {
             tableChangeInfo: mockTableChangeInfo,
         };
 
-        newQueryStub = (mockSqlDocumentService.newQuery as sinon.SinonStub).resolves();
+        newQueryStub = mockSqlDocumentService.newQuery.resolves();
 
-        (mockTableDesignerService.initializeTableDesigner as sinon.SinonStub).resolves(mockResult);
+        mockTableDesignerService.initializeTableDesigner.resolves(mockResult);
 
         sandbox.stub(tdTab, "getDesignerView").returns({ tabs: [] });
 
         controller = new TableDesignerWebviewController(
             mockContext,
-            mockVscodeWrapper.object,
+            mockVscodeWrapper,
             mockTableDesignerService,
-            mockConnectionManager.object,
+            mockConnectionManager,
             mockSqlDocumentService,
-            treeNode.object,
+            treeNode,
         );
         controller.revealToForeground();
 
@@ -167,12 +155,10 @@ suite("TableDesignerWebviewController tests", () => {
             view: {},
             viewModel: {},
             isValid: true,
-        };
+        } as td.DesignerEditResult<td.TableDesignerView>;
 
         // First scenario: no issues, view is defined
-        let processTableEditStub = (
-            mockTableDesignerService.processTableEdit as sinon.SinonStub
-        ).resolves(editResponse);
+        let processTableEditStub = mockTableDesignerService.processTableEdit.resolves(editResponse);
 
         const callState = (controller as any)._state;
 
@@ -196,7 +182,10 @@ suite("TableDesignerWebviewController tests", () => {
         processTableEditStub.restore();
 
         editResponse = {
-            issues: ["issue1", "issue2"],
+            issues: [
+                { description: "issue1", severity: "warning" },
+                { description: "issue2", severity: "error" },
+            ],
             view: undefined,
             viewModel: {},
             isValid: false,
@@ -248,15 +237,13 @@ suite("TableDesignerWebviewController tests", () => {
     test("should call publishTable in publishTable reducer", async () => {
         let publishResponse = {
             issues: [],
-            view: {},
+            view: { useAdvancedSaveMode: false },
             viewModel: {},
             newTableInfo: { ...mockResult.tableInfo, title: "NewTable" },
-        };
+        } as td.PublishChangesResult;
 
         // First scenario: no issues, view is defined
-        let publishChangesStub = (
-            mockTableDesignerService.publishChanges as sinon.SinonStub
-        ).resolves(publishResponse);
+        let publishChangesStub = mockTableDesignerService.publishChanges.resolves(publishResponse);
 
         const mockPublishPayload = {
             table: mockResult.tableInfo,
@@ -320,9 +307,7 @@ suite("TableDesignerWebviewController tests", () => {
         let scriptResponse = "CREATE TABLE Test (Id INT);";
 
         // First scenario: no issues, view is defined
-        let scriptStub = (mockTableDesignerService.generateScript as sinon.SinonStub).resolves(
-            scriptResponse,
-        );
+        let scriptStub = mockTableDesignerService.generateScript.resolves(scriptResponse);
 
         const mockScriptPayload = {
             table: mockResult.tableInfo,
@@ -376,9 +361,8 @@ suite("TableDesignerWebviewController tests", () => {
             mimeType: "text/html",
         };
 
-        const generatePreviewStub = (
-            mockTableDesignerService.generatePreviewReport as sinon.SinonStub
-        ).resolves(previewResponse);
+        const generatePreviewStub =
+            mockTableDesignerService.generatePreviewReport.resolves(previewResponse);
 
         const mockPreviewPayload = {
             table: mockResult.tableInfo,
