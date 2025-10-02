@@ -121,14 +121,19 @@ export const CheckboxField: React.FC<{
             key={component.propertyName}
             required={component.required}
             validationMessage={component.validation?.validationMessage}
-            validationState={getValidationState(component.validation)}
-            orientation="horizontal">
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            validationState={getValidationState(component.validation)}>
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    whiteSpace: "nowrap",
+                }}>
                 <Checkbox
                     checked={checked}
                     onChange={(_, data) => onChange(data.checked === true)}
                 />
-                <span>{labelContent}</span>
+                <span style={{ whiteSpace: "normal" }}>{labelContent}</span>
             </div>
         </Field>
     );
