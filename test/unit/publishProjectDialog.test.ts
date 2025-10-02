@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
 import * as constants from "../../src/constants/constants";
@@ -15,34 +14,53 @@ import {
     isValidSqlAdminPassword,
 } from "../../src/publishProject/projectUtils";
 
+/**
+ * UI and Form interaction tests for Publish Project Dialog
+ * Tests form field behavior, visibility, user interactions, and validators
+ * Controller/state logic tests are in publishProjectWebViewController.test.ts
+ */
 suite("PublishProjectWebViewController", () => {
     let sandbox: sinon.SinonSandbox;
-    let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
-    let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let mockContext: vscode.ExtensionContext;
+    let mockVscodeWrapper: VscodeWrapper;
+    let mockOutputChannel: vscode.OutputChannel;
+    let workspaceConfigStub: sinon.SinonStub;
 
     const projectPath = "c:/work/ContainerProject.sqlproj";
 
     setup(() => {
         sandbox = sinon.createSandbox();
 
-        mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockContext.setup((c) => c.extensionUri).returns(() => vscode.Uri.parse("file://fakePath"));
-        mockContext.setup((c) => c.extensionPath).returns(() => "fakePath");
-        mockContext.setup((c) => c.subscriptions).returns(() => []);
-        const globalState = {
-            get: (<T>(_key: string, defaultValue?: T) => defaultValue) as {
-                <T>(key: string): T | undefined;
-                <T>(key: string, defaultValue: T): T;
-            },
-            update: async () => undefined,
-            keys: () => [] as readonly string[],
-            setKeysForSync: (_keys: readonly string[]) => undefined,
-        } as unknown as vscode.Memento & { setKeysForSync(keys: readonly string[]): void };
-        mockContext.setup((c) => c.globalState).returns(() => globalState);
+        // Create mock output channel
+        mockOutputChannel = {
+            append: sandbox.stub(),
+            appendLine: sandbox.stub(),
+            clear: sandbox.stub(),
+            show: sandbox.stub(),
+            hide: sandbox.stub(),
+            dispose: sandbox.stub(),
+            replace: sandbox.stub(),
+            name: "Test Output",
+        } as unknown as vscode.OutputChannel;
 
-        mockVscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
-        const outputChannel = TypeMoq.Mock.ofType<vscode.OutputChannel>();
-        mockVscodeWrapper.setup((v) => v.outputChannel).returns(() => outputChannel.object);
+        // Create minimal context stub - only what the controller actually uses
+        mockContext = {
+            extensionUri: vscode.Uri.parse("file://fakePath"),
+            extensionPath: "fakePath",
+            subscriptions: [],
+        } as vscode.ExtensionContext;
+
+        // Create stub VscodeWrapper
+        mockVscodeWrapper = {
+            outputChannel: mockOutputChannel,
+        } as unknown as VscodeWrapper;
+
+        // Stub workspace configuration for preview features
+        workspaceConfigStub = sandbox.stub(vscode.workspace, "getConfiguration");
+        workspaceConfigStub.withArgs("sqlDatabaseProjects").returns({
+            get: sandbox.stub().withArgs("enablePreviewFeatures").returns(false),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
     });
 
     teardown(() => {
@@ -52,8 +70,8 @@ suite("PublishProjectWebViewController", () => {
     test("container target values are properly saved to state", async () => {
         // Arrange
         const controller = new PublishProjectWebViewController(
-            mockContext.object,
-            mockVscodeWrapper.object,
+            mockContext,
+            mockVscodeWrapper,
             projectPath,
         );
 
@@ -62,44 +80,50 @@ suite("PublishProjectWebViewController", () => {
 
         // Access internal reducer handlers map to invoke reducers directly
         const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
-        const setPublishValues = reducerHandlers.get("setPublishValues");
-        expect(setPublishValues, "setPublishValues reducer should be registered").to.exist;
+        const formAction = reducerHandlers.get("formAction");
+        expect(formAction, "formAction reducer should be registered").to.exist;
 
         // Set target to localContainer first
-        let newState = await setPublishValues(controller.state, {
-            publishTarget: constants.PublishTargets.LOCAL_CONTAINER,
+        await formAction(controller.state, {
+            event: {
+                propertyName: "publishTarget",
+                value: constants.PublishTargets.LOCAL_CONTAINER,
+                isAction: false,
+            },
         });
-        controller.updateState(newState);
 
         // Act - Test updating container port
-        newState = await setPublishValues(controller.state, {
-            containerPort: "1434",
+        await formAction(controller.state, {
+            event: { propertyName: "containerPort", value: "1434", isAction: false },
         });
-        controller.updateState(newState);
 
         // Act - Test updating admin password
-        newState = await setPublishValues(controller.state, {
-            containerAdminPassword: "TestPassword123!",
+        await formAction(controller.state, {
+            event: {
+                propertyName: "containerAdminPassword",
+                value: "TestPassword123!",
+                isAction: false,
+            },
         });
-        controller.updateState(newState);
 
         // Act - Test updating password confirmation
-        newState = await setPublishValues(controller.state, {
-            containerAdminPasswordConfirm: "TestPassword123!",
+        await formAction(controller.state, {
+            event: {
+                propertyName: "containerAdminPasswordConfirm",
+                value: "TestPassword123!",
+                isAction: false,
+            },
         });
-        controller.updateState(newState);
 
         // Act - Test updating image tag
-        newState = await setPublishValues(controller.state, {
-            containerImageTag: "2022-latest",
+        await formAction(controller.state, {
+            event: { propertyName: "containerImageTag", value: "2022-latest", isAction: false },
         });
-        controller.updateState(newState);
 
         // Act - Test accepting license agreement
-        newState = await setPublishValues(controller.state, {
-            acceptContainerLicense: true,
+        await formAction(controller.state, {
+            event: { propertyName: "acceptContainerLicense", value: true, isAction: false },
         });
-        controller.updateState(newState);
 
         // Assert - Verify all values are saved to state
         expect(controller.state.formState.publishTarget).to.equal(
@@ -132,8 +156,8 @@ suite("PublishProjectWebViewController", () => {
     test("container fields are hidden when target is existingServer", async () => {
         // Arrange
         const controller = new PublishProjectWebViewController(
-            mockContext.object,
-            mockVscodeWrapper.object,
+            mockContext,
+            mockVscodeWrapper,
             projectPath,
         );
 
@@ -142,14 +166,17 @@ suite("PublishProjectWebViewController", () => {
 
         // Access internal reducer handlers map to invoke reducers directly
         const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
-        const setPublishValues = reducerHandlers.get("setPublishValues");
-        expect(setPublishValues, "setPublishValues reducer should be registered").to.exist;
+        const formAction = reducerHandlers.get("formAction");
+        expect(formAction, "formAction reducer should be registered").to.exist;
 
         // Set target to existingServer
-        const newState = await setPublishValues(controller.state, {
-            publishTarget: constants.PublishTargets.EXISTING_SERVER,
+        await formAction(controller.state, {
+            event: {
+                propertyName: "publishTarget",
+                value: constants.PublishTargets.EXISTING_SERVER,
+                isAction: false,
+            },
         });
-        controller.updateState(newState);
 
         // Assert - Verify container components are hidden when target is existingServer
         expect(controller.state.formComponents.containerPort?.hidden).to.be.true;
@@ -160,6 +187,301 @@ suite("PublishProjectWebViewController", () => {
 
         // Assert - Verify server component is not hidden
         expect(controller.state.formComponents.serverName?.hidden).to.not.be.true;
+    });
+
+    test("container fields are hidden when target is NEW_AZURE_SERVER", async () => {
+        // Arrange
+        const controller = new PublishProjectWebViewController(
+            mockContext,
+            mockVscodeWrapper,
+            projectPath,
+        );
+
+        // Wait for async initialization to complete
+        await controller.initialized.promise;
+
+        // Access internal reducer handlers map to invoke reducers directly
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const formAction = reducerHandlers.get("formAction");
+        expect(formAction, "formAction reducer should be registered").to.exist;
+
+        // Set target to NEW_AZURE_SERVER
+        await formAction(controller.state, {
+            event: {
+                propertyName: "publishTarget",
+                value: constants.PublishTargets.NEW_AZURE_SERVER,
+                isAction: false,
+            },
+        });
+
+        // Assert - Verify container components are hidden when target is NEW_AZURE_SERVER
+        expect(controller.state.formComponents.containerPort?.hidden).to.be.true;
+        expect(controller.state.formComponents.containerAdminPassword?.hidden).to.be.true;
+        expect(controller.state.formComponents.containerAdminPasswordConfirm?.hidden).to.be.true;
+        expect(controller.state.formComponents.containerImageTag?.hidden).to.be.true;
+        expect(controller.state.formComponents.acceptContainerLicense?.hidden).to.be.true;
+
+        // Assert - Verify server component is not hidden
+        expect(controller.state.formComponents.serverName?.hidden).to.not.be.true;
+    });
+
+    test("publish target dropdown contains correct options for SQL Server project", async () => {
+        // Arrange
+        const controller = new PublishProjectWebViewController(
+            mockContext,
+            mockVscodeWrapper,
+            projectPath,
+        );
+
+        // Wait for async initialization to complete
+        await controller.initialized.promise;
+
+        // Assert - Verify publish target component exists and has correct options
+        const publishTargetComponent = controller.state.formComponents.publishTarget;
+        expect(publishTargetComponent).to.exist;
+        expect(publishTargetComponent.options).to.exist;
+        expect(publishTargetComponent.options?.length).to.equal(2);
+
+        // Verify option values and display names for SQL Server project
+        const existingServerOption = publishTargetComponent.options?.find(
+            (opt) => opt.value === constants.PublishTargets.EXISTING_SERVER,
+        );
+        const containerOption = publishTargetComponent.options?.find(
+            (opt) => opt.value === constants.PublishTargets.LOCAL_CONTAINER,
+        );
+
+        expect(existingServerOption).to.exist;
+        expect(containerOption).to.exist;
+
+        // Should NOT have NEW_AZURE_SERVER for non-Azure projects
+        const azureOption = publishTargetComponent.options?.find(
+            (opt) => opt.value === constants.PublishTargets.NEW_AZURE_SERVER,
+        );
+        expect(azureOption).to.be.undefined;
+    });
+
+    test("publish target dropdown shows Azure-specific labels for Azure SQL project", async () => {
+        // Arrange - Create mock SQL Projects Service that returns AzureV12 target version
+        const mockSqlProjectsService = {
+            getProjectProperties: sandbox.stub().resolves({
+                success: true,
+                projectGuid: "test-guid",
+                databaseSchemaProvider:
+                    "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
+            }),
+        };
+
+        const controller = new PublishProjectWebViewController(
+            mockContext,
+            mockVscodeWrapper,
+            projectPath,
+            mockSqlProjectsService as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        );
+
+        // Wait for async initialization to complete
+        await controller.initialized.promise;
+
+        // Assert - Verify publish target component has Azure-specific labels
+        const publishTargetComponent = controller.state.formComponents.publishTarget;
+        expect(publishTargetComponent).to.exist;
+        expect(publishTargetComponent.options).to.exist;
+
+        const existingServerOption = publishTargetComponent.options?.find(
+            (opt) => opt.value === constants.PublishTargets.EXISTING_SERVER,
+        );
+        const containerOption = publishTargetComponent.options?.find(
+            (opt) => opt.value === constants.PublishTargets.LOCAL_CONTAINER,
+        );
+
+        expect(existingServerOption).to.exist;
+        expect(existingServerOption?.displayName).to.equal("Existing Azure SQL logical server");
+
+        expect(containerOption).to.exist;
+        expect(containerOption?.displayName).to.equal("New SQL Server local development container");
+    });
+
+    test("NEW_AZURE_SERVER option appears when preview features enabled for Azure SQL project", async () => {
+        // Arrange - Enable preview features
+        workspaceConfigStub.withArgs("sqlDatabaseProjects").returns({
+            get: sandbox.stub().withArgs("enablePreviewFeatures").returns(true),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
+
+        // Create mock SQL Projects Service that returns AzureV12 target version
+        const mockSqlProjectsService = {
+            getProjectProperties: sandbox.stub().resolves({
+                success: true,
+                projectGuid: "test-guid",
+                databaseSchemaProvider:
+                    "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
+            }),
+        };
+
+        const controller = new PublishProjectWebViewController(
+            mockContext,
+            mockVscodeWrapper,
+            projectPath,
+            mockSqlProjectsService as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        );
+
+        // Wait for async initialization to complete
+        await controller.initialized.promise;
+
+        // Assert - Verify NEW_AZURE_SERVER option exists
+        const publishTargetComponent = controller.state.formComponents.publishTarget;
+        expect(publishTargetComponent).to.exist;
+        expect(publishTargetComponent.options).to.exist;
+        expect(publishTargetComponent.options?.length).to.equal(3);
+
+        const azureOption = publishTargetComponent.options?.find(
+            (opt) => opt.value === constants.PublishTargets.NEW_AZURE_SERVER,
+        );
+        expect(azureOption).to.exist;
+        expect(azureOption?.displayName).to.equal("New Azure SQL logical server (Preview)");
+    });
+
+    test("NEW_AZURE_SERVER option hidden when preview features disabled", async () => {
+        // Arrange - Disable preview features (default in setup)
+        workspaceConfigStub.withArgs("sqlDatabaseProjects").returns({
+            get: sandbox.stub().withArgs("enablePreviewFeatures").returns(false),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any);
+
+        // Create mock SQL Projects Service that returns AzureV12 target version
+        const mockSqlProjectsService = {
+            readProjectProperties: sandbox.stub().resolves({
+                targetVersion: "AzureV12",
+            }),
+        };
+
+        const controller = new PublishProjectWebViewController(
+            mockContext,
+            mockVscodeWrapper,
+            projectPath,
+            mockSqlProjectsService as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        );
+
+        // Wait for async initialization to complete
+        await controller.initialized.promise;
+
+        // Assert - Verify NEW_AZURE_SERVER option does NOT exist
+        const publishTargetComponent = controller.state.formComponents.publishTarget;
+        expect(publishTargetComponent).to.exist;
+        expect(publishTargetComponent.options).to.exist;
+        expect(publishTargetComponent.options?.length).to.equal(2);
+
+        const azureOption = publishTargetComponent.options?.find(
+            (opt) => opt.value === constants.PublishTargets.NEW_AZURE_SERVER,
+        );
+        expect(azureOption).to.be.undefined;
+    });
+
+    test("server and database fields are visible for all publish targets", async () => {
+        // Arrange
+        const controller = new PublishProjectWebViewController(
+            mockContext,
+            mockVscodeWrapper,
+            projectPath,
+        );
+
+        // Wait for async initialization to complete
+        await controller.initialized.promise;
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const formAction = reducerHandlers.get("formAction");
+        expect(formAction).to.exist;
+
+        // Test EXISTING_SERVER
+        await formAction(controller.state, {
+            event: {
+                propertyName: "publishTarget",
+                value: constants.PublishTargets.EXISTING_SERVER,
+                isAction: false,
+            },
+        });
+        expect(controller.state.formComponents.serverName?.hidden).to.not.be.true;
+        expect(controller.state.formComponents.databaseName?.hidden).to.not.be.true;
+
+        // Test LOCAL_CONTAINER
+        await formAction(controller.state, {
+            event: {
+                propertyName: "publishTarget",
+                value: constants.PublishTargets.LOCAL_CONTAINER,
+                isAction: false,
+            },
+        });
+        expect(controller.state.formComponents.serverName?.hidden).to.be.true; // Hidden for container
+        expect(controller.state.formComponents.databaseName?.hidden).to.not.be.true;
+
+        // Test NEW_AZURE_SERVER
+        await formAction(controller.state, {
+            event: {
+                propertyName: "publishTarget",
+                value: constants.PublishTargets.NEW_AZURE_SERVER,
+                isAction: false,
+            },
+        });
+        expect(controller.state.formComponents.serverName?.hidden).to.not.be.true;
+        expect(controller.state.formComponents.databaseName?.hidden).to.not.be.true;
+    });
+
+    test("profile name field works correctly", async () => {
+        // Arrange
+        const controller = new PublishProjectWebViewController(
+            mockContext,
+            mockVscodeWrapper,
+            projectPath,
+        );
+
+        // Wait for async initialization to complete
+        await controller.initialized.promise;
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const formAction = reducerHandlers.get("formAction");
+        expect(formAction).to.exist;
+
+        // Act - Set profile name
+        await formAction(controller.state, {
+            event: { propertyName: "profileName", value: "MyPublishProfile", isAction: false },
+        });
+
+        // Assert
+        expect(controller.state.formState.profileName).to.equal("MyPublishProfile");
+        expect(controller.state.formComponents.profileName).to.exist;
+        expect(controller.state.formComponents.profileName.required).to.be.false;
+    });
+
+    test("all form components are properly initialized", async () => {
+        // Arrange
+        const controller = new PublishProjectWebViewController(
+            mockContext,
+            mockVscodeWrapper,
+            projectPath,
+        );
+
+        // Wait for async initialization to complete
+        await controller.initialized.promise;
+
+        // Assert - Verify all expected form components exist
+        expect(controller.state.formComponents.profileName).to.exist;
+        expect(controller.state.formComponents.serverName).to.exist;
+        expect(controller.state.formComponents.databaseName).to.exist;
+        expect(controller.state.formComponents.publishTarget).to.exist;
+        expect(controller.state.formComponents.containerPort).to.exist;
+        expect(controller.state.formComponents.containerAdminPassword).to.exist;
+        expect(controller.state.formComponents.containerAdminPasswordConfirm).to.exist;
+        expect(controller.state.formComponents.containerImageTag).to.exist;
+        expect(controller.state.formComponents.acceptContainerLicense).to.exist;
+
+        // Verify required fields
+        expect(controller.state.formComponents.serverName.required).to.be.true;
+        expect(controller.state.formComponents.databaseName.required).to.be.true;
+
+        // Verify initial form state
+        expect(controller.state.formState.publishTarget).to.equal(
+            constants.PublishTargets.EXISTING_SERVER,
+        );
+        expect(controller.state.projectFilePath).to.equal(projectPath);
     });
 
     test("field-level validators enforce container and server requirements", async () => {
@@ -190,5 +512,78 @@ suite("PublishProjectWebViewController", () => {
         const licenseNotAccepted = false;
         expect(licenseAccepted).to.be.true;
         expect(licenseNotAccepted).to.be.false;
+    });
+
+    // UI Visibility Tests
+    test("updateItemVisibility hides serverName for LOCAL_CONTAINER target", async () => {
+        const controller = new PublishProjectWebViewController(
+            mockContext,
+            mockVscodeWrapper,
+            projectPath,
+        );
+
+        await controller.initialized.promise;
+
+        // Set publish target to LOCAL_CONTAINER
+        controller.state.formState.publishTarget = constants.PublishTargets.LOCAL_CONTAINER;
+
+        await controller.updateItemVisibility();
+
+        // serverName should be hidden for container deployment
+        expect(controller.state.formComponents.serverName.hidden).to.be.true;
+
+        // container fields should NOT be hidden
+        expect(controller.state.formComponents.containerPort?.hidden).to.not.be.true;
+        expect(controller.state.formComponents.containerAdminPassword?.hidden).to.not.be.true;
+    });
+
+    test("updateItemVisibility hides container fields for EXISTING_SERVER target", async () => {
+        const controller = new PublishProjectWebViewController(
+            mockContext,
+            mockVscodeWrapper,
+            projectPath,
+        );
+
+        await controller.initialized.promise;
+
+        // Set publish target to EXISTING_SERVER
+        controller.state.formState.publishTarget = constants.PublishTargets.EXISTING_SERVER;
+
+        await controller.updateItemVisibility();
+
+        // serverName should NOT be hidden
+        expect(controller.state.formComponents.serverName.hidden).to.not.be.true;
+
+        // container fields SHOULD be hidden
+        expect(controller.state.formComponents.containerPort?.hidden).to.be.true;
+        expect(controller.state.formComponents.containerAdminPassword?.hidden).to.be.true;
+        expect(controller.state.formComponents.containerAdminPasswordConfirm?.hidden).to.be.true;
+        expect(controller.state.formComponents.containerImageTag?.hidden).to.be.true;
+        expect(controller.state.formComponents.acceptContainerLicense?.hidden).to.be.true;
+    });
+
+    test("updateItemVisibility hides container fields for NEW_AZURE_SERVER target", async () => {
+        const controller = new PublishProjectWebViewController(
+            mockContext,
+            mockVscodeWrapper,
+            projectPath,
+        );
+
+        await controller.initialized.promise;
+
+        // Set publish target to NEW_AZURE_SERVER
+        controller.state.formState.publishTarget = constants.PublishTargets.NEW_AZURE_SERVER;
+
+        await controller.updateItemVisibility();
+
+        // serverName should NOT be hidden
+        expect(controller.state.formComponents.serverName.hidden).to.not.be.true;
+
+        // container fields SHOULD be hidden
+        expect(controller.state.formComponents.containerPort?.hidden).to.be.true;
+        expect(controller.state.formComponents.containerAdminPassword?.hidden).to.be.true;
+        expect(controller.state.formComponents.containerAdminPasswordConfirm?.hidden).to.be.true;
+        expect(controller.state.formComponents.containerImageTag?.hidden).to.be.true;
+        expect(controller.state.formComponents.acceptContainerLicense?.hidden).to.be.true;
     });
 });
