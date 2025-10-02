@@ -174,6 +174,18 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             }
             return state;
         });
+
+        this.registerReducer("deleteRow", async (state, payload) => {
+            this.logger.info(`Deleting row: ${payload.rowId}`);
+            try {
+                await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
+                vscode.window.showInformationMessage("Row deleted successfully");
+            } catch (error) {
+                this.logger.error(`Error deleting row: ${error}`);
+                vscode.window.showErrorMessage(`Failed to delete row: ${error}`);
+            }
+            return state;
+        });
     }
 
     /**

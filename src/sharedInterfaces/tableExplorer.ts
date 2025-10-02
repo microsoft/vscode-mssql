@@ -185,9 +185,11 @@ export interface TableExplorerContextProps {
     themeKind: ColorThemeKind;
     commitChanges: () => void;
     loadSubset: (rowCount: number) => void;
+    deleteRow: (rowId: number) => void;
 }
 
 export interface TableExplorerReducers {
     commitChanges: {};
     loadSubset: { rowCount: number };
+    deleteRow: { rowId: number };
 }
