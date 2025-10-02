@@ -20,9 +20,14 @@ import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css"
 interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
     themeKind?: ColorThemeKind;
+    onDeleteRow?: (rowId: number) => void;
 }
 
-export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKind }) => {
+export const TableDataGrid: React.FC<TableDataGridProps> = ({
+    resultSet,
+    themeKind,
+    onDeleteRow,
+}) => {
     const [dataset, setDataset] = useState<any[]>([]);
     const [columns, setColumns] = useState<Column[]>([]);
     const [options, setOptions] = useState<GridOption | undefined>(undefined);
@@ -73,6 +78,10 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
 
         switch (command) {
             case "delete-row":
+                if (onDeleteRow) {
+                    onDeleteRow(dataContext.id);
+                }
+
                 // Remove from grid using dataView
                 reactGridRef.current?.dataView.deleteItem(dataContext.id);
 
@@ -160,9 +169,9 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({ resultSet, themeKi
             setColumns(allColumns);
 
             // Convert rows to dataset
-            const convertedDataset = resultSet.subset.map((row, rowIndex) => {
+            const convertedDataset = resultSet.subset.map((row) => {
                 const dataRow: any = {
-                    id: rowIndex,
+                    id: row.id,
                 };
                 row.cells.forEach((cell, cellIndex) => {
                     dataRow[`col${cellIndex}`] = cell.displayValue;

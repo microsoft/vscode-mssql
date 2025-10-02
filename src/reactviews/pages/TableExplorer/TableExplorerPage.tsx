@@ -17,7 +17,11 @@ export const TableExplorerPage: React.FC = () => {
             <TableExplorerToolbar />
             {state?.resultSet ? (
                 <div>
-                    <TableDataGrid resultSet={state.resultSet} themeKind={context?.themeKind} />
+                    <TableDataGrid
+                        resultSet={state.resultSet}
+                        themeKind={context?.themeKind}
+                        onDeleteRow={context?.deleteRow}
+                    />
                 </div>
             ) : state?.isLoading ? (
                 <p>Loading table data...</p>

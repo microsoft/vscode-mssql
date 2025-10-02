@@ -193,6 +193,18 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             try {
                 await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
                 vscode.window.showInformationMessage("Row deleted successfully");
+
+                if (state.resultSet) {
+                    const updatedSubset = state.resultSet.subset.filter(
+                        (row) => row.id !== payload.rowId,
+                    );
+                    state.resultSet = {
+                        ...state.resultSet,
+                        subset: updatedSubset,
+                        rowCount: updatedSubset.length,
+                    };
+                    this.logger.info(`Updated result set, now has ${updatedSubset.length} rows`);
+                }
             } catch (error) {
                 this.logger.error(`Error deleting row: ${error}`);
                 vscode.window.showErrorMessage(`Failed to delete row: ${error}`);
