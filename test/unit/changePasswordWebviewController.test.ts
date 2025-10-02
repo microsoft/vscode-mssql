@@ -71,14 +71,6 @@ suite("ChangePasswordWebviewController", () => {
             .stub(vscode.window, "createWebviewPanel")
             .callsFake(() => panelStub);
 
-        sandbox.stub(vscode.window, "onDidChangeActiveColorTheme").returns({
-            dispose: sandbox.stub(),
-        } as vscode.Disposable);
-        sandbox.stub(vscode.window, "activeColorTheme").value({
-            kind: vscode.ColorThemeKind.Light,
-        } as vscode.ColorTheme);
-        sandbox.stub(vscode.window, "showInformationMessage").resolves(undefined);
-
         mockContext = {
             extensionUri: vscode.Uri.file("/tmp/ext"),
             extensionPath: "/tmp/ext",
