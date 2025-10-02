@@ -364,6 +364,18 @@
         <note>{0} is the average, {1} is the count, {2} is the sum</note>
         <target state="translated">平均: {0}  数: {1}  合計: {2}</target>
       </trans-unit>
+      <trans-unit id="++CODE++994c049faf0fd65f191759cacf91508d01743fda1b2f06cfc7f779fc49ae4991">
+        <source xml:lang="en">Azure (China)</source>
+        <target state="new">Azure (China)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cdf9c75db21efc1ddc557d567de91e9bc67533606ce4bbc049c592d77f122e68">
+        <source xml:lang="en">Azure (Public)</source>
+        <target state="new">Azure (Public)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cf582c92b799b117f2d093534bbe7b99aea5df658f201220f320f2976c0ebbba">
+        <source xml:lang="en">Azure (US Government)</source>
+        <target state="new">Azure (US Government)</target>
+      </trans-unit>
       <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
         <source xml:lang="en">Azure Account</source>
         <target state="translated">Azure アカウント</target>
@@ -1692,6 +1704,12 @@ Error:
         <source xml:lang="en">Fabric Workspaces</source>
         <target state="translated">Fabric ワークスペース</target>
       </trans-unit>
+      <trans-unit id="++CODE++56dd693767481cc69348e746edb945f23807899ed5736241c47000f787be902a">
+        <source xml:lang="en">Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.</source>
+        <note>{0} is the cloud name
+{1} is the setting name</note>
+        <target state="new">Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.</target>
+      </trans-unit>
       <trans-unit id="++CODE++3db198c251ac68aeafbdfbb134d03b8be7bca7a5b2f612addb78f72b2da67a90">
         <source xml:lang="en">Fabric long-running API error with error code '{0}': {1}</source>
         <note>{0} is the error code
@@ -1769,6 +1787,13 @@ Error:
         <note>{0} is the tenant name
 {1} is the tenant id</note>
         <target state="translated">テナント '{0} ({1})' の Fabric ワークスペースを取得できませんでした。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b4130b296ab05c9b6d46fa30eb4c7256fb9880192dca9262d2a8e524852dc226">
+        <source xml:lang="en">Failed to get Fabric workspaces for tenant '{0} ({1})': {2}</source>
+        <note>{0} is the tenant name
+{1} is the tenant id
+{2} is the error message</note>
+        <target state="new">Failed to get Fabric workspaces for tenant '{0} ({1})': {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
         <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
@@ -3975,6 +4000,10 @@ Query: {1}</source>
         <note>{0} is the connection ID for the connection that has been ignored</note>
         <target state="translated">ID '{0}' の接続には 'server' プロパティが設定されていないため、無視されます。 この接続を使用するには、'server' プロパティを設定してください。</target>
       </trans-unit>
+      <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
+        <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
+        <target state="new">The custom cloud choice is not configured. Please configure the setting `{0}`.</target>
+      </trans-unit>
       <trans-unit id="++CODE++f229c94b4c9b8ecfa1096d1daf79194e84616c49df8fb6e229fa944592ff373e">
         <source xml:lang="en">The description of the check constraint.</source>
         <target state="translated">CHECK 制約の説明。</target>
@@ -5156,6 +5185,38 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
         <target state="translated">クエリ結果を並べ替えてフィルター処理し、必要なデータをすばやく見つけます。</target>
       </trans-unit>
+      <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
+        <source xml:lang="en">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</source>
+        <target state="new">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment.sqlServerHostnameSuffix">
+        <source xml:lang="en">Sovereign cloud equivalent for `.database.windows.net` (including leading dot)</source>
+        <target state="new">Sovereign cloud equivalent for `.database.windows.net` (including leading dot)</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment.fabricDataWarehouseDnsSuffix">
+        <source xml:lang="en">Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)</source>
+        <target state="new">Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment.analyticsDnsSuffix">
+        <source xml:lang="en">Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)</source>
+        <target state="new">Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment.fabricScopeUriBase">
+        <source xml:lang="en">Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`</source>
+        <target state="new">Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment.fabricApiUriBase">
+        <source xml:lang="en">Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`</source>
+        <target state="new">Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment.sqlEndpoint">
+        <source xml:lang="en">Sovereign cloud equivalent for `https://database.windows.net/`</source>
+        <target state="new">Sovereign cloud equivalent for `https://database.windows.net/`</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment.keyVaultEndpoint">
+        <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
+        <target state="new">Sovereign cloud equivalent for `https://vault.azure.net/`</target>
+      </trans-unit>
       <trans-unit id="mssql.startContainer">
         <source xml:lang="en">Start Container</source>
         <target state="translated">コンテナーの開始</target>
@@ -5175,6 +5236,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.connectionManagement.rememberPasswordsUntilRestart">
         <source xml:lang="en">Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
         <target state="translated">拡張機能が再起動されるまで、[保存されたパスワード] が無効になっている接続のパスワードを一時的に保存します。これにより、同じセッション内で接続を再利用する際にパスワードのプロンプトが繰り返されるのを防ぎます。</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment">
+        <source xml:lang="en">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</source>
+        <target state="new">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroup.color">
         <source xml:lang="en">The color of the connection group.</source>
