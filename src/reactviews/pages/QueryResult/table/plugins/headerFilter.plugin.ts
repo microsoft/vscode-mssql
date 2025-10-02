@@ -127,7 +127,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
         args.node.classList.add("slick-header-with-filter");
         args.node.classList.add(theme);
         const $headerMenuButton = jQuery(
-            `<button tabindex="0" id="anchor-btn" aria-label="${locConstants.queryResult.showMenu}" title="${locConstants.queryResult.showMenu}"></button>`,
+            `<button id="anchor-btn" aria-label="${locConstants.queryResult.showMenu}" title="${locConstants.queryResult.showMenu}"></button>`,
         )
             .addClass("slick-header-menubutton")
             .data("column", column);

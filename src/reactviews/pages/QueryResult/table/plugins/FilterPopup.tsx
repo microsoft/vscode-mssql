@@ -16,15 +16,11 @@ import {
     shorthands,
     tokens,
 } from "@fluentui/react-components";
-import {
-    ArrowSortUp24Regular,
-    ArrowSortDown24Regular,
-    Checkmark16Regular,
-    Dismiss16Regular,
-    Search16Regular,
-    ArrowResetRegular,
-} from "@fluentui/react-icons";
+import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../../../common/locConstants";
+import { SortAscendingIcon } from "../../../../common/icons/sortAscending";
+import { SortDescendingIcon } from "../../../../common/icons/sortDescending";
+import { SortClearIcon } from "../../../../common/icons/sortClear";
 
 export type FilterValue = string | undefined;
 
@@ -57,8 +53,8 @@ interface FilterPopupProps {
 }
 
 const POPUP_WIDTH = 200;
-const LIST_HEIGHT = 200;
 const ITEM_HEIGHT = 28;
+const LIST_HEIGHT = ITEM_HEIGHT * 4;
 const OVERSCAN = 4;
 
 const useStyles = makeStyles({
@@ -80,20 +76,24 @@ const useStyles = makeStyles({
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: tokens.spacingVerticalXXS,
+        marginBottom: 0,
+        height: "20px",
     },
     closeButton: {
-        minWidth: "20px",
-        minHeight: "20px",
-        padding: "2px",
+        minWidth: "16px",
+        minHeight: "16px",
+        width: "16px",
+        height: "16px",
+        padding: 0,
     },
     sectionHeading: {
-        fontSize: tokens.fontSizeBase200,
+        fontSize: tokens.fontSizeBase100,
         fontWeight: tokens.fontWeightSemibold,
         color: tokens.colorNeutralForeground3,
-        marginBottom: tokens.spacingVerticalXXS,
+        marginBottom: 0,
         textTransform: "uppercase",
         letterSpacing: "0.5px",
+        lineHeight: "20px",
     },
     section: {
         display: "flex",
@@ -118,8 +118,15 @@ const useStyles = makeStyles({
     },
     sortButtons: {
         display: "flex",
-        flexDirection: "column",
-        columnGap: tokens.spacingHorizontalXXS,
+        flexDirection: "row",
+        columnGap: "2px",
+    },
+    sortButton: {
+        minWidth: "20px",
+        minHeight: "20px",
+        width: "20px",
+        height: "20px",
+        padding: 0,
     },
     searchInput: {
         flex: 1,
@@ -141,15 +148,17 @@ const useStyles = makeStyles({
         },
     },
     selectAllRow: {
-        position: "sticky",
-        top: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
         backgroundColor: tokens.colorNeutralBackground3,
-        ...shorthands.padding(tokens.spacingVerticalXS, tokens.spacingHorizontalXS),
-        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
-        zIndex: 1,
+        ...shorthands.padding("2px", tokens.spacingHorizontalXXS),
+        ...shorthands.border("1px", "solid", tokens.colorNeutralStroke2),
+        borderRadius: tokens.borderRadiusSmall,
+        height: ITEM_HEIGHT + "px",
     },
     scrollableList: {
-        ...shorthands.padding(tokens.spacingVerticalXS, tokens.spacingHorizontalXS),
+        ...shorthands.padding("2px", tokens.spacingHorizontalXXS),
     },
     spacer: {
         height: 0,
@@ -159,8 +168,8 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         height: ITEM_HEIGHT + "px",
-        paddingInline: tokens.spacingHorizontalXS,
-        columnGap: tokens.spacingHorizontalXS,
+        paddingInline: tokens.spacingHorizontalXXS,
+        columnGap: tokens.spacingHorizontalXXS,
         borderRadius: tokens.borderRadiusSmall,
         cursor: "pointer",
         "&:hover": {
@@ -205,10 +214,27 @@ const useStyles = makeStyles({
         fontSize: tokens.fontSizeBase200,
         lineHeight: tokens.lineHeightBase200,
         flexShrink: 0,
+        paddingRight: "4px",
     },
     compactCheckbox: {
         fontSize: tokens.fontSizeBase200,
         lineHeight: tokens.lineHeightBase200,
+        minHeight: ITEM_HEIGHT + "px",
+        height: ITEM_HEIGHT + "px",
+        display: "flex",
+        alignItems: "center",
+        "& .fui-Checkbox__indicator": {
+            width: "14px",
+            height: "14px",
+            fontSize: "10px",
+            flexShrink: 0,
+            alignSelf: "center",
+        },
+        "& .fui-Checkbox__label": {
+            lineHeight: "1",
+            paddingLeft: "4px",
+            alignSelf: "center",
+        },
     },
 });
 
@@ -229,6 +255,7 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
     const rootRef = useRef<HTMLDivElement | null>(null);
     const searchInputRef = useRef<HTMLInputElement | null>(null);
     const buttonRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
+    const closeButtonRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
     const firstFocusableRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
     const lastFocusableRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
     const [search, setSearch] = useState<string>("");
@@ -468,15 +495,33 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
         if (e.key === "Tab") {
             const target = e.target as HTMLElement;
 
-            // If Shift+Tab on first element, go to last
+            // If Shift+Tab on first element, wrap to close button if it exists, otherwise to last
             if (e.shiftKey && target === firstFocusableRef.current) {
+                e.preventDefault();
+                if (closeButtonRef.current) {
+                    closeButtonRef.current.focus();
+                } else {
+                    lastFocusableRef.current?.focus();
+                }
+            }
+            // If Tab on close button, go to first element
+            else if (!e.shiftKey && target === closeButtonRef.current) {
+                e.preventDefault();
+                firstFocusableRef.current?.focus();
+            }
+            // If Shift+Tab on close button, go to last element
+            else if (e.shiftKey && target === closeButtonRef.current) {
                 e.preventDefault();
                 lastFocusableRef.current?.focus();
             }
-            // If Tab on last element, go to first
+            // If Tab on last element, wrap to close button if it exists, otherwise to first
             else if (!e.shiftKey && target === lastFocusableRef.current) {
                 e.preventDefault();
-                firstFocusableRef.current?.focus();
+                if (closeButtonRef.current) {
+                    closeButtonRef.current.focus();
+                } else {
+                    firstFocusableRef.current?.focus();
+                }
             }
         }
     }, []);
@@ -495,9 +540,10 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
                 <div className={styles.titleBar}>
                     <Text className={styles.sectionHeading}>Sort</Text>
                     <Button
+                        ref={closeButtonRef}
                         appearance="subtle"
                         size="small"
-                        icon={<Dismiss16Regular />}
+                        icon={<Dismiss16Regular width={10} height={10} />}
                         onClick={handleClose}
                         className={styles.closeButton}
                         title="Close"
@@ -532,54 +578,36 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
                                         buttonRef.current = el;
                                         firstFocusableRef.current = el;
                                     }}
-                                    appearance="subtle"
+                                    appearance={currentSort === "asc" ? "primary" : "subtle"}
                                     size="small"
-                                    icon={<ArrowSortUp24Regular />}
+                                    icon={<SortAscendingIcon width={12} height={12} />}
                                     onClick={handleSortAscending}
                                     title="Sort Ascending"
-                                    style={{
-                                        justifyContent: "space-between",
-                                        width: "100%",
-                                    }}
-                                    aria-label="Sort Ascending">
-                                    Sort Ascending
-                                    {currentSort === "asc" && (
-                                        <Checkmark16Regular style={{ marginLeft: "auto" }} />
-                                    )}
-                                </Button>
+                                    aria-label="Sort Ascending"
+                                    className={styles.sortButton}
+                                />
                             )}
                             {onSortDescending && (
                                 <Button
-                                    appearance="subtle"
+                                    appearance={currentSort === "desc" ? "primary" : "subtle"}
                                     size="small"
-                                    icon={<ArrowSortDown24Regular />}
+                                    icon={<SortDescendingIcon width={12} height={12} />}
                                     onClick={handleSortDescending}
-                                    style={{
-                                        justifyContent: "space-between",
-                                        width: "100%",
-                                    }}
                                     title="Sort Descending"
-                                    aria-label="Sort Descending">
-                                    Sort Descending
-                                    {currentSort === "desc" && (
-                                        <Checkmark16Regular style={{ marginLeft: "auto" }} />
-                                    )}
-                                </Button>
+                                    aria-label="Sort Descending"
+                                    className={styles.sortButton}
+                                />
                             )}
                             {onClearSort && (
                                 <Button
                                     appearance="subtle"
                                     size="small"
-                                    icon={<ArrowResetRegular />}
+                                    icon={<SortClearIcon width={12} height={12} />}
                                     onClick={handleClearSort}
-                                    style={{
-                                        justifyContent: "flex-start",
-                                        width: "100%",
-                                    }}
                                     title="Clear Sort"
-                                    aria-label="Clear Sort">
-                                    Clear Sort
-                                </Button>
+                                    aria-label="Clear Sort"
+                                    className={styles.sortButton}
+                                />
                             )}
                         </div>
                     </div>
@@ -600,15 +628,6 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
                             onChange={handleSearchChange}
                             role="searchbox"
                             contentBefore={<Search16Regular />}
-                            contentAfter={
-                                <Text
-                                    weight="semibold"
-                                    size={100}
-                                    aria-live="polite"
-                                    className={styles.counter}>
-                                    {selectedValues.size + "/" + totalItems}
-                                </Text>
-                            }
                         />
                     </div>
                 </div>
@@ -618,18 +637,7 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
                     <Text>{locConstants.queryResult.noResultsToDisplay}</Text>
                 </div>
             ) : (
-                <div
-                    ref={containerRef}
-                    className={styles.listContainer}
-                    tabIndex={0}
-                    role="listbox"
-                    aria-label="Filter options"
-                    onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
-                    onFocus={() => {
-                        if (focusedIndex === -1 && filteredItems.length > 0) {
-                            setFocusedIndex(0);
-                        }
-                    }}>
+                <>
                     <div className={styles.selectAllRow}>
                         <Checkbox
                             className={mergeClasses(styles.optionCheckbox, styles.compactCheckbox)}
@@ -638,42 +646,62 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
                             label={locConstants.queryResult.selectAll}
                             title={locConstants.queryResult.selectAll}
                         />
+                        <Text
+                            weight="semibold"
+                            size={100}
+                            aria-live="polite"
+                            className={styles.counter}>
+                            {selectedValues.size}/{totalItems}
+                        </Text>
                     </div>
-                    <div className={styles.scrollableList}>
-                        <div style={{ height: beforeHeight }} className={styles.spacer} />
-                        {visibleItems.map((item, idx) => {
-                            const isChecked = selectedValues.has(item.value);
-                            const actualIndex = startIndex + idx;
-                            const isFocused = actualIndex === focusedIndex;
-                            const key = item.index + "-" + actualIndex;
-                            return (
-                                <div
-                                    key={key}
-                                    className={mergeClasses(
-                                        styles.optionRow,
-                                        isFocused && styles.optionRowFocused,
-                                    )}
-                                    title={item.displayText}
-                                    onClick={() => updateSelection(item.value, !isChecked)}
-                                    onMouseEnter={() => setFocusedIndex(actualIndex)}>
-                                    <Checkbox
+                    <div
+                        ref={containerRef}
+                        className={styles.listContainer}
+                        tabIndex={0}
+                        role="listbox"
+                        aria-label="Filter options"
+                        onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
+                        onFocus={() => {
+                            if (focusedIndex === -1 && filteredItems.length > 0) {
+                                setFocusedIndex(0);
+                            }
+                        }}>
+                        <div className={styles.scrollableList}>
+                            <div style={{ height: beforeHeight }} className={styles.spacer} />
+                            {visibleItems.map((item, idx) => {
+                                const isChecked = selectedValues.has(item.value);
+                                const actualIndex = startIndex + idx;
+                                const isFocused = actualIndex === focusedIndex;
+                                const key = item.index + "-" + actualIndex;
+                                return (
+                                    <div
+                                        key={key}
                                         className={mergeClasses(
-                                            styles.optionCheckbox,
-                                            styles.compactCheckbox,
+                                            styles.optionRow,
+                                            isFocused && styles.optionRowFocused,
                                         )}
-                                        checked={isChecked}
-                                        onChange={(_, data) =>
-                                            updateSelection(item.value, data.checked === true)
-                                        }
-                                        label={item.displayText}
-                                        tabIndex={-1}
-                                    />
-                                </div>
-                            );
-                        })}
-                        <div style={{ height: afterHeight }} className={styles.spacer} />
+                                        title={item.displayText}
+                                        onClick={() => updateSelection(item.value, !isChecked)}
+                                        onMouseEnter={() => setFocusedIndex(actualIndex)}>
+                                        <Checkbox
+                                            className={mergeClasses(
+                                                styles.optionCheckbox,
+                                                styles.compactCheckbox,
+                                            )}
+                                            checked={isChecked}
+                                            onChange={(_, data) =>
+                                                updateSelection(item.value, data.checked === true)
+                                            }
+                                            label={item.displayText}
+                                            tabIndex={-1}
+                                        />
+                                    </div>
+                                );
+                            })}
+                            <div style={{ height: afterHeight }} className={styles.spacer} />
+                        </div>
                     </div>
-                </div>
+                </>
             )}
             <div className={styles.actions}>
                 <Button
