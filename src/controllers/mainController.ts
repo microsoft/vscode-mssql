@@ -307,7 +307,7 @@ export default class MainController implements vscode.Disposable {
                 ),
             );
 
-            this.initializeObjectExplorer();
+            await this.initializeObjectExplorer();
 
             this.registerCommandWithArgs(Constants.cmdConnectObjectExplorerProfile);
             this._event.on(
@@ -718,9 +718,18 @@ export default class MainController implements vscode.Disposable {
                 // make a new connection
                 connectionCreds.database = databaseName;
                 if (!this.connectionManager.isConnecting(nodeUri)) {
-                    const promise = new Deferred<boolean>();
-                    await this.connectionManager.connect(nodeUri, connectionCreds, promise);
-                    await promise;
+                    const isConnected = await this.connectionManager.connect(
+                        nodeUri,
+                        connectionCreds,
+                    );
+                    if (!isConnected) {
+                        /**
+                         * The connection wasn't successful. Stopping scripting operation.
+                         * Not throwing an error because the user is already notified of
+                         * the connection failure in the connection manager.
+                         */
+                        return;
+                    }
                 }
             }
 
@@ -737,20 +746,26 @@ export default class MainController implements vscode.Disposable {
                 connectionInfo: connectionCreds,
             });
             if (executeScript) {
-                const uri = getUriKey(editor.document.uri);
-                const queryPromise = new Deferred<boolean>();
-                await this._outputContentProvider.runQuery(
-                    this._statusview,
-                    uri,
-                    undefined,
-                    title,
-                    undefined,
-                    queryPromise,
-                );
-                await queryPromise;
-                await this.connectionManager.connectionStore.removeRecentlyUsed(
-                    <IConnectionProfile>connectionCreds,
-                );
+                const preventAutoExecute = vscode.workspace
+                    .getConfiguration()
+                    .get<boolean>(Constants.configPreventAutoExecuteScript);
+
+                if (!preventAutoExecute) {
+                    const uri = getUriKey(editor.document.uri);
+                    const queryPromise = new Deferred<boolean>();
+                    await this._outputContentProvider.runQuery(
+                        this._statusview,
+                        uri,
+                        undefined,
+                        title,
+                        undefined,
+                        queryPromise,
+                    );
+                    await queryPromise;
+                    await this.connectionManager.connectionStore.removeRecentlyUsed(
+                        <IConnectionProfile>connectionCreds,
+                    );
+                }
             }
 
             let scriptType;
@@ -1075,13 +1090,13 @@ export default class MainController implements vscode.Disposable {
                     }
 
                     if (!this.connectionManager.isConnecting(connectionUri)) {
-                        const promise = new Deferred<boolean>();
-                        await this.connectionManager.connect(
+                        const connectionResult = await this.connectionManager.connect(
                             connectionUri,
                             connectionCreds,
-                            promise,
                         );
-                        await promise;
+                        if (!connectionResult) {
+                            return;
+                        }
                     }
                 }
             } else {
@@ -1309,7 +1324,9 @@ export default class MainController implements vscode.Disposable {
      * Initializes the Object Explorer commands
      * @param objectExplorerProvider provider settable for testing purposes
      */
-    private initializeObjectExplorer(objectExplorerProvider?: ObjectExplorerProvider): void {
+    private async initializeObjectExplorer(
+        objectExplorerProvider?: ObjectExplorerProvider,
+    ): Promise<void> {
         const self = this;
         // Register the object explorer tree provider
         this._objectExplorerProvider =
@@ -1669,11 +1686,7 @@ export default class MainController implements vscode.Disposable {
                     if (node.collapsibleState === vscode.TreeItemCollapsibleState.Collapsed) {
                         await this._objectExplorerProvider.refreshNode(node);
                     } else if (node.collapsibleState === vscode.TreeItemCollapsibleState.Expanded) {
-                        await this._objectExplorerProvider.expandNode(
-                            node,
-                            node.sessionId,
-                            undefined,
-                        );
+                        await this._objectExplorerProvider.expandNode(node, node.sessionId);
                     }
                     await this.objectExplorerTree.reveal(node, {
                         select: true,
@@ -2139,7 +2152,11 @@ export default class MainController implements vscode.Disposable {
         if (this.canRunCommand() && this.validateTextDocumentHasFocus()) {
             let credentials = await this._connectionMgr.onNewConnection();
             if (credentials) {
-                await this.createObjectExplorerSession(credentials);
+                try {
+                    await this.createObjectExplorerSession(credentials);
+                } catch (error) {
+                    this._connectionMgr.client.logger.error(error);
+                }
                 return true;
             }
         }
@@ -2171,15 +2188,10 @@ export default class MainController implements vscode.Disposable {
     public async connect(
         uri: string,
         connectionInfo: IConnectionInfo,
-        connectionPromise: Deferred<boolean>,
         saveConnection?: boolean,
     ): Promise<boolean> {
         if (this.canRunCommand() && uri && connectionInfo) {
-            const connectedSuccessfully = await this._connectionMgr.connect(
-                uri,
-                connectionInfo,
-                connectionPromise,
-            );
+            const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo);
             if (connectedSuccessfully) {
                 if (saveConnection) {
                     await this.createObjectExplorerSession(connectionInfo);
@@ -2300,14 +2312,13 @@ export default class MainController implements vscode.Disposable {
                 return;
             }
 
-            // create new connection
-            if (!this.connectionManager.isConnected(uri)) {
-                await this.onNewConnection();
-                sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
+            // Trim down the selection. If it is empty after selecting, then we don't execute
+            let selectionToTrim = editor.selection.isEmpty ? undefined : editor.selection;
+            if (editor.document.getText(selectionToTrim).trim().length === 0) {
+                return;
             }
-            // check if current connection is still valid / active - if not, refresh azure account token
-            await this._connectionMgr.refreshAzureAccountToken(uri);
 
+            // Save the query selection, so that we request execution for the right block
             let title = path.basename(editor.document.fileName);
             let querySelection: ISelectionData;
             // Calculate the selection if we have a selection, otherwise we'll treat null as
@@ -2322,11 +2333,14 @@ export default class MainController implements vscode.Disposable {
                 };
             }
 
-            // Trim down the selection. If it is empty after selecting, then we don't execute
-            let selectionToTrim = editor.selection.isEmpty ? undefined : editor.selection;
-            if (editor.document.getText(selectionToTrim).trim().length === 0) {
-                return;
+            // create new connection
+            if (!this.connectionManager.isConnected(uri)) {
+                await this.onNewConnection();
+                sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
             }
+            // check if current connection is still valid / active - if not, refresh azure account token
+            await this._connectionMgr.refreshAzureAccountToken(uri);
+
             // Delete stored filters and dimension states for result grid when a new query is executed
             store.deleteMainKey(uri);
 
@@ -2671,18 +2685,7 @@ export default class MainController implements vscode.Disposable {
             return;
         }
 
-        let errorFoundWhileRefreshing = false;
-        (await this._objectExplorerProvider.getChildren()).forEach((n: TreeNodeInfo) => {
-            try {
-                void this._objectExplorerProvider.refreshNode(n);
-            } catch (e) {
-                errorFoundWhileRefreshing = true;
-                this._connectionMgr.client.logger.error(e);
-            }
-        });
-        if (errorFoundWhileRefreshing) {
-            Utils.showErrorMsg(LocalizedConstants.objectExplorerNodeRefreshError);
-        }
+        this._objectExplorerProvider.refreshConnectedNodes();
     }
 
     /**

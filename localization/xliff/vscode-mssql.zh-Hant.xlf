@@ -219,7 +219,7 @@
       <trans-unit id="++CODE++381d558ea8ee3e00d772e070932d5a334e7743c399dda1ddd675e1962d6e32bc">
         <source xml:lang="en">An error occurred while retrieving rows: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">An error occurred while retrieving rows: {0}</target>
+        <target state="translated">擷取資料列時發生錯誤: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
         <source xml:lang="en">An error occurred while searching database objects</source>
@@ -690,9 +690,17 @@
         <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
         <target state="translated">清除所有延伸模組存取您的連線之權限</target>
       </trans-unit>
+      <trans-unit id="++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36">
+        <source xml:lang="en">Click to cancel loading summary</source>
+        <target state="translated">按一下以取消載入摘要</target>
+      </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
         <target state="translated">按一下以連線至資料庫</target>
+      </trans-unit>
+      <trans-unit id="++CODE++66abaeec0367ba4920e21447dfa2dafb94c7f38dc262dfb91e76799022a436d5">
+        <source xml:lang="en">Click to load summary</source>
+        <target state="translated">按一下以載入摘要</target>
       </trans-unit>
       <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
         <source xml:lang="en">Click to sign into an Azure account</source>
@@ -1541,6 +1549,15 @@
         <source xml:lang="en">Error loading preview</source>
         <target state="translated">載入預覽時發生錯誤</target>
       </trans-unit>
+      <trans-unit id="++CODE++fa8002fe1d41e09812880f2bfb97ef0849885d8a4de95a67b26294b7e83e912f">
+        <source xml:lang="en">Error loading summary</source>
+        <target state="translated">載入摘要時發生錯誤</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8108929d06fb4fe87c58e7407990ec8d46dc422dfa3ee467d2f5f622abd9840d">
+        <source xml:lang="en">Error loading summary: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">載入摘要時發生錯誤: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++3ba789024640c6f231695bdf0d82e6845483cf65f092b3c3646910e60c638761">
         <source xml:lang="en">Error loading workspaces</source>
         <target state="translated">載入工作區時發生錯誤</target>
@@ -1793,7 +1810,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++08e3cce193c1731c751f4e68352687632cb9edb3e01e8bc9200742d0bd5f7b2c">
         <source xml:lang="en">Failed to start query.</source>
-        <target state="new">Failed to start query.</target>
+        <target state="translated">無法開始查詢。</target>
       </trans-unit>
       <trans-unit id="++CODE++8d966abf7ce439608c05903323ea676d64af27e6119ddcc6edebd6db2cd5c479">
         <source xml:lang="en">Failed to start {0}.</source>
@@ -2138,9 +2155,9 @@ Error:
         <source xml:lang="en">Insufficient Capacity Permissions</source>
         <target state="translated">容量權限不足</target>
       </trans-unit>
-      <trans-unit id="++CODE++ece3ecedb5f57c84cc9749995b62f69213c0cb04b1578a713fda486ff04f8fdb">
-        <source xml:lang="en">Insufficient Worskpace Permissions</source>
-        <target state="translated">工作區權限不足</target>
+      <trans-unit id="++CODE++207b04072a822fa8e76629bcd504bc8c19525b86f444ac77a6f3be1c88a502eb">
+        <source xml:lang="en">Insufficient Workspace Permissions</source>
+        <target state="new">Insufficient Workspace Permissions</target>
       </trans-unit>
       <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
         <source xml:lang="en">Integrated</source>
@@ -2419,7 +2436,14 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297">
         <source xml:lang="en">Loading results...</source>
-        <target state="new">Loading results...</target>
+        <target state="translated">正在載入結果...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ba622a4c63bd7d102bdc3057b04b4cfd8d2af5b2adb230bebc98414fc46afae0">
+        <source xml:lang="en">Loading summary {0}/{1} ({2}%) (Click to cancel)</source>
+        <note>{0} is the current row
+{1} is the total number of rows
+{2} is the percentage of rows loaded</note>
+        <target state="translated">正在載入摘要 {0}/{1} ({2}%) (按一下以取消)</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -3831,6 +3855,14 @@ Query: {1}</source>
         <source xml:lang="en">Successfully saved results to </source>
         <target state="translated">已成功將結果儲存至</target>
       </trans-unit>
+      <trans-unit id="++CODE++17888248578c82867c18ea2dc512a96eabbbbb8184442d219746c3b8b8ff6030">
+        <source xml:lang="en">Summary loading canceled</source>
+        <target state="translated">摘要載入已取消</target>
+      </trans-unit>
+      <trans-unit id="++CODE++93775107b302b7d63191a5c2a8ea3803d44d17781da939eb367d7555f25c1752">
+        <source xml:lang="en">Summary loading was canceled by user</source>
+        <target state="translated">使用者已取消摘要載入</target>
+      </trans-unit>
       <trans-unit id="++CODE++175f5352107a324eb25f4342a9114e2685b64a1ef54a5ff6ba3a24d0ac215ea7">
         <source xml:lang="en">Switch Direction</source>
         <target state="translated">切換方向</target>
@@ -4232,11 +4264,6 @@ Query: {1}</source>
         <source xml:lang="en">You are not connected to any database.</source>
         <target state="translated">您尚未連接到任何資料庫。</target>
       </trans-unit>
-      <trans-unit id="++CODE++9b358aeeb5265d934737d601151f0982e0b833eaa6abb54c40be62ed494882b8">
-        <source xml:lang="en">You have selected data across {0} rows, it might take a while to load the data and calculate the summary, do you want to continue?</source>
-        <note>{0} is the number of rows to fetch summary statistics for</note>
-        <target state="new">You have selected data across {0} rows, it might take a while to load the data and calculate the summary, do you want to continue?</target>
-      </trans-unit>
       <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
         <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
         <target state="translated">您必須登入 Azure 才能瀏覽 SQL 資料庫。</target>
@@ -4420,6 +4447,11 @@ Query: {1}</source>
         <note>{0} is the object type</note>
         <target state="translated">{0} 屬性</target>
       </trans-unit>
+      <trans-unit id="++CODE++2bd22e3b4b0281a2ffa3bc8bdd3e1f2b49dedcdde97d4cc83fdf598d1208d103">
+        <source xml:lang="en">{0} rows selected, click to load summary</source>
+        <note>{0} is the number of rows to fetch summary statistics for</note>
+        <target state="translated">已選取 {0} 列，按一下以載入摘要</target>
+      </trans-unit>
       <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
         <source xml:lang="en">{0} started successfully.</source>
         <note>{0} started successfully.</note>
@@ -4528,7 +4560,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="mssql.autoRevealResultsPanel">
         <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</source>
-        <target state="new">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</target>
+        <target state="translated">切換至包含查詢結果的編輯器時，自動顯示結果面板。此功能僅在啟用「在索引標籤中開啟結果」時生效。</target>
       </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
@@ -4536,7 +4568,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="mssql.changeConnection">
         <source xml:lang="en">Change Connection</source>
-        <target state="new">Change Connection</target>
+        <target state="translated">變更連線</target>
       </trans-unit>
       <trans-unit id="mssql.changeDatabase">
         <source xml:lang="en">Change Database</source>
@@ -4951,6 +4983,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
         <target state="translated">暫停查詢歷史記錄擷取</target>
+      </trans-unit>
+      <trans-unit id="mssql.preventAutoExecuteScript">
+        <source xml:lang="en">Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.</source>
+        <target state="new">Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.</target>
       </trans-unit>
       <trans-unit id="mssql.authCodeGrant.description">
         <source xml:lang="en">Prompts users to sign in using their browser.</source>

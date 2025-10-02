@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
 import { expect } from "chai";
 import * as sinon from "sinon";
@@ -13,30 +12,37 @@ import { PublishProjectWebViewController } from "../../src/publishProject/publis
 
 suite("PublishProjectWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
-    let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
-    let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let contextStub: vscode.ExtensionContext;
+    let vscodeWrapperStub: VscodeWrapper;
 
     setup(() => {
         sandbox = sinon.createSandbox();
 
-        mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockContext.setup((c) => c.extensionUri).returns(() => vscode.Uri.parse("file://fakePath"));
-        mockContext.setup((c) => c.extensionPath).returns(() => "fakePath");
-        mockContext.setup((c) => c.subscriptions).returns(() => []);
-        const globalState = {
-            get: (<T>(_key: string, defaultValue?: T) => defaultValue) as {
-                <T>(key: string): T | undefined;
-                <T>(key: string, defaultValue: T): T;
-            },
-            update: async () => undefined,
-            keys: () => [] as readonly string[],
-            setKeysForSync: (_keys: readonly string[]) => undefined,
-        } as unknown as vscode.Memento & { setKeysForSync(keys: readonly string[]): void };
-        mockContext.setup((c) => c.globalState).returns(() => globalState);
+        const rawContext: Partial<vscode.ExtensionContext> = {
+            extensionUri: vscode.Uri.parse("file://ProjectPath"),
+            extensionPath: "ProjectPath",
+            subscriptions: [],
+        };
+        contextStub = rawContext as vscode.ExtensionContext;
 
-        mockVscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
-        const outputChannel = TypeMoq.Mock.ofType<vscode.OutputChannel>();
-        mockVscodeWrapper.setup((v) => v.outputChannel).returns(() => outputChannel.object);
+        const outputChannel: vscode.OutputChannel = {
+            name: "test",
+            append: () => undefined,
+            appendLine: () => undefined,
+            clear: () => undefined,
+            replace: (_value: string) => undefined,
+            show: () => undefined,
+            hide: () => undefined,
+            dispose: () => undefined,
+        };
+
+        // Subclass VscodeWrapper to override the outputChannel getter cleanly.
+        class TestVscodeWrapper extends VscodeWrapper {
+            public override get outputChannel(): vscode.OutputChannel {
+                return outputChannel;
+            }
+        }
+        vscodeWrapperStub = new TestVscodeWrapper();
     });
 
     teardown(() => {
@@ -46,8 +52,8 @@ suite("PublishProjectWebViewController Tests", () => {
     test("constructor initializes state and derives database name", async () => {
         const projectPath = "c:/work/MySampleProject.sqlproj";
         const controller = new PublishProjectWebViewController(
-            mockContext.object,
-            mockVscodeWrapper.object,
+            contextStub,
+            vscodeWrapperStub,
             projectPath,
         );
 

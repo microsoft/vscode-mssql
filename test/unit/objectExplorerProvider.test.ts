@@ -97,6 +97,7 @@ suite("Object Explorer Provider Tests", function () {
             connectionManager.object,
             () => {},
         );
+        testObjectExplorerService.initialized.resolve();
     });
 
     // TODO: @aasimkhan30 Fix this test
@@ -179,16 +180,13 @@ suite("Object Explorer Provider Tests", function () {
     test("Test Get Children from Object Explorer Provider with no children", async () => {
         const parentTreeNode = TypeMoq.Mock.ofType(TreeNodeInfo, TypeMoq.MockBehavior.Loose);
 
-        const expandNodeSpy = TypeMoq.Mock.ofInstance((element, sessionId, promise) =>
-            testObjectExplorerService.expandNode(element, sessionId, promise),
+        const expandNodeSpy = TypeMoq.Mock.ofInstance((element, sessionId) =>
+            testObjectExplorerService.expandNode(element, sessionId),
         );
 
         expandNodeSpy
-            .setup((e) => e(TypeMoq.It.isAny(), TypeMoq.It.isAnyString(), TypeMoq.It.isAny()))
-            .callback((element, sessionId, promise) => {
-                promise.resolve([]);
-            })
-            .returns(() => undefined);
+            .setup((e) => e(TypeMoq.It.isAny(), TypeMoq.It.isAnyString()))
+            .returns(() => Promise.resolve([]));
 
         testObjectExplorerService.expandNode = expandNodeSpy.object;
 
@@ -324,14 +322,14 @@ suite("Object Explorer Provider Tests", function () {
 
     test("Test expandNode function", () => {
         objectExplorerService.setup((s) =>
-            s.expandNode(TypeMoq.It.isAny(), TypeMoq.It.isAnyString(), TypeMoq.It.isAny()),
+            s.expandNode(TypeMoq.It.isAny(), TypeMoq.It.isAnyString()),
         );
         let node: any = {
             connectionCredentials: undefined,
         };
-        void objectExplorerProvider.expandNode(node, "test_session", undefined);
+        void objectExplorerProvider.expandNode(node, "test_session");
         objectExplorerService.verify(
-            (s) => s.expandNode(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+            (s) => s.expandNode(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
             TypeMoq.Times.once(),
         );
         let treeItem = objectExplorerProvider.getTreeItem(node);

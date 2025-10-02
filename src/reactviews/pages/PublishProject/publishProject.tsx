@@ -94,7 +94,6 @@ function PublishProjectDialog() {
     if (!isComponentReady) {
         return <div className={classes.root}>Loading...</div>;
     }
-
     return (
         <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
             <div className={classes.root}>

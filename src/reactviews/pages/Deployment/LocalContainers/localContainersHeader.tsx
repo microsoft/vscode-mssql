@@ -20,7 +20,6 @@ const useStyles = makeStyles({
         top: 0,
         left: 0,
         paddingTop: "50px",
-        width: "100%",
     },
     titleDiv: {
         fontWeight: 500,

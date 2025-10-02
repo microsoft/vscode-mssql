@@ -886,7 +886,7 @@ export class Fabric {
     public static selectAWorkspace = l10n.t("Select a Workspace");
     public static searchWorkspaces = l10n.t("Search Workspaces");
     public static workspaceIsRequired = l10n.t("Workspace is required");
-    public static insufficientWorkspacePermissions = l10n.t("Insufficient Worskpace Permissions");
+    public static insufficientWorkspacePermissions = l10n.t("Insufficient Workspace Permissions");
     public static insufficientCapacityPermissions = l10n.t("Insufficient Capacity Permissions");
 }
 
@@ -951,10 +951,32 @@ export class QueryResult {
         });
     public static summaryFetchConfirmation = (numRows: number) =>
         l10n.t({
-            message:
-                "You have selected data across {0} rows, it might take a while to load the data and calculate the summary, do you want to continue?",
+            message: "{0} rows selected, click to load summary",
             args: [numRows],
             comment: ["{0} is the number of rows to fetch summary statistics for"],
+        });
+    public static clickToFetchSummary = l10n.t("Click to load summary");
+    public static summaryLoadingProgress = (currentRow: number, totalRows: number) => {
+        const percentage = Math.floor((currentRow / totalRows) * 100);
+        return l10n.t({
+            message: `Loading summary {0}/{1} ({2}%) (Click to cancel)`,
+            args: [currentRow, totalRows, percentage],
+            comment: [
+                "{0} is the current row",
+                "{1} is the total number of rows",
+                "{2} is the percentage of rows loaded",
+            ],
+        });
+    };
+    public static clickToCancelLoadingSummary = l10n.t("Click to cancel loading summary");
+    public static summaryLoadingCanceled = l10n.t("Summary loading canceled");
+    public static summaryLoadingCanceledTooltip = l10n.t("Summary loading was canceled by user");
+    public static errorLoadingSummary = l10n.t("Error loading summary");
+    public static errorLoadingSummaryTooltip = (error: string) =>
+        l10n.t({
+            message: "Error loading summary: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
         });
     public static getRowsError = (error: string) =>
         l10n.t({
@@ -962,6 +984,7 @@ export class QueryResult {
             args: [error],
             comment: ["{0} is the error message"],
         });
+    public static;
 }
 
 export class LocalContainers {

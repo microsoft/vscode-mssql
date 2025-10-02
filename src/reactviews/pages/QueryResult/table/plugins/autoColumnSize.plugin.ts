@@ -24,14 +24,15 @@ const defaultOptions: IAutoColumnSizeOptions = {
     extraColumnHeaderWidth: 0,
 };
 
-export const NUM_COLUMNS_TO_SCAN = 50;
+const NUM_ROWS_TO_SCAN = 50;
+const MAX_HEADER_WIDTH = 100;
 
 export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T> {
     private _grid!: Slick.Grid<T>;
     private _$container!: JQuery;
     private _context!: CanvasRenderingContext2D;
     private _options: IAutoColumnSizeOptions;
-    private onPostEventHandler = new Slick.EventHandler();
+    private _onPostEventHandler = new Slick.EventHandler();
 
     constructor(
         options: IAutoColumnSizeOptions = defaultOptions,
@@ -43,7 +44,10 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
     public init(grid: Slick.Grid<T>) {
         this._grid = grid;
         if (this._options.autoSizeOnRender) {
-            this.onPostEventHandler.subscribe(this._grid.onRendered, () => this.onPostRender());
+            this._onPostEventHandler.subscribe(this._grid.onRendered, () => this.onPostRender());
+            this._onPostEventHandler.subscribe(this._grid.onViewportChanged, () => {
+                setTimeout(() => this.onPostRender(), 10);
+            });
         }
 
         this._$container = jQuery(this._grid.getContainerNode());
@@ -57,80 +61,100 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
         this._$container.off();
     }
 
+    public autosizeColumns() {
+        this.onPostRender();
+    }
+
+    /**
+     * Calculate optimal column width based on header and content width.
+     * Prioritizes content width but ensures headers are readable.
+     */
+    private calculateOptimalColumnWidth(headerWidth: number, contentWidth: number): number {
+        headerWidth = Math.min(headerWidth, MAX_HEADER_WIDTH);
+        // Default to max of header and content, but cap at maxWidth
+        return (
+            Math.min(
+                Math.max(headerWidth, contentWidth),
+                this._options.maxWidth || MAX_COLUMN_WIDTH_PX,
+            ) + 1
+        );
+    }
+
     private onPostRender() {
         // this doesn't do anything if the grid isn't on the dom
         if (!this._grid.getContainerNode().isConnected) {
             return;
         }
 
-        // since data can be async we want to only do this if we have the data to actual
-        // work on since we are measuring the physical length of data
-        let data = this._grid.getData() as Slick.DataProvider<T>;
-        let item = data.getItem(0);
-        if (item && Object.keys(item).length > 0) {
-            let hasValue = false;
-            for (let key in item) {
-                if (item.hasOwnProperty(key)) {
-                    if (item[key]) {
-                        hasValue = true;
-                        break;
-                    }
-                }
-            }
-            if (!hasValue) {
-                return;
-            }
-        } else {
-            return;
-        }
-
+        // Ensure headers are rendered before trying to size columns
         let headerColumnsQuery = jQuery(this._grid.getContainerNode()).find(
             ".slick-header-columns",
         );
-        if (headerColumnsQuery && headerColumnsQuery.length) {
-            let headerColumns = headerColumnsQuery[0];
-            let origCols = this._grid.getColumns();
-            let allColumns = deepClone(origCols);
-            allColumns.forEach((col, index) => {
-                col.formatter = origCols[index].formatter;
-                col.asyncPostRender = origCols[index].asyncPostRender;
-            });
-            let change = false;
-            let headerElements: HTMLElement[] = [];
-            let columnDefs: Slick.Column<T>[] = [];
-            let colIndices: number[] = [];
+        if (!headerColumnsQuery || !headerColumnsQuery.length) {
+            // If headers aren't ready, try again in a short while
+            setTimeout(() => this.onPostRender(), 50);
+            return;
+        }
 
-            for (let i = 0; i <= headerColumns.children.length; i++) {
-                let headerEl = jQuery(headerColumns.children.item(i)! as HTMLElement);
-                let columnDef = headerEl.data("column");
-                if (columnDef) {
-                    headerElements.push(headerEl[0]);
-                    columnDefs.push(columnDef);
-                    colIndices.push(this._grid.getColumnIndex(columnDef.id));
-                }
+        // since data can be async we want to only do this if we have the data to actual
+        // work on since we are measuring the physical length of data
+        let data = this._grid.getData() as Slick.DataProvider<T>;
+
+        // Check if we have any data at all
+        if (data.getLength() === 0) {
+            return;
+        }
+
+        let item = data.getItem(0);
+        if (!item || Object.keys(item).length === 0) {
+            return;
+        }
+
+        let headerColumns = headerColumnsQuery[0];
+        let origCols = this._grid.getColumns();
+        let allColumns = deepClone(origCols);
+        allColumns.forEach((col, index) => {
+            col.formatter = origCols[index].formatter;
+            col.asyncPostRender = origCols[index].asyncPostRender;
+        });
+        let change = false;
+        let headerElements: HTMLElement[] = [];
+        let columnDefs: Slick.Column<T>[] = [];
+        let colIndices: number[] = [];
+
+        for (let i = 0; i <= headerColumns.children.length; i++) {
+            let headerEl = jQuery(headerColumns.children.item(i)! as HTMLElement);
+            let columnDef = headerEl.data("column");
+            if (columnDef) {
+                headerElements.push(headerEl[0]);
+                columnDefs.push(columnDef);
+                colIndices.push(this._grid.getColumnIndex(columnDef.id));
             }
+        }
 
-            let headerWidths: number[] = this.getElementWidths(headerElements);
-            headerWidths = headerWidths.map((width) => {
-                return width + this._options.extraColumnHeaderWidth!;
-            });
-            let maxColumnTextWidths: number[] = this.getMaxColumnTextWidths(columnDefs, colIndices);
+        let headerWidths: number[] = this.getElementWidths(headerElements);
+        headerWidths = headerWidths.map((width) => {
+            return width + this._options.extraColumnHeaderWidth!;
+        });
+        let maxColumnTextWidths: number[] = this.getMaxColumnTextWidths(columnDefs, colIndices);
 
-            for (let i = 0; i < columnDefs.length; i++) {
-                let colIndex: number = colIndices[i];
-                let column: Slick.Column<T> = allColumns[colIndex];
-                let autoSizeWidth: number = Math.max(headerWidths[i], maxColumnTextWidths[i]) + 1;
-                if (autoSizeWidth !== column.width) {
-                    allColumns[colIndex].width = autoSizeWidth;
-                    change = true;
-                }
+        for (let i = 0; i < columnDefs.length; i++) {
+            let colIndex: number = colIndices[i];
+            let column: Slick.Column<T> = allColumns[colIndex];
+            let autoSizeWidth: number = this.calculateOptimalColumnWidth(
+                headerWidths[i],
+                maxColumnTextWidths[i],
+            );
+            if (autoSizeWidth !== column.width) {
+                allColumns[colIndex].width = autoSizeWidth;
+                change = true;
             }
+        }
 
-            if (change) {
-                this.onPostEventHandler.unsubscribeAll();
-                this._grid.setColumns(allColumns);
-                this._grid.onColumnsResized.notify();
-            }
+        if (change) {
+            this._onPostEventHandler.unsubscribeAll();
+            this._grid.setColumns(allColumns);
+            this._grid.onColumnsResized.notify();
         }
     }
 
@@ -149,7 +173,8 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
     }
 
     private resizeColumn(headerEl: JQuery, columnDef: Slick.Column<T>) {
-        let headerWidth = this.getElementWidths([headerEl[0]])[0];
+        let headerWidth =
+            this.getElementWidths([headerEl[0]])[0] + this._options.extraColumnHeaderWidth!;
         let colIndex = this._grid.getColumnIndex(columnDef.id!);
         let origCols = this._grid.getColumns();
         let allColumns = deepClone(origCols);
@@ -157,17 +182,21 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
             col.formatter = origCols[index].formatter;
             col.asyncPostRender = origCols[index].asyncPostRender;
         });
+        let column = allColumns[colIndex];
 
-        let autoSizeWidth =
-            Math.max(headerWidth, this.getMaxColumnTextWidth(columnDef, colIndex)) + 1;
+        let contentWidth = this.getMaxColumnTextWidth(columnDef, colIndex);
+        let autoSizeWidth = this.calculateOptimalColumnWidth(headerWidth, contentWidth);
 
-        allColumns[colIndex].width = autoSizeWidth;
-        this._grid.setColumns(allColumns);
-        this._grid.onColumnsResized.notify();
+        // Only resize if the current width is smaller than the new width.
+        if (autoSizeWidth > (column?.width || 0)) {
+            allColumns[colIndex].width = autoSizeWidth;
+            this._grid.setColumns(allColumns);
+            this._grid.onColumnsResized.notify();
+        }
     }
 
     /**
-     * For each column, find the max width of the texts in the first MAX_ROW_TO_SCAN rows.
+     * For each column, find the max width of the texts in the first 100 rows.
      * @param columnDefs Column definitions of all columns that need to be resized
      * @param colIndices Column indices of all columns that need to be resized
      * @returns An array of the max widths of each column
@@ -175,13 +204,8 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
     private getMaxColumnTextWidths(columnDefs: Slick.Column<T>[], colIndices: number[]): number[] {
         let data = this._grid.getData() as Slick.DataProvider<T>;
         let dataLength = data.getLength();
-        let viewPort = this._grid.getViewport();
-        let start = Math.max(0, viewPort.top);
-        let end = Math.min(dataLength, viewPort.bottom);
-        // limit column width calculation to NUM_COLUMNS_TO_SCAN rows
-        if (end < NUM_COLUMNS_TO_SCAN) {
-            end = Math.min(NUM_COLUMNS_TO_SCAN, dataLength);
-        }
+        let start = 0;
+        let end = Math.min(NUM_ROWS_TO_SCAN, dataLength);
 
         // Early return if no data available in the range
         if (start >= end || dataLength === 0) {
@@ -230,9 +254,8 @@ export class AutoColumnSize<T extends Slick.SlickData> implements Slick.Plugin<T
         let rowEl = this.createRow();
         let data = this._grid.getData() as Slick.DataProvider<T>;
         let dataLength = data.getLength();
-        let viewPort = this._grid.getViewport();
-        let start = Math.max(0, viewPort.top);
-        let end = Math.min(dataLength, viewPort.bottom);
+        let start = 0;
+        let end = Math.min(NUM_ROWS_TO_SCAN, dataLength);
         for (let i = start; i < end; i++) {
             const item = data.getItem(i);
             if (item && columnDef.field) {

@@ -58,6 +58,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     protected _tableContainer: HTMLElement;
     private selectionModel: CellSelectionModel<T>;
     public headerFilter: HeaderFilter<T>;
+    private _autoColumnSizePlugin: AutoColumnSize<T>;
     private _lastScrollAt: number = 0;
 
     constructor(
@@ -156,15 +157,14 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             ),
         );
 
-        this.registerPlugin(
-            new AutoColumnSize(
-                {
-                    maxWidth: MAX_COLUMN_WIDTH_PX,
-                    autoSizeOnRender: autoSizeColumns,
-                },
-                this.context,
-            ),
+        this._autoColumnSizePlugin = new AutoColumnSize(
+            {
+                maxWidth: MAX_COLUMN_WIDTH_PX,
+                autoSizeOnRender: autoSizeColumns,
+            },
+            this.context,
         );
+        this.registerPlugin(this._autoColumnSizePlugin);
 
         if (configuration && configuration.columns) {
             this.columns = configuration.columns;
@@ -544,7 +544,9 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     }
 
     autosizeColumns() {
-        this._grid.autosizeColumns();
+        if (this._autoColumnSizePlugin) {
+            this._autoColumnSizePlugin.autosizeColumns();
+        }
     }
 
     set autoScroll(active: boolean) {
