@@ -175,6 +175,19 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             return state;
         });
 
+        this.registerReducer("createRow", async (state) => {
+            this.logger.info(`Creating new row for: ${state.tableName}`);
+            try {
+                const result = await this._tableExplorerService.createRow(state.ownerUri);
+                vscode.window.showInformationMessage("New row created successfully");
+                this.logger.info(`Created row with ID: ${result.newRowId}`);
+            } catch (error) {
+                this.logger.error(`Error creating row: ${error}`);
+                vscode.window.showErrorMessage(`Failed to create row: ${error}`);
+            }
+            return state;
+        });
+
         this.registerReducer("deleteRow", async (state, payload) => {
             this.logger.info(`Deleting row: ${payload.rowId}`);
             try {

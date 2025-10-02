@@ -35,6 +35,10 @@ export const TableExplorerStateProvider: React.FC<{
                     webViewState?.extensionRpc.action("loadSubset", { rowCount });
                 },
 
+                createRow: function (): void {
+                    webViewState?.extensionRpc.action("createRow", {});
+                },
+
                 deleteRow: function (rowId: number): void {
                     webViewState?.extensionRpc.action("deleteRow", { rowId });
                 },
