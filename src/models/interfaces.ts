@@ -68,6 +68,7 @@ export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
     accountStore: AccountStore;
     isValidProfile(): boolean;
     isAzureActiveDirectory(): boolean;
+    scope?: "user" | "workspace";
 }
 
 export interface IConnectionGroup {
@@ -76,6 +77,7 @@ export interface IConnectionGroup {
     parentId?: string;
     color?: string;
     description?: string;
+    scope?: "user" | "workspace";
 }
 
 export enum CredentialsQuickPickItemType {
