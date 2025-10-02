@@ -91,6 +91,7 @@ import {
     stopContainer,
 } from "../deployment/dockerUtils";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
+import { getCloudId } from "../azure/providerSettings";
 
 /**
  * The main controller class that initializes the extension
@@ -958,6 +959,7 @@ export default class MainController implements vscode.Disposable {
             experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
             modernFeaturesEnabled: this.isRichExperiencesEnabled.toString(),
             useLegacyConnections: this.useLegacyConnectionExperience.toString(),
+            cloudType: getCloudId(),
         });
 
         await this._connectionMgr.initialized;

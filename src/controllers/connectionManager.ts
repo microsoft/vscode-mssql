@@ -10,7 +10,7 @@ import { AccountService } from "../azure/accountService";
 import { AccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import { MsalAzureController } from "../azure/msal/msalAzureController";
-import { getCloudProviderSettings } from "../azure/providerSettings";
+import { getCloudId, getCloudProviderSettings } from "../azure/providerSettings";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { CredentialStore } from "../credentialstore/credentialstore";
@@ -1183,6 +1183,7 @@ export default class ConnectionManager {
                 undefined, // errorType
                 {
                     serverTypes: getServerTypes(credentials).join(","),
+                    cloudType: getCloudId(),
                 },
             );
             return false;
@@ -1204,6 +1205,7 @@ export default class ConnectionManager {
                 undefined, // errorType
                 {
                     serverTypes: getServerTypes(credentials).join(","),
+                    cloudType: getCloudId(),
                 },
             );
             return false;
@@ -1212,6 +1214,7 @@ export default class ConnectionManager {
         // Connection was initiated successfully.
         sendActionEvent(TelemetryViews.ConnectionManager, TelemetryActions.Connect, {
             serverTypes: getServerTypes(credentials).join(","),
+            cloudType: getCloudId(),
         });
 
         const result = await connectionCompletePromise.promise;
