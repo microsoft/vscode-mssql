@@ -97,6 +97,7 @@ suite("Object Explorer Provider Tests", function () {
             connectionManager.object,
             () => {},
         );
+        testObjectExplorerService.initialized.resolve();
     });
 
     // TODO: @aasimkhan30 Fix this test
