@@ -29,10 +29,12 @@ export interface ColumnFilterPopupOptions {
     items: FilterPopupItem[];
     initialSelected: FilterValue[];
     onApply: (selected: FilterValue[]) => Promise<void> | void;
+    onClearSort?: () => Promise<void> | void;
     onClear: () => Promise<void> | void;
     onDismiss?: () => void;
     onSortAscending?: () => Promise<void> | void;
     onSortDescending?: () => Promise<void> | void;
+    currentSort?: "asc" | "desc" | "none";
 }
 
 export interface QueryResultReactProvider
@@ -217,8 +219,10 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                     onDismiss={() => {
                         hideFilterPopup();
                     }}
+                    onClearSort={filterPopupState.onClearSort}
                     onSortAscending={filterPopupState.onSortAscending}
                     onSortDescending={filterPopupState.onSortDescending}
+                    currentSort={filterPopupState.currentSort}
                 />
             )}
         </QueryResultCommandsContext.Provider>

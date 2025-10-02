@@ -207,6 +207,15 @@ export class HeaderMenu<T extends Slick.SlickData> {
             await this.handleApply(this.columnDef, true);
         };
 
+        // Get current sort state for this column
+        const currentSortState = this.columnSortStateMapping.get(columnId);
+        let currentSort: "asc" | "desc" | "none" = "none";
+        if (currentSortState === SortProperties.ASC) {
+            currentSort = "asc";
+        } else if (currentSortState === SortProperties.DESC) {
+            currentSort = "desc";
+        }
+
         this.queryResultContext.showColumnFilterPopup({
             columnId,
             anchorRect,
@@ -228,6 +237,10 @@ export class HeaderMenu<T extends Slick.SlickData> {
             onSortDescending: async () => {
                 await this.handleSortFromPopup(this.columnDef, "sort-desc");
             },
+            onClearSort: async () => {
+                await this.handleClearSort(this.columnDef);
+            },
+            currentSort,
         });
 
         this.activeColumnId = columnId;
@@ -303,6 +316,37 @@ export class HeaderMenu<T extends Slick.SlickData> {
             } else if (sortState === SortProperties.DESC) {
                 indicator.classList.add("sorted-desc");
             }
+        }
+    }
+
+    private async handleClearSort(column: FilterableColumn<T>) {
+        const columnId = column.id!;
+
+        // Only clear if this column is currently sorted
+        const currentSortState = this.columnSortStateMapping.get(columnId);
+        if (currentSortState === SortProperties.NONE || currentSortState === undefined) {
+            return;
+        }
+
+        // Clear current sort state
+        this.columnSortStateMapping.set(columnId, SortProperties.NONE);
+        this.currentSortColumn = "";
+
+        // Clear sort in grid
+        await this.handleMenuItemClick("reset", column);
+
+        // Update state
+        const columnFilterState: ColumnFilterState = {
+            columnDef: column.id!,
+            filterValues: column.filterValues ?? [],
+            sorted: SortProperties.NONE,
+        };
+        await this.updateState(columnFilterState, column.id!);
+
+        // Clear sort indicator
+        const headerNode = this.getHeaderNode(columnId);
+        if (headerNode) {
+            this.updateSortIndicator(headerNode, SortProperties.NONE);
         }
     }
 
