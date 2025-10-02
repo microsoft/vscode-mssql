@@ -277,15 +277,6 @@
       <source xml:lang="en">Average: {0}  Count: {1}  Sum: {2}</source>
       <note>{0} is the average, {1} is the count, {2} is the sum</note>
     </trans-unit>
-    <trans-unit id="++CODE++994c049faf0fd65f191759cacf91508d01743fda1b2f06cfc7f779fc49ae4991">
-      <source xml:lang="en">Azure (China)</source>
-    </trans-unit>
-    <trans-unit id="++CODE++cdf9c75db21efc1ddc557d567de91e9bc67533606ce4bbc049c592d77f122e68">
-      <source xml:lang="en">Azure (Public)</source>
-    </trans-unit>
-    <trans-unit id="++CODE++cf582c92b799b117f2d093534bbe7b99aea5df658f201220f320f2976c0ebbba">
-      <source xml:lang="en">Azure (US Government)</source>
-    </trans-unit>
     <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
       <source xml:lang="en">Azure Account</source>
     </trans-unit>
@@ -1300,11 +1291,6 @@
     <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
       <source xml:lang="en">Fabric Workspaces</source>
     </trans-unit>
-    <trans-unit id="++CODE++56dd693767481cc69348e746edb945f23807899ed5736241c47000f787be902a">
-      <source xml:lang="en">Fabric is not supported in the current cloud ({0}).  Ensure setting &apos;{1}&apos; is configured correctly.</source>
-      <note>{0} is the cloud name
-{1} is the setting name</note>
-    </trans-unit>
     <trans-unit id="++CODE++3db198c251ac68aeafbdfbb134d03b8be7bca7a5b2f612addb78f72b2da67a90">
       <source xml:lang="en">Fabric long-running API error with error code &apos;{0}&apos;: {1}</source>
       <note>{0} is the error code
@@ -1366,12 +1352,6 @@
       <source xml:lang="en">Failed to get Fabric workspaces for tenant &apos;{0} ({1})&apos;.</source>
       <note>{0} is the tenant name
 {1} is the tenant id</note>
-    </trans-unit>
-    <trans-unit id="++CODE++b4130b296ab05c9b6d46fa30eb4c7256fb9880192dca9262d2a8e524852dc226">
-      <source xml:lang="en">Failed to get Fabric workspaces for tenant &apos;{0} ({1})&apos;: {2}</source>
-      <note>{0} is the tenant name
-{1} is the tenant id
-{2} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
       <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
@@ -3048,9 +3028,6 @@
       <source xml:lang="en">The connection with ID &apos;{0}&apos; does not have the &apos;server&apos; property set and is being ignored.  Please set the &apos;server&apos; property on this connection in order to use it.</source>
       <note>{0} is the connection ID for the connection that has been ignored</note>
     </trans-unit>
-    <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
-      <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
-    </trans-unit>
     <trans-unit id="++CODE++f229c94b4c9b8ecfa1096d1daf79194e84616c49df8fb6e229fa944592ff373e">
       <source xml:lang="en">The description of the check constraint.</source>
     </trans-unit>
@@ -3938,30 +3915,6 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.description">
       <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
     </trans-unit>
-    <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
-      <source xml:lang="en">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</source>
-    </trans-unit>
-    <trans-unit id="mssql.customEnvironment.sqlServerHostnameSuffix">
-      <source xml:lang="en">Sovereign cloud equivalent for `.database.windows.net` (including leading dot)</source>
-    </trans-unit>
-    <trans-unit id="mssql.customEnvironment.fabricDataWarehouseDnsSuffix">
-      <source xml:lang="en">Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)</source>
-    </trans-unit>
-    <trans-unit id="mssql.customEnvironment.analyticsDnsSuffix">
-      <source xml:lang="en">Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)</source>
-    </trans-unit>
-    <trans-unit id="mssql.customEnvironment.mssql.customEnvironment.fabricScopeUriBase">
-      <source xml:lang="en">Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`</source>
-    </trans-unit>
-    <trans-unit id="mssql.customEnvironment.mssql.customEnvironment.fabricApiUriBase">
-      <source xml:lang="en">Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`</source>
-    </trans-unit>
-    <trans-unit id="mssql.customEnvironment.sqlEndpoint">
-      <source xml:lang="en">Sovereign cloud equivalent for `https://database.windows.net/`</source>
-    </trans-unit>
-    <trans-unit id="mssql.customEnvironment.keyVaultEndpoint">
-      <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
-    </trans-unit>
     <trans-unit id="mssql.startContainer">
       <source xml:lang="en">Start Container</source>
     </trans-unit>
@@ -3976,9 +3929,6 @@
     </trans-unit>
     <trans-unit id="mssql.connectionManagement.rememberPasswordsUntilRestart">
       <source xml:lang="en">Temporarily store passwords for connections with &apos;Saved Passwords&apos; disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
-    </trans-unit>
-    <trans-unit id="mssql.customEnvironment">
-      <source xml:lang="en">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroup.color">
       <source xml:lang="en">The color of the connection group.</source>

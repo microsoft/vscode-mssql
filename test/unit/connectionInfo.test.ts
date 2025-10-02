@@ -245,11 +245,11 @@ test("getServerTypes", () => {
             expected: [ServerType.Azure, ServerType.DataWarehouse],
         },
         {
-            input: "test.database.fabric.microsoft.com",
+            input: "test.database.fabric.microsoft.com,1433",
             expected: [ServerType.Fabric, ServerType.Sql],
         },
         {
-            input: "test.ppe-database.fabric.microsoft.com",
+            input: "test.ppe-database.fabric.microsoft.com,1433",
             expected: [ServerType.Fabric, ServerType.Sql],
         },
         {
@@ -260,6 +260,7 @@ test("getServerTypes", () => {
             input: "test.ppe-datawarehouse.fabric.microsoft.com",
             expected: [ServerType.Fabric, ServerType.DataWarehouse],
         },
+
         { input: "localhost", expected: [ServerType.Local, ServerType.Sql] },
         { input: "localhost,1234", expected: [ServerType.Local, ServerType.Sql] },
         { input: ".", expected: [ServerType.Local, ServerType.Sql] },
