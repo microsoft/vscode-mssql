@@ -6,446 +6,446 @@ name: Build and Test (Unit + E2E)
 # 3. Does a check if the PR has properly localized strings.
 
 on:
-    schedule:
-        - cron: "0 0 * * *"
-    push:
-        branches:
-            - main
-    pull_request:
-        branches:
-            - main
-            - "release/**"
-    workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+      - "release/**"
+  workflow_dispatch:
 
 jobs:
-    build-and-test:
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            checks: write
-            actions: read
-            issues: write
-            pull-requests: write
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      actions: read
+      issues: write
+      pull-requests: write
 
-        steps:
-            - name: Determine target branch
-              id: target-branch
-              run: |
-                  if [ "${{ github.event_name }}" = "pull_request" ]; then
-                    echo "branch=${{ github.event.pull_request.base.ref }}" >> $GITHUB_OUTPUT
-                  else
-                    echo "branch=main" >> $GITHUB_OUTPUT
-                  fi
+    steps:
+      - name: Determine target branch
+        id: target-branch
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "branch=${{ github.event.pull_request.base.ref }}" >> $GITHUB_OUTPUT
+          else
+            echo "branch=main" >> $GITHUB_OUTPUT
+          fi
 
-            - name: Checkout target branch
-              uses: actions/checkout@v4
-              with:
-                  ref: ${{ steps.target-branch.outputs.branch }}
-                  path: "./target"
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.target-branch.outputs.branch }}
+          path: "./target"
 
-            - name: Checkout PR branch
-              uses: actions/checkout@v4
-              with:
-                  ref: ${{ github.event.pull_request.head.sha }}
-                  path: "./pr"
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: "./pr"
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "22"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
 
-            - name: Setup .NET Core # Required to execute ReportGenerator
-              uses: actions/setup-dotnet@v4
-              with:
-                  dotnet-version: 8.x
-                  dotnet-quality: "ga"
+      - name: Setup .NET Core # Required to execute ReportGenerator
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.x
+          dotnet-quality: "ga"
 
-            - name: Install tools
-              run: |
-                  echo "Installing Yarn"
-                  npm install --global yarn@1.22.19
-                  echo "Installing VSCE"
-                  npm install --global vsce@2.9.2
+      - name: Install tools
+        run: |
+          echo "Installing Yarn"
+          npm install --global yarn@1.22.19
+          echo "Installing VSCE"
+          npm install --global vsce@2.9.2
 
-            - name: Install dependencies and build target extension
-              uses: ./pr/.github/actions/build-extension
-              with:
-                  source-dir: "./target"
+      - name: Install dependencies and build target extension
+        uses: ./pr/.github/actions/build-extension
+        with:
+          source-dir: "./target"
 
-            - name: Install dependencies and build PR extension
-              uses: ./pr/.github/actions/build-extension
-              with:
-                  source-dir: "./pr"
+      - name: Install dependencies and build PR extension
+        uses: ./pr/.github/actions/build-extension
+        with:
+          source-dir: "./pr"
 
-            - name: Run lint
-              run: |
-                  cd ./pr
-                  yarn lint
+      - name: Run lint
+        run: |
+          cd ./pr
+          yarn lint
 
-            # Calculate sizes and package before testing;
-            # Testing generates sourcemaps and instrumented code
-            # that increase size
-            - name: Package both branches
-              continue-on-error: true
-              run: |
-                  cd target
-                  vsce package
-                  cd ../pr
-                  vsce package
+      # Calculate sizes and package before testing;
+      # Testing generates sourcemaps and instrumented code
+      # that increase size
+      - name: Package both branches
+        continue-on-error: true
+        run: |
+          cd target
+          vsce package
+          cd ../pr
+          vsce package
 
-            - name: Upload PR VSIX files
-              uses: actions/upload-artifact@v4
-              with:
-                  name: vsix-files
-                  path: ./pr/*.vsix
+      - name: Upload PR VSIX files
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix-files
+          path: ./pr/*.vsix
 
-            - name: Setting up change icons
-              run: |
-                  echo "better_change_icon=🟢" >> $GITHUB_ENV
-                  echo "worse_change_icon=🔴" >> $GITHUB_ENV
-                  echo "no_change_icon=⚪" >> $GITHUB_ENV
+      - name: Setting up change icons
+        run: |
+          echo "better_change_icon=🟢" >> $GITHUB_ENV
+          echo "worse_change_icon=🔴" >> $GITHUB_ENV
+          echo "no_change_icon=⚪" >> $GITHUB_ENV
 
-            - name: Calculate webview bundle sizes
-              run: |
-                  target_file=$(du -sk ./target/dist/views | cut -f1)
-                  pr_file=$(du -sk ./pr/dist/views | cut -f1)
-                  echo "Target branch bundle size: $target_file KB"
-                  echo "PR branch bundle size: $pr_file KB"
-                  size_diff=$((pr_file - target_file))
-                  percentage_change=$((100 * size_diff / target_file))
-                  echo "Size difference: $size_diff KB"
-                  echo "Percentage change: $percentage_change%"
-                  echo "target_webview_bundle_size=$target_file" >> $GITHUB_ENV
-                  echo "pr_webview_bundle_size=$pr_file" >> $GITHUB_ENV
-                  echo "webview_size_diff=$size_diff" >> $GITHUB_ENV
-                  echo "webview_bundle_percentage_change=$percentage_change" >> $GITHUB_ENV
-                  if [ "$percentage_change" -gt 0 ]; then
-                    echo "webview_change_icon=$worse_change_icon" >> $GITHUB_ENV
-                  elif [ "$percentage_change" -lt 0 ]; then
-                    echo "webview_change_icon=$better_change_icon" >> $GITHUB_ENV
-                  else
-                    echo "webview_change_icon=$no_change_icon" >> $GITHUB_ENV
-                  fi
+      - name: Calculate webview bundle sizes
+        run: |
+          target_file=$(du -sk ./target/dist/views | cut -f1)
+          pr_file=$(du -sk ./pr/dist/views | cut -f1)
+          echo "Target branch bundle size: $target_file KB"
+          echo "PR branch bundle size: $pr_file KB"
+          size_diff=$((pr_file - target_file))
+          percentage_change=$((100 * size_diff / target_file))
+          echo "Size difference: $size_diff KB"
+          echo "Percentage change: $percentage_change%"
+          echo "target_webview_bundle_size=$target_file" >> $GITHUB_ENV
+          echo "pr_webview_bundle_size=$pr_file" >> $GITHUB_ENV
+          echo "webview_size_diff=$size_diff" >> $GITHUB_ENV
+          echo "webview_bundle_percentage_change=$percentage_change" >> $GITHUB_ENV
+          if [ "$percentage_change" -gt 0 ]; then
+            echo "webview_change_icon=$worse_change_icon" >> $GITHUB_ENV
+          elif [ "$percentage_change" -lt 0 ]; then
+            echo "webview_change_icon=$better_change_icon" >> $GITHUB_ENV
+          else
+            echo "webview_change_icon=$no_change_icon" >> $GITHUB_ENV
+          fi
 
-            - name: Calculate vsix file sizes
-              run: |
-                  target_vsix=$(find ./target -name "*.vsix")
-                  pr_vsix=$(find ./pr -name "*.vsix")
-                  target_size=$(stat -c%s "$target_vsix")
-                  pr_size=$(stat -c%s "$pr_vsix")
-                  target_size=$((target_size / 1024))
-                  pr_size=$((pr_size / 1024))
-                  size_diff=$((pr_size - target_size))
-                  percentage_change=$((100 * size_diff / target_size))
-                  echo "Target branch VSIX size: $target_size KB"
-                  echo "PR branch VSIX size: $pr_size KB"
-                  echo "Size difference: $size_diff bytes"
-                  echo "Percentage change: $percentage_change%"
-                  echo "target_vsix_size=$target_size" >> $GITHUB_ENV
-                  echo "pr_vsix_size=$pr_size" >> $GITHUB_ENV
-                  echo "vsix_size_diff=$size_diff" >> $GITHUB_ENV
-                  echo "vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
-                  if [ "$percentage_change" -gt 0 ]; then
-                    echo "vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
-                  elif [ "$percentage_change" -lt 0 ]; then
-                    echo "vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
-                  else
-                    echo "vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
-                  fi
+      - name: Calculate vsix file sizes
+        run: |
+          target_vsix=$(find ./target -name "*.vsix")
+          pr_vsix=$(find ./pr -name "*.vsix")
+          target_size=$(stat -c%s "$target_vsix")
+          pr_size=$(stat -c%s "$pr_vsix")
+          target_size=$((target_size / 1024))
+          pr_size=$((pr_size / 1024))
+          size_diff=$((pr_size - target_size))
+          percentage_change=$((100 * size_diff / target_size))
+          echo "Target branch VSIX size: $target_size KB"
+          echo "PR branch VSIX size: $pr_size KB"
+          echo "Size difference: $size_diff bytes"
+          echo "Percentage change: $percentage_change%"
+          echo "target_vsix_size=$target_size" >> $GITHUB_ENV
+          echo "pr_vsix_size=$pr_size" >> $GITHUB_ENV
+          echo "vsix_size_diff=$size_diff" >> $GITHUB_ENV
+          echo "vsix_percentage_change=$percentage_change" >> $GITHUB_ENV
+          if [ "$percentage_change" -gt 0 ]; then
+            echo "vsix_change_icon=$worse_change_icon" >> $GITHUB_ENV
+          elif [ "$percentage_change" -lt 0 ]; then
+            echo "vsix_change_icon=$better_change_icon" >> $GITHUB_ENV
+          else
+            echo "vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
+          fi
 
-            - name: Run unit tests for PR branch
-              continue-on-error: true
-              run: |
-                  set +e  # Don't exit on errors
-                  cd pr
-                  DISPLAY=:10 yarn test
-                  UNIT_EXIT_CODE=$?
-                  echo "unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
+      - name: Run unit tests for PR branch
+        continue-on-error: true
+        run: |
+          set +e  # Don't exit on errors
+          cd pr
+          DISPLAY=:10 yarn test
+          UNIT_EXIT_CODE=$?
+          echo "unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
-            - name: PR Unit Test Report
-              uses: dorny/test-reporter@v2
-              if: success() || failure()
-              with:
-                  name: "Unit Test Report"
-                  path: ./test-reports/**/*.xml
-                  reporter: jest-junit
-                  working-directory: ./pr
-                  badge-title: "unit-tests"
-                  fail-on-error: false
+      - name: PR Unit Test Report
+        uses: dorny/test-reporter@v2
+        if: success() || failure()
+        with:
+          name: "Unit Test Report"
+          path: ./test-reports/**/*.xml
+          reporter: jest-junit
+          working-directory: ./pr
+          badge-title: "unit-tests"
+          fail-on-error: false
 
-            - name: Run unit tests for target branch # for calculating coverage comparison
-              continue-on-error: true
-              run: |
-                  cd target
-                  DISPLAY=:10 yarn test
+      - name: Run unit tests for target branch # for calculating coverage comparison
+        continue-on-error: true
+        run: |
+          cd target
+          DISPLAY=:10 yarn test
 
-            - name: Build mappings for Webviews
-              continue-on-error: true
-              run: |
-                  cd ./pr
-                  yarn build:webviews-bundle
-                  cd ../target
-                  yarn build:webviews-bundle
+      - name: Build mappings for Webviews
+        continue-on-error: true
+        run: |
+          cd ./pr
+          yarn build:webviews-bundle
+          cd ../target
+          yarn build:webviews-bundle
 
-            - name: Setup environment for smoke tests
-              run: |
-                  wget http://mirrors.kernel.org/ubuntu/pool/main/o/openldap/libldap-2.5-0_2.5.11+dfsg-1~exp1ubuntu3_amd64.deb
-                  sudo dpkg -i libldap-2.5-0_2.5.11+dfsg-1~exp1ubuntu3_amd64.deb
-                  echo "Setting up environment for smoke tests"
-                  PASSWORD="$(LC_ALL=C tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 16)$(LC_ALL=C tr -dc '@^#' < /dev/urandom | head -c 1)"
-                  echo "PASSWORD=$PASSWORD" >> $GITHUB_ENV
-                  sudo cp build/mssql.init /etc/init.d/mssql-server
-                  sudo chmod +x /etc/init.d/mssql-server
-                  curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
-                  sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/22.04/mssql-server-2022.list)"
-                  sudo apt-get update
-                  sudo apt-get install -y mssql-server
-                  # Set the language choice variable (1 for English)
-                  LANGUAGE_CHOICE="1"
-                  echo -e "$LANGUAGE_CHOICE" | sudo ACCEPT_EULA='Y' MSSQL_PID='Developer' MSSQL_SA_PASSWORD="$PASSWORD" /opt/mssql/bin/mssql-conf setup || true
-                  sudo service mssql-server start
-                  curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
-                  curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-                  sudo apt-get update
-                  sudo apt-get install -y mssql-tools
-                  /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "$PASSWORD" -Q "SELECT @@VERSION"
-              working-directory: ./pr
+      - name: Setup environment for smoke tests
+        run: |
+          wget http://mirrors.kernel.org/ubuntu/pool/main/o/openldap/libldap-2.5-0_2.5.11+dfsg-1~exp1ubuntu3_amd64.deb
+          sudo dpkg -i libldap-2.5-0_2.5.11+dfsg-1~exp1ubuntu3_amd64.deb
+          echo "Setting up environment for smoke tests"
+          PASSWORD="$(LC_ALL=C tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 16)$(LC_ALL=C tr -dc '@^#' < /dev/urandom | head -c 1)"
+          echo "PASSWORD=$PASSWORD" >> $GITHUB_ENV
+          sudo cp build/mssql.init /etc/init.d/mssql-server
+          sudo chmod +x /etc/init.d/mssql-server
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+          sudo add-apt-repository "$(wget -qO- https://packages.microsoft.com/config/ubuntu/22.04/mssql-server-2022.list)"
+          sudo apt-get update
+          sudo apt-get install -y mssql-server
+          # Set the language choice variable (1 for English)
+          LANGUAGE_CHOICE="1"
+          echo -e "$LANGUAGE_CHOICE" | sudo ACCEPT_EULA='Y' MSSQL_PID='Developer' MSSQL_SA_PASSWORD="$PASSWORD" /opt/mssql/bin/mssql-conf setup || true
+          sudo service mssql-server start
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          sudo apt-get update
+          sudo apt-get install -y mssql-tools
+          /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "$PASSWORD" -Q "SELECT @@VERSION"
+        working-directory: ./pr
 
-            - name: Run smoke tests for PR branch
-              continue-on-error: true
-              run: |
-                  set +e  # Don't exit on errors
-                  export VS_CODE_VERSION=stable
-                  export SERVER_NAME=localhost
-                  export AUTHENTICATION_TYPE="SQL Login"
-                  export USER_NAME=sa
-                  export PASSWORD=${{ env.PASSWORD }}
-                  export SAVE_PASSWORD=No
-                  export PROFILE_NAME=test-server
-                  cd pr
-                  export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
-                  DISPLAY=:10 yarn smoketest
-                  SMOKE_EXIT_CODE=$?
-                  echo "smoke_tests_pr_exit_code=$SMOKE_EXIT_CODE" >> $GITHUB_ENV
+      - name: Run smoke tests for PR branch
+        continue-on-error: true
+        run: |
+          set +e  # Don't exit on errors
+          export VS_CODE_VERSION=stable
+          export SERVER_NAME=localhost
+          export AUTHENTICATION_TYPE="SQL Login"
+          export USER_NAME=sa
+          export PASSWORD=${{ env.PASSWORD }}
+          export SAVE_PASSWORD=No
+          export PROFILE_NAME=test-server
+          cd pr
+          export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
+          DISPLAY=:10 yarn smoketest
+          SMOKE_EXIT_CODE=$?
+          echo "smoke_tests_pr_exit_code=$SMOKE_EXIT_CODE" >> $GITHUB_ENV
 
-            - name: Upload Smoke Test Screenshots
-              uses: actions/upload-artifact@v4
-              with:
-                  name: smoke-test-failure-screenshots
-                  path: ./pr/test-results/**/
-                  retention-days: 7
+      - name: Upload Smoke Test Screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-failure-screenshots
+          path: ./pr/test-results/**/
+          retention-days: 7
 
-            - name: PR Smoke Test Report
-              uses: dorny/test-reporter@v2
-              if: success() || failure()
-              with:
-                  name: "Smoke Test Report"
-                  path: ./test-reports/**/smoke-results.xml
-                  reporter: jest-junit
-                  working-directory: ./pr
-                  badge-title: "smoke-tests"
-                  fail-on-error: false
+      - name: PR Smoke Test Report
+        uses: dorny/test-reporter@v2
+        if: success() || failure()
+        with:
+          name: "Smoke Test Report"
+          path: ./test-reports/**/smoke-results.xml
+          reporter: jest-junit
+          working-directory: ./pr
+          badge-title: "smoke-tests"
+          fail-on-error: false
 
-            - name: Run smoke tests for target branch # for calculating coverage comparison
-              continue-on-error: true
-              run: |
-                  export VS_CODE_VERSION=stable
-                  export SERVER_NAME=localhost
-                  export AUTHENTICATION_TYPE="SQL Login"
-                  export USER_NAME=sa
-                  export PASSWORD=${{ env.PASSWORD }}
-                  export SAVE_PASSWORD=No
-                  export PROFILE_NAME=test-server
-                  cd target
-                  export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" | head -n 1)
-                  DISPLAY=:10 yarn smoketest
+      - name: Run smoke tests for target branch # for calculating coverage comparison
+        continue-on-error: true
+        run: |
+          export VS_CODE_VERSION=stable
+          export SERVER_NAME=localhost
+          export AUTHENTICATION_TYPE="SQL Login"
+          export USER_NAME=sa
+          export PASSWORD=${{ env.PASSWORD }}
+          export SAVE_PASSWORD=No
+          export PROFILE_NAME=test-server
+          cd target
+          export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" | head -n 1)
+          DISPLAY=:10 yarn smoketest
 
-            - name: Merge Smoke and Unit Test Coverage Reports
-              run: |
-                  if [ -f target/test/resources/mergeReports.js ]; then
-                    node target/test/resources/mergeReports.js target/coverage/coverage-e2e/cobertura-coverage.xml target/coverage/cobertura-coverage.xml
-                  else
-                    echo "mergeReports.js not found in ./target, skipping..."
-                  fi
+      - name: Merge Smoke and Unit Test Coverage Reports
+        run: |
+          if [ -f target/test/resources/mergeReports.js ]; then
+            node target/test/resources/mergeReports.js target/coverage/coverage-e2e/cobertura-coverage.xml target/coverage/cobertura-coverage.xml
+          else
+            echo "mergeReports.js not found in ./target, skipping..."
+          fi
 
-                  if [ -f pr/test/resources/mergeReports.js ]; then
-                    node pr/test/resources/mergeReports.js pr/coverage/coverage-e2e/cobertura-coverage.xml pr/coverage/cobertura-coverage.xml
-                  else
-                    echo "mergeReports.js not found in ./pr, skipping..."
-                  fi
+          if [ -f pr/test/resources/mergeReports.js ]; then
+            node pr/test/resources/mergeReports.js pr/coverage/coverage-e2e/cobertura-coverage.xml pr/coverage/cobertura-coverage.xml
+          else
+            echo "mergeReports.js not found in ./pr, skipping..."
+          fi
 
-            - name: Generate Coverage Report
-              uses: danielpalme/ReportGenerator-GitHub-Action@5.4.4
-              with:
-                  reports: "./pr/coverage/cobertura-coverage.xml"
-                  targetdir: "coveragereport"
-                  reporttypes: "Html"
-                  toolpath: "reportgeneratortool"
+      - name: Generate Coverage Report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.4.4
+        with:
+          reports: "./pr/coverage/cobertura-coverage.xml"
+          targetdir: "coveragereport"
+          reporttypes: "Html"
+          toolpath: "reportgeneratortool"
 
-            - name: Upload coverage report artifact
-              uses: actions/upload-artifact@v4
-              with:
-                  name: CoverageReport # Artifact name
-                  path: coveragereport # Directory containing files to upload
+      - name: Upload coverage report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CoverageReport # Artifact name
+          path: coveragereport # Directory containing files to upload
 
-            - name: Code coverage
-              run: |
-                  cd target
-                  xml_coverage_target="./coverage/cobertura-coverage.xml"
-                  # Pull out the line rate coverage from the target branch's cobertura report
-                  line_rate_target=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_target" | sed 's/line-rate="\([0-9.]*\)"/\1/')
-                  line_rate_target=$(printf "%.2f" $(echo "$line_rate_target * 100" | bc))
-                  # Save formatted line rate in env variable
-                  echo "line_rate_target=$line_rate_target" >> $GITHUB_ENV
-                  cd ../pr
-                  xml_coverage_pr="./coverage/cobertura-coverage.xml"
-                  # Pull out the line rate coverage from the pr branch's cobertura report
-                  line_rate_pr=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_pr" | sed 's/line-rate="\([0-9.]*\)"/\1/')
-                  line_rate_pr=$(printf "%.2f" $(echo "$line_rate_pr * 100" | bc))
-                  # Save formatted line rate in env variable
-                  echo "line_rate_pr=$line_rate_pr" >> $GITHUB_ENV
-                  # Calculate difference in line coverage rate
-                  echo "line_rate_diff=$(echo "$line_rate_pr - $line_rate_target" | bc)" >> $GITHUB_ENV
-                  # Save formatted line rate difference in env variable
-                  line_rate_diff=$(printf "%.2f" $(echo "$line_rate_diff * 100" | bc))
-                  echo "line_rate_diff=$line_rate_diff" >> $GITHUB_ENV
-                  if [ $(echo "$line_rate_diff > 0" | bc) -eq 1 ]; then
-                    echo "coverage_change_icon=$better_change_icon" >> $GITHUB_ENV
-                  elif [ $(echo "$line_rate_diff < 0" | bc) -eq 1 ]; then
-                    echo "coverage_change_icon=$worse_change_icon" >> $GITHUB_ENV
-                  else
-                    echo "coverage_change_icon=$no_change_icon" >> $GITHUB_ENV
-                  fi
+      - name: Code coverage
+        run: |
+          cd target
+          xml_coverage_target="./coverage/cobertura-coverage.xml"
+          # Pull out the line rate coverage from the target branch's cobertura report
+          line_rate_target=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_target" | sed 's/line-rate="\([0-9.]*\)"/\1/')
+          line_rate_target=$(printf "%.2f" $(echo "$line_rate_target * 100" | bc))
+          # Save formatted line rate in env variable
+          echo "line_rate_target=$line_rate_target" >> $GITHUB_ENV
+          cd ../pr
+          xml_coverage_pr="./coverage/cobertura-coverage.xml"
+          # Pull out the line rate coverage from the pr branch's cobertura report
+          line_rate_pr=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_pr" | sed 's/line-rate="\([0-9.]*\)"/\1/')
+          line_rate_pr=$(printf "%.2f" $(echo "$line_rate_pr * 100" | bc))
+          # Save formatted line rate in env variable
+          echo "line_rate_pr=$line_rate_pr" >> $GITHUB_ENV
+          # Calculate difference in line coverage rate
+          echo "line_rate_diff=$(echo "$line_rate_pr - $line_rate_target" | bc)" >> $GITHUB_ENV
+          # Save formatted line rate difference in env variable
+          line_rate_diff=$(printf "%.2f" $(echo "$line_rate_diff * 100" | bc))
+          echo "line_rate_diff=$line_rate_diff" >> $GITHUB_ENV
+          if [ $(echo "$line_rate_diff > 0" | bc) -eq 1 ]; then
+            echo "coverage_change_icon=$better_change_icon" >> $GITHUB_ENV
+          elif [ $(echo "$line_rate_diff < 0" | bc) -eq 1 ]; then
+            echo "coverage_change_icon=$worse_change_icon" >> $GITHUB_ENV
+          else
+            echo "coverage_change_icon=$no_change_icon" >> $GITHUB_ENV
+          fi
 
-            - name: Write PR results to markdown
-              run: |
-                  echo "### PR Changes" >> results.md
-                  echo "| Category                      | Target Branch        | PR Branch         | Difference           |" >> results.md
-                  echo "|------------------------------|--------------------|-------------------|----------------------|" >> results.md
-                  echo "| Code Coverage                | ${{ env.line_rate_target }}% | ${{ env.line_rate_pr }}% | ${{ env.coverage_change_icon }} ${{ env.line_rate_diff }}%  |" >> results.md
-                  echo "| VSIX Size                    | ${{ env.target_vsix_size }} KB | ${{ env.pr_vsix_size }} KB | ${{ env.vsix_change_icon }} ${{ env.vsix_size_diff }} KB ( ${{ env.vsix_percentage_change }}% ) |" >> results.md
-                  echo "| Webview Bundle Size          | ${{ env.target_webview_bundle_size }} KB | ${{ env.pr_webview_bundle_size }} KB | ${{ env.webview_change_icon }} ${{ env.webview_size_diff }} KB ( ${{ env.webview_bundle_percentage_change }}% ) |" >> results.md
+      - name: Write PR results to markdown
+        run: |
+          echo "### PR Changes" >> results.md
+          echo "| Category                      | Target Branch        | PR Branch         | Difference           |" >> results.md
+          echo "|------------------------------|--------------------|-------------------|----------------------|" >> results.md
+          echo "| Code Coverage                | ${{ env.line_rate_target }}% | ${{ env.line_rate_pr }}% | ${{ env.coverage_change_icon }} ${{ env.line_rate_diff }}%  |" >> results.md
+          echo "| VSIX Size                    | ${{ env.target_vsix_size }} KB | ${{ env.pr_vsix_size }} KB | ${{ env.vsix_change_icon }} ${{ env.vsix_size_diff }} KB ( ${{ env.vsix_percentage_change }}% ) |" >> results.md
+          echo "| Webview Bundle Size          | ${{ env.target_webview_bundle_size }} KB | ${{ env.pr_webview_bundle_size }} KB | ${{ env.webview_change_icon }} ${{ env.webview_size_diff }} KB ( ${{ env.webview_bundle_percentage_change }}% ) |" >> results.md
 
-            - name: Find comment
-              uses: peter-evans/find-comment@v3
-              if: github.event_name == 'pull_request'
-              id: fc
-              with:
-                  issue-number: ${{ github.event.pull_request.number }}
-                  comment-author: "github-actions[bot]"
-                  body-includes: |
-                      ### PR Changes
+      - name: Find comment
+        uses: peter-evans/find-comment@v3
+        if: github.event_name == 'pull_request'
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: |
+            ### PR Changes
 
-            - name: Create or update comment
-              uses: peter-evans/create-or-update-comment@v4
-              if: github.event_name == 'pull_request'
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  issue-number: ${{ github.event.pull_request.number }}
-                  body-path: ./results.md
-                  comment-id: ${{ steps.fc.outputs.comment-id }}
-                  edit-mode: replace
+      - name: Create or update comment
+        uses: peter-evans/create-or-update-comment@v4
+        if: github.event_name == 'pull_request'
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body-path: ./results.md
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          edit-mode: replace
 
-            - name: Generate xliff files in PR branch
-              run: |
-                  cd pr
-                  yarn localization
+      - name: Generate xliff files in PR branch
+        run: |
+          cd pr
+          yarn localization
 
-            # Check if there are git changes in english xlf files
-            - name: Check for changes in english xlf files
-              run: |
-                  cd pr
-                  if git diff --quiet --exit-code ./localization/xliff/vscode-mssql.xlf; then
-                    echo "Changes not found in english xlf files"
-                    echo "loc_update_required=false" >> $GITHUB_ENV
-                  else
-                    echo "Changes found in english xlf files"
-                    echo "loc_update_required=true" >> $GITHUB_ENV
-                  fi
+      # Check if there are git changes in english xlf files
+      - name: Check for changes in english xlf files
+        run: |
+          cd pr
+          if git diff --quiet --exit-code ./localization/xliff/vscode-mssql.xlf; then
+            echo "Changes not found in english xlf files"
+            echo "loc_update_required=false" >> $GITHUB_ENV
+          else
+            echo "Changes found in english xlf files"
+            echo "loc_update_required=true" >> $GITHUB_ENV
+          fi
 
-            - name: Find comment
-              uses: peter-evans/find-comment@v3
-              if: github.event_name == 'pull_request'
-              id: loc-comment
-              with:
-                  issue-number: ${{ github.event.pull_request.number }}
-                  comment-author: "github-actions[bot]"
-                  body-includes: |
-                      # Updates to localized strings required
+      - name: Find comment
+        uses: peter-evans/find-comment@v3
+        if: github.event_name == 'pull_request'
+        id: loc-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: |
+            # Updates to localized strings required
 
-            - name: Create or update comment
-              if: github.event_name == 'pull_request' && env.loc_update_required == 'true'
-              uses: peter-evans/create-or-update-comment@v4
-              with:
-                  comment-id: ${{ steps.loc-comment.outputs.comment-id }}
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  issue-number: ${{ github.event.pull_request.number }}
-                  body: |
-                      # Updates to localized strings required
-                        Please update the localized strings in the PR with following steps:
-                        1. Run `yarn localization` in the PR branch.
-                        1. Based on the changes,
-                            * If there are changes in localized strings in source code, make sure that `src/localization/xliff/vscode-mssql.xlf` and `src/l10n/bundle.l10n.json` files are updated.
-                            * If there are changes in localized strings in `package.nls.json`, make sure that `src/localization/xliff/vscode-mssql.xlf` is updated.
-                  edit-mode: replace
+      - name: Create or update comment
+        if: github.event_name == 'pull_request' && env.loc_update_required == 'true'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.loc-comment.outputs.comment-id }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            # Updates to localized strings required
+              Please update the localized strings in the PR with following steps:
+              1. Run `yarn localization` in the PR branch.
+              1. Based on the changes,
+                  * If there are changes in localized strings in source code, make sure that `src/localization/xliff/vscode-mssql.xlf` and `src/l10n/bundle.l10n.json` files are updated.
+                  * If there are changes in localized strings in `package.nls.json`, make sure that `src/localization/xliff/vscode-mssql.xlf` is updated.
+          edit-mode: replace
 
-            - name: Delete comment
-              if: ${{ github.event_name == 'pull_request' && env.loc_update_required == 'false' && steps.loc-comment.outputs.comment-id != '' }}
-              run: |
-                  curl -X DELETE \
-                  -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-                  -H "Accept: application/vnd.github.v3+json" \
-                  https://api.github.com/repos/${{ github.repository }}/issues/comments/${{ steps.loc-comment.outputs.comment-id }}
+      - name: Delete comment
+        if: ${{ github.event_name == 'pull_request' && env.loc_update_required == 'false' && steps.loc-comment.outputs.comment-id != '' }}
+        run: |
+          curl -X DELETE \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/issues/comments/${{ steps.loc-comment.outputs.comment-id }}
 
-            - name: Fail pipeline if any checks failed
-              if: always()
-              run: |
-                  # Initialize failure flag
-                  PIPELINE_FAILED=false
+      - name: Fail pipeline if any checks failed
+        if: always()
+        run: |
+          # Initialize failure flag
+          PIPELINE_FAILED=false
 
-                  echo "Checking pipeline results..."
+          echo "Checking pipeline results..."
 
-                  # Check unit tests
-                  if [ "${{ env.unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.unit_tests_pr_exit_code }}" != "" ]; then
-                    echo "  ❌ Unit tests failed with exit code ${{ env.unit_tests_pr_exit_code }}"
-                    PIPELINE_FAILED=true
-                  fi
+          # Check unit tests
+          if [ "${{ env.unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.unit_tests_pr_exit_code }}" != "" ]; then
+            echo "  ❌ Unit tests failed with exit code ${{ env.unit_tests_pr_exit_code }}"
+            PIPELINE_FAILED=true
+          fi
 
-                  # Check smoke tests
-                  if [ "${{ env.smoke_tests_pr_exit_code }}" != "0" ] && [ "${{ env.smoke_tests_pr_exit_code }}" != "" ]; then
-                    echo "  ❌ Smoke tests failed with exit code ${{ env.smoke_tests_pr_exit_code }}"
-                    PIPELINE_FAILED=true
-                  fi
+          # Check smoke tests
+          if [ "${{ env.smoke_tests_pr_exit_code }}" != "0" ] && [ "${{ env.smoke_tests_pr_exit_code }}" != "" ]; then
+            echo "  ❌ Smoke tests failed with exit code ${{ env.smoke_tests_pr_exit_code }}"
+            PIPELINE_FAILED=true
+          fi
 
-                  # Check VSIX percentage change (if variables exist)
-                  if [ "${{ env.vsix_percentage_change }}" != "" ] && [ $(echo "${{ env.vsix_percentage_change }} > 5" | bc -l) -eq 1 ]; then
-                    echo "  ❌ VSIX size increased by more than 5% (${{ env.vsix_percentage_change }}%)"
-                    PIPELINE_FAILED=true
-                  fi
+          # Check VSIX percentage change (if variables exist)
+          if [ "${{ env.vsix_percentage_change }}" != "" ] && [ $(echo "${{ env.vsix_percentage_change }} > 5" | bc -l) -eq 1 ]; then
+            echo "  ❌ VSIX size increased by more than 5% (${{ env.vsix_percentage_change }}%)"
+            PIPELINE_FAILED=true
+          fi
 
-                  # Check VSIX absolute size (if variables exist)
-                  if [ "${{ env.pr_vsix_size }}" != "" ] && [ "${{ env.pr_vsix_size }}" -gt 25000 ]; then
-                    echo "  ❌ VSIX size is above 25MB (${{ env.pr_vsix_size }} KB)"
-                    PIPELINE_FAILED=true
-                  fi
+          # Check VSIX absolute size (if variables exist)
+          if [ "${{ env.pr_vsix_size }}" != "" ] && [ "${{ env.pr_vsix_size }}" -gt 25000 ]; then
+            echo "  ❌ VSIX size is above 25MB (${{ env.pr_vsix_size }} KB)"
+            PIPELINE_FAILED=true
+          fi
 
-                  # Check webview bundle percentage change (if variables exist)
-                  if [ "${{ env.webview_bundle_percentage_change }}" != "" ] && [ $(echo "${{ env.webview_bundle_percentage_change }} > 5" | bc -l) -eq 1 ]; then
-                    echo "  ❌ Webview bundle size increased by more than 5% (${{ env.webview_bundle_percentage_change }}%)"
-                    PIPELINE_FAILED=true
-                  fi
+          # Check webview bundle percentage change (if variables exist)
+          if [ "${{ env.webview_bundle_percentage_change }}" != "" ] && [ $(echo "${{ env.webview_bundle_percentage_change }} > 5" | bc -l) -eq 1 ]; then
+            echo "  ❌ Webview bundle size increased by more than 5% (${{ env.webview_bundle_percentage_change }}%)"
+            PIPELINE_FAILED=true
+          fi
 
-                  # Check localization
-                  if [ "${{ env.loc_update_required }}" = "true" ]; then
-                    echo "  ❌ Updates to localized strings are required"
-                    PIPELINE_FAILED=true
-                  fi
+          # Check localization
+          if [ "${{ env.loc_update_required }}" = "true" ]; then
+            echo "  ❌ Updates to localized strings are required"
+            PIPELINE_FAILED=true
+          fi
 
-                  # Fail if any issues were found
-                  if [ "$PIPELINE_FAILED" = "true" ]; then
-                    echo ""
-                    echo "Pipeline failed due to the above issues."
-                    exit 1
-                  else
-                    echo "  ✅ All checks passed!"
-                  fi
+          # Fail if any issues were found
+          if [ "$PIPELINE_FAILED" = "true" ]; then
+            echo ""
+            echo "Pipeline failed due to the above issues."
+            exit 1
+          else
+            echo "  ✅ All checks passed!"
+          fi

@@ -12,6 +12,12 @@ const config = {
                 parser: "html",
             },
         },
+        {
+            files: ["*.yml", "*.yaml"],
+            options: {
+                tabWidth: 2,
+            },
+        },
     ],
 };
 
