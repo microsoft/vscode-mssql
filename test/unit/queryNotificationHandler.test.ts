@@ -3,23 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
-import * as assert from "assert";
+import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
+import { expect } from "chai";
+import * as chai from "chai";
 import QueryRunner from "../../src/controllers/queryRunner";
 import { QueryNotificationHandler } from "../../src/controllers/queryNotificationHandler";
 import { NotificationHandler } from "vscode-languageclient";
 
-// TESTS //////////////////////////////////////////////////////////////////////////////////////////
-suite("QueryNotificationHandler tests", () => {
-    let notificationHandler: QueryNotificationHandler;
-    let eventData: any;
-    let runnerMock: TypeMoq.IMock<QueryRunner>;
+chai.use(sinonChai);
 
-    let batchStartHandlerCalled: boolean;
-    let messageHandlerCalled: boolean;
-    let resultSetCompleteHandlerCalled: boolean;
-    let batchCompleteHandlerCalled: boolean;
-    let queryCompleteHandlerCalled: boolean;
+suite("QueryNotificationHandler tests", () => {
+    let sandbox: sinon.SinonSandbox;
+    let notificationHandler: QueryNotificationHandler;
+    let eventData: { ownerUri: string };
+    let runnerMock: sinon.SinonStubbedInstance<QueryRunner>;
+    let runner: QueryRunner;
 
     let batchStartHandler: NotificationHandler<any>;
     let messageHandler: NotificationHandler<any>;
@@ -28,40 +27,17 @@ suite("QueryNotificationHandler tests", () => {
     let queryCompleteHandler: NotificationHandler<any>;
 
     setup(() => {
+        sandbox = sinon.createSandbox();
         notificationHandler = new QueryNotificationHandler();
         eventData = { ownerUri: "testUri" };
 
-        // Setup mock - Use the same QueryRunner for the whole test - this tests if it can be reused
-        runnerMock = TypeMoq.Mock.ofType(QueryRunner, TypeMoq.MockBehavior.Loose);
-        runnerMock.callBase = true;
-        runnerMock
-            .setup((x) => x.handleBatchStart(TypeMoq.It.isAny()))
-            .callback((event) => {
-                batchStartHandlerCalled = true;
-            });
-        runnerMock
-            .setup((x) => x.handleMessage(TypeMoq.It.isAny()))
-            .callback((event) => {
-                messageHandlerCalled = true;
-            });
-        runnerMock
-            .setup((x) => x.handleResultSetComplete(TypeMoq.It.isAny()))
-            .callback((event) => {
-                resultSetCompleteHandlerCalled = true;
-            });
-        runnerMock
-            .setup((x) => x.handleBatchComplete(TypeMoq.It.isAny()))
-            .callback((event) => {
-                batchCompleteHandlerCalled = true;
-            });
-        runnerMock
-            .setup((x) => x.handleQueryComplete(TypeMoq.It.isAny()))
-            .callback((event) => {
-                queryCompleteHandlerCalled = true;
-                runnerMock.object.setHasCompleted();
-            });
+        runnerMock = sandbox.createStubInstance(QueryRunner);
+        runnerMock.handleQueryComplete.callsFake(() => {
+            runnerMock.setHasCompleted();
+        });
 
-        // Get handlers
+        runner = runnerMock as unknown as QueryRunner;
+
         batchStartHandler = notificationHandler.handleBatchStartNotification();
         messageHandler = notificationHandler.handleMessageNotification();
         resultSetCompleteHandler = notificationHandler.handleResultSetCompleteNotification();
@@ -69,124 +45,96 @@ suite("QueryNotificationHandler tests", () => {
         queryCompleteHandler = notificationHandler.handleQueryCompleteNotification();
     });
 
-    // Setup booleans to track if handlers were called
-    function resetBools(): void {
-        batchStartHandlerCalled = false;
-        messageHandlerCalled = false;
-        resultSetCompleteHandlerCalled = false;
-        batchCompleteHandlerCalled = false;
-        queryCompleteHandlerCalled = false;
-        runnerMock.object.resetHasCompleted();
-    }
-
-    test("QueryNotificationHandler handles registerRunner at the beginning of the event flow", (done) => {
-        resetBools();
-
-        // If registerRunner is called, the query runner map should be populated
-        notificationHandler.registerRunner(runnerMock.object, eventData.ownerUri);
-        assert.equal(notificationHandler._queryRunners.size, 1);
-
-        // If the notifications are fired, the callbacks should be immediately fired too
-        batchStartHandler(eventData);
-        assert.equal(batchStartHandlerCalled, true);
-        messageHandler(eventData);
-        assert.equal(messageHandlerCalled, true);
-        resultSetCompleteHandler(eventData);
-        assert.equal(resultSetCompleteHandlerCalled, true);
-        batchCompleteHandler(eventData);
-        assert.equal(batchCompleteHandlerCalled, true);
-        queryCompleteHandler(eventData);
-        assert.equal(queryCompleteHandlerCalled, true);
-
-        // And cleanup should happen after queryCompleteHandlerCalled
-        assert.equal(
-            notificationHandler._queryRunners.size,
-            0,
-            "Query runner map not cleared after call to handleQueryCompleteNotification()",
-        );
-
-        done();
+    teardown(() => {
+        sandbox.restore();
     });
 
-    test("QueryNotificationHandler ignores notifications when no runner is registered", (done) => {
-        resetBools();
+    test("QueryNotificationHandler handles registerRunner at the beginning of the event flow", () => {
+        notificationHandler.registerRunner(runner, eventData.ownerUri);
+        expect(notificationHandler._queryRunners.size).to.equal(1);
 
+        batchStartHandler(eventData);
+        expect(runnerMock.handleBatchStart).to.have.been.calledOnceWithExactly(eventData);
+
+        messageHandler(eventData);
+        expect(runnerMock.handleMessage).to.have.been.calledOnceWithExactly(eventData);
+
+        resultSetCompleteHandler(eventData);
+        expect(runnerMock.handleResultSetComplete).to.have.been.calledOnceWithExactly(eventData);
+
+        batchCompleteHandler(eventData);
+        expect(runnerMock.handleBatchComplete).to.have.been.calledOnceWithExactly(eventData);
+
+        queryCompleteHandler(eventData);
+        expect(runnerMock.handleQueryComplete).to.have.been.calledOnceWithExactly(eventData);
+        expect(runnerMock.setHasCompleted).to.have.been.calledOnce;
+
+        expect(notificationHandler._queryRunners.size).to.equal(0);
+    });
+
+    test("QueryNotificationHandler ignores notifications when no runner is registered", () => {
         // If notifications are fired before registerRunner, they should be ignored (not queued)
         batchStartHandler(eventData);
         messageHandler(eventData);
 
-        // The callbacks should not be fired since no runner is registered
-        assert.equal(batchStartHandlerCalled, false);
-        assert.equal(messageHandlerCalled, false);
+        expect(runnerMock.handleBatchStart).to.not.have.been.called;
+        expect(runnerMock.handleMessage).to.not.have.been.called;
 
         // If register runner is then called, the query runner map should be populated
-        notificationHandler.registerRunner(runnerMock.object, eventData.ownerUri);
-        assert.equal(notificationHandler._queryRunners.size, 1);
-
+        notificationHandler.registerRunner(runner, eventData.ownerUri);
+        expect(notificationHandler._queryRunners.size).to.equal(1);
         // Previous notifications were ignored, so handlers still not called
-        assert.equal(batchStartHandlerCalled, false);
-        assert.equal(messageHandlerCalled, false);
+        expect(runnerMock.handleBatchStart).to.not.have.been.called;
+        expect(runnerMock.handleMessage).to.not.have.been.called;
 
         // If new notifications are fired, the callbacks should be immediately fired
         resultSetCompleteHandler(eventData);
-        assert.equal(resultSetCompleteHandlerCalled, true);
+        expect(runnerMock.handleResultSetComplete).to.have.been.calledOnceWithExactly(eventData);
+
         batchCompleteHandler(eventData);
-        assert.equal(batchCompleteHandlerCalled, true);
+        expect(runnerMock.handleBatchComplete).to.have.been.calledOnceWithExactly(eventData);
+
         queryCompleteHandler(eventData);
-        assert.equal(queryCompleteHandlerCalled, true);
+        expect(runnerMock.handleQueryComplete).to.have.been.calledOnceWithExactly(eventData);
+        expect(runnerMock.setHasCompleted).to.have.been.calledOnce;
 
-        // And cleanup should happen after queryCompleteHandlerCalled
-        assert.equal(
-            notificationHandler._queryRunners.size,
-            0,
-            "Query runner map not cleared after call to handleQueryCompleteNotification()",
-        );
-
-        done();
+        expect(notificationHandler._queryRunners.size).to.equal(0);
     });
 
-    test("QueryNotificationHandler properly unregisters runner after query completion", (done) => {
-        resetBools();
+    test("QueryNotificationHandler properly unregisters runner after query completion", () => {
+        notificationHandler.registerRunner(runner, eventData.ownerUri);
+        expect(notificationHandler._queryRunners.size).to.equal(1);
 
-        // Register runner first
-        notificationHandler.registerRunner(runnerMock.object, eventData.ownerUri);
-        assert.equal(notificationHandler._queryRunners.size, 1);
-
-        // Fire all notifications - they should all be handled
         batchStartHandler(eventData);
-        assert.equal(batchStartHandlerCalled, true);
+        expect(runnerMock.handleBatchStart).to.have.been.calledOnceWithExactly(eventData);
+
         messageHandler(eventData);
-        assert.equal(messageHandlerCalled, true);
+        expect(runnerMock.handleMessage).to.have.been.calledOnceWithExactly(eventData);
+
         resultSetCompleteHandler(eventData);
-        assert.equal(resultSetCompleteHandlerCalled, true);
+        expect(runnerMock.handleResultSetComplete).to.have.been.calledOnceWithExactly(eventData);
+
         batchCompleteHandler(eventData);
-        assert.equal(batchCompleteHandlerCalled, true);
+        expect(runnerMock.handleBatchComplete).to.have.been.calledOnceWithExactly(eventData);
+
         queryCompleteHandler(eventData);
-        assert.equal(queryCompleteHandlerCalled, true);
+        expect(runnerMock.handleQueryComplete).to.have.been.calledOnceWithExactly(eventData);
+        expect(runnerMock.setHasCompleted).to.have.been.calledOnce;
 
-        // After query complete, runner should be unregistered automatically
-        assert.equal(notificationHandler._queryRunners.size, 0);
-
-        done();
+        expect(notificationHandler._queryRunners.size).to.equal(0);
     });
 
-    test("QueryNotificationHandler handles manual unregister", (done) => {
-        resetBools();
+    test("QueryNotificationHandler handles manual unregister", () => {
+        notificationHandler.registerRunner(runner, eventData.ownerUri);
+        expect(notificationHandler._queryRunners.size).to.equal(1);
 
-        // Register runner
-        notificationHandler.registerRunner(runnerMock.object, eventData.ownerUri);
-        assert.equal(notificationHandler._queryRunners.size, 1);
-
-        // Manually unregister
         notificationHandler.unregisterRunner(eventData.ownerUri);
-        assert.equal(notificationHandler._queryRunners.size, 0);
+        expect(notificationHandler._queryRunners.size).to.equal(0);
 
-        // Notifications should be ignored after unregister
         batchStartHandler(eventData);
-        assert.equal(batchStartHandlerCalled, false);
-        messageHandler(eventData);
-        assert.equal(messageHandlerCalled, false);
+        expect(runnerMock.handleBatchStart).to.not.have.been.called;
 
-        done();
+        messageHandler(eventData);
+        expect(runnerMock.handleMessage).to.not.have.been.called;
     });
 });

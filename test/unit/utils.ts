@@ -10,6 +10,9 @@ import * as vscode from "vscode";
 import { IExtension } from "vscode-mssql";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as path from "path";
+import SqlToolsServerClient from "../../src/languageservice/serviceclient";
+import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
+import { buildCapabilitiesResult } from "./mocks";
 
 // Launches and activates the extension
 export async function activateExtension(): Promise<IExtension> {
@@ -35,16 +38,33 @@ export function stubVscodeWrapper(
     const stubber = sandbox || sinon;
 
     const vscodeWrapper = stubber.createStubInstance(VscodeWrapper);
-    const outputChannel = stubber.stub({
-        append: () => stubber.stub(),
-        appendLine: () => stubber.stub(),
-    }) as unknown as vscode.OutputChannel;
 
-    stubber.stub(vscodeWrapper, "outputChannel").get(() => {
-        return outputChannel;
-    });
+    const outputChannel: vscode.OutputChannel = {
+        name: "",
+        append: stubber.stub(),
+        appendLine: stubber.stub(),
+        clear: stubber.stub(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        show: stubber.stub() as any,
+        replace: stubber.stub(),
+        hide: stubber.stub(),
+        dispose: stubber.stub(),
+    };
+
+    stubber.stub(vscodeWrapper, "outputChannel").get(() => outputChannel);
 
     return vscodeWrapper;
+}
+
+export function stubGetCapabilitiesRequest(
+    sandbox?: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<SqlToolsServerClient> {
+    const stubber = sandbox || sinon;
+    const serviceClientMock = stubber.createStubInstance(SqlToolsServerClient);
+    serviceClientMock.sendRequest
+        .withArgs(GetCapabilitiesRequest.type, sinon.match.any)
+        .resolves(buildCapabilitiesResult());
+    return serviceClientMock;
 }
 
 export function initializeIconUtils(): void {
