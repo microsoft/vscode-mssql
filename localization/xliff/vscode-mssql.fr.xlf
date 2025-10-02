@@ -2157,7 +2157,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++207b04072a822fa8e76629bcd504bc8c19525b86f444ac77a6f3be1c88a502eb">
         <source xml:lang="en">Insufficient Workspace Permissions</source>
-        <target state="new">Insufficient Workspace Permissions</target>
+        <target state="translated">Autorisations d'espace de travail insuffisantes</target>
       </trans-unit>
       <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
         <source xml:lang="en">Integrated</source>
@@ -4986,7 +4986,7 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
       </trans-unit>
       <trans-unit id="mssql.preventAutoExecuteScript">
         <source xml:lang="en">Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.</source>
-        <target state="new">Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.</target>
+        <target state="translated">Empêcher l'exécution automatique des scripts (par exemple, « Sélectionner les 1 000 premiers »). Lorsque cette option est activée, les scripts ne seront pas exécutés automatiquement lors de la génération.</target>
       </trans-unit>
       <trans-unit id="mssql.authCodeGrant.description">
         <source xml:lang="en">Prompts users to sign in using their browser.</source>
