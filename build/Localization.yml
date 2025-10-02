@@ -4,34 +4,33 @@
 trigger:
   branches:
     include:
-    - refs/heads/main
+      - refs/heads/main
   paths:
     include:
-    - src
+      - src
 
 jobs:
-- job: Localization
-  pool:
-    vmImage: windows-latest
-  steps:
-  - checkout: self
-    fetchDepth: 1
-    persistCredentials: True
-  - task: cesve.one-loc-build.one-loc-build.OneLocBuild@2
-    env:
-      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-    inputs:
-      locProj: 'localization/LocProject.json'
-      outDir: '$(Build.ArtifactStagingDirectory)'
-      dependencyPackageSource: 'https://pkgs.dev.azure.com/msdata/_packaging/SQLDS_SSMS/nuget/v3/index.json'
-      packageSourceAuth: patAuth
-      repoType: gitHub
-      isCreatePrSelected: True
-      prSourceBranchPrefix: 'locfiles'
-      isAutoCompletePrSelected: true
-      gitHubPrMergeMethod: squash
-      isDeletePrSourceBranchSelected: false
+  - job: Localization
+    pool:
+      vmImage: windows-latest
+    steps:
+      - checkout: self
+        fetchDepth: 1
+        persistCredentials: True
+      - task: cesve.one-loc-build.one-loc-build.OneLocBuild@2
+        env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+        inputs:
+          locProj: "localization/LocProject.json"
+          outDir: "$(Build.ArtifactStagingDirectory)"
+          dependencyPackageSource: "https://pkgs.dev.azure.com/msdata/_packaging/SQLDS_SSMS/nuget/v3/index.json"
+          packageSourceAuth: patAuth
+          repoType: gitHub
+          isCreatePrSelected: True
+          prSourceBranchPrefix: "locfiles"
+          isAutoCompletePrSelected: true
+          gitHubPrMergeMethod: squash
+          isDeletePrSourceBranchSelected: false
 
-
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact: drop'
+      - task: PublishBuildArtifacts@1
+        displayName: "Publish Artifact: drop"
