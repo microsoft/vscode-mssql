@@ -43,6 +43,6 @@ runs:
 
 inputs:
   source-dir:
-    description: 'The source directory to build'
+    description: "The source directory to build"
     required: false
-    default: '.'
+    default: "."
