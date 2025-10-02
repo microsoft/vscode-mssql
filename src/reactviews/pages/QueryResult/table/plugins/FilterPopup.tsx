@@ -53,7 +53,7 @@ interface FilterPopupProps {
 }
 
 const POPUP_WIDTH = 200;
-const ITEM_HEIGHT = 28;
+const ITEM_HEIGHT = 22;
 const LIST_HEIGHT = ITEM_HEIGHT * 4;
 const OVERSCAN = 4;
 
@@ -64,7 +64,7 @@ const useStyles = makeStyles({
         width: POPUP_WIDTH + "px",
         display: "flex",
         flexDirection: "column",
-        rowGap: tokens.spacingVerticalS,
+        //rowGap: tokens.spacingVerticalS,
         ...shorthands.padding(tokens.spacingVerticalS, tokens.spacingHorizontalS),
         borderRadius: tokens.borderRadiusMedium,
         backgroundColor: tokens.colorNeutralBackground1,
@@ -137,7 +137,10 @@ const useStyles = makeStyles({
         overflowY: "auto",
         overflowX: "hidden",
         ...shorthands.border("1px", "solid", tokens.colorNeutralStroke2),
+        borderTop: "none",
         borderRadius: tokens.borderRadiusSmall,
+        borderTopLeftRadius: 0,
+        borderTopRightRadius: 0,
         backgroundColor: tokens.colorNeutralBackground3,
         boxShadow: `inset 0 1px 3px ${tokens.colorNeutralShadowAmbient}`,
         "&:focus": {
@@ -152,13 +155,17 @@ const useStyles = makeStyles({
         alignItems: "center",
         justifyContent: "space-between",
         backgroundColor: tokens.colorNeutralBackground3,
-        ...shorthands.padding("2px", tokens.spacingHorizontalXXS),
-        ...shorthands.border("1px", "solid", tokens.colorNeutralStroke2),
-        borderRadius: tokens.borderRadiusSmall,
+        ...shorthands.padding(0, "4px"),
+        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderLeft: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        borderTopLeftRadius: tokens.borderRadiusSmall,
+        borderTopRightRadius: tokens.borderRadiusSmall,
         height: ITEM_HEIGHT + "px",
     },
     scrollableList: {
-        ...shorthands.padding("2px", tokens.spacingHorizontalXXS),
+        ...shorthands.padding(0, "4px"),
     },
     spacer: {
         height: 0,
@@ -168,8 +175,8 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         height: ITEM_HEIGHT + "px",
-        paddingInline: tokens.spacingHorizontalXXS,
-        columnGap: tokens.spacingHorizontalXXS,
+        paddingInline: 0,
+        columnGap: 0,
         borderRadius: tokens.borderRadiusSmall,
         cursor: "pointer",
         "&:hover": {
@@ -580,7 +587,7 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
                                     }}
                                     appearance={currentSort === "asc" ? "primary" : "subtle"}
                                     size="small"
-                                    icon={<SortAscendingIcon width={12} height={12} />}
+                                    icon={<SortAscendingIcon />}
                                     onClick={handleSortAscending}
                                     title="Sort Ascending"
                                     aria-label="Sort Ascending"
@@ -591,7 +598,7 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
                                 <Button
                                     appearance={currentSort === "desc" ? "primary" : "subtle"}
                                     size="small"
-                                    icon={<SortDescendingIcon width={12} height={12} />}
+                                    icon={<SortDescendingIcon />}
                                     onClick={handleSortDescending}
                                     title="Sort Descending"
                                     aria-label="Sort Descending"
@@ -602,7 +609,7 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
                                 <Button
                                     appearance="subtle"
                                     size="small"
-                                    icon={<SortClearIcon width={12} height={12} />}
+                                    icon={<SortClearIcon />}
                                     onClick={handleClearSort}
                                     title="Clear Sort"
                                     aria-label="Clear Sort"
@@ -651,7 +658,7 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
                             size={100}
                             aria-live="polite"
                             className={styles.counter}>
-                            {selectedValues.size}/{totalItems}
+                            {selectedValues.size} selected
                         </Text>
                     </div>
                     <div
