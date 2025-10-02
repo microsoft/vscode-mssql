@@ -2,10 +2,9 @@
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/en/) v18 or higher
-- [yarn](https://yarnpkg.com/) v1.22.0 or higher, `npm install -g yarn`
-- [nyc](https://www.npmjs.com/package/nyc) v17.1.0 or higher, `npm install -g nyc`
-
+-   [Node.js](https://nodejs.org/en/) v18 or higher
+-   [yarn](https://yarnpkg.com/) v1.22.0 or higher, `npm install -g yarn`
+-   [nyc](https://www.npmjs.com/package/nyc) v17.1.0 or higher, `npm install -g nyc`
 
 ### ⚠️ Important
 
@@ -14,9 +13,10 @@ These tests launch a separate instance of VSCode in a clean environment using El
 If you have VSCode open, it can cause conflicts with the test-launched instance and lead to errors.
 
 This happens because:
-- An already running VSCode session can lock resources needed by the test instance.
-- The test-launched VSCode process may fail to start properly when another session is open.
-- It can cause instability, test failures, or crashes.
+
+-   An already running VSCode session can lock resources needed by the test instance.
+-   The test-launched VSCode process may fail to start properly when another session is open.
+-   It can cause instability, test failures, or crashes.
 
 To avoid this, always ensure that **no VSCode windows are open** when running these tests.
 
@@ -31,12 +31,15 @@ nyc instrument ./out/src ./out/src --in-place --exclude=**/views/htmlcontent/**
 ```
 
 If you get a memory error while instrumentation, run this
+
 ```shell
 $env:NODE_OPTIONS="--max-old-space-size=8192"
 ```
+
 then rerun the instrumentation
 
 After the code is instrumented, run the tests using
+
 ```shell
 npx nyc --reporter=html --reporter=text-summary --include="src/reactviews/pages/**/*.tsx" npx playwright test
 ```
@@ -52,4 +55,5 @@ yarn build; npx nyc --reporter=html --reporter=text-summary --include="src/react
 This will recompile your tests and run them for coverage.
 
 #### Limitations
+
 For now, there's no way to access VSCode elements that run outside the playwright context; For example, things like the VSCode save dialog, or alert popups.

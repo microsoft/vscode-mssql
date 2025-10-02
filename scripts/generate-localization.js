@@ -4,9 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 const vscodel10n = require("@vscode/l10n-dev");
-const fs = require('fs').promises;
-const path = require('path');
+const fs = require("fs").promises;
+const path = require("path");
 const logger = require("./terminal-logger");
+const { writeJsonAndFormat } = require("./file-utils");
 
 /**
  * Generates runtime localization files for the extension
@@ -65,8 +66,12 @@ async function generateRuntimeLocalizationFiles() {
                         }
 
                         const filePath = path.resolve(l10nDir, fileName);
-                        await fs.writeFile(filePath, JSON.stringify(fileContent.messages, null, 2));
-                        logger.success(`Created bundle file: ${fileName}`);
+                        const formatted = await writeJsonAndFormat(filePath, fileContent.messages);
+                        if (formatted) {
+                            logger.success(`Created and formatted bundle file: ${fileName}`);
+                        } else {
+                            logger.warning(`Created bundle file: ${fileName} (formatting failed)`);
+                        }
                         generatedFiles++;
                     } else if (fileContent.name === "package") {
                         // Skip English package files (manually maintained)
@@ -78,8 +83,12 @@ async function generateRuntimeLocalizationFiles() {
                         // Generate package localization file
                         const fileName = `package.nls.${fileContent.language}.json`;
                         const filePath = path.resolve(packageDir, fileName);
-                        await fs.writeFile(filePath, JSON.stringify(fileContent.messages, null, 2));
-                        logger.success(`Created package file: ${fileName}`);
+                        const formatted = await writeJsonAndFormat(filePath, fileContent.messages);
+                        if (formatted) {
+                            logger.success(`Created and formatted package file: ${fileName}`);
+                        } else {
+                            logger.warning(`Created package file: ${fileName} (formatting failed)`);
+                        }
                         generatedFiles++;
                     }
                 }

@@ -34,6 +34,7 @@ export const cmdrevealQueryResult = "mssql.revealQueryResult";
 export const cmdCopyAll = "mssql.copyAll";
 export const cmdConnect = "mssql.connect";
 export const cmdDisconnect = "mssql.disconnect";
+export const cmdChangeConnection = "mssql.changeConnection";
 export const cmdChangeDatabase = "mssql.changeDatabase";
 export const cmdChooseDatabase = "mssql.chooseDatabase";
 export const cmdChooseLanguageFlavor = "mssql.chooseLanguageFlavor";
@@ -112,6 +113,7 @@ export const cmdDeployNewDatabase = "mssql.deployNewDatabase";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
+export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
@@ -131,6 +133,9 @@ export const errorPasswordNeedsReset = 18488;
 export const errorLoginFailed = 18456;
 export const errorFirewallRule = 40615;
 export const errorSSLCertificateValidationFailed = -2146893019;
+export const errorKerberosSubString = "Kerberos";
+export const errorMacOsOpenSSLErrorSubstring =
+    "Unable to load DLL 'System.Security.Cryptography.Native'";
 export const outputContentTypeRoot = "root";
 export const outputContentTypeMessages = "messages";
 export const outputContentTypeResultsetMeta = "resultsetsMeta";
@@ -204,6 +209,7 @@ export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";
 export const configSplitPaneSelection = "splitPaneSelection";
 export const configShowBatchTime = "showBatchTime";
+export const configPreventAutoExecuteScript = "mssql.query.preventAutoExecuteScript";
 export enum extConfigResultKeys {
     Shortcuts = "shortcuts",
     MessagesDefaultOpen = "messagesDefaultOpen",
@@ -241,6 +247,7 @@ export const configSchemaDesignerEnableExpandCollapseButtons =
     "mssql.schemaDesigner.enableExpandCollapseButtons";
 export const configSavePasswordsUntilRestart =
     "mssql.connectionManagement.rememberPasswordsUntilRestart";
+export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";

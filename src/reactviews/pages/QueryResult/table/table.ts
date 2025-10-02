@@ -58,6 +58,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     protected _tableContainer: HTMLElement;
     private selectionModel: CellSelectionModel<T>;
     public headerFilter: HeaderFilter<T>;
+    private _autoColumnSizePlugin: AutoColumnSize<T>;
     private _lastScrollAt: number = 0;
 
     constructor(
@@ -80,6 +81,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
                 hasRowSelector: true,
             },
             context,
+            uri,
+            resultSetSummary,
         );
         if (
             !configuration ||
@@ -154,15 +157,14 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             ),
         );
 
-        this.registerPlugin(
-            new AutoColumnSize(
-                {
-                    maxWidth: MAX_COLUMN_WIDTH_PX,
-                    autoSizeOnRender: autoSizeColumns,
-                },
-                this.context,
-            ),
+        this._autoColumnSizePlugin = new AutoColumnSize(
+            {
+                maxWidth: MAX_COLUMN_WIDTH_PX,
+                autoSizeOnRender: autoSizeColumns,
+            },
+            this.context,
         );
+        this.registerPlugin(this._autoColumnSizePlugin);
 
         if (configuration && configuration.columns) {
             this.columns = configuration.columns;
@@ -542,7 +544,9 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     }
 
     autosizeColumns() {
-        this._grid.autosizeColumns();
+        if (this._autoColumnSizePlugin) {
+            this._autoColumnSizePlugin.autosizeColumns();
+        }
     }
 
     set autoScroll(active: boolean) {
@@ -555,6 +559,87 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         if (styles.tableHeaderBackground) {
             content.push(
                 `.monaco-table .${this.idPrefix} .slick-header .slick-header-column { background-color: ${styles.tableHeaderBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellBackground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null { background-color: ${styles.nullCellBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellForeground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null { color: ${styles.nullCellForeground}; }`,
+            );
+        }
+
+        if (styles.nullCellHoverBackground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null:hover { background-color: ${styles.nullCellHoverBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellHoverForeground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null:hover { color: ${styles.nullCellHoverForeground}; }`,
+            );
+        }
+
+        if (styles.nullCellSelectionBackground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected { background-color: ${styles.nullCellSelectionBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellSelectionForeground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected { color: ${styles.nullCellSelectionForeground}; }`,
+            );
+        }
+
+        if (styles.nullCellHoverSelectionBackground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected:hover { background-color: ${styles.nullCellHoverSelectionBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellHoverSelectionForeground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected:hover { color: ${styles.nullCellHoverSelectionForeground}; }`,
+            );
+        }
+
+        if (styles.nullCellSelectionActiveBackground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected.active { background-color: ${styles.nullCellSelectionActiveBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellSelectionActiveForeground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected.active { color: ${styles.nullCellSelectionActiveForeground}; }`,
+            );
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected.active:hover { background-color: ${styles.nullCellSelectionActiveBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellHoverForeground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null:hover { color: ${styles.nullCellHoverForeground}; }`,
+            );
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected.active:hover { color: ${styles.nullCellHoverForeground}; }`,
+            );
+        }
+
+        if (styles.nullCellHoverBackground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null:hover { background-color: ${styles.nullCellHoverBackground}; }`,
+            );
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected.active:hover { background-color: ${styles.nullCellHoverBackground}; }`,
             );
         }
 

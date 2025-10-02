@@ -163,6 +163,10 @@
       <source xml:lang="en">An error occurred while removing Microsoft Entra account: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++381d558ea8ee3e00d772e070932d5a334e7743c399dda1ddd675e1962d6e32bc">
+      <source xml:lang="en">An error occurred while retrieving rows: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++6bda942fdd68d287fb0f1659be0f2011ad842f9295aa230d763f3cec6db5b000">
       <source xml:lang="en">An error occurred while searching database objects</source>
     </trans-unit>
@@ -524,8 +528,14 @@
     <trans-unit id="++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643">
       <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36">
+      <source xml:lang="en">Click to cancel loading summary</source>
+    </trans-unit>
     <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
       <source xml:lang="en">Click to connect to a database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++66abaeec0367ba4920e21447dfa2dafb94c7f38dc262dfb91e76799022a436d5">
+      <source xml:lang="en">Click to load summary</source>
     </trans-unit>
     <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
       <source xml:lang="en">Click to sign into an Azure account</source>
@@ -538,6 +548,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4c7dd73e4af7d97c296dc01ab37edd119e5ef22592cb6a302bd9dc9a55264873">
       <source xml:lang="en">Close Find</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
+      <source xml:lang="en">Close properties pane</source>
     </trans-unit>
     <trans-unit id="++CODE++548e8cc0e8c2423c61f30c6e8b75a1a40c995e3be119df6272b280ab6c15a011">
       <source xml:lang="en">Close the current connection</source>
@@ -1171,6 +1184,13 @@
     <trans-unit id="++CODE++6d89c16c7cf3f832b29fe1d181d420d4a583f93bb02e63fdfa266c33b6b3fcaf">
       <source xml:lang="en">Error loading preview</source>
     </trans-unit>
+    <trans-unit id="++CODE++fa8002fe1d41e09812880f2bfb97ef0849885d8a4de95a67b26294b7e83e912f">
+      <source xml:lang="en">Error loading summary</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8108929d06fb4fe87c58e7407990ec8d46dc422dfa3ee467d2f5f622abd9840d">
+      <source xml:lang="en">Error loading summary: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++3ba789024640c6f231695bdf0d82e6845483cf65f092b3c3646910e60c638761">
       <source xml:lang="en">Error loading workspaces</source>
     </trans-unit>
@@ -1241,6 +1261,9 @@
     </trans-unit>
     <trans-unit id="++CODE++48ad32aba89e3b0bbab4397b56bd23794212fe69606e0b644ff3b543035a048d">
       <source xml:lang="en">Expand Workspace Explorer</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
+      <source xml:lang="en">Expand properties pane</source>
     </trans-unit>
     <trans-unit id="++CODE++c39d646f10769b078ae82be4da7a0079ca91182b241e749be4276e08c215c654">
       <source xml:lang="en">Explorer</source>
@@ -1359,6 +1382,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cc941d13be3079b6fc2c4cf73df1e3583aca4d5f0df87203767037625e8d37aa">
       <source xml:lang="en">Failed to start SQL Server container. Please check the error message for more details, and then try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++08e3cce193c1731c751f4e68352687632cb9edb3e01e8bc9200742d0bd5f7b2c">
+      <source xml:lang="en">Failed to start query.</source>
     </trans-unit>
     <trans-unit id="++CODE++8d966abf7ce439608c05903323ea676d64af27e6119ddcc6edebd6db2cd5c479">
       <source xml:lang="en">Failed to start {0}.</source>
@@ -1622,8 +1648,8 @@
     <trans-unit id="++CODE++07fe70d13a25b3d4c4f7d4e64e1aaa9b9d80952a1478fb7e2da36209ccbf549f">
       <source xml:lang="en">Insufficient Capacity Permissions</source>
     </trans-unit>
-    <trans-unit id="++CODE++ece3ecedb5f57c84cc9749995b62f69213c0cb04b1578a713fda486ff04f8fdb">
-      <source xml:lang="en">Insufficient Worskpace Permissions</source>
+    <trans-unit id="++CODE++207b04072a822fa8e76629bcd504bc8c19525b86f444ac77a6f3be1c88a502eb">
+      <source xml:lang="en">Insufficient Workspace Permissions</source>
     </trans-unit>
     <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
       <source xml:lang="en">Integrated</source>
@@ -1836,6 +1862,15 @@
     </trans-unit>
     <trans-unit id="++CODE++934bbb16d95b8f72c6353bba1afc96aee3975ae50aaca4b3abe9389f292b4987">
       <source xml:lang="en">Loading local containers...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297">
+      <source xml:lang="en">Loading results...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ba622a4c63bd7d102bdc3057b04b4cfd8d2af5b2adb230bebc98414fc46afae0">
+      <source xml:lang="en">Loading summary {0}/{1} ({2}%) (Click to cancel)</source>
+      <note>{0} is the current row
+{1} is the total number of rows
+{2} is the percentage of rows loaded</note>
     </trans-unit>
     <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
       <source xml:lang="en">Loading tenants...</source>
@@ -2423,6 +2458,9 @@
     <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
       <source xml:lang="en">Restore panel size</source>
     </trans-unit>
+    <trans-unit id="++CODE++26b4293018ea72418733109f2e245387d9dfcfe7d4083c0c1f29eb1155c98365">
+      <source xml:lang="en">Restore properties pane</source>
+    </trans-unit>
     <trans-unit id="++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c">
       <source xml:lang="en">Result Set {0}</source>
       <note>{0} is the index of the result set</note>
@@ -2899,6 +2937,12 @@
     <trans-unit id="++CODE++9c85106af25fd7656e977d5453607973955ae5d79fce0a78264cd714a628e981">
       <source xml:lang="en">Successfully saved results to </source>
     </trans-unit>
+    <trans-unit id="++CODE++17888248578c82867c18ea2dc512a96eabbbbb8184442d219746c3b8b8ff6030">
+      <source xml:lang="en">Summary loading canceled</source>
+    </trans-unit>
+    <trans-unit id="++CODE++93775107b302b7d63191a5c2a8ea3803d44d17781da939eb367d7555f25c1752">
+      <source xml:lang="en">Summary loading was canceled by user</source>
+    </trans-unit>
     <trans-unit id="++CODE++175f5352107a324eb25f4342a9114e2685b64a1ef54a5ff6ba3a24d0ac215ea7">
       <source xml:lang="en">Switch Direction</source>
     </trans-unit>
@@ -3344,6 +3388,10 @@
       <source xml:lang="en">{0} properties</source>
       <note>{0} is the object type</note>
     </trans-unit>
+    <trans-unit id="++CODE++2bd22e3b4b0281a2ffa3bc8bdd3e1f2b49dedcdde97d4cc83fdf598d1208d103">
+      <source xml:lang="en">{0} rows selected, click to load summary</source>
+      <note>{0} is the number of rows to fetch summary statistics for</note>
+    </trans-unit>
     <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
       <source xml:lang="en">{0} started successfully.</source>
       <note>{0} started successfully.</note>
@@ -3426,8 +3474,14 @@
     <trans-unit id="mssql.openQueryResultsInTabByDefault.description">
       <source xml:lang="en">Automatically display query results in a new tab instead of the query pane. This option takes effect only if `mssql.enableRichExperiences` is enabled.</source>
     </trans-unit>
+    <trans-unit id="mssql.autoRevealResultsPanel">
+      <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when &apos;Open Results in Tab&apos; is enabled.</source>
+    </trans-unit>
     <trans-unit id="mssql.cancelQuery">
       <source xml:lang="en">Cancel Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.changeConnection">
+      <source xml:lang="en">Change Connection</source>
     </trans-unit>
     <trans-unit id="mssql.changeDatabase">
       <source xml:lang="en">Change Database</source>
@@ -3731,6 +3785,9 @@
     </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
+    </trans-unit>
+    <trans-unit id="mssql.preventAutoExecuteScript">
+      <source xml:lang="en">Prevent automatic execution of scripts (e.g., &apos;Select Top 1000&apos;). When enabled, scripts will not be automatically executed upon generation.</source>
     </trans-unit>
     <trans-unit id="mssql.authCodeGrant.description">
       <source xml:lang="en">Prompts users to sign in using their browser.</source>

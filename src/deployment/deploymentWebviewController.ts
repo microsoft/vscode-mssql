@@ -44,6 +44,7 @@ export class DeploymentWebviewController extends FormWebviewController<
         vscodeWrapper: VscodeWrapper,
         // Main controller is used to connect to the container after creation
         public mainController: MainController,
+        initialConnectionGroup?: string,
     ) {
         super(context, vscodeWrapper, "deployment", "deployment", new DeploymentWebviewState(), {
             title: newDeployment,
@@ -61,10 +62,14 @@ export class DeploymentWebviewController extends FormWebviewController<
                 ),
             },
         });
-        void this.initialize();
+        void this.initialize(initialConnectionGroup);
     }
 
-    private async initialize() {
+    private async initialize(initialConnectionGroup?: string) {
+        // If an initial connection group was provided, try to pre-populate the form state
+        if (initialConnectionGroup && initialConnectionGroup) {
+            this.state.formState.groupId = initialConnectionGroup;
+        }
         this.state.connectionGroupOptions =
             await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
         this.registerRpcHandlers();
@@ -78,17 +83,20 @@ export class DeploymentWebviewController extends FormWebviewController<
             state.deploymentType = payload.deploymentType;
             state.deploymentTypeState.loadState = ApiStatus.Loading;
             this.updateState(state);
+            const selectedGroupId = state?.formState?.groupId;
 
             // Initialize the appropriate deployment type state
             if (payload.deploymentType === DeploymentType.LocalContainers) {
                 newDeploymentTypeState = await localContainers.initializeLocalContainersState(
                     state.connectionGroupOptions,
+                    selectedGroupId,
                 );
             } else if (payload.deploymentType === DeploymentType.FabricProvisioning) {
                 newDeploymentTypeState = await fabricProvisioning.initializeFabricProvisioningState(
                     this,
                     state.connectionGroupOptions,
                     this.logger,
+                    selectedGroupId,
                 );
             }
 
@@ -138,14 +146,14 @@ export class DeploymentWebviewController extends FormWebviewController<
                 await this.mainController.connectionManager.connectionUI.getConnectionGroupOptions();
 
             state.dialog = undefined;
-            state.deploymentTypeState.dialog = state.dialog;
+            state.deploymentTypeState.dialog = undefined;
 
             return state;
         });
 
         this.registerReducer("setConnectionGroupDialogState", async (state, payload) => {
             if (payload.shouldOpen) {
-                state = getDefaultConnectionGroupDialogProps(state) as DeploymentWebviewState;
+                state.dialog = getDefaultConnectionGroupDialogProps();
             } else {
                 state.dialog = undefined;
             }

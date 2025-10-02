@@ -21,6 +21,8 @@ import store, { SubKeys } from "./singletonStore";
 import { JsonFormattingEditProvider } from "../utils/jsonFormatter";
 import * as LocalizedConstants from "../constants/locConstants";
 
+export const MAX_VIEW_COLUMN = 9;
+
 export function getNewResultPaneViewColumn(
     uri: string,
     vscodeWrapper: VscodeWrapper,
@@ -28,31 +30,36 @@ export function getNewResultPaneViewColumn(
     // // Find configuration options
     let config = vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, uri);
     let splitPaneSelection = config[Constants.configSplitPaneSelection];
-    let viewColumn: vscode.ViewColumn;
 
     switch (splitPaneSelection) {
         case "current":
-            viewColumn = vscodeWrapper.activeTextEditor.viewColumn;
-            break;
+            return vscodeWrapper.activeTextEditor.viewColumn;
         case "end":
-            viewColumn = vscode.ViewColumn.Three;
-            break;
-        // default case where splitPaneSelection is next or anything else
+            const visibleEditors = vscode.window.visibleTextEditors;
+            const maxViewColumn = visibleEditors.reduce((max, editor) => {
+                return editor.viewColumn && editor.viewColumn > max ? editor.viewColumn : max;
+            }, 0);
+            return Math.min(maxViewColumn + 1, MAX_VIEW_COLUMN) as vscode.ViewColumn;
+        /**
+         * 'next' is the default case.
+         */
+        case "next":
         default:
-            // if there's an active text editor
-            if (vscodeWrapper.isEditingSqlFile) {
-                viewColumn = vscodeWrapper.activeTextEditor.viewColumn;
-                if (viewColumn === vscode.ViewColumn.One) {
-                    viewColumn = vscode.ViewColumn.Two;
-                } else {
-                    viewColumn = vscode.ViewColumn.Three;
-                }
-            } else {
-                // otherwise take default results column
-                viewColumn = vscode.ViewColumn.Two;
+            const currentEditor = vscode.window.visibleTextEditors.find((editor) => {
+                return (
+                    editor.document.uri.toString(true) === uri && editor.viewColumn !== undefined
+                );
+            });
+            if (!currentEditor) {
+                return vscode.ViewColumn.One;
             }
+
+            const newViewColumn = Math.min(
+                (currentEditor.viewColumn ?? 1) + 1,
+                MAX_VIEW_COLUMN,
+            ) as vscode.ViewColumn;
+            return newViewColumn;
     }
-    return viewColumn;
 }
 
 export function registerCommonRequestHandlers(
@@ -305,13 +312,16 @@ export function registerCommonRequestHandlers(
         return store.get(message.uri, SubKeys.PaneScrollPosition) ?? { scrollTop: 0 };
     });
 
-    webviewController.onRequest(qr.SetSelectionSummaryRequest.type, async (message) => {
-        const controller =
-            webviewController instanceof QueryResultWebviewPanelController
-                ? webviewController.getQueryResultWebviewViewController()
-                : webviewController;
-
-        controller.updateSelectionSummaryStatusItem(message.summary);
+    webviewController.onNotification(qr.SetSelectionSummaryRequest.type, async (message) => {
+        // Fetch all the data needed for the summary
+        await webviewViewController
+            .getSqlOutputContentProvider()
+            .generateSelectionSummaryData(
+                message.uri,
+                message.batchId,
+                message.resultId,
+                message.selection,
+            );
     });
 
     webviewController.registerReducer("setResultTab", async (state, payload) => {
@@ -406,4 +416,183 @@ export function countResultSets(
         }
     }
     return count;
+}
+
+/**
+ * Calculate selection summary statistics for grid selections
+ * @param selections Array of grid selection ranges
+ * @param grid Mock grid object with getCellNode method
+ * @param isSelection Whether this is an actual selection (true) or clearing stats (false)
+ * @returns Promise<SelectionSummaryStats> Summary statistics
+ */
+export async function selectionSummaryHelper(
+    selections: qr.ISlickRange[],
+    grid: {
+        getCellNode: (row: number, col: number) => HTMLElement | undefined;
+        getColumns: () => any[];
+    },
+    isSelection: boolean,
+): Promise<qr.SelectionSummaryStats> {
+    const summary: qr.SelectionSummaryStats = {
+        count: -1,
+        average: "",
+        sum: 0,
+        min: 0,
+        max: 0,
+        removeSelectionStats: !isSelection,
+        distinctCount: -1,
+        nullCount: -1,
+    };
+
+    if (!isSelection) {
+        return summary;
+    }
+
+    const columns = grid.getColumns();
+    if (!columns || columns.length === 0) {
+        return summary;
+    }
+
+    if (!selections || selections.length === 0) {
+        return summary;
+    }
+
+    // Reset values for actual calculation
+    summary.count = 0;
+    summary.distinctCount = 0;
+    summary.nullCount = 0;
+    summary.min = Infinity;
+    summary.max = -Infinity;
+    summary.removeSelectionStats = false;
+
+    const distinct = new Set<string>();
+    let numericCount = 0;
+
+    const isFiniteNumber = (v: string): boolean => {
+        const n = Number(v);
+        return Number.isFinite(n);
+    };
+
+    for (const selection of selections) {
+        for (let row = selection.fromRow; row <= selection.toRow; row++) {
+            for (let col = selection.fromCell; col <= selection.toCell; col++) {
+                const cell = grid.getCellNode(row, col);
+                if (!cell) {
+                    continue;
+                }
+
+                summary.count++;
+                const cellText = cell.innerText;
+
+                if (cellText === "NULL" || cellText === null || cellText === undefined) {
+                    summary.nullCount++;
+                    continue;
+                }
+
+                distinct.add(cellText);
+
+                if (isFiniteNumber(cellText)) {
+                    const n = Number(cellText);
+                    numericCount++;
+                    summary.sum += n;
+                    if (n < summary.min) summary.min = n;
+                    if (n > summary.max) summary.max = n;
+                }
+            }
+        }
+    }
+
+    summary.distinctCount = distinct.size;
+
+    // Only compute average when we actually saw numeric cells
+    if (numericCount > 0) {
+        summary.average = (summary.sum / numericCount).toFixed(3);
+    } else {
+        summary.average = "";
+    }
+
+    // Normalize min/max if there were no numeric values
+    if (!Number.isFinite(summary.min)) summary.min = 0;
+    if (!Number.isFinite(summary.max)) summary.max = 0;
+
+    return summary;
+}
+
+/**
+ * Calculate selection summary statistics from database row data
+ * @param rowIdToRowMap Map of row IDs to database cell value arrays
+ * @param rowIdToSelectionMap Map of row IDs to selection ranges
+ * @returns SelectionSummaryStats Summary statistics
+ */
+export function calculateSelectionSummaryFromData(
+    rowIdToRowMap: Map<number, qr.DbCellValue[]>,
+    rowIdToSelectionMap: Map<number, qr.ISlickRange[]>,
+): qr.SelectionSummaryStats {
+    const summary: qr.SelectionSummaryStats = {
+        count: 0,
+        average: "",
+        sum: 0,
+        min: Infinity,
+        max: -Infinity,
+        removeSelectionStats: false,
+        distinctCount: 0,
+        nullCount: 0,
+    };
+
+    if (rowIdToRowMap.size === 0) {
+        // No data; normalize min/max to 0 to match prior behavior
+        summary.min = 0;
+        summary.max = 0;
+        return summary;
+    }
+
+    const distinct = new Set<string>();
+    let numericCount = 0;
+
+    const isFiniteNumber = (v: string): boolean => {
+        const n = Number(v);
+        return Number.isFinite(n);
+    };
+
+    for (const [rowId, row] of rowIdToRowMap) {
+        const rowSelections = rowIdToSelectionMap.get(rowId) ?? [];
+        for (const sel of rowSelections) {
+            const start = Math.max(0, sel.fromCell);
+            const end = Math.min(row.length - 1, sel.toCell);
+            for (let c = start; c <= end; c++) {
+                const cell = row[c];
+                summary.count++;
+
+                if (cell?.isNull) {
+                    summary.nullCount++;
+                    continue;
+                }
+
+                const display = cell?.displayValue ?? "";
+                distinct.add(display);
+
+                if (isFiniteNumber(display)) {
+                    const n = Number(display);
+                    numericCount++;
+                    summary.sum += n;
+                    if (n < summary.min) summary.min = n;
+                    if (n > summary.max) summary.max = n;
+                } else {
+                    // There is at least one non-numeric (non-null) value
+                    summary.removeSelectionStats = false;
+                }
+            }
+        }
+    }
+
+    summary.distinctCount = distinct.size;
+
+    // Only compute average when we actually saw numeric cells and round to 2 decimal places
+    summary.average = numericCount > 0 ? (summary.sum / numericCount).toFixed(2) : "";
+
+    // Normalize min/max if there were no numeric values
+    if (!Number.isFinite(summary.min)) summary.min = 0;
+    if (!Number.isFinite(summary.max)) summary.max = 0;
+
+    return summary;
 }

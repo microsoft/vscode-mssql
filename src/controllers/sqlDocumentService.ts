@@ -15,8 +15,11 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import MainController from "./mainController";
 import * as vscodeMssql from "vscode-mssql";
-import { Deferred } from "../protocol";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
+import { sendActionEvent } from "../telemetry/telemetry";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { IConnectionProfile } from "../models/interfaces";
 
 /**
  * Service for creating untitled documents for SQL query
@@ -38,16 +41,21 @@ export default class SqlDocumentService implements vscode.Disposable {
     private _connectionMgr: ConnectionManager | undefined;
     private _outputContentProvider: SqlOutputContentProvider | undefined;
     private _statusview: StatusView | undefined;
-    private _objectExplorerService: ObjectExplorerService | undefined;
 
     constructor(private _mainController: MainController) {
         // In unit tests mocks may provide an undefined main controller; guard initialization.
         this._connectionMgr = this._mainController?.connectionManager;
         this._outputContentProvider = this._mainController?.outputContentProvider;
         this._statusview = this._mainController?.statusview;
-        this._objectExplorerService =
-            this._mainController?.objectEpxplorerProvider?.objectExplorerService;
         this.setupListeners();
+    }
+
+    public get objectExplorerService(): ObjectExplorerService | undefined {
+        return this._mainController?.objectEpxplorerProvider?.objectExplorerService;
+    }
+
+    public get objectExplorerTree(): vscode.TreeView<TreeNodeInfo> {
+        return this._mainController?.objectExplorerTree;
     }
 
     private setupListeners(): void {
@@ -82,6 +90,73 @@ export default class SqlDocumentService implements vscode.Disposable {
                 ),
             );
         }
+    }
+
+    /**
+     * Opens a new query and creates new connection. Connection precedence is:
+     * 1. User right-clicked on an OE node and selected "New Query": use that node's connection profile
+     * 2. User triggered "New Query" from command palette and the active document has a connection: copy that to the new document
+     * 3. User triggered "New Query" from command palette while they have a connected OE node selected: use that node's connection profile
+     * 4. User triggered "New Query" from command palette and there's no reasonable context: prompt for connection to use
+     */
+    public async handleNewQueryCommand(node?: TreeNodeInfo, content?: string): Promise<boolean> {
+        if (!this._connectionMgr || !this._mainController) {
+            return false;
+        }
+
+        let connectionCreds: vscodeMssql.IConnectionInfo | undefined;
+        let connectionStrategy: ConnectionStrategy;
+        let nodeType: string | undefined;
+
+        if (node) {
+            // Case 1: User right-clicked on an OE node and selected "New Query"
+            connectionCreds = node.connectionProfile;
+            nodeType = node.nodeType;
+            connectionStrategy = ConnectionStrategy.CopyConnectionFromInfo;
+        } else if (this._lastActiveConnectionInfo) {
+            // Case 2: User triggered "New Query" from command palette and the active document has a connection
+            connectionCreds = undefined;
+            nodeType = "previousEditor";
+            connectionStrategy = ConnectionStrategy.CopyLastActive;
+        } else if (this.objectExplorerTree.selection?.length === 1) {
+            // Case 3: User triggered "New Query" from command palette while they have a connected OE node selected
+            connectionCreds = this.objectExplorerTree.selection[0].connectionProfile;
+            nodeType = this.objectExplorerTree.selection[0].nodeType;
+            connectionStrategy = ConnectionStrategy.CopyConnectionFromInfo;
+        } else {
+            // Case 4: User triggered "New Query" from command palette and there's no reasonable context
+            connectionStrategy = ConnectionStrategy.PromptForConnection;
+        }
+
+        if (connectionCreds) {
+            await this._connectionMgr.handlePasswordBasedCredentials(connectionCreds);
+        }
+
+        const newEditor = await this.newQuery({
+            content,
+            connectionStrategy: connectionStrategy,
+            connectionInfo: connectionCreds,
+        });
+
+        const newEditorUri = getUriKey(newEditor.document.uri);
+
+        const connectionResult = this._connectionMgr.getConnectionInfo(newEditorUri);
+
+        await this._connectionMgr.connectionStore.removeRecentlyUsed(
+            connectionCreds as IConnectionProfile,
+        );
+
+        sendActionEvent(
+            TelemetryViews.CommandPalette,
+            TelemetryActions.NewQuery,
+            {
+                nodeType: nodeType,
+                isContainer: connectionCreds?.containerName ? "true" : "false",
+            },
+            undefined,
+            connectionCreds as IConnectionProfile,
+            this._connectionMgr.getServerInfo(connectionResult?.credentials),
+        );
     }
 
     dispose() {
@@ -193,17 +268,24 @@ export default class SqlDocumentService implements vscode.Disposable {
     }
 
     public async onDidChangeActiveTextEditor(editor: vscode.TextEditor | undefined): Promise<void> {
+        this._statusview?.hideLastShownStatusBar(); // hide the last shown status bar since the active editor has changed
+
         if (!editor?.document) {
             return;
         }
 
         const activeDocumentUri = getUriKey(editor.document.uri);
-        const activeConnection =
-            await this._connectionMgr?.getConnectionInfoFromUri(activeDocumentUri);
+        const connectionInfo = this._connectionMgr?.getConnectionInfo(activeDocumentUri);
 
-        if (activeConnection) {
-            this._lastActiveConnectionInfo = Utils.deepClone(activeConnection);
+        /**
+         * Update the last active connection info only if:
+         * 1. Active connection has been established (has connectionId), AND
+         * 2. It's not still in the process of connecting (connecting is false)
+         */
+        if (connectionInfo?.connectionId && !connectionInfo?.connecting) {
+            this._lastActiveConnectionInfo = Utils.deepClone(connectionInfo.credentials);
         }
+        this._statusview?.updateStatusBarForEditor(editor, connectionInfo);
     }
 
     /**
@@ -289,23 +371,19 @@ export default class SqlDocumentService implements vscode.Disposable {
         // Establish connection if needed
         if (
             connectionConfig?.shouldConnect &&
-            connectionConfig.connectionInfo &&
+            connectionConfig?.connectionInfo &&
             this._connectionMgr
         ) {
-            const connectionPromise = new Deferred<boolean>();
-
-            await this._connectionMgr.connect(
+            const connectionResult = await this._connectionMgr.connect(
                 documentKey,
                 connectionConfig.connectionInfo,
-                connectionPromise,
             );
 
-            const connectionResult = await connectionPromise.promise;
             if (connectionResult) {
                 /**
                  * Skip creating an Object Explorer session if one already exists for the connection.
                  */
-                if (!this._objectExplorerService.hasSession(connectionConfig.connectionInfo)) {
+                if (!this.objectExplorerService?.hasSession(connectionConfig.connectionInfo)) {
                     await this._mainController.createObjectExplorerSession(
                         connectionConfig.connectionInfo,
                     );

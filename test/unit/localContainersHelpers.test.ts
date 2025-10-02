@@ -49,12 +49,36 @@ suite("localContainers logic", () => {
             .returns([{ loadState: ApiStatus.NotStarted }] as any);
 
         const groupOptions = [{ displayName: "Default Group", value: "default" }];
-        const state = await localContainersHelpers.initializeLocalContainersState(groupOptions);
+        const state = await localContainersHelpers.initializeLocalContainersState(
+            groupOptions,
+            undefined,
+        );
 
         assert.strictEqual(state.loadState, ApiStatus.Loaded);
         assert.strictEqual(state.formState.version, "latest");
         assert.ok(state.formComponents.password);
         assert.strictEqual(state.dockerSteps.length, 1);
+    });
+
+    test("initializeLocalContainersState sets connection group", async () => {
+        sandbox
+            .stub(dockerUtils, "getSqlServerContainerVersions")
+            .resolves([{ displayName: "Latest", value: "latest" }]);
+        sandbox
+            .stub(dockerUtils, "initializeDockerSteps")
+            .returns([{ loadState: ApiStatus.NotStarted }] as any);
+
+        const groupOptions = [{ displayName: "Default Group", value: "default" }];
+        const state = await localContainersHelpers.initializeLocalContainersState(
+            groupOptions,
+            "testGroup",
+        );
+
+        assert.strictEqual(state.loadState, ApiStatus.Loaded);
+        assert.strictEqual(state.formState.version, "latest");
+        assert.ok(state.formComponents.password);
+        assert.strictEqual(state.dockerSteps.length, 1);
+        assert.strictEqual(state.formState.groupId, "testGroup");
     });
 
     test("setLocalContainersFormComponents builds expected keys", () => {

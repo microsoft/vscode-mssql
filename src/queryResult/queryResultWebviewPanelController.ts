@@ -93,4 +93,8 @@ export class QueryResultWebviewPanelController extends ReactWebviewPanelControll
     public getQueryResultWebviewViewController(): QueryResultWebviewController {
         return this._queryResultWebviewViewController;
     }
+
+    public get viewColumn(): vscode.ViewColumn {
+        return this._viewColumn;
+    }
 }

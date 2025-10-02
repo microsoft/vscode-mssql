@@ -51,6 +51,8 @@ import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { SelectionSummary } from "../sharedInterfaces/queryResult";
+import { calculateSelectionSummaryFromData } from "../queryResult/utils";
 
 export interface IResultSet {
     columns: string[];
@@ -70,6 +72,10 @@ export interface ExecutionPlanEvent {
     resultId: number;
 }
 
+export interface SummaryChanged extends SelectionSummary {
+    uri: string;
+}
+
 export const editorEol =
     vscode.workspace.getConfiguration("files").get<string>("eol") === "auto"
         ? os.EOL
@@ -80,7 +86,6 @@ export const editorEol =
  * and handles getting more rows from the service layer and disposing when the content is closed.
  */
 export default class QueryRunner {
-    // MEMBER VARIABLES ////////////////////////////////////////////////////
     private _batchSets: BatchSummary[] = [];
     private _batchSetMessages: { [batchId: number]: IResultMessage[] } = {};
     private _isExecuting: boolean;
@@ -91,6 +96,9 @@ export default class QueryRunner {
     private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
     private _uriToQueryStringMap = new Map<string, string>();
     private static _runningQueries = [];
+
+    private _startFailedEmitter: vscode.EventEmitter<string> = new vscode.EventEmitter<string>();
+    public onStartFailed: vscode.Event<string> = this._startFailedEmitter.event;
 
     private _startEmitter: vscode.EventEmitter<string> = new vscode.EventEmitter<string>();
     public onStart: vscode.Event<string> = this._startEmitter.event;
@@ -128,6 +136,10 @@ export default class QueryRunner {
     private _completeEmitter: vscode.EventEmitter<QueryExecutionCompleteEvent> =
         new vscode.EventEmitter<QueryExecutionCompleteEvent>();
     public onComplete: vscode.Event<QueryExecutionCompleteEvent> = this._completeEmitter.event;
+
+    private _onSummaryChangedEmitter: vscode.EventEmitter<SummaryChanged> =
+        new vscode.EventEmitter<SummaryChanged>();
+    public onSummaryChanged: vscode.Event<SummaryChanged> = this._onSummaryChangedEmitter.event;
 
     // CONSTRUCTOR /////////////////////////////////////////////////////////
 
@@ -209,6 +221,10 @@ export default class QueryRunner {
 
     // PUBLIC METHODS ======================================================
 
+    /**
+     * Cancels the currently running query.
+     * @returns A promise that resolves to the result of the cancel operation.
+     */
     public async cancel(): Promise<QueryCancelResult> {
         // Make the request to cancel the query
         let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
@@ -228,29 +244,51 @@ export default class QueryRunner {
         return queryCancelResult;
     }
 
-    // Pulls the query text from the current document/selection and initiates the query
-    public async runStatement(line: number, column: number): Promise<void> {
-        await this.doRunQuery(
-            <ISelectionData>{
-                startLine: line,
-                startColumn: column,
-                endLine: 0,
-                endColumn: 0,
-            },
-            async (onSuccess, onError) => {
-                // Put together the request
-                let queryDetails: QueryExecuteStatementParams = {
-                    ownerUri: this._ownerUri,
-                    line: line,
-                    column: column,
-                };
+    /**
+     * Resets the query runner to a clean state if we want to run another query on it.
+     */
+    public async resetQueryRunner(): Promise<void> {
+        try {
+            let cancelParams: QueryCancelParams = { ownerUri: this._ownerUri };
+            await this._client.sendRequest(QueryCancelRequest.type, cancelParams);
+        } catch {
+            // Suppress any errors
+        }
+        this._isExecuting = false;
+        this._hasCompleted = true;
+        this.removeRunningQuery();
+        const promise = this._uriToQueryPromiseMap.get(this._ownerUri);
+        if (promise) {
+            promise.reject("Query cancelled");
+            this._uriToQueryPromiseMap.delete(this._ownerUri);
+        }
+    }
 
-                // Send the request to execute the query
-                await this._client
-                    .sendRequest(QueryExecuteStatementRequest.type, queryDetails)
-                    .then(onSuccess, onError);
-            },
-        );
+    /**
+     * Runs a query against the database for the current statement based on the cursor position.
+     */
+    public async runStatement(line: number, column: number): Promise<void> {
+        await this.setupQueryExecution({
+            startLine: line,
+            startColumn: column,
+            endLine: 0,
+            endColumn: 0,
+        });
+
+        let optionsParams: QueryExecuteStatementParams = {
+            ownerUri: this._ownerUri,
+            line: line,
+            column: column,
+        };
+
+        try {
+            await this._client.sendRequest(QueryExecuteStatementRequest.type, optionsParams);
+            this._startEmitter.fire(this.uri);
+        } catch (error) {
+            this._handleQueryCleanup(undefined, error);
+            this._startFailedEmitter.fire(getErrorMessage(error));
+            throw error;
+        }
     }
 
     // Pulls the query text from the current document/selection and initiates the query
@@ -259,93 +297,60 @@ export default class QueryRunner {
         executionPlanOptions?: ExecutionPlanOptions,
         promise?: Deferred<boolean>,
     ): Promise<void> {
-        await this.doRunQuery(selection, async (onSuccess, onError) => {
-            // Put together the request
-            let queryDetails: QueryExecuteParams = {
-                ownerUri: this._ownerUri,
-                executionPlanOptions: executionPlanOptions,
-                querySelection: selection,
-            };
+        await this.setupQueryExecution(selection);
 
-            const doc = await this._vscodeWrapper.openTextDocument(
-                this._vscodeWrapper.parseUri(this._ownerUri),
-            );
-            let queryString: string;
-            if (selection) {
-                let range = this._vscodeWrapper.range(
-                    this._vscodeWrapper.position(selection.startLine, selection.startColumn),
-                    this._vscodeWrapper.position(selection.endLine, selection.endColumn),
-                );
-                queryString = doc.getText(range);
-            } else {
-                queryString = doc.getText();
-            }
+        // Setting up options
+        let executeOptions: QueryExecuteParams = {
+            ownerUri: this._ownerUri,
+            executionPlanOptions: executionPlanOptions,
+            querySelection: selection,
+        };
 
-            // Set the query string for the uri
-            this._uriToQueryStringMap.set(this._ownerUri, queryString);
-
-            // Send the request to execute the query
-            if (promise) {
-                this._uriToQueryPromiseMap.set(this._ownerUri, promise);
-            }
-            await this._client
-                .sendRequest(QueryExecuteRequest.type, queryDetails)
-                .then(onSuccess, onError);
-        });
-    }
-
-    // Pulls the query text from the current document/selection and initiates the query
-    private async doRunQuery(
-        selection: ISelectionData,
-        queryCallback: (
-            onSuccess: (result: unknown) => void,
-            onError: (error: Error) => void,
-        ) => Promise<void>,
-    ): Promise<void> {
-        this._vscodeWrapper.logToOutputChannel(
-            LocalizedConstants.msgStartedExecute(this._ownerUri),
+        // Getting query text
+        const doc = await this._vscodeWrapper.openTextDocument(
+            this._vscodeWrapper.parseUri(this._ownerUri),
         );
+        let queryString: string;
+        if (selection) {
+            let range = this._vscodeWrapper.range(
+                this._vscodeWrapper.position(selection.startLine, selection.startColumn),
+                this._vscodeWrapper.position(selection.endLine, selection.endColumn),
+            );
+            queryString = doc.getText(range);
+        } else {
+            queryString = doc.getText();
+        }
+        this._uriToQueryStringMap.set(this._ownerUri, queryString);
 
-        // Update internal state to show that we're executing the query
-        this._resultLineOffset = selection ? selection.startLine : 0;
-        this._isExecuting = true;
-        this._totalElapsedMilliseconds = 0;
-        this._statusView.executingQuery(this.uri);
-        QueryRunner._runningQueries.push(vscode.Uri.parse(this._ownerUri).path);
-        this.updateRunningQueries();
-
-        this._notificationHandler.registerRunner(this, this._ownerUri);
-
-        let onSuccess = (_result: unknown) => {
-            // The query has started, so lets fire up the result pane
-            this._startEmitter.fire(this.uri);
-        };
-        let onError = (error: Error) => {
-            this._handleQueryCleanup(undefined, error);
-            throw error;
-        };
+        // Setting up completion promise.
+        if (promise) {
+            this._uriToQueryPromiseMap.set(this._ownerUri, promise);
+        }
 
         try {
-            await queryCallback(onSuccess, onError);
+            await this._client.sendRequest(QueryExecuteRequest.type, executeOptions);
+            this._startEmitter.fire(this.uri);
         } catch (error) {
-            // If queryCallback throws synchronously, handle it here
-            this._statusView.executedQuery(this.uri);
-            // Show error message here to ensure test expectation is met
-            let errorMsg = error instanceof Error ? error.message : String(error);
-            this._vscodeWrapper.showErrorMessage("Execution failed: " + errorMsg);
-            onError(error);
+            this._handleQueryCleanup(undefined, error);
+            this._startFailedEmitter.fire(getErrorMessage(error));
             throw error;
         }
     }
 
-    /**
-     * Remove uri from runningQueries
-     */
-    private removeRunningQuery(): void {
-        QueryRunner._runningQueries = QueryRunner._runningQueries.filter(
-            (fileName) => fileName !== vscode.Uri.parse(this._ownerUri).path,
+    public setupQueryExecution(selection: ISelectionData): void {
+        this._vscodeWrapper.logToOutputChannel(
+            LocalizedConstants.msgStartedExecute(this._ownerUri),
         );
-        this.updateRunningQueries();
+        // Store the line offset for the query text
+        this._resultLineOffset = selection ? selection.startLine : 0;
+        this._isExecuting = true;
+        this._totalElapsedMilliseconds = 0;
+        // Update the status view to show that we're executing
+        this._statusView.executingQuery(this.uri);
+
+        QueryRunner.addRunningQuery(this._ownerUri);
+
+        this._notificationHandler.registerRunner(this, this._ownerUri);
     }
 
     // handle the result of the notification
@@ -424,45 +429,6 @@ export default class QueryRunner {
         this._batchCompleteEmitter.fire(batch);
     }
 
-    /**
-     * Refreshes the webview panel with the query results when tabs are changed
-     */
-    public async refreshQueryTab(uri: string): Promise<boolean> {
-        this._isExecuting = true;
-        this._hasCompleted = false;
-        for (let batchId = 0; batchId < this.batchSets.length; batchId++) {
-            const batchSet = this.batchSets[batchId];
-            this._batchStartEmitter.fire(batchSet);
-            let executionTime = <number>(Utils.parseTimeString(batchSet.executionElapsed) || 0);
-            if (executionTime > 0) {
-                // send a time message in the format used for query complete
-                this.sendBatchTimeMessage(batchSet.id, Utils.parseNumAsTimeString(executionTime));
-            }
-
-            // replay the messages for the current batch
-            const messages = this._batchSetMessages[batchId];
-            if (messages !== undefined) {
-                for (let messageId = 0; messageId < messages.length; ++messageId) {
-                    // Send the message to the results pane
-                    this._messageEmitter.fire(messages[messageId]);
-                }
-            }
-
-            this._batchCompleteEmitter.fire(batchSet);
-        }
-        // We're done with this query so shut down any waiting mechanisms
-        this._statusView.executedQuery(uri);
-        this._isExecuting = false;
-        this._hasCompleted = true;
-
-        this._completeEmitter.fire({
-            totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
-            hasError: false,
-            isRefresh: false,
-        });
-        return true;
-    }
-
     public handleResultSetAvailable(
         result: QueryExecuteResultSetAvailableNotificationParams,
     ): void {
@@ -529,38 +495,6 @@ export default class QueryRunner {
         }
     }
 
-    /*
-     * Get more data rows from the current resultSets from the service layer
-     */
-    public async getRows(
-        rowStart: number,
-        numberOfRows: number,
-        batchIndex: number,
-        resultSetIndex: number,
-    ): Promise<QueryExecuteSubsetResult> {
-        let queryDetails = new QueryExecuteSubsetParams();
-        queryDetails.ownerUri = this.uri;
-        queryDetails.resultSetIndex = resultSetIndex;
-        queryDetails.rowsCount = numberOfRows;
-        queryDetails.rowsStartIndex = rowStart;
-        queryDetails.batchIndex = batchIndex;
-        try {
-            const queryExecuteSubsetResult = await this._client.sendRequest(
-                QueryExecuteSubsetRequest.type,
-                queryDetails,
-            );
-            if (queryExecuteSubsetResult) {
-                return queryExecuteSubsetResult;
-            }
-        } catch (error) {
-            // TODO: Localize
-            this._vscodeWrapper.showErrorMessage(
-                "Something went wrong getting more rows: " + error.message,
-            );
-            void Promise.reject(error);
-        }
-    }
-
     /**
      * Disposes the Query from the service client
      * @returns A promise that will be rejected if a problem occured
@@ -570,11 +504,9 @@ export default class QueryRunner {
         disposeDetails.ownerUri = this.uri;
         try {
             await this._client.sendRequest(QueryDisposeRequest.type, disposeDetails);
-        } catch (error) {
-            this._handleQueryCleanup(
-                LocalizedConstants.QueryEditor.queryDisposeFailed(error),
-                error,
-            );
+        } catch (_error) {
+            // Do not show error message if dispose fails as it normally means the query is already disposed
+            this._handleQueryCleanup();
             return;
         }
         this._handleQueryCleanup();
@@ -610,6 +542,38 @@ export default class QueryRunner {
 
         if (errorMsg) {
             this._vscodeWrapper.showErrorMessage(getErrorMessage(errorMsg));
+        }
+    }
+
+    /*
+     * Get more data rows from the current resultSets from the service layer
+     */
+    public async getRows(
+        rowStart: number,
+        numberOfRows: number,
+        batchIndex: number,
+        resultSetIndex: number,
+    ): Promise<QueryExecuteSubsetResult> {
+        let queryDetails = new QueryExecuteSubsetParams();
+        queryDetails.ownerUri = this.uri;
+        queryDetails.resultSetIndex = resultSetIndex;
+        queryDetails.rowsCount = numberOfRows;
+        queryDetails.rowsStartIndex = rowStart;
+        queryDetails.batchIndex = batchIndex;
+        try {
+            const queryExecuteSubsetResult = await this._client.sendRequest(
+                QueryExecuteSubsetRequest.type,
+                queryDetails,
+            );
+            if (queryExecuteSubsetResult) {
+                return queryExecuteSubsetResult;
+            }
+        } catch (error) {
+            // TODO: Localize
+            this._vscodeWrapper.showErrorMessage(
+                LocalizedConstants.QueryResult.getRowsError(getErrorMessage(error)),
+            );
+            void Promise.reject(error);
         }
     }
 
@@ -1005,7 +969,6 @@ export default class QueryRunner {
             rowIdToSelectionMap,
             batchId,
             resultId,
-            includeHeaders,
         );
 
         await this.writeStringToClipboard(jsonString);
@@ -1098,6 +1061,221 @@ export default class QueryRunner {
         );
 
         await this.writeStringToClipboard(insertIntoString);
+    }
+
+    private _cancelConfirmation: Deferred<void>;
+    public async generateSelectionSummaryData(
+        selection: ISlickRange[],
+        batchId: number,
+        resultId: number,
+    ): Promise<void> {
+        if (this._cancelConfirmation) {
+            this._cancelConfirmation.resolve();
+        }
+        // Keep copy order deterministic
+        selection.sort((a, b) => a.fromRow - b.fromRow);
+
+        let totalRows = 0;
+        for (let range of selection) {
+            totalRows += range.toRow - range.fromRow + 1;
+        }
+
+        const summaryFetchThreshold =
+            vscode.workspace
+                .getConfiguration()
+                .get<number>(Constants.configInMemoryDataProcessingThreshold) ?? 5000;
+
+        if (totalRows > summaryFetchThreshold) {
+            const waitForUserContinuation = new Deferred<void>();
+            this._onSummaryChangedEmitter.fire({
+                command: {
+                    title: Constants.cmdHandleSummaryOperation,
+                    command: Constants.cmdHandleSummaryOperation,
+                    arguments: [this.uri],
+                },
+                continue: waitForUserContinuation,
+                text: `$(play-circle) ${LocalizedConstants.QueryResult.summaryFetchConfirmation(totalRows)}`,
+                tooltip: LocalizedConstants.QueryResult.clickToFetchSummary,
+                uri: this.uri,
+            });
+
+            await waitForUserContinuation.promise;
+        }
+
+        this._cancelConfirmation = new Deferred<void>();
+        const cancelConfirmation = this._cancelConfirmation;
+        let isCanceled = false;
+
+        this._onSummaryChangedEmitter.fire({
+            command: {
+                title: Constants.cmdHandleSummaryOperation,
+                command: Constants.cmdHandleSummaryOperation,
+                arguments: [this.uri],
+            },
+            continue: cancelConfirmation,
+            text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(0, totalRows)}`,
+            tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
+            uri: this.uri,
+        });
+
+        // Set up cancellation handling
+        cancelConfirmation.promise
+            .then(() => {
+                isCanceled = true;
+            })
+            .catch(() => {
+                // Ignore rejection, just means operation completed normally
+            });
+
+        const rowIdToSelectionMap = new Map<number, ISlickRange[]>();
+        const rowIdToRowMap = new Map<number, DbCellValue[]>();
+
+        // Calculate batch threshold for processing rows in smaller chunks
+        const batchThreshold = Math.min(1000, summaryFetchThreshold / 5);
+        let processedRows = 0;
+
+        try {
+            // Process each selection range with batching
+            for (const range of selection) {
+                if (isCanceled) {
+                    this._onSummaryChangedEmitter.fire({
+                        text: LocalizedConstants.QueryResult.summaryLoadingCanceled,
+                        tooltip: LocalizedConstants.QueryResult.summaryLoadingCanceledTooltip,
+                        uri: this.uri,
+                        command: undefined,
+                        continue: undefined,
+                    });
+                    return;
+                }
+
+                // Split large ranges into smaller batches
+                for (
+                    let startRow = range.fromRow;
+                    startRow <= range.toRow;
+                    startRow += batchThreshold
+                ) {
+                    if (isCanceled) {
+                        this._onSummaryChangedEmitter.fire({
+                            text: LocalizedConstants.QueryResult.summaryLoadingCanceled,
+                            tooltip: LocalizedConstants.QueryResult.summaryLoadingCanceledTooltip,
+                            uri: this.uri,
+                            command: undefined,
+                            continue: undefined,
+                        });
+                        return;
+                    }
+
+                    const endRow = Math.min(startRow + batchThreshold - 1, range.toRow);
+                    const batchSize = endRow - startRow + 1;
+
+                    // Fetch the batch
+                    const result = await this.getRows(startRow, batchSize, batchId, resultId);
+
+                    // Create a sub-range for this batch
+                    const batchRange: ISlickRange = {
+                        fromRow: startRow,
+                        toRow: endRow,
+                        fromCell: range.fromCell,
+                        toCell: range.toCell,
+                    };
+
+                    this.getRowMappings(
+                        result.resultSubset.rows,
+                        batchRange,
+                        rowIdToSelectionMap,
+                        rowIdToRowMap,
+                    );
+
+                    processedRows += batchSize;
+
+                    this._onSummaryChangedEmitter.fire({
+                        command: {
+                            title: Constants.cmdHandleSummaryOperation,
+                            command: Constants.cmdHandleSummaryOperation,
+                            arguments: [this.uri],
+                        },
+                        continue: cancelConfirmation,
+                        text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(processedRows, totalRows)}`,
+                        tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
+                        uri: this.uri,
+                    });
+                }
+            }
+
+            if (isCanceled) {
+                this._onSummaryChangedEmitter.fire({
+                    text: LocalizedConstants.QueryResult.summaryLoadingCanceled,
+                    tooltip: LocalizedConstants.QueryResult.summaryLoadingCanceledTooltip,
+                    uri: this.uri,
+                    command: undefined,
+                    continue: undefined,
+                });
+                return;
+            }
+
+            // Calculate final summary
+            const selectionSummary = calculateSelectionSummaryFromData(
+                rowIdToRowMap,
+                rowIdToSelectionMap,
+            );
+
+            let text = "";
+            let tooltip = "";
+
+            // the selection is numeric
+            if (selectionSummary.average) {
+                text = LocalizedConstants.QueryResult.numericSelectionSummary(
+                    selectionSummary.average,
+                    selectionSummary.count,
+                    selectionSummary.sum,
+                );
+                tooltip = LocalizedConstants.QueryResult.numericSelectionSummaryTooltip(
+                    selectionSummary.average,
+                    selectionSummary.count,
+                    selectionSummary.distinctCount,
+                    selectionSummary.max,
+                    selectionSummary.min,
+                    selectionSummary.nullCount,
+                    selectionSummary.sum,
+                );
+            } else {
+                text = LocalizedConstants.QueryResult.nonNumericSelectionSummary(
+                    selectionSummary.count,
+                    selectionSummary.distinctCount,
+                    selectionSummary.nullCount,
+                );
+                tooltip = text;
+            }
+
+            // Resolve the cancel confirmation to clean up
+            if (!isCanceled) {
+                cancelConfirmation.resolve();
+            }
+
+            this._onSummaryChangedEmitter.fire({
+                text,
+                tooltip,
+                uri: this.uri,
+                command: undefined,
+                continue: undefined,
+            });
+        } catch (error) {
+            // Clean up on error
+            if (!isCanceled) {
+                cancelConfirmation.reject(error);
+            }
+
+            this._onSummaryChangedEmitter.fire({
+                text: `$(error) ${LocalizedConstants.QueryResult.errorLoadingSummary}`,
+                tooltip: LocalizedConstants.QueryResult.errorLoadingSummaryTooltip(
+                    getErrorMessage(error),
+                ),
+                uri: this.uri,
+                command: undefined,
+                continue: undefined,
+            });
+            throw error;
+        }
     }
 
     public async toggleSqlCmd(): Promise<boolean> {
@@ -1385,7 +1563,6 @@ export default class QueryRunner {
         rowIdToSelectionMap: Map<number, ISlickRange[]>,
         batchId: number,
         resultId: number,
-        includeHeaders: boolean,
     ): string {
         // Get column headers for property names
         let allRowIds = Array.from(rowIdToRowMap.keys()).sort((a, b) => a - b);
@@ -1681,7 +1858,32 @@ export default class QueryRunner {
         return value;
     }
 
-    private updateRunningQueries() {
+    /**
+     * Vscode core expects uri.fsPath for resourcePath context value.
+     * https://github.com/microsoft/vscode/blob/bb5a3c607b14787009f8e9fadb720beee596133c/src/vs/workbench/common/contextkeys.ts#L275
+     */
+
+    /**
+     * Add query to running queries list
+     * @param ownerUri The owner URI of the query
+     */
+    private static addRunningQuery(ownerUri: string): void {
+        const key = vscode.Uri.parse(ownerUri).fsPath;
+        QueryRunner._runningQueries.push(key);
+        QueryRunner.updateRunningQueries();
+    }
+
+    /**
+     * Remove current query from running queries list
+     */
+    private removeRunningQuery(): void {
+        QueryRunner._runningQueries = QueryRunner._runningQueries.filter(
+            (fileName) => fileName !== vscode.Uri.parse(this._ownerUri).fsPath,
+        );
+        QueryRunner.updateRunningQueries();
+    }
+
+    private static updateRunningQueries() {
         vscode.commands.executeCommand(
             "setContext",
             "mssql.runningQueries",
