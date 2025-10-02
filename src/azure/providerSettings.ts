@@ -12,6 +12,7 @@ import {
     configCustomEnvironment,
     configSovereignCloudCustomEnvironment,
     customEnvironmentSettingName,
+    environmentSettingName,
     sovereignCloudSectionName,
 } from "../constants/constants";
 
@@ -331,10 +332,8 @@ export function getCloudId(cloud?: CloudId | string): CloudId {
     if (!cloud) {
         // if microsoft-sovereign-cloud.environment is set, return the corresponding settings, otherwise return public Azure settings
         //check microsoft-sovereign-cloud.environment setting
-        const config = vscode.workspace.getConfiguration();
-        const cloudFromConfig = config.get<CloudId.AzureCloud>(
-            "microsoft-sovereign-cloud.environment",
-        );
+        const config = vscode.workspace.getConfiguration(sovereignCloudSectionName);
+        const cloudFromConfig = config.get<CloudId.AzureCloud>(environmentSettingName);
 
         return cloudFromConfig || CloudId.AzureCloud;
     } else {

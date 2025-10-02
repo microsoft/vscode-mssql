@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as sinon from "sinon";
-import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
+import * as sinon from "sinon";
 import { expect } from "chai";
 import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import { ILoggerCallback } from "@azure/msal-common";
 import {
     AzureAuthType,
