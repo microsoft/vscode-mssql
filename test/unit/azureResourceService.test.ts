@@ -16,9 +16,9 @@ import {
 import { PagedAsyncIterableIterator } from "@azure/core-paging";
 import { ResourceGroup, ResourceGroups, ResourceManagementClient } from "@azure/arm-resources";
 import { AzureResourceController } from "../../src/azure/azureResourceController";
-import allSettings from "../../src/azure/providerSettings";
-import { AzureAuthType, IAccount } from "../../src/models/contracts/azure";
-import { IAzureAccountSession } from "vscode-mssql";
+import { getCloudProviderSettings } from "../../src/azure/providerSettings";
+import { AzureAuthType, IAzureAccountSession } from "vscode-mssql";
+import { IAccount } from "../../src/models/contracts/azure";
 
 chai.use(sinonChai);
 
@@ -39,7 +39,7 @@ const mockAccounts: IAccount[] = [
                 id: "",
                 displayName: "",
             },
-            providerSettings: allSettings,
+            providerSettings: getCloudProviderSettings(),
         },
         isStale: false,
         isSignedIn: true,

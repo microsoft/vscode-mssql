@@ -68,13 +68,17 @@ export function stubGetCapabilitiesRequest(
     return serviceClientMock;
 }
 
-export function stubUserSurvey(sandbox?: sinon.SinonSandbox): sinon.SinonStub {
+export function stubUserSurvey(
+    sandbox?: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<UserSurvey> {
     const stubber = sandbox || sinon;
-    const surveyStub = stubber.stub(UserSurvey, "getInstance").returns({
-        promptUserForNPSFeedback: sandbox.stub(),
-    } as unknown as UserSurvey);
 
-    return surveyStub;
+    const userSurvey = stubber.createStubInstance(UserSurvey);
+    userSurvey.promptUserForNPSFeedback.resolves();
+
+    stubber.stub(UserSurvey, "getInstance").returns(userSurvey);
+
+    return userSurvey;
 }
 
 export function getMockContext(): vscode.ExtensionContext {
