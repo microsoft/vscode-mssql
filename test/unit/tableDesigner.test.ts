@@ -3,9 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
-import * as sinon from "sinon";
 import * as vscode from "vscode";
+import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
+import { expect } from "chai";
+import * as chai from "chai";
 import * as tdTab from "../../src/tableDesigner/tableDesignerTabDefinition";
 import { TableDesignerWebviewController } from "../../src/tableDesigner/tableDesignerWebviewController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
@@ -14,7 +16,9 @@ import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { TableDesignerService } from "../../src/services/tableDesignerService";
 import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
 import ConnectionManager from "../../src/controllers/connectionManager";
-import { getMockContext } from "./utils";
+import { getMockContext, stubUserSurvey } from "./utils";
+
+chai.use(sinonChai);
 
 suite("TableDesignerWebviewController tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -34,6 +38,7 @@ suite("TableDesignerWebviewController tests", () => {
     setup(async () => {
         sandbox = sinon.createSandbox();
         mockContext = getMockContext();
+        stubUserSurvey(sandbox);
 
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         mockTableDesignerService = sandbox.createStubInstance(TableDesignerService);
@@ -78,10 +83,8 @@ suite("TableDesignerWebviewController tests", () => {
         sandbox.stub(treeNode, "connectionProfile").get(() => mockConnectionProfile as any);
         sandbox.stub(treeNode, "metadata").get(() => mockMetadata as any);
 
-        assert.deepStrictEqual(
-            treeNode.connectionProfile,
+        expect(treeNode.connectionProfile, "Connection profile should be defined").to.deep.equal(
             mockConnectionProfile,
-            "Connection profile should be defined",
         );
 
         mockResult = {
@@ -123,10 +126,8 @@ suite("TableDesignerWebviewController tests", () => {
         );
         controller.revealToForeground();
 
-        assert.strictEqual(
-            controller.panel.title,
+        expect(controller.panel.title, "Panel title should be table name").to.equal(
             "Table Designer",
-            "Panel title should be table name",
         );
         await (controller as any).initialize();
         await (controller as any).registerRpcHandlers();
@@ -137,16 +138,14 @@ suite("TableDesignerWebviewController tests", () => {
     });
 
     test("should initialize correctly for table edit", async () => {
-        assert.strictEqual(
+        expect(
             (controller as any)._state.apiState.initializeState,
-            td.LoadState.Loaded,
             "Initialize state should be loaded",
-        );
-        assert.deepStrictEqual(
+        ).to.equal(td.LoadState.Loaded);
+        expect(
             (controller as any)._state.tableInfo.database,
-            "master",
             "Table Info should be loaded",
-        );
+        ).to.equal("master");
     });
 
     test("should call processTableEdit in processTableEdit reducer", async () => {
@@ -167,16 +166,12 @@ suite("TableDesignerWebviewController tests", () => {
             mockPayload,
         );
 
-        assert.ok(processTableEditStub.calledOnce, "processTableEdit should be called once");
-        assert.deepStrictEqual(
-            processTableEditStub.firstCall.args,
-            [mockPayload.table, mockPayload.tableChangeInfo],
-            "processTableEdit should be called with correct arguments",
-        );
-        assert.deepStrictEqual(
-            result.tabStates.resultPaneTab,
+        expect(
+            processTableEditStub,
+            "processTableEdit should be called once with correct arguments",
+        ).to.have.been.calledOnceWithExactly(mockPayload.table, mockPayload.tableChangeInfo);
+        expect(result.tabStates.resultPaneTab, "State tab should be set to Script").to.equal(
             td.DesignerResultPaneTabs.Script,
-            "State tab should be set to Script",
         );
 
         processTableEditStub.restore();
@@ -200,22 +195,18 @@ suite("TableDesignerWebviewController tests", () => {
             mockPayload,
         );
 
-        assert.ok(secondStub.calledOnce, "processTableEdit should be called again");
-        assert.deepStrictEqual(
-            secondStub.firstCall.args,
-            [mockPayload.table, mockPayload.tableChangeInfo],
-            "Second call should use correct arguments",
-        );
-        assert.deepStrictEqual(
+        expect(
+            secondStub,
+            "processTableEdit should be called again with correct arguments",
+        ).to.have.been.calledOnceWithExactly(mockPayload.table, mockPayload.tableChangeInfo);
+        expect(
             result.tabStates.resultPaneTab,
-            td.DesignerResultPaneTabs.Issues,
             "Tab should be set to Issues when there are issues",
-        );
-        assert.deepStrictEqual(
+        ).to.equal(td.DesignerResultPaneTabs.Issues);
+        expect(
             result.view,
-            callState.view,
             "Should retain previous view when editResponse.view is undefined",
-        );
+        ).to.deep.equal(callState.view);
 
         secondStub.restore(); // Cleanup
         const errorMessage = "error message";
@@ -227,11 +218,10 @@ suite("TableDesignerWebviewController tests", () => {
             mockPayload,
         );
 
-        assert.deepStrictEqual(
-            errorStub.firstCall.args,
-            [errorMessage],
+        expect(
+            errorStub,
             "Error message call should use correct arguments",
-        );
+        ).to.have.been.calledOnceWithExactly(errorMessage);
     });
 
     test("should call publishTable in publishTable reducer", async () => {
@@ -256,28 +246,20 @@ suite("TableDesignerWebviewController tests", () => {
             mockPublishPayload,
         );
 
-        assert.ok(publishChangesStub.calledOnce, "publishChanges should be called once");
-        assert.deepStrictEqual(
-            publishChangesStub.firstCall.args,
-            [mockPublishPayload.table],
-            "publishChanges should be called with correct arguments",
-        );
-        assert.deepStrictEqual(
-            result.apiState.publishState,
+        expect(
+            publishChangesStub,
+            "publishChanges should be called once with correct arguments",
+        ).to.have.been.calledOnceWithExactly(mockPublishPayload.table);
+        expect(result.apiState.publishState, "Publish State should be loaded").to.equal(
             td.LoadState.Loaded,
-            "Publish State should be loaded",
         );
 
-        assert.deepStrictEqual(
-            result.apiState.previewState,
+        expect(result.apiState.previewState, "Preview State should be not started").to.equal(
             td.LoadState.NotStarted,
-            "Preview State should be not started",
         );
 
-        assert.strictEqual(
-            controller.panel.title,
+        expect(controller.panel.title, "Panel title should be table name").to.equal(
             publishResponse.newTableInfo.title,
-            "Panel title should be table name",
         );
 
         publishChangesStub.restore();
@@ -290,16 +272,12 @@ suite("TableDesignerWebviewController tests", () => {
             mockPublishPayload,
         );
 
-        assert.deepStrictEqual(
-            result.publishingError,
+        expect(result.publishingError, "State should contain error message").to.equal(
             `Error: ${errorMessage}`,
-            "State should contain error message",
         );
 
-        assert.deepStrictEqual(
-            result.apiState.publishState,
+        expect(result.apiState.publishState, "State should contain correct status").to.equal(
             td.LoadState.Error,
-            "State should contain correct status",
         );
     });
 
@@ -320,35 +298,25 @@ suite("TableDesignerWebviewController tests", () => {
             mockScriptPayload,
         );
 
-        assert.ok(scriptStub.calledOnce, "generateScript should be called once");
-        assert.deepStrictEqual(
-            scriptStub.firstCall.args,
-            [mockScriptPayload.table],
-            "generateScript should be called with correct arguments",
-        );
-        assert.ok(newQueryStub.calledOnce, "newQuery should be called once");
-        assert.deepStrictEqual(
-            newQueryStub.firstCall.args,
-            [
-                {
-                    content: scriptResponse,
-                    connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
-                    connectionInfo: undefined,
-                },
-            ],
-            "newQuery should be called with the generated script",
-        );
+        expect(
+            scriptStub,
+            "generateScript should be called once with correct arguments",
+        ).to.have.been.calledOnceWithExactly(mockScriptPayload.table);
+        expect(
+            newQueryStub,
+            "newQuery should be called once with the generated script",
+        ).to.have.been.calledOnceWithExactly({
+            content: scriptResponse,
+            connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
+            connectionInfo: undefined,
+        });
 
-        assert.deepStrictEqual(
-            result.apiState.generateScriptState,
+        expect(result.apiState.generateScriptState, "Script State should be loaded").to.equal(
             td.LoadState.Loaded,
-            "Script State should be loaded",
         );
 
-        assert.deepStrictEqual(
-            result.apiState.previewState,
+        expect(result.apiState.previewState, "Preview State should be not started").to.equal(
             td.LoadState.NotStarted,
-            "Preview State should be not started",
         );
         scriptStub.restore();
         newQueryStub.restore();
@@ -376,28 +344,22 @@ suite("TableDesignerWebviewController tests", () => {
             mockPreviewPayload,
         );
 
-        assert.ok(generatePreviewStub.calledOnce, "generatePreviewReport should be called once");
-        assert.deepStrictEqual(
-            generatePreviewStub.firstCall.args,
-            [mockPreviewPayload.table],
-            "generatePreviewReport should be called with correct arguments",
-        );
+        expect(
+            generatePreviewStub,
+            "generatePreviewReport should be called once with correct arguments",
+        ).to.have.been.calledOnceWithExactly(mockPreviewPayload.table);
 
-        assert.deepStrictEqual(
+        expect(
             result.apiState.previewState,
-            td.LoadState.Loaded,
             "Preview state should be Loaded when no validation error",
-        );
-        assert.deepStrictEqual(
-            result.apiState.publishState,
+        ).to.equal(td.LoadState.Loaded);
+        expect(result.apiState.publishState, "Publish state should remain NotStarted").to.equal(
             td.LoadState.NotStarted,
-            "Publish state should remain NotStarted",
         );
-        assert.deepStrictEqual(
+        expect(
             result.generatePreviewReportResult,
-            previewResponse,
             "Should store the preview report result",
-        );
+        ).to.deep.equal(previewResponse);
 
         generatePreviewStub.restore();
 
@@ -412,21 +374,17 @@ suite("TableDesignerWebviewController tests", () => {
             mockPreviewPayload,
         );
 
-        assert.deepStrictEqual(
-            result.apiState.previewState,
+        expect(result.apiState.previewState, "Preview state should be Error on failure").to.equal(
             td.LoadState.Error,
-            "Preview state should be Error on failure",
         );
-        assert.deepStrictEqual(
+        expect(
             result.apiState.publishState,
-            td.LoadState.NotStarted,
             "Publish state should remain NotStarted on failure",
-        );
-        assert.strictEqual(
+        ).to.equal(td.LoadState.NotStarted);
+        expect(
             result.generatePreviewReportResult.schemaValidationError,
-            errorMessage,
             "Should include error message in result",
-        );
+        ).to.equal(errorMessage);
     });
 
     test("should set mainPaneTab in setTab reducer", async () => {
@@ -435,11 +393,7 @@ suite("TableDesignerWebviewController tests", () => {
 
         const result = await controller["_reducerHandlers"].get("setTab")(state as any, { tabId });
 
-        assert.strictEqual(
-            result.tabStates.mainPaneTab,
-            tabId,
-            "mainPaneTab should be set correctly",
-        );
+        expect(result.tabStates.mainPaneTab, "mainPaneTab should be set correctly").to.equal(tabId);
     });
 
     test("should set propertiesPaneData in setPropertiesComponents reducer", async () => {
@@ -450,11 +404,10 @@ suite("TableDesignerWebviewController tests", () => {
             components: mockComponents,
         });
 
-        assert.deepStrictEqual(
+        expect(
             result.propertiesPaneData,
-            mockComponents,
             "propertiesPaneData should be set correctly",
-        );
+        ).to.deep.equal(mockComponents);
     });
 
     test("should set resultPaneTab in setResultTab reducer", async () => {
@@ -465,10 +418,8 @@ suite("TableDesignerWebviewController tests", () => {
             tabId,
         });
 
-        assert.strictEqual(
-            result.tabStates.resultPaneTab,
+        expect(result.tabStates.resultPaneTab, "resultPaneTab should be set correctly").to.equal(
             tabId,
-            "resultPaneTab should be set correctly",
         );
     });
 
@@ -477,10 +428,9 @@ suite("TableDesignerWebviewController tests", () => {
 
         await controller["_reducerHandlers"].get("continueEditing")(state, mockPayload);
 
-        assert.strictEqual(
+        expect(
             controller.state.apiState.publishState,
-            td.LoadState.NotStarted,
             "publishState should be set to NotStarted",
-        );
+        ).to.equal(td.LoadState.NotStarted);
     });
 });

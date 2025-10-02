@@ -13,6 +13,7 @@ import * as path from "path";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 import { buildCapabilitiesResult } from "./mocks";
+import { UserSurvey } from "../../src/nps/userSurvey";
 
 // Launches and activates the extension
 export async function activateExtension(): Promise<IExtension> {
@@ -65,6 +66,15 @@ export function stubGetCapabilitiesRequest(
         .withArgs(GetCapabilitiesRequest.type, sinon.match.any)
         .resolves(buildCapabilitiesResult());
     return serviceClientMock;
+}
+
+export function stubUserSurvey(sandbox?: sinon.SinonSandbox): sinon.SinonStub {
+    const stubber = sandbox || sinon;
+    const surveyStub = stubber.stub(UserSurvey, "getInstance").returns({
+        promptUserForNPSFeedback: sandbox.stub(),
+    } as unknown as UserSurvey);
+
+    return surveyStub;
 }
 
 export function getMockContext(): vscode.ExtensionContext {
