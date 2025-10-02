@@ -31,7 +31,7 @@ import { AddConnectionTreeNode } from "./nodes/addConnectionTreeNode";
 import { AccountSignInTreeNode } from "./nodes/accountSignInTreeNode";
 import { ConnectTreeNode, TreeNodeType } from "./nodes/connectTreeNode";
 import { Deferred } from "../protocol";
-import * as Constants from "../constants/constants";
+// import * as Constants from "../constants/constants";
 import { ObjectExplorerUtils } from "./objectExplorerUtils";
 import * as Utils from "../models/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
