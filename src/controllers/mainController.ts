@@ -92,6 +92,7 @@ import {
     stopContainer,
 } from "../deployment/dockerUtils";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
+import { getCloudId } from "../azure/providerSettings";
 
 /**
  * The main controller class that initializes the extension
@@ -959,6 +960,7 @@ export default class MainController implements vscode.Disposable {
             experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
             modernFeaturesEnabled: this.isRichExperiencesEnabled.toString(),
             useLegacyConnections: this.useLegacyConnectionExperience.toString(),
+            cloudType: getCloudId(),
         });
 
         await this._connectionMgr.initialized;
@@ -2651,7 +2653,10 @@ export default class MainController implements vscode.Disposable {
      * @param ConfigurationChangeEvent event that is fired when config is changed
      */
     public async onDidChangeConfiguration(e: vscode.ConfigurationChangeEvent): Promise<void> {
-        if (!e.affectsConfiguration(Constants.extensionName)) {
+        if (
+            !e.affectsConfiguration(Constants.extensionName) &&
+            !e.affectsConfiguration(Constants.sovereignCloudSectionName)
+        ) {
             return;
         }
 
@@ -2673,6 +2678,9 @@ export default class MainController implements vscode.Disposable {
             Constants.configEnableExperimentalFeatures,
             Constants.configEnableRichExperiences,
             Constants.configUseLegacyConnectionExperience,
+            Constants.configSovereignCloudEnvironment,
+            Constants.configSovereignCloudCustomEnvironment,
+            Constants.configCustomEnvironment,
         ];
 
         if (configSettingsRequiringReload.some((setting) => e.affectsConfiguration(setting))) {

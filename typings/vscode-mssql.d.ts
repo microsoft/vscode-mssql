@@ -1060,16 +1060,18 @@ declare module "vscode-mssql" {
         loginEndpoint: string;
         portalEndpoint: string;
         redirectUri: string;
-        resources: IProviderResources;
+        settings: IProviderResources;
         fabric: {
+            fabricApiUriBase: string;
+            fabricScopeUriBase: string;
             sqlDbDnsSuffix: string;
-            dataWarehouseSuffix: string;
+            dataWarehouseDnsSuffix: string;
         };
     }
 
     export interface IProviderResources {
         windowsManagementResource: IAADResource;
-        azureManagementResource: IAADResource;
+        armResource: IAADResource;
         graphResource?: IAADResource;
         databaseResource?: IAADResource;
         ossRdbmsResource?: IAADResource;

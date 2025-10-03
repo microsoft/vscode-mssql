@@ -12,24 +12,16 @@ import * as azureUtils from "./utils";
 import { Subscription } from "@azure/arm-subscriptions";
 import { promises as fs } from "fs";
 import { IAzureAccountSession } from "vscode-mssql";
-import providerSettings from "../azure/providerSettings";
+import { getCloudProviderSettings } from "../azure/providerSettings";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionProfile } from "../models/connectionProfile";
-import {
-    AzureAuthType,
-    IAADResource,
-    IAccount,
-    IProviderSettings,
-    ITenant,
-    IToken,
-} from "../models/contracts/azure";
+import { AzureAuthType, IAADResource, IAccount, ITenant, IToken } from "../models/contracts/azure";
 import { Logger } from "../models/logger";
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { AccountStore } from "./accountStore";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
 
 export abstract class AzureController {
-    protected _providerSettings: IProviderSettings;
     protected _vscodeWrapper: VscodeWrapper;
     protected _credentialStoreInitialized = false;
     protected logger: Logger;
@@ -52,7 +44,6 @@ export abstract class AzureController {
         );
         this.logger = Logger.create(channel);
 
-        this._providerSettings = providerSettings;
         vscode.workspace.onDidChangeConfiguration((changeEvent) => {
             const impactsProvider = changeEvent.affectsConfiguration(
                 AzureConstants.accountsAzureAuthSection,
@@ -170,7 +161,7 @@ export abstract class AzureController {
             const token = await this.getAccountSecurityToken(
                 account,
                 tenantId,
-                providerSettings.resources.azureManagementResource,
+                getCloudProviderSettings(account.key.providerId).settings.armResource,
             );
             const subClient = this._subscriptionClientFactory(token!);
             const newSubPages = await subClient.subscriptions.list();
@@ -209,7 +200,7 @@ export abstract class AzureController {
                 session.account,
                 accountStore,
                 undefined,
-                providerSettings.resources.azureManagementResource,
+                getCloudProviderSettings(session.account.key.providerId).settings.armResource,
             );
             session.token = token!;
             this.logger.verbose(`Access Token refreshed for account: ${session?.account?.key.id}`);

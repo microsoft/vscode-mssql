@@ -299,7 +299,10 @@ export const AddFirewallRuleDialog = ({
                                             : { startIp, endIp },
                                 });
                             }}
-                            disabled={!state.isSignedIn}
+                            disabled={
+                                !state.isSignedIn ||
+                                state.addFirewallRuleStatus === ApiStatus.Loading
+                            }
                             icon={
                                 state.addFirewallRuleStatus === ApiStatus.Loading ? (
                                     <Spinner size="tiny" />

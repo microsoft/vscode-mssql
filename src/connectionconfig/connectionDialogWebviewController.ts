@@ -82,6 +82,7 @@ import {
     getSqlConnectionErrorType,
     SqlConnectionErrorType,
 } from "../controllers/connectionManager";
+import { getCloudId } from "../azure/providerSettings";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 
@@ -358,8 +359,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     err.Name, // errorType
                     {
                         failure: err.Name,
+                        cloudType: getCloudId(),
                     },
                 );
+
+                return state;
             }
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule);
@@ -423,6 +427,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     TelemetryActions.FilterAzureSubscriptions,
                     err,
                     false, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                    {
+                        cloudType: getCloudId(),
+                    },
                 );
             }
 
@@ -972,6 +981,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     {
                         connectionInputType: this.state.selectedInputMode,
                         authMode: this.state.connectionProfile.authenticationType,
+                        cloudType: getCloudId(),
                     },
                 );
 
@@ -984,6 +994,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 connectionInputType: this.state.selectedInputMode,
                 authMode: this.state.connectionProfile.authenticationType,
                 serverTypes: getServerTypes(this.state.connectionProfile).join(","),
+                cloudType: getCloudId(),
             });
 
             if (this._connectionBeingEdited) {
@@ -1059,6 +1070,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 {
                     connectionInputType: this.state.selectedInputMode,
                     authMode: this.state.connectionProfile.authenticationType,
+                    cloudType: getCloudId(),
                 },
             );
 
@@ -1152,6 +1164,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
                         connectionInputType: this.state.selectedInputMode,
                         authMode: this.state.connectionProfile.authenticationType,
+                        cloudType: getCloudId(),
                     },
                 );
 
@@ -1560,6 +1573,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 true, // includeErrorMessage
                 undefined, // errorCode
                 undefined, // errorType
+                {
+                    cloudType: getCloudId(),
+                },
             );
         }
     }
@@ -1641,6 +1657,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 const locMessage = LocFabric.failedToGetWorkspacesForTenant(
                     tenant.displayName,
                     tenant.tenantId,
+                    getErrorMessage(err),
                 );
 
                 this.logger.error(message);
