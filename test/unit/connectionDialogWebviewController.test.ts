@@ -185,8 +185,14 @@ suite("ConnectionDialogWebviewController Tests", () => {
             const expectedInitialFormState = {
                 authenticationType: "SqlLogin",
                 connectTimeout: 30,
+                commandTimeout: 30,
                 applicationName: "vscode-mssql",
                 applicationIntent: "ReadWrite",
+                database: "",
+                encrypt: "Mandatory",
+                server: "",
+                password: "",
+                user: "",
             };
 
             expect(controller.state.formState).to.deep.equal(

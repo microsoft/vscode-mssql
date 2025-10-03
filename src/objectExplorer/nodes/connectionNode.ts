@@ -11,6 +11,9 @@ import { ObjectExplorerUtils } from "../objectExplorerUtils";
 import * as ConnInfo from "../../models/connectionInfo";
 import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
 import { disconnectedDockerContainer, dockerContainer } from "../../constants/constants";
+import { IConnectionProfile } from "../../models/interfaces";
+import * as Constants from "../../constants/constants";
+import { getDefaultConnection } from "../../models/connectionInfo";
 
 // Constants for node types and icon names
 export const SERVER_NODE_DISCONNECTED = "disconnectedServer";
@@ -59,6 +62,161 @@ export class ConnectionNode extends TreeNodeInfo {
         } else {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_SERVER_DISCONNECTED);
         }
+
+        // Tooltip logic: show all non-default properties except those in the label (database, user, server)
+        const connectionTooltip = this.getConnectionTooltip(connectionProfile);
+        if (connectionTooltip) {
+            this.tooltip = connectionTooltip;
+        }
+    }
+
+    /**
+     * Generates a tooltip for the connection profile; it should include:
+     * - profileName if present (without the profileName key)
+     * - server
+     * - database
+     * - creds based on auth type:
+     *   - user for sql auth
+     *   - email for entra auth.
+     * - extra non-default properties
+     * It should exclude:
+     * - password or any sensitive info
+     * - properties that are default values or empty
+     * @param connectionProfile The connection profile to generate the tooltip for
+     * @returns the tooltip string or undefined if no properties to show
+     */
+    private getConnectionTooltip(connectionProfile: IConnectionProfile): string | undefined {
+        // Properties to exclude
+        const exclude = [
+            "id",
+            "groupId",
+            "profileSource",
+            "savePassword",
+            "emptyPasswordInput",
+            "azureAuthType",
+            "accountStore",
+            "password",
+            "accountId",
+            "tenantId",
+            "azureAccountToken",
+            "expiresOn",
+            "encrypt",
+            "trustServerCertificate",
+            "hostNameInCertificate",
+            "persistSecurityInfo",
+            "secureEnclaves",
+            "columnEncryptionSetting",
+            "attestationProtocol",
+            "enclaveAttestationUrl",
+            "workstationId",
+            "applicationIntent",
+            "currentLanguage",
+            "pooling",
+            "maxPoolSize",
+            "minPoolSize",
+            "loadBalanceTimeout",
+            "replication",
+            "attachDbFilename",
+            "failoverPartner",
+            "multiSubnetFailover",
+            "multipleActiveResultSets",
+            "packetSize",
+            "typeSystemVersion",
+            "connectionString",
+            "acceptEula",
+            "authenticationType",
+            "email",
+        ];
+        const excludedLabelKeys = ["profileName"];
+        // Default values for comparison
+        const connectionNodeDefaults: Partial<IConnectionProfile> = getDefaultConnection();
+
+        const defaultValues = {
+            encrypt: (connectionNodeDefaults as any).encrypt,
+            trustServerCertificate: (connectionNodeDefaults as any).trustServerCertificate,
+            persistSecurityInfo: (connectionNodeDefaults as any).persistSecurityInfo,
+            azureAuthType: (connectionNodeDefaults as any).azureAuthType,
+            multipleActiveResultSets: (connectionNodeDefaults as any).multipleActiveResultSets,
+            connectTimeout: (connectionNodeDefaults as any).connectTimeout,
+            commandTimeout: (connectionNodeDefaults as any).commandTimeout,
+            applicationName: (connectionNodeDefaults as any).applicationName,
+            savePassword: (connectionNodeDefaults as any).savePassword,
+            emptyPasswordInput: (connectionNodeDefaults as any).emptyPasswordInput,
+            profileSource: (connectionNodeDefaults as any).profileSource,
+            authenticationType: (connectionNodeDefaults as any).authenticationType,
+            applicationIntent: (connectionNodeDefaults as any).applicationIntent,
+        };
+
+        let props: { key: string; value: string }[] = [];
+
+        props.push({ key: "profileName", value: "" });
+        props.push({ key: "server", value: "" });
+        props.push({ key: "database", value: "" });
+        props.push({ key: "user", value: "" });
+        props.push({ key: "email", value: "" });
+
+        let extendedProps: { key: string; value: string }[] = [];
+
+        //handle auth types properly
+        if (
+            connectionProfile.authenticationType === Constants.azureMfa ||
+            connectionProfile.authenticationType === Constants.integratedauth
+        ) {
+            exclude.splice(exclude.indexOf("email"), 1);
+            exclude.push("user"); // don't show user
+        }
+
+        Object.keys(connectionProfile).forEach((key) => {
+            const value = (connectionProfile as any)[key];
+            if (exclude.includes(key)) {
+                return;
+            }
+            if (!value || value === "") {
+                return;
+            }
+
+            if (key in defaultValues && value === defaultValues[key]) {
+                return;
+            }
+
+            if (props.map((p) => p.key).find((k) => k === key)) {
+                const prop = props.find((p) => p.key === key);
+                if (prop) {
+                    prop.value = value;
+                }
+            } else {
+                extendedProps.push({ key: key, value: value });
+            }
+        });
+
+        extendedProps.sort((a, b) => {
+            const keyA = a.key.trim().toLowerCase();
+            const keyB = b.key.trim().toLowerCase();
+            return keyA.localeCompare(keyB);
+        });
+        let lines = props
+            .map((p) => {
+                if (p.value) {
+                    if (excludedLabelKeys.find((k) => k === p.key)) {
+                        return `${p.value}`;
+                    } else {
+                        return `${p.key}: ${p.value}`;
+                    }
+                } else {
+                    return undefined;
+                }
+            })
+            .concat(
+                extendedProps.map((p) =>
+                    p.value
+                        ? p.key in excludedLabelKeys
+                            ? `${p.value}`
+                            : `${p.key}: ${p.value}`
+                        : undefined,
+                ),
+            );
+        lines = lines.filter((line): line is string => line !== undefined);
+        return lines.length > 0 ? lines.join("\n") : undefined;
     }
 
     protected override generateId(): string {
