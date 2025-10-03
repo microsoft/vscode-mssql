@@ -381,7 +381,6 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
         }
     }, [focusedIndex]);
 
-    const totalItems = items.length;
     const visibleCount = Math.ceil(LIST_HEIGHT / ITEM_HEIGHT);
     const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);
     const endIndex = Math.min(filteredItems.length, startIndex + visibleCount + OVERSCAN * 2);
