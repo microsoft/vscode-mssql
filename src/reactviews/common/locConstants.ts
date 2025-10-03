@@ -509,6 +509,7 @@ export class LocConstants {
                 "Run a query in the current editor, or switch to an editor that has results.",
             ),
             failedToStartQuery: l10n.t("Failed to start query."),
+            filterOptions: l10n.t("Filter Options"),
         };
     }
 

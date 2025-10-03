@@ -106,13 +106,18 @@ export class HeaderMenu<T extends Slick.SlickData> {
         e: Event,
         args: Slick.OnHeaderContextMenuEventArgs<T>,
     ): Promise<void> {
+        // Prevent the default vscode context menu from showing on right-clicking the header
+        e.preventDefault();
+        e.stopPropagation();
         const column = args.column;
         if (!column) {
             return;
         }
-        await this.showColumnMenuForColumn(column);
-        // Prevent the default vscode context menu from showing on right-clicking the header
-        e.preventDefault();
+        try {
+            await this.showColumnMenuForColumn(column);
+        } catch (err) {
+            console.error("Error showing column menu:", err);
+        }
     }
 
     public async openMenuForActiveColumn(): Promise<void> {

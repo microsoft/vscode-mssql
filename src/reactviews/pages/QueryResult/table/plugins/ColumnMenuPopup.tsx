@@ -528,8 +528,8 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                     icon={<Dismiss16Regular style={{ width: 10, height: 10 }} />}
                     onClick={handleClose}
                     className={styles.closeButton}
-                    title="Close"
-                    aria-label="Close"
+                    title={locConstants.common.close}
+                    aria-label={locConstants.common.close}
                 />
             </div>
             <div className={styles.divider} />
@@ -546,8 +546,8 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                             }
                             size="small"
                             onClick={handleSortAscending}
-                            title="Sort Ascending"
-                            aria-label="Sort Ascending">
+                            title={locConstants.queryResult.sortAscending}
+                            aria-label={locConstants.queryResult.sortAscending}>
                             A→Z
                         </Button>
 
@@ -557,18 +557,18 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                             }
                             size="small"
                             onClick={handleSortDescending}
-                            title="Sort Descending"
-                            aria-label="Sort Descending">
+                            title={locConstants.queryResult.sortDescending}
+                            aria-label={locConstants.queryResult.sortDescending}>
                             Z→A
                         </Button>
 
                         <Button
                             appearance="secondary"
                             size="small"
-                            title="Clear Sort"
+                            title={locConstants.queryResult.clearSort}
                             onClick={handleClearSort}
-                            aria-label="Clear Sort">
-                            Clear
+                            aria-label={locConstants.queryResult.clearSort}>
+                            {locConstants.queryResult.clear}
                         </Button>
                     </div>
                 </div>
@@ -620,7 +620,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                         className={styles.listContainer}
                         tabIndex={0}
                         role="listbox"
-                        aria-label="Filter options"
+                        aria-label={locConstants.queryResult.filterOptions}
                         onFocus={() => {
                             if (focusedIndex === -1 && filteredItems.length > 0) {
                                 setFocusedIndex(0);
