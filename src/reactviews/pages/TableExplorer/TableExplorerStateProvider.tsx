@@ -42,6 +42,10 @@ export const TableExplorerStateProvider: React.FC<{
                 deleteRow: function (rowId: number): void {
                     webViewState?.extensionRpc.action("deleteRow", { rowId });
                 },
+
+                updateCell: function (rowId: number, columnId: number, newValue: string): void {
+                    webViewState?.extensionRpc.action("updateCell", { rowId, columnId, newValue });
+                },
             }}>
             {children}
         </TableExplorerContext.Provider>

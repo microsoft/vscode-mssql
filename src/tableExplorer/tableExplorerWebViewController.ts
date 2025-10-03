@@ -48,6 +48,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 isLoading: false,
                 ownerUri: "",
                 resultSet: undefined,
+                updateCellResult: undefined,
             },
             {
                 title: `Table Explorer: ${tableName}`,
@@ -181,6 +182,15 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 const result = await this._tableExplorerService.createRow(state.ownerUri);
                 vscode.window.showInformationMessage("New row created successfully");
                 this.logger.info(`Created row with ID: ${result.newRowId}`);
+
+                // Reload the result set to reflect the new row
+                const subsetResult = await this._tableExplorerService.subset(
+                    state.ownerUri,
+                    0,
+                    100,
+                );
+                state.resultSet = subsetResult;
+                this.logger.info(`Reloaded ${subsetResult.rowCount} rows after creation`);
             } catch (error) {
                 this.logger.error(`Error creating row: ${error}`);
                 vscode.window.showErrorMessage(`Failed to create row: ${error}`);
@@ -211,6 +221,26 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             }
             return state;
         });
+
+        this.registerReducer("updateCell", async (state, payload) => {
+            this.logger.info(`Updating cell: row ${payload.rowId}, column ${payload.columnId}`);
+            try {
+                const updateCellResult = await this._tableExplorerService.updateCell(
+                    state.ownerUri,
+                    payload.rowId,
+                    payload.columnId,
+                    payload.newValue,
+                );
+
+                state.updateCellResult = updateCellResult;
+                this.updateState();
+                this.logger.info(`Cell updated successfully`);
+            } catch (error) {
+                this.logger.error(`Error updating cell: ${error}`);
+                vscode.window.showErrorMessage(`Failed to update cell: ${error}`);
+            }
+            return state;
+        });
     }
 
     /**
@@ -218,7 +248,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
      * This is called when the webview tab is closed.
      */
     public override dispose(): void {
-        // Dispose of the table explorer service resources if ownerUri is set
         if (this.state.ownerUri) {
             this.logger.info(
                 `Disposing Table Explorer resources for ownerUri: ${this.state.ownerUri}`,
@@ -228,7 +257,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             });
         }
 
-        // Call parent dispose to clean up webview resources
         super.dispose();
     }
 }

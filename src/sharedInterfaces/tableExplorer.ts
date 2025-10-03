@@ -177,6 +177,7 @@ export interface TableExplorerWebViewState {
     isLoading: boolean;
     ownerUri: string;
     resultSet: EditSubsetResult | undefined;
+    updateCellResult: EditUpdateCellResult | undefined;
     tableMetadata?: any; // This would be more specific based on actual metadata structure
 }
 
@@ -187,6 +188,7 @@ export interface TableExplorerContextProps {
     loadSubset: (rowCount: number) => void;
     createRow: () => void;
     deleteRow: (rowId: number) => void;
+    updateCell: (rowId: number, columnId: number, newValue: string) => void;
 }
 
 export interface TableExplorerReducers {
@@ -194,4 +196,5 @@ export interface TableExplorerReducers {
     loadSubset: { rowCount: number };
     createRow: {};
     deleteRow: { rowId: number };
+    updateCell: { rowId: number; columnId: number; newValue: string };
 }
