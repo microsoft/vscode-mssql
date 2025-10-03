@@ -17,16 +17,16 @@ import {
 } from "../../../sharedInterfaces/queryResult";
 import { WebviewRpc } from "../../common/rpc";
 import GridContextMenu from "./table/plugins/GridContextMenu";
-import FilterPopup, {
-    FilterPopupAnchorRect,
-    FilterPopupItem,
+import ColumnMenuPopup, {
+    ColumnMenuPopupAnchorRect,
+    FilterListItem,
     FilterValue,
-} from "./table/plugins/FilterPopup";
+} from "./table/plugins/ColumnMenuPopup";
 
 export interface ColumnFilterPopupOptions {
     columnId: string;
-    anchorRect: FilterPopupAnchorRect;
-    items: FilterPopupItem[];
+    anchorRect: ColumnMenuPopupAnchorRect;
+    items: FilterListItem[];
     initialSelected: FilterValue[];
     onApply: (selected: FilterValue[]) => Promise<void>;
     onClearSort: () => Promise<void>;
@@ -208,7 +208,7 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                 />
             )}
             {filterPopupState && (
-                <FilterPopup
+                <ColumnMenuPopup
                     anchorRect={filterPopupState.anchorRect}
                     items={filterPopupState.items}
                     initialSelected={filterPopupState.initialSelected}

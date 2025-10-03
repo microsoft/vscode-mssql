@@ -22,7 +22,7 @@ import { locConstants } from "../../../../common/locConstants";
 
 export type FilterValue = string | undefined;
 
-export interface FilterPopupAnchorRect {
+export interface ColumnMenuPopupAnchorRect {
     top: number;
     left: number;
     bottom: number;
@@ -31,15 +31,15 @@ export interface FilterPopupAnchorRect {
     height: number;
 }
 
-export interface FilterPopupItem {
+export interface FilterListItem {
     value: FilterValue;
     displayText: string;
     index: number;
 }
 
-interface FilterPopupProps {
-    anchorRect: FilterPopupAnchorRect;
-    items: FilterPopupItem[];
+interface ColumnMenuPopupProps {
+    anchorRect: ColumnMenuPopupAnchorRect;
+    items: FilterListItem[];
     initialSelected: FilterValue[];
     onApply: (selected: FilterValue[]) => Promise<void> | void;
     onClear: () => Promise<void> | void;
@@ -220,7 +220,7 @@ const useStyles = makeStyles({
     },
 });
 
-export const FilterPopup: React.FC<FilterPopupProps> = ({
+export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
     anchorRect,
     items,
     initialSelected,
@@ -684,4 +684,4 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
     );
 };
 
-export default FilterPopup;
+export default ColumnMenuPopup;

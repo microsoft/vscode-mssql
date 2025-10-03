@@ -12,7 +12,7 @@ import "../../../../media/table.css";
 import { locConstants } from "../../../../common/locConstants";
 import { resolveVscodeThemeType } from "../../../../common/utils";
 import { EventManager } from "../../../../common/eventManager";
-import type { FilterPopupAnchorRect, FilterPopupItem, FilterValue } from "./FilterPopup";
+import type { ColumnMenuPopupAnchorRect, FilterListItem, FilterValue } from "./ColumnMenuPopup";
 
 import {
     ColumnFilterState,
@@ -348,7 +348,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
         }
     }
 
-    private async buildFilterItems(): Promise<FilterPopupItem[]> {
+    private async buildFilterItems(): Promise<FilterListItem[]> {
         this.columnDef.filterValues = this.columnDef.filterValues || [];
         let filterItems: FilterValue[];
         const dataView = this.grid.getData() as IDisposableDataProvider<T>;
@@ -412,7 +412,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
         }));
     }
 
-    private toAnchorRect(rect: DOMRect): FilterPopupAnchorRect {
+    private toAnchorRect(rect: DOMRect): ColumnMenuPopupAnchorRect {
         return {
             top: rect.top,
             left: rect.left,
