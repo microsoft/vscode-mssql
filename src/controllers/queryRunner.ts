@@ -1069,27 +1069,15 @@ export default class QueryRunner {
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-        showTresholdWarning: boolean = true,
     ): Promise<void> {
-        const sendCancelSummaryEvent = async () => {
-            // Reset and allow user to start a new summary operation
-            this._cancelConfirmation = undefined;
-            const newWaitForUserContinuation = new Deferred<void>();
+        const sendCancelSummaryEvent = () => {
             this.fireSummaryChangedEvent(requestId, {
-                command: {
-                    title: Constants.cmdHandleSummaryOperation,
-                    command: Constants.cmdHandleSummaryOperation,
-                    arguments: [this.uri],
-                },
-                continue: newWaitForUserContinuation,
-                text: `$(play-circle) ${LocalizedConstants.QueryResult.summaryFetchConfirmation(totalRows)}`,
-                tooltip: LocalizedConstants.QueryResult.clickToFetchSummary,
+                text: LocalizedConstants.QueryResult.summaryLoadingCanceled,
+                tooltip: LocalizedConstants.QueryResult.summaryLoadingCanceledTooltip,
                 uri: this.uri,
+                command: undefined,
+                continue: undefined,
             });
-
-            // Wait for user to click again, then restart the summary generation
-            await newWaitForUserContinuation.promise;
-            await this.generateSelectionSummaryData(selection, batchId, resultId, false);
         };
         this._requestID = Utils.generateGuid();
         const requestId = this._requestID;
@@ -1111,7 +1099,7 @@ export default class QueryRunner {
                 .getConfiguration()
                 .get<number>(Constants.configInMemoryDataProcessingThreshold) ?? 5000;
 
-        if (totalRows > summaryFetchThreshold && showTresholdWarning) {
+        if (totalRows > summaryFetchThreshold) {
             const waitForUserContinuation = new Deferred<void>();
             this.fireSummaryChangedEvent(requestId, {
                 command: {
@@ -1139,7 +1127,7 @@ export default class QueryRunner {
                 arguments: [this.uri],
             },
             continue: cancelConfirmation,
-            text: `$(arrow-circle-down) ${LocalizedConstants.QueryResult.summaryLoadingProgress(0, totalRows)}`,
+            text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(0, totalRows)}`,
             tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
             uri: this.uri,
         });
@@ -1164,7 +1152,7 @@ export default class QueryRunner {
             // Process each selection range with batching
             for (const range of selection) {
                 if (isCanceled) {
-                    await sendCancelSummaryEvent();
+                    sendCancelSummaryEvent();
                     return;
                 }
 
@@ -1175,7 +1163,7 @@ export default class QueryRunner {
                     startRow += batchThreshold
                 ) {
                     if (isCanceled) {
-                        await sendCancelSummaryEvent();
+                        sendCancelSummaryEvent();
                         return;
                     }
 
@@ -1203,7 +1191,7 @@ export default class QueryRunner {
                     processedRows += batchSize;
 
                     if (isCanceled) {
-                        await sendCancelSummaryEvent();
+                        sendCancelSummaryEvent();
                         return;
                     }
 
@@ -1214,7 +1202,7 @@ export default class QueryRunner {
                             arguments: [this.uri],
                         },
                         continue: cancelConfirmation,
-                        text: `$(arrow-circle-down) ${LocalizedConstants.QueryResult.summaryLoadingProgress(processedRows, totalRows)}`,
+                        text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(processedRows, totalRows)}`,
                         tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
                         uri: this.uri,
                     });
@@ -1222,7 +1210,7 @@ export default class QueryRunner {
             }
 
             if (isCanceled) {
-                await sendCancelSummaryEvent();
+                sendCancelSummaryEvent();
                 return;
             }
 
