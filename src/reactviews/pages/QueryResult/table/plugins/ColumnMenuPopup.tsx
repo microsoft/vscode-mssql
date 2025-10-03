@@ -16,7 +16,12 @@ import {
     shorthands,
     tokens,
 } from "@fluentui/react-components";
-import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
+import {
+    Dismiss16Regular,
+    Search16Regular,
+    TextSortAscending16Regular,
+    TextSortDescending16Regular,
+} from "@fluentui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { locConstants } from "../../../../common/locConstants";
 import { SortProperties } from "../../../../../sharedInterfaces/queryResult";
@@ -107,7 +112,7 @@ const useStyles = makeStyles({
     },
     sortButtons: {
         display: "flex",
-        flexDirection: "row",
+        flexDirection: "column",
         columnGap: "2px",
     },
     sortButton: {
@@ -541,34 +546,32 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                                 sortAscendingButtonRef.current = el;
                                 firstFocusableRef.current = el;
                             }}
-                            appearance={
-                                currentSort === SortProperties.ASC ? "primary" : "secondary"
-                            }
+                            appearance={currentSort === SortProperties.ASC ? "primary" : "subtle"}
                             size="small"
+                            icon={<TextSortAscending16Regular />}
                             onClick={handleSortAscending}
                             title={locConstants.queryResult.sortAscending}
                             aria-label={locConstants.queryResult.sortAscending}>
-                            A→Z
+                            {locConstants.queryResult.sortAscending}
                         </Button>
 
                         <Button
-                            appearance={
-                                currentSort === SortProperties.DESC ? "primary" : "secondary"
-                            }
+                            appearance={currentSort === SortProperties.DESC ? "primary" : "subtle"}
                             size="small"
+                            icon={<TextSortDescending16Regular />}
                             onClick={handleSortDescending}
                             title={locConstants.queryResult.sortDescending}
                             aria-label={locConstants.queryResult.sortDescending}>
-                            Z→A
+                            {locConstants.queryResult.sortDescending}
                         </Button>
 
                         <Button
-                            appearance="secondary"
+                            appearance="subtle"
                             size="small"
                             title={locConstants.queryResult.clearSort}
                             onClick={handleClearSort}
                             aria-label={locConstants.queryResult.clearSort}>
-                            {locConstants.queryResult.clear}
+                            {locConstants.queryResult.removeSort}
                         </Button>
                     </div>
                 </div>
@@ -612,7 +615,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                             size={100}
                             aria-live="polite"
                             className={styles.counter}>
-                            {selectedValues.size} selected
+                            {locConstants.queryResult.selectedCount(selectedValues.size)}
                         </Text>
                     </div>
                     <div
@@ -679,7 +682,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                 <Button
                     ref={lastFocusableRef}
                     className={styles.actionButton}
-                    appearance="secondary"
+                    appearance="subtle"
                     size="small"
                     onClick={handleClear}>
                     {locConstants.queryResult.clear}

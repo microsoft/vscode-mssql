@@ -510,6 +510,13 @@ export class LocConstants {
             ),
             failedToStartQuery: l10n.t("Failed to start query."),
             filterOptions: l10n.t("Filter Options"),
+            removeSort: l10n.t("Remove Sort"),
+            selectedCount: (count: number) =>
+                l10n.t({
+                    message: "{0} selected",
+                    args: [count],
+                    comment: ["{0} is the number of selected rows"],
+                }),
         };
     }
 
