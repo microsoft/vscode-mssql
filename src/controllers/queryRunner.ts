@@ -1063,14 +1063,28 @@ export default class QueryRunner {
         await this.writeStringToClipboard(insertIntoString);
     }
 
+    private _requestID: string;
     private _cancelConfirmation: Deferred<void>;
     public async generateSelectionSummaryData(
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
     ): Promise<void> {
+        const sendCancelSummaryEvent = () => {
+            this.fireSummaryChangedEvent(requestId, {
+                text: LocalizedConstants.QueryResult.summaryLoadingCanceled,
+                tooltip: LocalizedConstants.QueryResult.summaryLoadingCanceledTooltip,
+                uri: this.uri,
+                command: undefined,
+                continue: undefined,
+            });
+        };
+        this._requestID = Utils.generateGuid();
+        const requestId = this._requestID;
+        // Cancel any previous summary loading operation
         if (this._cancelConfirmation) {
             this._cancelConfirmation.resolve();
+            this._cancelConfirmation = undefined;
         }
         // Keep copy order deterministic
         selection.sort((a, b) => a.fromRow - b.fromRow);
@@ -1087,7 +1101,7 @@ export default class QueryRunner {
 
         if (totalRows > summaryFetchThreshold) {
             const waitForUserContinuation = new Deferred<void>();
-            this._onSummaryChangedEmitter.fire({
+            this.fireSummaryChangedEvent(requestId, {
                 command: {
                     title: Constants.cmdHandleSummaryOperation,
                     command: Constants.cmdHandleSummaryOperation,
@@ -1106,7 +1120,7 @@ export default class QueryRunner {
         const cancelConfirmation = this._cancelConfirmation;
         let isCanceled = false;
 
-        this._onSummaryChangedEmitter.fire({
+        this.fireSummaryChangedEvent(requestId, {
             command: {
                 title: Constants.cmdHandleSummaryOperation,
                 command: Constants.cmdHandleSummaryOperation,
@@ -1138,13 +1152,7 @@ export default class QueryRunner {
             // Process each selection range with batching
             for (const range of selection) {
                 if (isCanceled) {
-                    this._onSummaryChangedEmitter.fire({
-                        text: LocalizedConstants.QueryResult.summaryLoadingCanceled,
-                        tooltip: LocalizedConstants.QueryResult.summaryLoadingCanceledTooltip,
-                        uri: this.uri,
-                        command: undefined,
-                        continue: undefined,
-                    });
+                    sendCancelSummaryEvent();
                     return;
                 }
 
@@ -1155,13 +1163,7 @@ export default class QueryRunner {
                     startRow += batchThreshold
                 ) {
                     if (isCanceled) {
-                        this._onSummaryChangedEmitter.fire({
-                            text: LocalizedConstants.QueryResult.summaryLoadingCanceled,
-                            tooltip: LocalizedConstants.QueryResult.summaryLoadingCanceledTooltip,
-                            uri: this.uri,
-                            command: undefined,
-                            continue: undefined,
-                        });
+                        sendCancelSummaryEvent();
                         return;
                     }
 
@@ -1188,7 +1190,12 @@ export default class QueryRunner {
 
                     processedRows += batchSize;
 
-                    this._onSummaryChangedEmitter.fire({
+                    if (isCanceled) {
+                        sendCancelSummaryEvent();
+                        return;
+                    }
+
+                    this.fireSummaryChangedEvent(requestId, {
                         command: {
                             title: Constants.cmdHandleSummaryOperation,
                             command: Constants.cmdHandleSummaryOperation,
@@ -1203,13 +1210,7 @@ export default class QueryRunner {
             }
 
             if (isCanceled) {
-                this._onSummaryChangedEmitter.fire({
-                    text: LocalizedConstants.QueryResult.summaryLoadingCanceled,
-                    tooltip: LocalizedConstants.QueryResult.summaryLoadingCanceledTooltip,
-                    uri: this.uri,
-                    command: undefined,
-                    continue: undefined,
-                });
+                sendCancelSummaryEvent();
                 return;
             }
 
@@ -1252,7 +1253,7 @@ export default class QueryRunner {
                 cancelConfirmation.resolve();
             }
 
-            this._onSummaryChangedEmitter.fire({
+            this.fireSummaryChangedEvent(requestId, {
                 text,
                 tooltip,
                 uri: this.uri,
@@ -1265,7 +1266,7 @@ export default class QueryRunner {
                 cancelConfirmation.reject(error);
             }
 
-            this._onSummaryChangedEmitter.fire({
+            this.fireSummaryChangedEvent(requestId, {
                 text: `$(error) ${LocalizedConstants.QueryResult.errorLoadingSummary}`,
                 tooltip: LocalizedConstants.QueryResult.errorLoadingSummaryTooltip(
                     getErrorMessage(error),
@@ -1275,6 +1276,12 @@ export default class QueryRunner {
                 continue: undefined,
             });
             throw error;
+        }
+    }
+
+    private fireSummaryChangedEvent(requestId: string, summary: SummaryChanged): void {
+        if (this._requestID === requestId) {
+            this._onSummaryChangedEmitter.fire(summary);
         }
     }
 

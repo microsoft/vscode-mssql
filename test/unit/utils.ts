@@ -11,6 +11,7 @@ import { IExtension } from "vscode-mssql";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as path from "path";
 import * as jsonRpc from "vscode-jsonrpc/node";
+import { UserSurvey } from "../../src/nps/userSurvey";
 
 // Launches and activates the extension
 export async function activateExtension(): Promise<IExtension> {
@@ -103,4 +104,17 @@ export function stubWebviewConnectionRpc(sandbox: sinon.SinonSandbox): {
         dispose: sandbox.stub(),
     } as unknown as jsonRpc.MessageConnection;
     return { requestHandlers, notificationHandlers, connection };
+}
+
+export function stubUserSurvey(
+    sandbox?: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<UserSurvey> {
+    const stubber = sandbox || sinon;
+
+    const userSurvey = stubber.createStubInstance(UserSurvey);
+    userSurvey.promptUserForNPSFeedback.resolves();
+
+    stubber.stub(UserSurvey, "getInstance").returns(userSurvey);
+
+    return userSurvey;
 }

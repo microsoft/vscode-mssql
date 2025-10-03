@@ -10,7 +10,7 @@ import { AccountService } from "../azure/accountService";
 import { AccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import { MsalAzureController } from "../azure/msal/msalAzureController";
-import providerSettings from "../azure/providerSettings";
+import { getCloudId, getCloudProviderSettings } from "../azure/providerSettings";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { CredentialStore } from "../credentialstore/credentialstore";
@@ -1030,7 +1030,7 @@ export default class ConnectionManager {
                 account,
                 this.accountStore,
                 profile.tenantId,
-                providerSettings.resources.databaseResource!,
+                getCloudProviderSettings(account.key.providerId).settings.sqlResource!,
             );
         };
 
@@ -1073,7 +1073,7 @@ export default class ConnectionManager {
                 await this.azureController.populateAccountProperties(
                     profile,
                     this.accountStore,
-                    providerSettings.resources.databaseResource!,
+                    getCloudProviderSettings(account.key.providerId).settings.sqlResource!,
                 );
             } else {
                 throw new Error(LocalizedConstants.cannotConnect);
@@ -1195,6 +1195,7 @@ export default class ConnectionManager {
                 undefined, // errorType
                 {
                     serverTypes: getServerTypes(credentials).join(","),
+                    cloudType: getCloudId(),
                 },
             );
             return false;
@@ -1216,6 +1217,7 @@ export default class ConnectionManager {
                 undefined, // errorType
                 {
                     serverTypes: getServerTypes(credentials).join(","),
+                    cloudType: getCloudId(),
                 },
             );
             return false;
@@ -1224,6 +1226,7 @@ export default class ConnectionManager {
         // Connection was initiated successfully.
         sendActionEvent(TelemetryViews.ConnectionManager, TelemetryActions.Connect, {
             serverTypes: getServerTypes(credentials).join(","),
+            cloudType: getCloudId(),
         });
 
         const result = await connectionCompletePromise.promise;
@@ -1845,7 +1848,7 @@ export default class ConnectionManager {
         const token = await this.azureController.getAccountSecurityToken(
             account,
             tenant,
-            providerSettings.resources.azureKeyVaultResource,
+            getCloudProviderSettings(account.key.providerId).settings.azureKeyVaultResource,
         );
 
         this._keyVaultTokenCache.set(JSON.stringify(params), token);
