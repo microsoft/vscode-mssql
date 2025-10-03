@@ -29,12 +29,12 @@ export interface ColumnFilterPopupOptions {
     items: FilterPopupItem[];
     initialSelected: FilterValue[];
     onApply: (selected: FilterValue[]) => Promise<void> | void;
-    onClearSort?: () => Promise<void> | void;
+    onClearSort: () => Promise<void> | void;
     onClear: () => Promise<void> | void;
-    onDismiss?: () => void;
-    onSortAscending?: () => Promise<void> | void;
-    onSortDescending?: () => Promise<void> | void;
-    currentSort?: "asc" | "desc" | "none";
+    onDismiss: () => void;
+    onSortAscending: () => Promise<void> | void;
+    onSortDescending: () => Promise<void> | void;
+    currentSort: "asc" | "desc" | "none";
 }
 
 export interface QueryResultReactProvider

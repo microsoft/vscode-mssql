@@ -7,7 +7,6 @@
 // heavily modified
 
 import { FilterableColumn } from "../interfaces";
-import { append, $ } from "../dom";
 import { IDisposableDataProvider, instanceOfIDisposableDataProvider } from "../dataProvider";
 import "../../../../media/table.css";
 import { locConstants } from "../../../../common/locConstants";
@@ -121,7 +120,6 @@ export class HeaderMenu<T extends Slick.SlickData> {
         // If the column is not defined as sortable because of the above reason, we will add the sort indicator here.
         if (column.sortable !== true) {
             args.node.classList.add("slick-header-sortable");
-            append(args.node, $("span.slick-sort-indicator"));
         }
         const theme: string = resolveVscodeThemeType(this.theme);
         args.node.classList.add("slick-header-with-filter");

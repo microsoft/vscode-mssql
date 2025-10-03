@@ -19,9 +19,6 @@ import {
 import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { locConstants } from "../../../../common/locConstants";
-import { SortAscendingIcon } from "../../../../common/icons/sortAscending";
-import { SortDescendingIcon } from "../../../../common/icons/sortDescending";
-import { SortClearIcon } from "../../../../common/icons/sortClear";
 
 export type FilterValue = string | undefined;
 
@@ -47,10 +44,10 @@ interface FilterPopupProps {
     onApply: (selected: FilterValue[]) => Promise<void> | void;
     onClear: () => Promise<void> | void;
     onDismiss: () => void;
-    onSortAscending?: () => Promise<void> | void;
-    onSortDescending?: () => Promise<void> | void;
-    onClearSort?: () => Promise<void> | void;
-    currentSort?: "asc" | "desc" | "none";
+    onSortAscending: () => Promise<void> | void;
+    onSortDescending: () => Promise<void> | void;
+    onClearSort: () => Promise<void> | void;
+    currentSort: "asc" | "desc" | "none";
 }
 
 const POPUP_WIDTH = 200;
@@ -64,33 +61,26 @@ const useStyles = makeStyles({
         width: POPUP_WIDTH + "px",
         display: "flex",
         flexDirection: "column",
-        //rowGap: tokens.spacingVerticalS,
         ...shorthands.padding(tokens.spacingVerticalS, tokens.spacingHorizontalS),
-        borderRadius: tokens.borderRadiusMedium,
         backgroundColor: tokens.colorNeutralBackground1,
         boxShadow: `${tokens.shadow28}, 0 0 0 1px ${tokens.colorNeutralStroke2}`,
         color: tokens.colorNeutralForeground1,
         ...shorthands.border("1px", "solid", tokens.colorTransparentStroke),
+        gap: tokens.spacingVerticalS,
     },
     titleBar: {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 0,
-        height: "20px",
     },
     closeButton: {
-        minWidth: "16px",
-        minHeight: "16px",
         width: "16px",
         height: "16px",
-        padding: 0,
     },
     sectionHeading: {
         fontSize: tokens.fontSizeBase100,
         fontWeight: tokens.fontWeightSemibold,
         color: tokens.colorNeutralForeground3,
-        marginBottom: 0,
         textTransform: "uppercase",
         letterSpacing: "0.5px",
         lineHeight: "20px",
@@ -103,8 +93,6 @@ const useStyles = makeStyles({
     divider: {
         height: "1px",
         backgroundColor: tokens.colorNeutralStroke2,
-        marginTop: tokens.spacingVerticalXXS,
-        marginBottom: tokens.spacingVerticalXXS,
     },
     header: {
         display: "flex",
@@ -126,7 +114,6 @@ const useStyles = makeStyles({
         minHeight: "20px",
         width: "20px",
         height: "20px",
-        padding: 0,
     },
     searchInput: {
         flex: 1,
@@ -136,13 +123,6 @@ const useStyles = makeStyles({
         height: LIST_HEIGHT + "px",
         overflowY: "auto",
         overflowX: "hidden",
-        ...shorthands.border("1px", "solid", tokens.colorNeutralStroke2),
-        borderTop: "none",
-        borderRadius: tokens.borderRadiusSmall,
-        borderTopLeftRadius: 0,
-        borderTopRightRadius: 0,
-        backgroundColor: tokens.colorNeutralBackground3,
-        boxShadow: `inset 0 1px 3px ${tokens.colorNeutralShadowAmbient}`,
         position: "relative",
         "&:focus": {
             outlineStyle: "solid",
@@ -155,14 +135,7 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        backgroundColor: tokens.colorNeutralBackground3,
-        paddingLeft: "0px",
         paddingRight: "4px",
-        paddingTop: "0px",
-        paddingBottom: "0px",
-        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
-        borderLeft: `1px solid ${tokens.colorNeutralStroke2}`,
-        borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
         borderTopLeftRadius: tokens.borderRadiusSmall,
         borderTopRightRadius: tokens.borderRadiusSmall,
@@ -183,9 +156,7 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         height: ITEM_HEIGHT + "px",
-        paddingInline: 0,
         columnGap: 0,
-        borderRadius: tokens.borderRadiusSmall,
         cursor: "pointer",
         "&:hover": {
             backgroundColor: tokens.colorNeutralBackground1Hover,
@@ -240,15 +211,10 @@ const useStyles = makeStyles({
         display: "flex",
         alignItems: "center",
         "& .fui-Checkbox__indicator": {
-            width: "14px",
-            height: "14px",
+            width: "12px",
+            height: "12px",
             fontSize: "10px",
             flexShrink: 0,
-            alignSelf: "center",
-        },
-        "& .fui-Checkbox__label": {
-            lineHeight: "1",
-            paddingLeft: "4px",
             alignSelf: "center",
         },
     },
@@ -270,7 +236,7 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
     const containerRef = useRef<HTMLDivElement | null>(null);
     const rootRef = useRef<HTMLDivElement | null>(null);
     const searchInputRef = useRef<HTMLInputElement | null>(null);
-    const buttonRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
+    const sortAscendingButtonRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
     const closeButtonRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
     const firstFocusableRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
     const lastFocusableRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
@@ -279,17 +245,6 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
         () => new Set(initialSelected),
     );
     const [focusedIndex, setFocusedIndex] = useState<number>(-1);
-
-    useEffect(() => {
-        setSelectedValues(new Set(initialSelected));
-        setSearch("");
-    }, [initialSelected, items]);
-
-    useEffect(() => {
-        if (buttonRef.current) {
-            buttonRef.current.focus();
-        }
-    }, [anchorRect]);
 
     const filteredItems = useMemo(() => {
         const trimmed = search.trim().toLowerCase();
@@ -318,6 +273,7 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
         });
     }, []);
 
+    // Handle outside clicks and keyboard navigation
     useEffect(() => {
         const handleOutsideClick = (event: MouseEvent) => {
             if (!rootRef.current) {
@@ -327,7 +283,7 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
             if (target && rootRef.current.contains(target)) {
                 return;
             }
-            onDismiss();
+            //onDismiss();
         };
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
@@ -372,6 +328,36 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
         };
     }, [onDismiss, filteredItems, focusedIndex, selectedValues, updateSelection]);
 
+    // Sync selected values when initialSelected or items change
+    useEffect(() => {
+        setSelectedValues(new Set(initialSelected));
+        setSearch("");
+    }, [initialSelected, items]);
+
+    // Auto-focus sort button when opened
+    useEffect(() => {
+        if (sortAscendingButtonRef.current) {
+            sortAscendingButtonRef.current.focus();
+        }
+    }, [anchorRect]);
+
+    // Auto-scroll to focused item
+    useEffect(() => {
+        if (focusedIndex >= 0 && containerRef.current) {
+            const itemTop = focusedIndex * ITEM_HEIGHT;
+            const itemBottom = itemTop + ITEM_HEIGHT;
+            const scrollTop = containerRef.current.scrollTop;
+            const scrollBottom = scrollTop + LIST_HEIGHT;
+
+            if (itemTop < scrollTop) {
+                containerRef.current.scrollTop = itemTop;
+            } else if (itemBottom > scrollBottom) {
+                containerRef.current.scrollTop = itemBottom - LIST_HEIGHT;
+            }
+        }
+    }, [focusedIndex]);
+
+    // Reset focus when filtered items change
     useEffect(() => {
         virtualizer.scrollToIndex(0, { align: "start" });
         setFocusedIndex(-1);
@@ -532,83 +518,57 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
             aria-label={locConstants.queryResult.showMenu}
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={handleRootKeyDown}>
-            {(onSortAscending || onSortDescending) && (
-                <div className={styles.titleBar}>
-                    <Text className={styles.sectionHeading}>Sort</Text>
-                    <Button
-                        ref={closeButtonRef}
-                        appearance="subtle"
-                        size="small"
-                        icon={<Dismiss16Regular width={10} height={10} />}
-                        onClick={handleClose}
-                        className={styles.closeButton}
-                        title="Close"
-                        aria-label="Close"
-                    />
-                </div>
-            )}
-            {!(onSortAscending || onSortDescending) && (
-                <div className={styles.titleBar}>
-                    <Button
-                        ref={(el) => {
-                            firstFocusableRef.current = el as any;
-                        }}
-                        appearance="subtle"
-                        size="small"
-                        icon={<Dismiss16Regular />}
-                        onClick={handleClose}
-                        className={styles.closeButton}
-                        title="Close"
-                        aria-label="Close"
-                        style={{ marginLeft: "auto" }}
-                    />
-                </div>
-            )}
+            <div className={styles.titleBar}>
+                <Text className={styles.sectionHeading}>Sort</Text>
+                <Button
+                    ref={closeButtonRef}
+                    appearance="subtle"
+                    size="small"
+                    icon={<Dismiss16Regular style={{ width: 10, height: 10 }} />}
+                    onClick={handleClose}
+                    className={styles.closeButton}
+                    title="Close"
+                    aria-label="Close"
+                />
+            </div>
+            <div className={styles.divider} />
             <div className={styles.header}>
-                {(onSortAscending || onSortDescending) && (
-                    <div className={styles.section}>
-                        <div className={styles.sortButtons}>
-                            {onSortAscending && (
-                                <Button
-                                    ref={(el) => {
-                                        buttonRef.current = el;
-                                        firstFocusableRef.current = el;
-                                    }}
-                                    appearance={currentSort === "asc" ? "primary" : "subtle"}
-                                    size="small"
-                                    icon={<SortAscendingIcon />}
-                                    onClick={handleSortAscending}
-                                    title="Sort Ascending"
-                                    aria-label="Sort Ascending"
-                                    className={styles.sortButton}
-                                />
-                            )}
-                            {onSortDescending && (
-                                <Button
-                                    appearance={currentSort === "desc" ? "primary" : "subtle"}
-                                    size="small"
-                                    icon={<SortDescendingIcon />}
-                                    onClick={handleSortDescending}
-                                    title="Sort Descending"
-                                    aria-label="Sort Descending"
-                                    className={styles.sortButton}
-                                />
-                            )}
-                            {onClearSort && (
-                                <Button
-                                    appearance="subtle"
-                                    size="small"
-                                    icon={<SortClearIcon />}
-                                    onClick={handleClearSort}
-                                    title="Clear Sort"
-                                    aria-label="Clear Sort"
-                                    className={styles.sortButton}
-                                />
-                            )}
-                        </div>
+                <div className={styles.section}>
+                    <div className={styles.sortButtons}>
+                        <Button
+                            ref={(el) => {
+                                sortAscendingButtonRef.current = el;
+                                firstFocusableRef.current = el;
+                            }}
+                            appearance={currentSort === "asc" ? "primary" : "secondary"}
+                            size="small"
+                            onClick={handleSortAscending}
+                            title="Sort Ascending"
+                            aria-label="Sort Ascending">
+                            A→Z
+                        </Button>
+
+                        <Button
+                            appearance={currentSort === "desc" ? "primary" : "secondary"}
+                            size="small"
+                            onClick={handleSortDescending}
+                            title="Sort Descending"
+                            aria-label="Sort Descending">
+                            Z→A
+                        </Button>
+
+                        <Button
+                            appearance="secondary"
+                            size="small"
+                            title="Clear Sort"
+                            onClick={handleClearSort}
+                            aria-label="Clear Sort">
+                            Clear
+                        </Button>
                     </div>
-                )}
-                {(onSortAscending || onSortDescending) && <div className={styles.divider} />}
+                </div>
+
+                <div className={styles.divider} />
                 <div className={styles.section}>
                     <Text className={styles.sectionHeading}>Filter</Text>
                     <div className={styles.topRow}>
