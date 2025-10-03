@@ -6,3 +6,4 @@
 a24ef741db649b756d7c7eb5fd0ddacd81c49718 # applying formatting rules to .css files
 2e5ab73370eb00f313f9ac8d0b66a78ecdb0f043 # unifying line endings to LF
 c472f9925f7a405746ee965d0d0b404eba82bca5 # applying formatting rules to .y[a]ml files
+5fc3a5f6aa38986415f1dbcaf9c3e5f063783e14 # applying prettier formatting to all included file types
