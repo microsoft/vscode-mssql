@@ -1,7 +1,0 @@
-{
-    "permissions": {
-        "allow": ["Bash(npm install:*)", "Read(//c/**)", "Bash(npx tsc:*)"],
-        "deny": [],
-        "ask": []
-    }
-}
