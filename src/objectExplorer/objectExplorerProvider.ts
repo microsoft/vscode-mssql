@@ -7,11 +7,11 @@ import * as vscode from "vscode";
 import ConnectionManager from "../controllers/connectionManager";
 import { CreateSessionResult, ObjectExplorerService } from "./objectExplorerService";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
-import { Deferred } from "../protocol";
 import { IConnectionInfo } from "vscode-mssql";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionProfile } from "../models/interfaces";
 import { ConnectionNode } from "./nodes/connectionNode";
+import { serverLabel } from "../constants/constants";
 
 export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<
@@ -59,6 +59,21 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         }
     }
 
+    /**
+     * Refresh all connected connection nodes in the object explorer.
+     */
+    public refreshConnectedNodes(): void {
+        const connections = this._objectExplorerService.connections;
+        if (connections?.length === 0) {
+            return;
+        }
+
+        connections
+            .map(({ id }) => this._objectExplorerService.getConnectionNodeById(id))
+            .filter((node) => node.sessionId && node.nodeType === serverLabel) // Only refresh connected server nodes
+            .forEach((node) => void this.refreshNode(node));
+    }
+
     public async setNodeLoading(node: TreeNodeInfo): Promise<void> {
         await this._objectExplorerService.setLoadingUiForNode(node);
     }
@@ -72,9 +87,8 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     public async expandNode(
         node: TreeNodeInfo,
         sessionId: string,
-        promise: Deferred<TreeNodeInfo[]>,
-    ): Promise<boolean> {
-        return this._objectExplorerService.expandNode(node, sessionId, promise);
+    ): Promise<vscode.TreeItem[] | undefined> {
+        return this._objectExplorerService.expandNode(node, sessionId);
     }
 
     public async removeNode(

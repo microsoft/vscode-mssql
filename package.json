@@ -76,13 +76,15 @@
         "e2eTest": "npx playwright test && npx nyc report --reporter=cobertura --reporter=text-summary --reporter=html --report-dir=\"coverage/coverage-e2e\" --temp-dir=\"coverage/reactviews-coverage\" --include=\"src/reactviews/pages/**/*.tsx\""
     },
     "lint-staged": {
-        "*.ts": "eslint --quiet --cache",
-        "*.tsx": "eslint --quiet --cache",
-        "*.css": "prettier --check"
+        "*.{ts,tsx}": [
+            "eslint --quiet --cache --fix",
+            "prettier --write"
+        ],
+        "*.{js,mjs,json,yml,yaml,md,html,svg,css}": "prettier --write"
     },
     "devDependencies": {
         "@azure/core-paging": "^1.6.2",
-        "@ctrl/tinycolor": "^4.1.0",
+        "@ctrl/tinycolor": "^4.2.0",
         "@dagrejs/dagre": "^1.1.4",
         "@eslint/compat": "^1.1.0",
         "@fluentui-contrib/react-data-grid-react-window": "^1.2.0",
@@ -154,6 +156,7 @@
         "@azure/arm-resources": "^5.0.0",
         "@azure/arm-sql": "^9.0.0",
         "@azure/arm-subscriptions": "^5.0.0",
+        "@azure/ms-rest-azure-env": "^2.0.0",
         "@azure/msal-common": "^14.14.0",
         "@azure/msal-node": "^2.12.0",
         "@microsoft/ads-extension-telemetry": "^3.0.2",
@@ -1689,6 +1692,12 @@
                     ],
                     "scope": "resource"
                 },
+                "mssql.query.preventAutoExecuteScript": {
+                    "type": "boolean",
+                    "description": "%mssql.preventAutoExecuteScript%",
+                    "default": false,
+                    "scope": "resource"
+                },
                 "mssql.enableSqlAuthenticationProvider": {
                     "type": "boolean",
                     "description": "%mssql.enableSqlAuthenticationProvider%",
@@ -1702,7 +1711,7 @@
                 "mssql.statusBar.enableConnectionColor": {
                     "type": "boolean",
                     "description": "%mssql.statusBar.enableConnectionColor%",
-                    "default": false,
+                    "default": true,
                     "scope": "window"
                 },
                 "mssql.format.alignColumnDefinitionsInColumns": {
@@ -2034,6 +2043,63 @@
                     "default": true,
                     "description": "%mssql.autoRevealResultsPanel%",
                     "scope": "window"
+                },
+                "mssql.customEnvironment": {
+                    "type": "object",
+                    "description": "%mssql.customEnvironment%",
+                    "default": null,
+                    "properties": {
+                        "sqlEndpoint": {
+                            "type": "string",
+                            "description": "%mssql.customEnvironment.sqlEndpoint%"
+                        },
+                        "sqlServerHostnameSuffix": {
+                            "type": "string",
+                            "description": "%mssql.customEnvironment.sqlServerHostnameSuffix%"
+                        },
+                        "analyticsDnsSuffix": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "%mssql.customEnvironment.analyticsDnsSuffix%"
+                        },
+                        "keyVaultEndpoint": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "%mssql.customEnvironment.keyVaultEndpoint%"
+                        },
+                        "fabricApiUriBase": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "%mssql.customEnvironment.fabricApiUriBase%"
+                        },
+                        "fabricScopeUriBase": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "%mssql.customEnvironment.fabricScopeUriBase%"
+                        },
+                        "fabricSqlDbDnsSuffix": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "%mssql.customEnvironment.fabricSqlDbDnsSuffix%"
+                        },
+                        "fabricDataWarehouseDnsSuffix": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "%mssql.customEnvironment.fabricDataWarehouseDnsSuffix%"
+                        }
+                    }
                 }
             }
         },

@@ -28,7 +28,6 @@ import {
     IAzureAccount,
     GetSqlAnalyticsEndpointUriFromFabricRequest,
 } from "../sharedInterfaces/connectionDialog";
-import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
 import {
     ConnectionDialog as Loc,
@@ -70,11 +69,7 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import {
-    configSelectedAzureSubscriptions,
-    errorFirewallRule,
-    errorSSLCertificateValidationFailed,
-} from "../constants/constants";
+import { configSelectedAzureSubscriptions } from "../constants/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
 import {
@@ -86,6 +81,12 @@ import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureS
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { FabricHelper } from "../fabric/fabricHelper";
 import { FabricSqlDbInfo, FabricWorkspaceInfo } from "../sharedInterfaces/fabric";
+import {
+    ConnectionInfo,
+    getSqlConnectionErrorType,
+    SqlConnectionErrorType,
+} from "../controllers/connectionManager";
+import { getCloudId } from "../azure/providerSettings";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 
@@ -362,8 +363,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     err.Name, // errorType
                     {
                         failure: err.Name,
+                        cloudType: getCloudId(),
                     },
                 );
+
+                return state;
             }
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule);
@@ -427,6 +431,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     TelemetryActions.FilterAzureSubscriptions,
                     err,
                     false, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                    {
+                        cloudType: getCloudId(),
+                    },
                 );
             }
 
@@ -949,13 +958,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         try {
             try {
-                const result = await this._mainController.connectionManager.connectDialog(
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const tempConnectionUri = Utils.generateGuid();
+                const result = await this._mainController.connectionManager.connect(
+                    tempConnectionUri,
                     cleanedConnection as any,
+                    false, // Connect should not handle errors, as we want to handle them here
                 );
 
-                if (result.errorMessage) {
-                    return await this.handleConnectionErrorCodes(result, state);
+                const connectionInfo =
+                    this._mainController.connectionManager?.getConnectionInfo(tempConnectionUri);
+
+                if (!result) {
+                    return await this.handleConnectionErrorCodes(connectionInfo, state);
                 }
             } catch (error) {
                 this.state.formError = getErrorMessage(error);
@@ -971,6 +985,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     {
                         connectionInputType: this.state.selectedInputMode,
                         authMode: this.state.connectionProfile.authenticationType,
+                        cloudType: getCloudId(),
                     },
                 );
 
@@ -983,6 +998,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 connectionInputType: this.state.selectedInputMode,
                 authMode: this.state.connectionProfile.authenticationType,
                 serverTypes: getServerTypes(this.state.connectionProfile).join(","),
+                cloudType: getCloudId(),
             });
 
             if (this._connectionBeingEdited) {
@@ -1058,6 +1074,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 {
                     connectionInputType: this.state.selectedInputMode,
                     authMode: this.state.connectionProfile.authenticationType,
+                    cloudType: getCloudId(),
                 },
             );
 
@@ -1067,82 +1084,96 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private async handleConnectionErrorCodes(
-        result: ConnectionCompleteParams,
+        result: ConnectionInfo,
         state: ConnectionDialogWebviewState,
     ): Promise<ConnectionDialogWebviewState> {
-        if (result.errorNumber === errorSSLCertificateValidationFailed) {
-            this.state.connectionStatus = ApiStatus.Error;
-            this.state.dialog = {
-                type: "trustServerCert",
-                message: result.errorMessage,
-            } as TrustServerCertDialogProps;
+        const errorType = await getSqlConnectionErrorType(
+            {
+                errorNumber: result.errorNumber,
+                errorMessage: result.errorMessage,
+                message: result.messages,
+            },
+            result.credentials,
+        );
+        switch (errorType) {
+            case SqlConnectionErrorType.TrustServerCertificateNotEnabled:
+                this.state.connectionStatus = ApiStatus.Error;
+                this.state.dialog = {
+                    type: "trustServerCert",
+                    message: result.errorMessage,
+                } as TrustServerCertDialogProps;
 
-            // connection failing because the user didn't trust the server cert is not an error worth logging;
-            // just prompt the user to trust the cert
+                // connection failing because the user didn't trust the server cert is not an error worth logging;
+                // just prompt the user to trust the cert
 
-            return state;
-        } else if (result.errorNumber === errorFirewallRule) {
-            this.state.connectionStatus = ApiStatus.Error;
+                return state;
+            case SqlConnectionErrorType.FirewallRuleError:
+                this.state.connectionStatus = ApiStatus.Error;
 
-            const handleFirewallErrorResult =
-                await this._mainController.connectionManager.firewallService.handleFirewallRule(
-                    result.errorNumber,
-                    result.errorMessage,
-                );
+                const handleFirewallErrorResult =
+                    await this._mainController.connectionManager.firewallService.handleFirewallRule(
+                        result.errorNumber,
+                        result.errorMessage,
+                    );
 
-            if (!handleFirewallErrorResult.result) {
-                sendErrorEvent(
+                if (!handleFirewallErrorResult.result) {
+                    sendErrorEvent(
+                        TelemetryViews.ConnectionDialog,
+                        TelemetryActions.AddFirewallRule,
+                        new Error(result.errorMessage),
+                        true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
+                        undefined, // errorCode
+                        "parseIP", // errorType
+                    );
+
+                    // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
+                    handleFirewallErrorResult.ipAddress = "0.0.0.0";
+                }
+
+                const addFirewallDialogState: AddFirewallRuleState = {
+                    message: result.errorMessage,
+                    clientIp: handleFirewallErrorResult.ipAddress,
+                    accounts: [],
+                    tenants: {},
+                    isSignedIn: true,
+                    serverName: this.state.connectionProfile.server,
+                    addFirewallRuleStatus: ApiStatus.NotStarted,
+                };
+
+                if (addFirewallDialogState.isSignedIn) {
+                    await populateAzureAccountInfo(
+                        addFirewallDialogState,
+                        false /* forceSignInPrompt */,
+                    );
+                }
+
+                addFirewallDialogState.isSignedIn = await VsCodeAzureHelper.isSignedIn();
+
+                this.state.dialog = {
+                    type: "addFirewallRule",
+                    props: addFirewallDialogState,
+                } as AddFirewallRuleDialogProps;
+
+                return state;
+            default:
+                this.state.formError = result.errorMessage;
+                this.state.connectionStatus = ApiStatus.Error;
+
+                sendActionEvent(
                     TelemetryViews.ConnectionDialog,
-                    TelemetryActions.AddFirewallRule,
-                    new Error(result.errorMessage),
-                    true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
-                    undefined, // errorCode
-                    "parseIP", // errorType
+                    TelemetryActions.CreateConnection,
+                    {
+                        result: "connectionError",
+                        errorNumber: String(result.errorNumber),
+                        newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
+                        connectionInputType: this.state.selectedInputMode,
+                        authMode: this.state.connectionProfile.authenticationType,
+                        cloudType: getCloudId(),
+                    },
                 );
 
-                // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
-                handleFirewallErrorResult.ipAddress = "0.0.0.0";
-            }
-
-            const addFirewallDialogState: AddFirewallRuleState = {
-                message: result.errorMessage,
-                clientIp: handleFirewallErrorResult.ipAddress,
-                accounts: [],
-                tenants: {},
-                isSignedIn: true,
-                serverName: this.state.connectionProfile.server,
-                addFirewallRuleStatus: ApiStatus.NotStarted,
-            };
-
-            if (addFirewallDialogState.isSignedIn) {
-                await populateAzureAccountInfo(
-                    addFirewallDialogState,
-                    false /* forceSignInPrompt */,
-                );
-            }
-
-            addFirewallDialogState.isSignedIn = await VsCodeAzureHelper.isSignedIn();
-
-            this.state.dialog = {
-                type: "addFirewallRule",
-                props: addFirewallDialogState,
-            } as AddFirewallRuleDialogProps;
-
-            return state;
+                return state;
         }
-
-        this.state.formError = result.errorMessage;
-        this.state.connectionStatus = ApiStatus.Error;
-
-        sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
-            result: "connectionError",
-            errorNumber: String(result.errorNumber),
-            newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
-            connectionInputType: this.state.selectedInputMode,
-            authMode: this.state.connectionProfile.authenticationType,
-        });
-
-        return state;
     }
 
     private async loadConnectionToEdit(connectionToEdit: IConnectionInfo) {
@@ -1537,6 +1568,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 true, // includeErrorMessage
                 undefined, // errorCode
                 undefined, // errorType
+                {
+                    cloudType: getCloudId(),
+                },
             );
         }
     }
@@ -1618,6 +1652,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 const locMessage = LocFabric.failedToGetWorkspacesForTenant(
                     tenant.displayName,
                     tenant.tenantId,
+                    getErrorMessage(err),
                 );
 
                 this.logger.error(message);

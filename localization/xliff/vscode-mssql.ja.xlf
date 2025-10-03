@@ -364,6 +364,18 @@
         <note>{0} is the average, {1} is the count, {2} is the sum</note>
         <target state="translated">平均: {0}  数: {1}  合計: {2}</target>
       </trans-unit>
+      <trans-unit id="++CODE++994c049faf0fd65f191759cacf91508d01743fda1b2f06cfc7f779fc49ae4991">
+        <source xml:lang="en">Azure (China)</source>
+        <target state="new">Azure (China)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cdf9c75db21efc1ddc557d567de91e9bc67533606ce4bbc049c592d77f122e68">
+        <source xml:lang="en">Azure (Public)</source>
+        <target state="new">Azure (Public)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cf582c92b799b117f2d093534bbe7b99aea5df658f201220f320f2976c0ebbba">
+        <source xml:lang="en">Azure (US Government)</source>
+        <target state="new">Azure (US Government)</target>
+      </trans-unit>
       <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
         <source xml:lang="en">Azure Account</source>
         <target state="translated">Azure アカウント</target>
@@ -690,9 +702,17 @@
         <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
         <target state="translated">接続にアクセスするためのすべての拡張機能のアクセス許可をクリアします</target>
       </trans-unit>
+      <trans-unit id="++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36">
+        <source xml:lang="en">Click to cancel loading summary</source>
+        <target state="translated">クリックして要約の読み込みを取り消します</target>
+      </trans-unit>
       <trans-unit id="++CODE++6bca6724e27bd109d1b946c1684e16c2c4a5d71731a9ffe5f666bdd9d9846b1e">
         <source xml:lang="en">Click to connect to a database</source>
         <target state="translated">クリックすると、データベースに接続します</target>
+      </trans-unit>
+      <trans-unit id="++CODE++66abaeec0367ba4920e21447dfa2dafb94c7f38dc262dfb91e76799022a436d5">
+        <source xml:lang="en">Click to load summary</source>
+        <target state="translated">クリックして要約を読み込みます</target>
       </trans-unit>
       <trans-unit id="++CODE++88af7d4ffbbad0f31d9dd918e49ceb713036db12524cbdc4b93e8922b0655429">
         <source xml:lang="en">Click to sign into an Azure account</source>
@@ -1541,6 +1561,15 @@
         <source xml:lang="en">Error loading preview</source>
         <target state="translated">プレビューの読み込みエラー</target>
       </trans-unit>
+      <trans-unit id="++CODE++fa8002fe1d41e09812880f2bfb97ef0849885d8a4de95a67b26294b7e83e912f">
+        <source xml:lang="en">Error loading summary</source>
+        <target state="translated">要約の読み込み中にエラーが発生しました</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8108929d06fb4fe87c58e7407990ec8d46dc422dfa3ee467d2f5f622abd9840d">
+        <source xml:lang="en">Error loading summary: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="translated">要約の読み込み中: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++3ba789024640c6f231695bdf0d82e6845483cf65f092b3c3646910e60c638761">
         <source xml:lang="en">Error loading workspaces</source>
         <target state="translated">ワークスペースの読み込みエラー</target>
@@ -1675,6 +1704,12 @@ Error:
         <source xml:lang="en">Fabric Workspaces</source>
         <target state="translated">Fabric ワークスペース</target>
       </trans-unit>
+      <trans-unit id="++CODE++56dd693767481cc69348e746edb945f23807899ed5736241c47000f787be902a">
+        <source xml:lang="en">Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.</source>
+        <note>{0} is the cloud name
+{1} is the setting name</note>
+        <target state="new">Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.</target>
+      </trans-unit>
       <trans-unit id="++CODE++3db198c251ac68aeafbdfbb134d03b8be7bca7a5b2f612addb78f72b2da67a90">
         <source xml:lang="en">Fabric long-running API error with error code '{0}': {1}</source>
         <note>{0} is the error code
@@ -1752,6 +1787,13 @@ Error:
         <note>{0} is the tenant name
 {1} is the tenant id</note>
         <target state="translated">テナント '{0} ({1})' の Fabric ワークスペースを取得できませんでした。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b4130b296ab05c9b6d46fa30eb4c7256fb9880192dca9262d2a8e524852dc226">
+        <source xml:lang="en">Failed to get Fabric workspaces for tenant '{0} ({1})': {2}</source>
+        <note>{0} is the tenant name
+{1} is the tenant id
+{2} is the error message</note>
+        <target state="new">Failed to get Fabric workspaces for tenant '{0} ({1})': {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
         <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
@@ -2138,8 +2180,8 @@ Error:
         <source xml:lang="en">Insufficient Capacity Permissions</source>
         <target state="translated">容量のアクセス許可が不十分です</target>
       </trans-unit>
-      <trans-unit id="++CODE++ece3ecedb5f57c84cc9749995b62f69213c0cb04b1578a713fda486ff04f8fdb">
-        <source xml:lang="en">Insufficient Worskpace Permissions</source>
+      <trans-unit id="++CODE++207b04072a822fa8e76629bcd504bc8c19525b86f444ac77a6f3be1c88a502eb">
+        <source xml:lang="en">Insufficient Workspace Permissions</source>
         <target state="translated">ワークスペースのアクセス許可が不十分です</target>
       </trans-unit>
       <trans-unit id="++CODE++afe3d8a0f4733dcd43ec5b17d8c6d8d3ec7e53c511f1ad49d1168ea289bdd055">
@@ -2420,6 +2462,13 @@ Error:
       <trans-unit id="++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297">
         <source xml:lang="en">Loading results...</source>
         <target state="translated">結果を読み込んでいます...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ba622a4c63bd7d102bdc3057b04b4cfd8d2af5b2adb230bebc98414fc46afae0">
+        <source xml:lang="en">Loading summary {0}/{1} ({2}%) (Click to cancel)</source>
+        <note>{0} is the current row
+{1} is the total number of rows
+{2} is the percentage of rows loaded</note>
+        <target state="translated">要約 {0}/{1} を読み込んでいます ({2}%) (クリックして取り消します)</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -3831,6 +3880,14 @@ Query: {1}</source>
         <source xml:lang="en">Successfully saved results to </source>
         <target state="translated">次の場所に結果が正常に保存されました:</target>
       </trans-unit>
+      <trans-unit id="++CODE++17888248578c82867c18ea2dc512a96eabbbbb8184442d219746c3b8b8ff6030">
+        <source xml:lang="en">Summary loading canceled</source>
+        <target state="translated">要約の読み込みが取り消されました</target>
+      </trans-unit>
+      <trans-unit id="++CODE++93775107b302b7d63191a5c2a8ea3803d44d17781da939eb367d7555f25c1752">
+        <source xml:lang="en">Summary loading was canceled by user</source>
+        <target state="translated">要約の読み込みはユーザーによって取り消されました</target>
+      </trans-unit>
       <trans-unit id="++CODE++175f5352107a324eb25f4342a9114e2685b64a1ef54a5ff6ba3a24d0ac215ea7">
         <source xml:lang="en">Switch Direction</source>
         <target state="translated">方向の切り替え</target>
@@ -3942,6 +3999,10 @@ Query: {1}</source>
         <source xml:lang="en">The connection with ID '{0}' does not have the 'server' property set and is being ignored.  Please set the 'server' property on this connection in order to use it.</source>
         <note>{0} is the connection ID for the connection that has been ignored</note>
         <target state="translated">ID '{0}' の接続には 'server' プロパティが設定されていないため、無視されます。 この接続を使用するには、'server' プロパティを設定してください。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
+        <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
+        <target state="new">The custom cloud choice is not configured. Please configure the setting `{0}`.</target>
       </trans-unit>
       <trans-unit id="++CODE++f229c94b4c9b8ecfa1096d1daf79194e84616c49df8fb6e229fa944592ff373e">
         <source xml:lang="en">The description of the check constraint.</source>
@@ -4232,11 +4293,6 @@ Query: {1}</source>
         <source xml:lang="en">You are not connected to any database.</source>
         <target state="translated">どのデータベースにも接続されていません。</target>
       </trans-unit>
-      <trans-unit id="++CODE++9b358aeeb5265d934737d601151f0982e0b833eaa6abb54c40be62ed494882b8">
-        <source xml:lang="en">You have selected data across {0} rows, it might take a while to load the data and calculate the summary, do you want to continue?</source>
-        <note>{0} is the number of rows to fetch summary statistics for</note>
-        <target state="new">You have selected data across {0} rows, it might take a while to load the data and calculate the summary, do you want to continue?</target>
-      </trans-unit>
       <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
         <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
         <target state="translated">SQL データベースを参照するには、Azure にサインインする必要があります。</target>
@@ -4419,6 +4475,11 @@ Query: {1}</source>
         <source xml:lang="en">{0} properties</source>
         <note>{0} is the object type</note>
         <target state="translated">{0} 個のプロパティ</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2bd22e3b4b0281a2ffa3bc8bdd3e1f2b49dedcdde97d4cc83fdf598d1208d103">
+        <source xml:lang="en">{0} rows selected, click to load summary</source>
+        <note>{0} is the number of rows to fetch summary statistics for</note>
+        <target state="translated">{0} 行が選択されています。クリックして要約を読み込みます</target>
       </trans-unit>
       <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
         <source xml:lang="en">{0} started successfully.</source>
@@ -4952,6 +5013,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Pause Query History Capture</source>
         <target state="translated">Query History キャプチャの一時停止</target>
       </trans-unit>
+      <trans-unit id="mssql.preventAutoExecuteScript">
+        <source xml:lang="en">Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.</source>
+        <target state="translated">スクリプトの自動実行を禁止します (例: '上位 1000 を選択してください')。有効にすると、生成時にスクリプトが自動的に実行されることはありません。</target>
+      </trans-unit>
       <trans-unit id="mssql.authCodeGrant.description">
         <source xml:lang="en">Prompts users to sign in using their browser.</source>
         <target state="translated">ブラウザーを使用してサインインするようユーザーに求めます。</target>
@@ -5120,6 +5185,38 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
         <target state="translated">クエリ結果を並べ替えてフィルター処理し、必要なデータをすばやく見つけます。</target>
       </trans-unit>
+      <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
+        <source xml:lang="en">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</source>
+        <target state="new">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment.sqlServerHostnameSuffix">
+        <source xml:lang="en">Sovereign cloud equivalent for `.database.windows.net` (including leading dot)</source>
+        <target state="new">Sovereign cloud equivalent for `.database.windows.net` (including leading dot)</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment.fabricDataWarehouseDnsSuffix">
+        <source xml:lang="en">Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)</source>
+        <target state="new">Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment.analyticsDnsSuffix">
+        <source xml:lang="en">Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)</source>
+        <target state="new">Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment.fabricScopeUriBase">
+        <source xml:lang="en">Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`</source>
+        <target state="new">Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment.fabricApiUriBase">
+        <source xml:lang="en">Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`</source>
+        <target state="new">Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment.sqlEndpoint">
+        <source xml:lang="en">Sovereign cloud equivalent for `https://database.windows.net/`</source>
+        <target state="new">Sovereign cloud equivalent for `https://database.windows.net/`</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment.keyVaultEndpoint">
+        <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
+        <target state="new">Sovereign cloud equivalent for `https://vault.azure.net/`</target>
+      </trans-unit>
       <trans-unit id="mssql.startContainer">
         <source xml:lang="en">Start Container</source>
         <target state="translated">コンテナーの開始</target>
@@ -5139,6 +5236,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.connectionManagement.rememberPasswordsUntilRestart">
         <source xml:lang="en">Temporarily store passwords for connections with 'Saved Passwords' disabled, until the extension is restarted. This prevents repeated password prompts when reusing connections within the same session.</source>
         <target state="translated">拡張機能が再起動されるまで、[保存されたパスワード] が無効になっている接続のパスワードを一時的に保存します。これにより、同じセッション内で接続を再利用する際にパスワードのプロンプトが繰り返されるのを防ぎます。</target>
+      </trans-unit>
+      <trans-unit id="mssql.customEnvironment">
+        <source xml:lang="en">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</source>
+        <target state="new">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroup.color">
         <source xml:lang="en">The color of the connection group.</source>

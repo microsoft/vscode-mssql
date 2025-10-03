@@ -56,7 +56,6 @@ const useStyles = makeStyles({
         marginRight: "10px",
     },
     subtitleDiv: {
-        width: "100%",
         fontSize: "14px",
         alignItems: "unset",
         textAlign: "left",
@@ -75,7 +74,6 @@ const useStyles = makeStyles({
         top: 0,
         left: 0,
         paddingTop: "50px",
-        width: "100%",
         paddingLeft: "70px",
         paddingBottom: "15px",
     },

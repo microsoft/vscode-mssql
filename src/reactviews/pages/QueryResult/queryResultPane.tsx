@@ -313,7 +313,7 @@ export const QueryResultPane = () => {
                             : "",
                     fontFamily: fontSettings.fontFamily
                         ? fontSettings.fontFamily
-                        : "var(--vscode-editor-font-family)",
+                        : "var(--vscode-font-family)",
                     fontSize: `${fontSettings.fontSize ?? 12}px`,
                 }}>
                 {/* Render Grid View */}

@@ -443,10 +443,13 @@ suite("SqlDocumentService Tests", () => {
 
         const editor1: vscode.TextEditor = { document: script1 } as unknown as vscode.TextEditor;
 
-        // Stub getConnectionInfoFromUri: script1 is connected, others are not
-        (connectionManager.getConnectionInfoFromUri as any).callsFake((uri: string) => {
+        // Stub getConnectionInfo: script1 is connected, others are not
+        (connectionManager.getConnectionInfo as any).callsFake((uri: string) => {
             if (uri === script1.uri.toString(true)) {
-                return { server: "localhost" } as any;
+                return {
+                    connectionId: "conn1",
+                    credentials: { server: "localhost" },
+                } as any;
             }
             return undefined;
         });
@@ -467,6 +470,81 @@ suite("SqlDocumentService Tests", () => {
         // Open a non-sql file -> should not connect
         await sqlDocumentService.onDidOpenTextDocument(textFile);
         expect(connectStub).to.not.have.been.called;
+    });
+
+    test("onDidChangeActiveTextEditor should handle error cases gracefully", async () => {
+        const hideStatusBarStub = sandbox.stub();
+        const updateStatusBarStub = sandbox.stub();
+        sqlDocumentService["_statusview"] = {
+            hideLastShownStatusBar: hideStatusBarStub,
+            updateStatusBarForEditor: updateStatusBarStub,
+        } as any;
+
+        // Test case 1: editor is undefined
+        await sqlDocumentService.onDidChangeActiveTextEditor(undefined);
+        expect(hideStatusBarStub).to.have.been.calledOnce;
+        expect(updateStatusBarStub).to.not.have.been.called;
+        expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
+        hideStatusBarStub.resetHistory();
+
+        // Test case 2: editor.document is undefined
+        const editorWithoutDoc = {} as vscode.TextEditor;
+        await sqlDocumentService.onDidChangeActiveTextEditor(editorWithoutDoc);
+        expect(hideStatusBarStub).to.have.been.calledOnce;
+        expect(updateStatusBarStub).to.not.have.been.called;
+        expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
+        hideStatusBarStub.resetHistory();
+
+        // Test case 3: connection manager returns undefined (no connection)
+        const editorWithDoc = { document: mockTextDocument("test.sql") } as vscode.TextEditor;
+        (connectionManager.getConnectionInfo as any).returns(undefined);
+        await sqlDocumentService.onDidChangeActiveTextEditor(editorWithDoc);
+        expect(hideStatusBarStub).to.have.been.calledOnce;
+        expect(updateStatusBarStub).to.have.been.calledOnceWith(editorWithDoc, undefined);
+        expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
+        hideStatusBarStub.resetHistory();
+        updateStatusBarStub.resetHistory();
+
+        // Test case 4: connection info exists but has no connectionId
+        const connectionInfoWithoutId = { credentials: { server: "localhost" } };
+        (connectionManager.getConnectionInfo as any).returns(connectionInfoWithoutId);
+        await sqlDocumentService.onDidChangeActiveTextEditor(editorWithDoc);
+        expect(hideStatusBarStub).to.have.been.calledOnce;
+        expect(updateStatusBarStub).to.have.been.calledOnceWith(
+            editorWithDoc,
+            connectionInfoWithoutId,
+        );
+        expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
+        hideStatusBarStub.resetHistory();
+        updateStatusBarStub.resetHistory();
+
+        // Test case 4: connection info exists but has no connectionId
+        const connectionInfoConnecting = {
+            credentials: { server: "localhost" },
+            id: "conn1",
+            connecting: true,
+        };
+        (connectionManager.getConnectionInfo as any).returns(connectionInfoConnecting);
+        await sqlDocumentService.onDidChangeActiveTextEditor(editorWithDoc);
+        expect(hideStatusBarStub).to.have.been.calledOnce;
+        expect(updateStatusBarStub).to.have.been.calledOnceWith(
+            editorWithDoc,
+            connectionInfoConnecting,
+        );
+        expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
+        hideStatusBarStub.resetHistory();
+        updateStatusBarStub.resetHistory();
+
+        // Test case 5: connection manager is undefined
+        const originalConnectionMgr = sqlDocumentService["_connectionMgr"];
+        sqlDocumentService["_connectionMgr"] = undefined;
+        await sqlDocumentService.onDidChangeActiveTextEditor(editorWithDoc);
+        expect(hideStatusBarStub).to.have.been.calledOnce;
+        expect(updateStatusBarStub).to.have.been.calledOnceWith(editorWithDoc, undefined);
+        expect(sqlDocumentService["_lastActiveConnectionInfo"]).to.be.undefined;
+
+        // Restore the connection manager
+        sqlDocumentService["_connectionMgr"] = originalConnectionMgr;
     });
 
     function setupConnectionManagerMocks(
@@ -515,20 +593,16 @@ suite("SqlDocumentService Tests", () => {
             mockCreateDocument = sandbox.stub(sqlDocumentService as any, "createDocument");
             mockCreateDocument.resolves(editor);
 
-            mockConnect = sandbox.stub().callsFake(async (uri, connectionInfo, promise) => {
-                if (promise && promise.resolve) {
-                    promise.resolve(true);
-                }
-            });
+            const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+            mockConnect = mockConnectionManager.connect;
+            mockOnNewConnection = mockConnectionManager.onNewConnection;
+            mockGetConnectionInfoFromUri = mockConnectionManager.getConnectionInfoFromUri;
 
-            mockGetConnectionInfoFromUri = sandbox.stub();
-            mockOnNewConnection = sandbox.stub();
+            mockConnect.resolves(true);
+            mockOnNewConnection.resolves();
+            mockGetConnectionInfoFromUri.resolves();
 
-            (sqlDocumentService as any)._connectionMgr = {
-                getConnectionInfoFromUri: mockGetConnectionInfoFromUri,
-                connect: mockConnect,
-                onNewConnection: mockOnNewConnection,
-            };
+            sqlDocumentService["_connectionMgr"] = mockConnectionManager;
         });
 
         test("ConnectionStrategy.None should not establish any connection", async () => {

@@ -133,6 +133,9 @@ export const errorPasswordNeedsReset = 18488;
 export const errorLoginFailed = 18456;
 export const errorFirewallRule = 40615;
 export const errorSSLCertificateValidationFailed = -2146893019;
+export const errorKerberosSubString = "Kerberos";
+export const errorMacOsOpenSSLErrorSubstring =
+    "Unable to load DLL 'System.Security.Cryptography.Native'";
 export const outputContentTypeRoot = "root";
 export const outputContentTypeMessages = "messages";
 export const outputContentTypeResultsetMeta = "resultsetsMeta";
@@ -206,6 +209,7 @@ export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";
 export const configSplitPaneSelection = "splitPaneSelection";
 export const configShowBatchTime = "showBatchTime";
+export const configPreventAutoExecuteScript = "mssql.query.preventAutoExecuteScript";
 export enum extConfigResultKeys {
     Shortcuts = "shortcuts",
     MessagesDefaultOpen = "messagesDefaultOpen",
@@ -244,6 +248,14 @@ export const configSchemaDesignerEnableExpandCollapseButtons =
 export const configSavePasswordsUntilRestart =
     "mssql.connectionManagement.rememberPasswordsUntilRestart";
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
+export const configCustomEnvironment = "mssql.customEnvironment";
+
+// Built into VS Code
+export const sovereignCloudSectionName = "microsoft-sovereign-cloud";
+export const environmentSettingName = "environment";
+export const customEnvironmentSettingName = "customEnvironment";
+export const configSovereignCloudEnvironment = `${sovereignCloudSectionName}.${environmentSettingName}`;
+export const configSovereignCloudCustomEnvironment = `${sovereignCloudSectionName}.${customEnvironmentSettingName}`;
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";
