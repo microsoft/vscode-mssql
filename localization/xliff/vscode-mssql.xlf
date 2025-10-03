@@ -1434,6 +1434,9 @@
     <trans-unit id="++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671">
       <source xml:lang="en">Filter Azure subscriptions</source>
     </trans-unit>
+    <trans-unit id="++CODE++dcd87fabe8cdcdf7a36e88a2326e72e03e96ddd1b279d554ba9ef435af8f22f4">
+      <source xml:lang="en">Filter Options</source>
+    </trans-unit>
     <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
       <source xml:lang="en">Filter Settings</source>
     </trans-unit>
