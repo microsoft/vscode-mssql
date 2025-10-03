@@ -186,6 +186,8 @@ export abstract class MsalAzureAuth {
         let authority = this.loginEndpointUrl + tenantId;
         this.logger.info(`Authority URL set to: ${authority}`);
 
+        let shouldForceRefresh = false;
+
         // construct request
         // forceRefresh needs to be set true here in order to fetch the correct token, due to this issue
         // https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/3687
@@ -193,7 +195,7 @@ export abstract class MsalAzureAuth {
             account: accountInfo!,
             authority: authority,
             scopes: newScope,
-            forceRefresh: true,
+            forceRefresh: shouldForceRefresh,
         };
         try {
             return await this.clientApplication.acquireTokenSilent(tokenRequest);
