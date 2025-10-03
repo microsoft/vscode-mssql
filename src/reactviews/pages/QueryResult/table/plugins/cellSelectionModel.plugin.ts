@@ -17,6 +17,7 @@ import { mixin } from "../objects";
 import { tokens } from "@fluentui/react-components";
 import { Keys } from "../../../../common/keys";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
+import { HeaderMenu } from "./headerFilter.plugin";
 
 export interface ICellSelectionModelOptions {
     cellRangeSelector?: any;
@@ -50,7 +51,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         private context: QueryResultReactProvider,
         private uri: string,
         private resultSetSummary: ResultSetSummary,
-        private headerFilter?: any,
+        private headerFilter?: HeaderMenu<T>,
     ) {
         this.options = mixin(this.options, defaults, false);
         if (this.options.cellRangeSelector) {

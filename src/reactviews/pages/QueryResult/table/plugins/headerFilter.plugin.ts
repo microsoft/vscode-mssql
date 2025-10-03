@@ -668,6 +668,12 @@ export class HeaderMenu<T extends Slick.SlickData> {
         if (this.grid.getDataLength() > 0) {
             const column = this.grid.getColumns().findIndex((col) => col.id === columnDef.id);
             if (column >= 0) {
+                // Select the single cell and set it as active
+                const cellRange = new Slick.Range(0, column, 0, column);
+                const selectionModel = this.grid.getSelectionModel();
+                if (selectionModel && selectionModel.setSelectedRanges) {
+                    selectionModel.setSelectedRanges([cellRange]);
+                }
                 this.grid.setActiveCell(0, column);
             }
         }
