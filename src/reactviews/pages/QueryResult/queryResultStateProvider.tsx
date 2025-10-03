@@ -51,7 +51,7 @@ export interface QueryResultReactProvider
     ) => void;
     hideGridContextMenu: () => void;
     showColumnFilterPopup: (options: ColumnFilterPopupOptions) => void;
-    hideColumnFilterPopup: () => void;
+    hideColumnMenuPopup: () => void;
     /**
      * Gets the execution plan graph from the provider for a result set
      * @param uri the uri of the query result state this request is associated with
@@ -127,7 +127,7 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                     return { ...options };
                 });
             },
-            hideColumnFilterPopup: hideFilterPopup,
+            hideColumnMenuPopup: hideFilterPopup,
 
             openFileThroughLink: (content: string, type: string) => {
                 extensionRpc.action("openFileThroughLink", { content, type });

@@ -83,7 +83,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
     public destroy() {
         this.handler.unsubscribeAll();
         this._eventManager.clearEventListeners();
-        this.queryResultContext.hideColumnFilterPopup();
+        this.queryResultContext.hideColumnMenuPopup();
         this.activeColumnId = null;
     }
 
@@ -92,7 +92,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
         e.preventDefault();
     }
 
-    public async openFilterForActiveColumn(): Promise<void> {
+    public async openColumnMenuPopupForActiveColumn(): Promise<void> {
         const activeCell = this.grid.getActiveCell();
         if (activeCell) {
             const column = this.grid.getColumns()[activeCell.cell] as FilterableColumn<T>;
@@ -124,16 +124,16 @@ export class HeaderMenu<T extends Slick.SlickData> {
         const theme: string = resolveVscodeThemeType(this.theme);
         args.node.classList.add("slick-header-with-filter");
         args.node.classList.add(theme);
-        const $headerMenuButton = jQuery(
+        const $columnMenuButton = jQuery(
             `<button id="anchor-btn" aria-label="${locConstants.queryResult.showMenu}" title="${locConstants.queryResult.showMenu}"></button>`,
         )
             .addClass("slick-header-menubutton")
             .data("column", column);
         if (column.filterValues?.length) {
-            this.showMenuButtonImage($headerMenuButton, column.filterValues?.length > 0);
+            this.showMenuButtonImage($columnMenuButton, column.filterValues?.length > 0);
         }
 
-        const menuButton = $headerMenuButton.get(0);
+        const menuButton = $columnMenuButton.get(0);
         if (menuButton) {
             this._eventManager.addEventListener(menuButton, "click", async (e: Event) => {
                 e.stopPropagation();
@@ -147,7 +147,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
         const $sortIndicator = jQuery('<span class="slick-sort-indicator-icon"></span>');
         $sortIndicator.appendTo(args.node);
 
-        $headerMenuButton.appendTo(args.node);
+        $columnMenuButton.appendTo(args.node);
 
         this.columnFilterButtonMapping.set(column.id!, menuButton);
         if (this.columnSortStateMapping.get(column.id!) === undefined) {
@@ -179,13 +179,13 @@ export class HeaderMenu<T extends Slick.SlickData> {
 
         const columnId = this.columnDef.id!;
         if (this.activeColumnId === columnId) {
-            this.queryResultContext.hideColumnFilterPopup();
+            this.queryResultContext.hideColumnMenuPopup();
             this.activeColumnId = null;
             return;
         }
 
         if (this.activeColumnId) {
-            this.queryResultContext.hideColumnFilterPopup();
+            this.queryResultContext.hideColumnMenuPopup();
         }
 
         const filterItems = await this.buildFilterItems();
