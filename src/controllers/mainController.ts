@@ -92,6 +92,7 @@ import {
 } from "../deployment/dockerUtils";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { getCloudId } from "../azure/providerSettings";
+import { LocalCacheService } from "../services/localCacheService";
 
 /**
  * The main controller class that initializes the extension
@@ -124,6 +125,7 @@ export default class MainController implements vscode.Disposable {
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
+    public localCacheService: LocalCacheService;
 
     /**
      * The main controller constructor
@@ -577,6 +579,27 @@ export default class MainController implements vscode.Disposable {
                 this.onDidChangeConfiguration(params),
             );
 
+            // Register local cache commands
+            this.registerCommand(Constants.cmdRefreshLocalCache);
+            this._event.on(Constants.cmdRefreshLocalCache, () => {
+                void this.onRefreshLocalCache();
+            });
+
+            this.registerCommand(Constants.cmdClearLocalCache);
+            this._event.on(Constants.cmdClearLocalCache, () => {
+                void this.onClearLocalCache();
+            });
+
+            this.registerCommand(Constants.cmdClearAllLocalCaches);
+            this._event.on(Constants.cmdClearAllLocalCaches, () => {
+                void this.onClearAllLocalCaches();
+            });
+
+            this.registerCommand(Constants.cmdShowLocalCacheStatus);
+            this._event.on(Constants.cmdShowLocalCacheStatus, () => {
+                void this.onShowLocalCacheStatus();
+            });
+
             this.registerLanguageModelTools();
 
             return true;
@@ -942,6 +965,17 @@ export default class MainController implements vscode.Disposable {
 
         this._outputContentProvider.queryResultWebviewController.sqlDocumentService =
             this._sqlDocumentService;
+
+        // Initialize local cache service
+        this.localCacheService = new LocalCacheService(this._connectionMgr, this._context);
+
+        // Hook into connection success events
+        this._connectionMgr.onSuccessfulConnection((event) => {
+            void this.localCacheService.onConnectionSuccess(
+                event.fileUri,
+                event.connection.credentials,
+            );
+        });
 
         void this.showOnLaunchPrompts();
 
@@ -2848,6 +2882,141 @@ export default class MainController implements vscode.Disposable {
 
     public onClearAzureTokenCache(): void {
         this.connectionManager.onClearTokenCache();
+    }
+
+    /**
+     * Refresh local cache for the current connection
+     */
+    private async onRefreshLocalCache(): Promise<void> {
+        try {
+            const fileUri = this._vscodeWrapper.activeTextEditorUri;
+            if (!fileUri) {
+                void vscode.window.showWarningMessage("No active connection found");
+                return;
+            }
+
+            const connection = this._connectionMgr.getConnectionInfo(fileUri);
+            if (!connection || !connection.credentials) {
+                void vscode.window.showWarningMessage("No active connection found");
+                return;
+            }
+
+            await vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: `Refreshing cache for ${connection.credentials.database}`,
+                    cancellable: false,
+                },
+                async (progress) => {
+                    await this.localCacheService.updateCache(
+                        fileUri,
+                        connection.credentials,
+                        progress,
+                    );
+                    void vscode.window.showInformationMessage(
+                        `Cache refreshed for ${connection.credentials.database}`,
+                    );
+                },
+            );
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to refresh cache: ${getErrorMessage(error)}`,
+            );
+        }
+    }
+
+    /**
+     * Clear local cache for the current connection
+     */
+    private async onClearLocalCache(): Promise<void> {
+        try {
+            const fileUri = this._vscodeWrapper.activeTextEditorUri;
+            if (!fileUri) {
+                void vscode.window.showWarningMessage("No active connection found");
+                return;
+            }
+
+            const connection = this._connectionMgr.getConnectionInfo(fileUri);
+            if (!connection || !connection.credentials) {
+                void vscode.window.showWarningMessage("No active connection found");
+                return;
+            }
+
+            const confirm = await vscode.window.showWarningMessage(
+                `Clear cache for ${connection.credentials.database}?`,
+                { modal: true },
+                "Clear",
+            );
+
+            if (confirm === "Clear") {
+                await this.localCacheService.clearCache(connection.credentials);
+                void vscode.window.showInformationMessage(
+                    `Cache cleared for ${connection.credentials.database}`,
+                );
+            }
+        } catch (error) {
+            void vscode.window.showErrorMessage(`Failed to clear cache: ${getErrorMessage(error)}`);
+        }
+    }
+
+    /**
+     * Clear all local caches
+     */
+    private async onClearAllLocalCaches(): Promise<void> {
+        try {
+            const confirm = await vscode.window.showWarningMessage(
+                "Clear all database caches?",
+                { modal: true },
+                "Clear All",
+            );
+
+            if (confirm === "Clear All") {
+                await this.localCacheService.clearAllCaches();
+                void vscode.window.showInformationMessage("All caches cleared");
+            }
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to clear all caches: ${getErrorMessage(error)}`,
+            );
+        }
+    }
+
+    /**
+     * Show local cache status for the current connection
+     */
+    private async onShowLocalCacheStatus(): Promise<void> {
+        try {
+            const fileUri = this._vscodeWrapper.activeTextEditorUri;
+            if (!fileUri) {
+                void vscode.window.showWarningMessage("No active connection found");
+                return;
+            }
+
+            const connection = this._connectionMgr.getConnectionInfo(fileUri);
+            if (!connection || !connection.credentials) {
+                void vscode.window.showWarningMessage("No active connection found");
+                return;
+            }
+
+            const status = await this.localCacheService.getCacheStatus(connection.credentials);
+
+            if (status.exists) {
+                const lastUpdate = status.lastUpdate
+                    ? new Date(status.lastUpdate).toLocaleString()
+                    : "Unknown";
+                void vscode.window.showInformationMessage(
+                    `Cache for ${connection.credentials.database}: ${status.objectCount} objects, last updated ${lastUpdate}`,
+                );
+            } else {
+                void vscode.window.showInformationMessage(
+                    `No cache exists for ${connection.credentials.database}`,
+                );
+            }
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to get cache status: ${getErrorMessage(error)}`,
+            );
+        }
     }
 
     private ExecutionPlanCustomEditorProvider = class implements vscode.CustomTextEditorProvider {

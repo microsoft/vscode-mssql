@@ -1201,6 +1201,26 @@
                 "title": "%mssql.startContainer%",
                 "when": "mssql.enableRichExperiences",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.refreshLocalCache",
+                "title": "Refresh Local Cache",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.clearLocalCache",
+                "title": "Clear Local Cache",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.clearAllLocalCaches",
+                "title": "Clear All Local Caches",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.showLocalCacheStatus",
+                "title": "Show Local Cache Status",
+                "category": "MS SQL"
             }
         ],
         "keybindings": [
@@ -1876,6 +1896,12 @@
                     "type": "number",
                     "default": 20,
                     "description": "%mssql.queryHistoryLimit%",
+                    "scope": "window"
+                },
+                "mssql.localCache.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable automatic caching of database objects for offline access and improved performance",
                     "scope": "window"
                 },
                 "mssql.query.rowCount": {
