@@ -76,12 +76,13 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
  * @returns the default connection profile
  */
 export function getDefaultConnection(): IConnectionDialogProfile {
-    return {
+    const connectionInfo = {
         authenticationType: AuthenticationType.SqlLogin,
         connectTimeout: 30, // seconds
         applicationName: "vscode-mssql",
         applicationIntent: "ReadWrite",
     } as IConnectionDialogProfile;
+    return fixupConnectionCredentials(connectionInfo);
 }
 
 export function updateEncrypt(connection: IConnectionInfo): {

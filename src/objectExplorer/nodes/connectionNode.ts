@@ -70,13 +70,24 @@ export class ConnectionNode extends TreeNodeInfo {
         }
     }
 
+    /**
+     * Generates a tooltip for the connection profile; it should include:
+     * - profileName if present (without the profileName key)
+     * - server
+     * - database
+     * - creds based on auth type:
+     *   - user for sql auth
+     *   - email for entra auth.
+     * - extra non-default properties
+     * It should exclude:
+     * - password or any sensitive info
+     * - properties that are default values or empty
+     * @param connectionProfile The connection profile to generate the tooltip for
+     * @returns the tooltip string or undefined if no properties to show
+     */
     private getConnectionTooltip(connectionProfile: IConnectionProfile): string | undefined {
         // Properties to exclude
         const exclude = [
-            "database",
-            "user",
-            "server",
-            "profileName",
             "id",
             "groupId",
             "profileSource",
@@ -112,7 +123,11 @@ export class ConnectionNode extends TreeNodeInfo {
             "packetSize",
             "typeSystemVersion",
             "connectionString",
+            "acceptEula",
+            "authenticationType",
+            "email",
         ];
+        const excludedLabelKeys = ["profileName"];
         // Default values for comparison
         const connectionNodeDefaults: Partial<IConnectionProfile> = getDefaultConnection();
 
@@ -132,21 +147,23 @@ export class ConnectionNode extends TreeNodeInfo {
             applicationIntent: (connectionNodeDefaults as any).applicationIntent,
         };
 
-        let props: string[] = [];
+        let props: { key: string; value: string }[] = [];
 
-        //handle auth types properly, if auth type is integrated or azureMfa don't show user in tooltip
+        props.push({ key: "profileName", value: "" });
+        props.push({ key: "server", value: "" });
+        props.push({ key: "database", value: "" });
+        props.push({ key: "user", value: "" });
+        props.push({ key: "email", value: "" });
+
+        let extendedProps: { key: string; value: string }[] = [];
+
+        //handle auth types properly
         if (
-            connectionProfile.authenticationType === Constants.integratedauth ||
-            connectionProfile.authenticationType === Constants.azureMfa
+            connectionProfile.authenticationType === Constants.azureMfa ||
+            connectionProfile.authenticationType === Constants.integratedauth
         ) {
-            exclude.push("user");
-        }
-
-        // if connection has a profile name, don't exclude server, user and database from tooltip
-        if (connectionProfile.profileName) {
-            exclude.splice(exclude.indexOf("server"), 1);
-            exclude.splice(exclude.indexOf("user"), 1);
-            exclude.splice(exclude.indexOf("database"), 1);
+            exclude.splice(exclude.indexOf("email"), 1);
+            exclude.push("user"); // don't show user
         }
 
         Object.keys(connectionProfile).forEach((key) => {
@@ -162,10 +179,44 @@ export class ConnectionNode extends TreeNodeInfo {
                 return;
             }
 
-            props.push(`${key}: ${value}`);
+            if (props.map((p) => p.key).find((k) => k === key)) {
+                const prop = props.find((p) => p.key === key);
+                if (prop) {
+                    prop.value = value;
+                }
+            } else {
+                extendedProps.push({ key: key, value: value });
+            }
         });
 
-        return props.length > 0 ? props.join("\n") : undefined;
+        extendedProps.sort((a, b) => {
+            const keyA = a.key.trim().toLowerCase();
+            const keyB = b.key.trim().toLowerCase();
+            return keyA.localeCompare(keyB);
+        });
+        let lines = props
+            .map((p) => {
+                if (p.value) {
+                    if (excludedLabelKeys.find((k) => k === p.key)) {
+                        return `${p.value}`;
+                    } else {
+                        return `${p.key}: ${p.value}`;
+                    }
+                } else {
+                    return undefined;
+                }
+            })
+            .concat(
+                extendedProps.map((p) =>
+                    p.value
+                        ? p.key in excludedLabelKeys
+                            ? `${p.value}`
+                            : `${p.key}: ${p.value}`
+                        : undefined,
+                ),
+            );
+        lines = lines.filter((line): line is string => line !== undefined);
+        return lines.length > 0 ? lines.join("\n") : undefined;
     }
 
     protected override generateId(): string {

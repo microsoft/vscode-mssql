@@ -47,7 +47,6 @@ suite("ConnectionNode Tests", () => {
         expect(node.tooltip).to.contain("user:");
 
         // Excluded keys should not be present
-        expect(node.tooltip).to.not.contain("profileName:");
         expect(node.tooltip).to.not.contain("id:");
         expect(node.tooltip).to.not.contain("groupId:");
         expect(node.tooltip).to.not.contain("savePassword: true");
@@ -65,8 +64,10 @@ suite("ConnectionNode Tests", () => {
             encrypt: "None", // default is "Mandatory" -> should appear
             connectTimeout: 10, // default differs -> should appear
             applicationName: "MyApp", // default differs -> should appear
-            profileName: "",
+            profileName: "profileNameValue",
             groupId: "shouldBeExcluded",
+            authenticationType: "sqlLogin",
+            email: "email@example.com",
         };
 
         const node = new ConnectionNode(profile as any);
@@ -75,15 +76,17 @@ suite("ConnectionNode Tests", () => {
         expect(node.tooltip).to.be.a("string");
         expect(node.tooltip).to.contain("connectTimeout: 10");
         expect(node.tooltip).to.contain("applicationName: MyApp");
+        expect(node.tooltip).to.contain("server:");
+        expect(node.tooltip).to.contain("database:");
+        expect(node.tooltip).to.contain("user:");
+        expect(node.tooltip).to.contain("profileNameValue");
 
         // Excluded keys should not be present
-        expect(node.tooltip).to.not.contain("server:");
-        expect(node.tooltip).to.not.contain("database:");
-        expect(node.tooltip).to.not.contain("user:");
-        expect(node.tooltip).to.not.contain("profileName:");
         expect(node.tooltip).to.not.contain("id:");
         expect(node.tooltip).to.not.contain("groupId:");
-        expect(node.tooltip).to.not.contain("savePassword");
-        expect(node.tooltip).to.not.contain("encrypt");
+        expect(node.tooltip).to.not.contain("savePassword:");
+        expect(node.tooltip).to.not.contain("encrypt:");
+        expect(node.tooltip).to.not.contain("authenticationType");
+        expect(node.tooltip).to.not.contain("email:");
     });
 });
