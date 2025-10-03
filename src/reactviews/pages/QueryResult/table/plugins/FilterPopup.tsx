@@ -283,7 +283,7 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
             if (target && rootRef.current.contains(target)) {
                 return;
             }
-            //onDismiss();
+            onDismiss();
         };
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
