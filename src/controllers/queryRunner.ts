@@ -1139,7 +1139,7 @@ export default class QueryRunner {
                 arguments: [this.uri],
             },
             continue: cancelConfirmation,
-            text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(0, totalRows)}`,
+            text: `$(arrow-circle-down) ${LocalizedConstants.QueryResult.summaryLoadingProgress(0, totalRows)}`,
             tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
             uri: this.uri,
         });
@@ -1214,7 +1214,7 @@ export default class QueryRunner {
                             arguments: [this.uri],
                         },
                         continue: cancelConfirmation,
-                        text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(processedRows, totalRows)}`,
+                        text: `$(arrow-circle-down) ${LocalizedConstants.QueryResult.summaryLoadingProgress(processedRows, totalRows)}`,
                         tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
                         uri: this.uri,
                     });
