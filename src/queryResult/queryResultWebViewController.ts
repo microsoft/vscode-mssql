@@ -19,6 +19,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import {
     getNewResultPaneViewColumn,
+    inMemoryGridDataProcessingThreshold,
     messageToString,
     recordLength,
     registerCommonRequestHandlers,
@@ -241,7 +242,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 fontFamily: this.getFontFamilyConfig(),
             },
             autoSizeColumns: this.getAutoSizeColumnsConfig(),
-            inMemoryDataProcessingThreshold: this.getInMemoryDataProcessingThresholdConfig(),
+            inMemoryDataProcessingThreshold: inMemoryGridDataProcessingThreshold,
             initializationError: undefined,
         };
     }
@@ -298,7 +299,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 fontFamily: this.getFontFamilyConfig(),
             },
             autoSizeColumns: this.getAutoSizeColumnsConfig(),
-            inMemoryDataProcessingThreshold: this.getInMemoryDataProcessingThresholdConfig(),
+            inMemoryDataProcessingThreshold: inMemoryGridDataProcessingThreshold,
         };
         this._queryResultStateMap.set(uri, currentState);
     }
@@ -307,12 +308,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return this.vscodeWrapper
             .getConfiguration(Constants.extensionName)
             .get(Constants.configAutoColumnSizing);
-    }
-
-    public getInMemoryDataProcessingThresholdConfig(): number {
-        return this.vscodeWrapper
-            .getConfiguration(Constants.extensionName)
-            .get(Constants.configInMemoryDataProcessingThreshold);
     }
 
     public getFontSizeConfig(): number {
