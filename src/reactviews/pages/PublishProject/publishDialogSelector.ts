@@ -8,7 +8,7 @@ import { useVscodeSelector } from "../../common/useVscodeSelector";
 
 export function usePublishDialogSelector<T>(
     selector: (state: PublishDialogState) => T,
-    equals: (a: T, b: T) => boolean = Object.is,
+    equals?: (a: T, b: T) => boolean,
 ) {
     return useVscodeSelector<PublishDialogState, PublishDialogReducers, T>(selector, equals);
 }

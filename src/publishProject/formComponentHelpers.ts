@@ -3,36 +3,85 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FormItemType } from "../sharedInterfaces/form";
+import * as vscode from "vscode";
+import * as constants from "../constants/constants";
+import { FormItemType, FormItemOptions } from "../sharedInterfaces/form";
+import { PublishProject as Loc } from "../constants/locConstants";
 import {
     IPublishForm,
     PublishDialogFormItemSpec,
     PublishDialogState,
 } from "../sharedInterfaces/publishDialog";
-import { PublishProject as Loc } from "../constants/locConstants";
+import { getPublishServerName, validateSqlServerPortNumber } from "./projectUtils";
+import { validateSqlServerPassword } from "../deployment/dockerUtils";
+
+/**
+ * Configuration key for SQL database projects extension settings
+ */
+const DBProjectConfigurationKey = "sqlDatabaseProjects";
+const enablePreviewFeaturesKey = "enablePreviewFeatures";
+
+/**
+ * Generate publish target options based on project target version
+ * @param projectTargetVersion - The target version of the project (e.g., "AzureV12" for Azure SQL)
+ * @returns Array of publish target options
+ */
+function generatePublishTargetOptions(projectTargetVersion?: string): FormItemOptions[] {
+    // Check if this is an Azure SQL project
+    const isAzureSqlProject = projectTargetVersion === "AzureV12";
+    const options: FormItemOptions[] = [
+        {
+            displayName: isAzureSqlProject
+                ? Loc.PublishTargetExistingLogical
+                : Loc.PublishTargetExisting,
+            value: constants.PublishTargets.EXISTING_SERVER,
+        },
+        {
+            displayName: isAzureSqlProject
+                ? Loc.PublishTargetAzureEmulator
+                : Loc.PublishTargetContainer,
+            value: constants.PublishTargets.LOCAL_CONTAINER,
+        },
+    ];
+    if (isAzureSqlProject) {
+        // Only show "Publish to New Azure Server" option if preview features are enabled
+        const enablePreviewFeatures = vscode.workspace
+            .getConfiguration(DBProjectConfigurationKey)
+            .get<boolean>(enablePreviewFeaturesKey);
+        if (enablePreviewFeatures) {
+            options.push({
+                displayName: Loc.PublishTargetNewAzureServer,
+                value: constants.PublishTargets.NEW_AZURE_SERVER,
+            });
+        }
+    }
+
+    return options;
+}
 
 /**
  * Generate publish form components. Kept async for future extensibility
  * (e.g. reading project metadata, fetching remote targets, etc.)
+ * @param projectTargetVersion - The target version of the project (e.g., "AzureV12" for Azure SQL)
  */
-export async function generatePublishFormComponents(): Promise<
-    Record<keyof IPublishForm, PublishDialogFormItemSpec>
-> {
+export async function generatePublishFormComponents(
+    projectTargetVersion?: string,
+): Promise<Record<keyof IPublishForm, PublishDialogFormItemSpec>> {
     const components: Record<keyof IPublishForm, PublishDialogFormItemSpec> = {
-        profileName: {
-            propertyName: "profileName",
+        [constants.PublishFormFields.ProfileName]: {
+            propertyName: constants.PublishFormFields.ProfileName,
             label: Loc.ProfileLabel,
             required: false,
             type: FormItemType.Input,
         },
-        serverName: {
-            propertyName: "serverName",
+        [constants.PublishFormFields.ServerName]: {
+            propertyName: constants.PublishFormFields.ServerName,
             label: Loc.ServerLabel,
             required: true,
             type: FormItemType.Input,
         },
-        databaseName: {
-            propertyName: "databaseName",
+        [constants.PublishFormFields.DatabaseName]: {
+            propertyName: constants.PublishFormFields.DatabaseName,
             label: Loc.DatabaseLabel,
             required: true,
             type: FormItemType.Input,
@@ -41,21 +90,85 @@ export async function generatePublishFormComponents(): Promise<
                 return { isValid, validationMessage: isValid ? "" : Loc.DatabaseRequiredMessage };
             },
         },
-        publishTarget: {
-            propertyName: "publishTarget",
+        [constants.PublishFormFields.PublishTarget]: {
+            propertyName: constants.PublishFormFields.PublishTarget,
             label: Loc.PublishTargetLabel,
             required: true,
             type: FormItemType.Dropdown,
-            options: [
-                {
-                    displayName: Loc.PublishTargetExisting,
-                    value: "existingServer",
-                },
-                {
-                    displayName: Loc.PublishTargetContainer,
-                    value: "localContainer",
-                },
-            ],
+            options: generatePublishTargetOptions(projectTargetVersion),
+        },
+        [constants.PublishFormFields.ContainerPort]: {
+            propertyName: constants.PublishFormFields.ContainerPort,
+            label: Loc.SqlServerPortNumber,
+            required: true,
+            type: FormItemType.Input,
+            validate: (_state: PublishDialogState, value) => {
+                const str = String(value ?? "").trim();
+                const isValid = validateSqlServerPortNumber(str);
+                return {
+                    isValid,
+                    validationMessage: isValid ? "" : Loc.InvalidPortMessage,
+                };
+            },
+        },
+        [constants.PublishFormFields.ContainerAdminPassword]: {
+            propertyName: constants.PublishFormFields.ContainerAdminPassword,
+            label: Loc.SqlServerAdminPassword,
+            required: true,
+            type: FormItemType.Password,
+            validate: (_state: PublishDialogState, value) => {
+                const pwd = String(value ?? "");
+                const errorMessage = validateSqlServerPassword(pwd);
+                return {
+                    isValid: !errorMessage,
+                    validationMessage: errorMessage,
+                };
+            },
+        },
+        [constants.PublishFormFields.ContainerAdminPasswordConfirm]: {
+            propertyName: constants.PublishFormFields.ContainerAdminPasswordConfirm,
+            label: Loc.SqlServerAdminPasswordConfirm,
+            required: true,
+            type: FormItemType.Password,
+            validate: (state: PublishDialogState, value) => {
+                const confirm = String(value ?? "");
+                const orig = state.formState.containerAdminPassword ?? "";
+                const match = confirm === orig && confirm.length >= 8;
+                return {
+                    isValid: match,
+                    validationMessage: match
+                        ? ""
+                        : Loc.PasswordNotMatchMessage(
+                              getPublishServerName(state.projectProperties?.targetVersion),
+                          ),
+                };
+            },
+        },
+        [constants.PublishFormFields.ContainerImageTag]: {
+            propertyName: constants.PublishFormFields.ContainerImageTag,
+            label: Loc.SqlServerImageTag,
+            required: true,
+            type: FormItemType.Dropdown,
+            options: [],
+            validate: (_state: PublishDialogState, value) => {
+                const v = String(value ?? "").trim();
+                return { isValid: !!v, validationMessage: v ? "" : constants.RequiredFieldMessage };
+            },
+        },
+        [constants.PublishFormFields.AcceptContainerLicense]: {
+            propertyName: constants.PublishFormFields.AcceptContainerLicense,
+            label: Loc.UserLicenseAgreement(
+                "https://github.com/microsoft/containerregistry/blob/main/legal/Container-Images-Legal-Notice.md",
+            ),
+            required: true,
+            type: FormItemType.Checkbox,
+            validate: (_state: PublishDialogState, value) => {
+                const accepted = value === true || value === "true";
+                return {
+                    isValid: accepted,
+                    validationMessage: accepted ? "" : constants.LicenseAcceptanceMessage,
+                };
+            },
         },
         sqlCmdVariables: {
             propertyName: "sqlCmdVariables",
