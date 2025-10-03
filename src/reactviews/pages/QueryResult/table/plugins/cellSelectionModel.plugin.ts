@@ -599,7 +599,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         const key = e.key; // e.g., 'a', 'ArrowLeft'
         const metaOrCtrlPressed = this.isMac ? e.metaKey : e.ctrlKey;
 
-        // --- 1) Select All (Cmd/Ctrl + A) ---
+        // Select All (Cmd/Ctrl + A)
         if (metaOrCtrlPressed && key === Keys?.a) {
             e.preventDefault();
             e.stopPropagation();
@@ -607,7 +607,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
             return;
         }
 
-        // --- 1.5) Open Filter (Alt + F) ---
+        // Open Header menu  (Alt + F) ---
         if (e.altKey && key === Keys?.ArrowDown && !e.shiftKey && !metaOrCtrlPressed) {
             e.preventDefault();
             e.stopPropagation();
@@ -620,7 +620,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
             return;
         }
 
-        // --- 2) Range selection via Shift + Arrow (no Alt, no Meta/Ctrl) ---
+        // Range selection via Shift + Arrow (no Alt, no Meta/Ctrl)
         const isArrow =
             key === (Keys?.ArrowLeft ?? "ArrowLeft") ||
             key === (Keys?.ArrowRight ?? "ArrowRight") ||
