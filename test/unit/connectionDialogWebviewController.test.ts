@@ -28,7 +28,7 @@ import {
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import { IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import { stubTelemetry } from "./utils";
+import { initializeIconUtils, stubTelemetry, stubUserSurvey } from "./utils";
 import {
     stubVscodeAzureSignIn,
     stubFetchServersFromAzure,
@@ -73,6 +73,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
     setup(async () => {
         sandbox = sinon.createSandbox();
+        initializeIconUtils();
 
         mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
         mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
@@ -162,7 +163,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         sandbox.stub(vscode.window, "registerWebviewViewProvider");
 
         mainController.azureAccountService = azureAccountService.object;
-        (mainController as any).initializeObjectExplorer(mockObjectExplorerProvider.object);
+        await mainController["initializeObjectExplorer"](mockObjectExplorerProvider.object);
 
         controller = new ConnectionDialogWebviewController(
             mockContext.object,
@@ -431,6 +432,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             test("connect happy path", async () => {
                 // Set up mocks
                 stubTelemetry(sandbox);
+                stubUserSurvey(sandbox);
 
                 mockObjectExplorerProvider
                     .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
@@ -443,7 +445,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                                 undefined,
                                 undefined,
                                 undefined,
-                                undefined,
+                                "Database",
                                 undefined,
                                 undefined,
                                 undefined,
