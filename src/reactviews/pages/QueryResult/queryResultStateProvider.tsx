@@ -14,6 +14,7 @@ import {
     QueryResultReducers,
     QueryResultViewMode,
     QueryResultWebviewState,
+    SortProperties,
 } from "../../../sharedInterfaces/queryResult";
 import { WebviewRpc } from "../../common/rpc";
 import GridContextMenu from "./table/plugins/GridContextMenu";
@@ -34,7 +35,7 @@ export interface ColumnFilterPopupOptions {
     onDismiss: () => void;
     onSortAscending: () => Promise<void>;
     onSortDescending: () => Promise<void>;
-    currentSort: "asc" | "desc" | "none";
+    currentSort: SortProperties;
 }
 
 export interface QueryResultReactProvider

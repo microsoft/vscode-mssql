@@ -613,9 +613,9 @@ export class CellSelectionModel<T extends Slick.SlickData>
             e.stopPropagation();
             if (
                 this.headerFilter &&
-                typeof this.headerFilter.openColumnMenuPopupForActiveColumn === "function"
+                typeof this.headerFilter.openMenuForActiveColumn === "function"
             ) {
-                await this.headerFilter.openColumnMenuPopupForActiveColumn();
+                await this.headerFilter.openMenuForActiveColumn();
             }
             return;
         }

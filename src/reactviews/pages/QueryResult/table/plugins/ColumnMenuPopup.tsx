@@ -19,6 +19,7 @@ import {
 import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { locConstants } from "../../../../common/locConstants";
+import { SortProperties } from "../../../../../sharedInterfaces/queryResult";
 
 export type FilterValue = string | undefined;
 
@@ -47,7 +48,7 @@ interface ColumnMenuPopupProps {
     onSortAscending: () => Promise<void> | void;
     onSortDescending: () => Promise<void> | void;
     onClearSort: () => Promise<void> | void;
-    currentSort: "asc" | "desc" | "none";
+    currentSort: SortProperties;
 }
 
 const POPUP_WIDTH = 200;
@@ -230,7 +231,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
     onSortAscending,
     onSortDescending,
     onClearSort,
-    currentSort = "none",
+    currentSort = SortProperties.NONE,
 }) => {
     const styles = useStyles();
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -540,7 +541,9 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                                 sortAscendingButtonRef.current = el;
                                 firstFocusableRef.current = el;
                             }}
-                            appearance={currentSort === "asc" ? "primary" : "secondary"}
+                            appearance={
+                                currentSort === SortProperties.ASC ? "primary" : "secondary"
+                            }
                             size="small"
                             onClick={handleSortAscending}
                             title="Sort Ascending"
@@ -549,7 +552,9 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                         </Button>
 
                         <Button
-                            appearance={currentSort === "desc" ? "primary" : "secondary"}
+                            appearance={
+                                currentSort === SortProperties.DESC ? "primary" : "secondary"
+                            }
                             size="small"
                             onClick={handleSortDescending}
                             title="Sort Descending"
