@@ -27,9 +27,7 @@ const config = {
         ".json": "json",
     },
     tsconfig: "./tsconfig.extension.json",
-    plugins: [
-        esbuildProblemMatcherPlugin("extension"),
-    ],
+    plugins: [esbuildProblemMatcherPlugin("extension")],
     nodePaths: ["./node_modules"],
     sourcemap: !isProd,
     sourcesContent: false,
