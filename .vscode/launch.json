@@ -45,6 +45,6 @@
                 // for more details
                 // "MSSQL_SQLTOOLSSERVICE": "<Path to STS>"
             }
-        },
+        }
     ]
 }
