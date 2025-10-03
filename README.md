@@ -208,7 +208,7 @@ The following Visual Studio Code settings are available for the mssql extension.
 // Status bar
 {
   "mssql.statusBar.connectionInfoMaxLength": -1,
-  "mssql.statusBar.enableConnectionColor": true,
+  "mssql.enableConnectionColor": true,
 }
 ```
 

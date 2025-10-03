@@ -1,13 +1,3 @@
-# MSSQL Extension for Visual Studio Code
-
-The MSSQL Extension for Visual Studio Code is a TypeScript-based VS Code extension that provides database management capabilities for SQL Server, Azure SQL, and SQL Database in Fabric. The extension includes React-based webview components, AI-powered features with GitHub Copilot integration, and comprehensive SQL development tools.
-
-**Always reference these instructions first** and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
-
-## Working Effectively
-
-### Bootstrap, Build, and Test the Repository
-
 **NEVER CANCEL** any build or test commands. These operations can take significant time and should be allowed to complete.
 
 #### Initial Setup (Required once)
@@ -26,11 +16,6 @@ yarn install
 ```bash
 # Full build - takes ~19 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
 yarn build
-
-# Development watch mode (for active development)
-yarn watch
-# This runs continuous compilation and bundling. Leave running during development.
-# Includes: extension TypeScript, webview React/TypeScript, and asset bundling.
 ```
 
 #### Individual Build Steps (if needed)
@@ -43,39 +28,20 @@ yarn build:prepare
 yarn build:extension
 
 # Bundle extension (~1 second)
-yarn build:extension-bundle
-
-# Compile React webviews (~8 seconds)
-yarn build:webviews
-
-# Bundle webviews (~2 seconds)
-yarn build:webviews-bundle
 ```
 
 ### Linting and Code Quality
 
-```bash
+````bash
 # Lint source files only - takes ~1.5 seconds
 yarn lint src/ test/
-
-# DO NOT run 'yarn lint' without arguments - it will fail trying to lint build output
-```
-
 ### Testing
 
 #### Unit Tests
-
 ```bash
 # Unit tests require VS Code download and cannot run in sandboxed environments
 # This is expected behavior - tests work in CI with proper VS Code setup
-yarn test
-# Expected to fail with "ENOTFOUND update.code.visualstudio.com" in sandboxed environments
-
-# Run targeted unit tests using grep patterns
-yarn test --grep "ConnectionManager"          # Run tests matching "ConnectionManager"
-yarn test --pattern ".*service.*"             # Run tests matching service pattern
-yarn test --testPattern "QueryRunner"         # Alternative syntax for test filtering
-```
+````
 
 #### E2E Tests (Smoke Tests)
 
@@ -87,21 +53,12 @@ yarn smoketest
 
 ### Packaging
 
-```bash
+````bash
 # Install vsce globally (if not already installed)
 npm install -g vsce
-
-# Package extension - takes ~4.5 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
-yarn package --online   # Creates ~12MB VSIX file for online distribution
-yarn package --offline  # Creates platform-specific packages with embedded services
-```
-
-## Validation Scenarios
-
 **Always test the following scenarios after making changes:**
 
 ### Complete Build Validation
-
 1. Clean install: `rm -rf node_modules && yarn install`
 2. Full build: `yarn build`
 3. Lint check: `yarn lint src/ test/`
@@ -109,20 +66,16 @@ yarn package --offline  # Creates platform-specific packages with embedded servi
 5. Verify VSIX file is created (~12-15MB is normal)
 
 ### Development Workflow Validation
-
 1. Start watch mode: `yarn watch`
 2. Make a small change to a TypeScript file in `src/`
 3. Verify automatic recompilation occurs
 4. Stop watch mode with Ctrl+C
 
 ### Pre-Commit Validation Workflow
-
 ```bash
 # Always run these commands before committing changes:
 yarn build                 # Ensure code compiles
-yarn lint src/ test/        # Ensure code meets style standards
-yarn package --online      # Ensure extension can be packaged
-```
+````
 
 ### Code Quality Validation
 
