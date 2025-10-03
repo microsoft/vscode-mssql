@@ -10,6 +10,7 @@ import * as vscode from "vscode";
 import { IExtension } from "vscode-mssql";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as path from "path";
+import { UserSurvey } from "../../src/nps/userSurvey";
 
 // Launches and activates the extension
 export async function activateExtension(): Promise<IExtension> {
@@ -50,4 +51,17 @@ export function stubVscodeWrapper(
 export function initializeIconUtils(): void {
     const { IconUtils } = require("../../src/utils/iconUtils");
     IconUtils.initialize(vscode.Uri.file(path.join(__dirname, "..", "..")));
+}
+
+export function stubUserSurvey(
+    sandbox?: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<UserSurvey> {
+    const stubber = sandbox || sinon;
+
+    const userSurvey = stubber.createStubInstance(UserSurvey);
+    userSurvey.promptUserForNPSFeedback.resolves();
+
+    stubber.stub(UserSurvey, "getInstance").returns(userSurvey);
+
+    return userSurvey;
 }
