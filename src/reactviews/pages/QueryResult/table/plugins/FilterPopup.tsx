@@ -17,6 +17,7 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import { Dismiss16Regular, Search16Regular } from "@fluentui/react-icons";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { locConstants } from "../../../../common/locConstants";
 import { SortAscendingIcon } from "../../../../common/icons/sortAscending";
 import { SortDescendingIcon } from "../../../../common/icons/sortDescending";
@@ -55,7 +56,6 @@ interface FilterPopupProps {
 const POPUP_WIDTH = 200;
 const ITEM_HEIGHT = 22;
 const LIST_HEIGHT = ITEM_HEIGHT * 4;
-const OVERSCAN = 4;
 
 const useStyles = makeStyles({
     root: {
@@ -143,6 +143,7 @@ const useStyles = makeStyles({
         borderTopRightRadius: 0,
         backgroundColor: tokens.colorNeutralBackground3,
         boxShadow: `inset 0 1px 3px ${tokens.colorNeutralShadowAmbient}`,
+        position: "relative",
         "&:focus": {
             outlineStyle: "solid",
             outlineWidth: "2px",
@@ -155,7 +156,10 @@ const useStyles = makeStyles({
         alignItems: "center",
         justifyContent: "space-between",
         backgroundColor: tokens.colorNeutralBackground3,
-        ...shorthands.padding(0, "4px"),
+        paddingLeft: "0px",
+        paddingRight: "4px",
+        paddingTop: "0px",
+        paddingBottom: "0px",
         borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
         borderLeft: `1px solid ${tokens.colorNeutralStroke2}`,
         borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
@@ -166,9 +170,13 @@ const useStyles = makeStyles({
     },
     scrollableList: {
         ...shorthands.padding(0, "4px"),
+        position: "relative",
+        width: "100%",
     },
-    spacer: {
-        height: 0,
+    virtualItem: {
+        position: "absolute",
+        top: 0,
+        left: 0,
         width: "100%",
     },
     optionRow: {
@@ -191,6 +199,7 @@ const useStyles = makeStyles({
     optionCheckbox: {
         width: "100%",
         minWidth: 0,
+        pointerEvents: "none",
         "& .fui-Checkbox__label": {
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -266,7 +275,6 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
     const firstFocusableRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
     const lastFocusableRef = useRef<HTMLButtonElement | HTMLAnchorElement | null>(null);
     const [search, setSearch] = useState<string>("");
-    const [scrollTop, setScrollTop] = useState(0);
     const [selectedValues, setSelectedValues] = useState<Set<FilterValue>>(
         () => new Set(initialSelected),
     );
@@ -290,6 +298,13 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
         }
         return items.filter((item) => item.displayText.toLowerCase().includes(trimmed));
     }, [items, search]);
+
+    const virtualizer = useVirtualizer({
+        count: filteredItems.length,
+        getScrollElement: () => containerRef.current,
+        estimateSize: () => ITEM_HEIGHT,
+        overscan: 4,
+    });
 
     const updateSelection = useCallback((value: FilterValue, checked: boolean) => {
         setSelectedValues((prev) => {
@@ -358,35 +373,9 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
     }, [onDismiss, filteredItems, focusedIndex, selectedValues, updateSelection]);
 
     useEffect(() => {
-        if (containerRef.current) {
-            containerRef.current.scrollTop = 0;
-        }
-        setScrollTop(0);
+        virtualizer.scrollToIndex(0, { align: "start" });
         setFocusedIndex(-1);
-    }, [filteredItems.length]);
-
-    // Auto-scroll to focused item
-    useEffect(() => {
-        if (focusedIndex >= 0 && containerRef.current) {
-            const itemTop = focusedIndex * ITEM_HEIGHT;
-            const itemBottom = itemTop + ITEM_HEIGHT;
-            const scrollTop = containerRef.current.scrollTop;
-            const scrollBottom = scrollTop + LIST_HEIGHT;
-
-            if (itemTop < scrollTop) {
-                containerRef.current.scrollTop = itemTop;
-            } else if (itemBottom > scrollBottom) {
-                containerRef.current.scrollTop = itemBottom - LIST_HEIGHT;
-            }
-        }
-    }, [focusedIndex]);
-
-    const visibleCount = Math.ceil(LIST_HEIGHT / ITEM_HEIGHT);
-    const startIndex = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);
-    const endIndex = Math.min(filteredItems.length, startIndex + visibleCount + OVERSCAN * 2);
-    const beforeHeight = startIndex * ITEM_HEIGHT;
-    const afterHeight = (filteredItems.length - endIndex) * ITEM_HEIGHT;
-    const visibleItems = filteredItems.slice(startIndex, endIndex);
+    }, [filteredItems.length, virtualizer]);
 
     const selectAllState = useMemo(() => {
         if (filteredItems.length === 0) {
@@ -438,15 +427,16 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
 
     const onToggleSelectAll = useCallback(
         (_e: React.ChangeEvent<HTMLInputElement>, data: CheckboxOnChangeData) => {
-            const shouldSelect = data.checked === true || data.checked === "mixed";
+            // Determine if we should select all based on current state
+            // When selectAllState is false or mixed, and user clicks, data.checked will be true -> select all
+            // When selectAllState is true, and user clicks, data.checked will be false -> deselect all
+            const shouldSelectAll = data.checked === true || data.checked === "mixed";
             setSelectedValues((prev) => {
                 const next = new Set(prev);
-                if (shouldSelect) {
-                    for (const item of filteredItems) {
+                for (const item of filteredItems) {
+                    if (shouldSelectAll) {
                         next.add(item.value);
-                    }
-                } else {
-                    for (const item of filteredItems) {
+                    } else {
                         next.delete(item.value);
                     }
                 }
@@ -646,7 +636,7 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
                 <>
                     <div className={styles.selectAllRow}>
                         <Checkbox
-                            className={mergeClasses(styles.optionCheckbox, styles.compactCheckbox)}
+                            className={styles.compactCheckbox}
                             checked={selectAllState}
                             onChange={onToggleSelectAll}
                             label={locConstants.queryResult.selectAll}
@@ -666,45 +656,49 @@ export const FilterPopup: React.FC<FilterPopupProps> = ({
                         tabIndex={0}
                         role="listbox"
                         aria-label="Filter options"
-                        onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
                         onFocus={() => {
                             if (focusedIndex === -1 && filteredItems.length > 0) {
                                 setFocusedIndex(0);
                             }
                         }}>
-                        <div className={styles.scrollableList}>
-                            <div style={{ height: beforeHeight }} className={styles.spacer} />
-                            {visibleItems.map((item, idx) => {
+                        <div
+                            className={styles.scrollableList}
+                            style={{
+                                height: `${virtualizer.getTotalSize()}px`,
+                            }}>
+                            {virtualizer.getVirtualItems().map((virtualItem) => {
+                                const item = filteredItems[virtualItem.index];
                                 const isChecked = selectedValues.has(item.value);
-                                const actualIndex = startIndex + idx;
-                                const isFocused = actualIndex === focusedIndex;
-                                const key = item.index + "-" + actualIndex;
+                                const isFocused = virtualItem.index === focusedIndex;
                                 return (
                                     <div
-                                        key={key}
-                                        className={mergeClasses(
-                                            styles.optionRow,
-                                            isFocused && styles.optionRowFocused,
-                                        )}
-                                        title={item.displayText}
-                                        onClick={() => updateSelection(item.value, !isChecked)}
-                                        onMouseEnter={() => setFocusedIndex(actualIndex)}>
-                                        <Checkbox
+                                        key={virtualItem.key}
+                                        className={styles.virtualItem}
+                                        style={{
+                                            height: `${virtualItem.size}px`,
+                                            transform: `translateY(${virtualItem.start}px)`,
+                                        }}>
+                                        <div
                                             className={mergeClasses(
-                                                styles.optionCheckbox,
-                                                styles.compactCheckbox,
+                                                styles.optionRow,
+                                                isFocused && styles.optionRowFocused,
                                             )}
-                                            checked={isChecked}
-                                            onChange={(_, data) =>
-                                                updateSelection(item.value, data.checked === true)
-                                            }
-                                            label={item.displayText}
-                                            tabIndex={-1}
-                                        />
+                                            title={item.displayText}
+                                            onClick={() => updateSelection(item.value, !isChecked)}
+                                            onMouseEnter={() => setFocusedIndex(virtualItem.index)}>
+                                            <Checkbox
+                                                className={mergeClasses(
+                                                    styles.optionCheckbox,
+                                                    styles.compactCheckbox,
+                                                )}
+                                                checked={isChecked}
+                                                label={item.displayText}
+                                                tabIndex={-1}
+                                            />
+                                        </div>
                                     </div>
                                 );
                             })}
-                            <div style={{ height: afterHeight }} className={styles.spacer} />
                         </div>
                     </div>
                 </>
