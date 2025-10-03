@@ -28,12 +28,12 @@ export interface ColumnFilterPopupOptions {
     anchorRect: FilterPopupAnchorRect;
     items: FilterPopupItem[];
     initialSelected: FilterValue[];
-    onApply: (selected: FilterValue[]) => Promise<void> | void;
-    onClearSort: () => Promise<void> | void;
-    onClear: () => Promise<void> | void;
+    onApply: (selected: FilterValue[]) => Promise<void>;
+    onClearSort: () => Promise<void>;
+    onClear: () => Promise<void>;
     onDismiss: () => void;
-    onSortAscending: () => Promise<void> | void;
-    onSortDescending: () => Promise<void> | void;
+    onSortAscending: () => Promise<void>;
+    onSortDescending: () => Promise<void>;
     currentSort: "asc" | "desc" | "none";
 }
 
@@ -95,6 +95,10 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             }
             return undefined;
         });
+    }, []);
+
+    const hideContextMenu = useCallback(() => {
+        setMenuState((s) => (s.open ? { ...s, open: false } : s));
     }, []);
 
     const commands = useMemo<QueryResultReactProvider>(
@@ -173,7 +177,7 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
     // Close context menu when focus leaves the webview or it becomes hidden
     useEffect(() => {
         const closeOverlays = () => {
-            setMenuState((s) => (s.open ? { ...s, open: false } : s));
+            hideContextMenu();
             hideFilterPopup();
         };
         const handleVisibilityChange = () => {
