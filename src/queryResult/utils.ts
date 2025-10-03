@@ -596,3 +596,11 @@ export function calculateSelectionSummaryFromData(
 
     return summary;
 }
+
+export function getInMemoryGridDataProcessingThreshold(): number {
+    return (
+        vscode.workspace
+            .getConfiguration()
+            .get<number>(Constants.configInMemoryDataProcessingThreshold) ?? 5000
+    );
+}

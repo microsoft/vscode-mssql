@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { l10n } from "vscode";
+import * as os from "os";
 
 // Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
 export class Common {
@@ -976,15 +977,45 @@ export class QueryResult {
         min: number,
         nullCount: number,
         sum: number,
-    ) =>
-        l10n.t({
-            message:
-                "Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}",
-            args: [average, count, distinctCount, max, min, nullCount, sum],
-            comment: [
-                "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum",
-            ],
-        });
+    ) => {
+        return [
+            l10n.t({
+                message: "Average: {0}",
+                args: [average],
+                comment: ["{0} is the average"],
+            }),
+            l10n.t({
+                message: "Count: {0}",
+                args: [count],
+                comment: ["{0} is the count"],
+            }),
+            l10n.t({
+                message: "Distinct Count: {0}",
+                args: [distinctCount],
+                comment: ["{0} is the distinct count"],
+            }),
+            l10n.t({
+                message: "Max: {0}",
+                args: [max],
+                comment: ["{0} is the max"],
+            }),
+            l10n.t({
+                message: "Min: {0}",
+                args: [min],
+                comment: ["{0} is the min"],
+            }),
+            l10n.t({
+                message: "Null Count: {0}",
+                args: [nullCount],
+                comment: ["{0} is the null count"],
+            }),
+            l10n.t({
+                message: "Sum: {0}",
+                args: [sum],
+                comment: ["{0} is the sum"],
+            }),
+        ].join(os.EOL);
+    };
     public static summaryFetchConfirmation = (numRows: number) =>
         l10n.t({
             message: "{0} rows selected, click to load summary",
