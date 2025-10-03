@@ -93,6 +93,7 @@
         "@monaco-editor/react": "^4.6.0",
         "@playwright/test": "^1.45.0",
         "@stylistic/eslint-plugin": "^2.8.0",
+        "@tanstack/react-virtual": "^3.13.12",
         "@types/azdata": "^1.46.6",
         "@types/chai": "^5.2.2",
         "@types/jquery": "^3.3.31",

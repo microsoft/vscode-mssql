@@ -70,6 +70,12 @@ export class HybridDataProvider<T extends Slick.SlickData> implements IDisposabl
     }
 
     public async getColumnValues(column: Slick.Column<T>): Promise<string[]> {
+        if (this.thresholdReached) {
+            await this.queryResultContext.extensionRpc.sendRequest(
+                ShowFilterDisabledMessageRequest.type,
+            );
+            throw new Error("In-memory data processing is disabled.");
+        }
         await this.initializeCacheIfNeeded();
         return this.provider.getColumnValues(column);
     }

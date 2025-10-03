@@ -17,6 +17,7 @@ import { mixin } from "../objects";
 import { tokens } from "@fluentui/react-components";
 import { Keys } from "../../../../common/keys";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
+import { HeaderMenu } from "./headerFilter.plugin";
 
 export interface ICellSelectionModelOptions {
     cellRangeSelector?: any;
@@ -50,6 +51,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         private context: QueryResultReactProvider,
         private uri: string,
         private resultSetSummary: ResultSetSummary,
+        private headerFilter?: HeaderMenu<T>,
     ) {
         this.options = mixin(this.options, defaults, false);
         if (this.options.cellRangeSelector) {
@@ -597,7 +599,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         const key = e.key; // e.g., 'a', 'ArrowLeft'
         const metaOrCtrlPressed = this.isMac ? e.metaKey : e.ctrlKey;
 
-        // --- 1) Select All (Cmd/Ctrl + A) ---
+        // Select All (Cmd/Ctrl + A)
         if (metaOrCtrlPressed && key === Keys?.a) {
             e.preventDefault();
             e.stopPropagation();
@@ -605,7 +607,20 @@ export class CellSelectionModel<T extends Slick.SlickData>
             return;
         }
 
-        // --- 2) Range selection via Shift + Arrow (no Alt, no Meta/Ctrl) ---
+        // Open Header menu  (Alt + F) ---
+        if (e.altKey && key === Keys?.ArrowDown && !e.shiftKey && !metaOrCtrlPressed) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (
+                this.headerFilter &&
+                typeof this.headerFilter.openMenuForActiveColumn === "function"
+            ) {
+                await this.headerFilter.openMenuForActiveColumn();
+            }
+            return;
+        }
+
+        // Range selection via Shift + Arrow (no Alt, no Meta/Ctrl)
         const isArrow =
             key === (Keys?.ArrowLeft ?? "ArrowLeft") ||
             key === (Keys?.ArrowRight ?? "ArrowRight") ||

@@ -18,43 +18,14 @@
     height: 100%;
 }
 
-.monaco-table .slick-sort-indicator {
-    background-size: 8px;
-    background-repeat: no-repeat;
-}
-
-.monaco-table .slick-sort-indicator {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    margin-left: 4px;
-    margin-right: 4px;
-    margin-top: 6px;
-    flex: 0 0 auto;
-}
-
-.slick-header-sort-button,
-.slick-header-sortdesc-button,
-.slick-header-sortasc-button {
-    background-position: center center;
-    background-repeat: no-repeat;
-    cursor: pointer;
-    display: inline-block;
-    width: 16px;
-    flex: 0 0 auto;
-    margin-right: 2px;
-    background-color: transparent;
-    border: 0;
-    padding: 0;
-}
-
 .slick-header-menubutton {
     background-position: center center;
     background-repeat: no-repeat;
     cursor: pointer;
     display: inline-block;
-    width: 16px;
-    background-image: url("filter.svg");
+    width: 12px;
+    background-image: url("menu.svg");
+    background-size: 16px;
     flex: 0 0 auto;
     margin-right: 2px;
     background-color: transparent;
@@ -62,102 +33,17 @@
     padding: 0px;
 }
 
-.slick-header-menu {
-    background: none repeat scroll 0 0 white;
-    border: 1px solid #bfbdbd;
-    min-width: 175px;
-    padding: 4px;
-    z-index: 100000;
-    cursor: default;
-    display: flex;
-    flex-direction: column;
-    margin: 0;
-    position: absolute;
+.slick-header-menubutton:hover {
+    color: var(--vscode-list-hoverForeground);
+    background-color: var(--vscode-list-hoverBackground);
 }
 
-.hc-light .slick-header-menu {
-    background: none repeat scroll 0 0 #f3f2f1;
-}
-
-.vs-dark .slick-header-menu {
-    background: none repeat scroll 0 0 #333333;
-}
-
-.hc-black .slick-header-menu {
-    background: none repeat scroll 0 0 #000000;
+.slick-header-menubutton:focus {
+    color: var(--vscode-list-hoverForeground);
+    background-color: var(--vscode-list-hoverBackground);
 }
 
 .slick-header-menu-image-button-container {
-    flex: 0 0 auto;
-}
-
-.slick-header-menu a.monaco-button.monaco-text-button {
-    width: 60px;
-    margin: 5px;
-    padding: 2px;
-}
-
-.slick-header-menu .searchbox-row {
-    display: flex;
-    align-items: center;
-    padding-left: 5px;
-    margin-top: 5px;
-    flex: 0 0 auto;
-}
-
-.slick-header-menu .searchbox-row .select-all-checkbox {
-    flex: 0;
-}
-
-.slick-header-menu .searchbox-row .search-input {
-    flex: 1 1 auto;
-}
-
-.slick-header-menu .searchbox-row .search-input input {
-    padding-right: 70px;
-}
-
-.slick-header-menu .searchbox-row .selected-count {
-    position: absolute;
-    right: 8px;
-    align-self: center;
-    align-items: center;
-    display: flex;
-}
-
-.slick-header-menu .searchbox-row .visible-count {
-    position: absolute;
-    /* visible count badge is not visible but will be read by the screen reader */
-    left: -10000px;
-}
-
-.slick-header-menu .filter {
-    border: 1px solid #bfbdbd;
-    font-size: 8pt;
-    margin-top: 6px;
-    overflow: hidden;
-    padding: 1px;
-    white-space: nowrap;
-    align-content: flex-start;
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-}
-
-.slick-header-menu .filter .filter-option {
-    display: flex;
-    align-items: center;
-    padding-left: 3px;
-}
-
-.slick-header-menu .filter-menu-button-container {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    flex: 0 0 auto;
-}
-
-.slick-header-menu .filter-menu-button {
     flex: 0 0 auto;
 }
 
@@ -172,23 +58,6 @@
     cursor: pointer;
     list-style: none outside none;
     margin: 0;
-}
-
-.slick-header-menu a.monaco-button.monaco-text-button.slick-header-menuicon {
-    display: inline-block;
-    background-position: 2px center;
-    background-repeat: no-repeat;
-    padding-left: 18px;
-    text-align: left;
-    width: 100%;
-    padding: 0 0 0 18px;
-    margin: 0px;
-    background-size: 10px;
-}
-
-.slick-header-menucontent {
-    display: inline-block;
-    vertical-align: middle;
 }
 
 .slick-header-menuitem:hover {
@@ -220,46 +89,6 @@
     margin-right: -5px;
 }
 
-#popup-menu {
-    position: absolute;
-    padding: 0px;
-    display: inline-block;
-    min-width: 100px;
-    z-index: 99999;
-    border: 1px solid;
-    outline: 0;
-    color: var(--vscode-dropdown-foreground);
-    background-color: var(--vscode-dropdown-background);
-    border-color: var(--vscode-menu-border);
-    font-family: var(--vscode-font-family);
-}
-
-/* Button styling to match the design */
-.sort-btn {
-    width: 100%;
-    padding: 8px 10px;
-    text-align: left;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 13px;
-    color: var(--vscode-dropdown-foreground);
-    background-color: var(--vscode-dropdown-background);
-    border-color: var(--vscode-dropdown-border);
-    font-family: var(--vscode-font-family);
-}
-
-.sort-btn:hover {
-    color: var(--vscode-list-hoverForeground);
-    background-color: var(--vscode-list-hoverBackground);
-}
-
-/* Additional styling for active/focused states */
-.sort-btn:focus {
-    color: var(--vscode-list-hoverForeground);
-    background-color: var(--vscode-list-hoverBackground);
-}
-
 .checkbox-list {
     min-height: 200px;
     max-height: 250px;
@@ -273,91 +102,19 @@
     cursor: pointer;
 }
 
-.filter-btn-primary {
-    width: 33%;
-    padding: 8px 10px;
-    text-align: center;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 13px;
-    color: var(--vscode-button-foreground);
-    background-color: var(--vscode-button-background);
-    border-color: var(--vscode-button-border);
-    font-family: var(--vscode-font-family);
-}
-
-.filter-btn {
-    width: 33%;
-    padding: 8px 10px;
-    text-align: center;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 13px;
-    color: var(--vscode-button-secondaryForeground);
-    background-color: var(--vscode-button-secondaryBackground);
-    border-color: var(--vscode-button-secondaryBorder);
-    font-family: var(--vscode-font-family);
-}
-
-.searchbox {
-    width: 100%;
-    padding: 8px;
-    text-align: left;
-    background: none;
-    border: 1px solid;
-    font-size: 13px;
-    color: var(--vscode-dropdown-foreground);
-    background-color: var(--vscode-dropdown-background);
-    border-color: var(--vscode-dropdown-border);
-    font-family: var(--vscode-font-family);
-}
-
-.selection-counter {
-    margin-left: 8px;
-    padding: 4px;
-    border-radius: 4px;
-    color: var(--vscode-dropdown-foreground);
-    background-color: var(--vscode-descriptionForeground);
-    border-color: var(--vscode-dropdown-border);
-}
-
-.filter-btn-primary:hover {
-    color: var(--vscode-button-foreground);
-    background-color: var(--vscode-button-hoverBackground);
-}
-
-/* Additional styling for active/focused states */
-.filter-btn-primary:focus {
-    color: var(--vscode-button-foreground);
-    background-color: var(--vscode-button-hoverBackground);
-}
-
-.filter-btn:hover {
-    color: var(--vscode-button-secondaryForeground);
-    background-color: var(--vscode-button-secondaryHoverBackground);
-}
-
-/* Additional styling for active/focused states */
-.filter-btn:focus {
-    color: var(--vscode-button-secondaryForeground);
-    background-color: var(--vscode-button-secondaryHoverBackground);
-}
-
 /* Icons */
-/* Icon for filter button */
+/* Icon for menu button */
 .vscode-dark .slick-header-menubutton,
 .vscode-high-contrast .slick-header-menubutton {
-    background-image: url("filter_inverse.svg");
+    background-image: url("menu_inverse.svg");
 }
 
 .vscode-light .slick-header-menubutton,
 .vscode-high-contrast.vscode-high-contrast-light .slick-header-menubutton {
-    background-image: url("filter.svg");
+    background-image: url("menu.svg");
 }
 
-/* Icon for filter button when filter is applied */
+/* Icon for menu button when filter is applied */
 .vscode-dark .slick-header-menubutton.filtered,
 .vscode-high-contrast .slick-header-menubutton.filtered {
     background-image: url("filterFilled_inverse.svg");
@@ -368,35 +125,40 @@
     background-image: url("filterFilled.svg");
 }
 
-/* Icons for sorting buttons */
-.vscode-dark .slick-header-sort-button,
-.vscode-high-contrast .slick-header-sort-button {
-    background-image: url("sort_inverse.svg");
+/* Sort indicator icon styling */
+.slick-sort-indicator-icon {
+    display: inline-block;
+    width: 12px;
+    margin-left: 4px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 14px;
+    flex: 0 0 auto;
+    opacity: 0;
+    transition: opacity 0.2s ease;
 }
 
-.vscode-light .slick-header-sort-button,
-.vscode-high-contrast.vscode-high-contrast-light .slick-header-sort-button {
-    background-image: url("sort.svg");
+.slick-sort-indicator-icon.sorted-asc,
+.slick-sort-indicator-icon.sorted-desc {
+    opacity: 1;
 }
 
-/* Icons for sort desc */
-.vscode-dark .slick-header-sortdesc-button,
-.vscode-high-contrast .slick-header-sortdesc-button {
-    background-image: url("sort_desc_inverse.svg");
-}
-
-.vscode-light .slick-header-sortdesc-button,
-.vscode-high-contrast.vscode-high-contrast-light .slick-header-sortdesc-button {
-    background-image: url("sort_desc.svg");
-}
-
-/* Icons for sort asc */
-.vscode-dark .slick-header-sortasc-button,
-.vscode-high-contrast .slick-header-sortasc-button {
+.vscode-dark .slick-sort-indicator-icon.sorted-asc,
+.vscode-high-contrast .slick-sort-indicator-icon.sorted-asc {
     background-image: url("sort_asc_inverse.svg");
 }
 
-.vscode-light .slick-header-sortasc-button,
-.vscode-high-contrast.vscode-high-contrast-light .slick-header-sortasc-button {
+.vscode-light .slick-sort-indicator-icon.sorted-asc,
+.vscode-high-contrast.vscode-high-contrast-light .slick-sort-indicator-icon.sorted-asc {
     background-image: url("sort_asc.svg");
+}
+
+.vscode-dark .slick-sort-indicator-icon.sorted-desc,
+.vscode-high-contrast .slick-sort-indicator-icon.sorted-desc {
+    background-image: url("sort_desc_inverse.svg");
+}
+
+.vscode-light .slick-sort-indicator-icon.sorted-desc,
+.vscode-high-contrast.vscode-high-contrast-light .slick-sort-indicator-icon.sorted-desc {
+    background-image: url("sort_desc.svg");
 }
