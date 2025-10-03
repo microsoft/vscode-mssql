@@ -8,11 +8,10 @@ import * as locConstants from "../../src/constants/locConstants";
 import * as sinon from "sinon";
 import * as utils from "../../src/utils/utils";
 import * as vscode from "vscode";
-import * as TypeMoq from "typemoq";
 
 import { MssqlWebviewPanelOptions } from "../../src/sharedInterfaces/webview";
 import { ReactWebviewPanelController } from "../../src/controllers/reactWebviewPanelController";
-import { stubTelemetry } from "./utils";
+import { stubTelemetry, stubVscodeWrapper } from "./utils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 suite("ReactWebviewPanelController", () => {
@@ -66,7 +65,7 @@ suite("ReactWebviewPanelController", () => {
         } as unknown as vscode.ExtensionContext;
         sandbox.stub(utils, "getNonce").returns("test-nonce");
 
-        vscodeWrapper.reset();
+        vscodeWrapper = stubVscodeWrapper(sandbox);
     });
 
     teardown(() => {
@@ -361,7 +360,7 @@ interface TestReducers {
     decrement: { amount: number };
 }
 
-const vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
+let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
 class TestReactWebviewPanelController<TResult> extends ReactWebviewPanelController<
     TestState,
@@ -369,6 +368,6 @@ class TestReactWebviewPanelController<TResult> extends ReactWebviewPanelControll
     TResult
 > {
     constructor(context: vscode.ExtensionContext, options: MssqlWebviewPanelOptions) {
-        super(context, vscodeWrapper.object, "testSource", "testSource", { count: 0 }, options);
+        super(context, vscodeWrapper!, "testSource", "testSource", { count: 0 }, options);
     }
 }
