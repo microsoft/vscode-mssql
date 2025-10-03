@@ -17,10 +17,67 @@ import { PagedAsyncIterableIterator } from "@azure/core-paging";
 import { ResourceGroup, ResourceGroups, ResourceManagementClient } from "@azure/arm-resources";
 import { AzureResourceController } from "../../src/azure/azureResourceController";
 import { getCloudProviderSettings } from "../../src/azure/providerSettings";
-import { AzureAuthType, IAzureAccountSession } from "vscode-mssql";
-import { IAccount } from "../../src/models/contracts/azure";
+import { IAzureAccountSession } from "vscode-mssql";
+import { AzureAuthType, IAccount } from "../../src/models/contracts/azure";
 
 chai.use(sinonChai);
+
+suite("Azure SQL client", function (): void {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    test("Should return locations successfully", async function (): Promise<void> {
+        const pages = createPagedIterator(mockLocations);
+        const subscriptions: Subscriptions = {
+            listLocations: sandbox.stub().returns(pages),
+            list: sandbox.stub().returns(undefined),
+            get: sandbox.stub().returns(undefined),
+        };
+        const subscriptionClient = {
+            subscriptions,
+        } as unknown as SubscriptionClient;
+        const azureSqlClient = new AzureResourceController(() => subscriptionClient);
+
+        const result = await azureSqlClient.getLocations(primarySession);
+
+        expect(subscriptions.listLocations).to.have.been.calledOnceWithExactly(
+            primarySession.subscription?.subscriptionId,
+        );
+        expect(result).to.have.lengthOf(mockLocations.length);
+    });
+
+    test("Should return resource groups successfully", async function (): Promise<void> {
+        const pages = createPagedIterator(mockGroups);
+        const resourceGroups: ResourceGroups = {
+            list: sandbox.stub().returns(pages),
+            get: sandbox.stub().returns(undefined),
+            beginDelete: sandbox.stub(),
+            beginDeleteAndWait: sandbox.stub(),
+            beginExportTemplate: sandbox.stub(),
+            beginExportTemplateAndWait: sandbox.stub(),
+            checkExistence: sandbox.stub(),
+            createOrUpdate: sandbox.stub(),
+            update: sandbox.stub(),
+        };
+        const resourceClient = {
+            resourceGroups,
+        } as unknown as ResourceManagementClient;
+        const azureSqlClient = new AzureResourceController(undefined, () => resourceClient);
+
+        const result = await azureSqlClient.getResourceGroups(primarySession);
+
+        expect(resourceGroups.list).to.have.been.calledOnceWithExactly();
+        expect(result).to.have.lengthOf(mockGroups.length);
+        expect(result[0].location).to.equal(mockGroups[0].location);
+    });
+});
 
 const mockAccounts: IAccount[] = [
     {
@@ -83,60 +140,3 @@ function createPagedIterator<T>(items: T[]): PagedAsyncIterableIterator<T> {
         [Symbol.asyncIterator]: undefined!,
     };
 }
-
-suite("Azure SQL client", function (): void {
-    let sandbox: sinon.SinonSandbox;
-
-    setup(() => {
-        sandbox = sinon.createSandbox();
-    });
-
-    teardown(() => {
-        sandbox.restore();
-    });
-
-    test("Should return locations successfully", async function (): Promise<void> {
-        const pages = createPagedIterator(mockLocations);
-        const subscriptions: Subscriptions = {
-            listLocations: sandbox.stub().returns(pages),
-            list: sandbox.stub().returns(undefined),
-            get: sandbox.stub().returns(undefined),
-        };
-        const subscriptionClient = {
-            subscriptions,
-        } as unknown as SubscriptionClient;
-        const azureSqlClient = new AzureResourceController(() => subscriptionClient);
-
-        const result = await azureSqlClient.getLocations(primarySession);
-
-        expect(subscriptions.listLocations).to.have.been.calledOnceWithExactly(
-            primarySession.subscription?.subscriptionId,
-        );
-        expect(result).to.have.lengthOf(mockLocations.length);
-    });
-
-    test("Should return resource groups successfully", async function (): Promise<void> {
-        const pages = createPagedIterator(mockGroups);
-        const resourceGroups: ResourceGroups = {
-            list: sandbox.stub().returns(pages),
-            get: sandbox.stub().returns(undefined),
-            beginDelete: sandbox.stub(),
-            beginDeleteAndWait: sandbox.stub(),
-            beginExportTemplate: sandbox.stub(),
-            beginExportTemplateAndWait: sandbox.stub(),
-            checkExistence: sandbox.stub(),
-            createOrUpdate: sandbox.stub(),
-            update: sandbox.stub(),
-        };
-        const resourceClient = {
-            resourceGroups,
-        } as unknown as ResourceManagementClient;
-        const azureSqlClient = new AzureResourceController(undefined, () => resourceClient);
-
-        const result = await azureSqlClient.getResourceGroups(primarySession);
-
-        expect(resourceGroups.list).to.have.been.calledOnceWithExactly();
-        expect(result).to.have.lengthOf(mockGroups.length);
-        expect(result[0].location).to.equal(mockGroups[0].location);
-    });
-});
