@@ -1,7 +1,10 @@
-8521e41b30f76be6835e2715b22a3df989bf8314 # Fixed tslin errors
+8521e41b30f76be6835e2715b22a3df989bf8314 # Fixed tslint errors
 9b8f4644ad676d277613ffc2adc78a927d103617 # spaces -> tabs
 57f780a9e54745ac4c8eab67df8f5fb068d4c8c2 # Eslint fixes
 2285966c88a83c3aa924f6c989b3d50e3f5ff701 # updating printWidth to 100 and enabling bracketSameLine rule, applying to all .ts, .tsx, and .json files
 1f83f62f411befea33642b72911e1a4f85d803cf # applying printWidth formatting rule to .d.ts files
 a24ef741db649b756d7c7eb5fd0ddacd81c49718 # applying formatting rules to .css files
 2e5ab73370eb00f313f9ac8d0b66a78ecdb0f043 # unifying line endings to LF
+c472f9925f7a405746ee965d0d0b404eba82bca5 # applying formatting rules to .y[a]ml files
+40ea70a0022a1f0973979e30edee21c1de6a20f3 # applying formatting rules to .md files
+5fc3a5f6aa38986415f1dbcaf9c3e5f063783e14 # applying prettier formatting to all included file types

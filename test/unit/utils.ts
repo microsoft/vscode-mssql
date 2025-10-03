@@ -13,6 +13,7 @@ import * as path from "path";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 import { buildCapabilitiesResult } from "./mocks";
+import * as jsonRpc from "vscode-jsonrpc/node";
 import { UserSurvey } from "../../src/nps/userSurvey";
 
 // Launches and activates the extension
@@ -66,6 +67,58 @@ export function stubGetCapabilitiesRequest(
         .withArgs(GetCapabilitiesRequest.type, sinon.match.any)
         .resolves(buildCapabilitiesResult());
     return serviceClientMock;
+}
+
+/**
+ * Stubs a vscode.WebviewPanel
+ * @param sandbox The sinon sandbox to use
+ * @returns A stubbed vscode.WebviewPanel
+ */
+export function stubWebviewPanel(sandbox: sinon.SinonSandbox): vscode.WebviewPanel {
+    const webviewStub = {
+        postMessage: sandbox.stub().resolves(true),
+        onDidReceiveMessage: sandbox.stub().callsFake(() => {
+            return { dispose: sandbox.stub() } as vscode.Disposable;
+        }),
+        asWebviewUri: sandbox.stub().returns(vscode.Uri.parse("file:///webview")),
+        html: "",
+    } as unknown as vscode.Webview;
+
+    return {
+        webview: webviewStub,
+        reveal: sandbox.stub(),
+        dispose: sandbox.stub(),
+        onDidDispose: sandbox.stub().callsFake(() => {
+            return { dispose: sandbox.stub() } as vscode.Disposable;
+        }),
+    } as unknown as vscode.WebviewPanel;
+}
+
+/**
+ * Stubs a webview connection RPC
+ * @param sandbox The sinon sandbox to use
+ * @returns An object containing request and notification handlers and the connection stub
+ */
+export function stubWebviewConnectionRpc(sandbox: sinon.SinonSandbox): {
+    requestHandlers: Map<string, (password: string) => Promise<unknown>>;
+    notificationHandlers: Map<string, () => void>;
+    connection: jsonRpc.MessageConnection;
+} {
+    const requestHandlers = new Map();
+    const notificationHandlers = new Map();
+    const connection = {
+        onRequest: sandbox.stub().callsFake((type, handler) => {
+            requestHandlers.set(type.method, handler as (password: string) => Promise<unknown>);
+        }),
+        onNotification: sandbox.stub().callsFake((type, handler) => {
+            notificationHandlers.set(type.method, handler as () => void);
+        }),
+        sendNotification: sandbox.stub(),
+        sendRequest: sandbox.stub(),
+        listen: sandbox.stub(),
+        dispose: sandbox.stub(),
+    } as unknown as jsonRpc.MessageConnection;
+    return { requestHandlers, notificationHandlers, connection };
 }
 
 export function stubUserSurvey(

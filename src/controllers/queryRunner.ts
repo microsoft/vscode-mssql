@@ -52,7 +52,10 @@ import { Deferred } from "../protocol";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
-import { calculateSelectionSummaryFromData } from "../queryResult/utils";
+import {
+    calculateSelectionSummaryFromData,
+    getInMemoryGridDataProcessingThreshold,
+} from "../queryResult/utils";
 
 export interface IResultSet {
     columns: string[];
@@ -1069,90 +1072,93 @@ export default class QueryRunner {
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
+        showThresholdWarning: boolean = true,
     ): Promise<void> {
-        const sendCancelSummaryEvent = () => {
-            this.fireSummaryChangedEvent(requestId, {
-                text: LocalizedConstants.QueryResult.summaryLoadingCanceled,
-                tooltip: LocalizedConstants.QueryResult.summaryLoadingCanceledTooltip,
-                uri: this.uri,
-                command: undefined,
-                continue: undefined,
-            });
-        };
-        this._requestID = Utils.generateGuid();
-        const requestId = this._requestID;
-        // Cancel any previous summary loading operation
-        if (this._cancelConfirmation) {
-            this._cancelConfirmation.resolve();
-            this._cancelConfirmation = undefined;
-        }
-        // Keep copy order deterministic
-        selection.sort((a, b) => a.fromRow - b.fromRow);
-
-        let totalRows = 0;
-        for (let range of selection) {
-            totalRows += range.toRow - range.fromRow + 1;
-        }
-
-        const summaryFetchThreshold =
-            vscode.workspace
-                .getConfiguration()
-                .get<number>(Constants.configInMemoryDataProcessingThreshold) ?? 5000;
-
-        if (totalRows > summaryFetchThreshold) {
-            const waitForUserContinuation = new Deferred<void>();
+        /** Ask the user to proceed for large selections. */
+        const waitForUserToProceed = async (
+            requestId: string,
+            totalRows: number,
+        ): Promise<void> => {
+            const proceed = new Deferred<void>();
             this.fireSummaryChangedEvent(requestId, {
                 command: {
                     title: Constants.cmdHandleSummaryOperation,
                     command: Constants.cmdHandleSummaryOperation,
                     arguments: [this.uri],
                 },
-                continue: waitForUserContinuation,
+                continue: proceed,
                 text: `$(play-circle) ${LocalizedConstants.QueryResult.summaryFetchConfirmation(totalRows)}`,
                 tooltip: LocalizedConstants.QueryResult.clickToFetchSummary,
                 uri: this.uri,
             });
+            await proceed.promise;
+        };
 
-            await waitForUserContinuation.promise;
+        const showProgress = (progress: number, cancelConfirmation: Deferred<void>) => {
+            this.fireSummaryChangedEvent(this._requestID, {
+                command: {
+                    title: Constants.cmdHandleSummaryOperation,
+                    command: Constants.cmdHandleSummaryOperation,
+                    arguments: [this.uri],
+                },
+                continue: cancelConfirmation,
+                text: `$(arrow-circle-down) ${LocalizedConstants.QueryResult.summaryLoadingProgress(progress, totalRows)}`,
+                tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
+                uri: this.uri,
+            });
+        };
+
+        // create a new request and cancel any in-flight run
+        this._requestID = Utils.generateGuid();
+        const requestId = this._requestID;
+        this._cancelConfirmation?.resolve();
+        this._cancelConfirmation = undefined;
+
+        // Keep copy order deterministic
+        selection.sort((a, b) => a.fromRow - b.fromRow);
+        let totalRows = 0;
+        for (let range of selection) {
+            totalRows += range.toRow - range.fromRow + 1;
         }
 
+        const threshold = getInMemoryGridDataProcessingThreshold();
+
+        // optional “are you sure?” for large selections
+        if (showThresholdWarning && totalRows > threshold) {
+            await waitForUserToProceed(requestId, totalRows);
+        }
+
+        const sendCancelSummaryEvent = async () => {
+            // Reset and allow user to start a new summary operation
+            this._cancelConfirmation = undefined;
+            await waitForUserToProceed(requestId, totalRows);
+            await this.generateSelectionSummaryData(selection, batchId, resultId, false);
+        };
+
         this._cancelConfirmation = new Deferred<void>();
-        const cancelConfirmation = this._cancelConfirmation;
+        const cancel = this._cancelConfirmation;
         let isCanceled = false;
-
-        this.fireSummaryChangedEvent(requestId, {
-            command: {
-                title: Constants.cmdHandleSummaryOperation,
-                command: Constants.cmdHandleSummaryOperation,
-                arguments: [this.uri],
-            },
-            continue: cancelConfirmation,
-            text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(0, totalRows)}`,
-            tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
-            uri: this.uri,
-        });
-
         // Set up cancellation handling
-        cancelConfirmation.promise
-            .then(() => {
-                isCanceled = true;
-            })
+        cancel.promise
+            .then(() => (isCanceled = true))
             .catch(() => {
-                // Ignore rejection, just means operation completed normally
+                /* noop */
             });
+
+        showProgress(0, cancel);
 
         const rowIdToSelectionMap = new Map<number, ISlickRange[]>();
         const rowIdToRowMap = new Map<number, DbCellValue[]>();
 
         // Calculate batch threshold for processing rows in smaller chunks
-        const batchThreshold = Math.min(1000, summaryFetchThreshold / 5);
+        const batchThreshold = Math.min(1000, threshold / 5);
         let processedRows = 0;
 
         try {
             // Process each selection range with batching
             for (const range of selection) {
                 if (isCanceled) {
-                    sendCancelSummaryEvent();
+                    await sendCancelSummaryEvent();
                     return;
                 }
 
@@ -1163,7 +1169,7 @@ export default class QueryRunner {
                     startRow += batchThreshold
                 ) {
                     if (isCanceled) {
-                        sendCancelSummaryEvent();
+                        await sendCancelSummaryEvent();
                         return;
                     }
 
@@ -1191,26 +1197,16 @@ export default class QueryRunner {
                     processedRows += batchSize;
 
                     if (isCanceled) {
-                        sendCancelSummaryEvent();
+                        await sendCancelSummaryEvent();
                         return;
                     }
 
-                    this.fireSummaryChangedEvent(requestId, {
-                        command: {
-                            title: Constants.cmdHandleSummaryOperation,
-                            command: Constants.cmdHandleSummaryOperation,
-                            arguments: [this.uri],
-                        },
-                        continue: cancelConfirmation,
-                        text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(processedRows, totalRows)}`,
-                        tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
-                        uri: this.uri,
-                    });
+                    showProgress(processedRows, cancel);
                 }
             }
 
             if (isCanceled) {
-                sendCancelSummaryEvent();
+                await sendCancelSummaryEvent();
                 return;
             }
 
@@ -1250,7 +1246,7 @@ export default class QueryRunner {
 
             // Resolve the cancel confirmation to clean up
             if (!isCanceled) {
-                cancelConfirmation.resolve();
+                cancel.resolve();
             }
 
             this.fireSummaryChangedEvent(requestId, {
@@ -1263,7 +1259,7 @@ export default class QueryRunner {
         } catch (error) {
             // Clean up on error
             if (!isCanceled) {
-                cancelConfirmation.reject(error);
+                cancel.reject(error);
             }
 
             this.fireSummaryChangedEvent(requestId, {

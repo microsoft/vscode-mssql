@@ -38,6 +38,7 @@ yarn lint src/ test/
 ### Testing
 
 #### Unit Tests
+
 ```bash
 # Unit tests require VS Code download and cannot run in sandboxed environments
 # This is expected behavior - tests work in CI with proper VS Code setup
@@ -59,6 +60,7 @@ npm install -g vsce
 **Always test the following scenarios after making changes:**
 
 ### Complete Build Validation
+
 1. Clean install: `rm -rf node_modules && yarn install`
 2. Full build: `yarn build`
 3. Lint check: `yarn lint src/ test/`
@@ -66,12 +68,14 @@ npm install -g vsce
 5. Verify VSIX file is created (~12-15MB is normal)
 
 ### Development Workflow Validation
+
 1. Start watch mode: `yarn watch`
 2. Make a small change to a TypeScript file in `src/`
 3. Verify automatic recompilation occurs
 4. Stop watch mode with Ctrl+C
 
 ### Pre-Commit Validation Workflow
+
 ```bash
 # Always run these commands before committing changes:
 yarn build                 # Ensure code compiles
