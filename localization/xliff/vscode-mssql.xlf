@@ -269,9 +269,9 @@
     <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
       <source xml:lang="en">Available Servers</source>
     </trans-unit>
-    <trans-unit id="++CODE++92eb0b1fb89f1725b3c1fe652164720d7b2d17222e81bd5057f02f645fb24e67">
-      <source xml:lang="en">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</source>
-      <note>{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum</note>
+    <trans-unit id="++CODE++fb226d6b73aa48dadaf6a46992c5d7a707fb8d1fe58b0865de04d08c848fecff">
+      <source xml:lang="en">Average: {0}</source>
+      <note>{0} is the average</note>
     </trans-unit>
     <trans-unit id="++CODE++8dd4f3a846ac5cf5452d53cc438aaae7ad47df96a29ad32857a87718cdeefbca">
       <source xml:lang="en">Average: {0}  Count: {1}  Sum: {2}</source>
@@ -836,6 +836,10 @@
     <trans-unit id="++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126">
       <source xml:lang="en">Cost</source>
     </trans-unit>
+    <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
+      <source xml:lang="en">Count: {0}</source>
+      <note>{0} is the count</note>
+    </trans-unit>
     <trans-unit id="++CODE++4a8d5a21d0db63fc6a204170919855b12207337b5357f2bb7eedcb7cafa77fce">
       <source xml:lang="en">Count: {0}  Distinct Count: {1}  Null Count: {2}</source>
       <note>{0} is the count, {1} is the distinct count, and {2} is the null count</note>
@@ -1039,6 +1043,10 @@
     </trans-unit>
     <trans-unit id="++CODE++7a417a747e385113d9c481ed4937ff3d5b31de744c4db4312464f6f50729b616">
       <source xml:lang="en">Dissatisfied</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5aa581a11dd95f698fe9aa92dc7a36755c462342f790df3b8054f328cde4b94b">
+      <source xml:lang="en">Distinct Count: {0}</source>
+      <note>{0} is the distinct count</note>
     </trans-unit>
     <trans-unit id="++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c">
       <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</source>
@@ -1943,6 +1951,10 @@
     <trans-unit id="++CODE++3cb29430462001e8edb74afebb929c2e967e7eac89679c4d549a8305ec4a2fe7">
       <source xml:lang="en">Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold</source>
     </trans-unit>
+    <trans-unit id="++CODE++fc899519286f8da6256728b62d14e6ef9042346e7ad4191e21c95efaf1141a42">
+      <source xml:lang="en">Max: {0}</source>
+      <note>{0} is the max</note>
+    </trans-unit>
     <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
       <source xml:lang="en">Maximize</source>
     </trans-unit>
@@ -1991,6 +2003,10 @@
     </trans-unit>
     <trans-unit id="++CODE++7d4b99d7fea1f8fb56040b0f388071d3f886f709000859485129c0ce1930fce9">
       <source xml:lang="en">Microsoft would like your feedback</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
+      <source xml:lang="en">Min: {0}</source>
+      <note>{0} is the min</note>
     </trans-unit>
     <trans-unit id="++CODE++b58330ac25057a441365f4f4f1be20daba2d6d940142c891231e0eac66843ff4">
       <source xml:lang="en">Move Down</source>
@@ -2179,6 +2195,10 @@
     </trans-unit>
     <trans-unit id="++CODE++07b555a4dd9446c56aae7bbe326905f8aabc205d5eee96191a71e15510fbb53f">
       <source xml:lang="en">Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable &apos;Trust server certificate&apos; on this connection and retry?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++00faa1559589415a5c6ecf98b61606f4ab0b254a38471dd99f9182e638997a52">
+      <source xml:lang="en">Null Count: {0}</source>
+      <note>{0} is the null count</note>
     </trans-unit>
     <trans-unit id="++CODE++6091a3057f7b1b8140c1ad2fc9232cc4d483a484667f76fe8bb305d77ca3deb1">
       <source xml:lang="en">Number of Rows Read</source>
@@ -2956,6 +2976,10 @@
     </trans-unit>
     <trans-unit id="++CODE++9c85106af25fd7656e977d5453607973955ae5d79fce0a78264cd714a628e981">
       <source xml:lang="en">Successfully saved results to </source>
+    </trans-unit>
+    <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
+      <source xml:lang="en">Sum: {0}</source>
+      <note>{0} is the sum</note>
     </trans-unit>
     <trans-unit id="++CODE++17888248578c82867c18ea2dc512a96eabbbbb8184442d219746c3b8b8ff6030">
       <source xml:lang="en">Summary loading canceled</source>
