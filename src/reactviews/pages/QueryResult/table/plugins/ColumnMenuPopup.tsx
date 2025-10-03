@@ -18,6 +18,7 @@ import {
 } from "@fluentui/react-components";
 import {
     Dismiss16Regular,
+    DismissCircle16Regular,
     Search16Regular,
     TextSortAscending16Regular,
     TextSortDescending16Regular,
@@ -78,6 +79,7 @@ const useStyles = makeStyles({
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
+        minHeight: "16px",
     },
     closeButton: {
         width: "16px",
@@ -89,7 +91,7 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground3,
         textTransform: "uppercase",
         letterSpacing: "0.5px",
-        lineHeight: "20px",
+        lineHeight: "16px",
     },
     section: {
         display: "flex",
@@ -114,6 +116,9 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         columnGap: "2px",
+        "& button": {
+            justifyContent: "flex-start",
+        },
     },
     sortButton: {
         minWidth: "20px",
@@ -568,9 +573,11 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                         <Button
                             appearance="subtle"
                             size="small"
+                            icon={<DismissCircle16Regular />}
                             title={locConstants.queryResult.clearSort}
                             onClick={handleClearSort}
-                            aria-label={locConstants.queryResult.clearSort}>
+                            aria-label={locConstants.queryResult.clearSort}
+                            disabled={currentSort === SortProperties.NONE}>
                             {locConstants.queryResult.removeSort}
                         </Button>
                     </div>
