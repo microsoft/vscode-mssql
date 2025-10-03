@@ -2462,6 +2462,9 @@
     <trans-unit id="++CODE++c3812fc4acb861d5182fc2b8155f327f736fbe5e5eb86a7bd7afcb6dc5497282">
       <source xml:lang="en">Remove</source>
     </trans-unit>
+    <trans-unit id="++CODE++67b215a4a9c0185c90cc9b971dcdf8dc2c3fddcaa5bfc78eed8cfcc2cefaf0d7">
+      <source xml:lang="en">Remove Sort</source>
+    </trans-unit>
     <trans-unit id="++CODE++7024a828547b51d9fb11f26d4d1d472691dd7e6ec7d7a2f499cb08731a63e943">
       <source xml:lang="en">Remove recent connection</source>
     </trans-unit>
@@ -3417,6 +3420,10 @@
     <trans-unit id="++CODE++2bd22e3b4b0281a2ffa3bc8bdd3e1f2b49dedcdde97d4cc83fdf598d1208d103">
       <source xml:lang="en">{0} rows selected, click to load summary</source>
       <note>{0} is the number of rows to fetch summary statistics for</note>
+    </trans-unit>
+    <trans-unit id="++CODE++00e1f9b501086ed75248767b54cc5caa0b62853d91c148fa2da0b388be7a6388">
+      <source xml:lang="en">{0} selected</source>
+      <note>{0} is the number of selected rows</note>
     </trans-unit>
     <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
       <source xml:lang="en">{0} started successfully.</source>

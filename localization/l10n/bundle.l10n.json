@@ -404,6 +404,11 @@
     "Run a query in the current editor, or switch to an editor that has results.": "Run a query in the current editor, or switch to an editor that has results.",
     "Failed to start query.": "Failed to start query.",
     "Filter Options": "Filter Options",
+    "Remove Sort": "Remove Sort",
+    "{0} selected/{0} is the number of selected rows": {
+        "message": "{0} selected",
+        "comment": ["{0} is the number of selected rows"]
+    },
     "Add new column": "Add new column",
     "Table": "Table",
     "Save": "Save",
