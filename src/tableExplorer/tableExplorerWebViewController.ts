@@ -48,7 +48,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 isLoading: false,
                 ownerUri: "",
                 resultSet: undefined,
-                updateCellResult: undefined,
             },
             {
                 title: `Table Explorer: ${tableName}`,
@@ -232,8 +231,20 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     payload.newValue,
                 );
 
-                state.updateCellResult = updateCellResult;
-                this.updateState();
+                // Update the cell value in the result set to keep state in sync
+                if (state.resultSet && updateCellResult.cell) {
+                    const rowIndex = state.resultSet.subset.findIndex(
+                        (row) => row.id === payload.rowId,
+                    );
+                    if (rowIndex !== -1) {
+                        state.resultSet.subset[rowIndex].cells[payload.columnId] =
+                            updateCellResult.cell;
+                        this.logger.info(
+                            `Updated cell in result set at row ${rowIndex}, column ${payload.columnId}`,
+                        );
+                    }
+                }
+
                 this.logger.info(`Cell updated successfully`);
             } catch (error) {
                 this.logger.error(`Error updating cell: ${error}`);

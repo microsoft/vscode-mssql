@@ -21,6 +21,7 @@ export const TableExplorerPage: React.FC = () => {
                         resultSet={state.resultSet}
                         themeKind={context?.themeKind}
                         onDeleteRow={context?.deleteRow}
+                        onUpdateCell={context?.updateCell}
                     />
                 </div>
             ) : state?.isLoading ? (

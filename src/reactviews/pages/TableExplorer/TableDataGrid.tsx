@@ -21,12 +21,14 @@ interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
     themeKind?: ColorThemeKind;
     onDeleteRow?: (rowId: number) => void;
+    onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
 }
 
 export const TableDataGrid: React.FC<TableDataGridProps> = ({
     resultSet,
     themeKind,
     onDeleteRow,
+    onUpdateCell,
 }) => {
     const [dataset, setDataset] = useState<any[]>([]);
     const [columns, setColumns] = useState<Column[]>([]);
@@ -64,6 +66,24 @@ export const TableDataGrid: React.FC<TableDataGridProps> = ({
         });
 
         console.log(`Total changes tracked: ${cellChangesRef.current.size}`);
+
+        // Call the updateCell reducer to update the backend
+        if (onUpdateCell) {
+            const rowId = args.item.id;
+            const newValue = args.item[column?.field];
+            onUpdateCell(rowId, columnIndex, newValue);
+
+            // Clear the change tracking since it's been saved to backend
+            // We'll clear it after a short delay to allow the visual feedback to be seen
+            setTimeout(() => {
+                cellChangesRef.current.delete(changeKey);
+                // Force grid to re-render to remove the yellow background
+                if (reactGridRef.current?.slickGrid) {
+                    reactGridRef.current.slickGrid.invalidate();
+                    reactGridRef.current.slickGrid.render();
+                }
+            }, 500);
+        }
 
         // Force grid to re-render to show background color change
         if (reactGridRef.current?.slickGrid) {

@@ -177,7 +177,6 @@ export interface TableExplorerWebViewState {
     isLoading: boolean;
     ownerUri: string;
     resultSet: EditSubsetResult | undefined;
-    updateCellResult: EditUpdateCellResult | undefined;
     tableMetadata?: any; // This would be more specific based on actual metadata structure
 }
 
