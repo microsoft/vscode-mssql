@@ -54,7 +54,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
 import {
     calculateSelectionSummaryFromData,
-    inMemoryGridDataProcessingThreshold,
+    getInMemoryGridDataProcessingThreshold,
 } from "../queryResult/utils";
 
 export interface IResultSet {
@@ -1121,7 +1121,7 @@ export default class QueryRunner {
             totalRows += range.toRow - range.fromRow + 1;
         }
 
-        const threshold = inMemoryGridDataProcessingThreshold;
+        const threshold = getInMemoryGridDataProcessingThreshold();
 
         // optional “are you sure?” for large selections
         if (showThresholdWarning && totalRows > threshold) {

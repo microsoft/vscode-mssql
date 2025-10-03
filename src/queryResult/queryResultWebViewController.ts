@@ -19,7 +19,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import {
     getNewResultPaneViewColumn,
-    inMemoryGridDataProcessingThreshold,
+    getInMemoryGridDataProcessingThreshold,
     messageToString,
     recordLength,
     registerCommonRequestHandlers,
@@ -242,7 +242,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 fontFamily: this.getFontFamilyConfig(),
             },
             autoSizeColumns: this.getAutoSizeColumnsConfig(),
-            inMemoryDataProcessingThreshold: inMemoryGridDataProcessingThreshold,
+            inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
             initializationError: undefined,
         };
     }
@@ -299,7 +299,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
                 fontFamily: this.getFontFamilyConfig(),
             },
             autoSizeColumns: this.getAutoSizeColumnsConfig(),
-            inMemoryDataProcessingThreshold: inMemoryGridDataProcessingThreshold,
+            inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
         };
         this._queryResultStateMap.set(uri, currentState);
     }
