@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 import {
     SlickgridReactInstance,
     Column,
@@ -24,223 +24,229 @@ interface TableDataGridProps {
     onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
 }
 
-export const TableDataGrid: React.FC<TableDataGridProps> = ({
-    resultSet,
-    themeKind,
-    onDeleteRow,
-    onUpdateCell,
-}) => {
-    const [dataset, setDataset] = useState<any[]>([]);
-    const [columns, setColumns] = useState<Column[]>([]);
-    const [options, setOptions] = useState<GridOption | undefined>(undefined);
-    const reactGridRef = useRef<SlickgridReactInstance | null>(null);
-    const [commandQueue] = useState<EditCommand[]>([]);
-    const cellChangesRef = useRef<Map<string, any>>(new Map());
+export interface TableDataGridRef {
+    clearAllChangeTracking: () => void;
+}
 
-    function reactGridReady(reactGrid: SlickgridReactInstance) {
-        reactGridRef.current = reactGrid;
-    }
+export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
+    ({ resultSet, themeKind, onDeleteRow, onUpdateCell }, ref) => {
+        const [dataset, setDataset] = useState<any[]>([]);
+        const [columns, setColumns] = useState<Column[]>([]);
+        const [options, setOptions] = useState<GridOption | undefined>(undefined);
+        const reactGridRef = useRef<SlickgridReactInstance | null>(null);
+        const [commandQueue] = useState<EditCommand[]>([]);
+        const cellChangesRef = useRef<Map<string, any>>(new Map());
 
-    function handleCellChange(_e: CustomEvent, args: any) {
-        const rowIndex = args.row;
-        const cellIndex = args.cell; // The actual cell index in the grid
-        const columnIndex = cellIndex - 1; // -1 because first column is row number
-        const column = columns[cellIndex]; // Use cellIndex to get the correct column
-
-        console.log(
-            `Cell Changed - Row: ${rowIndex}, Cell: ${cellIndex}, Column Index: ${columnIndex}`,
-        );
-        console.log(`Column ID: ${column?.id}, Field: ${column?.field}`);
-        console.log(`New Value: ${args.item[column?.field]}`);
-
-        // Store the change with a unique key (row-columnIndex)
-        // Use columnIndex (which excludes row number column) for consistency with formatter
-        const changeKey = `${rowIndex}-${columnIndex}`;
-        cellChangesRef.current.set(changeKey, {
-            rowIndex,
-            columnIndex,
-            columnId: column?.id,
-            field: column?.field,
-            newValue: args.item[column?.field],
-            item: args.item,
-        });
-
-        console.log(`Total changes tracked: ${cellChangesRef.current.size}`);
-
-        // Call the updateCell reducer to update the backend
-        if (onUpdateCell) {
-            const rowId = args.item.id;
-            const newValue = args.item[column?.field];
-            onUpdateCell(rowId, columnIndex, newValue);
-
-            // Clear the change tracking since it's been saved to backend
-            // We'll clear it after a short delay to allow the visual feedback to be seen
-            setTimeout(() => {
-                cellChangesRef.current.delete(changeKey);
-                // Force grid to re-render to remove the yellow background
-                if (reactGridRef.current?.slickGrid) {
-                    reactGridRef.current.slickGrid.invalidate();
-                    reactGridRef.current.slickGrid.render();
-                }
-            }, 500);
+        function reactGridReady(reactGrid: SlickgridReactInstance) {
+            reactGridRef.current = reactGrid;
         }
 
-        // Force grid to re-render to show background color change
-        if (reactGridRef.current?.slickGrid) {
-            reactGridRef.current.slickGrid.invalidate();
-            reactGridRef.current.slickGrid.render();
+        // Clear all change tracking (called after successful save)
+        function clearAllChangeTracking() {
+            cellChangesRef.current.clear();
+            // Force grid to re-render to remove all yellow backgrounds
+            if (reactGridRef.current?.slickGrid) {
+                reactGridRef.current.slickGrid.invalidate();
+                reactGridRef.current.slickGrid.render();
+            }
         }
-    }
 
-    function handleContextMenuCommand(_e: any, args: any) {
-        const command = args.command;
-        const dataContext = args.dataContext;
+        // Expose methods to parent via ref
+        useImperativeHandle(ref, () => ({
+            clearAllChangeTracking,
+        }));
 
-        switch (command) {
-            case "delete-row":
-                if (onDeleteRow) {
-                    onDeleteRow(dataContext.id);
-                }
+        function handleCellChange(_e: CustomEvent, args: any) {
+            const rowIndex = args.row;
+            const cellIndex = args.cell; // The actual cell index in the grid
+            const columnIndex = cellIndex - 1; // -1 because first column is row number
+            const column = columns[cellIndex]; // Use cellIndex to get the correct column
 
-                // Remove from grid using dataView
-                reactGridRef.current?.dataView.deleteItem(dataContext.id);
+            console.log(
+                `Cell Changed - Row: ${rowIndex}, Cell: ${cellIndex}, Column Index: ${columnIndex}`,
+            );
+            console.log(`Column ID: ${column?.id}, Field: ${column?.field}`);
+            console.log(`New Value: ${args.item[column?.field]}`);
 
-                // Also remove any tracked changes for this row
-                const keysToDelete: string[] = [];
-                cellChangesRef.current.forEach((_, key) => {
-                    if (key.startsWith(`${args.row}-`)) {
-                        keysToDelete.push(key);
+            // Store the change with a unique key (row-columnIndex)
+            // Use columnIndex (which excludes row number column) for consistency with formatter
+            const changeKey = `${rowIndex}-${columnIndex}`;
+            cellChangesRef.current.set(changeKey, {
+                rowIndex,
+                columnIndex,
+                columnId: column?.id,
+                field: column?.field,
+                newValue: args.item[column?.field],
+                item: args.item,
+            });
+
+            console.log(`Total changes tracked: ${cellChangesRef.current.size}`);
+
+            // Call the updateCell reducer to update the backend edit session
+            if (onUpdateCell) {
+                const rowId = args.item.id;
+                const newValue = args.item[column?.field];
+                onUpdateCell(rowId, columnIndex, newValue);
+            }
+
+            // Force grid to re-render to show background color change
+            if (reactGridRef.current?.slickGrid) {
+                reactGridRef.current.slickGrid.invalidate();
+                reactGridRef.current.slickGrid.render();
+            }
+        }
+
+        function handleContextMenuCommand(_e: any, args: any) {
+            const command = args.command;
+            const dataContext = args.dataContext;
+
+            switch (command) {
+                case "delete-row":
+                    if (onDeleteRow) {
+                        onDeleteRow(dataContext.id);
                     }
-                });
-                keysToDelete.forEach((key) => cellChangesRef.current.delete(key));
-                break;
-        }
-    }
 
-    function getContextMenuOptions(): ContextMenu {
-        return {
-            hideCloseButton: false,
-            commandTitle: "Commands",
-            commandItems: [
-                {
-                    command: "delete-row",
-                    title: "Delete Row",
-                    iconCssClass: "mdi mdi-close",
-                    cssClass: "red",
-                    textCssClass: "bold",
-                    positionOrder: 1,
-                },
-            ],
-            onCommand: (e, args) => handleContextMenuCommand(e, args),
-        };
-    }
+                    // Remove from grid using dataView
+                    reactGridRef.current?.dataView.deleteItem(dataContext.id);
 
-    // Convert resultSet data to SlickGrid format (initial setup)
-    useEffect(() => {
-        if (resultSet?.columnNames && resultSet?.subset) {
-            // Create a simple row number column
-            const rowNumberColumn: Column = {
-                id: "rowNumber",
-                name: '<span style="padding-left: 8px;">#</span>',
-                field: "id",
-                excludeFromColumnPicker: true,
-                excludeFromGridMenu: true,
-                excludeFromHeaderMenu: true,
-                width: 50,
-                minWidth: 40,
-                maxWidth: 80,
-                sortable: false,
-                resizable: true,
-                focusable: false,
-                selectable: false,
-                formatter: (row: number) =>
-                    `<span style="color: var(--vscode-foreground); padding-left: 8px;">${row + 1}</span>`,
-            };
-
-            // Create columns using the columnNames from resultSet
-            const dataColumns: Column[] = resultSet.columnNames.map((columnName, index) => {
-                return {
-                    id: `col${index}`,
-                    name: columnName,
-                    field: `col${index}`,
-                    sortable: false,
-                    minWidth: 100,
-                    editor: {
-                        model: Editors.text,
-                    },
-                    formatter: (row: number, cell: number, value: any) => {
-                        // The first column is row number, so data columns start at cell 1
-                        const changeKey = `${row}-${cell - 1}`;
-                        const isModified = cellChangesRef.current.has(changeKey);
-                        const displayValue = value ?? "";
-
-                        const tooltipText = displayValue;
-
-                        if (isModified) {
-                            return `<span title="${tooltipText}" style="display: block; background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%;">${displayValue}</span>`;
+                    // Also remove any tracked changes for this row
+                    const keysToDelete: string[] = [];
+                    cellChangesRef.current.forEach((_, key) => {
+                        if (key.startsWith(`${args.row}-`)) {
+                            keysToDelete.push(key);
                         }
-                        return `<span title="${tooltipText}">${displayValue}</span>`;
-                    },
-                };
-            });
-
-            // Add row number column as the first column
-            const allColumns = [rowNumberColumn, ...dataColumns];
-            setColumns(allColumns);
-
-            // Convert rows to dataset
-            const convertedDataset = resultSet.subset.map((row) => {
-                const dataRow: any = {
-                    id: row.id,
-                };
-                row.cells.forEach((cell, cellIndex) => {
-                    dataRow[`col${cellIndex}`] = cell.displayValue;
-                });
-                return dataRow;
-            });
-            setDataset(convertedDataset);
-
-            // Set grid options
-            setOptions({
-                autoEdit: false,
-                autoCommitEdit: false,
-                editable: true,
-                enableAutoResize: true,
-                enableColumnReorder: false,
-                enableHeaderMenu: false,
-                gridHeight: 400,
-                enableCellNavigation: true,
-                enableSorting: false,
-                enableContextMenu: true,
-                contextMenu: getContextMenuOptions(),
-                editCommandHandler: (_item, _column, editCommand) => {
-                    // Add to command queue for undo functionality
-                    commandQueue.push(editCommand);
-                    editCommand.execute();
-                },
-                darkMode:
-                    themeKind === ColorThemeKind.Dark || themeKind === ColorThemeKind.HighContrast,
-            });
+                    });
+                    keysToDelete.forEach((key) => cellChangesRef.current.delete(key));
+                    break;
+            }
         }
-    }, [resultSet, themeKind, commandQueue]);
 
-    if (!resultSet || columns.length === 0 || !options) {
-        return null;
-    }
+        function getContextMenuOptions(): ContextMenu {
+            return {
+                hideCloseButton: false,
+                commandTitle: "Commands",
+                commandItems: [
+                    {
+                        command: "delete-row",
+                        title: "Delete Row",
+                        iconCssClass: "mdi mdi-close",
+                        cssClass: "red",
+                        textCssClass: "bold",
+                        positionOrder: 1,
+                    },
+                ],
+                onCommand: (e, args) => handleContextMenuCommand(e, args),
+            };
+        }
 
-    const isDarkMode =
-        themeKind === ColorThemeKind.Dark || themeKind === ColorThemeKind.HighContrast;
+        // Convert resultSet data to SlickGrid format (initial setup)
+        useEffect(() => {
+            if (resultSet?.columnNames && resultSet?.subset) {
+                // Create a simple row number column
+                const rowNumberColumn: Column = {
+                    id: "rowNumber",
+                    name: '<span style="padding-left: 8px;">#</span>',
+                    field: "id",
+                    excludeFromColumnPicker: true,
+                    excludeFromGridMenu: true,
+                    excludeFromHeaderMenu: true,
+                    width: 50,
+                    minWidth: 40,
+                    maxWidth: 80,
+                    sortable: false,
+                    resizable: true,
+                    focusable: false,
+                    selectable: false,
+                    formatter: (row: number) =>
+                        `<span style="color: var(--vscode-foreground); padding-left: 8px;">${row + 1}</span>`,
+                };
 
-    return (
-        <div className={`table-explorer-grid-container ${isDarkMode ? "dark-mode" : ""}`}>
-            <SlickgridReact
-                gridId="tableExplorerGrid"
-                columns={columns}
-                options={options}
-                dataset={dataset}
-                onReactGridCreated={($event) => reactGridReady($event.detail)}
-                onCellChange={($event) => handleCellChange($event, $event.detail.args)}
-            />
-        </div>
-    );
-};
+                // Create columns using the columnNames from resultSet
+                const dataColumns: Column[] = resultSet.columnNames.map((columnName, index) => {
+                    return {
+                        id: `col${index}`,
+                        name: columnName,
+                        field: `col${index}`,
+                        sortable: false,
+                        minWidth: 100,
+                        editor: {
+                            model: Editors.text,
+                        },
+                        formatter: (row: number, cell: number, value: any) => {
+                            // The first column is row number, so data columns start at cell 1
+                            const changeKey = `${row}-${cell - 1}`;
+                            const isModified = cellChangesRef.current.has(changeKey);
+                            const displayValue = value ?? "";
+
+                            const tooltipText = displayValue;
+
+                            if (isModified) {
+                                return `<span title="${tooltipText}" style="display: block; background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%;">${displayValue}</span>`;
+                            }
+                            return `<span title="${tooltipText}">${displayValue}</span>`;
+                        },
+                    };
+                });
+
+                // Add row number column as the first column
+                const allColumns = [rowNumberColumn, ...dataColumns];
+                setColumns(allColumns);
+
+                // Convert rows to dataset
+                const convertedDataset = resultSet.subset.map((row) => {
+                    const dataRow: any = {
+                        id: row.id,
+                    };
+                    row.cells.forEach((cell, cellIndex) => {
+                        dataRow[`col${cellIndex}`] = cell.displayValue;
+                    });
+                    return dataRow;
+                });
+                setDataset(convertedDataset);
+
+                // Set grid options
+                setOptions({
+                    autoEdit: false,
+                    autoCommitEdit: false,
+                    editable: true,
+                    enableAutoResize: true,
+                    enableColumnReorder: false,
+                    enableHeaderMenu: false,
+                    gridHeight: 400,
+                    enableCellNavigation: true,
+                    enableSorting: false,
+                    enableContextMenu: true,
+                    contextMenu: getContextMenuOptions(),
+                    editCommandHandler: (_item, _column, editCommand) => {
+                        // Add to command queue for undo functionality
+                        commandQueue.push(editCommand);
+                        editCommand.execute();
+                    },
+                    darkMode:
+                        themeKind === ColorThemeKind.Dark ||
+                        themeKind === ColorThemeKind.HighContrast,
+                });
+            }
+        }, [resultSet, themeKind, commandQueue]);
+
+        if (!resultSet || columns.length === 0 || !options) {
+            return null;
+        }
+
+        const isDarkMode =
+            themeKind === ColorThemeKind.Dark || themeKind === ColorThemeKind.HighContrast;
+
+        return (
+            <div className={`table-explorer-grid-container ${isDarkMode ? "dark-mode" : ""}`}>
+                <SlickgridReact
+                    gridId="tableExplorerGrid"
+                    columns={columns}
+                    options={options}
+                    dataset={dataset}
+                    onReactGridCreated={($event) => reactGridReady($event.detail)}
+                    onCellChange={($event) => handleCellChange($event, $event.detail.args)}
+                />
+            </div>
+        );
+    },
+);

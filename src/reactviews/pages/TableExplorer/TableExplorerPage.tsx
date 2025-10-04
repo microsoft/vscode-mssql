@@ -3,21 +3,28 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React from "react";
+import React, { useRef } from "react";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
-import { TableDataGrid } from "./TableDataGrid";
+import { TableDataGrid, TableDataGridRef } from "./TableDataGrid";
 import { TableExplorerToolbar } from "./TableExplorerToolbar";
 
 export const TableExplorerPage: React.FC = () => {
     const context = useTableExplorerContext();
     const state = context?.state;
+    const gridRef = useRef<TableDataGridRef>(null);
+
+    const handleSaveComplete = () => {
+        // Clear the change tracking in the grid after successful save
+        gridRef.current?.clearAllChangeTracking();
+    };
 
     return (
         <div style={{ padding: "20px" }}>
-            <TableExplorerToolbar />
+            <TableExplorerToolbar onSaveComplete={handleSaveComplete} />
             {state?.resultSet ? (
                 <div>
                     <TableDataGrid
+                        ref={gridRef}
                         resultSet={state.resultSet}
                         themeKind={context?.themeKind}
                         onDeleteRow={context?.deleteRow}

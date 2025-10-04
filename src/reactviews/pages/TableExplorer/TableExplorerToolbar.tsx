@@ -9,12 +9,20 @@ import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { useState } from "react";
 
-export const TableExplorerToolbar: React.FC = () => {
+interface TableExplorerToolbarProps {
+    onSaveComplete?: () => void;
+}
+
+export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({ onSaveComplete }) => {
     const context = useTableExplorerContext();
     const [selectedValue, setSelectedValue] = useState<string>("100");
 
     const handleSave = () => {
         context.commitChanges();
+        // Call the callback to clear change tracking after save
+        if (onSaveComplete) {
+            onSaveComplete();
+        }
     };
 
     const handleDropdownChange = (_event: any, data: any) => {
