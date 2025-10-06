@@ -699,6 +699,26 @@
     "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.": "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.",
     "Smart performance": "Smart performance",
     "Automatic tuning features like automatic index creation enabled by default.": "Automatic tuning features like automatic index creation enabled by default.",
+    "Change Password": "Change Password",
+    "Password must be changed to continue logging into '{0}'/{0} is the name of the server": {
+        "message": "Password must be changed to continue logging into '{0}'",
+        "comment": ["{0} is the name of the server"]
+    },
+    "Password must be changed for '{0}' to continue logging into '{1}'/{0} is the username{1} is the name of the server": {
+        "message": "Password must be changed for '{0}' to continue logging into '{1}'",
+        "comment": ["{0} is the username", "{1} is the name of the server"]
+    },
+    "Username": "Username",
+    "New Password": "New Password",
+    "Password is required": "Password is required",
+    "Enter new password": "Enter new password",
+    "Show New Password": "Show New Password",
+    "Hide New Password": "Hide New Password",
+    "Confirm Password": "Confirm Password",
+    "Confirm new password": "Confirm new password",
+    "Show Confirm Password": "Show Confirm Password",
+    "Hide Confirm Password": "Hide Confirm Password",
+    "Passwords do not match": "Passwords do not match",
     "Object Explorer Filter": "Object Explorer Filter",
     "{0} (filtered)": "{0} (filtered)",
     "Remind Me Later": "Remind Me Later",
