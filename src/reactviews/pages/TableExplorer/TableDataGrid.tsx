@@ -22,6 +22,7 @@ interface TableDataGridProps {
     themeKind?: ColorThemeKind;
     onDeleteRow?: (rowId: number) => void;
     onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
+    onRevertCell?: (rowId: number, columnId: number) => void;
 }
 
 export interface TableDataGridRef {
@@ -29,7 +30,7 @@ export interface TableDataGridRef {
 }
 
 export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
-    ({ resultSet, themeKind, onDeleteRow, onUpdateCell }, ref) => {
+    ({ resultSet, themeKind, onDeleteRow, onUpdateCell, onRevertCell }, ref) => {
         const [dataset, setDataset] = useState<any[]>([]);
         const [columns, setColumns] = useState<Column[]>([]);
         const [options, setOptions] = useState<GridOption | undefined>(undefined);
@@ -118,6 +119,31 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     });
                     keysToDelete.forEach((key) => cellChangesRef.current.delete(key));
                     break;
+
+                case "revert-cell":
+                    const rowIndex = args.row;
+                    const cellIndex = args.cell;
+                    const columnIndex = cellIndex - 1; // -1 because first column is row number
+                    const changeKey = `${rowIndex}-${columnIndex}`;
+
+                    // Call the revertCell reducer to revert in the backend
+                    if (onRevertCell) {
+                        onRevertCell(dataContext.id, columnIndex);
+                    }
+
+                    // Clear the change tracking for this cell
+                    cellChangesRef.current.delete(changeKey);
+
+                    // The backend will update state.resultSet with the reverted value
+                    // The useEffect will rebuild the dataset with the correct value from backend
+                    // Force grid to re-render to remove yellow background
+                    if (reactGridRef.current?.slickGrid) {
+                        reactGridRef.current.slickGrid.invalidate();
+                        reactGridRef.current.slickGrid.render();
+                    }
+
+                    console.log(`Reverted cell at row ${rowIndex}, column ${columnIndex}`);
+                    break;
             }
         }
 
@@ -133,6 +159,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         cssClass: "red",
                         textCssClass: "bold",
                         positionOrder: 1,
+                    },
+                    {
+                        command: "revert-cell",
+                        title: "Revert Cell",
+                        iconCssClass: "mdi mdi-undo",
+                        positionOrder: 2,
                     },
                 ],
                 onCommand: (e, args) => handleContextMenuCommand(e, args),
@@ -198,7 +230,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         id: row.id,
                     };
                     row.cells.forEach((cell, cellIndex) => {
-                        dataRow[`col${cellIndex}`] = cell.displayValue;
+                        const cellValue = cell.displayValue;
+                        dataRow[`col${cellIndex}`] = cellValue;
                     });
                     return dataRow;
                 });
@@ -228,6 +261,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 });
             }
         }, [resultSet, themeKind, commandQueue]);
+
+        // Update grid data when dataset changes (e.g., after revert)
+        useEffect(() => {
+            if (reactGridRef.current?.slickGrid && dataset.length > 0) {
+                reactGridRef.current.slickGrid.setData(dataset);
+                reactGridRef.current.slickGrid.invalidate();
+                reactGridRef.current.slickGrid.render();
+            }
+        }, [dataset]);
 
         if (!resultSet || columns.length === 0 || !options) {
             return null;
