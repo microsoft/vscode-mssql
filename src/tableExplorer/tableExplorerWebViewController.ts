@@ -268,8 +268,26 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         (row) => row.id === payload.rowId,
                     );
                     if (rowIndex !== -1) {
-                        state.resultSet.subset[rowIndex].cells[payload.columnId] =
-                            revertCellResult.cell;
+                        state.resultSet = {
+                            ...state.resultSet,
+                            subset: state.resultSet.subset.map((row, idx) => {
+                                if (idx === rowIndex) {
+                                    return {
+                                        ...row,
+                                        cells: row.cells.map((cell, cellIdx) => {
+                                            if (cellIdx === payload.columnId) {
+                                                return revertCellResult.cell;
+                                            }
+                                            return cell;
+                                        }),
+                                    };
+                                }
+                                return row;
+                            }),
+                        };
+
+                        this.updateState();
+
                         this.logger.info(
                             `Reverted cell in result set at row ${rowIndex}, column ${payload.columnId}`,
                         );

@@ -262,15 +262,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }, [resultSet, themeKind, commandQueue]);
 
-        // Update grid data when dataset changes (e.g., after revert)
-        useEffect(() => {
-            if (reactGridRef.current?.slickGrid && dataset.length > 0) {
-                reactGridRef.current.slickGrid.setData(dataset);
-                reactGridRef.current.slickGrid.invalidate();
-                reactGridRef.current.slickGrid.render();
-            }
-        }, [dataset]);
-
         if (!resultSet || columns.length === 0 || !options) {
             return null;
         }
