@@ -128,9 +128,14 @@ export class LocalCacheService {
 
     /**
      * Query database for all objects and their modification dates
+     * @param ownerUri Connection URI
+     * @param existingMetadata Optional existing cache metadata for incremental updates
      */
-    private async queryDatabaseObjects(ownerUri: string): Promise<DatabaseObject[]> {
-        const query = `
+    private async queryDatabaseObjects(
+        ownerUri: string,
+        existingMetadata?: CacheMetadata,
+    ): Promise<DatabaseObject[]> {
+        let query = `
             SELECT
                 SCHEMA_NAME(schema_id) AS [schema],
                 name,
@@ -146,9 +151,16 @@ export class LocalCacheService {
                 'TF', -- Table function
                 'TR'  -- Trigger
             )
-            AND is_ms_shipped = 0
-            ORDER BY SCHEMA_NAME(schema_id), name
-        `;
+            AND is_ms_shipped = 0`;
+
+        // Add modification date filter for incremental updates
+        if (existingMetadata && existingMetadata.lastCacheUpdate) {
+            query += `
+            AND modify_date > CONVERT(DATETIME, '${existingMetadata.lastCacheUpdate}', 127)`;
+        }
+
+        query += `
+            ORDER BY SCHEMA_NAME(schema_id), name`;
 
         const result = await this._client.sendRequest(
             new RequestType<
@@ -269,6 +281,110 @@ export class LocalCacheService {
     }
 
     /**
+     * Script multiple objects in batches
+     * @param ownerUri Connection URI
+     * @param objects Array of database objects to script
+     * @param batchSize Number of objects to script concurrently (default: 10)
+     * @param progress Optional progress reporter
+     * @returns Map of object keys to their scripts (null if scripting failed)
+     */
+    private async scriptObjectsBatch(
+        ownerUri: string,
+        objects: DatabaseObject[],
+        batchSize: number = 10,
+        progress?: vscode.Progress<{ message?: string; increment?: number }>,
+    ): Promise<Map<string, string | null>> {
+        const scripts = new Map<string, string | null>();
+        const total = objects.length;
+        let completed = 0;
+
+        // Process objects in batches to avoid overwhelming the system
+        for (let i = 0; i < objects.length; i += batchSize) {
+            const batch = objects.slice(i, Math.min(i + batchSize, objects.length));
+
+            // Script all objects in this batch concurrently
+            const batchPromises = batch.map(async (obj) => {
+                const objectKey = `${obj.schema}.${obj.name}`;
+                try {
+                    const script = await this.scriptObject(ownerUri, obj);
+                    return { objectKey, script };
+                } catch (error) {
+                    this._client.logger.error(`Failed to script ${objectKey}: ${error}`);
+                    return { objectKey, script: null };
+                }
+            });
+
+            const batchResults = await Promise.all(batchPromises);
+
+            // Store results
+            for (const { objectKey, script } of batchResults) {
+                scripts.set(objectKey, script);
+                completed++;
+
+                progress?.report({
+                    message: `Scripting objects (${completed}/${total})...`,
+                    increment: (1 / total) * 50, // Use 50% of progress for scripting
+                });
+            }
+        }
+
+        return scripts;
+    }
+
+    /**
+     * Save multiple scripted objects to disk in batch
+     * @param cacheDir Cache directory
+     * @param objects Array of database objects
+     * @param scripts Map of object keys to their scripts
+     * @param progress Optional progress reporter
+     * @returns Map of object keys to their file paths
+     */
+    private async saveScriptsBatch(
+        cacheDir: vscode.Uri,
+        objects: DatabaseObject[],
+        scripts: Map<string, string | null>,
+        progress?: vscode.Progress<{ message?: string; increment?: number }>,
+    ): Promise<Map<string, string>> {
+        const filePaths = new Map<string, string>();
+        const total = objects.length;
+        let completed = 0;
+
+        // Create all necessary directories first
+        const typeFolders = new Set(objects.map((obj) => this.getObjectTypeFolder(obj.type)));
+        for (const typeFolder of typeFolders) {
+            const folderPath = vscode.Uri.joinPath(cacheDir, typeFolder);
+            try {
+                await vscode.workspace.fs.createDirectory(folderPath);
+            } catch {
+                // Folder might already exist
+            }
+        }
+
+        // Save all files
+        for (const obj of objects) {
+            const objectKey = `${obj.schema}.${obj.name}`;
+            const script = scripts.get(objectKey);
+
+            if (script) {
+                try {
+                    const filePath = await this.saveScriptedObject(cacheDir, obj, script);
+                    filePaths.set(objectKey, filePath);
+                } catch (error) {
+                    this._client.logger.error(`Failed to save ${objectKey}: ${error}`);
+                }
+            }
+
+            completed++;
+            progress?.report({
+                message: `Saving files (${completed}/${total})...`,
+                increment: (1 / total) * 50, // Use remaining 50% of progress for saving
+            });
+        }
+
+        return filePaths;
+    }
+
+    /**
      * Perform initial cache population for a connection
      */
     public async populateCache(
@@ -292,6 +408,26 @@ export class LocalCacheService {
             progress?.report({ message: "Querying database objects..." });
             const objects = await this.queryDatabaseObjects(ownerUri);
 
+            if (objects.length === 0) {
+                this._client.logger.info(
+                    `No objects found to cache for ${credentials.server}/${credentials.database}`,
+                );
+                return;
+            }
+
+            this._client.logger.info(
+                `Starting cache population for ${credentials.server}/${credentials.database}: ${objects.length} objects`,
+            );
+
+            // Phase 1: Script all objects in batches
+            progress?.report({ message: "Scripting database objects..." });
+            const scripts = await this.scriptObjectsBatch(ownerUri, objects, 10, progress);
+
+            // Phase 2: Save all scripts to disk
+            progress?.report({ message: "Saving scripts to disk..." });
+            const filePaths = await this.saveScriptsBatch(cacheDir, objects, scripts, progress);
+
+            // Build metadata
             const metadata: CacheMetadata = {
                 lastCacheUpdate: new Date().toISOString(),
                 connectionHash: this.generateConnectionHash(credentials),
@@ -300,21 +436,11 @@ export class LocalCacheService {
                 objects: {},
             };
 
-            const total = objects.length;
-            let completed = 0;
-
-            // Script and save each object
             for (const obj of objects) {
                 const objectKey = `${obj.schema}.${obj.name}`;
-                progress?.report({
-                    message: `Caching ${objectKey} (${completed + 1}/${total})...`,
-                    increment: (1 / total) * 100,
-                });
+                const filePath = filePaths.get(objectKey);
 
-                const script = await this.scriptObject(ownerUri, obj);
-                if (script) {
-                    const filePath = await this.saveScriptedObject(cacheDir, obj, script);
-
+                if (filePath) {
                     metadata.objects[objectKey] = {
                         type: obj.type,
                         lastModified: obj.modifyDate,
@@ -323,15 +449,14 @@ export class LocalCacheService {
                         name: obj.name,
                     };
                 }
-
-                completed++;
             }
 
             // Save metadata
             await this.writeMetadata(cacheDir, metadata);
 
+            const successCount = filePaths.size;
             this._client.logger.info(
-                `Cache populated for ${credentials.server}/${credentials.database}: ${completed} objects`,
+                `Cache populated for ${credentials.server}/${credentials.database}: ${successCount}/${objects.length} objects`,
             );
         } catch (error) {
             sendErrorEvent(
@@ -366,26 +491,35 @@ export class LocalCacheService {
                 return await this.populateCache(ownerUri, credentials, progress);
             }
 
-            // Query current database objects
+            // Query only modified objects using the optimized query
             progress?.report({ message: "Checking for modified objects..." });
-            const currentObjects = await this.queryDatabaseObjects(ownerUri);
+            const modifiedObjects = await this.queryDatabaseObjects(ownerUri, existingMetadata);
+
+            // Also query all current objects to detect deletions
+            const allCurrentObjects = await this.queryDatabaseObjects(ownerUri);
 
             const objectsToUpdate: DatabaseObject[] = [];
             const objectsToDelete: string[] = [];
 
-            // Find objects that need updating
-            for (const obj of currentObjects) {
-                const objectKey = `${obj.schema}.${obj.name}`;
-                const cached = existingMetadata.objects[objectKey];
+            // Modified objects from the optimized query
+            for (const obj of modifiedObjects) {
+                objectsToUpdate.push(obj);
+            }
 
-                if (!cached || cached.lastModified !== obj.modifyDate) {
-                    objectsToUpdate.push(obj);
+            // Also check for new objects not in cache
+            for (const obj of allCurrentObjects) {
+                const objectKey = `${obj.schema}.${obj.name}`;
+                if (!existingMetadata.objects[objectKey]) {
+                    // New object not in cache
+                    if (!objectsToUpdate.find((o) => `${o.schema}.${o.name}` === objectKey)) {
+                        objectsToUpdate.push(obj);
+                    }
                 }
             }
 
             // Find objects that were deleted
             const currentObjectKeys = new Set(
-                currentObjects.map((obj) => `${obj.schema}.${obj.name}`),
+                allCurrentObjects.map((obj) => `${obj.schema}.${obj.name}`),
             );
             for (const objectKey of Object.keys(existingMetadata.objects)) {
                 if (!currentObjectKeys.has(objectKey)) {
@@ -398,52 +532,69 @@ export class LocalCacheService {
                 return;
             }
 
-            const total = objectsToUpdate.length + objectsToDelete.length;
-            let completed = 0;
+            this._client.logger.info(
+                `Updating cache: ${objectsToUpdate.length} to update, ${objectsToDelete.length} to delete`,
+            );
 
-            // Update modified objects
-            for (const obj of objectsToUpdate) {
-                const objectKey = `${obj.schema}.${obj.name}`;
-                progress?.report({
-                    message: `Updating ${objectKey} (${completed + 1}/${total})...`,
-                    increment: (1 / total) * 100,
-                });
+            // Phase 1: Script all modified objects in batches
+            if (objectsToUpdate.length > 0) {
+                progress?.report({ message: "Scripting modified objects..." });
+                const scripts = await this.scriptObjectsBatch(
+                    ownerUri,
+                    objectsToUpdate,
+                    10,
+                    progress,
+                );
 
-                const script = await this.scriptObject(ownerUri, obj);
-                if (script) {
-                    const filePath = await this.saveScriptedObject(cacheDir, obj, script);
+                // Phase 2: Save all scripts to disk
+                progress?.report({ message: "Saving updated scripts..." });
+                const filePaths = await this.saveScriptsBatch(
+                    cacheDir,
+                    objectsToUpdate,
+                    scripts,
+                    progress,
+                );
 
-                    existingMetadata.objects[objectKey] = {
-                        type: obj.type,
-                        lastModified: obj.modifyDate,
-                        filePath: filePath,
-                        schema: obj.schema,
-                        name: obj.name,
-                    };
+                // Update metadata for modified objects
+                for (const obj of objectsToUpdate) {
+                    const objectKey = `${obj.schema}.${obj.name}`;
+                    const filePath = filePaths.get(objectKey);
+
+                    if (filePath) {
+                        existingMetadata.objects[objectKey] = {
+                            type: obj.type,
+                            lastModified: obj.modifyDate,
+                            filePath: filePath,
+                            schema: obj.schema,
+                            name: obj.name,
+                        };
+                    }
                 }
-
-                completed++;
             }
 
-            // Delete removed objects
-            for (const objectKey of objectsToDelete) {
-                progress?.report({
-                    message: `Removing ${objectKey} (${completed + 1}/${total})...`,
-                    increment: (1 / total) * 100,
-                });
+            // Phase 3: Delete removed objects
+            if (objectsToDelete.length > 0) {
+                progress?.report({ message: "Removing deleted objects..." });
+                let deleteCompleted = 0;
 
-                const cached = existingMetadata.objects[objectKey];
-                if (cached) {
-                    try {
-                        const filePath = vscode.Uri.joinPath(cacheDir, cached.filePath);
-                        await vscode.workspace.fs.delete(filePath);
-                    } catch {
-                        // File might not exist
+                for (const objectKey of objectsToDelete) {
+                    const cached = existingMetadata.objects[objectKey];
+                    if (cached) {
+                        try {
+                            const filePath = vscode.Uri.joinPath(cacheDir, cached.filePath);
+                            await vscode.workspace.fs.delete(filePath);
+                        } catch {
+                            // File might not exist
+                        }
+                        delete existingMetadata.objects[objectKey];
                     }
-                    delete existingMetadata.objects[objectKey];
-                }
 
-                completed++;
+                    deleteCompleted++;
+                    progress?.report({
+                        message: `Removing deleted objects (${deleteCompleted}/${objectsToDelete.length})...`,
+                        increment: (1 / objectsToDelete.length) * 20, // Use 20% for deletions
+                    });
+                }
             }
 
             // Update metadata
