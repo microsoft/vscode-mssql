@@ -10,7 +10,7 @@ import { RequestType } from "vscode-jsonrpc/browser";
  * Data fields shown in the Publish form.
  */
 export interface IPublishForm {
-    profileName?: string;
+    publishProfilePath?: string;
     serverName?: string;
     databaseName?: string;
     publishTarget?: "existingServer" | "localContainer";
@@ -34,7 +34,7 @@ export interface PublishDialogState
 export interface PublishDialogFormItemSpec
     extends FormItemSpec<IPublishForm, PublishDialogState, PublishDialogFormItemSpec> {
     // (Removed advanced option metadata: was isAdvancedOption/optionCategory/optionCategoryLabel)
-    // Reintroduce when the Publish dialog gains an "Advanced" section with grouped fields.
+    // Reintroduce when the Publish dialog gains an "Advanced publish options" section with grouped fields.
     // TODO: https://github.com/microsoft/vscode-mssql/issues/20248 task for advanced options
 }
 
@@ -52,7 +52,7 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     generatePublishScript: {};
     openPublishAdvanced: {};
     selectPublishProfile: {};
-    savePublishProfile: { profileName: string };
+    savePublishProfile: { publishProfileName: string };
 }
 
 /**
@@ -75,7 +75,7 @@ export interface PublishProjectProvider {
     /** Choose a publish profile file and apply (may partially override form state) */
     selectPublishProfile(): void;
     /** Persist current form state as a named profile */
-    savePublishProfile(profileName: string): void;
+    savePublishProfile(publishProfileName: string): void;
 }
 
 /**

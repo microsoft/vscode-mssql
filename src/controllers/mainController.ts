@@ -483,6 +483,16 @@ export default class MainController implements vscode.Disposable {
                 },
             );
 
+            // -- PUBLISH PROJECT --
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdPublishDatabaseProject,
+                    async (projectFilePath: string) => {
+                        await this.onPublishDatabaseProject(projectFilePath);
+                    },
+                ),
+            );
+
             // -- EXPLAIN QUERY --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdExplainQuery, async () => {
@@ -1597,15 +1607,6 @@ export default class MainController implements vscode.Disposable {
 
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
-                    Constants.cmdPublishDatabaseProject,
-                    async (projectFilePath: string) => {
-                        await this.onPublishDatabaseProject(projectFilePath);
-                    },
-                ),
-            );
-
-            this._context.subscriptions.push(
-                vscode.commands.registerCommand(
                     Constants.cmdEditConnection,
                     async (node: TreeNodeInfo) => {
                         const connDialog = new ConnectionDialogWebviewController(
@@ -2603,7 +2604,7 @@ export default class MainController implements vscode.Disposable {
      * This method launches the Publish Project UI for the specified database project.
      * @param projectFilePath The file path of the database project to publish.
      */
-    public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
+    public onPublishDatabaseProject(projectFilePath: string): void {
         const publishProjectWebView = new PublishProjectWebViewController(
             this._context,
             this._vscodeWrapper,

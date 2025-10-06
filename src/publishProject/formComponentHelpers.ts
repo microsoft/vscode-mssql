@@ -12,16 +12,16 @@ import {
 import { PublishProject as Loc } from "../constants/locConstants";
 
 /**
- * Generate publish form components. Kept async for future extensibility
- * (e.g. reading project metadata, fetching remote targets, etc.)
+ * Generate publish form components.
  */
-export async function generatePublishFormComponents(): Promise<
-    Record<keyof IPublishForm, PublishDialogFormItemSpec>
+export function generatePublishFormComponents(): Record<
+    keyof IPublishForm,
+    PublishDialogFormItemSpec
 > {
     const components: Record<keyof IPublishForm, PublishDialogFormItemSpec> = {
-        profileName: {
-            propertyName: "profileName",
-            label: Loc.ProfileLabel,
+        publishProfilePath: {
+            propertyName: "publishProfilePath",
+            label: Loc.PublishProfileLabel,
             required: false,
             type: FormItemType.Input,
         },

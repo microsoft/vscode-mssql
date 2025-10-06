@@ -3,27 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, makeStyles, Field, Input } from "@fluentui/react-components";
+import { Button, makeStyles } from "@fluentui/react-components";
 import { useContext, useState, useEffect } from "react";
 import { useFormStyles } from "../../../common/forms/form.component";
 import { LocConstants } from "../../../common/locConstants";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
-import type { IPublishForm } from "../../../../sharedInterfaces/publishDialog";
+import type { PublishProjectProvider } from "../../../../sharedInterfaces/publishDialog";
 import { FormItemType } from "../../../../sharedInterfaces/form";
-
-/**
- * Extended context type including the extra publish profile actions we expose.
- */
-type PublishFormActions = {
-    selectPublishProfile?: () => void;
-    savePublishProfile?: (profileName: string) => void;
-    formAction: (args: {
-        propertyName: keyof IPublishForm;
-        isAction: boolean;
-        value?: unknown;
-    }) => void;
-};
+import { renderInput } from "./FormFieldComponents";
 
 const useStyles = makeStyles({
     root: {
@@ -52,9 +40,9 @@ export const PublishProfileField: React.FC = () => {
     const classes = useStyles();
     const formStyles = useFormStyles();
     const loc = LocConstants.getInstance().publishProject;
-    const context = useContext(PublishProjectContext) as PublishFormActions | undefined;
-    const component = usePublishDialogSelector((s) => s.formComponents.profileName);
-    const value = usePublishDialogSelector((s) => s.formState.profileName);
+    const context = useContext(PublishProjectContext) as PublishProjectProvider | undefined;
+    const component = usePublishDialogSelector((s) => s.formComponents.publishProfilePath);
+    const value = usePublishDialogSelector((s) => s.formState.publishProfilePath);
     const [localValue, setLocalValue] = useState(value || "");
 
     useEffect(() => setLocalValue(value || ""), [value]);
@@ -69,33 +57,7 @@ export const PublishProfileField: React.FC = () => {
     return (
         <div className={`${formStyles.formComponentDiv} ${classes.root}`}>
             <div className={classes.fieldContainer}>
-                <Field
-                    key={component.propertyName}
-                    required={component.required}
-                    label={<span dangerouslySetInnerHTML={{ __html: component.label }} />}
-                    validationMessage={component.validation?.validationMessage}
-                    validationState={
-                        component.validation
-                            ? component.validation.isValid
-                                ? "none"
-                                : "error"
-                            : "none"
-                    }
-                    orientation="horizontal">
-                    <Input
-                        size="small"
-                        value={localValue}
-                        placeholder={component.placeholder ?? ""}
-                        onChange={(_, data) => {
-                            setLocalValue(data.value);
-                            context.formAction({
-                                propertyName: component.propertyName as keyof IPublishForm,
-                                isAction: false,
-                                value: data.value,
-                            });
-                        }}
-                    />
-                </Field>
+                {renderInput(component, localValue, setLocalValue, context)}
             </div>
             <div className={classes.buttons}>
                 <Button
@@ -108,9 +70,9 @@ export const PublishProfileField: React.FC = () => {
                     size="small"
                     appearance="secondary"
                     onClick={() => {
-                        const profileName = localValue;
-                        if (profileName && profileName.trim() !== "") {
-                            context.savePublishProfile?.(profileName);
+                        const publishProfileName = localValue;
+                        if (publishProfileName && publishProfileName.trim() !== "") {
+                            context.savePublishProfile?.(publishProfileName);
                         }
                     }}>
                     {loc.SaveAs}

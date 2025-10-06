@@ -9,11 +9,12 @@ import * as sinon from "sinon";
 
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { PublishProjectWebViewController } from "../../src/publishProject/publishProjectWebViewController";
+import { stubVscodeWrapper } from "./utils";
 
 suite("PublishProjectWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let contextStub: vscode.ExtensionContext;
-    let vscodeWrapperStub: VscodeWrapper;
+    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -25,31 +26,14 @@ suite("PublishProjectWebViewController Tests", () => {
         };
         contextStub = rawContext as vscode.ExtensionContext;
 
-        const outputChannel: vscode.OutputChannel = {
-            name: "test",
-            append: () => undefined,
-            appendLine: () => undefined,
-            clear: () => undefined,
-            replace: (_value: string) => undefined,
-            show: () => undefined,
-            hide: () => undefined,
-            dispose: () => undefined,
-        };
-
-        // Subclass VscodeWrapper to override the outputChannel getter cleanly.
-        class TestVscodeWrapper extends VscodeWrapper {
-            public override get outputChannel(): vscode.OutputChannel {
-                return outputChannel;
-            }
-        }
-        vscodeWrapperStub = new TestVscodeWrapper();
+        vscodeWrapperStub = stubVscodeWrapper(sandbox);
     });
 
     teardown(() => {
         sandbox.restore();
     });
 
-    test("constructor initializes state and derives database name", async () => {
+    test("constructor initializes state and derives database name", () => {
         const projectPath = "c:/work/MySampleProject.sqlproj";
         const controller = new PublishProjectWebViewController(
             contextStub,
@@ -57,17 +41,14 @@ suite("PublishProjectWebViewController Tests", () => {
             projectPath,
         );
 
-        // Initial synchronous expectations
+        // Verify initial state
         expect(controller.state.projectFilePath).to.equal(projectPath);
         expect(controller.state.formState.databaseName).to.equal("MySampleProject");
 
-        // Wait for async initializeDialog() to finish populating formComponents
-        await controller.initialized.promise;
-
-        // Form components should be initialized after async initialization
+        // Form components should be initialized synchronously
         const components = controller.state.formComponents;
         // Basic fields expected from generatePublishFormComponents()
-        expect(components.profileName, "profileName component should exist").to.exist;
+        expect(components.publishProfilePath, "publishProfilePath component should exist").to.exist;
         expect(components.serverName, "serverName component should exist").to.exist;
         expect(components.databaseName, "databaseName component should exist").to.exist;
         expect(components.publishTarget, "publishTarget component should exist").to.exist;
