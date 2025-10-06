@@ -64,7 +64,7 @@ export const PublishProfileField: React.FC = () => {
                     size="small"
                     appearance="secondary"
                     onClick={() => context.selectPublishProfile?.()}>
-                    {loc.SelectProfile}
+                    {loc.SelectPublishProfile}
                 </Button>
                 <Button
                     size="small"

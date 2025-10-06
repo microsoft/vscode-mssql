@@ -1291,6 +1291,8 @@ export class PublishProject {
     public static PublishTargetLabel = l10n.t("Publish Target");
     public static PublishTargetExisting = l10n.t("Existing SQL server");
     public static PublishTargetContainer = l10n.t("Local development container");
+    public static SelectPublishProfile = l10n.t("Select Profile");
+    public static SaveAs = l10n.t("Save As");
     public static GenerateScript = l10n.t("Generate Script");
     public static Publish = l10n.t("Publish");
 }

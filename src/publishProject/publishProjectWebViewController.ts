@@ -37,8 +37,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
         super(
             context,
             _vscodeWrapper,
-            "publishDialog",
-            "publishDialog",
+            "publishProject",
+            "publishProject",
             {
                 formState: {
                     publishProfilePath: "",
@@ -47,7 +47,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     publishTarget: "existingServer",
                     sqlCmdVariables: {},
                 },
-                formComponents: {},
+                formComponents: generatePublishFormComponents(),
                 projectFilePath,
                 inProgress: false,
                 lastPublishResult: undefined,
@@ -73,22 +73,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Register reducers after initialization
         this.registerRpcHandlers();
 
-        // Initialize dialog state
-        this.initializeDialog(projectFilePath);
-    }
-
-    private initializeDialog(projectFilePath: string) {
-        // Load publish form components
-        this.state.formComponents = generatePublishFormComponents();
-
-        // keep initial project path and computed database name
-        if (projectFilePath) {
-            this.state.projectFilePath = projectFilePath;
-        }
-
-        // Update visibility and initial state
+        // Update visibility based on initial publish target
         void this.updateItemVisibility();
-        this.updateState();
     }
 
     private registerRpcHandlers(): void {

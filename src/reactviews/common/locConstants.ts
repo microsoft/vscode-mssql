@@ -894,7 +894,7 @@ export class LocConstants {
 
     public get publishProject() {
         return {
-            SelectProfile: l10n.t("Select Profile"),
+            SelectPublishProfile: l10n.t("Select Profile"),
             SaveAs: l10n.t("Save As..."),
             generateScript: l10n.t("Generate Script"),
             publish: l10n.t("Publish"),
