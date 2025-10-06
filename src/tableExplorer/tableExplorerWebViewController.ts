@@ -167,6 +167,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     payload.rowCount,
                 );
                 state.resultSet = subsetResult;
+
+                this.updateState();
+
                 this.logger.info(`Loaded ${subsetResult.rowCount} rows`);
             } catch (error) {
                 this.logger.error(`Error loading subset: ${error}`);
@@ -189,6 +192,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     100,
                 );
                 state.resultSet = subsetResult;
+
+                this.updateState();
+
                 this.logger.info(`Reloaded ${subsetResult.rowCount} rows after creation`);
             } catch (error) {
                 this.logger.error(`Error creating row: ${error}`);
@@ -212,6 +218,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         subset: updatedSubset,
                         rowCount: updatedSubset.length,
                     };
+
+                    this.updateState();
+
                     this.logger.info(`Updated result set, now has ${updatedSubset.length} rows`);
                 }
             } catch (error) {
@@ -239,6 +248,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     if (rowIndex !== -1) {
                         state.resultSet.subset[rowIndex].cells[payload.columnId] =
                             updateCellResult.cell;
+
+                        this.updateState();
+
                         this.logger.info(
                             `Updated cell in result set at row ${rowIndex}, column ${payload.columnId}`,
                         );
