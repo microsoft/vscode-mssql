@@ -971,10 +971,25 @@ export default class MainController implements vscode.Disposable {
 
         // Hook into connection success events
         this._connectionMgr.onSuccessfulConnection((event) => {
-            void this.localCacheService.onConnectionSuccess(
-                event.fileUri,
-                event.connection.credentials,
+            this._connectionMgr.vscodeWrapper.logToOutputChannel(
+                `[MainController] Connection success event fired - fileUri: ${event.fileUri}, server: ${event.connection.credentials.server}, database: ${event.connection.credentials.database}`,
             );
+            try {
+                this._connectionMgr.vscodeWrapper.logToOutputChannel(
+                    `[MainController] About to call localCacheService.onConnectionSuccess`,
+                );
+                void this.localCacheService.onConnectionSuccess(
+                    event.fileUri,
+                    event.connection.credentials,
+                );
+                this._connectionMgr.vscodeWrapper.logToOutputChannel(
+                    `[MainController] Called localCacheService.onConnectionSuccess`,
+                );
+            } catch (error) {
+                this._connectionMgr.vscodeWrapper.logToOutputChannel(
+                    `[MainController] Error calling localCacheService: ${error}`,
+                );
+            }
         });
 
         void this.showOnLaunchPrompts();
@@ -2901,23 +2916,7 @@ export default class MainController implements vscode.Disposable {
                 return;
             }
 
-            await vscode.window.withProgress(
-                {
-                    location: vscode.ProgressLocation.Notification,
-                    title: `Refreshing cache for ${connection.credentials.database}`,
-                    cancellable: false,
-                },
-                async (progress) => {
-                    await this.localCacheService.updateCache(
-                        fileUri,
-                        connection.credentials,
-                        progress,
-                    );
-                    void vscode.window.showInformationMessage(
-                        `Cache refreshed for ${connection.credentials.database}`,
-                    );
-                },
-            );
+            await this.localCacheService.manualRefresh(fileUri, connection.credentials);
         } catch (error) {
             void vscode.window.showErrorMessage(
                 `Failed to refresh cache: ${getErrorMessage(error)}`,

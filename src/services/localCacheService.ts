@@ -49,12 +49,28 @@ interface DatabaseObject {
 /**
  * Service for caching database objects to local storage
  */
-export class LocalCacheService {
+/**
+ * Information about an active refresh timer
+ */
+interface RefreshTimerInfo {
+    timerId: NodeJS.Timeout;
+    ownerUri: string; // The original queryable URI (e.g., untitled:Untitled-1)
+    cacheOwnerUri: string; // Dedicated URI for cache operations (e.g., vscode-mssql-cache://...)
+    credentials: IConnectionInfo;
+    isRefreshing: boolean;
+}
+
+export class LocalCacheService implements vscode.Disposable {
     private _client: SqlToolsServiceClient;
     private _scriptingService: ScriptingService;
     private _globalStorageUri: vscode.Uri;
     private _cacheBasePath: vscode.Uri;
     private _isEnabled: boolean = true;
+    private _autoRefreshEnabled: boolean = true;
+    private _autoRefreshIntervalMinutes: number = 15;
+
+    // Map of connection hash to refresh timer info
+    private _refreshTimers: Map<string, RefreshTimerInfo> = new Map();
 
     constructor(
         private _connectionManager: ConnectionManager,
@@ -72,13 +88,301 @@ export class LocalCacheService {
         vscode.workspace.onDidChangeConfiguration((e) => {
             if (e.affectsConfiguration("mssql.localCache")) {
                 this.updateConfiguration();
+                this.restartAllTimers();
             }
+        });
+
+        // Listen for connection changes to stop timers when connections are closed
+        this._connectionManager.onConnectionsChanged(() => {
+            this.cleanupDisconnectedTimers();
         });
     }
 
     private updateConfiguration(): void {
         const config = vscode.workspace.getConfiguration("mssql.localCache");
         this._isEnabled = config.get<boolean>("enabled", true);
+        this._autoRefreshEnabled = config.get<boolean>("autoRefreshEnabled", true);
+        this._autoRefreshIntervalMinutes = config.get<number>("autoRefreshIntervalMinutes", 15);
+
+        // Validate interval
+        if (this._autoRefreshIntervalMinutes < 1) {
+            this._autoRefreshIntervalMinutes = 1;
+        } else if (this._autoRefreshIntervalMinutes > 300) {
+            this._autoRefreshIntervalMinutes = 300;
+        }
+
+        this._client.logger.info(
+            `[LocalCache] Configuration updated - enabled: ${this._isEnabled}, autoRefreshEnabled: ${this._autoRefreshEnabled}, interval: ${this._autoRefreshIntervalMinutes} minutes`,
+        );
+    }
+
+    /**
+     * Dispose of the service and clean up all timers
+     */
+    public dispose(): void {
+        this.stopAllTimers();
+    }
+
+    /**
+     * Start automatic refresh timer for a connection
+     */
+    private startRefreshTimer(ownerUri: string, credentials: IConnectionInfo): void {
+        console.log(
+            `[LocalCache] startRefreshTimer called - enabled: ${this._isEnabled}, autoRefreshEnabled: ${this._autoRefreshEnabled}, interval: ${this._autoRefreshIntervalMinutes} minutes`,
+        );
+
+        if (!this._isEnabled) {
+            console.log(`[LocalCache] Auto-refresh timer not started - cache is disabled`);
+            this._client.logger.info(
+                `[LocalCache] Auto-refresh timer not started - cache is disabled`,
+            );
+            return;
+        }
+
+        if (!this._autoRefreshEnabled) {
+            console.log(`[LocalCache] Auto-refresh timer not started - auto-refresh is disabled`);
+            this._client.logger.info(
+                `[LocalCache] Auto-refresh timer not started - auto-refresh is disabled`,
+            );
+            return;
+        }
+
+        const connectionHash = this.generateConnectionHash(credentials);
+        console.log(`[LocalCache] Connection hash: ${connectionHash}`);
+
+        // Stop existing timer if any
+        this.stopRefreshTimer(connectionHash);
+
+        // Create a dedicated connection URI for cache operations
+        // Using vscode-mssql-cache:// scheme to ensure it's unique and queryable
+        const cacheOwnerUri = `vscode-mssql-cache://${connectionHash}`;
+        console.log(`[LocalCache] Creating dedicated cache connection: ${cacheOwnerUri}`);
+
+        // Create new timer
+        const intervalMs = this._autoRefreshIntervalMinutes * 60 * 1000;
+        console.log(
+            `[LocalCache] Creating auto-refresh timer for ${credentials.server}/${credentials.database} (interval: ${this._autoRefreshIntervalMinutes} minutes = ${intervalMs}ms)`,
+        );
+        this._client.logger.info(
+            `[LocalCache] Creating auto-refresh timer for ${credentials.server}/${credentials.database} (interval: ${this._autoRefreshIntervalMinutes} minutes = ${intervalMs}ms)`,
+        );
+
+        const timerId = setInterval(() => {
+            console.log(
+                `[LocalCache] ⏰ AUTO-REFRESH TIMER FIRED! for ${credentials.server}/${credentials.database}`,
+            );
+            this._client.logger.info(
+                `[LocalCache] Auto-refresh timer triggered for ${credentials.server}/${credentials.database}`,
+            );
+            try {
+                console.log(`[LocalCache] About to call performAutoRefresh...`);
+                void this.performAutoRefresh(credentials, connectionHash);
+                console.log(`[LocalCache] performAutoRefresh called successfully`);
+            } catch (error) {
+                console.error(`[LocalCache] ❌ ERROR calling performAutoRefresh:`, error);
+                this._client.logger.error(`Error calling performAutoRefresh: ${error}`);
+            }
+        }, intervalMs);
+
+        this._refreshTimers.set(connectionHash, {
+            timerId,
+            ownerUri,
+            cacheOwnerUri,
+            credentials,
+            isRefreshing: false,
+        });
+
+        console.log(
+            `[LocalCache] ✅ Timer created and stored. Total active timers: ${this._refreshTimers.size}`,
+        );
+        this._client.logger.info(
+            `[LocalCache] Started auto-refresh timer for ${credentials.server}/${credentials.database} (interval: ${this._autoRefreshIntervalMinutes} minutes)`,
+        );
+    }
+
+    /**
+     * Stop refresh timer for a specific connection
+     */
+    private stopRefreshTimer(connectionHash: string): void {
+        const timerInfo = this._refreshTimers.get(connectionHash);
+        if (timerInfo) {
+            console.log(`[LocalCache] Stopping existing timer for connection ${connectionHash}`);
+            clearInterval(timerInfo.timerId);
+
+            // Disconnect the dedicated cache connection
+            if (timerInfo.cacheOwnerUri) {
+                console.log(
+                    `[LocalCache] Disconnecting cache connection: ${timerInfo.cacheOwnerUri}`,
+                );
+                void this._connectionManager.disconnect(timerInfo.cacheOwnerUri);
+            }
+
+            this._refreshTimers.delete(connectionHash);
+            this._client.logger.info(
+                `[LocalCache] Stopped auto-refresh timer for connection ${connectionHash}`,
+            );
+        } else {
+            console.log(`[LocalCache] No existing timer to stop for connection ${connectionHash}`);
+        }
+    }
+
+    /**
+     * Stop all refresh timers
+     */
+    private stopAllTimers(): void {
+        for (const [connectionHash, timerInfo] of this._refreshTimers.entries()) {
+            clearInterval(timerInfo.timerId);
+
+            // Disconnect the dedicated cache connection
+            if (timerInfo.cacheOwnerUri) {
+                void this._connectionManager.disconnect(timerInfo.cacheOwnerUri);
+            }
+
+            this._client.logger.info(
+                `[LocalCache] Stopped auto-refresh timer for connection ${connectionHash}`,
+            );
+        }
+        this._refreshTimers.clear();
+    }
+
+    /**
+     * Restart all active timers (called when configuration changes)
+     */
+    private restartAllTimers(): void {
+        const activeTimers = Array.from(this._refreshTimers.values());
+        this.stopAllTimers();
+
+        if (this._isEnabled && this._autoRefreshEnabled) {
+            for (const timerInfo of activeTimers) {
+                // Get current ownerUri for the connection
+                const ownerUri = this._connectionManager.getUriForConnection(timerInfo.credentials);
+                if (ownerUri) {
+                    this.startRefreshTimer(ownerUri, timerInfo.credentials);
+                }
+            }
+        }
+    }
+
+    /**
+     * Clean up timers for connections that are no longer active
+     */
+    private cleanupDisconnectedTimers(): void {
+        for (const [connectionHash, timerInfo] of this._refreshTimers.entries()) {
+            // Check if this connection is still active
+            if (!this._connectionManager.isActiveConnection(timerInfo.credentials)) {
+                this.stopRefreshTimer(connectionHash);
+            }
+        }
+    }
+
+    /**
+     * Perform automatic cache refresh
+     */
+    private async performAutoRefresh(
+        credentials: IConnectionInfo,
+        connectionHash: string,
+    ): Promise<void> {
+        console.log(
+            `[LocalCache] 🔄 performAutoRefresh called for ${credentials.server}/${credentials.database}`,
+        );
+
+        const timerInfo = this._refreshTimers.get(connectionHash);
+        if (!timerInfo) {
+            console.log(`[LocalCache] ❌ No timer info found for ${connectionHash}`);
+            return;
+        }
+
+        // Skip if already refreshing
+        if (timerInfo.isRefreshing) {
+            console.log(`[LocalCache] ⏭️ Skipping - refresh already in progress`);
+            this._client.logger.info(
+                `[LocalCache] Skipping auto-refresh for ${credentials.server}/${credentials.database} - refresh already in progress`,
+            );
+            return;
+        }
+
+        // Use the dedicated cache connection URI
+        const cacheOwnerUri = timerInfo.cacheOwnerUri;
+        console.log(`[LocalCache] Using dedicated cache connection: ${cacheOwnerUri}`);
+
+        // Check if the dedicated cache connection exists, if not create it
+        console.log(`[LocalCache] Checking if cache connection exists...`);
+        let isCacheConnected = this._connectionManager.isConnected(cacheOwnerUri);
+        console.log(`[LocalCache] Cache connection exists: ${isCacheConnected}`);
+
+        if (!isCacheConnected) {
+            console.log(`[LocalCache] Creating new cache connection...`);
+            this._client.logger.info(
+                `[LocalCache] Creating dedicated cache connection for ${credentials.server}/${credentials.database}`,
+            );
+
+            try {
+                // Create a new connection specifically for cache operations
+                const connected = await this._connectionManager.connect(
+                    cacheOwnerUri,
+                    credentials,
+                    false, // Don't show error dialogs
+                );
+
+                if (!connected) {
+                    console.log(
+                        `[LocalCache] ❌ STOPPING TIMER - failed to create cache connection`,
+                    );
+                    this._client.logger.error(
+                        `[LocalCache] Failed to create cache connection for ${credentials.server}/${credentials.database}`,
+                    );
+                    this.stopRefreshTimer(connectionHash);
+                    return;
+                }
+
+                console.log(`[LocalCache] ✅ Cache connection created successfully`);
+                this._client.logger.info(
+                    `[LocalCache] Cache connection created for ${credentials.server}/${credentials.database}`,
+                );
+            } catch (error) {
+                console.error(`[LocalCache] ❌ Error creating cache connection:`, error);
+                this._client.logger.error(`[LocalCache] Error creating cache connection: ${error}`);
+                this.stopRefreshTimer(connectionHash);
+                return;
+            }
+        }
+
+        console.log(`[LocalCache] ✅ All validation checks passed!`);
+        this._client.logger.info(
+            `[LocalCache] Auto-refresh validation passed for ${credentials.server}/${credentials.database} (cacheOwnerUri: ${cacheOwnerUri})`,
+        );
+
+        try {
+            timerInfo.isRefreshing = true;
+            this._client.logger.info(
+                `[LocalCache] Starting automatic cache refresh for ${credentials.server}/${credentials.database} (cacheOwnerUri: ${cacheOwnerUri})`,
+            );
+
+            sendActionEvent(TelemetryViews.LocalCache, TelemetryActions.UpdateCache, {
+                automatic: "true",
+            });
+
+            await this.updateCache(cacheOwnerUri, credentials);
+
+            this._client.logger.info(
+                `[LocalCache] Automatic cache refresh completed for ${credentials.server}/${credentials.database}`,
+            );
+        } catch (error) {
+            this._client.logger.error(
+                `[LocalCache] Automatic cache refresh failed for ${credentials.server}/${credentials.database}: ${error}`,
+            );
+            sendErrorEvent(
+                TelemetryViews.LocalCache,
+                TelemetryActions.UpdateCache,
+                error as Error,
+                false,
+                "automatic",
+            );
+        } finally {
+            if (timerInfo) {
+                timerInfo.isRefreshing = false;
+            }
+        }
     }
 
     /**
@@ -135,7 +439,7 @@ export class LocalCacheService {
         ownerUri: string,
         existingMetadata?: CacheMetadata,
     ): Promise<DatabaseObject[]> {
-        let query = `
+        const query = `
             SELECT
                 SCHEMA_NAME(schema_id) AS [schema],
                 name,
@@ -151,15 +455,7 @@ export class LocalCacheService {
                 'TF', -- Table function
                 'TR'  -- Trigger
             )
-            AND is_ms_shipped = 0`;
-
-        // Add modification date filter for incremental updates
-        if (existingMetadata && existingMetadata.lastCacheUpdate) {
-            query += `
-            AND modify_date > CONVERT(DATETIME, '${existingMetadata.lastCacheUpdate}', 127)`;
-        }
-
-        query += `
+            AND is_ms_shipped = 0
             ORDER BY SCHEMA_NAME(schema_id), name`;
 
         const result = await this._client.sendRequest(
@@ -178,12 +474,40 @@ export class LocalCacheService {
         const objects: DatabaseObject[] = [];
         if (result && result.rows) {
             for (const row of result.rows) {
-                objects.push({
+                const obj = {
                     schema: row[0]?.displayValue || "",
                     name: row[1]?.displayValue || "",
                     type: row[2]?.displayValue || "",
                     modifyDate: row[3]?.displayValue || "",
-                });
+                };
+
+                // If we have existing metadata, filter objects based on individual lastModified timestamps
+                if (existingMetadata) {
+                    const objectKey = `${obj.schema}.${obj.name}`;
+                    const cachedObject = existingMetadata.objects[objectKey];
+
+                    // Include if:
+                    // 1. Object doesn't exist in cache (new object)
+                    // 2. Object's modify_date is newer than cached lastModified
+                    if (!cachedObject) {
+                        this._client.logger.info(`New object detected: ${objectKey}`);
+                        objects.push(obj);
+                    } else {
+                        // Convert both dates to Date objects for proper comparison
+                        const dbModifyDate = new Date(obj.modifyDate);
+                        const cachedModifyDate = new Date(cachedObject.lastModified);
+
+                        if (dbModifyDate > cachedModifyDate) {
+                            this._client.logger.info(
+                                `Modified object detected: ${objectKey} (DB: ${obj.modifyDate}, Cache: ${cachedObject.lastModified})`,
+                            );
+                            objects.push(obj);
+                        }
+                    }
+                } else {
+                    // No metadata filter, include all objects
+                    objects.push(obj);
+                }
             }
         }
 
@@ -491,33 +815,15 @@ export class LocalCacheService {
                 return await this.populateCache(ownerUri, credentials, progress);
             }
 
-            // Query only modified objects using the optimized query
+            // Query modified/new objects (filtered by individual lastModified timestamps)
             progress?.report({ message: "Checking for modified objects..." });
-            const modifiedObjects = await this.queryDatabaseObjects(ownerUri, existingMetadata);
+            const objectsToUpdate = await this.queryDatabaseObjects(ownerUri, existingMetadata);
 
-            // Also query all current objects to detect deletions
+            // Query all current objects to detect deletions
             const allCurrentObjects = await this.queryDatabaseObjects(ownerUri);
 
-            const objectsToUpdate: DatabaseObject[] = [];
-            const objectsToDelete: string[] = [];
-
-            // Modified objects from the optimized query
-            for (const obj of modifiedObjects) {
-                objectsToUpdate.push(obj);
-            }
-
-            // Also check for new objects not in cache
-            for (const obj of allCurrentObjects) {
-                const objectKey = `${obj.schema}.${obj.name}`;
-                if (!existingMetadata.objects[objectKey]) {
-                    // New object not in cache
-                    if (!objectsToUpdate.find((o) => `${o.schema}.${o.name}` === objectKey)) {
-                        objectsToUpdate.push(obj);
-                    }
-                }
-            }
-
             // Find objects that were deleted
+            const objectsToDelete: string[] = [];
             const currentObjectKeys = new Set(
                 allCurrentObjects.map((obj) => `${obj.schema}.${obj.name}`),
             );
@@ -672,20 +978,94 @@ export class LocalCacheService {
     }
 
     /**
+     * Check if a URI is valid for query execution (not an Object Explorer URI)
+     */
+    private isQueryableUri(ownerUri: string): boolean {
+        // Object Explorer URIs follow the pattern: server_database_user_profileName
+        // Query URIs are either file URIs, untitled documents, or vscode-mssql-adhoc://QueryN
+        // We want to exclude Object Explorer URIs from automatic refresh
+
+        // If it contains :// it's a proper URI scheme (file://, vscode-mssql-adhoc://, etc.)
+        if (ownerUri.includes("://")) {
+            return true;
+        }
+
+        // Check for untitled documents (untitled:Untitled-1)
+        if (ownerUri.startsWith("untitled:")) {
+            return true;
+        }
+
+        // If it doesn't contain :// and has underscores, it's likely an Object Explorer URI
+        // Object Explorer URIs: "server_database_user_profile" or "server_database_profile"
+        // We'll be conservative and only allow URIs with proper schemes
+        return false;
+    }
+
+    /**
      * Handle successful connection event
      */
     public async onConnectionSuccess(
         ownerUri: string,
         credentials: IConnectionInfo,
     ): Promise<void> {
+        console.log(
+            `[LocalCache] onConnectionSuccess called - ownerUri: ${ownerUri}, server: ${credentials.server}, database: ${credentials.database}`,
+        );
+        console.log(`[LocalCache] _client exists: ${!!this._client}`);
+        console.log(`[LocalCache] _client.logger exists: ${!!this._client?.logger}`);
+
+        if (this._client?.logger) {
+            this._client.logger.info(
+                `[LocalCache] onConnectionSuccess called - ownerUri: ${ownerUri}, server: ${credentials.server}, database: ${credentials.database}`,
+            );
+        }
+
         if (!this._isEnabled) {
+            console.log(`[LocalCache] Cache is disabled, skipping`);
+            if (this._client?.logger) {
+                this._client.logger.info(`[LocalCache] Cache is disabled, skipping`);
+            }
             return;
         }
 
+        // Only process connections with queryable URIs (not Object Explorer connections)
+        if (!this.isQueryableUri(ownerUri)) {
+            console.log(`[LocalCache] Skipping cache for Object Explorer connection: ${ownerUri}`);
+            if (this._client?.logger) {
+                this._client.logger.info(
+                    `[LocalCache] Skipping cache for Object Explorer connection: ${ownerUri}`,
+                );
+            }
+            return;
+        }
+
+        // Skip cache connections (they are internal connections used for cache refresh)
+        if (ownerUri.startsWith("vscode-mssql-cache://")) {
+            console.log(`[LocalCache] Skipping internal cache connection: ${ownerUri}`);
+            if (this._client?.logger) {
+                this._client.logger.info(
+                    `[LocalCache] Skipping internal cache connection: ${ownerUri}`,
+                );
+            }
+            return;
+        }
+
+        console.log(
+            `[LocalCache] Processing connection for ${credentials.server}/${credentials.database}`,
+        );
+        if (this._client?.logger) {
+            this._client.logger.info(
+                `[LocalCache] Processing connection for ${credentials.server}/${credentials.database}`,
+            );
+        }
+
         try {
+            console.log(`[LocalCache] Getting cache status...`);
             const status = await this.getCacheStatus(credentials);
+            console.log(`[LocalCache] Cache exists: ${status.exists}`);
 
             if (!status.exists) {
+                console.log(`[LocalCache] Starting initial cache population...`);
                 // First connection - populate cache in background
                 void vscode.window.withProgress(
                     {
@@ -700,11 +1080,13 @@ export class LocalCacheService {
                                 `Database cache created for ${credentials.database}`,
                             );
                         } catch (error) {
+                            console.error(`[LocalCache] Failed to populate cache:`, error);
                             this._client.logger.error(`Failed to populate cache: ${error}`);
                         }
                     },
                 );
             } else {
+                console.log(`[LocalCache] Starting cache update...`);
                 // Existing cache - update in background
                 void vscode.window.withProgress(
                     {
@@ -716,13 +1098,76 @@ export class LocalCacheService {
                         try {
                             await this.updateCache(ownerUri, credentials, progress);
                         } catch (error) {
+                            console.error(`[LocalCache] Failed to update cache:`, error);
                             this._client.logger.error(`Failed to update cache: ${error}`);
                         }
                     },
                 );
             }
+
+            // Start automatic refresh timer
+            console.log(`[LocalCache] About to start refresh timer...`);
+            this.startRefreshTimer(ownerUri, credentials);
+            console.log(`[LocalCache] Refresh timer started (or skipped if disabled)`);
         } catch (error) {
+            console.error(`[LocalCache] Error in cache service:`, error);
             this._client.logger.error(`Error in cache service: ${error}`);
         }
+    }
+
+    /**
+     * Manually refresh cache for a connection (called from command)
+     */
+    public async manualRefresh(ownerUri: string, credentials: IConnectionInfo): Promise<void> {
+        if (!this._isEnabled) {
+            void vscode.window.showWarningMessage("Local cache is disabled");
+            return;
+        }
+
+        const connectionHash = this.generateConnectionHash(credentials);
+        const timerInfo = this._refreshTimers.get(connectionHash);
+
+        // Check if automatic refresh is already running
+        if (timerInfo?.isRefreshing) {
+            void vscode.window.showInformationMessage(
+                "Cache refresh is already in progress. Please wait...",
+            );
+            return;
+        }
+
+        // Perform manual refresh with progress notification
+        await vscode.window.withProgress(
+            {
+                location: vscode.ProgressLocation.Notification,
+                title: `Refreshing cache for ${credentials.database}`,
+                cancellable: false,
+            },
+            async (progress) => {
+                try {
+                    sendActionEvent(TelemetryViews.LocalCache, TelemetryActions.UpdateCache, {
+                        manual: "true",
+                    });
+
+                    await this.updateCache(ownerUri, credentials, progress);
+
+                    void vscode.window.showInformationMessage(
+                        `Cache refreshed for ${credentials.database}`,
+                    );
+                } catch (error) {
+                    this._client.logger.error(`Failed to refresh cache: ${error}`);
+                    void vscode.window.showErrorMessage(
+                        `Failed to refresh cache: ${error instanceof Error ? error.message : String(error)}`,
+                    );
+
+                    sendErrorEvent(
+                        TelemetryViews.LocalCache,
+                        TelemetryActions.UpdateCache,
+                        error as Error,
+                        false,
+                        "manual",
+                    );
+                }
+            },
+        );
     }
 }

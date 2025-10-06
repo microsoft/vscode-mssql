@@ -422,6 +422,11 @@
                     "submenu": "mssql.copilot.editorSubmenu",
                     "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
                     "group": "0_mssql"
+                },
+                {
+                    "command": "mssql.refreshLocalCache",
+                    "when": "editorLangId == sql && resource in mssql.connections && config.mssql.localCache.enabled",
+                    "group": "9_mssql_cache"
                 }
             ],
             "mssql.copilot.editorSubmenu": [
@@ -536,6 +541,11 @@
                     "command": "mssql.removeObjectExplorerNode",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
                     "group": "1_MSSQL_serverAndDbManagement@4"
+                },
+                {
+                    "command": "mssql.refreshLocalCache",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/ && config.mssql.localCache.enabled",
+                    "group": "1_MSSQL_serverAndDbManagement@5"
                 },
                 {
                     "command": "mssql.schemaDesigner",
@@ -1902,6 +1912,20 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Enable automatic caching of database objects for offline access and improved performance",
+                    "scope": "window"
+                },
+                "mssql.localCache.autoRefreshEnabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable automatic periodic refresh of the local cache when connected to a database",
+                    "scope": "window"
+                },
+                "mssql.localCache.autoRefreshIntervalMinutes": {
+                    "type": "number",
+                    "default": 15,
+                    "minimum": 1,
+                    "maximum": 300,
+                    "description": "How frequently (in minutes) to automatically check for database changes and update the cache",
                     "scope": "window"
                 },
                 "mssql.query.rowCount": {
