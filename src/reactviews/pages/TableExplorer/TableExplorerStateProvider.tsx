@@ -46,6 +46,10 @@ export const TableExplorerStateProvider: React.FC<{
                 updateCell: function (rowId: number, columnId: number, newValue: string): void {
                     webViewState?.extensionRpc.action("updateCell", { rowId, columnId, newValue });
                 },
+
+                revertCell: function (rowId: number, columnId: number): void {
+                    webViewState?.extensionRpc.action("revertCell", { rowId, columnId });
+                },
             }}>
             {children}
         </TableExplorerContext.Provider>

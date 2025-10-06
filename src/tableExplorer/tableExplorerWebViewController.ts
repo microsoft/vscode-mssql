@@ -252,6 +252,37 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             }
             return state;
         });
+
+        this.registerReducer("revertCell", async (state, payload) => {
+            this.logger.info(`Reverting cell: row ${payload.rowId}, column ${payload.columnId}`);
+            try {
+                const revertCellResult = await this._tableExplorerService.revertCell(
+                    state.ownerUri,
+                    payload.rowId,
+                    payload.columnId,
+                );
+
+                // Update the cell value in the result set to keep state in sync
+                if (state.resultSet && revertCellResult.cell) {
+                    const rowIndex = state.resultSet.subset.findIndex(
+                        (row) => row.id === payload.rowId,
+                    );
+                    if (rowIndex !== -1) {
+                        state.resultSet.subset[rowIndex].cells[payload.columnId] =
+                            revertCellResult.cell;
+                        this.logger.info(
+                            `Reverted cell in result set at row ${rowIndex}, column ${payload.columnId}`,
+                        );
+                    }
+                }
+
+                this.logger.info(`Cell reverted successfully`);
+            } catch (error) {
+                this.logger.error(`Error reverting cell: ${error}`);
+                vscode.window.showErrorMessage(`Failed to revert cell: ${error}`);
+            }
+            return state;
+        });
     }
 
     /**
