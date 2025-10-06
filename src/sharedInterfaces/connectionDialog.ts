@@ -11,6 +11,7 @@ import { AddFirewallRuleState } from "./addFirewallRule";
 import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
 import { RequestType } from "vscode-jsonrpc/browser";
 import { FabricSqlDbInfo, FabricWorkspaceInfo } from "./fabric";
+import { ChangePasswordResult, ChangePasswordWebviewState } from "./changePassword";
 
 export class ConnectionDialogWebviewState
     implements
@@ -84,7 +85,8 @@ export interface IDialogProps {
         | "trustServerCert"
         | "addFirewallRule"
         | "loadFromConnectionString"
-        | "createConnectionGroup";
+        | "createConnectionGroup"
+        | "changePassword";
 }
 
 export interface TrustServerCertDialogProps extends IDialogProps {
@@ -95,6 +97,11 @@ export interface TrustServerCertDialogProps extends IDialogProps {
 export interface AddFirewallRuleDialogProps extends IDialogProps {
     type: "addFirewallRule";
     props: AddFirewallRuleState;
+}
+
+export interface ChangePasswordDialogProps extends IDialogProps {
+    type: "changePassword";
+    props: ChangePasswordWebviewState;
 }
 
 export interface ConnectionStringDialogProps extends IDialogProps {
@@ -220,6 +227,7 @@ export interface ConnectionDialogContextProps
     // Request handlers
     getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
     getSqlAnalyticsEndpointUriFromFabric: (sqlEndpoint: FabricSqlDbInfo) => Promise<string>;
+    changePassword: (newPassword: string) => Promise<ChangePasswordResult>;
 }
 
 export interface ConnectionDialogReducers extends FormReducers<IConnectionDialogProfile> {
