@@ -4,10 +4,7 @@
         "outDir": "out",
         "module": "CommonJS",
         "target": "ES2024",
-        "lib": [
-            "ES2024",
-            "dom"
-        ],
+        "lib": ["ES2024", "dom"],
         "sourceMap": true,
         "allowUnusedLabels": false,
         "allowSyntheticDefaultImports": true,
@@ -18,14 +15,6 @@
         "noUnusedLocals": true,
         "skipLibCheck": true
     },
-    "include": [
-        "src",
-        "test",
-        "typings",
-    ],
-    "exclude": [
-        "node_modules",
-        "src/reactviews",
-        "samples"
-    ]
+    "include": ["src", "test", "typings"],
+    "exclude": ["node_modules", "src/reactviews", "samples"]
 }

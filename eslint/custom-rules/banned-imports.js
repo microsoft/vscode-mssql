@@ -2,7 +2,7 @@
 const path = require("path");
 
 function toPosix(p) {
-  return p.split(path.sep).join("/"); // turns "\" → "/"
+    return p.split(path.sep).join("/"); // turns "\" → "/"
 }
 
 module.exports = {

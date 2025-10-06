@@ -13,6 +13,7 @@ import {
     ConnectionInputMode,
     ConnectionStringDialogProps,
     IConnectionDialogProfile,
+    ChangePasswordDialogProps,
     TrustServerCertDialogProps,
 } from "../../../sharedInterfaces/connectionDialog";
 import {
@@ -48,6 +49,7 @@ import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
 import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
 import { FabricBrowsePage } from "./fabricBrowsePage";
+import { ChangePasswordDialog } from "../ChangePassword/changePasswordDialog";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
     switch (connectionDialogContext?.state.selectedInputMode) {
@@ -71,6 +73,11 @@ export const ConnectionInfoFormContainer = () => {
     const context = useContext(ConnectionDialogContext)!;
     const formStyles = useFormStyles();
     const styles = useStyles();
+
+    const changePasswordDialogState =
+        context.state.dialog?.type === "changePassword"
+            ? (context.state.dialog as ChangePasswordDialogProps).props
+            : undefined;
 
     function azureIcon(colorTheme: ColorThemeKind) {
         const theme = themeType(colorTheme);
@@ -129,6 +136,14 @@ export const ConnectionInfoFormContainer = () => {
                         addFirewallRule={context.addFirewallRule}
                         closeDialog={context.closeDialog}
                         signIntoAzure={context.signIntoAzureForFirewallRule}
+                    />
+                )}
+                {context.state.dialog?.type === "changePassword" && (
+                    <ChangePasswordDialog
+                        serverName={changePasswordDialogState?.server}
+                        userName={changePasswordDialogState?.userName}
+                        onSubmit={context.changePassword}
+                        onClose={context.closeDialog}
                     />
                 )}
                 {context.state.dialog?.type === "loadFromConnectionString" && (
