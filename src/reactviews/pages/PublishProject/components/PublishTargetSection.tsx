@@ -8,7 +8,7 @@ import { makeStyles } from "@fluentui/react-components";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
 import * as constants from "../../../../constants/constants";
-import { renderInput, renderDropdown, CheckboxField } from "./FormFieldComponents";
+import { renderInput, renderDropdown, renderCheckbox } from "./FormFieldComponents";
 import { parseHtmlLabel } from "../../../../publishProject/projectUtils";
 
 const useStyles = makeStyles({
@@ -156,18 +156,13 @@ export const PublishTargetSection: React.FC = () => {
     return (
         <div className={classes.root}>
             {/* Publish Target Dropdown */}
-            {renderDropdown(
-                targetComponent,
-                targetValue,
-                (val: string) => {
-                    publishCtx.formAction({
-                        propertyName: targetComponent.propertyName,
-                        isAction: false,
-                        value: val,
-                    });
-                },
-                publishCtx,
-            )}
+            {renderDropdown(targetComponent, targetValue, (val) => {
+                publishCtx.formAction({
+                    propertyName: targetComponent.propertyName,
+                    isAction: false,
+                    value: val,
+                });
+            })}
 
             {/* Container Fields - Shown only when local container is selected */}
             {isContainer && (
@@ -176,124 +171,79 @@ export const PublishTargetSection: React.FC = () => {
                     {renderInput(
                         portComponent,
                         portValue?.toString() || "",
-                        (val: string) => {
-                            if (portComponent) {
+                        (val) => {
+                            portComponent &&
                                 publishCtx.formAction({
                                     propertyName: portComponent.propertyName,
                                     isAction: false,
                                     value: val,
                                     updateValidation: false,
                                 });
-                            }
                         },
-                        publishCtx,
                         {
-                            onBlur: (val: string) => {
-                                if (portComponent) {
+                            onBlur: (val) => {
+                                portComponent &&
                                     publishCtx.formAction({
                                         propertyName: portComponent.propertyName,
                                         isAction: false,
                                         value: val,
                                         updateValidation: true,
                                     });
-                                }
                             },
                         },
                     )}
 
                     {/* Admin Password */}
-                    {renderInput(
-                        passwordComponent,
-                        localAdminPassword,
-                        (val: string) => {
-                            // Update local state immediately (like change password dialog)
-                            setLocalAdminPassword(val);
+                    {renderInput(passwordComponent, localAdminPassword, setLocalAdminPassword, {
+                        showPassword: showAdminPassword,
+                        onTogglePassword: () => setShowAdminPassword(!showAdminPassword),
+                        onBlur: (val) => {
+                            passwordComponent &&
+                                publishCtx.formAction({
+                                    propertyName: passwordComponent.propertyName,
+                                    isAction: false,
+                                    value: val,
+                                    updateValidation: true,
+                                });
                         },
-                        publishCtx,
-                        {
-                            showPassword: showAdminPassword,
-                            onTogglePassword: () => setShowAdminPassword(!showAdminPassword),
-                            onBlur: (val: string) => {
-                                if (passwordComponent) {
-                                    // Sync with external state on blur only
-                                    publishCtx.formAction({
-                                        propertyName: passwordComponent.propertyName,
-                                        isAction: false,
-                                        value: val,
-                                        updateValidation: true,
-                                    });
-                                }
-                            },
-                        },
-                    )}
+                    })}
 
                     {/* Confirm Password */}
                     {renderInput(
                         confirmPasswordComponent,
                         localConfirmPassword,
-                        (val: string) => {
-                            // Update local state immediately (like change password dialog)
-                            setLocalConfirmPassword(val);
-                        },
-                        publishCtx,
+                        setLocalConfirmPassword,
                         {
                             showPassword: showConfirmPassword,
                             onTogglePassword: () => setShowConfirmPassword(!showConfirmPassword),
-                            onBlur: (val: string) => {
-                                if (confirmPasswordComponent) {
-                                    // Sync with external state on blur only
+                            onBlur: (val) => {
+                                confirmPasswordComponent &&
                                     publishCtx.formAction({
                                         propertyName: confirmPasswordComponent.propertyName,
                                         isAction: false,
                                         value: val,
                                         updateValidation: true,
                                     });
-                                }
                             },
                         },
                     )}
 
                     {/* Container Image Tag */}
-                    {renderDropdown(
-                        imageTagComponent,
-                        imageTagValue?.toString(),
-                        (val: string) => {
-                            if (imageTagComponent) {
-                                publishCtx.formAction({
-                                    propertyName: imageTagComponent.propertyName,
-                                    isAction: false,
-                                    value: val,
-                                    updateValidation: true,
-                                });
-                            }
-                        },
-                        publishCtx,
-                    )}
+                    {renderDropdown(imageTagComponent, imageTagValue?.toString(), (val) => {
+                        imageTagComponent &&
+                            publishCtx.formAction({
+                                propertyName: imageTagComponent.propertyName,
+                                isAction: false,
+                                value: val,
+                                updateValidation: true,
+                            });
+                    })}
 
                     {/* Accept License Checkbox */}
-                    <CheckboxField
-                        component={licenseComponent}
-                        checked={Boolean(licenseValue)}
-                        label={
-                            licenseComponent?.label ? (
-                                <>
-                                    {parseHtmlLabel(licenseComponent.label)?.parts.map((part, i) =>
-                                        typeof part === "string" ? (
-                                            part
-                                        ) : (
-                                            <a
-                                                key={i}
-                                                href={part.href}
-                                                target="_blank"
-                                                rel="noopener noreferrer">
-                                                {part.text}
-                                            </a>
-                                        ),
-                                    )}
-                                </>
-                            ) : undefined
-                        }
-                        onChange={(checked) => {
+                    {renderCheckbox(
+                        licenseComponent,
+                        Boolean(licenseValue),
+                        (checked) => {
                             licenseComponent &&
                                 publishCtx.formAction({
                                     propertyName: licenseComponent.propertyName,
@@ -301,8 +251,25 @@ export const PublishTargetSection: React.FC = () => {
                                     value: checked,
                                     updateValidation: true,
                                 });
-                        }}
-                    />
+                        },
+                        licenseComponent?.label ? (
+                            <>
+                                {parseHtmlLabel(licenseComponent.label)?.parts.map((part, i) =>
+                                    typeof part === "string" ? (
+                                        part
+                                    ) : (
+                                        <a
+                                            key={i}
+                                            href={part.href}
+                                            target="_blank"
+                                            rel="noopener noreferrer">
+                                            {part.text}
+                                        </a>
+                                    ),
+                                )}
+                            </>
+                        ) : undefined,
+                    )}
                 </div>
             )}
         </div>

@@ -6,19 +6,21 @@
 import { Field, Dropdown, Option, Input, Checkbox, Button } from "@fluentui/react-components";
 import { EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
 import { FormItemType } from "../../../../sharedInterfaces/form";
-import type {
-    IPublishForm,
-    PublishProjectProvider,
-    PublishDialogFormItemSpec,
-} from "../../../../sharedInterfaces/publishDialog";
+import type { PublishDialogFormItemSpec } from "../../../../sharedInterfaces/publishDialog";
 
+// Helper to get validation state from component
+const getValidationState = (
+    validation: PublishDialogFormItemSpec["validation"],
+): "none" | "error" => {
+    return validation ? (validation.isValid ? "none" : "error") : "none";
+};
+
+// Generic Input Field - can be used for text, number, or password fields
 export const renderInput = (
     component: PublishDialogFormItemSpec | undefined,
     value: string,
-    setValue: (v: string) => void,
-    _context: PublishProjectProvider,
+    onChange: (value: string) => void,
     options?: {
-        inputType?: FormItemType;
         onBlur?: (value: string) => void;
         showPassword?: boolean;
         onTogglePassword?: () => void;
@@ -29,18 +31,7 @@ export const renderInput = (
         return undefined;
     }
 
-    const isPasswordField =
-        options?.inputType === FormItemType.Password || component.type === FormItemType.Password;
-
-    const handleChange = (_: React.FormEvent<HTMLInputElement>, data: { value: string }) => {
-        setValue(data.value);
-    };
-
-    const handleBlur = () => {
-        if (options?.onBlur) {
-            options.onBlur(value);
-        }
-    };
+    const isPasswordField = component.type === FormItemType.Password;
 
     return (
         <Field
@@ -48,9 +39,7 @@ export const renderInput = (
             required={component.required}
             label={component.label}
             validationMessage={component.validation?.validationMessage}
-            validationState={
-                component.validation ? (component.validation.isValid ? "none" : "error") : "none"
-            }
+            validationState={getValidationState(component.validation)}
             orientation="horizontal">
             <Input
                 size="medium"
@@ -58,17 +47,17 @@ export const renderInput = (
                 value={value}
                 placeholder={component.placeholder ?? ""}
                 required={component.required}
-                onChange={handleChange}
-                onBlur={handleBlur}
+                onChange={(_, data) => onChange(data.value)}
+                onBlur={() => options?.onBlur?.(value)}
                 contentAfter={
-                    isPasswordField ? (
+                    isPasswordField && options?.onTogglePassword ? (
                         <Button
-                            onClick={options?.onTogglePassword}
-                            icon={options?.showPassword ? <EyeRegular /> : <EyeOffRegular />}
+                            onClick={options.onTogglePassword}
+                            icon={options.showPassword ? <EyeRegular /> : <EyeOffRegular />}
                             appearance="transparent"
                             size="small"
-                            aria-label={options?.showPassword ? "Hide password" : "Show password"}
-                            title={options?.showPassword ? "Hide password" : "Show password"}
+                            aria-label={options.showPassword ? "Hide password" : "Show password"}
+                            title={options.showPassword ? "Hide password" : "Show password"}
                         />
                     ) : undefined
                 }
@@ -77,11 +66,11 @@ export const renderInput = (
     );
 };
 
+// Generic Dropdown Field - can be used for any dropdown selection
 export const renderDropdown = (
     component: PublishDialogFormItemSpec | undefined,
     value: string | undefined,
-    setValue: (v: string) => void,
-    context: PublishProjectProvider,
+    onChange: (value: string) => void,
 ) => {
     if (!component || component.hidden) return undefined;
     if (component.type !== FormItemType.Dropdown || !component.options) return undefined;
@@ -92,9 +81,7 @@ export const renderDropdown = (
             required={component.required}
             label={component.label}
             validationMessage={component.validation?.validationMessage}
-            validationState={
-                component.validation ? (component.validation.isValid ? "none" : "error") : "none"
-            }
+            validationState={getValidationState(component.validation)}
             orientation="horizontal">
             <Dropdown
                 size="medium"
@@ -105,17 +92,9 @@ export const renderDropdown = (
                     )?.displayName || ""
                 }
                 placeholder={component.placeholder ?? ""}
-                onOptionSelect={(
-                    _: React.SyntheticEvent,
-                    data: { optionValue: string | undefined },
-                ) => {
+                onOptionSelect={(_, data) => {
                     if (data.optionValue) {
-                        setValue(data.optionValue);
-                        context.formAction({
-                            propertyName: component.propertyName as keyof IPublishForm,
-                            isAction: false,
-                            value: data.optionValue,
-                        });
+                        onChange(data.optionValue);
                     }
                 }}>
                 {component.options.map(
@@ -130,36 +109,23 @@ export const renderDropdown = (
     );
 };
 
-export const CheckboxField = ({
-    component,
-    checked,
-    onChange,
-    label,
-    getValidationState,
-}: {
-    component: PublishDialogFormItemSpec | undefined;
-    checked: boolean;
-    onChange: (checked: boolean) => void;
-    label?: React.ReactNode;
-    getValidationState?: (validation: PublishDialogFormItemSpec["validation"]) => "none" | "error";
-}) => {
+// Generic Checkbox Field - can be used for any checkbox
+export const renderCheckbox = (
+    component: PublishDialogFormItemSpec | undefined,
+    checked: boolean,
+    onChange: (checked: boolean) => void,
+    label?: React.ReactNode,
+) => {
     if (!component || component.hidden) return undefined;
 
     const labelContent = label ?? component.label;
-    const validationState = getValidationState
-        ? getValidationState(component.validation)
-        : component.validation
-          ? component.validation.isValid
-              ? "none"
-              : "error"
-          : "none";
 
     return (
         <Field
             key={component.propertyName}
             required={component.required}
             validationMessage={component.validation?.validationMessage}
-            validationState={validationState}>
+            validationState={getValidationState(component.validation)}>
             <div
                 style={{
                     display: "flex",
@@ -169,12 +135,14 @@ export const CheckboxField = ({
                 }}>
                 <Checkbox
                     checked={checked}
-                    onChange={(
-                        _: React.FormEvent<HTMLInputElement>,
-                        data: { checked: boolean | "mixed" },
-                    ) => onChange(data.checked === true)}
+                    onChange={(_, data) => onChange(data.checked === true)}
                 />
-                <span style={{ whiteSpace: "normal" }}>{labelContent}</span>
+                <span style={{ whiteSpace: "normal" }}>
+                    {labelContent}
+                    {component.required && (
+                        <span style={{ color: "red", marginLeft: "4px" }}>*</span>
+                    )}
+                </span>
             </div>
         </Field>
     );
