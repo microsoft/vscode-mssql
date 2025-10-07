@@ -446,9 +446,9 @@ suite("PublishProjectWebViewController", () => {
         });
 
         // Assert
-        expect(controller.state.formState.profileName).to.equal("MyPublishProfile");
-        expect(controller.state.formComponents.profileName).to.exist;
-        expect(controller.state.formComponents.profileName.required).to.be.false;
+        expect(controller.state.formState.publishProfilePath).to.equal("MyPublishProfile");
+        expect(controller.state.formComponents.publishProfilePath).to.exist;
+        expect(controller.state.formComponents.publishProfilePath.required).to.be.false;
     });
 
     test("all form components are properly initialized", async () => {
@@ -463,7 +463,7 @@ suite("PublishProjectWebViewController", () => {
         await controller.initialized.promise;
 
         // Assert - Verify all expected form components exist
-        expect(controller.state.formComponents.profileName).to.exist;
+        expect(controller.state.formComponents.publishProfilePath).to.exist;
         expect(controller.state.formComponents.serverName).to.exist;
         expect(controller.state.formComponents.databaseName).to.exist;
         expect(controller.state.formComponents.publishTarget).to.exist;

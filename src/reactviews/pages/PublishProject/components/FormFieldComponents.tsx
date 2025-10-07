@@ -53,11 +53,11 @@ export const renderInput = (
             }
             orientation="horizontal">
             <Input
-                key={component.propertyName}
-                size="small"
+                size="medium"
                 type={isPasswordField ? (options?.showPassword ? "text" : "password") : "text"}
                 value={value}
                 placeholder={component.placeholder ?? ""}
+                required={component.required}
                 onChange={handleChange}
                 onBlur={handleBlur}
                 contentAfter={
@@ -97,7 +97,7 @@ export const renderDropdown = (
             }
             orientation="horizontal">
             <Dropdown
-                size="small"
+                size="medium"
                 selectedOptions={value ? [value] : []}
                 value={
                     component.options.find(

@@ -82,6 +82,21 @@ export const PublishTargetSection: React.FC = () => {
     const [showAdminPassword, setShowAdminPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    // Local password state (like change password dialog) to prevent cursor jumping
+    const [localAdminPassword, setLocalAdminPassword] = useState(passwordValue?.toString() || "");
+    const [localConfirmPassword, setLocalConfirmPassword] = useState(
+        confirmPasswordValue?.toString() || "",
+    );
+
+    // Sync local password state with external state when external values change
+    useEffect(() => {
+        setLocalAdminPassword(passwordValue?.toString() || "");
+    }, [passwordValue]);
+
+    useEffect(() => {
+        setLocalConfirmPassword(confirmPasswordValue?.toString() || "");
+    }, [confirmPasswordValue]);
+
     // Auto-populate defaults and revalidate passwords
     useEffect(() => {
         if (!publishCtx || !isContainer) {
@@ -189,16 +204,10 @@ export const PublishTargetSection: React.FC = () => {
                     {/* Admin Password */}
                     {renderInput(
                         passwordComponent,
-                        passwordValue?.toString() || "",
+                        localAdminPassword,
                         (val: string) => {
-                            if (passwordComponent) {
-                                publishCtx.formAction({
-                                    propertyName: passwordComponent.propertyName,
-                                    isAction: false,
-                                    value: val,
-                                    updateValidation: false,
-                                });
-                            }
+                            // Update local state immediately (like change password dialog)
+                            setLocalAdminPassword(val);
                         },
                         publishCtx,
                         {
@@ -206,6 +215,7 @@ export const PublishTargetSection: React.FC = () => {
                             onTogglePassword: () => setShowAdminPassword(!showAdminPassword),
                             onBlur: (val: string) => {
                                 if (passwordComponent) {
+                                    // Sync with external state on blur only
                                     publishCtx.formAction({
                                         propertyName: passwordComponent.propertyName,
                                         isAction: false,
@@ -220,16 +230,10 @@ export const PublishTargetSection: React.FC = () => {
                     {/* Confirm Password */}
                     {renderInput(
                         confirmPasswordComponent,
-                        confirmPasswordValue?.toString() || "",
+                        localConfirmPassword,
                         (val: string) => {
-                            if (confirmPasswordComponent) {
-                                publishCtx.formAction({
-                                    propertyName: confirmPasswordComponent.propertyName,
-                                    isAction: false,
-                                    value: val,
-                                    updateValidation: false,
-                                });
-                            }
+                            // Update local state immediately (like change password dialog)
+                            setLocalConfirmPassword(val);
                         },
                         publishCtx,
                         {
@@ -237,6 +241,7 @@ export const PublishTargetSection: React.FC = () => {
                             onTogglePassword: () => setShowConfirmPassword(!showConfirmPassword),
                             onBlur: (val: string) => {
                                 if (confirmPasswordComponent) {
+                                    // Sync with external state on blur only
                                     publishCtx.formAction({
                                         propertyName: confirmPasswordComponent.propertyName,
                                         isAction: false,
