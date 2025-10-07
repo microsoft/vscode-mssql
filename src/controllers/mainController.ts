@@ -93,6 +93,7 @@ import {
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { getCloudId } from "../azure/providerSettings";
 import { LocalCacheService } from "../services/localCacheService";
+import { GitIntegrationService } from "../services/gitIntegrationService";
 
 /**
  * The main controller class that initializes the extension
@@ -126,6 +127,7 @@ export default class MainController implements vscode.Disposable {
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
     public localCacheService: LocalCacheService;
+    public gitIntegrationService: GitIntegrationService;
 
     /**
      * The main controller constructor
@@ -600,6 +602,25 @@ export default class MainController implements vscode.Disposable {
                 void this.onShowLocalCacheStatus();
             });
 
+            // Register Git integration commands
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdLinkDatabaseToGitBranch,
+                    async (node: TreeNodeInfo) => {
+                        await this.onLinkDatabaseToGitBranch(node);
+                    },
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdUnlinkDatabaseFromGit,
+                    async (node: TreeNodeInfo) => {
+                        await this.onUnlinkDatabaseFromGit(node);
+                    },
+                ),
+            );
+
             this.registerLanguageModelTools();
 
             return true;
@@ -968,6 +989,10 @@ export default class MainController implements vscode.Disposable {
 
         // Initialize local cache service
         this.localCacheService = new LocalCacheService(this._connectionMgr, this._context);
+
+        // Initialize Git integration service
+        this.gitIntegrationService = new GitIntegrationService(this._context);
+        void this.gitIntegrationService.initialize();
 
         // Hook into connection success events
         this._connectionMgr.onSuccessfulConnection((event) => {
@@ -3014,6 +3039,171 @@ export default class MainController implements vscode.Disposable {
         } catch (error) {
             void vscode.window.showErrorMessage(
                 `Failed to get cache status: ${getErrorMessage(error)}`,
+            );
+        }
+    }
+
+    /**
+     * Handle linking a database to a Git branch
+     */
+    private async onLinkDatabaseToGitBranch(node: TreeNodeInfo): Promise<void> {
+        try {
+            // Validate node and connection profile
+            if (!node || !node.connectionProfile) {
+                void vscode.window.showErrorMessage("No connection information available");
+                return;
+            }
+
+            // Get connection credentials from the node (IConnectionProfile extends IConnectionInfo)
+            const credentials: IConnectionInfo = Object.assign({}, node.connectionProfile);
+
+            // Get the actual database name from the node metadata (not from connectionProfile.database)
+            const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+            if (databaseName && databaseName !== LocalizedConstants.defaultDatabaseLabel) {
+                credentials.database = databaseName;
+            } else {
+                void vscode.window.showErrorMessage("Unable to determine database name");
+                return;
+            }
+
+            // Check if already linked
+            const status = await this.gitIntegrationService.getLinkStatus(credentials);
+            if (status.isLinked) {
+                void vscode.window.showWarningMessage(
+                    `Database ${credentials.database} is already linked to ${status.metadata.repositoryUrl} (${status.metadata.branch})`,
+                );
+                return;
+            }
+
+            // Step 1: Prompt for Git repository URL
+            const repoUrl = await vscode.window.showInputBox({
+                prompt: "Enter Git repository URL (HTTPS or SSH)",
+                placeHolder: "https://github.com/user/repo.git or git@github.com:user/repo.git",
+                validateInput: (value: string) => {
+                    const validation = this.gitIntegrationService.validateGitUrl(value);
+                    return validation.isValid ? null : validation.error;
+                },
+            });
+
+            if (!repoUrl) {
+                return; // User cancelled
+            }
+
+            // Step 2: Fetch and display branches
+            await vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: "Fetching branches...",
+                    cancellable: false,
+                },
+                async () => {
+                    const branchResult =
+                        await this.gitIntegrationService.fetchRemoteBranches(repoUrl);
+
+                    if (!branchResult.success) {
+                        void vscode.window.showErrorMessage(
+                            `Failed to fetch branches: ${branchResult.error}`,
+                        );
+                        return;
+                    }
+
+                    // Step 3: Let user select a branch
+                    const selectedBranch = await vscode.window.showQuickPick(
+                        branchResult.branches,
+                        {
+                            placeHolder: "Select a branch",
+                            canPickMany: false,
+                        },
+                    );
+
+                    if (!selectedBranch) {
+                        return; // User cancelled
+                    }
+
+                    // Step 4: Clone repository
+                    await vscode.window.withProgress(
+                        {
+                            location: vscode.ProgressLocation.Notification,
+                            title: `Cloning repository (branch: ${selectedBranch})...`,
+                            cancellable: false,
+                        },
+                        async () => {
+                            const cloneResult = await this.gitIntegrationService.cloneRepository(
+                                repoUrl,
+                                selectedBranch,
+                                credentials,
+                            );
+
+                            if (!cloneResult.success) {
+                                void vscode.window.showErrorMessage(
+                                    `Failed to clone repository: ${cloneResult.error}`,
+                                );
+                                return;
+                            }
+
+                            void vscode.window.showInformationMessage(
+                                `Database ${credentials.database} linked to ${selectedBranch} branch of ${repoUrl}`,
+                            );
+                        },
+                    );
+                },
+            );
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to link database to Git: ${getErrorMessage(error)}`,
+            );
+        }
+    }
+
+    /**
+     * Handle unlinking a database from Git
+     */
+    private async onUnlinkDatabaseFromGit(node: TreeNodeInfo): Promise<void> {
+        try {
+            // Validate node and connection profile
+            if (!node || !node.connectionProfile) {
+                void vscode.window.showErrorMessage("No connection information available");
+                return;
+            }
+
+            const credentials: IConnectionInfo = Object.assign({}, node.connectionProfile);
+
+            // Get the actual database name from the node metadata (not from connectionProfile.database)
+            const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+            if (databaseName && databaseName !== LocalizedConstants.defaultDatabaseLabel) {
+                credentials.database = databaseName;
+            } else {
+                void vscode.window.showErrorMessage("Unable to determine database name");
+                return;
+            }
+
+            // Check if linked
+            const status = await this.gitIntegrationService.getLinkStatus(credentials);
+            if (!status.isLinked) {
+                void vscode.window.showWarningMessage(
+                    `Database ${credentials.database} is not linked to any Git repository`,
+                );
+                return;
+            }
+
+            // Confirm unlink
+            const confirm = await vscode.window.showWarningMessage(
+                `Unlink database ${credentials.database} from ${status.metadata.repositoryUrl} (${status.metadata.branch})?`,
+                { modal: true },
+                "Unlink",
+            );
+
+            if (confirm !== "Unlink") {
+                return;
+            }
+
+            await this.gitIntegrationService.unlinkRepository(credentials);
+            void vscode.window.showInformationMessage(
+                `Database ${credentials.database} unlinked from Git repository`,
+            );
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to unlink database from Git: ${getErrorMessage(error)}`,
             );
         }
     }

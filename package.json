@@ -175,6 +175,7 @@
         "pretty-data": "^0.40.0",
         "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
         "shallow-equal": "^3.1.0",
+        "simple-git": "^3.28.0",
         "tar": "^7.4.3",
         "tmp": "^0.2.4",
         "tunnel": "0.0.6",
@@ -546,6 +547,16 @@
                     "command": "mssql.refreshLocalCache",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/ && config.mssql.localCache.enabled",
                     "group": "1_MSSQL_serverAndDbManagement@5"
+                },
+                {
+                    "command": "mssql.linkDatabaseToGitBranch",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
+                    "group": "1_MSSQL_serverAndDbManagement@6"
+                },
+                {
+                    "command": "mssql.unlinkDatabaseFromGit",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
+                    "group": "1_MSSQL_serverAndDbManagement@7"
                 },
                 {
                     "command": "mssql.schemaDesigner",
@@ -1231,6 +1242,18 @@
                 "command": "mssql.showLocalCacheStatus",
                 "title": "Show Local Cache Status",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.linkDatabaseToGitBranch",
+                "title": "Link to Git Branch...",
+                "category": "MS SQL",
+                "icon": "$(git-branch)"
+            },
+            {
+                "command": "mssql.unlinkDatabaseFromGit",
+                "title": "Unlink from Git",
+                "category": "MS SQL",
+                "icon": "$(close)"
             }
         ],
         "keybindings": [
