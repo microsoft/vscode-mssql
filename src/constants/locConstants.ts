@@ -1016,6 +1016,29 @@ export class QueryResult {
             }),
         ].join(os.EOL);
     };
+    public static nonNumericSelectionSummaryTooltip = (
+        count: number,
+        distinctCount: number,
+        nullCount: number,
+    ) => {
+        return [
+            l10n.t({
+                message: "Count: {0}",
+                args: [count],
+                comment: ["{0} is the count"],
+            }),
+            l10n.t({
+                message: "Distinct Count: {0}",
+                args: [distinctCount],
+                comment: ["{0} is the distinct count"],
+            }),
+            l10n.t({
+                message: "Null Count: {0}",
+                args: [nullCount],
+                comment: ["{0} is the null count"],
+            }),
+        ].join(os.EOL);
+    };
     public static summaryFetchConfirmation = (numRows: number) =>
         l10n.t({
             message: "{0} rows selected, click to load summary",
@@ -1023,16 +1046,11 @@ export class QueryResult {
             comment: ["{0} is the number of rows to fetch summary statistics for"],
         });
     public static clickToFetchSummary = l10n.t("Click to load summary");
-    public static summaryLoadingProgress = (currentRow: number, totalRows: number) => {
-        const percentage = Math.floor((currentRow / totalRows) * 100);
+    public static summaryLoadingProgress = (totalRows: number) => {
         return l10n.t({
-            message: `Loading summary {0}/{1} ({2}%) (Click to cancel)`,
-            args: [currentRow, totalRows, percentage],
-            comment: [
-                "{0} is the current row",
-                "{1} is the total number of rows",
-                "{2} is the percentage of rows loaded",
-            ],
+            message: `Loading summary for {0} rows (Click to cancel)`,
+            args: [totalRows],
+            comment: ["{0} is the total number of rows"],
         });
     };
     public static clickToCancelLoadingSummary = l10n.t("Click to cancel loading summary");

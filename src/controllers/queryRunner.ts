@@ -30,6 +30,9 @@ import {
     ExecutionPlanOptions,
     QueryConnectionUriChangeRequest,
     QueryConnectionUriChangeParams,
+    GridSelectionSummaryRequest,
+    TableSelectionRange,
+    CancelGridSelectionSummaryNotification,
 } from "../models/contracts/queryExecute";
 import { QueryDisposeParams, QueryDisposeRequest } from "../models/contracts/queryDispose";
 import {
@@ -52,10 +55,7 @@ import { Deferred } from "../protocol";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
-import {
-    calculateSelectionSummaryFromData,
-    getInMemoryGridDataProcessingThreshold,
-} from "../queryResult/utils";
+import { getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
 
 export interface IResultSet {
     columns: string[];
@@ -1069,7 +1069,7 @@ export default class QueryRunner {
     private _requestID: string;
     private _cancelConfirmation: Deferred<void>;
     public async generateSelectionSummaryData(
-        selection: ISlickRange[],
+        selections: ISlickRange[],
         batchId: number,
         resultId: number,
         showThresholdWarning: boolean = true,
@@ -1094,7 +1094,7 @@ export default class QueryRunner {
             await proceed.promise;
         };
 
-        const showProgress = (progress: number, cancelConfirmation: Deferred<void>) => {
+        const showProgress = (cancelConfirmation: Deferred<void>) => {
             this.fireSummaryChangedEvent(this._requestID, {
                 command: {
                     title: Constants.cmdHandleSummaryOperation,
@@ -1102,7 +1102,7 @@ export default class QueryRunner {
                     arguments: [this.uri],
                 },
                 continue: cancelConfirmation,
-                text: `$(arrow-circle-down) ${LocalizedConstants.QueryResult.summaryLoadingProgress(progress, totalRows)}`,
+                text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(totalRows)}`,
                 tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
                 uri: this.uri,
             });
@@ -1115,9 +1115,9 @@ export default class QueryRunner {
         this._cancelConfirmation = undefined;
 
         // Keep copy order deterministic
-        selection.sort((a, b) => a.fromRow - b.fromRow);
+        selections.sort((a, b) => a.fromRow - b.fromRow);
         let totalRows = 0;
-        for (let range of selection) {
+        for (let range of selections) {
             totalRows += range.toRow - range.fromRow + 1;
         }
 
@@ -1132,7 +1132,7 @@ export default class QueryRunner {
             // Reset and allow user to start a new summary operation
             this._cancelConfirmation = undefined;
             await waitForUserToProceed(requestId, totalRows);
-            await this.generateSelectionSummaryData(selection, batchId, resultId, false);
+            await this.generateSelectionSummaryData(selections, batchId, resultId, false);
         };
 
         this._cancelConfirmation = new Deferred<void>();
@@ -1140,113 +1140,79 @@ export default class QueryRunner {
         let isCanceled = false;
         // Set up cancellation handling
         cancel.promise
-            .then(() => (isCanceled = true))
+            .then(async () => {
+                isCanceled = true;
+                await this._client.sendNotification(CancelGridSelectionSummaryNotification.type, {
+                    ownerUri: this.uri,
+                });
+                await sendCancelSummaryEvent();
+            })
             .catch(() => {
                 /* noop */
             });
 
-        showProgress(0, cancel);
-
-        const rowIdToSelectionMap = new Map<number, ISlickRange[]>();
-        const rowIdToRowMap = new Map<number, DbCellValue[]>();
-
-        // Calculate batch threshold for processing rows in smaller chunks
-        const batchThreshold = Math.min(1000, threshold / 5);
-        let processedRows = 0;
+        showProgress(cancel);
 
         try {
-            // Process each selection range with batching
-            for (const range of selection) {
-                if (isCanceled) {
-                    await sendCancelSummaryEvent();
-                    return;
-                }
+            // Convert ISlickRange[] to TableSelectionRange[]
+            const simpleSelections: TableSelectionRange[] = selections.map((range) => ({
+                fromRow: range.fromRow,
+                toRow: range.toRow,
+                fromColumn: range.fromCell,
+                toColumn: range.toCell,
+            }));
 
-                // Split large ranges into smaller batches
-                for (
-                    let startRow = range.fromRow;
-                    startRow <= range.toRow;
-                    startRow += batchThreshold
-                ) {
-                    if (isCanceled) {
-                        await sendCancelSummaryEvent();
-                        return;
-                    }
-
-                    const endRow = Math.min(startRow + batchThreshold - 1, range.toRow);
-                    const batchSize = endRow - startRow + 1;
-
-                    // Fetch the batch
-                    const result = await this.getRows(startRow, batchSize, batchId, resultId);
-
-                    // Create a sub-range for this batch
-                    const batchRange: ISlickRange = {
-                        fromRow: startRow,
-                        toRow: endRow,
-                        fromCell: range.fromCell,
-                        toCell: range.toCell,
-                    };
-
-                    this.getRowMappings(
-                        result.resultSubset.rows,
-                        batchRange,
-                        rowIdToSelectionMap,
-                        rowIdToRowMap,
-                    );
-
-                    processedRows += batchSize;
-
-                    if (isCanceled) {
-                        await sendCancelSummaryEvent();
-                        return;
-                    }
-
-                    showProgress(processedRows, cancel);
-                }
-            }
+            const result = await this._client.sendRequest(GridSelectionSummaryRequest.type, {
+                ownerUri: this.uri,
+                batchIndex: batchId,
+                resultSetIndex: resultId,
+                rowsStartIndex: 0,
+                rowsCount: 0,
+                selections: simpleSelections,
+            });
 
             if (isCanceled) {
                 await sendCancelSummaryEvent();
                 return;
             }
 
-            // Calculate final summary
-            const selectionSummary = calculateSelectionSummaryFromData(
-                rowIdToRowMap,
-                rowIdToSelectionMap,
-            );
-
             let text = "";
             let tooltip = "";
 
             // the selection is numeric
-            if (selectionSummary.average) {
+            if (result.average !== undefined && result.average !== null) {
+                const average = result.average.toFixed(2);
                 text = LocalizedConstants.QueryResult.numericSelectionSummary(
-                    selectionSummary.average,
-                    selectionSummary.count,
-                    selectionSummary.sum,
+                    average,
+                    result.count,
+                    result.sum,
                 );
                 tooltip = LocalizedConstants.QueryResult.numericSelectionSummaryTooltip(
-                    selectionSummary.average,
-                    selectionSummary.count,
-                    selectionSummary.distinctCount,
-                    selectionSummary.max,
-                    selectionSummary.min,
-                    selectionSummary.nullCount,
-                    selectionSummary.sum,
+                    average,
+                    result.count,
+                    result.distinctCount,
+                    result.max ?? 0,
+                    result.min ?? 0,
+                    result.nullCount,
+                    result.sum,
                 );
             } else {
                 text = LocalizedConstants.QueryResult.nonNumericSelectionSummary(
-                    selectionSummary.count,
-                    selectionSummary.distinctCount,
-                    selectionSummary.nullCount,
+                    result.count,
+                    result.distinctCount,
+                    result.nullCount,
+                );
+                tooltip = LocalizedConstants.QueryResult.nonNumericSelectionSummaryTooltip(
+                    result.count,
+                    result.distinctCount,
+                    result.nullCount,
                 );
                 tooltip = text;
             }
 
             // Resolve the cancel confirmation to clean up
             if (!isCanceled) {
-                cancel.resolve();
+                cancel.reject();
             }
 
             this.fireSummaryChangedEvent(requestId, {
