@@ -38,8 +38,8 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
                 extensionRpc.action("publishNow", payload ?? {}),
             generatePublishScript: () => extensionRpc.action("generatePublishScript"),
             selectPublishProfile: () => extensionRpc.action("selectPublishProfile"),
-            savePublishProfile: (profileName: string) =>
-                extensionRpc.action("savePublishProfile", { profileName }),
+            savePublishProfile: (publishProfileName: string) =>
+                extensionRpc.action("savePublishProfile", { profileName: publishProfileName }),
             extensionRpc,
         }),
         [extensionRpc],

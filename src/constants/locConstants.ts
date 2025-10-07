@@ -1282,8 +1282,8 @@ export class TableDesigner {
 
 export class PublishProject {
     public static Title = l10n.t("Publish Project");
-    public static ProfileLabel = l10n.t("Publish Profile");
-    public static ProfilePlaceholder = l10n.t("Select or enter a publish profile");
+    public static PublishProfileLabel = l10n.t("Publish Profile");
+    public static PublishProfilePlaceholder = l10n.t("Select or enter a publish profile");
     public static ServerLabel = l10n.t("Server");
     public static DatabaseLabel = l10n.t("Database");
     public static DatabaseRequiredMessage = l10n.t("Database name is required");

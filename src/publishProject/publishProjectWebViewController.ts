@@ -37,36 +37,41 @@ export class PublishProjectWebViewController extends FormWebviewController<
         projectFilePath: string,
         sqlProjectsService?: SqlProjectsService,
     ) {
-        const initialFormState: IPublishForm = {
-            profileName: "",
-            serverName: "",
-            databaseName: path.basename(projectFilePath, path.extname(projectFilePath)),
-            publishTarget: constants.PublishTargets.EXISTING_SERVER,
-            sqlCmdVariables: {},
-        };
-
-        const innerState: PublishDialogState = {
-            formState: initialFormState,
-            formComponents: {},
-            projectFilePath,
-            inProgress: false,
-            lastPublishResult: undefined,
-        } as PublishDialogState;
-
-        const initialState: PublishDialogState = innerState;
-
-        super(context, _vscodeWrapper, "publishDialog", "publishDialog", initialState, {
-            title: Loc.Title,
-            viewColumn: vscode.ViewColumn.Active,
-            iconPath: {
-                dark: vscode.Uri.joinPath(context.extensionUri, "media", "schemaCompare_dark.svg"),
-                light: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "schemaCompare_light.svg",
-                ),
+        super(
+            context,
+            _vscodeWrapper,
+            "publishProject",
+            "publishProject",
+            {
+                formState: {
+                    publishProfilePath: "",
+                    serverName: "",
+                    databaseName: path.basename(projectFilePath, path.extname(projectFilePath)),
+                    publishTarget: "existingServer",
+                    sqlCmdVariables: {},
+                },
+                formComponents: generatePublishFormComponents(),
+                projectFilePath,
+                inProgress: false,
+                lastPublishResult: undefined,
+            } as PublishDialogState,
+            {
+                title: Loc.Title,
+                viewColumn: vscode.ViewColumn.Active,
+                iconPath: {
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "schemaCompare_dark.svg",
+                    ),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "schemaCompare_light.svg",
+                    ),
+                },
             },
-        });
+        );
 
         // Store the SQL Projects Service
         this._sqlProjectsService = sqlProjectsService;
@@ -131,7 +136,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
             }
         }
 
-        await this.updateItemVisibility();
+        void this.updateItemVisibility();
     }
 
     /** Registers all reducers in pure (immutable) style */
@@ -153,14 +158,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         this.registerReducer(
             "savePublishProfile",
-            async (state: PublishDialogState, payload: { profileName?: string }) => {
-                if (payload?.profileName) {
-                    return {
-                        ...state,
-                        formState: { ...state.formState, profileName: payload.profileName },
-                    };
-                }
-                // TODO: implement profile saving logic
+            async (state: PublishDialogState, _payload: { profileName: string }) => {
+                // TODO: implement profile saving logic using _payload.profileName
+                // This should save current form state to a file with the given name
                 return state;
             },
         );
@@ -169,7 +169,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
     protected getActiveFormComponents(state: PublishDialogState): (keyof IPublishForm)[] {
         const activeComponents: (keyof IPublishForm)[] = [
             constants.PublishFormFields.PublishTarget,
-            constants.PublishFormFields.ProfileName,
+            constants.PublishFormFields.PublishProfilePath,
             constants.PublishFormFields.ServerName,
             constants.PublishFormFields.DatabaseName,
         ] as (keyof IPublishForm)[];
@@ -181,7 +181,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         return activeComponents;
     }
 
-    public async updateItemVisibility(state?: PublishDialogState): Promise<void> {
+    public updateItemVisibility(state?: PublishDialogState): Promise<void> {
         const currentState = state || this.state;
         const target = currentState.formState?.publishTarget;
         const hidden: string[] = [];
@@ -200,5 +200,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         for (const component of Object.values(currentState.formComponents)) {
             component.hidden = hidden.includes(component.propertyName);
         }
+
+        return Promise.resolve();
     }
 }

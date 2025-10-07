@@ -10,55 +10,31 @@ import * as constants from "../../src/constants/constants";
 
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { PublishProjectWebViewController } from "../../src/publishProject/publishProjectWebViewController";
+import { stubVscodeWrapper } from "./utils";
 
 suite("PublishProjectWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let contextStub: vscode.ExtensionContext;
-    let vscodeWrapperStub: VscodeWrapper;
-    let workspaceConfigStub: sinon.SinonStub;
+    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
 
-        // Create minimal context stub - only what the controller actually uses
-        contextStub = {
+        const rawContext: Partial<vscode.ExtensionContext> = {
             extensionUri: vscode.Uri.parse("file://ProjectPath"),
             extensionPath: "ProjectPath",
             subscriptions: [],
-        } as vscode.ExtensionContext;
-
-        const outputChannel: vscode.OutputChannel = {
-            name: "test",
-            append: () => undefined,
-            appendLine: () => undefined,
-            clear: () => undefined,
-            replace: (_value: string) => undefined,
-            show: () => undefined,
-            hide: () => undefined,
-            dispose: () => undefined,
         };
+        contextStub = rawContext as vscode.ExtensionContext;
 
-        // Subclass VscodeWrapper to override the outputChannel getter cleanly.
-        class TestVscodeWrapper extends VscodeWrapper {
-            public override get outputChannel(): vscode.OutputChannel {
-                return outputChannel;
-            }
-        }
-        vscodeWrapperStub = new TestVscodeWrapper();
-
-        // Stub workspace configuration for preview features
-        workspaceConfigStub = sandbox.stub(vscode.workspace, "getConfiguration");
-        workspaceConfigStub.withArgs("sqlDatabaseProjects").returns({
-            get: sandbox.stub().withArgs("enablePreviewFeatures").returns(false),
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any);
+        vscodeWrapperStub = stubVscodeWrapper(sandbox);
     });
 
     teardown(() => {
         sandbox.restore();
     });
 
-    test("constructor initializes state and derives database name", async () => {
+    test("constructor initializes state and derives database name", () => {
         const projectPath = "c:/work/MySampleProject.sqlproj";
         const controller = new PublishProjectWebViewController(
             contextStub,
@@ -66,17 +42,14 @@ suite("PublishProjectWebViewController Tests", () => {
             projectPath,
         );
 
-        // Initial synchronous expectations
+        // Verify initial state
         expect(controller.state.projectFilePath).to.equal(projectPath);
         expect(controller.state.formState.databaseName).to.equal("MySampleProject");
 
-        // Wait for async initializeDialog() to finish populating formComponents
-        await controller.initialized.promise;
-
-        // Form components should be initialized after async initialization
+        // Form components should be initialized synchronously
         const components = controller.state.formComponents;
         // Basic fields expected from generatePublishFormComponents()
-        expect(components.profileName, "profileName component should exist").to.exist;
+        expect(components.publishProfilePath, "publishProfilePath component should exist").to.exist;
         expect(components.serverName, "serverName component should exist").to.exist;
         expect(components.databaseName, "databaseName component should exist").to.exist;
         expect(components.publishTarget, "publishTarget component should exist").to.exist;

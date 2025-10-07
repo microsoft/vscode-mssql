@@ -10,7 +10,7 @@ import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
  * Data fields shown in the Publish form.
  */
 export interface IPublishForm {
-    profileName?: string;
+    publishProfilePath?: string;
     serverName?: string;
     databaseName?: string;
     publishTarget?: constants.PublishTargetType;
@@ -45,7 +45,7 @@ export interface PublishDialogState
 export interface PublishDialogFormItemSpec
     extends FormItemSpec<IPublishForm, PublishDialogState, PublishDialogFormItemSpec> {
     // (Removed advanced option metadata: was isAdvancedOption/optionCategory/optionCategoryLabel)
-    // Reintroduce when the Publish dialog gains an "Advanced" section with grouped fields.
+    // Reintroduce when the Publish dialog gains an "Advanced publish options" section with grouped fields.
     // TODO: https://github.com/microsoft/vscode-mssql/issues/20248 task for advanced options
 }
 
@@ -61,6 +61,7 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
         publishProfilePath?: string;
     };
     generatePublishScript: {};
+    openPublishAdvanced: {};
     selectPublishProfile: {};
     savePublishProfile: { profileName: string };
 }

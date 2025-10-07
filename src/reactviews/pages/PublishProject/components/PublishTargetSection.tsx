@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { makeStyles } from "@fluentui/react-components";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
 import * as constants from "../../../../constants/constants";
-import { InputField, DropdownField, CheckboxField } from "./FormFieldComponents";
+import { renderInput, renderDropdown, CheckboxField } from "./FormFieldComponents";
 import { parseHtmlLabel } from "../../../../publishProject/projectUtils";
 
 const useStyles = makeStyles({
@@ -78,6 +78,10 @@ export const PublishTargetSection: React.FC = () => {
         (s) => s.formState[constants.PublishFormFields.AcceptContainerLicense],
     );
 
+    // Password visibility state management
+    const [showAdminPassword, setShowAdminPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     // Auto-populate defaults and revalidate passwords
     useEffect(() => {
         if (!publishCtx || !isContainer) {
@@ -134,121 +138,132 @@ export const PublishTargetSection: React.FC = () => {
         return undefined;
     }
 
-    const getValidationState = (validation: typeof targetComponent.validation) => {
-        return validation ? (validation.isValid ? "none" : "error") : "none";
-    };
-
     return (
         <div className={classes.root}>
             {/* Publish Target Dropdown */}
-            <DropdownField
-                component={targetComponent}
-                value={targetValue}
-                onChange={(val) => {
+            {renderDropdown(
+                targetComponent,
+                targetValue,
+                (val: string) => {
                     publishCtx.formAction({
                         propertyName: targetComponent.propertyName,
                         isAction: false,
                         value: val,
                     });
-                }}
-                getValidationState={getValidationState}
-            />
+                },
+                publishCtx,
+            )}
 
             {/* Container Fields - Shown only when local container is selected */}
             {isContainer && (
                 <div className={classes.containerGroup}>
                     {/* Container Port */}
-                    <InputField
-                        component={portComponent}
-                        value={portValue?.toString() || ""}
-                        onChange={(val) =>
-                            portComponent &&
-                            publishCtx.formAction({
-                                propertyName: portComponent.propertyName,
-                                isAction: false,
-                                value: val,
-                                updateValidation: false,
-                            })
-                        }
-                        onBlur={(val) =>
-                            portComponent &&
-                            publishCtx.formAction({
-                                propertyName: portComponent.propertyName,
-                                isAction: false,
-                                value: val,
-                                updateValidation: true,
-                            })
-                        }
-                        getValidationState={getValidationState}
-                    />
+                    {renderInput(
+                        portComponent,
+                        portValue?.toString() || "",
+                        (val: string) => {
+                            if (portComponent) {
+                                publishCtx.formAction({
+                                    propertyName: portComponent.propertyName,
+                                    isAction: false,
+                                    value: val,
+                                    updateValidation: false,
+                                });
+                            }
+                        },
+                        publishCtx,
+                        {
+                            onBlur: (val: string) => {
+                                if (portComponent) {
+                                    publishCtx.formAction({
+                                        propertyName: portComponent.propertyName,
+                                        isAction: false,
+                                        value: val,
+                                        updateValidation: true,
+                                    });
+                                }
+                            },
+                        },
+                    )}
 
                     {/* Admin Password */}
-                    <InputField
-                        component={passwordComponent}
-                        value={passwordValue?.toString() || ""}
-                        type="password"
-                        onChange={(val) =>
-                            passwordComponent &&
-                            publishCtx.formAction({
-                                propertyName: passwordComponent.propertyName,
-                                isAction: false,
-                                value: val,
-                                updateValidation: false,
-                            })
-                        }
-                        onBlur={(val) =>
-                            passwordComponent &&
-                            publishCtx.formAction({
-                                propertyName: passwordComponent.propertyName,
-                                isAction: false,
-                                value: val,
-                                updateValidation: true,
-                            })
-                        }
-                        getValidationState={getValidationState}
-                    />
+                    {renderInput(
+                        passwordComponent,
+                        passwordValue?.toString() || "",
+                        (val: string) => {
+                            if (passwordComponent) {
+                                publishCtx.formAction({
+                                    propertyName: passwordComponent.propertyName,
+                                    isAction: false,
+                                    value: val,
+                                    updateValidation: false,
+                                });
+                            }
+                        },
+                        publishCtx,
+                        {
+                            showPassword: showAdminPassword,
+                            onTogglePassword: () => setShowAdminPassword(!showAdminPassword),
+                            onBlur: (val: string) => {
+                                if (passwordComponent) {
+                                    publishCtx.formAction({
+                                        propertyName: passwordComponent.propertyName,
+                                        isAction: false,
+                                        value: val,
+                                        updateValidation: true,
+                                    });
+                                }
+                            },
+                        },
+                    )}
 
                     {/* Confirm Password */}
-                    <InputField
-                        component={confirmPasswordComponent}
-                        value={confirmPasswordValue?.toString() || ""}
-                        type="password"
-                        onChange={(val) =>
-                            confirmPasswordComponent &&
-                            publishCtx.formAction({
-                                propertyName: confirmPasswordComponent.propertyName,
-                                isAction: false,
-                                value: val,
-                                updateValidation: false,
-                            })
-                        }
-                        onBlur={(val) =>
-                            confirmPasswordComponent &&
-                            publishCtx.formAction({
-                                propertyName: confirmPasswordComponent.propertyName,
-                                isAction: false,
-                                value: val,
-                                updateValidation: true,
-                            })
-                        }
-                        getValidationState={getValidationState}
-                    />
+                    {renderInput(
+                        confirmPasswordComponent,
+                        confirmPasswordValue?.toString() || "",
+                        (val: string) => {
+                            if (confirmPasswordComponent) {
+                                publishCtx.formAction({
+                                    propertyName: confirmPasswordComponent.propertyName,
+                                    isAction: false,
+                                    value: val,
+                                    updateValidation: false,
+                                });
+                            }
+                        },
+                        publishCtx,
+                        {
+                            showPassword: showConfirmPassword,
+                            onTogglePassword: () => setShowConfirmPassword(!showConfirmPassword),
+                            onBlur: (val: string) => {
+                                if (confirmPasswordComponent) {
+                                    publishCtx.formAction({
+                                        propertyName: confirmPasswordComponent.propertyName,
+                                        isAction: false,
+                                        value: val,
+                                        updateValidation: true,
+                                    });
+                                }
+                            },
+                        },
+                    )}
 
                     {/* Container Image Tag */}
-                    <DropdownField
-                        component={imageTagComponent}
-                        value={imageTagValue?.toString()}
-                        onChange={(val) => {
-                            imageTagComponent &&
+                    {renderDropdown(
+                        imageTagComponent,
+                        imageTagValue?.toString(),
+                        (val: string) => {
+                            if (imageTagComponent) {
                                 publishCtx.formAction({
                                     propertyName: imageTagComponent.propertyName,
                                     isAction: false,
                                     value: val,
                                     updateValidation: true,
                                 });
-                        }}
-                        getValidationState={getValidationState}
-                    />
+                            }
+                        },
+                        publishCtx,
+                    )}
 
                     {/* Accept License Checkbox */}
                     <CheckboxField
@@ -282,7 +297,6 @@ export const PublishTargetSection: React.FC = () => {
                                     updateValidation: true,
                                 });
                         }}
-                        getValidationState={getValidationState}
                     />
                 </div>
             )}

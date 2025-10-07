@@ -64,23 +64,23 @@ function generatePublishTargetOptions(projectTargetVersion?: string): FormItemOp
  * (e.g. reading project metadata, fetching remote targets, etc.)
  * @param projectTargetVersion - The target version of the project (e.g., "AzureV12" for Azure SQL)
  */
-export async function generatePublishFormComponents(
+export function generatePublishFormComponents(
     projectTargetVersion?: string,
-): Promise<Record<keyof IPublishForm, PublishDialogFormItemSpec>> {
+): Record<keyof IPublishForm, PublishDialogFormItemSpec> {
     const components: Record<keyof IPublishForm, PublishDialogFormItemSpec> = {
-        [constants.PublishFormFields.ProfileName]: {
-            propertyName: constants.PublishFormFields.ProfileName,
-            label: Loc.ProfileLabel,
+        publishProfilePath: {
+            propertyName: constants.PublishFormFields.PublishProfilePath,
+            label: Loc.PublishProfileLabel,
             required: false,
             type: FormItemType.Input,
         },
-        [constants.PublishFormFields.ServerName]: {
+        serverName: {
             propertyName: constants.PublishFormFields.ServerName,
             label: Loc.ServerLabel,
             required: true,
             type: FormItemType.Input,
         },
-        [constants.PublishFormFields.DatabaseName]: {
+        databaseName: {
             propertyName: constants.PublishFormFields.DatabaseName,
             label: Loc.DatabaseLabel,
             required: true,
@@ -90,14 +90,14 @@ export async function generatePublishFormComponents(
                 return { isValid, validationMessage: isValid ? "" : Loc.DatabaseRequiredMessage };
             },
         },
-        [constants.PublishFormFields.PublishTarget]: {
+        publishTarget: {
             propertyName: constants.PublishFormFields.PublishTarget,
             label: Loc.PublishTargetLabel,
             required: true,
             type: FormItemType.Dropdown,
             options: generatePublishTargetOptions(projectTargetVersion),
         },
-        [constants.PublishFormFields.ContainerPort]: {
+        containerPort: {
             propertyName: constants.PublishFormFields.ContainerPort,
             label: Loc.SqlServerPortNumber,
             required: true,
@@ -111,7 +111,7 @@ export async function generatePublishFormComponents(
                 };
             },
         },
-        [constants.PublishFormFields.ContainerAdminPassword]: {
+        containerAdminPassword: {
             propertyName: constants.PublishFormFields.ContainerAdminPassword,
             label: Loc.SqlServerAdminPassword,
             required: true,
@@ -125,7 +125,7 @@ export async function generatePublishFormComponents(
                 };
             },
         },
-        [constants.PublishFormFields.ContainerAdminPasswordConfirm]: {
+        containerAdminPasswordConfirm: {
             propertyName: constants.PublishFormFields.ContainerAdminPasswordConfirm,
             label: Loc.SqlServerAdminPasswordConfirm,
             required: true,
@@ -144,7 +144,7 @@ export async function generatePublishFormComponents(
                 };
             },
         },
-        [constants.PublishFormFields.ContainerImageTag]: {
+        containerImageTag: {
             propertyName: constants.PublishFormFields.ContainerImageTag,
             label: Loc.SqlServerImageTag,
             required: true,
@@ -155,7 +155,7 @@ export async function generatePublishFormComponents(
                 return { isValid: !!v, validationMessage: v ? "" : constants.RequiredFieldMessage };
             },
         },
-        [constants.PublishFormFields.AcceptContainerLicense]: {
+        acceptContainerLicense: {
             propertyName: constants.PublishFormFields.AcceptContainerLicense,
             label: Loc.UserLicenseAgreement(
                 "https://github.com/microsoft/containerregistry/blob/main/legal/Container-Images-Legal-Notice.md",

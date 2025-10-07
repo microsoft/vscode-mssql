@@ -6,30 +6,39 @@
 import { Field, Dropdown, Option, Input, Checkbox, Button } from "@fluentui/react-components";
 import { EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
 import { FormItemType } from "../../../../sharedInterfaces/form";
-import { PublishDialogFormItemSpec } from "../../../../sharedInterfaces/publishDialog";
-import { useState } from "react";
+import type {
+    IPublishForm,
+    PublishProjectProvider,
+    PublishDialogFormItemSpec,
+} from "../../../../sharedInterfaces/publishDialog";
 
-/**
- * Reusable Input field component with validation
- */
-export const InputField: React.FC<{
-    component: PublishDialogFormItemSpec | undefined;
-    value: string;
-    onChange: (value: string) => void;
-    onBlur?: (value: string) => void; // Optional blur handler, receives current value
-    type?: "text" | "password" | "email" | "tel" | "url";
-    getValidationState: (validation: PublishDialogFormItemSpec["validation"]) => "none" | "error";
-}> = ({ component, value, onChange, onBlur, type = "text", getValidationState }) => {
-    const [showPassword, setShowPassword] = useState(false);
-
+export const renderInput = (
+    component: PublishDialogFormItemSpec | undefined,
+    value: string,
+    setValue: (v: string) => void,
+    _context: PublishProjectProvider,
+    options?: {
+        inputType?: FormItemType;
+        onBlur?: (value: string) => void;
+        showPassword?: boolean;
+        onTogglePassword?: () => void;
+    },
+) => {
     if (!component || component.hidden) return undefined;
+    if (component.type !== FormItemType.Input && component.type !== FormItemType.Password) {
+        return undefined;
+    }
 
-    const isPassword = type === "password";
-    const inputType = isPassword ? (showPassword ? "text" : "password") : type;
+    const isPasswordField =
+        options?.inputType === FormItemType.Password || component.type === FormItemType.Password;
+
+    const handleChange = (_: React.FormEvent<HTMLInputElement>, data: { value: string }) => {
+        setValue(data.value);
+    };
 
     const handleBlur = () => {
-        if (onBlur) {
-            onBlur(value);
+        if (options?.onBlur) {
+            options.onBlur(value);
         }
     };
 
@@ -39,24 +48,27 @@ export const InputField: React.FC<{
             required={component.required}
             label={component.label}
             validationMessage={component.validation?.validationMessage}
-            validationState={getValidationState(component.validation)}
+            validationState={
+                component.validation ? (component.validation.isValid ? "none" : "error") : "none"
+            }
             orientation="horizontal">
             <Input
+                key={component.propertyName}
                 size="small"
-                type={inputType}
+                type={isPasswordField ? (options?.showPassword ? "text" : "password") : "text"}
                 value={value}
                 placeholder={component.placeholder ?? ""}
-                onChange={(_, data) => onChange(data.value)}
+                onChange={handleChange}
                 onBlur={handleBlur}
                 contentAfter={
-                    isPassword ? (
+                    isPasswordField ? (
                         <Button
-                            onClick={() => setShowPassword(!showPassword)}
-                            icon={showPassword ? <EyeRegular /> : <EyeOffRegular />}
+                            onClick={options?.onTogglePassword}
+                            icon={options?.showPassword ? <EyeRegular /> : <EyeOffRegular />}
                             appearance="transparent"
                             size="small"
-                            aria-label={showPassword ? "Hide password" : "Show password"}
-                            title={showPassword ? "Hide password" : "Show password"}
+                            aria-label={options?.showPassword ? "Hide password" : "Show password"}
+                            title={options?.showPassword ? "Hide password" : "Show password"}
                         />
                     ) : undefined
                 }
@@ -65,15 +77,12 @@ export const InputField: React.FC<{
     );
 };
 
-/**
- * Reusable Dropdown field component with validation
- */
-export const DropdownField: React.FC<{
-    component: PublishDialogFormItemSpec | undefined;
-    value: string | undefined;
-    onChange: (value: string) => void;
-    getValidationState: (validation: PublishDialogFormItemSpec["validation"]) => "none" | "error";
-}> = ({ component, value, onChange, getValidationState }) => {
+export const renderDropdown = (
+    component: PublishDialogFormItemSpec | undefined,
+    value: string | undefined,
+    setValue: (v: string) => void,
+    context: PublishProjectProvider,
+) => {
     if (!component || component.hidden) return undefined;
     if (component.type !== FormItemType.Dropdown || !component.options) return undefined;
 
@@ -83,45 +92,74 @@ export const DropdownField: React.FC<{
             required={component.required}
             label={component.label}
             validationMessage={component.validation?.validationMessage}
-            validationState={getValidationState(component.validation)}
+            validationState={
+                component.validation ? (component.validation.isValid ? "none" : "error") : "none"
+            }
             orientation="horizontal">
             <Dropdown
                 size="small"
                 selectedOptions={value ? [value] : []}
-                value={component.options.find((o) => o.value === value)?.displayName || ""}
+                value={
+                    component.options.find(
+                        (o: { value: string; displayName: string }) => o.value === value,
+                    )?.displayName || ""
+                }
                 placeholder={component.placeholder ?? ""}
-                onOptionSelect={(_, data) => onChange(data.optionValue as string)}>
-                {component.options.map((opt, i) => (
-                    <Option key={opt.value + i} value={opt.value} color={opt.color}>
-                        {opt.displayName}
-                    </Option>
-                ))}
+                onOptionSelect={(
+                    _: React.SyntheticEvent,
+                    data: { optionValue: string | undefined },
+                ) => {
+                    if (data.optionValue) {
+                        setValue(data.optionValue);
+                        context.formAction({
+                            propertyName: component.propertyName as keyof IPublishForm,
+                            isAction: false,
+                            value: data.optionValue,
+                        });
+                    }
+                }}>
+                {component.options.map(
+                    (opt: { value: string; displayName: string; color?: string }, i: number) => (
+                        <Option key={opt.value + i} value={opt.value} color={opt.color}>
+                            {opt.displayName}
+                        </Option>
+                    ),
+                )}
             </Dropdown>
         </Field>
     );
 };
 
-/**
- * Reusable Checkbox field component with validation
- */
-export const CheckboxField: React.FC<{
+export const CheckboxField = ({
+    component,
+    checked,
+    onChange,
+    label,
+    getValidationState,
+}: {
     component: PublishDialogFormItemSpec | undefined;
     checked: boolean;
     onChange: (checked: boolean) => void;
-    label?: React.ReactNode; // Optional pre-parsed label to override component.label
-    getValidationState: (validation: PublishDialogFormItemSpec["validation"]) => "none" | "error";
-}> = ({ component, checked, onChange, label, getValidationState }) => {
+    label?: React.ReactNode;
+    getValidationState?: (validation: PublishDialogFormItemSpec["validation"]) => "none" | "error";
+}) => {
     if (!component || component.hidden) return undefined;
 
-    // Use provided label or fall back to component.label
     const labelContent = label ?? component.label;
+    const validationState = getValidationState
+        ? getValidationState(component.validation)
+        : component.validation
+          ? component.validation.isValid
+              ? "none"
+              : "error"
+          : "none";
 
     return (
         <Field
             key={component.propertyName}
             required={component.required}
             validationMessage={component.validation?.validationMessage}
-            validationState={getValidationState(component.validation)}>
+            validationState={validationState}>
             <div
                 style={{
                     display: "flex",
@@ -131,7 +169,10 @@ export const CheckboxField: React.FC<{
                 }}>
                 <Checkbox
                     checked={checked}
-                    onChange={(_, data) => onChange(data.checked === true)}
+                    onChange={(
+                        _: React.FormEvent<HTMLInputElement>,
+                        data: { checked: boolean | "mixed" },
+                    ) => onChange(data.checked === true)}
                 />
                 <span style={{ whiteSpace: "normal" }}>{labelContent}</span>
             </div>

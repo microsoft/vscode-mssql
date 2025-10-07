@@ -320,7 +320,7 @@ export const PublishTargets = {
 } as const;
 export type PublishTargetType = (typeof PublishTargets)[keyof typeof PublishTargets];
 export const PublishFormFields = {
-    ProfileName: "profileName",
+    PublishProfilePath: "publishProfilePath",
     ServerName: "serverName",
     DatabaseName: "databaseName",
     PublishTarget: "publishTarget",
