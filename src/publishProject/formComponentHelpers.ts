@@ -1,0 +1,70 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { FormItemType } from "../sharedInterfaces/form";
+import {
+    IPublishForm,
+    PublishDialogFormItemSpec,
+    PublishDialogState,
+} from "../sharedInterfaces/publishDialog";
+import { PublishProject as Loc } from "../constants/locConstants";
+
+/**
+ * Generate publish form components.
+ */
+export function generatePublishFormComponents(): Record<
+    keyof IPublishForm,
+    PublishDialogFormItemSpec
+> {
+    const components: Record<keyof IPublishForm, PublishDialogFormItemSpec> = {
+        publishProfilePath: {
+            propertyName: "publishProfilePath",
+            label: Loc.PublishProfileLabel,
+            required: false,
+            type: FormItemType.Input,
+        },
+        serverName: {
+            propertyName: "serverName",
+            label: Loc.ServerLabel,
+            required: true,
+            type: FormItemType.Input,
+        },
+        databaseName: {
+            propertyName: "databaseName",
+            label: Loc.DatabaseLabel,
+            required: true,
+            type: FormItemType.Input,
+            validate: (_state: PublishDialogState, value: string) => {
+                const isValid = (value ?? "").trim().length > 0;
+                return { isValid, validationMessage: isValid ? "" : Loc.DatabaseRequiredMessage };
+            },
+        },
+        publishTarget: {
+            propertyName: "publishTarget",
+            label: Loc.PublishTargetLabel,
+            required: true,
+            type: FormItemType.Dropdown,
+            options: [
+                {
+                    displayName: Loc.PublishTargetExisting,
+                    value: "existingServer",
+                },
+                {
+                    displayName: Loc.PublishTargetContainer,
+                    value: "localContainer",
+                },
+            ],
+        },
+        sqlCmdVariables: {
+            propertyName: "sqlCmdVariables",
+            label: Loc.SqlCmdVariablesLabel,
+            required: false,
+            type: FormItemType.Input,
+            hidden: true,
+        },
+    };
+
+    return components;
+}
