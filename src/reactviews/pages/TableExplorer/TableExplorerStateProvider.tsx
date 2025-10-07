@@ -50,6 +50,10 @@ export const TableExplorerStateProvider: React.FC<{
                 revertCell: function (rowId: number, columnId: number): void {
                     webViewState?.extensionRpc.action("revertCell", { rowId, columnId });
                 },
+
+                revertRow: function (rowId: number): void {
+                    webViewState?.extensionRpc.action("revertRow", { rowId });
+                },
             }}>
             {children}
         </TableExplorerContext.Provider>

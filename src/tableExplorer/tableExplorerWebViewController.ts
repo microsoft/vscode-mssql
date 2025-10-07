@@ -313,6 +313,30 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             }
             return state;
         });
+
+        this.registerReducer("revertRow", async (state, payload) => {
+            this.logger.info(`Reverting row: ${payload.rowId}`);
+            try {
+                await this._tableExplorerService.revertRow(state.ownerUri, payload.rowId);
+                vscode.window.showInformationMessage("Row reverted successfully");
+
+                // Reload the result set to reflect the reverted row
+                const subsetResult = await this._tableExplorerService.subset(
+                    state.ownerUri,
+                    0,
+                    100,
+                );
+                state.resultSet = subsetResult;
+
+                this.updateState();
+
+                this.logger.info(`Reloaded ${subsetResult.rowCount} rows after reverting`);
+            } catch (error) {
+                this.logger.error(`Error reverting row: ${error}`);
+                vscode.window.showErrorMessage(`Failed to revert row: ${error}`);
+            }
+            return state;
+        });
     }
 
     /**

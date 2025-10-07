@@ -189,6 +189,7 @@ export interface TableExplorerContextProps {
     deleteRow: (rowId: number) => void;
     updateCell: (rowId: number, columnId: number, newValue: string) => void;
     revertCell: (rowId: number, columnId: number) => void;
+    revertRow: (rowId: number) => void;
 }
 
 export interface TableExplorerReducers {
@@ -198,4 +199,5 @@ export interface TableExplorerReducers {
     deleteRow: { rowId: number };
     updateCell: { rowId: number; columnId: number; newValue: string };
     revertCell: { rowId: number; columnId: number };
+    revertRow: { rowId: number };
 }
