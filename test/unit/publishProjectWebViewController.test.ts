@@ -117,7 +117,7 @@ suite("PublishProjectWebViewController Tests", () => {
 
         // Should include basic fields but NOT container fields
         expect(activeComponents).to.include("publishTarget");
-        expect(activeComponents).to.include("profileName");
+        expect(activeComponents).to.include("publishProfilePath");
         expect(activeComponents).to.include("serverName");
         expect(activeComponents).to.include("databaseName");
 
@@ -143,7 +143,7 @@ suite("PublishProjectWebViewController Tests", () => {
 
         // Should include basic fields AND container fields
         expect(activeComponents).to.include("publishTarget");
-        expect(activeComponents).to.include("profileName");
+        expect(activeComponents).to.include("publishProfilePath");
         expect(activeComponents).to.include("databaseName");
 
         // Should include container fields

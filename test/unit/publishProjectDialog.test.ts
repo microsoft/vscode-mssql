@@ -442,7 +442,11 @@ suite("PublishProjectWebViewController", () => {
 
         // Act - Set profile name
         await formAction(controller.state, {
-            event: { propertyName: "profileName", value: "MyPublishProfile", isAction: false },
+            event: {
+                propertyName: "publishProfilePath",
+                value: "MyPublishProfile",
+                isAction: false,
+            },
         });
 
         // Assert
