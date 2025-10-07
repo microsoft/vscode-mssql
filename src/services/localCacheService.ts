@@ -402,6 +402,13 @@ export class LocalCacheService implements vscode.Disposable {
     }
 
     /**
+     * Get the base path for all caches
+     */
+    public getCacheBasePath(): vscode.Uri {
+        return this._cacheBasePath;
+    }
+
+    /**
      * Get the metadata file path for a connection
      */
     private getMetadataFilePath(cacheDir: vscode.Uri): vscode.Uri {

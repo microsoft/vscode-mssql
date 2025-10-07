@@ -94,6 +94,7 @@ import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest"
 import { getCloudId } from "../azure/providerSettings";
 import { LocalCacheService } from "../services/localCacheService";
 import { GitIntegrationService } from "../services/gitIntegrationService";
+import { GitStatusService } from "../services/gitStatusService";
 
 /**
  * The main controller class that initializes the extension
@@ -128,6 +129,7 @@ export default class MainController implements vscode.Disposable {
     public connectionSharingService: ConnectionSharingService;
     public localCacheService: LocalCacheService;
     public gitIntegrationService: GitIntegrationService;
+    public gitStatusService: GitStatusService;
 
     /**
      * The main controller constructor
@@ -994,6 +996,12 @@ export default class MainController implements vscode.Disposable {
         this.gitIntegrationService = new GitIntegrationService(this._context);
         void this.gitIntegrationService.initialize();
 
+        // Initialize Git status service
+        this.gitStatusService = new GitStatusService(
+            this.gitIntegrationService,
+            this.localCacheService,
+        );
+
         // Hook into connection success events
         this._connectionMgr.onSuccessfulConnection((event) => {
             this._connectionMgr.vscodeWrapper.logToOutputChannel(
@@ -1410,7 +1418,13 @@ export default class MainController implements vscode.Disposable {
                 this._vscodeWrapper,
                 this._connectionMgr,
                 this.isRichExperiencesEnabled,
+                this.gitStatusService,
             );
+
+        // If provider was passed in (for testing), set the Git status service
+        if (objectExplorerProvider && this.gitStatusService) {
+            objectExplorerProvider.setGitStatusService(this.gitStatusService);
+        }
 
         this.objectExplorerTree = vscode.window.createTreeView("objectExplorer", {
             treeDataProvider: this._objectExplorerProvider,
@@ -1422,6 +1436,12 @@ export default class MainController implements vscode.Disposable {
             ),
         });
         this._context.subscriptions.push(this.objectExplorerTree);
+
+        // Register Git decoration provider for Object Explorer
+        const gitDecorationProvider = this._objectExplorerProvider.getGitDecorationProvider();
+        this._context.subscriptions.push(
+            vscode.window.registerFileDecorationProvider(gitDecorationProvider),
+        );
 
         // Old style Add connection when experimental features are not enabled
 
@@ -3144,6 +3164,10 @@ export default class MainController implements vscode.Disposable {
                             void vscode.window.showInformationMessage(
                                 `Database ${credentials.database} linked to ${selectedBranch} branch of ${repoUrl}`,
                             );
+
+                            // Clear Git status cache and refresh Object Explorer to show Git decorations
+                            this.gitStatusService.clearCache(credentials);
+                            this._objectExplorerProvider.refresh(node);
                         },
                     );
                 },
@@ -3201,6 +3225,10 @@ export default class MainController implements vscode.Disposable {
             void vscode.window.showInformationMessage(
                 `Database ${credentials.database} unlinked from Git repository`,
             );
+
+            // Clear Git status cache and refresh Object Explorer to remove Git decorations
+            this.gitStatusService.clearCache(credentials);
+            this._objectExplorerProvider.refresh(node);
         } catch (error) {
             void vscode.window.showErrorMessage(
                 `Failed to unlink database from Git: ${getErrorMessage(error)}`,

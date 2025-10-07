@@ -227,7 +227,7 @@ export class GitIntegrationService {
     /**
      * Generate a deterministic hash for a connection (same as LocalCacheService)
      */
-    private generateConnectionHash(credentials: IConnectionInfo): string {
+    public generateConnectionHash(credentials: IConnectionInfo): string {
         const hashInput = `${credentials.server}|${credentials.database}|${credentials.user || "integrated"}`;
         return crypto.createHash("sha256").update(hashInput).digest("hex").substring(0, 16);
     }
