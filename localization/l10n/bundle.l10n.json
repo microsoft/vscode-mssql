@@ -635,6 +635,8 @@
         "comment": ["{0} is the name of the entry"]
     },
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
+    "Select Profile": "Select Profile",
+    "Save As...": "Save As...",
     "Create New Connection Group": "Create New Connection Group",
     "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
         "message": "Edit Connection Group: {0}",
@@ -1419,6 +1421,15 @@
         "comment": ["{0} is the webview name"]
     },
     "General": "General",
+    "Publish Project": "Publish Project",
+    "Publish Profile": "Publish Profile",
+    "Select or enter a publish profile": "Select or enter a publish profile",
+    "Database name is required": "Database name is required",
+    "SQLCMD Variables": "SQLCMD Variables",
+    "Publish Target": "Publish Target",
+    "Existing SQL server": "Existing SQL server",
+    "Local development container": "Local development container",
+    "Save As": "Save As",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
@@ -1435,7 +1446,6 @@
     },
     "Loading Schema Designer Model...": "Loading Schema Designer Model...",
     "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
-    "Save As": "Save As",
     "Schema Designer": "Schema Designer",
     "Opening Publish Script. This may take a while...": "Opening Publish Script. This may take a while...",
     "Generating Report. This may take a while...": "Generating Report. This may take a while...",

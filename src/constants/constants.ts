@@ -51,6 +51,7 @@ export const cmdCommandPaletteQueryHistory = "mssql.commandPaletteQueryHistory";
 export const cmdNewQuery = "mssql.newQuery";
 export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
+export const cmdPublishDatabaseProject = "mssql.publishDatabaseProject";
 export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";

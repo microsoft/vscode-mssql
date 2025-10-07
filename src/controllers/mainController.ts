@@ -64,6 +64,7 @@ import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
+import { PublishProjectWebViewController } from "../publishProject/publishProjectWebViewController";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../copilot/prompts";
@@ -486,6 +487,16 @@ export default class MainController implements vscode.Disposable {
                         );
                     }
                 },
+            );
+
+            // -- PUBLISH PROJECT --
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdPublishDatabaseProject,
+                    async (projectFilePath: string) => {
+                        await this.onPublishDatabaseProject(projectFilePath);
+                    },
+                ),
             );
 
             // -- EXPLAIN QUERY --
@@ -2679,6 +2690,22 @@ export default class MainController implements vscode.Disposable {
         );
 
         schemaCompareWebView.revealToForeground();
+    }
+
+    /**
+     * Handler for the Publish Database Project command.
+     * Accepts the project file path as an argument.
+     * This method launches the Publish Project UI for the specified database project.
+     * @param projectFilePath The file path of the database project to publish.
+     */
+    public onPublishDatabaseProject(projectFilePath: string): void {
+        const publishProjectWebView = new PublishProjectWebViewController(
+            this._context,
+            this._vscodeWrapper,
+            projectFilePath,
+        );
+
+        publishProjectWebView.revealToForeground();
     }
 
     /**
