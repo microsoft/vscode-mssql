@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// Utilities specific to the Publish Project dialog (extension host side)
-
 import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
@@ -40,8 +38,11 @@ export const enum SqlTargetPlatform {
     sqlDbFabric = "SQL database in Fabric (preview)",
 }
 
+/**
+ * SQL target platforms Map to their corresponding version numbers
+ * Note: the values here must match values from Microsoft.Data.Tools.Schema.SchemaModel.SqlPlatformNames
+ */
 export const targetPlatformToVersion: Map<string, string> = new Map<string, string>([
-    // Note: the values here must match values from Microsoft.Data.Tools.Schema.SchemaModel.SqlPlatformNames
     [SqlTargetPlatform.sqlServer2012, "110"],
     [SqlTargetPlatform.sqlServer2014, "120"],
     [SqlTargetPlatform.sqlServer2016, "130"],

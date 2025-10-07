@@ -82,7 +82,7 @@ export const PublishTargetSection: React.FC = () => {
     const [showAdminPassword, setShowAdminPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    // Local password state (like change password dialog) to prevent cursor jumping
+    // Local password state to prevent cursor jumping to end of the text
     const [localAdminPassword, setLocalAdminPassword] = useState(passwordValue?.toString() || "");
     const [localConfirmPassword, setLocalConfirmPassword] = useState(
         confirmPasswordValue?.toString() || "",
@@ -139,18 +139,10 @@ export const PublishTargetSection: React.FC = () => {
                 updateValidation: true,
             });
         }
-    }, [isContainer, passwordValue, publishCtx]); // Only depends on passwordValue, NOT confirmPasswordValue
+    }, [isContainer, passwordValue, publishCtx]);
 
-    if (!publishCtx || !targetComponent || targetComponent.hidden) {
-        return undefined;
-    }
-
-    if (
-        targetComponent.type !== "dropdown" ||
-        !("options" in targetComponent) ||
-        !targetComponent.options
-    ) {
-        return undefined;
+    if (!publishCtx || !targetComponent) {
+        return <></>;
     }
 
     return (

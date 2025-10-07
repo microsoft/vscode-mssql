@@ -28,7 +28,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
     PublishDialogReducers
 > {
     public readonly initialized: Deferred<void> = new Deferred<void>();
-
     private readonly _sqlProjectsService?: SqlProjectsService;
 
     constructor(
@@ -96,8 +95,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this.state.projectFilePath = projectFilePath;
         }
 
-        // Attempt to load project properties (non-blocking). This enriches state with targetVersion
-        // and other metadata used for default selections (e.g., docker image tags)
+        // Get the project properties from the proj file
         let projectTargetVersion: string | undefined;
         try {
             if (this._sqlProjectsService && projectFilePath) {
@@ -106,7 +104,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     projectFilePath,
                 );
                 if (props) {
-                    // Copy into loose index-signature shape expected by state
                     this.state.projectProperties = {
                         ...props,
                     } as {
@@ -120,9 +117,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
             // swallow errors; keep dialog resilient
         }
 
-        // Load publish form components asynchronously, passing project target version
-        // for conditional options (e.g., Azure SQL projects have different publish targets)
-        this.state.formComponents = await generatePublishFormComponents(projectTargetVersion);
+        // Load publish form components
+        this.state.formComponents = generatePublishFormComponents(projectTargetVersion);
 
         // Update state to notify UI of the project properties and form components
         this.updateState();
@@ -158,8 +154,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         this.registerReducer(
             "savePublishProfile",
-            async (state: PublishDialogState, _payload: { profileName: string }) => {
-                // TODO: implement profile saving logic using _payload.profileName
+            async (state: PublishDialogState, _payload: { publishProfileName: string }) => {
+                // TODO: implement profile saving logic using _payload.publishProfileName
                 // This should save current form state to a file with the given name
                 return state;
             },

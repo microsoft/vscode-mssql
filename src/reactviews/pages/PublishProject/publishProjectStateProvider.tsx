@@ -39,7 +39,7 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
             generatePublishScript: () => extensionRpc.action("generatePublishScript"),
             selectPublishProfile: () => extensionRpc.action("selectPublishProfile"),
             savePublishProfile: (publishProfileName: string) =>
-                extensionRpc.action("savePublishProfile", { profileName: publishProfileName }),
+                extensionRpc.action("savePublishProfile", { publishProfileName }),
             extensionRpc,
         }),
         [extensionRpc],

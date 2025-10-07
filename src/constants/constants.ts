@@ -303,6 +303,8 @@ export const DSP_SUFFIX = "DatabaseSchemaProvider";
 export const sqlServerDockerRegistry = "mcr.microsoft.com";
 export const sqlServerDockerRepository = "mssql/server";
 export const sqlServerEulaLink = "https://aka.ms/mssql-container-license";
+export const licenseAgreementUrl =
+    "https://github.com/microsoft/containerregistry/blob/main/legal/Container-Images-Legal-Notice.md";
 export const dockerImageDefaultTag = "latest";
 export const AzureSqlDbFullDockerImageName = "Azure SQL Database (Edge emulation)";
 export const SqlServerDockerImageName = "SQL Server";

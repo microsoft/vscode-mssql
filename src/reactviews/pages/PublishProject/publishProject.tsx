@@ -45,8 +45,6 @@ function PublishProjectDialog() {
     const isComponentReady = !!context && !!formComponents && !!formState;
 
     // Check if any visible component has an explicit validation error.
-    // NOTE: Relying solely on component.validation misses the case where a required field is still untouched
-    // and thus has no validation state yet. We therefore also perform a required-value presence check below.
     const hasValidationErrors =
         isComponentReady && formComponents
             ? Object.values(formComponents).some(
@@ -83,13 +81,9 @@ function PublishProjectDialog() {
               })
             : true; // if not ready, treat as missing
 
-    // Disabled criteria (previously inverted): disable when not ready, in progress, validation errors, or missing required fields
+    // Disabled criteria: disable when not ready, in progress, validation errors, or missing required fields
     const readyToPublish =
         !isComponentReady || inProgress || hasValidationErrors || hasMissingRequiredValues;
-
-    // Generate script only for existing server target
-    const readyToGenerateScript =
-        readyToPublish || formState?.publishTarget !== constants.PublishTargets.EXISTING_SERVER;
 
     if (!isComponentReady) {
         return <div className={classes.root}>Loading...</div>;
@@ -105,7 +99,11 @@ function PublishProjectDialog() {
                     <div className={classes.footer}>
                         <Button
                             appearance="secondary"
-                            disabled={readyToGenerateScript}
+                            disabled={
+                                readyToPublish ||
+                                formState?.publishTarget !==
+                                    constants.PublishTargets.EXISTING_SERVER
+                            }
                             onClick={() => context.generatePublishScript()}>
                             {loc.generateScript}
                         </Button>

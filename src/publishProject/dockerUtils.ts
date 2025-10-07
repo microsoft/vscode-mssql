@@ -24,6 +24,7 @@ export interface DockerImageInfo {
 /**
  * Returns SQL version number from docker image name which is in the beginning of the image name
  * @param imageName docker image name
+ * @param regex optional regex to use for finding the version
  * @returns SQL server version
  */
 function findSqlVersionInImageName(imageName: string, regex?: RegExp): number | undefined {
@@ -52,6 +53,9 @@ function findSqlVersionInTargetPlatform(target: string | undefined): number | un
     return findSqlVersionInImageName(target, regex);
 }
 
+/*
+ * Returns the target platform string for a given SQL version number
+ */
 export function getTargetPlatformFromVersion(version: string): string {
     return Array.from(targetPlatformToVersion.keys()).filter(
         (k) => targetPlatformToVersion.get(k) === version,
@@ -60,7 +64,8 @@ export function getTargetPlatformFromVersion(version: string): string {
 
 /**
  * Returns the list of image tags for given target
- * @param rawTags docker image tags info
+ * @param rawTags docker image tags
+ * @param imageInfo docker image info
  * @param target project target version
  * @param defaultTagFirst whether the default tag should be the first entry in the array
  * @returns image tags
@@ -133,33 +138,10 @@ export function getDockerBaseImage(target: string, azureTargetVersion?: string):
 }
 
 /**
- * Parses license text with HTML link and returns safe components for rendering
- */
-export function parseLicenseText(licenseText: string) {
-    const linkMatch = licenseText.match(/<a\s+href="([^"]+)"[^>]*>([^<]+)<\/a>/);
-
-    if (linkMatch) {
-        const linkUrl = linkMatch[1];
-        const linkText = linkMatch[2];
-        const parts = licenseText.split(linkMatch[0]);
-
-        return {
-            hasLink: true,
-            beforeText: parts[0] || "",
-            linkText,
-            linkUrl,
-            afterText: parts[1] || "",
-        };
-    }
-
-    return {
-        hasLink: false,
-        plainText: licenseText,
-    };
-}
-
-/**
  * Loads Docker tags for a given target version and updates form component options
+ * @param targetVersion project target version
+ * @param tagComponent form component to update with tags
+ * @param formState current form state to set default tag if needed
  */
 export async function loadDockerTags(
     targetVersion: string,

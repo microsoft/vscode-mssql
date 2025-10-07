@@ -14,6 +14,8 @@ import {
 import {
     getPublishServerName,
     isPreviewFeaturesEnabled,
+    SqlTargetPlatform,
+    targetPlatformToVersion,
     validateSqlServerPortNumber,
 } from "./projectUtils";
 import { validateSqlServerPassword } from "../deployment/dockerUtils";
@@ -25,7 +27,8 @@ import { validateSqlServerPassword } from "../deployment/dockerUtils";
  */
 function generatePublishTargetOptions(projectTargetVersion?: string): FormItemOptions[] {
     // Check if this is an Azure SQL project
-    const isAzureSqlProject = projectTargetVersion === "AzureV12";
+    const isAzureSqlProject =
+        projectTargetVersion === targetPlatformToVersion[SqlTargetPlatform.sqlAzure];
     const options: FormItemOptions[] = [
         {
             displayName: isAzureSqlProject
@@ -41,7 +44,7 @@ function generatePublishTargetOptions(projectTargetVersion?: string): FormItemOp
         },
     ];
     if (isAzureSqlProject) {
-        // Only show "Publish to New Azure Server" option if preview features are enabled
+        // Only show "Publish to New Azure Server" option if preview feature tag is enabled
         if (isPreviewFeaturesEnabled()) {
             options.push({
                 displayName: Loc.PublishTargetNewAzureServer,
@@ -151,9 +154,7 @@ export function generatePublishFormComponents(
         },
         acceptContainerLicense: {
             propertyName: constants.PublishFormFields.AcceptContainerLicense,
-            label: Loc.UserLicenseAgreement(
-                "https://github.com/microsoft/containerregistry/blob/main/legal/Container-Images-Legal-Notice.md",
-            ),
+            label: Loc.UserLicenseAgreement(constants.licenseAgreementUrl),
             required: true,
             type: FormItemType.Checkbox,
             validate: (_state: PublishDialogState, value) => {

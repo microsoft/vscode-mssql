@@ -63,7 +63,7 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     generatePublishScript: {};
     openPublishAdvanced: {};
     selectPublishProfile: {};
-    savePublishProfile: { profileName: string };
+    savePublishProfile: { publishProfileName: string };
 }
 
 /**
