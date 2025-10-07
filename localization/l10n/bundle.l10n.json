@@ -1279,13 +1279,9 @@
         "comment": ["{0} is the number of rows to fetch summary statistics for"]
     },
     "Click to load summary": "Click to load summary",
-    "Loading summary {0}/{1} ({2}%) (Click to cancel)/{0} is the current row{1} is the total number of rows{2} is the percentage of rows loaded": {
-        "message": "Loading summary {0}/{1} ({2}%) (Click to cancel)",
-        "comment": [
-            "{0} is the current row",
-            "{1} is the total number of rows",
-            "{2} is the percentage of rows loaded"
-        ]
+    "Loading summary for {0} rows (Click to cancel)/{0} is the total number of rows": {
+        "message": "Loading summary for {0} rows (Click to cancel)",
+        "comment": ["{0} is the total number of rows"]
     },
     "Click to cancel loading summary": "Click to cancel loading summary",
     "Summary loading canceled": "Summary loading canceled",

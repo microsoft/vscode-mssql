@@ -1918,11 +1918,9 @@
     <trans-unit id="++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297">
       <source xml:lang="en">Loading results...</source>
     </trans-unit>
-    <trans-unit id="++CODE++ba622a4c63bd7d102bdc3057b04b4cfd8d2af5b2adb230bebc98414fc46afae0">
-      <source xml:lang="en">Loading summary {0}/{1} ({2}%) (Click to cancel)</source>
-      <note>{0} is the current row
-{1} is the total number of rows
-{2} is the percentage of rows loaded</note>
+    <trans-unit id="++CODE++71499b4de6ef3b8d0c19b76e76295f5dd9f5690a180de07ed861fdce757182aa">
+      <source xml:lang="en">Loading summary for {0} rows (Click to cancel)</source>
+      <note>{0} is the total number of rows</note>
     </trans-unit>
     <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
       <source xml:lang="en">Loading tenants...</source>
