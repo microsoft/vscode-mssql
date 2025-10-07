@@ -57,7 +57,7 @@ export const PublishProfileField: React.FC = () => {
     return (
         <div className={`${formStyles.formComponentDiv} ${classes.root}`}>
             <div className={classes.fieldContainer}>
-                {renderInput(component, localValue, setLocalValue, context)}
+                {renderInput(component, localValue, setLocalValue)}
             </div>
             <div className={classes.buttons}>
                 <Button
