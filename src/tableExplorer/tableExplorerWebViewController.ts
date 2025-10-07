@@ -317,20 +317,38 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         this.registerReducer("revertRow", async (state, payload) => {
             this.logger.info(`Reverting row: ${payload.rowId}`);
             try {
-                await this._tableExplorerService.revertRow(state.ownerUri, payload.rowId);
+                const revertRowResult = await this._tableExplorerService.revertRow(
+                    state.ownerUri,
+                    payload.rowId,
+                );
                 vscode.window.showInformationMessage("Row reverted successfully");
 
-                // Reload the result set to reflect the reverted row
-                const subsetResult = await this._tableExplorerService.subset(
-                    state.ownerUri,
-                    0,
-                    100,
-                );
-                state.resultSet = subsetResult;
+                // Update the row in the result set with the reverted row data
+                if (state.resultSet && revertRowResult.row) {
+                    const rowIndex = state.resultSet.subset.findIndex(
+                        (row) => row.id === payload.rowId,
+                    );
+                    if (rowIndex !== -1) {
+                        // Create a new resultSet object to trigger React's change detection
+                        state.resultSet = {
+                            ...state.resultSet,
+                            subset: state.resultSet.subset.map((row, idx) => {
+                                if (idx === rowIndex) {
+                                    return revertRowResult.row;
+                                }
+                                return row;
+                            }),
+                        };
 
-                this.updateState();
+                        this.updateState();
 
-                this.logger.info(`Reloaded ${subsetResult.rowCount} rows after reverting`);
+                        this.logger.info(
+                            `Reverted row at index ${rowIndex} with ${revertRowResult.row.cells.length} cells`,
+                        );
+                    }
+                }
+
+                this.logger.info(`Row reverted successfully`);
             } catch (error) {
                 this.logger.error(`Error reverting row: ${error}`);
                 vscode.window.showErrorMessage(`Failed to revert row: ${error}`);

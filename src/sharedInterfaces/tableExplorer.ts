@@ -125,7 +125,9 @@ export interface EditDeleteRowResult {}
 
 export interface EditRevertRowParams extends IEditRowOperationParams {}
 
-export interface EditRevertRowResult {}
+export interface EditRevertRowResult {
+    row: EditRow;
+}
 
 //#endregion
 
