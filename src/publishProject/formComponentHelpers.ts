@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
 import * as constants from "../constants/constants";
 import { FormItemType, FormItemOptions } from "../sharedInterfaces/form";
 import { PublishProject as Loc } from "../constants/locConstants";
@@ -12,14 +11,12 @@ import {
     PublishDialogFormItemSpec,
     PublishDialogState,
 } from "../sharedInterfaces/publishDialog";
-import { getPublishServerName, validateSqlServerPortNumber } from "./projectUtils";
+import {
+    getPublishServerName,
+    isPreviewFeaturesEnabled,
+    validateSqlServerPortNumber,
+} from "./projectUtils";
 import { validateSqlServerPassword } from "../deployment/dockerUtils";
-
-/**
- * Configuration key for SQL database projects extension settings
- */
-const DBProjectConfigurationKey = "sqlDatabaseProjects";
-const enablePreviewFeaturesKey = "enablePreviewFeatures";
 
 /**
  * Generate publish target options based on project target version
@@ -45,10 +42,7 @@ function generatePublishTargetOptions(projectTargetVersion?: string): FormItemOp
     ];
     if (isAzureSqlProject) {
         // Only show "Publish to New Azure Server" option if preview features are enabled
-        const enablePreviewFeatures = vscode.workspace
-            .getConfiguration(DBProjectConfigurationKey)
-            .get<boolean>(enablePreviewFeaturesKey);
-        if (enablePreviewFeatures) {
+        if (isPreviewFeaturesEnabled()) {
             options.push({
                 displayName: Loc.PublishTargetNewAzureServer,
                 value: constants.PublishTargets.NEW_AZURE_SERVER,

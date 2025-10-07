@@ -5,6 +5,7 @@
 
 // Utilities specific to the Publish Project dialog (extension host side)
 
+import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
 import { SqlProjectsService } from "../services/sqlProjectsService";
@@ -127,6 +128,18 @@ export function getPublishServerName(target: string) {
         targetPlatformToVersion.get("Azure SQL Database" /* SqlTargetPlatform.sqlAzure */)
         ? constants.AzureSqlServerName
         : constants.SqlServerName;
+}
+
+/**
+ * Checks if preview features are enabled in VS Code settings for SQL Database Projects.
+ * @returns true if preview features are enabled, false otherwise
+ */
+export function isPreviewFeaturesEnabled(): boolean {
+    return (
+        vscode.workspace
+            .getConfiguration(constants.DBProjectConfigurationKey)
+            .get<boolean>(constants.enablePreviewFeaturesKey) ?? false
+    );
 }
 
 /*

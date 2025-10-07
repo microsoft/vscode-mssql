@@ -313,6 +313,9 @@ export const DefaultSqlPortNumber = "1433";
 export const RequiredFieldMessage = "Required";
 export const DefaultAdminUsername = "sa";
 export const LicenseAcceptanceMessage = "You must accept the license";
+export const DBProjectConfigurationKey = "sqlDatabaseProjects";
+export const enablePreviewFeaturesKey = "enablePreviewFeatures";
+
 export const PublishTargets = {
     EXISTING_SERVER: "existingServer" as const,
     LOCAL_CONTAINER: "localContainer" as const,
