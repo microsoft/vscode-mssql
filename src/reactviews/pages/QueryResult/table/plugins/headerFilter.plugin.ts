@@ -41,6 +41,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
         grid: Slick.Grid<T>;
         column: FilterableColumn<T>;
     }>();
+    public onSortChanged = new Slick.Event<SortProperties>();
     public onCommand = new Slick.Event<CommandEventArgs<T>>();
     public enabled: boolean = true;
 
@@ -215,6 +216,7 @@ export class HeaderFilter<T extends Slick.SlickData> {
                 }
                 await this.updateState(columnFilterState, this.columnDef.id!);
                 this.grid.onHeaderClick.notify();
+                this.onSortChanged.notify(sortState!);
             });
         }
 

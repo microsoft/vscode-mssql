@@ -139,6 +139,13 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.styleElement = DOM.createStyleSheet(this._container);
         this._grid = new Slick.Grid<T>(this._tableContainer, this._data, [], newOptions);
         this.headerFilter = new HeaderFilter(this.uri, themeKind, this.context, gridId);
+        this.headerFilter.onFilterApplied.subscribe(async () => {
+            this.selectionModel.setSelectedRanges([]);
+            await this.selectionModel.updateSummaryText();
+        });
+        this.headerFilter.onSortChanged.subscribe(async () => {
+            await this.selectionModel.updateSummaryText();
+        });
         this.registerPlugin(this.headerFilter);
         this.registerPlugin(
             new ContextMenu(

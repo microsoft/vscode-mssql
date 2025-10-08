@@ -39,6 +39,7 @@ import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
 import { ExecutionPlanGraph } from "../../../sharedInterfaces/executionPlan";
+import { SLICKGRID_ROW_ID_PROP } from "./table/utils";
 
 const useStyles = makeStyles({
     root: {
@@ -337,7 +338,7 @@ export const QueryResultPane = () => {
                             let r = response as qr.ResultSetSubset;
                             var columnLength =
                                 resultSetSummaries[batchId][resultId]?.columnInfo?.length;
-                            return r.rows.map((r) => {
+                            return r.rows.map((r, rowOffset) => {
                                 let dataWithSchema: {
                                     [key: string]: any;
                                 } = {};
@@ -354,6 +355,7 @@ export const QueryResultPane = () => {
                                         isNull: cell.isNull,
                                         invariantCultureDisplayValue: displayValue,
                                     };
+                                    dataWithSchema[SLICKGRID_ROW_ID_PROP] = offset + rowOffset;
                                 }
                                 return dataWithSchema;
                             });
