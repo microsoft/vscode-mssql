@@ -317,6 +317,7 @@ export const DefaultAdminUsername = "sa";
 export const LicenseAcceptanceMessage = "You must accept the license";
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
 export const enablePreviewFeaturesKey = "enablePreviewFeatures";
+export const AzureSqlV12 = "AzureV12";
 
 export const PublishTargets = {
     EXISTING_SERVER: "existingServer" as const,

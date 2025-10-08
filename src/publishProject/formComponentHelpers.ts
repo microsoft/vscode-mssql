@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as vscode from "vscode";
 import * as constants from "../constants/constants";
 import { FormItemType, FormItemOptions } from "../sharedInterfaces/form";
 import { PublishProject as Loc } from "../constants/locConstants";
@@ -11,14 +12,20 @@ import {
     PublishDialogFormItemSpec,
     PublishDialogState,
 } from "../sharedInterfaces/publishDialog";
-import {
-    getPublishServerName,
-    isPreviewFeaturesEnabled,
-    SqlTargetPlatform,
-    targetPlatformToVersion,
-    validateSqlServerPortNumber,
-} from "./projectUtils";
+import { getPublishServerName, validateSqlServerPortNumber } from "./projectUtils";
 import { validateSqlServerPassword } from "../deployment/dockerUtils";
+
+/**
+ * Checks if preview features are enabled in VS Code settings for SQL Database Projects.
+ * @returns true if preview features are enabled, false otherwise
+ */
+function isPreviewFeaturesEnabled(): boolean {
+    return (
+        vscode.workspace
+            .getConfiguration(constants.DBProjectConfigurationKey)
+            .get<boolean>(constants.enablePreviewFeaturesKey) ?? false
+    );
+}
 
 /**
  * Generate publish target options based on project target version
@@ -27,8 +34,7 @@ import { validateSqlServerPassword } from "../deployment/dockerUtils";
  */
 function generatePublishTargetOptions(projectTargetVersion?: string): FormItemOptions[] {
     // Check if this is an Azure SQL project
-    const isAzureSqlProject =
-        projectTargetVersion === targetPlatformToVersion[SqlTargetPlatform.sqlAzure];
+    const isAzureSqlProject = projectTargetVersion === constants.AzureSqlV12;
     const options: FormItemOptions[] = [
         {
             displayName: isAzureSqlProject

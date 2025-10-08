@@ -49,7 +49,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     publishTarget: "existingServer",
                     sqlCmdVariables: {},
                 },
-                formComponents: generatePublishFormComponents(),
+                formComponents: {},
                 projectFilePath,
                 inProgress: false,
                 lastPublishResult: undefined,
