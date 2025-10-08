@@ -1284,6 +1284,9 @@ export class PublishProject {
     public static Title = l10n.t("Publish Project");
     public static PublishProfileLabel = l10n.t("Publish Profile");
     public static PublishProfilePlaceholder = l10n.t("Select or enter a publish profile");
+    public static SelectPublishProfile = l10n.t("Select Profile");
+    public static SaveAs = l10n.t("Save As");
+    public static PublishProfileFiles = l10n.t("Publish Profile Files");
     public static ServerLabel = l10n.t("Server");
     public static DatabaseLabel = l10n.t("Database");
     public static DatabaseRequiredMessage = l10n.t("Database name is required");

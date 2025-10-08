@@ -148,7 +148,35 @@ export class PublishProjectWebViewController extends FormWebviewController<
         });
 
         this.registerReducer("selectPublishProfile", async (state: PublishDialogState) => {
-            // TODO: implement profile selection logic
+            // Open file browser to select a .publish.xml file
+            const projectFolderPath = state.projectFilePath
+                ? path.dirname(state.projectFilePath)
+                : undefined;
+
+            // Open browse dialog to select the publish.xml file
+            const fileUris = await vscode.window.showOpenDialog({
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                defaultUri: projectFolderPath ? vscode.Uri.file(projectFolderPath) : undefined,
+                openLabel: Loc.SelectPublishProfile,
+                filters: {
+                    [Loc.PublishProfileFiles]: ["publish.xml"],
+                },
+            });
+
+            if (fileUris && fileUris.length > 0) {
+                const selectedPath = fileUris[0].fsPath;
+                // Update the publishProfilePath in form state
+                return {
+                    ...state,
+                    formState: {
+                        ...state.formState,
+                        publishProfilePath: selectedPath,
+                    },
+                };
+            }
+
             return state;
         });
 
