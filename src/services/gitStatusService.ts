@@ -140,6 +140,21 @@ export class GitStatusService {
             const gitFilePath = path.join(gitRepoPath, gitPath);
             const gitContent = await this._getGitFileContent(gitFilePath);
 
+            // Debug logging for first few comparisons
+            const debugKey = `${metadata.schema}.${metadata.name}`;
+            if (Math.random() < 0.001) {
+                // Log ~0.1% of comparisons
+                console.log(`[GitStatus] Comparing ${debugKey}:`);
+                console.log(`  Local exists: ${!!localContent}, Git exists: ${!!gitContent}`);
+                console.log(`  Git path: ${gitPath}`);
+                console.log(`  Git file path: ${gitFilePath}`);
+                if (localContent && gitContent) {
+                    console.log(
+                        `  Local length: ${localContent.length}, Git length: ${gitContent.length}`,
+                    );
+                }
+            }
+
             // Determine status based on existence and content
             if (!localContent && !gitContent) {
                 return { status: GitObjectStatus.Unknown };
@@ -216,29 +231,62 @@ export class GitStatusService {
                 .trim();
         };
 
-        return normalize(content1) === normalize(content2);
+        const normalized1 = normalize(content1);
+        const normalized2 = normalize(content2);
+        const isEqual = normalized1 === normalized2;
+
+        // Log first difference found (for debugging)
+        if (!isEqual && normalized1.length > 0 && normalized2.length > 0) {
+            const maxLen = Math.min(normalized1.length, normalized2.length);
+            for (let i = 0; i < maxLen; i++) {
+                if (normalized1[i] !== normalized2[i]) {
+                    console.log(
+                        `[GitStatus] First diff at char ${i}: local='${normalized1.substring(i, i + 20)}' git='${normalized2.substring(i, i + 20)}'`,
+                    );
+                    break;
+                }
+            }
+        }
+
+        return isEqual;
     }
 
     /**
      * Get the file path for an object in the local cache
      * Note: LocalCacheService uses lowercase folder names with hyphens
+     * and SQL Server type_desc values (USER_TABLE, SQL_STORED_PROCEDURE, etc.)
      */
     private _getLocalCacheFilePath(metadata: ObjectMetadata): string {
         const objectType = metadata.metadataTypeName;
         const schema = metadata.schema || "dbo";
         const name = metadata.name;
 
+        // Map both scripting type names AND SQL Server type_desc values
         switch (objectType) {
+            // Scripting type names (from ObjectMetadata)
             case "Table":
+            // SQL Server type_desc values (from cache metadata)
+            case "USER_TABLE":
                 return `tables/${schema}.${name}.sql`;
+
             case "View":
+            case "VIEW":
                 return `views/${schema}.${name}.sql`;
+
             case "StoredProcedure":
+            case "SQL_STORED_PROCEDURE":
                 return `stored-procedures/${schema}.${name}.sql`;
+
             case "UserDefinedFunction":
+            case "SQL_SCALAR_FUNCTION":
+            case "SQL_INLINE_TABLE_VALUED_FUNCTION":
+            case "SQL_TABLE_VALUED_FUNCTION":
                 return `functions/${schema}.${name}.sql`;
+
             case "Trigger":
+            case "SQL_TRIGGER":
                 return `triggers/${schema}.${name}.sql`;
+
             default:
                 return `other/${schema}.${name}.sql`;
         }

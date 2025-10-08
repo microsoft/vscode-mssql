@@ -96,6 +96,7 @@ import { getCloudId } from "../azure/providerSettings";
 import { LocalCacheService } from "../services/localCacheService";
 import { GitIntegrationService } from "../services/gitIntegrationService";
 import { GitStatusService } from "../services/gitStatusService";
+import { DatabaseSourceControlProvider } from "../sourceControl/databaseSourceControlProvider";
 
 /**
  * The main controller class that initializes the extension
@@ -131,6 +132,7 @@ export default class MainController implements vscode.Disposable {
     public localCacheService: LocalCacheService;
     public gitIntegrationService: GitIntegrationService;
     public gitStatusService: GitStatusService;
+    public databaseSourceControlProvider: DatabaseSourceControlProvider;
 
     /**
      * The main controller constructor
@@ -616,23 +618,20 @@ export default class MainController implements vscode.Disposable {
             });
 
             // Register Git integration commands
-            this._context.subscriptions.push(
-                vscode.commands.registerCommand(
-                    Constants.cmdLinkDatabaseToGitBranch,
-                    async (node: TreeNodeInfo) => {
-                        await this.onLinkDatabaseToGitBranch(node);
-                    },
-                ),
-            );
+            this.registerCommandWithArgs(Constants.cmdLinkDatabaseToGitBranch);
+            this._event.on(Constants.cmdLinkDatabaseToGitBranch, (node: TreeNodeInfo) => {
+                void this.onLinkDatabaseToGitBranch(node);
+            });
 
-            this._context.subscriptions.push(
-                vscode.commands.registerCommand(
-                    Constants.cmdUnlinkDatabaseFromGit,
-                    async (node: TreeNodeInfo) => {
-                        await this.onUnlinkDatabaseFromGit(node);
-                    },
-                ),
-            );
+            this.registerCommandWithArgs(Constants.cmdUnlinkDatabaseFromGit);
+            this._event.on(Constants.cmdUnlinkDatabaseFromGit, (node: TreeNodeInfo) => {
+                void this.onUnlinkDatabaseFromGit(node);
+            });
+
+            this.registerCommandWithArgs(Constants.cmdShowSourceControl);
+            this._event.on(Constants.cmdShowSourceControl, (node: TreeNodeInfo) => {
+                void this.onShowSourceControl(node);
+            });
 
             this.registerLanguageModelTools();
 
@@ -1011,6 +1010,27 @@ export default class MainController implements vscode.Disposable {
         this.gitStatusService = new GitStatusService(
             this.gitIntegrationService,
             this.localCacheService,
+        );
+
+        // Initialize Database Source Control Provider
+        this.databaseSourceControlProvider = new DatabaseSourceControlProvider(
+            this.gitIntegrationService,
+            this.localCacheService,
+            this.gitStatusService,
+        );
+        this._context.subscriptions.push(this.databaseSourceControlProvider);
+
+        // Listen for cache updates to refresh Git status decorations
+        this._context.subscriptions.push(
+            this.localCacheService.onCacheUpdated((credentials) => {
+                console.log(
+                    `[MainController] Cache updated for ${credentials.database}, clearing Git status cache`,
+                );
+                // Clear Git status cache so decorations refresh on next view
+                this.gitStatusService.clearCache(credentials);
+                // Refresh Object Explorer to update decorations
+                this._objectExplorerProvider.refresh(undefined);
+            }),
         );
 
         // Hook into connection success events
@@ -3259,6 +3279,41 @@ export default class MainController implements vscode.Disposable {
         } catch (error) {
             void vscode.window.showErrorMessage(
                 `Failed to unlink database from Git: ${getErrorMessage(error)}`,
+            );
+        }
+    }
+
+    /**
+     * Handle showing Source Control view for a database
+     */
+    public async onShowSourceControl(node: TreeNodeInfo): Promise<void> {
+        try {
+            // Validate node and connection profile
+            if (!node || !node.connectionProfile) {
+                void vscode.window.showErrorMessage("No connection information available");
+                return;
+            }
+
+            // Get connection credentials from the node
+            const credentials: IConnectionInfo = Object.assign({}, node.connectionProfile);
+
+            // Get the actual database name from the node metadata
+            const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+            if (databaseName && databaseName !== LocalizedConstants.defaultDatabaseLabel) {
+                credentials.database = databaseName;
+            } else {
+                void vscode.window.showErrorMessage("Unable to determine database name");
+                return;
+            }
+
+            // Show Source Control view
+            await this.databaseSourceControlProvider.showChanges(credentials);
+
+            // Open Source Control view
+            await vscode.commands.executeCommand("workbench.view.scm");
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to show Source Control: ${getErrorMessage(error)}`,
             );
         }
     }

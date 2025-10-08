@@ -559,6 +559,11 @@
                     "group": "1_MSSQL_serverAndDbManagement@7"
                 },
                 {
+                    "command": "mssql.showSourceControl",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
+                    "group": "1_MSSQL_serverAndDbManagement@8"
+                },
+                {
                     "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences",
                     "group": "2_MSSQL_serverDbActions@1"
@@ -720,6 +725,40 @@
                 {
                     "command": "mssql.startContainer",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer)\\b/"
+                }
+            ],
+            "scm/resourceState/context": [
+                {
+                    "command": "mssql.sourceControl.stage",
+                    "when": "scmProvider == mssql-database && scmResourceGroup == changes",
+                    "group": "inline"
+                },
+                {
+                    "command": "mssql.sourceControl.unstage",
+                    "when": "scmProvider == mssql-database && scmResourceGroup == staged",
+                    "group": "inline"
+                },
+                {
+                    "command": "mssql.sourceControl.openDiff",
+                    "when": "scmProvider == mssql-database",
+                    "group": "navigation"
+                },
+                {
+                    "command": "mssql.sourceControl.discard",
+                    "when": "scmProvider == mssql-database && scmResourceGroup == changes",
+                    "group": "1_modification"
+                }
+            ],
+            "scm/resourceGroup/context": [
+                {
+                    "command": "mssql.sourceControl.stageAll",
+                    "when": "scmProvider == mssql-database && scmResourceGroup == changes",
+                    "group": "inline"
+                },
+                {
+                    "command": "mssql.sourceControl.unstageAll",
+                    "when": "scmProvider == mssql-database && scmResourceGroup == staged",
+                    "group": "inline"
                 }
             ],
             "commandPalette": [
@@ -1254,6 +1293,54 @@
                 "title": "Unlink from Git",
                 "category": "MS SQL",
                 "icon": "$(close)"
+            },
+            {
+                "command": "mssql.showSourceControl",
+                "title": "Show Source Control",
+                "category": "MS SQL",
+                "icon": "$(source-control)"
+            },
+            {
+                "command": "mssql.sourceControl.stage",
+                "title": "Stage Changes",
+                "category": "MS SQL",
+                "icon": "$(add)"
+            },
+            {
+                "command": "mssql.sourceControl.unstage",
+                "title": "Unstage Changes",
+                "category": "MS SQL",
+                "icon": "$(remove)"
+            },
+            {
+                "command": "mssql.sourceControl.stageAll",
+                "title": "Stage All Changes",
+                "category": "MS SQL",
+                "icon": "$(add)"
+            },
+            {
+                "command": "mssql.sourceControl.unstageAll",
+                "title": "Unstage All Changes",
+                "category": "MS SQL",
+                "icon": "$(remove)"
+            },
+            {
+                "command": "mssql.sourceControl.commit",
+                "title": "Apply to Git Repo",
+                "category": "MS SQL",
+                "icon": "$(check)"
+            },
+            {
+                "command": "mssql.sourceControl.openDiff",
+                "title": "Open Changes",
+                "category": "MS SQL",
+                "icon": "$(go-to-file)"
+            },
+            {
+                "command": "mssql.sourceControl.discard",
+                "title": "Discard Changes",
+                "category": "MS SQL",
+                "icon": "$(discard)"
             }
         ],
         "keybindings": [

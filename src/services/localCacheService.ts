@@ -72,6 +72,11 @@ export class LocalCacheService implements vscode.Disposable {
     // Map of connection hash to refresh timer info
     private _refreshTimers: Map<string, RefreshTimerInfo> = new Map();
 
+    // Event emitter for cache updates
+    private _onCacheUpdated: vscode.EventEmitter<IConnectionInfo> =
+        new vscode.EventEmitter<IConnectionInfo>();
+    public readonly onCacheUpdated: vscode.Event<IConnectionInfo> = this._onCacheUpdated.event;
+
     constructor(
         private _connectionManager: ConnectionManager,
         private _context: vscode.ExtensionContext,
@@ -917,6 +922,12 @@ export class LocalCacheService implements vscode.Disposable {
             this._client.logger.info(
                 `Cache updated for ${credentials.server}/${credentials.database}: ${objectsToUpdate.length} updated, ${objectsToDelete.length} deleted`,
             );
+
+            // Fire event to notify that cache was updated
+            if (objectsToUpdate.length > 0 || objectsToDelete.length > 0) {
+                console.log(`[LocalCache] Firing cache updated event for ${credentials.database}`);
+                this._onCacheUpdated.fire(credentials);
+            }
         } catch (error) {
             sendErrorEvent(TelemetryViews.LocalCache, TelemetryActions.UpdateCache, error as Error);
             throw error;
@@ -960,6 +971,14 @@ export class LocalCacheService implements vscode.Disposable {
             );
             throw error;
         }
+    }
+
+    /**
+     * Get cache metadata for a connection
+     */
+    public async getCacheMetadata(credentials: IConnectionInfo): Promise<CacheMetadata | null> {
+        const cacheDir = this.getConnectionCacheDir(credentials);
+        return await this.readMetadata(cacheDir);
     }
 
     /**
