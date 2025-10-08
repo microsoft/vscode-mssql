@@ -2604,12 +2604,15 @@ export default class MainController implements vscode.Disposable {
      * This method launches the Publish Project UI for the specified database project.
      * @param projectFilePath The file path of the database project to publish.
      */
-    public onPublishDatabaseProject(projectFilePath: string): void {
+    public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
+        const deploymentOptions = await this.schemaCompareService.schemaCompareGetDefaultOptions();
         const publishProjectWebView = new PublishProjectWebViewController(
             this._context,
             this._vscodeWrapper,
             projectFilePath,
+            deploymentOptions.defaultDeploymentOptions,
             this.sqlProjectsService,
+            this.dacFxService,
         );
 
         publishProjectWebView.revealToForeground();

@@ -4,7 +4,24 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as constants from "../constants/constants";
+import * as mssql from "vscode-mssql";
 import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
+
+/**
+ * Project Properties interface -shared between server-side code and browser-side webviews.
+ */
+export interface ProjectProperties {
+    projectGuid?: string;
+    configuration?: string;
+    outputPath: string;
+    databaseSource?: string;
+    defaultCollation: string;
+    databaseSchemaProvider: string;
+    projectStyle: unknown;
+    targetVersion?: string;
+    projectName?: string;
+    projectFolderPath?: string;
+}
 
 /**
  * Data fields shown in the Publish form.
@@ -31,12 +48,8 @@ export interface PublishDialogState
     projectFilePath: string;
     inProgress: boolean;
     lastPublishResult?: { success: boolean; details?: string };
-    // Optional project metadata (target version, etc.) loaded asynchronously
-    projectProperties?: {
-        targetVersion?: string;
-        // Additional properties can be added here as needed
-        [key: string]: unknown;
-    };
+    deploymentOptions?: mssql.DeploymentOptions;
+    projectProperties?: ProjectProperties;
 }
 
 /**

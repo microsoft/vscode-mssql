@@ -4,20 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as mssql from "vscode-mssql";
+import * as path from "path";
 import * as constants from "../constants/constants";
 import { SqlProjectsService } from "../services/sqlProjectsService";
-
-// Shape returned by sqlProjectsService.getProjectProperties (partial, only fields we use)
-export interface ProjectProperties {
-    projectGuid?: string;
-    configuration?: string;
-    outputPath: string;
-    databaseSource?: string;
-    defaultCollation: string;
-    databaseSchemaProvider: string;
-    projectStyle: unknown;
-    targetVersion?: string;
-}
+import type { ProjectProperties } from "../sharedInterfaces/publishDialog";
 
 /**
  * Target platforms for a sql project
@@ -107,6 +97,11 @@ export async function readProjectProperties(
             return undefined;
         }
         const version = await getProjectTargetVersion(sqlProjectsService, projectFilePath);
+
+        // Calculate project name and folder path from the project file path
+        const projectName = path.basename(projectFilePath, path.extname(projectFilePath));
+        const projectFolderPath = path.dirname(projectFilePath);
+
         const props: ProjectProperties = {
             projectGuid: result.projectGuid,
             configuration: result.configuration,
@@ -116,6 +111,8 @@ export async function readProjectProperties(
             databaseSchemaProvider: result.databaseSchemaProvider,
             projectStyle: result.projectStyle,
             targetVersion: version,
+            projectName: projectName,
+            projectFolderPath: projectFolderPath,
         };
         return props;
     } catch {

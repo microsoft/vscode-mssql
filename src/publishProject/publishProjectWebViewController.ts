@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
+import * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
@@ -29,12 +30,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
 > {
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _sqlProjectsService?: SqlProjectsService;
+    private readonly _dacFxService?: mssql.IDacFxService;
 
     constructor(
         context: vscode.ExtensionContext,
         _vscodeWrapper: VscodeWrapper,
         projectFilePath: string,
+        deploymentOptions?: mssql.DeploymentOptions,
         sqlProjectsService?: SqlProjectsService,
+        dacFxService?: mssql.IDacFxService,
     ) {
         super(
             context,
@@ -53,6 +57,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 projectFilePath,
                 inProgress: false,
                 lastPublishResult: undefined,
+                deploymentOptions: deploymentOptions,
             } as PublishDialogState,
             {
                 title: Loc.Title,
@@ -74,6 +79,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         // Store the SQL Projects Service
         this._sqlProjectsService = sqlProjectsService;
+        this._dacFxService = dacFxService;
 
         // Register reducers after initialization
         this.registerRpcHandlers();
@@ -104,12 +110,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     projectFilePath,
                 );
                 if (props) {
-                    this.state.projectProperties = {
-                        ...props,
-                    } as {
-                        [key: string]: unknown;
-                        targetVersion?: string;
-                    };
+                    this.state.projectProperties = props;
                     projectTargetVersion = props.targetVersion;
                 }
             }
@@ -148,10 +149,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         });
 
         this.registerReducer("selectPublishProfile", async (state: PublishDialogState) => {
-            // Open file browser to select a .publish.xml file
-            const projectFolderPath = state.projectFilePath
-                ? path.dirname(state.projectFilePath)
-                : undefined;
+            const projectFolderPath = state.projectProperties?.projectFolderPath;
 
             // Open browse dialog to select the publish.xml file
             const fileUris = await vscode.window.showOpenDialog({
@@ -161,7 +159,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 defaultUri: projectFolderPath ? vscode.Uri.file(projectFolderPath) : undefined,
                 openLabel: Loc.SelectPublishProfile,
                 filters: {
-                    [Loc.PublishProfileFiles]: ["publish.xml"],
+                    [Loc.PublishProfileFiles]: [constants.PublishProfileExtension],
                 },
             });
 
@@ -183,9 +181,80 @@ export class PublishProjectWebViewController extends FormWebviewController<
         this.registerReducer(
             "savePublishProfile",
             async (state: PublishDialogState, _payload: { publishProfileName: string }) => {
-                // TODO: implement profile saving logic using _payload.publishProfileName
-                // This should save current form state to a file with the given name
-                return state;
+                const projectFolderPath = state.projectProperties?.projectFolderPath;
+                const projectName = state.projectProperties?.projectName;
+
+                // Use selected profile path if available, otherwise save as projectName
+                const defaultPath = state.formState.publishProfilePath
+                    ? vscode.Uri.file(state.formState.publishProfilePath)
+                    : vscode.Uri.file(
+                          path.join(
+                              projectFolderPath || ".",
+                              `${projectName}.${constants.PublishProfileExtension}`,
+                          ),
+                      );
+
+                // Open save dialog with default name
+                const fileUri = await vscode.window.showSaveDialog({
+                    defaultUri: defaultPath,
+                    saveLabel: Loc.SaveAs,
+                    filters: {
+                        [Loc.PublishProfileFiles]: [constants.PublishProfileExtension],
+                    },
+                });
+
+                if (!fileUri) {
+                    return state; // User cancelled
+                }
+
+                // Call DacFx service to save the profile
+                if (this._dacFxService) {
+                    try {
+                        const databaseName = state.formState.databaseName || projectName;
+                        // TODO: Build connection string from state.formState.serverName and connection details
+                        const connectionString = "";
+                        const sqlCmdVariables = new Map(
+                            Object.entries(state.formState.sqlCmdVariables || {}),
+                        );
+
+                        await this._dacFxService.savePublishProfile(
+                            fileUri.fsPath,
+                            databaseName,
+                            connectionString,
+                            sqlCmdVariables,
+                            state.deploymentOptions,
+                        );
+
+                        void vscode.window.showInformationMessage(
+                            `Publish profile saved to: ${fileUri.fsPath}`,
+                        );
+
+                        return {
+                            ...state,
+                            formState: {
+                                ...state.formState,
+                                publishProfilePath: fileUri.fsPath,
+                            },
+                        };
+                    } catch (error) {
+                        void vscode.window.showErrorMessage(
+                            `Failed to save publish profile: ${error}`,
+                        );
+                        return state;
+                    }
+                }
+
+                // If DacFx service is not available, just update the path
+                void vscode.window.showWarningMessage(
+                    "DacFx service not available. Profile path updated but not saved.",
+                );
+                return {
+                    ...state,
+                    formState: {
+                        ...state.formState,
+                        publishProfilePath: fileUri.fsPath,
+                    },
+                };
             },
         );
     }

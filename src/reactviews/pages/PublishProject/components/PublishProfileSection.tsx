@@ -69,12 +69,7 @@ export const PublishProfileField: React.FC = () => {
                 <Button
                     size="small"
                     appearance="secondary"
-                    onClick={() => {
-                        const publishProfileName = localValue;
-                        if (publishProfileName && publishProfileName.trim() !== "") {
-                            context.savePublishProfile?.(publishProfileName);
-                        }
-                    }}>
+                    onClick={() => context.savePublishProfile?.("")}>
                     {loc.SaveAs}
                 </Button>
             </div>

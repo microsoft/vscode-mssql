@@ -1051,7 +1051,6 @@ export class QueryResult {
             args: [error],
             comment: ["{0} is the error message"],
         });
-    public static;
 }
 
 export class LocalContainers {
