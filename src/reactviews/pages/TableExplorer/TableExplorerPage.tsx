@@ -30,6 +30,7 @@ export const TableExplorerPage: React.FC = () => {
                         onDeleteRow={context?.deleteRow}
                         onUpdateCell={context?.updateCell}
                         onRevertCell={context?.revertCell}
+                        onRevertRow={context?.revertRow}
                     />
                 </div>
             ) : state?.isLoading ? (

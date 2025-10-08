@@ -23,6 +23,7 @@ interface TableDataGridProps {
     onDeleteRow?: (rowId: number) => void;
     onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
     onRevertCell?: (rowId: number, columnId: number) => void;
+    onRevertRow?: (rowId: number) => void;
 }
 
 export interface TableDataGridRef {
@@ -30,7 +31,7 @@ export interface TableDataGridRef {
 }
 
 export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
-    ({ resultSet, themeKind, onDeleteRow, onUpdateCell, onRevertCell }, ref) => {
+    ({ resultSet, themeKind, onDeleteRow, onUpdateCell, onRevertCell, onRevertRow }, ref) => {
         const [dataset, setDataset] = useState<any[]>([]);
         const [columns, setColumns] = useState<Column[]>([]);
         const [options, setOptions] = useState<GridOption | undefined>(undefined);
@@ -144,6 +145,34 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                     console.log(`Reverted cell at row ${rowIndex}, column ${columnIndex}`);
                     break;
+
+                case "revert-row":
+                    const rowIdx = args.row;
+
+                    // Call the revertRow reducer to revert in the backend
+                    if (onRevertRow) {
+                        onRevertRow(dataContext.id);
+                    }
+
+                    // Clear the change tracking for all cells in this row
+                    const keysToDeleteForRevert: string[] = [];
+                    cellChangesRef.current.forEach((_, key) => {
+                        if (key.startsWith(`${rowIdx}-`)) {
+                            keysToDeleteForRevert.push(key);
+                        }
+                    });
+                    keysToDeleteForRevert.forEach((key) => cellChangesRef.current.delete(key));
+
+                    // The backend will update state.resultSet with the reverted row
+                    // The useEffect will rebuild the dataset with the correct values from backend
+                    // Force grid to re-render to remove yellow backgrounds
+                    if (reactGridRef.current?.slickGrid) {
+                        reactGridRef.current.slickGrid.invalidate();
+                        reactGridRef.current.slickGrid.render();
+                    }
+
+                    console.log(`Reverted row at index ${rowIdx}`);
+                    break;
             }
         }
 
@@ -165,6 +194,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         title: "Revert Cell",
                         iconCssClass: "mdi mdi-undo",
                         positionOrder: 2,
+                    },
+                    {
+                        command: "revert-row",
+                        title: "Revert Row",
+                        iconCssClass: "mdi mdi-undo-variant",
+                        positionOrder: 3,
                     },
                 ],
                 onCommand: (e, args) => handleContextMenuCommand(e, args),
