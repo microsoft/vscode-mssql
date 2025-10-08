@@ -564,6 +564,11 @@
                     "group": "1_MSSQL_serverAndDbManagement@8"
                 },
                 {
+                    "command": "mssql.openGitRepository",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
+                    "group": "1_MSSQL_serverAndDbManagement@9"
+                },
+                {
                     "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences",
                     "group": "2_MSSQL_serverDbActions@1"
@@ -1299,6 +1304,12 @@
                 "title": "Show Source Control",
                 "category": "MS SQL",
                 "icon": "$(source-control)"
+            },
+            {
+                "command": "mssql.openGitRepository",
+                "title": "Open Git Repository in Source Control",
+                "category": "MS SQL",
+                "icon": "$(git-branch)"
             },
             {
                 "command": "mssql.sourceControl.stage",

@@ -122,6 +122,7 @@ export const cmdShowLocalCacheStatus = "mssql.showLocalCacheStatus";
 export const cmdLinkDatabaseToGitBranch = "mssql.linkDatabaseToGitBranch";
 export const cmdUnlinkDatabaseFromGit = "mssql.unlinkDatabaseFromGit";
 export const cmdShowSourceControl = "mssql.showSourceControl";
+export const cmdOpenGitRepository = "mssql.openGitRepository";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";

@@ -633,6 +633,11 @@ export default class MainController implements vscode.Disposable {
                 void this.onShowSourceControl(node);
             });
 
+            this.registerCommandWithArgs(Constants.cmdOpenGitRepository);
+            this._event.on(Constants.cmdOpenGitRepository, (node: TreeNodeInfo) => {
+                void this.onOpenGitRepository(node);
+            });
+
             this.registerLanguageModelTools();
 
             return true;
@@ -3316,6 +3321,152 @@ export default class MainController implements vscode.Disposable {
         } catch (error) {
             void vscode.window.showErrorMessage(
                 `Failed to show Source Control: ${getErrorMessage(error)}`,
+            );
+        }
+    }
+
+    /**
+     * Handle opening Git repository in VS Code's Source Control view
+     */
+    public async onOpenGitRepository(node: TreeNodeInfo): Promise<void> {
+        try {
+            // Validate node and connection profile
+            if (!node || !node.connectionProfile) {
+                void vscode.window.showErrorMessage("No connection information available");
+                return;
+            }
+
+            // Get connection credentials from the node
+            const credentials: IConnectionInfo = Object.assign({}, node.connectionProfile);
+
+            // Get the actual database name from the node metadata
+            const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+            if (databaseName && databaseName !== LocalizedConstants.defaultDatabaseLabel) {
+                credentials.database = databaseName;
+            } else {
+                void vscode.window.showErrorMessage("Unable to determine database name");
+                return;
+            }
+
+            // Check if database is linked to Git
+            const gitInfo = await this.gitStatusService.getDatabaseGitInfo(credentials);
+            if (!gitInfo.isLinked || !gitInfo.localPath) {
+                void vscode.window.showWarningMessage(
+                    `Database ${credentials.database} is not linked to a Git repository. Use "Link to Git Branch..." first.`,
+                );
+                return;
+            }
+
+            // Open the Git repository folder in a new VS Code window
+            // This is the cleanest way to get full Git SCM functionality
+            try {
+                const repoUri = vscode.Uri.file(gitInfo.localPath);
+
+                // Check if repository is already in the workspace
+                const workspaceFolders = vscode.workspace.workspaceFolders || [];
+
+                // Normalize paths for comparison (handle Windows path case sensitivity and separators)
+                const normalizePathForComparison = (path: string): string => {
+                    // Convert to lowercase for case-insensitive comparison on Windows
+                    // Replace all backslashes with forward slashes for consistent comparison
+                    return path.toLowerCase().replace(/\\/g, "/");
+                };
+
+                const normalizedRepoPath = normalizePathForComparison(repoUri.fsPath);
+
+                console.log(`[MainController] Checking if repository is in workspace`);
+                console.log(`[MainController] Repository path: ${repoUri.fsPath}`);
+                console.log(`[MainController] Normalized repository path: ${normalizedRepoPath}`);
+                console.log(`[MainController] Workspace folders count: ${workspaceFolders.length}`);
+
+                workspaceFolders.forEach((folder, index) => {
+                    const normalizedFolderPath = normalizePathForComparison(folder.uri.fsPath);
+                    console.log(`[MainController] Workspace folder ${index}: ${folder.uri.fsPath}`);
+                    console.log(
+                        `[MainController] Normalized folder ${index}: ${normalizedFolderPath}`,
+                    );
+                    console.log(
+                        `[MainController] Match: ${normalizedFolderPath === normalizedRepoPath}`,
+                    );
+                });
+
+                const isInWorkspace = workspaceFolders.some(
+                    (folder) =>
+                        normalizePathForComparison(folder.uri.fsPath) === normalizedRepoPath,
+                );
+
+                console.log(`[MainController] Is repository in workspace: ${isInWorkspace}`);
+
+                if (isInWorkspace) {
+                    // Repository is already in workspace - just open Source Control view
+                    console.log(
+                        `[MainController] Git repository for ${credentials.database} is already in the workspace`,
+                    );
+                    await vscode.commands.executeCommand("workbench.view.scm");
+                    void vscode.window.showInformationMessage(
+                        `Git repository for ${credentials.database} is already in the workspace.`,
+                    );
+                    return;
+                }
+
+                // Ask user how they want to open the repository
+                const answer = await vscode.window.showInformationMessage(
+                    `Open Git repository for ${credentials.database}?`,
+                    { modal: false },
+                    "Open in New Window",
+                    "Add to Current Workspace",
+                    "Cancel",
+                );
+
+                if (answer === "Open in New Window") {
+                    // Open in a new window - cleanest approach, full Git SCM functionality
+                    console.log(
+                        `[MainController] Opening Git repository for ${credentials.database} in new window`,
+                    );
+                    await vscode.commands.executeCommand("vscode.openFolder", repoUri, {
+                        forceNewWindow: true,
+                    });
+                } else if (answer === "Add to Current Workspace") {
+                    // Add to current workspace - repository will appear in Git SCM
+                    console.log(
+                        `[MainController] Adding Git repository for ${credentials.database} to workspace`,
+                    );
+
+                    // Add to workspace
+                    const added = vscode.workspace.updateWorkspaceFolders(
+                        workspaceFolders.length,
+                        0,
+                        { uri: repoUri, name: `Git: ${credentials.database}` },
+                    );
+
+                    if (added) {
+                        // Wait for Git extension to detect the repository
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+                        // Open Source Control view
+                        await vscode.commands.executeCommand("workbench.view.scm");
+
+                        void vscode.window.showInformationMessage(
+                            `Added Git repository for ${credentials.database} to workspace. You can now use Git operations in the Source Control view.`,
+                        );
+                    } else {
+                        void vscode.window.showErrorMessage(
+                            "Failed to add repository to workspace",
+                        );
+                    }
+                } else {
+                    console.log("[MainController] User cancelled opening Git repository");
+                }
+            } catch (gitError) {
+                console.error("[MainController] Failed to open Git repository:", gitError);
+
+                void vscode.window.showErrorMessage(
+                    `Failed to open Git repository: ${getErrorMessage(gitError)}. You can manually open the folder: ${gitInfo.localPath}`,
+                );
+            }
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to open Git repository: ${getErrorMessage(error)}`,
             );
         }
     }
