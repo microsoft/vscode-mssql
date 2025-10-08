@@ -9,7 +9,7 @@ import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
 import * as constants from "../../../../constants/constants";
 import { renderInput, renderDropdown, renderCheckbox } from "./FormFieldComponents";
-import { parseHtmlLabel } from "../../../../publishProject/projectUtils";
+import { parseHtmlLabel } from "../../../common/utils";
 
 const useStyles = makeStyles({
     root: {
