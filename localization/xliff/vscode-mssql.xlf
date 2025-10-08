@@ -98,6 +98,9 @@
       <source xml:lang="en">Add Firewall Rule to {0}</source>
       <note>{0} is the server name</note>
     </trans-unit>
+    <trans-unit id="++CODE++02a16a835f1e9c9cbe76a8cb9042d2f3861fc237036221e1f0c60383600f45f6">
+      <source xml:lang="en">Add Row</source>
+    </trans-unit>
     <trans-unit id="++CODE++937a7b0b3cc8c58a787de5a63bfc07573789ee22a22918957f92651c0edb31f9">
       <source xml:lang="en">Add Server Connection</source>
     </trans-unit>
@@ -2500,6 +2503,9 @@
     </trans-unit>
     <trans-unit id="++CODE++088203b4cd88789e07f4e9a8f05cf6e8c1d0b413ae32d30cae69beeef94784e6">
       <source xml:lang="en">Save As</source>
+    </trans-unit>
+    <trans-unit id="++CODE++35322b5bb5a218a15401cfa54d23b16459e9e1c616977526a4b37b6c87d30c50">
+      <source xml:lang="en">Save Changes</source>
     </trans-unit>
     <trans-unit id="++CODE++df2839447956141d6503caf44145db003e70b17dc128d5c4fefec188b28d6966">
       <source xml:lang="en">Save Connection Group</source>
