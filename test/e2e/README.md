@@ -10,8 +10,8 @@ For more information regarding this limitation, refer to [using insiders version
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/en/) v18 or higher
-- [yarn](https://yarnpkg.com/) v1.22.0 or higher, `npm install -g yarn`
+-   [Node.js](https://nodejs.org/en/) v18 or higher
+-   [yarn](https://yarnpkg.com/) v1.22.0 or higher, `npm install -g yarn`
 
 ---
 
@@ -44,6 +44,7 @@ yarn watch
 To run tests, the following options can be used:
 
 1. Using Playwright Test for VSCode:
+
     - Install the `Playwright Test for VSCode` extension in VS code.
     - [Run tests with a single click](https://github.com/microsoft/playwright-vscode/blob/main/README.md#run-tests-with-a-single-click)
 
@@ -52,6 +53,7 @@ To run tests, the following options can be used:
 ![Playwright Test for VSCode Test Explorer](../../images/test-explorer-view.png).
 
 2. Setup environment variables in the `test\e2e` folder
+
     - Create a `.env` file
     - Add the variables that you want based on the .env.example
     - Example:

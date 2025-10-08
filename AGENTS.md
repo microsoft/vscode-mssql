@@ -11,16 +11,18 @@ The MSSQL Extension for Visual Studio Code is a TypeScript-based VS Code extensi
 **NEVER CANCEL** any build or test commands. These operations can take significant time and should be allowed to complete.
 
 #### Initial Setup (Required once)
+
 ```bash
 # Ensure correct Node.js version (v20+)
 node --version  # Should be v20.19.4 or higher
-yarn --version  # Should be v1.22+ 
+yarn --version  # Should be v1.22+
 
 # Install dependencies - takes ~60 seconds initial, ~11 seconds subsequent. NEVER CANCEL. Set timeout to 120+ seconds.
 yarn install
 ```
 
 #### Build Commands
+
 ```bash
 # Full build - takes ~19 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
 yarn build
@@ -32,11 +34,12 @@ yarn watch
 ```
 
 #### Individual Build Steps (if needed)
+
 ```bash
 # Prepare assets and localization (~2 seconds)
 yarn build:prepare
 
-# Compile extension TypeScript (~5 seconds)  
+# Compile extension TypeScript (~5 seconds)
 yarn build:extension
 
 # Bundle extension (~1 second)
@@ -50,6 +53,7 @@ yarn build:webviews-bundle
 ```
 
 ### Linting and Code Quality
+
 ```bash
 # Lint source files only - takes ~1.5 seconds
 yarn lint src/ test/
@@ -60,6 +64,7 @@ yarn lint src/ test/
 ### Testing
 
 #### Unit Tests
+
 ```bash
 # Unit tests require VS Code download and cannot run in sandboxed environments
 # This is expected behavior - tests work in CI with proper VS Code setup
@@ -73,13 +78,15 @@ yarn test --testPattern "QueryRunner"         # Alternative syntax for test filt
 ```
 
 #### E2E Tests (Smoke Tests)
+
 ```bash
 # E2E tests also require VS Code and SQL Server setup
-yarn smoketest  
+yarn smoketest
 # Requires: SQL Server running, connection credentials, VS Code installation
 ```
 
 ### Packaging
+
 ```bash
 # Install vsce globally (if not already installed)
 npm install -g vsce
@@ -94,19 +101,22 @@ yarn package --offline  # Creates platform-specific packages with embedded servi
 **Always test the following scenarios after making changes:**
 
 ### Complete Build Validation
+
 1. Clean install: `rm -rf node_modules && yarn install`
-2. Full build: `yarn build` 
+2. Full build: `yarn build`
 3. Lint check: `yarn lint src/ test/`
 4. Package creation: `yarn package --online`
 5. Verify VSIX file is created (~12-15MB is normal)
 
 ### Development Workflow Validation
+
 1. Start watch mode: `yarn watch`
 2. Make a small change to a TypeScript file in `src/`
 3. Verify automatic recompilation occurs
 4. Stop watch mode with Ctrl+C
 
 ### Pre-Commit Validation Workflow
+
 ```bash
 # Always run these commands before committing changes:
 yarn build                 # Ensure code compiles
@@ -115,87 +125,98 @@ yarn package --online      # Ensure extension can be packaged
 ```
 
 ### Code Quality Validation
-- Always run `yarn lint src/ test/` before committing
-- Check for TypeScript compilation errors: `yarn build:extension` and `yarn build:webviews`
-- Verify no new warnings are introduced during build
+
+-   Always run `yarn lint src/ test/` before committing
+-   Check for TypeScript compilation errors: `yarn build:extension` and `yarn build:webviews`
+-   Verify no new warnings are introduced during build
 
 ## Project Structure
 
 ### Key Directories
-- `src/` - Main extension source code (TypeScript)
-  - `copilot/` - GitHub Copilot integration features
-  - `controllers/` - Extension controllers and logic
-  - `reactviews/` - React components for webviews
-  - `services/` - Core business logic services
-- `test/` - Unit and E2E tests
-- `scripts/` - Build and utility scripts
-- `dist/` - Build output (not in repository)
-- `localization/` - Multi-language support files
+
+-   `src/` - Main extension source code (TypeScript)
+    -   `copilot/` - GitHub Copilot integration features
+    -   `controllers/` - Extension controllers and logic
+    -   `reactviews/` - React components for webviews
+    -   `services/` - Core business logic services
+-   `test/` - Unit and E2E tests
+-   `scripts/` - Build and utility scripts
+-   `dist/` - Build output (not in repository)
+-   `localization/` - Multi-language support files
 
 ### Important Files
-- `package.json` - Extension manifest and build scripts
-- `tsconfig.extension.json` - TypeScript config for extension code  
-- `tsconfig.react.json` - TypeScript config for React webviews
-- `eslint.config.mjs` - Linting configuration
-- `prettier.config.mjs` - Code formatting rules
+
+-   `package.json` - Extension manifest and build scripts
+-   `tsconfig.extension.json` - TypeScript config for extension code
+-   `tsconfig.react.json` - TypeScript config for React webviews
+-   `eslint.config.mjs` - Linting configuration
+-   `prettier.config.mjs` - Code formatting rules
 
 ## Common Commands and Expected Times
 
-| Command | Expected Time | Timeout Setting | Description |
-|---------|---------------|-----------------|-------------|
-| `yarn install` | ~60s initial, ~11s subsequent | 120+ seconds | NEVER CANCEL: Installs all dependencies |
-| `yarn build` | ~19 seconds | 60+ seconds | NEVER CANCEL: Complete build process |
-| `yarn build:extension` | ~5 seconds | 30+ seconds | Compile extension TypeScript |
-| `yarn build:webviews` | ~8 seconds | 30+ seconds | Compile React webviews |
-| `yarn lint src/ test/` | ~1.5 seconds | 30+ seconds | Lint source files only |
-| `yarn package --online` | ~4.5 seconds | 60+ seconds | NEVER CANCEL: Create VSIX package |
-| `yarn watch` | Continuous | N/A | Development watch mode |
+| Command                 | Expected Time                 | Timeout Setting | Description                             |
+| ----------------------- | ----------------------------- | --------------- | --------------------------------------- |
+| `yarn install`          | ~60s initial, ~11s subsequent | 120+ seconds    | NEVER CANCEL: Installs all dependencies |
+| `yarn build`            | ~19 seconds                   | 60+ seconds     | NEVER CANCEL: Complete build process    |
+| `yarn build:extension`  | ~5 seconds                    | 30+ seconds     | Compile extension TypeScript            |
+| `yarn build:webviews`   | ~8 seconds                    | 30+ seconds     | Compile React webviews                  |
+| `yarn lint src/ test/`  | ~1.5 seconds                  | 30+ seconds     | Lint source files only                  |
+| `yarn package --online` | ~4.5 seconds                  | 60+ seconds     | NEVER CANCEL: Create VSIX package       |
+| `yarn watch`            | Continuous                    | N/A             | Development watch mode                  |
 
 ## Build Troubleshooting
 
 ### Common Issues and Solutions
 
 #### Lint Failures
-- **Issue**: `yarn lint` fails with "Definition for rule not found"
-- **Solution**: Use `yarn lint src/ test/` to lint source files only, not build output
+
+-   **Issue**: `yarn lint` fails with "Definition for rule not found"
+-   **Solution**: Use `yarn lint src/ test/` to lint source files only, not build output
 
 #### VS Code Tests Failing
-- **Issue**: Tests fail with "ENOTFOUND update.code.visualstudio.com" 
-- **Solution**: Expected in sandboxed environments. Tests require internet access to download VS Code.
+
+-   **Issue**: Tests fail with "ENOTFOUND update.code.visualstudio.com"
+-   **Solution**: Expected in sandboxed environments. Tests require internet access to download VS Code.
 
 #### Build Warnings
-- **Issue**: Engine warnings: "The engine 'vscode' appears to be invalid"
-- **Solution**: These are harmless warnings and can be ignored.
 
-#### Watch Mode Issues  
-- **Issue**: Watch mode not detecting changes
-- **Solution**: Stop watch mode (Ctrl+C) and restart: `yarn watch`
+-   **Issue**: Engine warnings: "The engine 'vscode' appears to be invalid"
+-   **Solution**: These are harmless warnings and can be ignored.
+
+#### Watch Mode Issues
+
+-   **Issue**: Watch mode not detecting changes
+-   **Solution**: Stop watch mode (Ctrl+C) and restart: `yarn watch`
 
 ### CI/CD Expectations
-- The GitHub Actions workflow expects all these commands to work
-- Build must complete in under 60 seconds
-- Linting must pass with zero errors
-- VSIX package size should be under 25MB  
-- No localization updates should be required unless strings changed
+
+-   The GitHub Actions workflow expects all these commands to work
+-   Build must complete in under 60 seconds
+-   Linting must pass with zero errors
+-   VSIX package size should be under 25MB
+-   No localization updates should be required unless strings changed
 
 ## Architecture Notes
 
 ### Extension Components
-- **Main Extension**: Entry point in `src/extension.ts`
-- **Webview Controllers**: React-based UI components for database management
-- **Services**: SQL Tools Service integration, connection management, query execution
-- **AI Integration**: GitHub Copilot features for SQL assistance and agent mode
 
-### Build Pipeline  
+-   **Main Extension**: Entry point in `src/extension.ts`
+-   **Webview Controllers**: React-based UI components for database management
+-   **Services**: SQL Tools Service integration, connection management, query execution
+-   **AI Integration**: GitHub Copilot features for SQL assistance and agent mode
+
+### Build Pipeline
+
 1. **Asset Preparation**: Copies test resources and generates localized strings
-2. **TypeScript Compilation**: Compiles both extension and webview code separately  
+2. **TypeScript Compilation**: Compiles both extension and webview code separately
 3. **Bundling**: Uses esbuild to create optimized bundles for production
 4. **Packaging**: Creates VSIX file with all assets and dependencies
 
 ### Development Patterns
-- Use `yarn watch` during development for live compilation
-- Always run linting before committing changes
-- Build and package extension to test full integration
-- Extension can be debugged by installing VSIX in VS Code
+
+-   Use `yarn watch` during development for live compilation
+-   Always run linting before committing changes
+-   Build and package extension to test full integration
+-   Extension can be debugged by installing VSIX in VS Code
 
 **Remember**: NEVER CANCEL long-running build or test commands. Always set appropriate timeouts and wait for completion.

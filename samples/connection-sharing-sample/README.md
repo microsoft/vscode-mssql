@@ -10,11 +10,13 @@ This sample extension showcases two different approaches to leverage database co
 2. **Direct API approach** - Using the MSSQL extension's exported API directly
 
 ## To run:
+
 1. Compile the mssql extension by running from the repository root:
-````bash
+
+```bash
 yarn
 yarn watch
-````
+```
 
 2. Open this sample extension in VS Code
 3. In the Run and Debug view, select the "Run Extension" configuration

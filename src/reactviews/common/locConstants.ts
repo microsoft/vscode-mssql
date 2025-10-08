@@ -900,6 +900,15 @@ export class LocConstants {
         };
     }
 
+    public get publishProject() {
+        return {
+            SelectPublishProfile: l10n.t("Select Profile"),
+            SaveAs: l10n.t("Save As..."),
+            generateScript: l10n.t("Generate Script"),
+            publish: l10n.t("Publish"),
+        };
+    }
+
     public get connectionGroups() {
         return {
             createNew: l10n.t("Create New Connection Group"),
@@ -1011,6 +1020,37 @@ export class LocConstants {
             smartPerformanceDescription: l10n.t(
                 "Automatic tuning features like automatic index creation enabled by default.",
             ),
+        };
+    }
+
+    public get changePasswordDialog() {
+        return {
+            title: l10n.t("Change Password"),
+            description: (serverName: string) =>
+                l10n.t({
+                    message: "Password must be changed to continue logging into '{0}'",
+                    args: [serverName],
+                    comment: ["{0} is the name of the server"],
+                }),
+            dialogAriaLabel: (userName: string, serverName: string) =>
+                l10n.t({
+                    message: "Password must be changed for '{0}' to continue logging into '{1}'",
+                    args: [userName, serverName],
+                    comment: ["{0} is the username", "{1} is the name of the server"],
+                }),
+            username: l10n.t("Username"),
+            newPassword: l10n.t("New Password"),
+            passwordIsRequired: l10n.t("Password is required"),
+            newPasswordPlaceholder: l10n.t("Enter new password"),
+            showNewPassword: l10n.t("Show New Password"),
+            hideNewPassword: l10n.t("Hide New Password"),
+            confirmPassword: l10n.t("Confirm Password"),
+            confirmPasswordPlaceholder: l10n.t("Confirm new password"),
+            showConfirmPassword: l10n.t("Show Confirm Password"),
+            hideConfirmPassword: l10n.t("Hide Confirm Password"),
+            changePasswordButton: l10n.t("Change Password"),
+            cancelButton: l10n.t("Cancel"),
+            passwordsDoNotMatch: l10n.t("Passwords do not match"),
         };
     }
 }

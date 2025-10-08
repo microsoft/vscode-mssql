@@ -1,0 +1,20 @@
+coverage:
+  status:
+    project: #code coverage requirements for the entire project
+      default:
+        target: 50% #the required coverage value
+        informational: true #temporary until CodeCov is setup on the repo
+    patch: # code coverage requirements for the changes in the commit
+      default:
+        target: 70% #the required coverage value
+        informational: true #temporary until CodeCov is setup on the repo
+comment: #Layout of the PR comment
+  layout: "reach, diff, files"
+  behavior: default
+parsers:
+  cobertura:
+    partials_as_hits: true
+fixes:
+  - "pr/::" #remove the pr root directory from test file paths
+ignore:
+  - "dist/views" #ignore the coverage for bundled webviews

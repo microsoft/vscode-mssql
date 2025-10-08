@@ -288,6 +288,13 @@ jobs:
           name: CoverageReport # Artifact name
           path: coveragereport # Directory containing files to upload
 
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: "./pr/coverage"
+          exclude: "coverage-e2e" # coverage for smoke tests is already merged above
+
       - name: Code coverage
         run: |
           cd target
