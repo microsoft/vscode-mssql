@@ -228,20 +228,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         void vscode.window.showInformationMessage(
                             `Publish profile saved to: ${fileUri.fsPath}`,
                         );
-
-                        return {
-                            ...state,
-                            formState: {
-                                ...state.formState,
-                                publishProfilePath: fileUri.fsPath,
-                            },
-                        };
                     } catch (error) {
                         void vscode.window.showErrorMessage(
                             `Failed to save publish profile: ${error}`,
                         );
-                        return state;
                     }
+
+                    return state;
                 }
 
                 // If DacFx service is not available, just update the path

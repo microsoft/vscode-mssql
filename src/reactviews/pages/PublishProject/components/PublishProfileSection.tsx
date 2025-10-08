@@ -25,7 +25,7 @@ const useStyles = makeStyles({
     buttons: {
         display: "flex",
         flexDirection: "row",
-        gap: "4px",
+        gap: "8px",
         paddingBottom: "4px",
         alignSelf: "flex-end",
     },
@@ -55,7 +55,7 @@ export const PublishProfileField: React.FC = () => {
     }
 
     return (
-        <div className={`${formStyles.formComponentDiv} ${classes.root}`}>
+        <div className={classes.root}>
             <div className={classes.fieldContainer}>
                 {renderInput(component, localValue, setLocalValue, { readOnly: true })}
             </div>
