@@ -801,6 +801,8 @@
   "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.": "Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.",
   "Smart performance": "Smart performance",
   "Automatic tuning features like automatic index creation enabled by default.": "Automatic tuning features like automatic index creation enabled by default.",
+  "Save Changes": "Save Changes",
+  "Add Row": "Add Row",
   "Object Explorer Filter": "Object Explorer Filter",
   "{0} (filtered)": "{0} (filtered)",
   "Remind Me Later": "Remind Me Later",
