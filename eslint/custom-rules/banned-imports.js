@@ -1,6 +1,5 @@
 "use strict";
 const path = require("path");
-const module = require("module");
 
 function toPosix(p) {
     return p.split(path.sep).join("/"); // turns "\" → "/"
