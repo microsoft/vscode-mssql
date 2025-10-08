@@ -5,6 +5,7 @@
 
 import { ColumnSortState, FilterableColumn } from "./interfaces";
 import { IDisposableDataProvider } from "./dataProvider";
+import { SortProperties } from "../../../../sharedInterfaces/queryResult";
 
 export interface IFindPosition {
     col: number;
@@ -180,7 +181,7 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
                 this._data = this._sortFn!(
                     {
                         sortCol: this._currentColumnSort.column,
-                        sortAsc: this._currentColumnSort.sortDirection === "sort-asc",
+                        sortAsc: this._currentColumnSort.sortDirection === SortProperties.ASC,
                         grid: undefined,
                         multiColumnSort: false,
                     },
@@ -199,7 +200,7 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
         this._data = this._sortFn!(args, this._data);
         this._currentColumnSort = {
             column: args.sortCol!,
-            sortDirection: args.sortAsc ? "sort-asc" : "sort-desc",
+            sortDirection: args.sortAsc ? SortProperties.ASC : SortProperties.DESC,
         };
         // this._onSortComplete.fire(args);
     }
