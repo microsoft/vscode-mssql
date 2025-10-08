@@ -81,10 +81,10 @@ export interface PublishProjectProvider {
         sqlCmdVariables?: { [key: string]: string };
         publishProfilePath?: string;
     }): void;
-    /** Generate (but do not execute) a publish script */
+    /** Generate a publish script */
     generatePublishScript(): void;
-    /** Choose a publish profile file and apply (may partially override form state) */
+    /** Choose a publish profile file and apply */
     selectPublishProfile(): void;
-    /** Persist current form state as a named profile */
-    savePublishProfile(profileName: string): void;
+    /** Persist current form state as a named publish profile */
+    savePublishProfile(publishProfileName: string): void;
 }
