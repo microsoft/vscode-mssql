@@ -238,6 +238,25 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
     }
 
     /**
+     * Refresh the Source Control view if it's currently showing changes for the specified database
+     */
+    public async refreshIfActive(credentials: IConnectionInfo): Promise<void> {
+        if (!this._currentDatabase) {
+            return;
+        }
+
+        // Check if the Source Control view is currently showing this database
+        const connectionHash = this._gitIntegrationService.generateConnectionHash(credentials);
+        if (this._currentDatabase.connectionHash === connectionHash) {
+            console.log(
+                `[SourceControl] Cache updated for active database ${credentials.database}, refreshing view`,
+            );
+            // Refresh without progress notification (background refresh)
+            await this._refreshChanges(undefined);
+        }
+    }
+
+    /**
      * Refresh the list of changes
      */
     private async _refreshChanges(

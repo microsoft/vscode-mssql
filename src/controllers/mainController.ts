@@ -1030,6 +1030,8 @@ export default class MainController implements vscode.Disposable {
                 this.gitStatusService.clearCache(credentials);
                 // Refresh Object Explorer to update decorations
                 this._objectExplorerProvider.refresh(undefined);
+                // Refresh Source Control view if it's currently showing this database
+                void this.databaseSourceControlProvider.refreshIfActive(credentials);
             }),
         );
 
