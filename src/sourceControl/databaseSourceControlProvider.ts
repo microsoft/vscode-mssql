@@ -224,14 +224,27 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
 
         // Note: label is read-only, set in constructor
 
-        // Load changes
-        await this._refreshChanges();
+        // Load changes with progress notification
+        await vscode.window.withProgress(
+            {
+                location: vscode.ProgressLocation.Notification,
+                title: `Loading changes for ${credentials.database}`,
+                cancellable: false,
+            },
+            async (progress) => {
+                await this._refreshChanges(progress);
+            },
+        );
     }
 
     /**
      * Refresh the list of changes
      */
-    private async _refreshChanges(): Promise<void> {
+    private async _refreshChanges(
+        progress?: vscode.Progress<{ message?: string; increment?: number }>,
+    ): Promise<void> {
+        const startTime = Date.now();
+
         if (!this._currentDatabase) {
             console.log("[SourceControl] No current database");
             return;
@@ -240,9 +253,12 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
         const { credentials, connectionHash } = this._currentDatabase;
 
         // Get all cached objects
+        progress?.report({ message: "Loading cache metadata...", increment: 0 });
+        const metadataStartTime = Date.now();
         const cacheMetadata = await this._localCacheService.getCacheMetadata(credentials);
+        const metadataTime = Date.now() - metadataStartTime;
         console.log(
-            `[SourceControl] Cache metadata:`,
+            `[SourceControl] Cache metadata loaded in ${metadataTime}ms:`,
             cacheMetadata ? `${Object.keys(cacheMetadata.objects).length} objects` : "null",
         );
         if (!cacheMetadata) {
@@ -251,6 +267,7 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
         }
 
         // Get Git repository path
+        progress?.report({ message: "Checking Git link status...", increment: 5 });
         const gitInfo = await this._gitStatusService.getDatabaseGitInfo(credentials);
         console.log(
             `[SourceControl] Git info: isLinked=${gitInfo.isLinked}, localPath=${gitInfo.localPath}`,
@@ -260,62 +277,96 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
             return;
         }
 
-        // Check status of each object
+        // Check status of each object in batches for better performance
+        const comparisonStartTime = Date.now();
         const changes: DatabaseResourceState[] = [];
+        const objectKeys = Object.keys(cacheMetadata.objects);
+        const totalObjects = objectKeys.length;
         let checkedCount = 0;
-        let sampleLogged = false;
-        for (const objKey of Object.keys(cacheMetadata.objects)) {
-            const obj = cacheMetadata.objects[objKey];
-            const metadata: ObjectMetadata = {
-                metadataTypeName: obj.type,
-                schema: obj.schema,
-                name: obj.name,
-                metadataType: 0, // Not used for comparison
-                urn: `${obj.schema}.${obj.name}`, // URN for the object
-            };
 
-            const statusInfo = await this._gitStatusService.getObjectStatus(credentials, metadata);
-            checkedCount++;
+        // Process in batches of 100 objects for progress reporting
+        const batchSize = 100;
+        const batches = [];
+        for (let i = 0; i < objectKeys.length; i += batchSize) {
+            batches.push(objectKeys.slice(i, i + batchSize));
+        }
 
-            // Log first few objects for debugging
-            if (!sampleLogged && checkedCount <= 3) {
-                console.log(
-                    `[SourceControl] Sample ${checkedCount}: ${obj.schema}.${obj.name} (${obj.type}) - ${statusInfo.status}`,
+        console.log(
+            `[SourceControl] Comparing ${totalObjects} objects in ${batches.length} batches of ${batchSize}`,
+        );
+
+        for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+            const batch = batches[batchIndex];
+            const batchStartTime = Date.now();
+
+            // Process batch in parallel (up to 50 concurrent operations)
+            const batchPromises = batch.map(async (objKey) => {
+                const obj = cacheMetadata.objects[objKey];
+                const metadata: ObjectMetadata = {
+                    metadataTypeName: obj.type,
+                    schema: obj.schema,
+                    name: obj.name,
+                    metadataType: 0, // Not used for comparison
+                    urn: `${obj.schema}.${obj.name}`, // URN for the object
+                };
+
+                const statusInfo = await this._gitStatusService.getObjectStatus(
+                    credentials,
+                    metadata,
                 );
-                if (checkedCount === 3) {
-                    sampleLogged = true;
-                }
-            }
 
-            // Only include objects with changes
-            if (
-                statusInfo.status !== GitObjectStatus.InSync &&
-                statusInfo.status !== GitObjectStatus.Unknown
-            ) {
-                console.log(
-                    `[SourceControl] Found change: ${obj.schema}.${obj.name} - ${statusInfo.status}`,
-                );
-                const localCachePath = this._getLocalCachePath(connectionHash, metadata);
-                const gitRepoPath = this._getGitRepoPath(gitInfo.localPath, metadata);
+                // Only include objects with changes
+                if (
+                    statusInfo.status !== GitObjectStatus.InSync &&
+                    statusInfo.status !== GitObjectStatus.Unknown
+                ) {
+                    const localCachePath = this._getLocalCachePath(connectionHash, metadata);
+                    const gitRepoPath = this._getGitRepoPath(gitInfo.localPath, metadata);
 
-                changes.push(
-                    new DatabaseResourceState(
+                    return new DatabaseResourceState(
                         metadata,
                         statusInfo.status,
                         connectionHash,
                         credentials,
                         localCachePath,
                         gitRepoPath,
-                    ),
+                    );
+                }
+                return null;
+            });
+
+            // Wait for batch to complete
+            const batchResults = await Promise.all(batchPromises);
+            const batchChanges = batchResults.filter((r) => r !== null) as DatabaseResourceState[];
+            changes.push(...batchChanges);
+
+            checkedCount += batch.length;
+            const batchTime = Date.now() - batchStartTime;
+            const avgTimePerObject = batchTime / batch.length;
+
+            // Update progress
+            const percentComplete = Math.floor((checkedCount / totalObjects) * 90) + 10; // 10-100%
+            progress?.report({
+                message: `Checking objects: ${checkedCount}/${totalObjects} (${batchChanges.length} changes found)`,
+                increment: percentComplete,
+            });
+
+            // Log batch performance
+            if (batchIndex === 0 || batchIndex === batches.length - 1 || batchIndex % 10 === 0) {
+                console.log(
+                    `[SourceControl] Batch ${batchIndex + 1}/${batches.length}: ${batch.length} objects in ${batchTime}ms (${avgTimePerObject.toFixed(1)}ms/object), ${batchChanges.length} changes`,
                 );
             }
         }
 
+        const comparisonTime = Date.now() - comparisonStartTime;
+        const avgTimePerObject = comparisonTime / totalObjects;
         console.log(
-            `[SourceControl] Checked ${checkedCount} objects, found ${changes.length} changes`,
+            `[SourceControl] Comparison complete: ${checkedCount} objects in ${comparisonTime}ms (${avgTimePerObject.toFixed(1)}ms/object), found ${changes.length} changes`,
         );
 
         // Update changes group (exclude staged items)
+        progress?.report({ message: "Updating view...", increment: 95 });
         const stagedUris = new Set(
             this._stagedGroup.resourceStates.map((r) => r.resourceUri.toString()),
         );
@@ -323,12 +374,18 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
             (c) => !stagedUris.has(c.resourceUri.toString()),
         );
 
-        console.log(
-            `[SourceControl] Displaying ${this._changesGroup.resourceStates.length} changes (${this._stagedGroup.resourceStates.length} staged)`,
-        );
-
         // Update count badge
         this._sourceControl.count = changes.length;
+
+        const totalTime = Date.now() - startTime;
+        console.log(
+            `[SourceControl] ✅ Complete in ${totalTime}ms: Displaying ${this._changesGroup.resourceStates.length} changes (${this._stagedGroup.resourceStates.length} staged)`,
+        );
+        console.log(
+            `[SourceControl] Performance breakdown: metadata=${metadataTime}ms, comparison=${comparisonTime}ms (${avgTimePerObject.toFixed(1)}ms/object)`,
+        );
+
+        progress?.report({ message: "Done!", increment: 100 });
     }
 
     /**
@@ -485,7 +542,7 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
             // Clear staged changes and refresh
             this._stagedGroup.resourceStates = [];
             this._sourceControl.inputBox.value = "";
-            await this._refreshChanges();
+            await this._refreshChanges(undefined);
 
             vscode.window.showInformationMessage(
                 `Successfully applied ${stagedChanges.length} change(s) to local Git repository. Use Git tools to commit and push.`,
@@ -559,7 +616,7 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
             await fs.writeFile(resourceState.localCachePath, gitContent, "utf-8");
 
             // Refresh changes
-            await this._refreshChanges();
+            await this._refreshChanges(undefined);
 
             vscode.window.showInformationMessage(`Discarded changes to ${resourceState.label}.`);
         } catch (error) {
