@@ -991,7 +991,8 @@ export class LocConstants {
 
     public get tableExplorer() {
         return {
-            save: l10n.t("Save"),
+            saveChanges: l10n.t("Save Changes"),
+            addRow: l10n.t("Add Row"),
         };
     }
 }

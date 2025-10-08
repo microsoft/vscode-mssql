@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Toolbar, ToolbarButton, Dropdown, Option } from "@fluentui/react-components";
-import { SaveRegular } from "@fluentui/react-icons";
+import { SaveRegular, AddRegular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { useState } from "react";
@@ -25,6 +25,10 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({ onSa
         }
     };
 
+    const handleAddRow = () => {
+        context.createRow();
+    };
+
     const handleDropdownChange = (_event: any, data: any) => {
         const newValue = data.optionValue;
         setSelectedValue(newValue);
@@ -35,11 +39,18 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({ onSa
     return (
         <Toolbar>
             <ToolbarButton
-                aria-label={loc.tableExplorer.save}
-                title={loc.tableExplorer.save}
+                aria-label={loc.tableExplorer.saveChanges}
+                title={loc.tableExplorer.saveChanges}
                 icon={<SaveRegular />}
                 onClick={handleSave}>
-                {loc.tableExplorer.save}
+                {loc.tableExplorer.saveChanges}
+            </ToolbarButton>
+            <ToolbarButton
+                aria-label={loc.tableExplorer.addRow}
+                title={loc.tableExplorer.addRow}
+                icon={<AddRegular />}
+                onClick={handleAddRow}>
+                {loc.tableExplorer.addRow}
             </ToolbarButton>
             <Dropdown
                 value={selectedValue}
