@@ -178,6 +178,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         function getContextMenuOptions(): ContextMenu {
             return {
+                hideCopyCellValueCommand: true,
                 hideCloseButton: false,
                 commandTitle: "Commands",
                 commandItems: [
