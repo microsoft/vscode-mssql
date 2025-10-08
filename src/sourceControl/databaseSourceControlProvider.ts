@@ -17,6 +17,7 @@ import { GitObjectStatus } from "../models/gitStatus";
 export class DatabaseResourceState implements vscode.SourceControlResourceState {
     public readonly resourceUri: vscode.Uri;
     public readonly decorations?: vscode.SourceControlResourceDecorations;
+    public readonly command?: vscode.Command;
 
     constructor(
         public readonly metadata: ObjectMetadata,
@@ -33,6 +34,13 @@ export class DatabaseResourceState implements vscode.SourceControlResourceState 
 
         // Set decorations based on status
         this.decorations = this._getDecorations();
+
+        // Set command to open diff view when clicked
+        this.command = {
+            command: "mssql.sourceControl.openDiff",
+            title: "Open Diff",
+            arguments: [this],
+        };
     }
 
     private _getDecorations(): vscode.SourceControlResourceDecorations {
@@ -601,16 +609,70 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
      * Open diff view for a change
      */
     private async _openDiff(resourceState: DatabaseResourceState): Promise<void> {
-        const leftUri = vscode.Uri.file(resourceState.gitRepoPath).with({
-            scheme: "file",
-        });
-        const rightUri = vscode.Uri.file(resourceState.localCachePath).with({
-            scheme: "file",
+        try {
+            let leftUri: vscode.Uri;
+            let rightUri: vscode.Uri;
+            let title: string;
+
+            // Handle different status cases
+            switch (resourceState.status) {
+                case GitObjectStatus.Added:
+                    // Object exists in cache but not in Git - show empty on left, cache on right
+                    leftUri = await this._createEmptyFileUri(
+                        resourceState.label,
+                        "// Object does not exist in Git repository\n",
+                    );
+                    rightUri = vscode.Uri.file(resourceState.localCachePath);
+                    title = `${resourceState.label} (New in Database)`;
+                    break;
+
+                case GitObjectStatus.Deleted:
+                    // Object exists in Git but not in cache - show Git on left, empty on right
+                    leftUri = vscode.Uri.file(resourceState.gitRepoPath);
+                    rightUri = await this._createEmptyFileUri(
+                        resourceState.label,
+                        "// Object has been deleted from database\n",
+                    );
+                    title = `${resourceState.label} (Deleted from Database)`;
+                    break;
+
+                case GitObjectStatus.Modified:
+                default:
+                    // Object exists in both - show Git on left, cache on right
+                    leftUri = vscode.Uri.file(resourceState.gitRepoPath);
+                    rightUri = vscode.Uri.file(resourceState.localCachePath);
+                    title = `${resourceState.label} (Git ↔ Database)`;
+                    break;
+            }
+
+            // Open diff view (read-only by default)
+            await vscode.commands.executeCommand("vscode.diff", leftUri, rightUri, title, {
+                preview: true,
+                preserveFocus: false,
+            });
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to open diff view: ${error}`);
+            console.error("[SourceControl] Error opening diff:", error);
+        }
+    }
+
+    /**
+     * Create a temporary empty file URI for diff view
+     */
+    private async _createEmptyFileUri(label: string, content: string): Promise<vscode.Uri> {
+        // Use an untitled document scheme for empty files
+        // This creates a virtual document that doesn't exist on disk
+        const emptyUri = vscode.Uri.parse(`untitled:${label}.sql`).with({
+            scheme: "untitled",
         });
 
-        const title = `${resourceState.label} (Git ↔ Database)`;
+        // Create the document with the placeholder content
+        await vscode.workspace.openTextDocument(emptyUri);
+        const edit = new vscode.WorkspaceEdit();
+        edit.insert(emptyUri, new vscode.Position(0, 0), content);
+        await vscode.workspace.applyEdit(edit);
 
-        await vscode.commands.executeCommand("vscode.diff", leftUri, rightUri, title);
+        return emptyUri;
     }
 
     /**
