@@ -1258,6 +1258,10 @@
         <source xml:lang="en">Database name</source>
         <target state="translated">Nombre de la base de datos</target>
       </trans-unit>
+      <trans-unit id="++CODE++3f0af542763ab0fd4d14de082ebedee3de024d89fb59bb569a6400087177d6db">
+        <source xml:lang="en">Database name is required</source>
+        <target state="new">Database name is required</target>
+      </trans-unit>
       <trans-unit id="++CODE++21b111cbfe6e8fca2d181c43f53ad548b22e38aca955b9824706a504b0a07a2d">
         <source xml:lang="en">Default</source>
         <target state="translated">Valor predeterminado</target>
@@ -1679,6 +1683,10 @@ Error:
       <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
         <source xml:lang="en">Execution Plan</source>
         <target state="translated">Plan de ejecución</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
+        <source xml:lang="en">Existing SQL server</source>
+        <target state="new">Existing SQL server</target>
       </trans-unit>
       <trans-unit id="++CODE++07548c2c6511d4d1780564de8a237a1966cf9c99a97cf5c8a185e6c2aeacff09">
         <source xml:lang="en">Expand</source>
@@ -2528,6 +2536,10 @@ Error:
         <source xml:lang="en">Local SQL Server database container</source>
         <target state="translated">Contenedor de base de datos de SQL Server local</target>
       </trans-unit>
+      <trans-unit id="++CODE++9aa8c99c1e1071fa2070e9283b4cd9a737a77249f44f1a41b559073d99293249">
+        <source xml:lang="en">Local development container</source>
+        <target state="new">Local development container</target>
+      </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
         <target state="translated">Ubicación</target>
@@ -3200,6 +3212,18 @@ Error:
         <source xml:lang="en">Publish Changes</source>
         <target state="translated">Publicar cambios</target>
       </trans-unit>
+      <trans-unit id="++CODE++dce49ef71e44b5c107d066069bd508af15fbffd22c8e410f76db1f120371635a">
+        <source xml:lang="en">Publish Profile</source>
+        <target state="new">Publish Profile</target>
+      </trans-unit>
+      <trans-unit id="++CODE++42b341b8072aa3adcb1b6f83353574f79b03c073faeb2c64253cdb6248c011c1">
+        <source xml:lang="en">Publish Project</source>
+        <target state="new">Publish Project</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d5ce61b547d2e5793b2ac208be904ea9f94d5e5594d0c5c02bdda22abf61fcf0">
+        <source xml:lang="en">Publish Target</source>
+        <target state="new">Publish Target</target>
+      </trans-unit>
       <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
         <source xml:lang="en">Publishing Changes</source>
         <target state="translated">Publicando cambios</target>
@@ -3415,6 +3439,10 @@ Consulta: {1}</target>
         <source xml:lang="en">SQL database in Fabric (Preview)</source>
         <target state="translated">SQL Database en Fabric (versión preliminar)</target>
       </trans-unit>
+      <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
+        <source xml:lang="en">SQLCMD Variables</source>
+        <target state="new">SQLCMD Variables</target>
+      </trans-unit>
       <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
         <source xml:lang="en">SVG</source>
         <target state="translated">SVG</target>
@@ -3438,6 +3466,10 @@ Consulta: {1}</target>
       <trans-unit id="++CODE++088203b4cd88789e07f4e9a8f05cf6e8c1d0b413ae32d30cae69beeef94784e6">
         <source xml:lang="en">Save As</source>
         <target state="translated">Guardar como</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4a3dca5ad8733bf29762c2315ae7e89e4f9a30c2ad082e4b01a93cc96e7d442e">
+        <source xml:lang="en">Save As...</source>
+        <target state="new">Save As...</target>
       </trans-unit>
       <trans-unit id="++CODE++df2839447956141d6503caf44145db003e70b17dc128d5c4fefec188b28d6966">
         <source xml:lang="en">Save Connection Group</source>
@@ -3586,6 +3618,10 @@ Consulta: {1}</target>
         <source xml:lang="en">Select Azure account with Key Vault access for column decryption</source>
         <target state="translated">Seleccionar la cuenta de Azure con acceso a Key Vault para el descifrado de columnas</target>
       </trans-unit>
+      <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
+        <source xml:lang="en">Select Profile</source>
+        <target state="new">Select Profile</target>
+      </trans-unit>
       <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
         <source xml:lang="en">Select Source</source>
         <target state="translated">Seleccionar origen</target>
@@ -3657,6 +3693,10 @@ Consulta: {1}</target>
         <source xml:lang="en">Select new permission for extension: '{0}'</source>
         <note>{0} is the extension name</note>
         <target state="translated">Seleccionar nuevo permiso para la extensión: '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++10484d8ed1877a7e126a17a3a144a55c6bf07784ecc22b01d87ee138fb808cd8">
+        <source xml:lang="en">Select or enter a publish profile</source>
+        <target state="new">Select or enter a publish profile</target>
       </trans-unit>
       <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
         <source xml:lang="en">Select profile to remove</source>
