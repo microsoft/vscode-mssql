@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import { expect } from "chai";
 import * as sinon from "sinon";
-import * as constants from "../../src/constants/constants";
 
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { PublishProjectWebViewController } from "../../src/publishProject/publishProjectWebViewController";
@@ -15,6 +14,7 @@ import {
     isValidSqlAdminPassword,
 } from "../../src/publishProject/projectUtils";
 import { stubVscodeWrapper } from "./utils";
+import { PublishTarget } from "../../src/sharedInterfaces/publishDialog";
 
 suite("PublishProjectWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -99,9 +99,7 @@ suite("PublishProjectWebViewController Tests", () => {
 
         await controller.initialized.promise;
 
-        expect(controller.state.formState.publishTarget).to.equal(
-            constants.PublishTargets.EXISTING_SERVER,
-        );
+        expect(controller.state.formState.publishTarget).to.equal(PublishTarget.ExistingServer);
     });
 
     test("getActiveFormComponents returns correct fields for EXISTING_SERVER target", async () => {
@@ -115,7 +113,7 @@ suite("PublishProjectWebViewController Tests", () => {
         await controller.initialized.promise;
 
         // Set publish target to EXISTING_SERVER (default)
-        controller.state.formState.publishTarget = constants.PublishTargets.EXISTING_SERVER;
+        controller.state.formState.publishTarget = PublishTarget.ExistingServer;
 
         const activeComponents = controller["getActiveFormComponents"](controller.state);
 
@@ -141,7 +139,7 @@ suite("PublishProjectWebViewController Tests", () => {
         await controller.initialized.promise;
 
         // Set publish target to LOCAL_CONTAINER
-        controller.state.formState.publishTarget = constants.PublishTargets.LOCAL_CONTAINER;
+        controller.state.formState.publishTarget = PublishTarget.LocalContainer;
 
         const activeComponents = controller["getActiveFormComponents"](controller.state);
 
@@ -195,7 +193,7 @@ suite("PublishProjectWebViewController Tests", () => {
         await formAction(controller.state, {
             event: {
                 propertyName: "publishTarget",
-                value: constants.PublishTargets.LOCAL_CONTAINER,
+                value: PublishTarget.LocalContainer,
                 isAction: false,
             },
         });
@@ -226,9 +224,7 @@ suite("PublishProjectWebViewController Tests", () => {
         });
 
         // Verify all values are saved
-        expect(controller.state.formState.publishTarget).to.equal(
-            constants.PublishTargets.LOCAL_CONTAINER,
-        );
+        expect(controller.state.formState.publishTarget).to.equal(PublishTarget.LocalContainer);
         expect(controller.state.formState.containerPort).to.equal("1434");
         expect(controller.state.formState.containerAdminPassword).to.equal("TestPassword123!");
         expect(controller.state.formState.containerAdminPasswordConfirm).to.equal(
@@ -263,10 +259,10 @@ suite("PublishProjectWebViewController Tests", () => {
 
         const publishTargetComponent = controller.state.formComponents.publishTarget;
         const existingServerOption = publishTargetComponent.options?.find(
-            (opt) => opt.value === constants.PublishTargets.EXISTING_SERVER,
+            (opt) => opt.value === PublishTarget.ExistingServer,
         );
         const containerOption = publishTargetComponent.options?.find(
-            (opt) => opt.value === constants.PublishTargets.LOCAL_CONTAINER,
+            (opt) => opt.value === PublishTarget.LocalContainer,
         );
 
         expect(existingServerOption?.displayName).to.equal("Existing Azure SQL logical server");
@@ -303,7 +299,7 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(publishTargetComponent.options?.length).to.equal(3);
 
         const azureOption = publishTargetComponent.options?.find(
-            (opt) => opt.value === constants.PublishTargets.NEW_AZURE_SERVER,
+            (opt) => opt.value === PublishTarget.NewAzureServer,
         );
         expect(azureOption).to.exist;
         expect(azureOption?.displayName).to.equal("New Azure SQL logical server (Preview)");

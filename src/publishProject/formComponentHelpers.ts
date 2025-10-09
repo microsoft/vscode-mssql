@@ -11,6 +11,7 @@ import {
     IPublishForm,
     PublishDialogFormItemSpec,
     PublishDialogState,
+    PublishTarget,
 } from "../sharedInterfaces/publishDialog";
 import { getPublishServerName, validateSqlServerPortNumber } from "./projectUtils";
 import { validateSqlServerPassword } from "../deployment/dockerUtils";
@@ -40,13 +41,13 @@ function generatePublishTargetOptions(projectTargetVersion?: string): FormItemOp
             displayName: isAzureSqlProject
                 ? Loc.PublishTargetExistingLogical
                 : Loc.PublishTargetExisting,
-            value: constants.PublishTargets.EXISTING_SERVER,
+            value: PublishTarget.ExistingServer,
         },
         {
             displayName: isAzureSqlProject
                 ? Loc.PublishTargetAzureEmulator
                 : Loc.PublishTargetContainer,
-            value: constants.PublishTargets.LOCAL_CONTAINER,
+            value: PublishTarget.LocalContainer,
         },
     ];
     if (isAzureSqlProject) {
@@ -54,7 +55,7 @@ function generatePublishTargetOptions(projectTargetVersion?: string): FormItemOp
         if (isPreviewFeaturesEnabled()) {
             options.push({
                 displayName: Loc.PublishTargetNewAzureServer,
-                value: constants.PublishTargets.NEW_AZURE_SERVER,
+                value: PublishTarget.NewAzureServer,
             });
         }
     }
