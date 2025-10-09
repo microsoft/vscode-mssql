@@ -21,7 +21,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { sendActionEvent } from "../telemetry/telemetry";
 import { generatePublishFormComponents } from "./formComponentHelpers";
 import { loadDockerTags } from "./dockerUtils";
-import { readProjectProperties } from "./projectUtils";
+import { readProjectProperties, parsePublishProfileXml } from "./projectUtils";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 
@@ -177,17 +177,39 @@ export class PublishProjectWebViewController extends FormWebviewController<
             if (fileUris && fileUris.length > 0) {
                 const selectedPath = fileUris[0].fsPath;
 
-                // Send telemetry for profile loaded
-                sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.profileLoaded);
+                try {
+                    // Parse the profile XML to extract all values, including deployment options from DacFx service
+                    const parsedProfile = await parsePublishProfileXml(
+                        selectedPath,
+                        this._dacFxService,
+                    );
 
-                // Update the publishProfilePath in form state
-                return {
-                    ...state,
-                    formState: {
-                        ...state.formState,
-                        publishProfilePath: selectedPath,
-                    },
-                };
+                    // Send telemetry for profile loaded
+                    sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.profileLoaded);
+
+                    void vscode.window.showInformationMessage(
+                        `Publish profile loaded: ${selectedPath}`,
+                    );
+
+                    // Update state with all parsed values - UI components will consume when available
+                    return {
+                        ...state,
+                        formState: {
+                            ...state.formState,
+                            publishProfilePath: selectedPath,
+                            databaseName:
+                                parsedProfile.databaseName || state.formState.databaseName,
+                            serverName: parsedProfile.serverName || state.formState.serverName,
+                            sqlCmdVariables: parsedProfile.sqlCmdVariables,
+                            // TODO: connectionString stored in parsed profile, will be used when connection UI is ready
+                        },
+                        deploymentOptions:
+                            parsedProfile.deploymentOptions || state.deploymentOptions,
+                    };
+                } catch (error) {
+                    void vscode.window.showErrorMessage(`Failed to load publish profile: ${error}`);
+                    return state;
+                }
             }
 
             return state;
