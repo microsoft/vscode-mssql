@@ -92,36 +92,85 @@ export class ConnectionNode extends TreeNodeInfo {
         // Default values for comparison
         const connectionNodeDefaults: Partial<IConnectionProfile> = getDefaultConnection();
 
-        const defaultValues = {
-            profileName: (connectionNodeDefaults as any).profileName,
-            server: (connectionNodeDefaults as any).server,
-            database: (connectionNodeDefaults as any).database,
-            authenticationType: (connectionNodeDefaults as any).authenticationType,
-            user: (connectionNodeDefaults as any).user,
-            port: (connectionNodeDefaults as any).port,
-            containerName: (connectionNodeDefaults as any).containerName,
-            containerVersion: (connectionNodeDefaults as any).containerVersion,
-            applicationIntent: (connectionNodeDefaults as any).applicationIntent,
-            connectionTimeout: (connectionNodeDefaults as any).connectionTimeout,
-            commandTimeout: (connectionNodeDefaults as any).commandTimeout,
-            alwaysEncrypted: (connectionNodeDefaults as any).alwaysEncrypted,
-            replication: (connectionNodeDefaults as any).replication,
-        };
-
-        let props: { key: string; value: string; label: string }[] = [
-            { key: "profileName", value: "", label: "Profile Name" },
-            { key: "server", value: "", label: "Server" },
-            { key: "database", value: "", label: "Database" },
-            { key: "authenticationType", value: "", label: "Authentication Type" },
-            { key: "user", value: "", label: "User" },
-            { key: "port", value: "", label: "Port" },
-            { key: "containerName", value: "", label: "SQL Container Name" },
-            { key: "version", value: "", label: "SQL Container Version" },
-            { key: "applicationIntent", value: "", label: "Application Intent" },
-            { key: "connectionTimeout", value: "", label: "Connection Timeout" },
-            { key: "commandTimeout", value: "", label: "Command Timeout" },
-            { key: "alwaysEncrypted", value: "", label: "Always Encrypted" },
-            { key: "replication", value: "", label: "Replication" },
+        let props: { key: string; value: string; label: string; defaultValue: string }[] = [
+            {
+                key: "profileName",
+                value: "",
+                label: "Profile Name",
+                defaultValue: (connectionNodeDefaults as any).profileName,
+            },
+            {
+                key: "server",
+                value: "",
+                label: "Server",
+                defaultValue: (connectionNodeDefaults as any).server,
+            },
+            {
+                key: "database",
+                value: "",
+                label: "Database",
+                defaultValue: (connectionNodeDefaults as any).database,
+            },
+            {
+                key: "authenticationType",
+                value: "",
+                label: "Authentication Type",
+                defaultValue: (connectionNodeDefaults as any).authenticationType,
+            },
+            {
+                key: "user",
+                value: "",
+                label: "User",
+                defaultValue: (connectionNodeDefaults as any).user,
+            },
+            {
+                key: "port",
+                value: "",
+                label: "Port",
+                defaultValue: (connectionNodeDefaults as any).port,
+            },
+            {
+                key: "containerName",
+                value: "",
+                label: "SQL Container Name",
+                defaultValue: (connectionNodeDefaults as any).containerName,
+            },
+            {
+                key: "version",
+                value: "",
+                label: "SQL Container Version",
+                defaultValue: (connectionNodeDefaults as any).version,
+            },
+            {
+                key: "applicationIntent",
+                value: "",
+                label: "Application Intent",
+                defaultValue: (connectionNodeDefaults as any).applicationIntent,
+            },
+            {
+                key: "connectionTimeout",
+                value: "",
+                label: "Connection Timeout",
+                defaultValue: (connectionNodeDefaults as any).connectionTimeout,
+            },
+            {
+                key: "commandTimeout",
+                value: "",
+                label: "Command Timeout",
+                defaultValue: (connectionNodeDefaults as any).commandTimeout,
+            },
+            {
+                key: "alwaysEncrypted",
+                value: "",
+                label: "Always Encrypted",
+                defaultValue: (connectionNodeDefaults as any).alwaysEncrypted,
+            },
+            {
+                key: "replication",
+                value: "",
+                label: "Replication",
+                defaultValue: (connectionNodeDefaults as any).replication,
+            },
         ];
 
         //handle auth types properly
@@ -142,13 +191,9 @@ export class ConnectionNode extends TreeNodeInfo {
                 return;
             }
 
-            if (key in defaultValues && value === defaultValues[key]) {
-                return;
-            }
-
-            if (props.map((p) => p.key).find((k) => k === key)) {
-                const prop = props.find((p) => p.key === key);
-                if (prop) {
+            const prop = props.find((p) => p.key === key);
+            if (prop) {
+                if (value !== prop.defaultValue) {
                     if (value === Constants.azureMfa || value === Constants.integratedauth) {
                         // Show authentication type as "Azure MFA" or "Windows Authentication"
                         const authTypeValueLabel =
