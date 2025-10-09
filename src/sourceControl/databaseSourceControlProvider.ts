@@ -5,11 +5,15 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
-import { IConnectionInfo, ObjectMetadata } from "vscode-mssql";
+import { IConnectionInfo, ObjectMetadata, SimpleExecuteResult } from "vscode-mssql";
 import { GitIntegrationService } from "../services/gitIntegrationService";
 import { LocalCacheService } from "../services/localCacheService";
 import { GitStatusService } from "../services/gitStatusService";
 import { GitObjectStatus } from "../models/gitStatus";
+import ConnectionManager from "../controllers/connectionManager";
+import SqlToolsServiceClient from "../languageservice/serviceclient";
+import { RequestType } from "vscode-languageclient";
+import { getErrorMessage } from "../utils/utils";
 
 /**
  * Represents a database object change in the source control view
@@ -113,6 +117,8 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
         private _gitIntegrationService: GitIntegrationService,
         private _localCacheService: LocalCacheService,
         private _gitStatusService: GitStatusService,
+        private _connectionManager: ConnectionManager,
+        private _sqlToolsClient: SqlToolsServiceClient,
     ) {
         // Create source control instance
         this._sourceControl = vscode.scm.createSourceControl(
@@ -679,29 +685,274 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
      * Discard changes (revert to Git version)
      */
     private async _discardChanges(resourceState: DatabaseResourceState): Promise<void> {
+        // Check if this is a table - not supported in Phase 5A
+        if (resourceState.metadata.metadataTypeName === "USER_TABLE") {
+            vscode.window.showErrorMessage(
+                `Discarding changes for tables is not supported yet. Table: ${resourceState.label}\n\n` +
+                    `Table schema changes require careful handling to preserve data. ` +
+                    `Please use a database migration tool or manually apply changes.`,
+            );
+            return;
+        }
+
+        // Show confirmation dialog
         const answer = await vscode.window.showWarningMessage(
-            `Are you sure you want to discard changes to ${resourceState.label}? This will revert the local cache to the Git version.`,
+            `This will modify the database object "${resourceState.label}" to match the Git repository version. ` +
+                `Database changes cannot be undone. Continue?`,
             { modal: true },
-            "Discard Changes",
+            "Continue",
+            "Cancel",
         );
 
-        if (answer !== "Discard Changes") {
+        if (answer !== "Continue") {
             return;
         }
 
         try {
-            const fs = require("fs").promises;
+            // Execute the discard operation with progress notification
+            await vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: "Syncing database from Git repository",
+                    cancellable: false,
+                },
+                async (progress) => {
+                    progress.report({ message: `Processing ${resourceState.label}...` });
 
-            // Copy Git version to local cache
+                    // Generate and execute the ALTER/CREATE/DROP script
+                    await this._executeDiscardScript(resourceState);
+
+                    progress.report({ message: `Updating local cache...` });
+
+                    // Update local cache file to match Git version
+                    await this._updateLocalCacheFile(resourceState);
+
+                    // Clear Git status cache to force refresh
+                    this._gitStatusService.clearCache(resourceState.credentials);
+
+                    // Refresh changes
+                    await this._refreshChanges(undefined);
+                },
+            );
+
+            vscode.window.showInformationMessage(
+                `Successfully synced ${resourceState.label} from Git repository.`,
+            );
+        } catch (error) {
+            vscode.window.showErrorMessage(
+                `Failed to sync ${resourceState.label}: ${getErrorMessage(error)}`,
+            );
+            console.error(`[SourceControl] Failed to discard changes:`, error);
+        }
+    }
+
+    /**
+     * Update local cache file to match Git repository version
+     */
+    private async _updateLocalCacheFile(resourceState: DatabaseResourceState): Promise<void> {
+        const fs = require("fs").promises;
+
+        if (resourceState.status === GitObjectStatus.Added) {
+            // Object exists in database but not in Git - delete from local cache
+            try {
+                await fs.unlink(resourceState.localCachePath);
+                console.log(
+                    `[SourceControl] Deleted local cache file: ${resourceState.localCachePath}`,
+                );
+            } catch (error) {
+                // File might not exist, which is fine
+                console.log(
+                    `[SourceControl] Could not delete local cache file (might not exist): ${resourceState.localCachePath}`,
+                );
+            }
+        } else {
+            // Object is Modified or Deleted - copy Git version to local cache
             const gitContent = await fs.readFile(resourceState.gitRepoPath, "utf-8");
             await fs.writeFile(resourceState.localCachePath, gitContent, "utf-8");
+            console.log(
+                `[SourceControl] Updated local cache file from Git: ${resourceState.localCachePath}`,
+            );
+        }
+    }
 
-            // Refresh changes
-            await this._refreshChanges(undefined);
+    /**
+     * Execute the ALTER/CREATE/DROP script to sync database object from Git repository
+     */
+    private async _executeDiscardScript(resourceState: DatabaseResourceState): Promise<void> {
+        const fs = require("fs").promises;
 
-            vscode.window.showInformationMessage(`Discarded changes to ${resourceState.label}.`);
+        // Read the Git repository version
+        const gitContent = await fs.readFile(resourceState.gitRepoPath, "utf-8");
+
+        // Generate the appropriate script based on object type and status
+        const script = this._generateDiscardScript(resourceState, gitContent);
+
+        // Get connection URI for this database
+        const connectionUri = await this._getConnectionUri(resourceState.credentials);
+
+        // Execute the script
+        console.log(
+            `[SourceControl] Executing discard script for ${resourceState.label} (${resourceState.status})`,
+        );
+        console.log(`[SourceControl] Script:\n${script}`);
+
+        await this._executeQuery(connectionUri, script);
+
+        console.log(
+            `[SourceControl] Successfully executed discard script for ${resourceState.label}`,
+        );
+    }
+
+    /**
+     * Generate ALTER/CREATE/DROP script based on object type and status
+     */
+    private _generateDiscardScript(
+        resourceState: DatabaseResourceState,
+        gitContent: string,
+    ): string {
+        const { metadata, status } = resourceState;
+        const objectType = metadata.metadataTypeName;
+        const fullName = `[${metadata.schema || "dbo"}].[${metadata.name}]`;
+
+        switch (status) {
+            case GitObjectStatus.Modified:
+                // Object exists in both database and Git - generate ALTER statement
+                return this._generateAlterScript(objectType, fullName, gitContent);
+
+            case GitObjectStatus.Deleted:
+                // Object exists in Git but not in database - generate CREATE statement
+                return gitContent; // Git file already contains CREATE statement
+
+            case GitObjectStatus.Added:
+                // Object exists in database but not in Git - generate DROP statement
+                return this._generateDropScript(objectType, fullName);
+
+            default:
+                throw new Error(`Unknown status: ${status}`);
+        }
+    }
+
+    /**
+     * Generate ALTER script for modified objects
+     */
+    private _generateAlterScript(objectType: string, fullName: string, gitContent: string): string {
+        // Replace CREATE with ALTER in the Git content
+        // This works for views, procedures, functions, and triggers
+
+        let alterScript = gitContent;
+
+        switch (objectType) {
+            case "VIEW":
+                alterScript = gitContent.replace(/CREATE\s+VIEW/i, "ALTER VIEW");
+                break;
+
+            case "SQL_STORED_PROCEDURE":
+                alterScript = gitContent.replace(/CREATE\s+PROCEDURE/i, "ALTER PROCEDURE");
+                alterScript = alterScript.replace(/CREATE\s+PROC/i, "ALTER PROC");
+                break;
+
+            case "SQL_SCALAR_FUNCTION":
+            case "SQL_INLINE_TABLE_VALUED_FUNCTION":
+            case "SQL_TABLE_VALUED_FUNCTION":
+                alterScript = gitContent.replace(/CREATE\s+FUNCTION/i, "ALTER FUNCTION");
+                break;
+
+            case "SQL_TRIGGER":
+                alterScript = gitContent.replace(/CREATE\s+TRIGGER/i, "ALTER TRIGGER");
+                break;
+
+            default:
+                throw new Error(`Unsupported object type for ALTER: ${objectType}`);
+        }
+
+        // Verify that the replacement worked
+        if (alterScript === gitContent) {
+            throw new Error(
+                `Failed to generate ALTER script for ${fullName}. ` +
+                    `Could not find CREATE statement in Git content.`,
+            );
+        }
+
+        return alterScript;
+    }
+
+    /**
+     * Generate DROP script for added objects (exist in database but not in Git)
+     */
+    private _generateDropScript(objectType: string, fullName: string): string {
+        switch (objectType) {
+            case "VIEW":
+                return `DROP VIEW IF EXISTS ${fullName};`;
+
+            case "SQL_STORED_PROCEDURE":
+                return `DROP PROCEDURE IF EXISTS ${fullName};`;
+
+            case "SQL_SCALAR_FUNCTION":
+            case "SQL_INLINE_TABLE_VALUED_FUNCTION":
+            case "SQL_TABLE_VALUED_FUNCTION":
+                return `DROP FUNCTION IF EXISTS ${fullName};`;
+
+            case "SQL_TRIGGER":
+                return `DROP TRIGGER IF EXISTS ${fullName};`;
+
+            default:
+                throw new Error(`Unsupported object type for DROP: ${objectType}`);
+        }
+    }
+
+    /**
+     * Get or create connection URI for the database
+     */
+    private async _getConnectionUri(credentials: IConnectionInfo): Promise<string> {
+        // Check if there's an existing connection
+        const existingConnection = this._connectionManager.getConnectionInfo(credentials.server);
+
+        if (existingConnection && existingConnection.connectionId) {
+            return existingConnection.connectionId;
+        }
+
+        // Create a new connection
+        const uri = `mssql-scm://${credentials.server}/${credentials.database}/${Date.now()}`;
+        const connected = await this._connectionManager.connect(uri, credentials);
+
+        if (!connected) {
+            throw new Error(`Failed to connect to database: ${credentials.database}`);
+        }
+
+        return uri;
+    }
+
+    /**
+     * Execute a SQL query against the database
+     * For DDL statements (ALTER, CREATE, DROP), we use query/simpleexecute which may return empty results
+     */
+    private async _executeQuery(connectionUri: string, query: string): Promise<void> {
+        try {
+            // Execute the query - DDL statements may not return results
+            await this._sqlToolsClient.sendRequest(
+                new RequestType<
+                    { ownerUri: string; queryString: string },
+                    SimpleExecuteResult,
+                    void,
+                    void
+                >("query/simpleexecute"),
+                {
+                    ownerUri: connectionUri,
+                    queryString: query,
+                },
+            );
         } catch (error) {
-            vscode.window.showErrorMessage(`Failed to discard changes: ${error}`);
+            // Check if the error is "Query has no results to return" which is expected for DDL statements
+            const errorMessage = getErrorMessage(error);
+            if (errorMessage.includes("Query has no results to return")) {
+                // This is expected for DDL statements (ALTER, CREATE, DROP) - not an error
+                console.log(
+                    `[SourceControl] DDL statement executed successfully (no results expected)`,
+                );
+                return;
+            }
+            // Re-throw other errors
+            throw error;
         }
     }
 

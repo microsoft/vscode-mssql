@@ -1301,7 +1301,7 @@
             },
             {
                 "command": "mssql.showSourceControl",
-                "title": "Show Source Control",
+                "title": "Compare Database to Repo",
                 "category": "MS SQL",
                 "icon": "$(source-control)"
             },
