@@ -31,7 +31,7 @@ import { AddConnectionTreeNode } from "./nodes/addConnectionTreeNode";
 import { AccountSignInTreeNode } from "./nodes/accountSignInTreeNode";
 import { ConnectTreeNode, TreeNodeType } from "./nodes/connectTreeNode";
 import { Deferred } from "../protocol";
-import * as Constants from "../constants/constants";
+// import * as Constants from "../constants/constants";
 import { ObjectExplorerUtils } from "./objectExplorerUtils";
 import * as Utils from "../models/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
@@ -82,7 +82,6 @@ export class ObjectExplorerService {
         const result = [];
 
         const rootId = this._connectionManager.connectionStore.rootGroupId;
-
         if (!this._connectionGroupNodes.has(rootId)) {
             this._logger.verbose(
                 "Root server group is not defined. Cannot get root nodes for Object Explorer.",
@@ -90,11 +89,28 @@ export class ObjectExplorerService {
             return [];
         }
 
-        for (const child of this._connectionGroupNodes.get(rootId)?.children || []) {
-            result.push(child);
-        }
+        // Always show both User Connections and Workspace Connections as children of ROOT
+        const rootChildren = this._connectionGroupNodes.get(rootId)?.children || [];
+        let userGroup = rootChildren.find((child) => child.label === "User Connections");
+        let workspaceGroup = rootChildren.find((child) => child.label === "Workspace Connections");
+        if (userGroup) result.push(userGroup);
+        if (workspaceGroup) result.push(workspaceGroup);
 
         return result;
+    }
+
+    /**
+     * Public method to refresh the Object Explorer tree and internal maps, merging user and workspace connections/groups.
+     * Call this after adding/removing connections/groups to ensure the tree is up to date.
+     */
+    public async refreshTree(): Promise<void> {
+        await this.getRootNodes();
+        // Optionally, trigger a UI refresh if needed
+        if (this._refreshCallback && this._rootTreeNodeArray.length > 0) {
+            for (const node of this._rootTreeNodeArray) {
+                this._refreshCallback(node);
+            }
+        }
     }
 
     /**
@@ -368,16 +384,22 @@ export class ObjectExplorerService {
         );
 
         const rootId = this._connectionManager.connectionStore.rootGroupId;
-        const serverGroups =
-            await this._connectionManager.connectionStore.readAllConnectionGroups();
+        // Read user and workspace groups separately
+        const userGroups =
+            this._connectionManager.connectionStore.connectionConfig.getGroupsFromSettings();
+        // Import ConfigurationTarget from the correct module
+        // Use VscodeWrapper.ConfigurationTarget.Workspace
+        const { ConfigurationTarget } = require("../controllers/vscodeWrapper");
+        const workspaceGroups =
+            this._connectionManager.connectionStore.connectionConfig.getGroupsFromSettings(
+                ConfigurationTarget.Workspace,
+            );
+        // Merge user and workspace groups before building hierarchy
+        const allGroups = [...userGroups, ...workspaceGroups];
         let savedConnections = await this._connectionManager.connectionStore.readAllConnections();
 
         // if there are no saved connections, show the add connection node
-        if (
-            savedConnections.length === 0 &&
-            serverGroups.length === 1 &&
-            serverGroups[0].id === rootId
-        ) {
+        if (savedConnections.length === 0 && allGroups.length === 1 && allGroups[0].id === rootId) {
             this._logger.verbose(
                 "No saved connections or groups found. Showing add connection node.",
             );
@@ -387,69 +409,37 @@ export class ObjectExplorerService {
             return this.getAddConnectionNodes();
         }
 
+        // Build group nodes from merged settings
         const newConnectionGroupNodes = new Map<string, ConnectionGroupNode>();
-        const newConnectionNodes = new Map<string, ConnectionNode>();
-
-        // Add all group nodes from settings first
-        // Read the user setting for collapsed/expanded state
-        const config = vscode.workspace.getConfiguration(Constants.extensionName);
-        const collapseGroups = config.get<boolean>(
-            Constants.cmdObjectExplorerCollapseOrExpandByDefault,
-            false,
-        );
-
-        for (const group of serverGroups) {
-            // Pass the desired collapsible state to the ConnectionGroupNode constructor
-            const initialState = collapseGroups
-                ? vscode.TreeItemCollapsibleState.Collapsed
-                : vscode.TreeItemCollapsibleState.Expanded;
-            const groupNode = new ConnectionGroupNode(group, initialState);
-
+        for (const group of allGroups) {
+            const groupNode = new ConnectionGroupNode(group);
             if (this._connectionGroupNodes.has(group.id)) {
                 groupNode.id = this._connectionGroupNodes.get(group.id).id;
             }
-
             newConnectionGroupNodes.set(group.id, groupNode);
         }
 
-        // Populate group hierarchy - add each group as a child to its parent
-        for (const group of serverGroups) {
-            // Skip the root group as it has no parent
-            if (group.id === rootId) {
-                continue;
-            }
-
+        // Build hierarchy: add each group as a child to its parent
+        for (const group of allGroups) {
+            if (group.id === rootId) continue;
             if (group.parentId && newConnectionGroupNodes.has(group.parentId)) {
                 const parentNode = newConnectionGroupNodes.get(group.parentId);
                 const childNode = newConnectionGroupNodes.get(group.id);
-
                 if (parentNode && childNode) {
                     parentNode.addChild(childNode);
-
                     if (parentNode.id !== rootId) {
-                        // set the parent node for the child group unless the parent is the root group
-                        // parent property is used to
                         childNode.parentNode = parentNode;
                     }
-                } else {
-                    this._logger.error(
-                        `Child group '${group.name}' with ID '${group.id}' does not have a valid parent group (${group.parentId}).`,
-                    );
                 }
-            } else {
-                this._logger.error(
-                    `Group '${group.name}' with ID '${group.id}' does not have a valid parent group ID.  This should have been corrected when reading server groups from settings.`,
-                );
             }
         }
 
         // Add connections as children of their respective groups
+        const newConnectionNodes = new Map<string, ConnectionNode>();
         for (const connection of savedConnections) {
             if (connection.groupId && newConnectionGroupNodes.has(connection.groupId)) {
                 const groupNode = newConnectionGroupNodes.get(connection.groupId);
-
                 let connectionNode: ConnectionNode;
-
                 if (this._connectionNodes.has(connection.id)) {
                     connectionNode = this._connectionNodes.get(connection.id);
                     connectionNode.updateConnectionProfile(connection);
@@ -460,27 +450,24 @@ export class ObjectExplorerService {
                         groupNode.id === rootId ? undefined : groupNode,
                     );
                 }
-
                 connectionNode.parentNode = groupNode.id === rootId ? undefined : groupNode;
-
                 newConnectionNodes.set(connection.id, connectionNode);
                 groupNode.addChild(connectionNode);
-            } else {
-                this._logger.error(
-                    `Connection '${getConnectionDisplayName(connection)}' with ID '${connection.id}' does not have a valid group ID.  This should have been corrected when reading connections from settings.`,
-                );
             }
         }
 
+        // Set the new maps before refreshing UI
         this._connectionGroupNodes = newConnectionGroupNodes;
         this._connectionNodes = newConnectionNodes;
 
-        const result = [...this._rootTreeNodeArray];
-
+        // For the ROOT node, include as children any group whose parentId matches rootId
+        const rootChildren = Array.from(newConnectionGroupNodes.values()).filter(
+            (groupNode) => groupNode.connectionGroup.parentId === rootId,
+        );
         getConnectionActivity.end(ActivityStatus.Succeeded, undefined, {
-            nodeCount: result.length,
+            nodeCount: rootChildren.length,
         });
-        return result;
+        return rootChildren;
     }
 
     /**
