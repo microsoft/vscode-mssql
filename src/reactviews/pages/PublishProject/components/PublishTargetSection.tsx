@@ -7,7 +7,11 @@ import { useContext, useEffect, useState } from "react";
 import { makeStyles } from "@fluentui/react-components";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
-import * as constants from "../../../../constants/constants";
+import {
+    PublishTarget,
+    PublishFormFields,
+    DefaultSqlPortNumber,
+} from "../../../../sharedInterfaces/publishDialog";
 import { renderInput, renderDropdown, renderCheckbox } from "./FormFieldComponents";
 import { parseHtmlLabel } from "../../../common/utils";
 
@@ -34,48 +38,46 @@ export const PublishTargetSection: React.FC = () => {
 
     // Select form components and values - components needed for rendering, values for logic
     const targetComponent = usePublishDialogSelector(
-        (s) => s.formComponents[constants.PublishFormFields.PublishTarget],
+        (s) => s.formComponents[PublishFormFields.PublishTarget],
     );
     const targetValue = usePublishDialogSelector(
-        (s) => s.formState[constants.PublishFormFields.PublishTarget],
+        (s) => s.formState[PublishFormFields.PublishTarget],
     );
 
-    const isContainer = targetValue === constants.PublishTargets.LOCAL_CONTAINER;
+    const isContainer = targetValue === PublishTarget.LocalContainer;
 
     // Container-specific fields (only select when needed)
     const portComponent = usePublishDialogSelector(
-        (s) => s.formComponents[constants.PublishFormFields.ContainerPort],
+        (s) => s.formComponents[PublishFormFields.ContainerPort],
     );
-    const portValue = usePublishDialogSelector(
-        (s) => s.formState[constants.PublishFormFields.ContainerPort],
-    );
+    const portValue = usePublishDialogSelector((s) => s.formState[PublishFormFields.ContainerPort]);
 
     const passwordComponent = usePublishDialogSelector(
-        (s) => s.formComponents[constants.PublishFormFields.ContainerAdminPassword],
+        (s) => s.formComponents[PublishFormFields.ContainerAdminPassword],
     );
     const passwordValue = usePublishDialogSelector(
-        (s) => s.formState[constants.PublishFormFields.ContainerAdminPassword],
+        (s) => s.formState[PublishFormFields.ContainerAdminPassword],
     );
 
     const confirmPasswordComponent = usePublishDialogSelector(
-        (s) => s.formComponents[constants.PublishFormFields.ContainerAdminPasswordConfirm],
+        (s) => s.formComponents[PublishFormFields.ContainerAdminPasswordConfirm],
     );
     const confirmPasswordValue = usePublishDialogSelector(
-        (s) => s.formState[constants.PublishFormFields.ContainerAdminPasswordConfirm],
+        (s) => s.formState[PublishFormFields.ContainerAdminPasswordConfirm],
     );
 
     const imageTagComponent = usePublishDialogSelector(
-        (s) => s.formComponents[constants.PublishFormFields.ContainerImageTag],
+        (s) => s.formComponents[PublishFormFields.ContainerImageTag],
     );
     const imageTagValue = usePublishDialogSelector(
-        (s) => s.formState[constants.PublishFormFields.ContainerImageTag],
+        (s) => s.formState[PublishFormFields.ContainerImageTag],
     );
 
     const licenseComponent = usePublishDialogSelector(
-        (s) => s.formComponents[constants.PublishFormFields.AcceptContainerLicense],
+        (s) => s.formComponents[PublishFormFields.AcceptContainerLicense],
     );
     const licenseValue = usePublishDialogSelector(
-        (s) => s.formState[constants.PublishFormFields.AcceptContainerLicense],
+        (s) => s.formState[PublishFormFields.AcceptContainerLicense],
     );
 
     // Password visibility state management
@@ -106,9 +108,9 @@ export const PublishTargetSection: React.FC = () => {
         // Default container port if not set
         if (!portValue) {
             publishCtx.formAction({
-                propertyName: constants.PublishFormFields.ContainerPort,
+                propertyName: PublishFormFields.ContainerPort,
                 isAction: false,
-                value: constants.DefaultSqlPortNumber,
+                value: DefaultSqlPortNumber,
                 updateValidation: true,
             });
         }
@@ -116,7 +118,7 @@ export const PublishTargetSection: React.FC = () => {
         // Auto-select first image tag if not set
         if (!imageTagValue && imageTagComponent?.options?.[0]) {
             publishCtx.formAction({
-                propertyName: constants.PublishFormFields.ContainerImageTag,
+                propertyName: PublishFormFields.ContainerImageTag,
                 isAction: false,
                 value: imageTagComponent.options[0].value,
                 updateValidation: true,
@@ -133,7 +135,7 @@ export const PublishTargetSection: React.FC = () => {
         // Only revalidate if confirm password field has a value
         if (confirmPasswordValue !== undefined && confirmPasswordValue !== "") {
             publishCtx.formAction({
-                propertyName: constants.PublishFormFields.ContainerAdminPasswordConfirm,
+                propertyName: PublishFormFields.ContainerAdminPasswordConfirm,
                 isAction: false,
                 value: confirmPasswordValue as string,
                 updateValidation: true,

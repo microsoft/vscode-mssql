@@ -7,13 +7,12 @@ import { useContext } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { useFormStyles } from "../../common/forms/form.component";
 import { PublishProjectContext } from "./publishProjectStateProvider";
-import { IPublishForm } from "../../../sharedInterfaces/publishDialog";
+import { IPublishForm, PublishTarget } from "../../../sharedInterfaces/publishDialog";
 import { usePublishDialogSelector } from "./publishDialogSelector";
 import { LocConstants } from "../../common/locConstants";
 import { PublishProfileField } from "./components/PublishProfileSection";
 import { PublishTargetSection } from "./components/PublishTargetSection";
 import { ConnectionSection } from "./components/ConnectionSection";
-import * as constants from "../../../constants/constants";
 
 const useStyles = makeStyles({
     root: { padding: "12px" },
@@ -101,8 +100,7 @@ function PublishProjectDialog() {
                             appearance="secondary"
                             disabled={
                                 readyToPublish ||
-                                formState?.publishTarget !==
-                                    constants.PublishTargets.EXISTING_SERVER
+                                formState?.publishTarget !== PublishTarget.ExistingServer
                             }
                             onClick={() => context.generatePublishScript()}>
                             {loc.generateScript}

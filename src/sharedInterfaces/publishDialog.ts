@@ -7,6 +7,17 @@ import * as constants from "../constants/constants";
 import * as mssql from "vscode-mssql";
 import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
 
+// Publish target options - defines where the database project will be published
+export enum PublishTarget {
+    ExistingServer = "existingServer",
+    LocalContainer = "localContainer",
+    NewAzureServer = "newAzureServer",
+}
+
+// export publish-related constants for use in webview code
+export const PublishFormFields = constants.PublishFormFields;
+export const DefaultSqlPortNumber = constants.DefaultSqlPortNumber;
+
 /**
  * Project Properties interface -shared between server-side code and browser-side webviews.
  */
@@ -30,7 +41,7 @@ export interface IPublishForm {
     publishProfilePath?: string;
     serverName?: string;
     databaseName?: string;
-    publishTarget?: constants.PublishTargetType;
+    publishTarget?: PublishTarget;
     sqlCmdVariables?: { [key: string]: string };
     // Container deployment specific fields (only used when publishTarget === 'localContainer')
     containerPort?: string;

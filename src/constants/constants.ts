@@ -319,12 +319,6 @@ export const DBProjectConfigurationKey = "sqlDatabaseProjects";
 export const enablePreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
 export const PublishProfileExtension = "publish.xml";
-export const PublishTargets = {
-    EXISTING_SERVER: "existingServer" as const,
-    LOCAL_CONTAINER: "localContainer" as const,
-    NEW_AZURE_SERVER: "newAzureServer" as const,
-} as const;
-export type PublishTargetType = (typeof PublishTargets)[keyof typeof PublishTargets];
 export const PublishFormFields = {
     PublishProfilePath: "publishProfilePath",
     ServerName: "serverName",
@@ -337,10 +331,6 @@ export const PublishFormFields = {
     ContainerImageTag: "containerImageTag",
     AcceptContainerLicense: "acceptContainerLicense",
 } as const;
-
-// Group of all container-specific publish form field identifiers used together when
-// the target is a local container. Centralizing this list avoids duplication in
-// controllers (e.g., building active component arrays and computing hidden fields).
 export const PublishFormContainerFields = [
     PublishFormFields.ContainerPort,
     PublishFormFields.ContainerAdminPassword,

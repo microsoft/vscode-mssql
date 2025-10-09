@@ -15,6 +15,7 @@ import {
     PublishDialogFormItemSpec,
     IPublishForm,
     PublishDialogState,
+    PublishTarget,
 } from "../sharedInterfaces/publishDialog";
 import { generatePublishFormComponents } from "./formComponentHelpers";
 import { loadDockerTags } from "./dockerUtils";
@@ -260,7 +261,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
             constants.PublishFormFields.DatabaseName,
         ] as (keyof IPublishForm)[];
 
-        if (state.formState.publishTarget === constants.PublishTargets.LOCAL_CONTAINER) {
+        if (state.formState.publishTarget === PublishTarget.LocalContainer) {
             activeComponents.push(...constants.PublishFormContainerFields);
         }
 
@@ -272,12 +273,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
         const target = currentState.formState?.publishTarget;
         const hidden: string[] = [];
 
-        if (target === constants.PublishTargets.LOCAL_CONTAINER) {
+        if (target === PublishTarget.LocalContainer) {
             // Container deployment: hide server name field
             hidden.push(constants.PublishFormFields.ServerName);
         } else if (
-            target === constants.PublishTargets.EXISTING_SERVER ||
-            target === constants.PublishTargets.NEW_AZURE_SERVER
+            target === PublishTarget.ExistingServer ||
+            target === PublishTarget.NewAzureServer
         ) {
             // Existing server or new Azure server: hide container-specific fields
             hidden.push(...constants.PublishFormContainerFields);
