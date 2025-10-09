@@ -84,6 +84,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
 
+        // Clear default excludeObjectTypes for publish dialog, no default exclude options should exist
+        if (
+            this.state.deploymentOptions &&
+            this.state.deploymentOptions.excludeObjectTypes !== undefined
+        ) {
+            this.state.deploymentOptions.excludeObjectTypes.value = [];
+        }
+
         // Register reducers after initialization
         this.registerRpcHandlers();
 
@@ -218,7 +226,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 if (this._dacFxService) {
                     try {
                         const databaseName = state.formState.databaseName || projectName;
-                        // TODO: Build connection string from state.formState.serverName and connection details
+                        // TODO: Build connection string from connection details when server/database selection is implemented
                         const connectionString = "";
                         const sqlCmdVariables = new Map(
                             Object.entries(state.formState.sqlCmdVariables || {}),
