@@ -79,6 +79,8 @@ export enum TelemetryActions {
     ContinueEditing = "ContinueEditing",
     Close = "Close",
     SurveySubmit = "SurveySubmit",
+    profileLoaded = "profileLoaded",
+    profileSaved = "profileSaved",
     SaveResults = "SaveResults",
     CopyResults = "CopyResults",
     CopyResultsHeaders = "CopyResultsHeaders",

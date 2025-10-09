@@ -17,6 +17,8 @@ import {
     PublishDialogState,
     PublishTarget,
 } from "../sharedInterfaces/publishDialog";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { sendActionEvent } from "../telemetry/telemetry";
 import { generatePublishFormComponents } from "./formComponentHelpers";
 import { loadDockerTags } from "./dockerUtils";
 import { readProjectProperties } from "./projectUtils";
@@ -166,6 +168,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             if (fileUris && fileUris.length > 0) {
                 const selectedPath = fileUris[0].fsPath;
+
+                // Send telemetry for profile loaded
+                sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.profileLoaded);
+
                 // Update the publishProfilePath in form state
                 return {
                     ...state,
@@ -225,6 +231,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                             sqlCmdVariables,
                             state.deploymentOptions,
                         );
+
+                        // Send telemetry for profile saved
+                        sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.profileSaved);
 
                         void vscode.window.showInformationMessage(
                             `Publish profile saved to: ${fileUri.fsPath}`,
