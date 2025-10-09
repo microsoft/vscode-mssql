@@ -1307,6 +1307,10 @@
         "message": "An error occurred while retrieving rows: {0}",
         "comment": ["{0} is the error message"]
     },
+    "{0} rows selected. Are you sure you want to copy all of these rows to the clipboard?/{0} is the number of rows to copy": {
+        "message": "{0} rows selected. Are you sure you want to copy all of these rows to the clipboard?",
+        "comment": ["{0} is the number of rows to copy"]
+    },
     "{0} stopped successfully./{0} stopped successfully.": {
         "message": "{0} stopped successfully.",
         "comment": ["{0} stopped successfully."]
