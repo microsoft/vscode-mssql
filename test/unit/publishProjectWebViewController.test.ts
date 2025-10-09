@@ -326,4 +326,68 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(isValidSqlAdminPassword("Pass1"), "too short invalid").to.be.false;
         expect(isValidSqlAdminPassword("Password123!".repeat(20)), "too long invalid").to.be.false;
     });
+
+    test("selectPublishProfile reducer is invoked and triggers file picker", async () => {
+        const projectPath = "c:/work/TestProject.sqlproj";
+        const controller = new PublishProjectWebViewController(
+            contextStub,
+            vscodeWrapperStub,
+            projectPath,
+        );
+
+        await controller.initialized.promise;
+
+        // Stub showOpenDialog to simulate user selecting a profile
+        const selectedProfilePath = "c:/profiles/MyProfile.publish.xml";
+        const showOpenDialogStub = sandbox
+            .stub(vscode.window, "showOpenDialog")
+            .resolves([vscode.Uri.file(selectedProfilePath)]);
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const selectPublishProfile = reducerHandlers.get("selectPublishProfile");
+        expect(selectPublishProfile, "selectPublishProfile reducer should be registered").to.exist;
+
+        // Invoke the reducer
+        await selectPublishProfile(controller.state, {});
+
+        // Verify file picker was shown
+        expect(showOpenDialogStub.calledOnce, "showOpenDialog should be called once").to.be.true;
+
+        // Verify the profile path was updated in formState
+        expect(controller.state.formState.publishProfilePath).to.equal(selectedProfilePath);
+    });
+
+    test("savePublishProfile reducer is invoked and triggers save file dialog", async () => {
+        const projectPath = "c:/work/TestProject.sqlproj";
+        const controller = new PublishProjectWebViewController(
+            contextStub,
+            vscodeWrapperStub,
+            projectPath,
+        );
+
+        await controller.initialized.promise;
+
+        // Set up some form state to save
+        controller.state.formState.serverName = "localhost";
+        controller.state.formState.databaseName = "TestDB";
+
+        // Stub showSaveDialog to simulate user choosing a save location
+        const savedProfilePath = "c:/profiles/NewProfile.publish.xml";
+        const showSaveDialogStub = sandbox
+            .stub(vscode.window, "showSaveDialog")
+            .resolves(vscode.Uri.file(savedProfilePath));
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const savePublishProfile = reducerHandlers.get("savePublishProfile");
+        expect(savePublishProfile, "savePublishProfile reducer should be registered").to.exist;
+
+        // Invoke the reducer with an optional default filename
+        await savePublishProfile(controller.state, { event: "TestProject.publish.xml" });
+
+        // Verify save dialog was shown
+        expect(showSaveDialogStub.calledOnce, "showSaveDialog should be called once").to.be.true;
+
+        // Verify the saved profile path was updated in formState
+        expect(controller.state.formState.publishProfilePath).to.equal(savedProfilePath);
+    });
 });

@@ -5,7 +5,6 @@
 
 import { Button, makeStyles } from "@fluentui/react-components";
 import { useContext, useState, useEffect } from "react";
-import { useFormStyles } from "../../../common/forms/form.component";
 import { LocConstants } from "../../../common/locConstants";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
@@ -38,7 +37,6 @@ const useStyles = makeStyles({
 // Publish profile name input with action buttons (select & save) rendered inline via selectors.
 export const PublishProfileField: React.FC = () => {
     const classes = useStyles();
-    const formStyles = useFormStyles();
     const loc = LocConstants.getInstance().publishProject;
     const context = useContext(PublishProjectContext) as PublishProjectProvider | undefined;
     const component = usePublishDialogSelector((s) => s.formComponents.publishProfilePath);
