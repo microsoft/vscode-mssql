@@ -40,7 +40,124 @@ import {
 } from "../sharedInterfaces/tableExplorer";
 import { getErrorMessage } from "../utils/utils";
 
-export class TableExplorerService {
+/**
+ * Interface for the Table Explorer Service that handles table editing operations.
+ */
+export interface ITableExplorerService {
+    /**
+     * Gets the SQL Tools Service client instance.
+     */
+    readonly sqlToolsClient: SqlToolsServiceClient;
+
+    /**
+     * Initializes the table explorer service with the specified parameters.
+     *
+     * @param ownerUri - The URI identifying the owner/connection for the table
+     * @param objectName - The name of the database object (table, view, etc.)
+     * @param schemaName - The schema name containing the object
+     * @param objectType - The type of database object being explored
+     * @param queryString - Optional query string for filtering or custom queries
+     * @param limitResults - Optional limit on the number of results to return
+     * @returns A Promise that resolves to an EditInitializeResult containing initialization data
+     */
+    initialize(
+        ownerUri: string,
+        objectName: string,
+        schemaName: string,
+        objectType: string,
+        queryString: string | undefined,
+        limitResults?: number | undefined,
+    ): Promise<EditInitializeResult>;
+
+    /**
+     * Retrieves a subset of rows from a table or query result set.
+     *
+     * @param ownerUri - The unique identifier for the connection or query session
+     * @param rowStartIndex - The zero-based index of the first row to retrieve
+     * @param rowCount - The number of rows to retrieve starting from the start index
+     * @returns A promise that resolves to an EditSubsetResult containing the requested subset of data
+     */
+    subset(ownerUri: string, rowStartIndex: number, rowCount: number): Promise<EditSubsetResult>;
+
+    /**
+     * Commits pending changes for the specified owner URI.
+     *
+     * @param ownerUri - The unique identifier for the resource owner
+     * @returns A promise that resolves to the commit result containing operation status and details
+     */
+    commit(ownerUri: string): Promise<EditCommitResult>;
+
+    /**
+     * Creates a new row for editing in the specified table.
+     *
+     * @param ownerUri - The URI identifying the connection and table context
+     * @returns A Promise that resolves to the result of the create row operation
+     */
+    createRow(ownerUri: string): Promise<EditCreateRowResult>;
+
+    /**
+     * Deletes a row from a table in the database.
+     *
+     * @param ownerUri - The URI identifying the connection and database context
+     * @param rowId - The unique identifier of the row to be deleted
+     * @returns A promise that resolves to the result of the delete operation
+     */
+    deleteRow(ownerUri: string, rowId: number): Promise<EditDeleteRowResult>;
+
+    /**
+     * Reverts a row to its original state by discarding any pending changes.
+     *
+     * @param ownerUri - The unique identifier for the connection/document owner
+     * @param rowId - The identifier of the row to revert
+     * @returns A promise that resolves to the result of the revert operation
+     */
+    revertRow(ownerUri: string, rowId: number): Promise<EditRevertRowResult>;
+
+    /**
+     * Updates a single cell value in a table row.
+     *
+     * @param ownerUri - The URI identifier for the database connection or table owner
+     * @param rowId - The identifier of the row containing the cell to update
+     * @param columnId - The identifier of the column containing the cell to update
+     * @param newValue - The new value to set for the specified cell
+     * @returns A promise that resolves to the result of the cell update operation
+     */
+    updateCell(
+        ownerUri: string,
+        rowId: number,
+        columnId: number,
+        newValue: string,
+    ): Promise<EditUpdateCellResult>;
+
+    /**
+     * Reverts a cell in the table editor to its original value.
+     *
+     * @param ownerUri - The unique identifier for the database connection/document
+     * @param rowId - The identifier of the row containing the cell to revert
+     * @param columnId - The identifier of the column containing the cell to revert
+     * @returns A promise that resolves to the result of the revert cell operation
+     */
+    revertCell(ownerUri: string, rowId: number, columnId: number): Promise<EditRevertCellResult>;
+
+    /**
+     * Disposes of resources associated with the specified owner URI.
+     *
+     * @param ownerUri - The URI of the owner whose resources should be disposed
+     * @returns A promise that resolves to the dispose result containing cleanup status
+     */
+    dispose(ownerUri: string): Promise<EditDisposeResult>;
+
+    /**
+     * Generates update scripts for the specified owner URI based on changes made during
+     * the edit session.
+     *
+     * @param ownerUri - The URI identifying the owner for which to generate scripts
+     * @returns A promise that resolves to an EditScriptResult containing the generated scripts
+     */
+    generateScripts(ownerUri: string): Promise<EditScriptResult>;
+}
+
+export class TableExplorerService implements ITableExplorerService {
     constructor(private _client: SqlToolsServiceClient) {}
 
     /**

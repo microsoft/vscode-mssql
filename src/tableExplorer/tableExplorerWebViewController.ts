@@ -14,7 +14,7 @@ import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
-import { TableExplorerService } from "../services/tableExplorerService";
+import { ITableExplorerService } from "../services/tableExplorerService";
 import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
 import { NotificationHandler } from "vscode-languageclient";
 import { Deferred } from "../protocol";
@@ -26,7 +26,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
-        private _tableExplorerService: TableExplorerService,
+        private _tableExplorerService: ITableExplorerService,
         private _connectionManager: ConnectionManager,
         private _targetNode: TreeNodeInfo,
     ) {
