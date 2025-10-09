@@ -584,6 +584,8 @@ export let executionPlan = l10n.t("Execution Plan");
 export let executionPlanFileFilter = l10n.t("SQL Plan Files");
 export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
 export let copied = l10n.t("Copied");
+export let copyingResults = l10n.t("Copying results...");
+export let resultsCopiedToClipboard = l10n.t("Results copied to clipboard");
 
 export let openQueryResultsInTabByDefaultPrompt = l10n.t(
     "Do you want to always display query results in a new tab instead of the query pane?",
@@ -1039,6 +1041,12 @@ export class QueryResult {
             }),
         ].join(os.EOL);
     };
+    public static copyError = (error: string) =>
+        l10n.t({
+            message: "An error occurred while copying results: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
     public static summaryFetchConfirmation = (numRows: number) =>
         l10n.t({
             message: "{0} rows selected, click to load summary",

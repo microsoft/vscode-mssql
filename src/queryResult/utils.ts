@@ -115,22 +115,6 @@ export function registerCommonRequestHandlers(
             );
     });
 
-    webviewController.onRequest(qr.SendToClipboardRequest.type, async (message) => {
-        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
-            correlationId: correlationId,
-        });
-        return webviewViewController
-            .getSqlOutputContentProvider()
-            .sendToClipboard(
-                message.uri,
-                message.data,
-                message.batchId,
-                message.resultId,
-                message.selection,
-                message.headersFlag,
-            );
-    });
-
     webviewController.onRequest(qr.CopySelectionRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
             correlationId: correlationId,
@@ -142,24 +126,8 @@ export function registerCommonRequestHandlers(
                 message.batchId,
                 message.resultId,
                 message.selection,
-                false,
+                shouldIncludeHeaders(message.includeHeaders),
             );
-    });
-
-    webviewController.onRequest(qr.CopyWithHeadersRequest.type, async (message) => {
-        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResultsHeaders, {
-            correlationId: correlationId,
-            format: undefined,
-            selection: undefined,
-            origin: undefined,
-        });
-        return await webviewViewController.getSqlOutputContentProvider().copyRequestHandler(
-            message.uri,
-            message.batchId,
-            message.resultId,
-            message.selection,
-            true, //copy headers flag
-        );
     });
 
     webviewController.onRequest(qr.CopyHeadersRequest.type, async (message) => {
@@ -188,7 +156,6 @@ export function registerCommonRequestHandlers(
                 message.batchId,
                 message.resultId,
                 message.selection,
-                message.includeHeaders,
             );
     });
 
@@ -204,7 +171,6 @@ export function registerCommonRequestHandlers(
                 message.batchId,
                 message.resultId,
                 message.selection,
-                message.includeHeaders,
             );
     });
 
@@ -524,4 +490,13 @@ export function getInMemoryGridDataProcessingThreshold(): number {
             .getConfiguration()
             .get<number>(Constants.configInMemoryDataProcessingThreshold) ?? 5000
     );
+}
+
+export function shouldIncludeHeaders(includeHeaders: boolean): boolean {
+    if (includeHeaders !== undefined) {
+        // Respect the value explicity passed into the method
+        return includeHeaders;
+    }
+    // else get config option from vscode config
+    return vscode.workspace.getConfiguration().get<boolean>(Constants.copyIncludeHeaders);
 }

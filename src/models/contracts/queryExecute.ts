@@ -245,3 +245,40 @@ export class GridSelectionSummaryResponse {
     distinctCount: number;
     nullCount: number;
 }
+
+// ------------------------------- < Copy Results 2 Request > ------------------------------------
+export enum CopyType {
+    Text = 0,
+    JSON = 1,
+    CSV = 2,
+    INSERT = 3,
+    IN = 4,
+}
+
+export namespace CopyResults2Request {
+    export const type = new RequestType<
+        CopyResults2RequestParams,
+        CopyResults2RequestResult,
+        void,
+        void
+    >("query/copy2");
+}
+
+export class CopyResults2RequestParams {
+    ownerUri: string;
+    batchIndex: number;
+    resultSetIndex: number;
+    copyType: CopyType;
+    includeHeaders: boolean;
+    selections: TableSelectionRange[];
+    delimiter?: string;
+    lineSeparator?: string;
+    textIdentifier?: string;
+    encoding?: string;
+}
+
+export class CopyResults2RequestResult {}
+
+export namespace CancelCopy2Notification {
+    export const type = new NotificationType<void, void>("query/cancelCopy2");
+}

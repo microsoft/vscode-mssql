@@ -69,7 +69,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         private context: QueryResultReactProvider,
         private linkHandler: (fileContent: string, fileType: string) => void,
         private gridId: string,
-        private configuration: ITableConfiguration<T>,
+        configuration: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
         gridParentRef?: React.RefObject<HTMLDivElement>,
         autoSizeColumns: boolean = false,
@@ -148,22 +148,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this.styleElement = DOM.createStyleSheet(this._container);
         this._grid = new Slick.Grid<T>(this._tableContainer, this._data, [], newOptions);
         this.registerPlugin(this.headerFilter);
-        this.registerPlugin(
-            new ContextMenu(
-                this.uri,
-                this.resultSetSummary,
-                this.context,
-                this.configuration.dataProvider as IDisposableDataProvider<T>,
-            ),
-        );
-        this.registerPlugin(
-            new CopyKeybind(
-                this.uri,
-                this.resultSetSummary,
-                this.context,
-                this.configuration.dataProvider as IDisposableDataProvider<T>,
-            ),
-        );
+        this.registerPlugin(new ContextMenu(this.uri, this.resultSetSummary, this.context));
+        this.registerPlugin(new CopyKeybind(this.uri, this.resultSetSummary, this.context));
 
         this._autoColumnSizePlugin = new AutoColumnSize(
             {

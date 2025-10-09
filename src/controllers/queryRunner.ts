@@ -26,13 +26,16 @@ import {
     QueryExecuteOptionsRequest,
     QueryExecutionOptionsParams,
     QueryExecutionOptions,
-    DbCellValue,
     ExecutionPlanOptions,
     QueryConnectionUriChangeRequest,
     QueryConnectionUriChangeParams,
     GridSelectionSummaryRequest,
     TableSelectionRange,
     CancelGridSelectionSummaryNotification,
+    CopyResults2Request,
+    CopyResults2RequestParams,
+    CopyType,
+    CancelCopy2Notification,
 } from "../models/contracts/queryExecute";
 import { QueryDisposeParams, QueryDisposeRequest } from "../models/contracts/queryDispose";
 import {
@@ -643,156 +646,76 @@ export default class QueryRunner {
         resultId: number,
         includeHeaders?: boolean,
     ): Promise<void> {
-        let copyString = "";
-
-        if (this.shouldIncludeHeaders(includeHeaders)) {
-            copyString = this.addHeadersToCopyString(copyString, batchId, resultId, selection);
-        }
-        // sort the selections by row to maintain copy order
-        selection.sort((a, b) => a.fromRow - b.fromRow);
-
-        // create a mapping of rows to selections
-        let rowIdToSelectionMap = new Map<number, ISlickRange[]>();
-        let rowIdToRowMap = new Map<number, DbCellValue[]>();
-
-        // create a mapping of the ranges to get promises
-        let tasks = selection.map((range) => {
-            return async () => {
-                const result = await this.getRows(
-                    range.fromRow,
-                    range.toRow - range.fromRow + 1,
-                    batchId,
-                    resultId,
-                );
-                this.getRowMappings(
-                    result.resultSubset.rows,
-                    range,
-                    rowIdToSelectionMap,
-                    rowIdToRowMap,
-                );
-            };
+        await this.copyResults2(selection, batchId, resultId, CopyType.Text, {
+            includeHeaders: includeHeaders ?? false,
         });
-
-        // get all the rows
-        let p = tasks[0]();
-        for (let i = 1; i < tasks.length; i++) {
-            p = p.then(tasks[i]);
-        }
-        await p;
-
-        copyString = this.constructCopyString(copyString, rowIdToRowMap, rowIdToSelectionMap);
-
-        await this.writeStringToClipboard(copyString);
-    }
-
-    public async exportCellsToClipboard(
-        data: DbCellValue[][],
-        batchId: number,
-        resultId: number,
-        selection: ISlickRange[],
-        headersFlag,
-    ) {
-        let copyString = "";
-        if (headersFlag) {
-            copyString = this.addHeadersToCopyString(copyString, batchId, resultId, selection);
-        }
-
-        // create a mapping of rows to selections
-        let rowIdToSelectionMap = new Map<number, ISlickRange[]>();
-        let rowIdToRowMap = new Map<number, DbCellValue[]>();
-
-        // create a mapping of the ranges to get promises
-        let tasks = selection.map((range) => {
-            return async () => {
-                const result = data;
-                this.getRowMappings(result, range, rowIdToSelectionMap, rowIdToRowMap);
-            };
-        });
-        let p = tasks[0]();
-        for (let i = 1; i < tasks.length; i++) {
-            p = p.then(tasks[i]);
-        }
-        await p;
-
-        copyString = this.constructCopyString(copyString, rowIdToRowMap, rowIdToSelectionMap);
-
-        await this.writeStringToClipboard(copyString);
     }
 
     /**
-     * Construct the row mappings, which contain the row data and selection data and are used to construct the copy string
-     * @param data
-     * @param range
-     * @param rowIdToSelectionMap
-     * @param rowIdToRowMap
+     * Copy the result range using the query/copy2 contract
      */
-    private getRowMappings(
-        data: DbCellValue[][],
-        range: ISlickRange,
-        rowIdToSelectionMap,
-        rowIdToRowMap,
-    ) {
-        let count = 0;
-        for (let row of data) {
-            let rowNumber = count + range.fromRow;
-            if (rowIdToSelectionMap.has(rowNumber)) {
-                let rowSelection = rowIdToSelectionMap.get(rowNumber);
-                rowSelection.push(range);
-            } else {
-                rowIdToSelectionMap.set(rowNumber, [range]);
-            }
-            rowIdToRowMap.set(rowNumber, row);
-            count += 1;
-        }
-    }
+    private async copyResults2(
+        selection: ISlickRange[],
+        batchId: number,
+        resultId: number,
+        copyType: CopyType,
+        options?: {
+            includeHeaders?: boolean;
+            delimiter?: string;
+            lineSeparator?: string;
+            textIdentifier?: string;
+            encoding?: string;
+        },
+    ): Promise<void> {
+        await vscode.window.withProgress(
+            {
+                location: vscode.ProgressLocation.Notification,
+                title: LocalizedConstants.copyingResults,
+                cancellable: true,
+            },
+            async (_progress, token) => {
+                return new Promise<void>(async (resolve, reject) => {
+                    try {
+                        token.onCancellationRequested(async () => {
+                            await this._client.sendNotification(CancelCopy2Notification.type);
+                            vscode.window.showInformationMessage("Copying results cancelled");
+                            resolve();
+                        });
 
-    private constructCopyString(
-        copyString: string,
-        rowIdToRowMap: Map<number, DbCellValue[]>,
-        rowIdToSelectionMap: Map<number, ISlickRange[]>,
-    ) {
-        // Go through all rows and get selections for them
-        let allRowIds = rowIdToRowMap.keys();
-        const endColumns = this.getSelectionEndColumns(rowIdToRowMap, rowIdToSelectionMap);
-        const firstColumn = endColumns[0];
-        const lastColumn = endColumns[1];
-        for (let rowId of allRowIds) {
-            let row = rowIdToRowMap.get(rowId);
-            const rowSelections = rowIdToSelectionMap.get(rowId);
+                        const selections: TableSelectionRange[] = selection.map((range) => ({
+                            fromRow: range.fromRow,
+                            toRow: range.toRow,
+                            fromColumn: range.fromCell,
+                            toColumn: range.toCell,
+                        }));
 
-            // sort selections by column to go from left to right
-            rowSelections.sort((a, b) => {
-                return a.fromCell < b.fromCell ? -1 : a.fromCell > b.fromCell ? 1 : 0;
-            });
+                        const params: CopyResults2RequestParams = {
+                            ownerUri: this.uri,
+                            batchIndex: batchId,
+                            resultSetIndex: resultId,
+                            copyType,
+                            includeHeaders: options?.includeHeaders ?? false,
+                            selections,
+                            delimiter: options?.delimiter,
+                            lineSeparator: options?.lineSeparator ?? editorEol,
+                            textIdentifier: options?.textIdentifier,
+                            encoding: options?.encoding,
+                        };
 
-            for (let i = 0; i < rowSelections.length; i++) {
-                let rowSelection = rowSelections[i];
-
-                // Add tabs starting from the first column of the selection
-                for (let j = firstColumn; j < rowSelection.fromCell; j++) {
-                    copyString += "\t";
-                }
-                let cellObjects = row.slice(rowSelection.fromCell, rowSelection.toCell + 1);
-
-                // Remove newlines if requested
-                let cells = this.shouldRemoveNewLines()
-                    ? cellObjects.map((x) => this.removeNewLines(x.displayValue))
-                    : cellObjects.map((x) => x.displayValue);
-                copyString += cells.join("\t");
-
-                // Add tabs until the end column of the selection
-                for (let k = rowSelection.toCell; k < lastColumn; k++) {
-                    copyString += "\t";
-                }
-            }
-            copyString += editorEol;
-        }
-
-        // Remove the last extra new line
-        if (copyString.length > 1) {
-            copyString = copyString.substring(0, copyString.length - editorEol.length);
-        }
-        return copyString;
+                        await this._client.sendRequest(CopyResults2Request.type, params);
+                        vscode.window.showInformationMessage(
+                            LocalizedConstants.resultsCopiedToClipboard,
+                        );
+                        resolve();
+                    } catch (error) {
+                        vscode.window.showErrorMessage(
+                            LocalizedConstants.QueryResult.copyError(getErrorMessage(error)),
+                        );
+                        reject(error);
+                    }
+                });
+            },
+        );
     }
 
     /**
@@ -855,71 +778,23 @@ export default class QueryRunner {
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-        includeHeaders?: boolean,
     ): Promise<void> {
-        // Get CSV configuration
         const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
         const csvConfig = config[Constants.configSaveAsCsv] || {};
 
         const delimiter = csvConfig.delimiter || ",";
         const textIdentifier = csvConfig.textIdentifier || '"';
-        const lineSeperator = csvConfig.lineSeperator || editorEol;
+        const lineSeparator = csvConfig.lineSeperator || editorEol;
+        const encoding = csvConfig.encoding;
+        const includeHeaders = csvConfig.includeHeaders;
 
-        let copyString = "";
-
-        if (this.shouldIncludeHeaders(includeHeaders)) {
-            copyString = this.addHeadersToCsvString(
-                copyString,
-                batchId,
-                resultId,
-                selection,
-                delimiter,
-                textIdentifier,
-            );
-        }
-
-        // sort the selections by row to maintain copy order
-        selection.sort((a, b) => a.fromRow - b.fromRow);
-
-        // create a mapping of rows to selections
-        let rowIdToSelectionMap = new Map<number, ISlickRange[]>();
-        let rowIdToRowMap = new Map<number, DbCellValue[]>();
-
-        // create a mapping of the ranges to get promises
-        let tasks = selection.map((range) => {
-            return async () => {
-                const result = await this.getRows(
-                    range.fromRow,
-                    range.toRow - range.fromRow + 1,
-                    batchId,
-                    resultId,
-                );
-                this.getRowMappings(
-                    result.resultSubset.rows,
-                    range,
-                    rowIdToSelectionMap,
-                    rowIdToRowMap,
-                );
-            };
-        });
-
-        // get all the rows
-        let p = tasks[0]();
-        for (let i = 1; i < tasks.length; i++) {
-            p = p.then(tasks[i]);
-        }
-        await p;
-
-        copyString = this.constructCsvString(
-            copyString,
-            rowIdToRowMap,
-            rowIdToSelectionMap,
+        await this.copyResults2(selection, batchId, resultId, CopyType.CSV, {
+            includeHeaders: includeHeaders,
             delimiter,
             textIdentifier,
-            lineSeperator,
-        );
-
-        await this.writeStringToClipboard(copyString);
+            lineSeparator,
+            encoding,
+        });
     }
 
     /**
@@ -933,48 +808,10 @@ export default class QueryRunner {
         selection: ISlickRange[],
         batchId: number,
         resultId: number,
-        includeHeaders?: boolean,
     ): Promise<void> {
-        // sort the selections by row to maintain copy order
-        selection.sort((a, b) => a.fromRow - b.fromRow);
-
-        // create a mapping of rows to selections
-        let rowIdToSelectionMap = new Map<number, ISlickRange[]>();
-        let rowIdToRowMap = new Map<number, DbCellValue[]>();
-
-        // create a mapping of the ranges to get promises
-        let tasks = selection.map((range) => {
-            return async () => {
-                const result = await this.getRows(
-                    range.fromRow,
-                    range.toRow - range.fromRow + 1,
-                    batchId,
-                    resultId,
-                );
-                this.getRowMappings(
-                    result.resultSubset.rows,
-                    range,
-                    rowIdToSelectionMap,
-                    rowIdToRowMap,
-                );
-            };
+        await this.copyResults2(selection, batchId, resultId, CopyType.JSON, {
+            includeHeaders: true,
         });
-
-        // get all the rows
-        let p = tasks[0]();
-        for (let i = 1; i < tasks.length; i++) {
-            p = p.then(tasks[i]);
-        }
-        await p;
-
-        const jsonString = this.constructJsonString(
-            rowIdToRowMap,
-            rowIdToSelectionMap,
-            batchId,
-            resultId,
-        );
-
-        await this.writeStringToClipboard(jsonString);
     }
 
     public async copyResultsAsInClause(
@@ -982,41 +819,7 @@ export default class QueryRunner {
         batchId: number,
         resultId: number,
     ): Promise<void> {
-        // sort the selections by row to maintain copy order
-        selection.sort((a, b) => a.fromRow - b.fromRow);
-
-        // create a mapping of rows to selections
-        let rowIdToSelectionMap = new Map<number, ISlickRange[]>();
-        let rowIdToRowMap = new Map<number, DbCellValue[]>();
-
-        // create a mapping of the ranges to get promises
-        let tasks = selection.map((range) => {
-            return async () => {
-                const result = await this.getRows(
-                    range.fromRow,
-                    range.toRow - range.fromRow + 1,
-                    batchId,
-                    resultId,
-                );
-                this.getRowMappings(
-                    result.resultSubset.rows,
-                    range,
-                    rowIdToSelectionMap,
-                    rowIdToRowMap,
-                );
-            };
-        });
-
-        // get all the rows
-        let p = tasks[0]();
-        for (let i = 1; i < tasks.length; i++) {
-            p = p.then(tasks[i]);
-        }
-        await p;
-
-        const inClauseString = this.constructInClauseString(rowIdToRowMap, rowIdToSelectionMap);
-
-        await this.writeStringToClipboard(inClauseString);
+        await this.copyResults2(selection, batchId, resultId, CopyType.IN);
     }
 
     public async copyResultsAsInsertInto(
@@ -1024,46 +827,9 @@ export default class QueryRunner {
         batchId: number,
         resultId: number,
     ): Promise<void> {
-        // sort the selections by row to maintain copy order
-        selection.sort((a, b) => a.fromRow - b.fromRow);
-
-        // create a mapping of rows to selections
-        let rowIdToSelectionMap = new Map<number, ISlickRange[]>();
-        let rowIdToRowMap = new Map<number, DbCellValue[]>();
-
-        // create a mapping of the ranges to get promises
-        let tasks = selection.map((range) => {
-            return async () => {
-                const result = await this.getRows(
-                    range.fromRow,
-                    range.toRow - range.fromRow + 1,
-                    batchId,
-                    resultId,
-                );
-                this.getRowMappings(
-                    result.resultSubset.rows,
-                    range,
-                    rowIdToSelectionMap,
-                    rowIdToRowMap,
-                );
-            };
+        await this.copyResults2(selection, batchId, resultId, CopyType.INSERT, {
+            includeHeaders: true,
         });
-
-        // get all the rows
-        let p = tasks[0]();
-        for (let i = 1; i < tasks.length; i++) {
-            p = p.then(tasks[i]);
-        }
-        await p;
-
-        const insertIntoString = this.constructInsertIntoString(
-            rowIdToRowMap,
-            rowIdToSelectionMap,
-            batchId,
-            resultId,
-        );
-
-        await this.writeStringToClipboard(insertIntoString);
     }
 
     private _requestID: string;
@@ -1259,39 +1025,6 @@ export default class QueryRunner {
         return true;
     }
 
-    private shouldIncludeHeaders(includeHeaders: boolean): boolean {
-        if (includeHeaders !== undefined) {
-            // Respect the value explicity passed into the method
-            return includeHeaders;
-        }
-        // else get config option from vscode config
-        let config = this._vscodeWrapper.getConfiguration(
-            Constants.extensionConfigSectionName,
-            this.uri,
-        );
-        includeHeaders = config.get(Constants.copyIncludeHeaders);
-        return !!includeHeaders;
-    }
-
-    private shouldRemoveNewLines(): boolean {
-        // get config copyRemoveNewLine option from vscode config
-        let config = this._vscodeWrapper.getConfiguration(
-            Constants.extensionConfigSectionName,
-            this.uri,
-        );
-        let removeNewLines: boolean = config.get(Constants.configCopyRemoveNewLine);
-        return removeNewLines;
-    }
-
-    private removeNewLines(inputString: string): string {
-        // This regex removes all newlines in all OS types
-        // Windows(CRLF): \r\n
-        // Linux(LF)/Modern MacOS: \n
-        // Old MacOs: \r
-        let outputString: string = inputString.replace(/(\r\n|\n|\r)/gm, "");
-        return outputString;
-    }
-
     private sendBatchTimeMessage(batchId: number, executionTime: string): void {
         // get config copyRemoveNewLine option from vscode config
         let config = this._vscodeWrapper.getConfiguration(
@@ -1308,30 +1041,6 @@ export default class QueryRunner {
             };
             this._messageEmitter.fire(message);
         }
-    }
-
-    /**
-     * Gets the first and last column of a selection: [first, last]
-     */
-    private getSelectionEndColumns(
-        rowIdToRowMap: Map<number, DbCellValue[]>,
-        rowIdToSelectionMap: Map<number, ISlickRange[]>,
-    ): number[] {
-        let allRowIds = rowIdToRowMap.keys();
-        let firstColumn = -1;
-        let lastColumn = -1;
-        for (let rowId of allRowIds) {
-            const rowSelections = rowIdToSelectionMap.get(rowId);
-            for (let i = 0; i < rowSelections.length; i++) {
-                if (firstColumn === -1 || rowSelections[i].fromCell < firstColumn) {
-                    firstColumn = rowSelections[i].fromCell;
-                }
-                if (lastColumn === -1 || rowSelections[i].toCell > lastColumn) {
-                    lastColumn = rowSelections[i].toCell;
-                }
-            }
-        }
-        return [firstColumn, lastColumn];
     }
 
     /**
@@ -1409,42 +1118,6 @@ export default class QueryRunner {
      * @param textIdentifier
      * @returns
      */
-    private addHeadersToCsvString(
-        copyString: string,
-        batchId: number,
-        resultId: number,
-        selection: ISlickRange[],
-        delimiter: string,
-        textIdentifier: string,
-    ): string {
-        // add the column headers
-        let firstCol: number;
-        let lastCol: number;
-        for (let range of selection) {
-            if (firstCol === undefined || range.fromCell < firstCol) {
-                firstCol = range.fromCell;
-            }
-            if (lastCol === undefined || range.toCell > lastCol) {
-                lastCol = range.toCell;
-            }
-        }
-        let columnRange: ISlickRange = {
-            fromCell: firstCol,
-            toCell: lastCol,
-            fromRow: undefined,
-            toRow: undefined,
-        };
-        let columnHeaders = this.getColumnHeaders(batchId, resultId, columnRange);
-
-        // Format headers with proper CSV escaping
-        const escapedHeaders = columnHeaders.map((header) =>
-            this.escapeCsvValue(header, textIdentifier),
-        );
-        copyString += escapedHeaders.join(delimiter);
-        copyString += editorEol;
-        return copyString;
-    }
-
     /**
      * Construct CSV string from row data
      * @param copyString
@@ -1455,69 +1128,6 @@ export default class QueryRunner {
      * @param lineSeperator
      * @returns
      */
-    private constructCsvString(
-        copyString: string,
-        rowIdToRowMap: Map<number, DbCellValue[]>,
-        rowIdToSelectionMap: Map<number, ISlickRange[]>,
-        delimiter: string,
-        textIdentifier: string,
-        lineSeperator: string,
-    ): string {
-        // Go through all rows and get selections for them
-        let allRowIds = Array.from(rowIdToRowMap.keys()).sort((a, b) => a - b);
-        const endColumns = this.getSelectionEndColumns(rowIdToRowMap, rowIdToSelectionMap);
-        const firstColumn = endColumns[0];
-        const lastColumn = endColumns[1];
-
-        for (let rowId of allRowIds) {
-            let row = rowIdToRowMap.get(rowId);
-            const rowSelections = rowIdToSelectionMap.get(rowId);
-
-            // sort selections by column to go from left to right
-            rowSelections.sort((a, b) => {
-                return a.fromCell < b.fromCell ? -1 : a.fromCell > b.fromCell ? 1 : 0;
-            });
-
-            let rowValues: string[] = [];
-
-            for (let i = 0; i < rowSelections.length; i++) {
-                let rowSelection = rowSelections[i];
-
-                // Add empty values for gaps before this selection
-                while (rowValues.length < rowSelection.fromCell - firstColumn) {
-                    rowValues.push("");
-                }
-
-                let cellObjects = row.slice(rowSelection.fromCell, rowSelection.toCell + 1);
-                let cells = cellObjects.map((x) => {
-                    // For null values, use empty string instead of the displayValue (which contains "null")
-                    let displayValue = x.isNull
-                        ? ""
-                        : this.shouldRemoveNewLines()
-                          ? this.removeNewLines(x.displayValue)
-                          : x.displayValue;
-                    return this.escapeCsvValue(displayValue, textIdentifier);
-                });
-
-                rowValues.push(...cells);
-            }
-
-            // Add empty values for gaps after the last selection
-            while (rowValues.length < lastColumn - firstColumn + 1) {
-                rowValues.push("");
-            }
-
-            copyString += rowValues.join(delimiter);
-            copyString += lineSeperator;
-        }
-
-        // Remove the last extra line separator
-        if (copyString.length > lineSeperator.length) {
-            copyString = copyString.substring(0, copyString.length - lineSeperator.length);
-        }
-        return copyString;
-    }
-
     /**
      * Construct JSON string from row data
      * @param rowIdToRowMap
@@ -1527,306 +1137,6 @@ export default class QueryRunner {
      * @param includeHeaders
      * @returns
      */
-    private constructJsonString(
-        rowIdToRowMap: Map<number, DbCellValue[]>,
-        rowIdToSelectionMap: Map<number, ISlickRange[]>,
-        batchId: number,
-        resultId: number,
-    ): string {
-        // Get column headers for property names
-        let allRowIds = Array.from(rowIdToRowMap.keys()).sort((a, b) => a - b);
-        if (allRowIds.length === 0) {
-            return "[]";
-        }
-
-        const endColumns = this.getSelectionEndColumns(rowIdToRowMap, rowIdToSelectionMap);
-        const firstColumn = endColumns[0];
-        const lastColumn = endColumns[1];
-
-        let columnRange: ISlickRange = {
-            fromCell: firstColumn,
-            toCell: lastColumn,
-            fromRow: undefined,
-            toRow: undefined,
-        };
-        let columnHeaders = this.getColumnHeaders(batchId, resultId, columnRange);
-
-        let jsonArray: any[] = [];
-
-        for (let rowId of allRowIds) {
-            let row = rowIdToRowMap.get(rowId);
-            const rowSelections = rowIdToSelectionMap.get(rowId);
-
-            // sort selections by column to go from left to right
-            rowSelections.sort((a, b) => {
-                return a.fromCell < b.fromCell ? -1 : a.fromCell > b.fromCell ? 1 : 0;
-            });
-
-            let jsonObject: any = {};
-            let columnIndex = 0;
-
-            for (let i = 0; i < rowSelections.length; i++) {
-                let rowSelection = rowSelections[i];
-
-                // Add null values for gaps before this selection
-                while (columnIndex < rowSelection.fromCell - firstColumn) {
-                    jsonObject[columnHeaders[columnIndex]] = null;
-                    columnIndex++;
-                }
-
-                let cellObjects = row.slice(rowSelection.fromCell, rowSelection.toCell + 1);
-                for (let cellObject of cellObjects) {
-                    let value: any;
-                    if (cellObject.isNull) {
-                        // For null values, use proper JSON null instead of parsing displayValue
-                        value = null;
-                    } else {
-                        let displayValue = this.shouldRemoveNewLines()
-                            ? this.removeNewLines(cellObject.displayValue)
-                            : cellObject.displayValue;
-
-                        // Try to parse numeric and boolean values
-                        value = this.parseJsonValue(displayValue);
-                    }
-                    jsonObject[columnHeaders[columnIndex]] = value;
-                    columnIndex++;
-                }
-            }
-
-            // Add null values for gaps after the last selection
-            while (columnIndex < columnHeaders.length) {
-                jsonObject[columnHeaders[columnIndex]] = null;
-                columnIndex++;
-            }
-
-            jsonArray.push(jsonObject);
-        }
-
-        return JSON.stringify(jsonArray, null, 2);
-    }
-
-    private constructInClauseString(
-        rowIdToRowMap: Map<number, DbCellValue[]>,
-        rowIdToSelectionMap: Map<number, ISlickRange[]>,
-    ): string {
-        let allRowIds = Array.from(rowIdToRowMap.keys()).sort((a, b) => a - b);
-        if (allRowIds.length === 0) {
-            return "IN ()";
-        }
-
-        let values: string[] = [];
-
-        for (let rowId of allRowIds) {
-            let row = rowIdToRowMap.get(rowId);
-            const rowSelections = rowIdToSelectionMap.get(rowId);
-
-            // sort selections by column to go from left to right
-            rowSelections.sort((a, b) => {
-                return a.fromCell < b.fromCell ? -1 : a.fromCell > b.fromCell ? 1 : 0;
-            });
-
-            for (let i = 0; i < rowSelections.length; i++) {
-                let rowSelection = rowSelections[i];
-                let cellObjects = row.slice(rowSelection.fromCell, rowSelection.toCell + 1);
-
-                for (let cellObject of cellObjects) {
-                    if (cellObject.isNull) {
-                        values.push("NULL");
-                    } else {
-                        let displayValue = this.shouldRemoveNewLines()
-                            ? this.removeNewLines(cellObject.displayValue)
-                            : cellObject.displayValue;
-
-                        // Check if the value is numeric
-                        if (
-                            !isNaN(Number(displayValue)) &&
-                            isFinite(Number(displayValue)) &&
-                            displayValue.trim() !== ""
-                        ) {
-                            values.push(displayValue);
-                        } else {
-                            // Escape single quotes and wrap in single quotes for string values
-                            let escapedValue = displayValue.replace(/'/g, "''");
-                            values.push(`'${escapedValue}'`);
-                        }
-                    }
-                }
-            }
-        }
-
-        return `IN${editorEol}(${editorEol}${values.map((value) => `    ${value}`).join(`,${editorEol}`)}${editorEol})`;
-    }
-
-    private constructInsertIntoString(
-        rowIdToRowMap: Map<number, DbCellValue[]>,
-        rowIdToSelectionMap: Map<number, ISlickRange[]>,
-        batchId: number,
-        resultId: number,
-    ): string {
-        let allRowIds = Array.from(rowIdToRowMap.keys()).sort((a, b) => a - b);
-        if (allRowIds.length === 0) {
-            return `INSERT INTO [TableName] VALUES${editorEol}();`;
-        }
-
-        // Get column information for headers
-        const endColumns = this.getSelectionEndColumns(rowIdToRowMap, rowIdToSelectionMap);
-        const firstColumn = endColumns[0];
-        const lastColumn = endColumns[1];
-
-        let columnRange: ISlickRange = {
-            fromCell: firstColumn,
-            toCell: lastColumn,
-            fromRow: undefined,
-            toRow: undefined,
-        };
-        let columnHeaders = this.getColumnHeaders(batchId, resultId, columnRange);
-
-        // Build column list for INSERT INTO
-        const columnList = columnHeaders.map((header) => `[${header}]`).join(", ");
-
-        // Process all rows and extract their values
-        let allRowValues: string[][] = [];
-
-        for (let rowId of allRowIds) {
-            let row = rowIdToRowMap.get(rowId);
-            const rowSelections = rowIdToSelectionMap.get(rowId);
-
-            // sort selections by column to go from left to right
-            rowSelections.sort((a, b) => {
-                return a.fromCell < b.fromCell ? -1 : a.fromCell > b.fromCell ? 1 : 0;
-            });
-
-            let values: string[] = [];
-            let columnIndex = 0;
-
-            for (let i = 0; i < rowSelections.length; i++) {
-                let rowSelection = rowSelections[i];
-
-                // Add NULL values for gaps before this selection
-                while (columnIndex < rowSelection.fromCell - firstColumn) {
-                    values.push("NULL");
-                    columnIndex++;
-                }
-
-                let cellObjects = row.slice(rowSelection.fromCell, rowSelection.toCell + 1);
-
-                for (let cellObject of cellObjects) {
-                    if (cellObject.isNull) {
-                        values.push("NULL");
-                    } else {
-                        let displayValue = this.shouldRemoveNewLines()
-                            ? this.removeNewLines(cellObject.displayValue)
-                            : cellObject.displayValue;
-
-                        // Check if the value is numeric
-                        if (
-                            !isNaN(Number(displayValue)) &&
-                            isFinite(Number(displayValue)) &&
-                            displayValue.trim() !== ""
-                        ) {
-                            values.push(displayValue);
-                        } else {
-                            // Escape single quotes and wrap in single quotes for string values
-                            let escapedValue = displayValue.replace(/'/g, "''");
-                            values.push(`'${escapedValue}'`);
-                        }
-                    }
-                    columnIndex++;
-                }
-            }
-
-            // Add NULL values for gaps after the last selection
-            while (columnIndex < columnHeaders.length) {
-                values.push("NULL");
-                columnIndex++;
-            }
-
-            allRowValues.push(values);
-        }
-
-        // SQL Server limit: 1000 rows per INSERT VALUES statement
-        const maxRowsPerInsert = 1000;
-
-        if (allRowValues.length <= maxRowsPerInsert) {
-            // Use single INSERT INTO ... VALUES statement
-            const valueRows = allRowValues.map((values) => `    (${values.join(", ")})`);
-            return `INSERT INTO [TableName] (${columnList})${editorEol}VALUES${editorEol}${valueRows.join(`,${editorEol}`)};`;
-        } else {
-            // Break into individual INSERT statements
-            const insertStatements: string[] = [];
-
-            for (let i = 0; i < allRowValues.length; i += maxRowsPerInsert) {
-                const chunk = allRowValues.slice(i, i + maxRowsPerInsert);
-                const valueRows = chunk.map((values) => `    (${values.join(", ")})`);
-                insertStatements.push(
-                    `INSERT INTO [TableName] (${columnList})${editorEol}VALUES${editorEol}${valueRows.join(`,${editorEol}`)};`,
-                );
-            }
-
-            return insertStatements.join(`${editorEol}${editorEol}`);
-        }
-    }
-
-    /**
-     * Escape a value for CSV format
-     * @param value
-     * @param textIdentifier
-     * @returns
-     */
-    private escapeCsvValue(value: string, textIdentifier: string): string {
-        if (value === null || value === undefined) {
-            return "";
-        }
-
-        let stringValue = String(value);
-
-        // Check if the value contains delimiter, newlines, or text identifier
-        if (
-            stringValue.includes(",") ||
-            stringValue.includes("\n") ||
-            stringValue.includes("\r") ||
-            stringValue.includes(textIdentifier)
-        ) {
-            // Escape text identifier by doubling it
-            stringValue = stringValue.replace(
-                new RegExp(textIdentifier, "g"),
-                textIdentifier + textIdentifier,
-            );
-
-            // Wrap in text identifier
-            return textIdentifier + stringValue + textIdentifier;
-        }
-
-        return stringValue;
-    }
-
-    /**
-     * Parse a string value to appropriate JSON type
-     * @param value
-     * @returns
-     */
-    private parseJsonValue(value: string): any {
-        if (value === null || value === undefined || value === "") {
-            return null;
-        }
-
-        // Try to parse as boolean
-        if (value.toLowerCase() === "true") {
-            return true;
-        }
-        if (value.toLowerCase() === "false") {
-            return false;
-        }
-
-        // Try to parse as number
-        if (!isNaN(Number(value)) && value.trim() !== "") {
-            return Number(value);
-        }
-
-        // Return as string
-        return value;
-    }
-
     /**
      * Vscode core expects uri.fsPath for resourcePath context value.
      * https://github.com/microsoft/vscode/blob/bb5a3c607b14787009f8e9fadb720beee596133c/src/vs/workbench/common/contextkeys.ts#L275
