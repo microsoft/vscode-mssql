@@ -148,7 +148,7 @@ export class ConnectionNode extends TreeNodeInfo {
                 defaultValue: (connectionNodeDefaults as any).applicationIntent,
             },
             {
-                key: "connectionTimeout",
+                key: "connectTimeout",
                 value: "",
                 label: "Connection Timeout",
                 defaultValue: (connectionNodeDefaults as any).connectionTimeout,
