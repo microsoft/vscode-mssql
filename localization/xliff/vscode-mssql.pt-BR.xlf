@@ -1907,6 +1907,10 @@ Erro:
         <source xml:lang="en">Filter Azure subscriptions</source>
         <target state="translated">Filtrar assinaturas do Azure</target>
       </trans-unit>
+      <trans-unit id="++CODE++dcd87fabe8cdcdf7a36e88a2326e72e03e96ddd1b279d554ba9ef435af8f22f4">
+        <source xml:lang="en">Filter Options</source>
+        <target state="new">Filter Options</target>
+      </trans-unit>
       <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
         <source xml:lang="en">Filter Settings</source>
         <target state="translated">Configurações do Filtro</target>
@@ -3316,6 +3320,10 @@ Erro:
         <source xml:lang="en">Remove</source>
         <target state="translated">Remover</target>
       </trans-unit>
+      <trans-unit id="++CODE++67b215a4a9c0185c90cc9b971dcdf8dc2c3fddcaa5bfc78eed8cfcc2cefaf0d7">
+        <source xml:lang="en">Remove Sort</source>
+        <target state="new">Remove Sort</target>
+      </trans-unit>
       <trans-unit id="++CODE++7024a828547b51d9fb11f26d4d1d472691dd7e6ec7d7a2f499cb08731a63e943">
         <source xml:lang="en">Remove recent connection</source>
         <target state="translated">Remover conexão recente</target>
@@ -3788,13 +3796,13 @@ Consulta: {1}</target>
         <source xml:lang="en">Show Confirm Password</source>
         <target state="new">Show Confirm Password</target>
       </trans-unit>
-      <trans-unit id="++CODE++a89fead964a8515cf74f4e5fcfbc0aaa029cee9744df340c6853e59a944de7ad">
-        <source xml:lang="en">Show Filter</source>
-        <target state="translated">Mostrar Filtro</target>
-      </trans-unit>
       <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
         <source xml:lang="en">Show MSSQL output</source>
         <target state="translated">Mostrar saída do MSSQL</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a16e132b133cc57c4d467bde193d78fe48f170a197d0581c2e6578162824902f">
+        <source xml:lang="en">Show Menu</source>
+        <target state="new">Show Menu</target>
       </trans-unit>
       <trans-unit id="++CODE++169b9d739add25522ff9a236b54583826c27bd79c2dcb1a4efcc50143164f78c">
         <source xml:lang="en">Show New Password</source>
@@ -4609,6 +4617,11 @@ Consulta: {1}</target>
         <source xml:lang="en">{0} rows selected, click to load summary</source>
         <note>{0} is the number of rows to fetch summary statistics for</note>
         <target state="translated">{0} linhas selecionadas, clique para carregar o resumo</target>
+      </trans-unit>
+      <trans-unit id="++CODE++00e1f9b501086ed75248767b54cc5caa0b62853d91c148fa2da0b388be7a6388">
+        <source xml:lang="en">{0} selected</source>
+        <note>{0} is the number of selected rows</note>
+        <target state="new">{0} selected</target>
       </trans-unit>
       <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
         <source xml:lang="en">{0} started successfully.</source>
