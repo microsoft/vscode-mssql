@@ -667,6 +667,20 @@ export default class QueryRunner {
             encoding?: string;
         },
     ): Promise<void> {
+        const totalSelectedRows = this.getTotalSelectedRows(selection);
+        const inMemoryThreshold = getInMemoryGridDataProcessingThreshold();
+        if (totalSelectedRows > inMemoryThreshold) {
+            const confirmation = await vscode.window.showWarningMessage(
+                LocalizedConstants.QueryResult.largeCopyConfirmation(totalSelectedRows),
+                { modal: false },
+                LocalizedConstants.msgYes,
+                LocalizedConstants.msgNo,
+            );
+            if (confirmation !== LocalizedConstants.msgYes) {
+                return;
+            }
+        }
+
         await vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
@@ -880,12 +894,7 @@ export default class QueryRunner {
         this._cancelConfirmation?.resolve();
         this._cancelConfirmation = undefined;
 
-        // Keep copy order deterministic
-        selections.sort((a, b) => a.fromRow - b.fromRow);
-        let totalRows = 0;
-        for (let range of selections) {
-            totalRows += range.toRow - range.fromRow + 1;
-        }
+        const totalRows = this.getTotalSelectedRows(selections);
 
         const threshold = getInMemoryGridDataProcessingThreshold();
 
@@ -1168,5 +1177,15 @@ export default class QueryRunner {
             "mssql.runningQueries",
             QueryRunner._runningQueries,
         );
+    }
+
+    private getTotalSelectedRows(selections: ISlickRange[]): number {
+        // Keep copy order deterministic
+        selections.sort((a, b) => a.fromRow - b.fromRow);
+        let totalRows = 0;
+        for (let range of selections) {
+            totalRows += range.toRow - range.fromRow + 1;
+        }
+        return totalRows;
     }
 }
