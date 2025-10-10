@@ -1837,3 +1837,68 @@ export class ConnectionGroup {
         });
     };
 }
+
+export class TableExplorer {
+    public static unableToOpenTableExplorer = l10n.t(
+        "Unable to open Table Explorer: No target node provided.",
+    );
+    public static changesSavedSuccessfully = l10n.t("Changes saved successfully.");
+    public static newRowCreatedSuccessfully = l10n.t("New row created.");
+    public static rowRemoved = l10n.t("Row removed.");
+
+    public static title = (tableName: string) =>
+        l10n.t({
+            message: "Table Explorer: {0} (Preview)",
+            args: [tableName],
+            comment: ["{0} is the table name"],
+        });
+
+    public static failedToSaveChanges = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to save changes: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToLoadData = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to load data: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToCreateNewRow = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to create a new row: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRemoveRow = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to remove row: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToUpdateCell = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to update cell: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRevertCell = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to revert cell: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRevertRow = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to revert row: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+}

@@ -18,6 +18,8 @@ import { ITableExplorerService } from "../services/tableExplorerService";
 import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
 import { NotificationHandler } from "vscode-languageclient";
 import { Deferred } from "../protocol";
+import * as LocConstants from "../constants/locConstants";
+import { getErrorMessage } from "../utils/utils";
 
 export class TableExplorerWebViewController extends ReactWebviewPanelController<
     TableExplorerWebViewState,
@@ -50,7 +52,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 resultSet: undefined,
             },
             {
-                title: `Table Explorer: ${tableName}`,
+                title: LocConstants.TableExplorer.title(tableName),
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
@@ -82,8 +84,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
      */
     private async initialize(): Promise<void> {
         if (!this._targetNode) {
-            const errorMessage = "Unable to find object explorer node";
-            await vscode.window.showErrorMessage(errorMessage);
+            await vscode.window.showErrorMessage(
+                LocConstants.TableExplorer.unableToOpenTableExplorer,
+            );
             return;
         }
 
@@ -150,10 +153,14 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             this.logger.info(`Committing changes for: ${state.tableName}`);
             try {
                 await this._tableExplorerService.commit(state.ownerUri);
-                vscode.window.showInformationMessage("Changes saved successfully");
+                vscode.window.showInformationMessage(
+                    LocConstants.TableExplorer.changesSavedSuccessfully,
+                );
             } catch (error) {
                 this.logger.error(`Error committing changes: ${error}`);
-                vscode.window.showErrorMessage(`Failed to save changes: ${error}`);
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToSaveChanges(getErrorMessage(error)),
+                );
             }
             return state;
         });
@@ -173,7 +180,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 this.logger.info(`Loaded ${subsetResult.rowCount} rows`);
             } catch (error) {
                 this.logger.error(`Error loading subset: ${error}`);
-                vscode.window.showErrorMessage(`Failed to load data: ${error}`);
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToLoadData(getErrorMessage(error)),
+                );
             }
             return state;
         });
@@ -182,7 +191,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             this.logger.info(`Creating new row for: ${state.tableName}`);
             try {
                 const result = await this._tableExplorerService.createRow(state.ownerUri);
-                vscode.window.showInformationMessage("New row created successfully");
+                vscode.window.showInformationMessage(
+                    LocConstants.TableExplorer.newRowCreatedSuccessfully,
+                );
                 this.logger.info(`Created row with ID: ${result.newRowId}`);
 
                 // Reload the result set to reflect the new row
@@ -198,7 +209,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 this.logger.info(`Reloaded ${subsetResult.rowCount} rows after creation`);
             } catch (error) {
                 this.logger.error(`Error creating row: ${error}`);
-                vscode.window.showErrorMessage(`Failed to create row: ${error}`);
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToCreateNewRow(getErrorMessage(error)),
+                );
             }
             return state;
         });
@@ -207,7 +220,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             this.logger.info(`Deleting row: ${payload.rowId}`);
             try {
                 await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
-                vscode.window.showInformationMessage("Row deleted successfully");
+                vscode.window.showInformationMessage(LocConstants.TableExplorer.rowRemoved);
 
                 if (state.resultSet) {
                     const updatedSubset = state.resultSet.subset.filter(
@@ -225,7 +238,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 }
             } catch (error) {
                 this.logger.error(`Error deleting row: ${error}`);
-                vscode.window.showErrorMessage(`Failed to delete row: ${error}`);
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToRemoveRow(getErrorMessage(error)),
+                );
             }
             return state;
         });
@@ -260,7 +275,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 this.logger.info(`Cell updated successfully`);
             } catch (error) {
                 this.logger.error(`Error updating cell: ${error}`);
-                vscode.window.showErrorMessage(`Failed to update cell: ${error}`);
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToUpdateCell(getErrorMessage(error)),
+                );
             }
             return state;
         });
@@ -309,7 +326,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 this.logger.info(`Cell reverted successfully`);
             } catch (error) {
                 this.logger.error(`Error reverting cell: ${error}`);
-                vscode.window.showErrorMessage(`Failed to revert cell: ${error}`);
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToRevertCell(getErrorMessage(error)),
+                );
             }
             return state;
         });
@@ -321,7 +340,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     state.ownerUri,
                     payload.rowId,
                 );
-                vscode.window.showInformationMessage("Row reverted successfully");
 
                 // Update the row in the result set with the reverted row data
                 if (state.resultSet && revertRowResult.row) {
@@ -351,7 +369,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 this.logger.info(`Row reverted successfully`);
             } catch (error) {
                 this.logger.error(`Error reverting row: ${error}`);
-                vscode.window.showErrorMessage(`Failed to revert row: ${error}`);
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToRevertRow(getErrorMessage(error)),
+                );
             }
             return state;
         });
@@ -367,7 +387,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 `Disposing Table Explorer resources for ownerUri: ${this.state.ownerUri}`,
             );
             void this._tableExplorerService.dispose(this.state.ownerUri).catch((error) => {
-                this.logger.error(`Error disposing table explorer service: ${error}`);
+                this.logger.error(
+                    `Error disposing table explorer service: ${getErrorMessage(error)}`,
+                );
             });
         }
 
