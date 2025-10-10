@@ -207,6 +207,11 @@
         <source xml:lang="en">An error occurred refreshing nodes. See the MSSQL output channel for more details.</source>
         <target state="translated">Errore durante l'aggiornamento dei nodi. Per altri dettagli, vedere il canale di output MSSQL.</target>
       </trans-unit>
+      <trans-unit id="++CODE++0e0aa36ee32c59d59231919e47412a12d29c1f3459800637634bb73fb949f541">
+        <source xml:lang="en">An error occurred while copying results: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">An error occurred while copying results: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++b80f19578e3d6cc4f8693e307caf7f4fc739be0f2eb550a9f78a0874ae0205e5">
         <source xml:lang="en">An error occurred while processing your request.</source>
         <target state="translated">Si è verificato un errore durante l'elaborazione della richiesta.</target>
@@ -366,15 +371,15 @@
       </trans-unit>
       <trans-unit id="++CODE++994c049faf0fd65f191759cacf91508d01743fda1b2f06cfc7f779fc49ae4991">
         <source xml:lang="en">Azure (China)</source>
-        <target state="new">Azure (China)</target>
+        <target state="translated">Azure (Cina)</target>
       </trans-unit>
       <trans-unit id="++CODE++cdf9c75db21efc1ddc557d567de91e9bc67533606ce4bbc049c592d77f122e68">
         <source xml:lang="en">Azure (Public)</source>
-        <target state="new">Azure (Public)</target>
+        <target state="translated">Azure (pubblico)</target>
       </trans-unit>
       <trans-unit id="++CODE++cf582c92b799b117f2d093534bbe7b99aea5df658f201220f320f2976c0ebbba">
         <source xml:lang="en">Azure (US Government)</source>
-        <target state="new">Azure (US Government)</target>
+        <target state="translated">Azure (US Government)</target>
       </trans-unit>
       <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
         <source xml:lang="en">Azure Account</source>
@@ -1100,6 +1105,10 @@
         <source xml:lang="en">Copy with Headers</source>
         <target state="translated">Copia con intestazioni</target>
       </trans-unit>
+      <trans-unit id="++CODE++35c380196401c05c48fe5f5fffd349ba06d9988118b87a1c12e1164a28175997">
+        <source xml:lang="en">Copying results...</source>
+        <target state="new">Copying results...</target>
+      </trans-unit>
       <trans-unit id="++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126">
         <source xml:lang="en">Cost</source>
         <target state="translated">Costo</target>
@@ -1742,7 +1751,7 @@ Errore:
         <source xml:lang="en">Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.</source>
         <note>{0} is the cloud name
 {1} is the setting name</note>
-        <target state="new">Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.</target>
+        <target state="translated">Fabric non è supportato nel cloud corrente ({0}).  Assicurarsi che l'impostazione '{1}' sia configurata correttamente.</target>
       </trans-unit>
       <trans-unit id="++CODE++3db198c251ac68aeafbdfbb134d03b8be7bca7a5b2f612addb78f72b2da67a90">
         <source xml:lang="en">Fabric long-running API error with error code '{0}': {1}</source>
@@ -1827,7 +1836,7 @@ Errore:
         <note>{0} is the tenant name
 {1} is the tenant id
 {2} is the error message</note>
-        <target state="new">Failed to get Fabric workspaces for tenant '{0} ({1})': {2}</target>
+        <target state="translated">Non è possibile ottenere le aree di lavoro di Fabric per il tenant '{0} ({1})': {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
         <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
@@ -2509,12 +2518,10 @@ Errore:
         <source xml:lang="en">Loading results...</source>
         <target state="translated">Caricamento dei risultati...</target>
       </trans-unit>
-      <trans-unit id="++CODE++ba622a4c63bd7d102bdc3057b04b4cfd8d2af5b2adb230bebc98414fc46afae0">
-        <source xml:lang="en">Loading summary {0}/{1} ({2}%) (Click to cancel)</source>
-        <note>{0} is the current row
-{1} is the total number of rows
-{2} is the percentage of rows loaded</note>
-        <target state="translated">Caricamento riepilogo {0}/{1} ({2}%) (fai clic per annullare)</target>
+      <trans-unit id="++CODE++71499b4de6ef3b8d0c19b76e76295f5dd9f5690a180de07ed861fdce757182aa">
+        <source xml:lang="en">Loading summary for {0} rows (Click to cancel)</source>
+        <note>{0} is the total number of rows</note>
+        <target state="new">Loading summary for {0} rows (Click to cancel)</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -3367,6 +3374,10 @@ Errore:
         <note>{0} is the number of results</note>
         <target state="translated">Risultati ({0})</target>
       </trans-unit>
+      <trans-unit id="++CODE++a71f9e2908cf7df2e5ce9dafa67f3f4949fc4c74f525b9f4a6229ff6a7f93c86">
+        <source xml:lang="en">Results copied to clipboard</source>
+        <target state="new">Results copied to clipboard</target>
+      </trans-unit>
       <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
         <source xml:lang="en">Retry</source>
         <target state="translated">Riprova</target>
@@ -4135,7 +4146,7 @@ Query: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
         <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
-        <target state="new">The custom cloud choice is not configured. Please configure the setting `{0}`.</target>
+        <target state="translated">La scelta del cloud personalizzato non è configurata. Configurare l'impostazione `{0}`.</target>
       </trans-unit>
       <trans-unit id="++CODE++f229c94b4c9b8ecfa1096d1daf79194e84616c49df8fb6e229fa944592ff373e">
         <source xml:lang="en">The description of the check constraint.</source>
@@ -5329,35 +5340,35 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</source>
-        <target state="new">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `.database.fabric.microsoft.com` (incluso il punto iniziale)</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.sqlServerHostnameSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.database.windows.net` (including leading dot)</source>
-        <target state="new">Sovereign cloud equivalent for `.database.windows.net` (including leading dot)</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `.database.windows.net` (incluso il punto iniziale)</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricDataWarehouseDnsSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)</source>
-        <target state="new">Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `.datawarehouse.fabric.microsoft.com` (incluso il punto iniziale)</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.analyticsDnsSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)</source>
-        <target state="new">Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `.sql.azuresynapse.net` (incluso il punto iniziale)</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricScopeUriBase">
         <source xml:lang="en">Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`</source>
-        <target state="new">Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `https://analysis.windows.net/powerbi/api/`</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricApiUriBase">
         <source xml:lang="en">Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`</source>
-        <target state="new">Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `https://api.fabric.microsoft.com/v1/`</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.sqlEndpoint">
         <source xml:lang="en">Sovereign cloud equivalent for `https://database.windows.net/`</source>
-        <target state="new">Sovereign cloud equivalent for `https://database.windows.net/`</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `https://database.windows.net/`</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.keyVaultEndpoint">
         <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
-        <target state="new">Sovereign cloud equivalent for `https://vault.azure.net/`</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `https://vault.azure.net/`</target>
       </trans-unit>
       <trans-unit id="mssql.startContainer">
         <source xml:lang="en">Start Container</source>
@@ -5381,7 +5392,7 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
       </trans-unit>
       <trans-unit id="mssql.customEnvironment">
         <source xml:lang="en">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</source>
-        <target state="new">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</target>
+        <target state="translated">La configurazione aggiuntiva e personalizzata specifica di MSSQL per il cloud sovrano da usare con il provider di autenticazione Microsoft Sovereign Cloud. Per usare questa funzionalità con MSSQL, è necessario impostare `microsoft-sovereign-cloud.environment` su `custom` e fornire i valori per `microsoft-sovereign-cloud.customEnvironment`.</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroup.color">
         <source xml:lang="en">The color of the connection group.</source>
