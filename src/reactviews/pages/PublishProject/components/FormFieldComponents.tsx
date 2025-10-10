@@ -25,6 +25,7 @@ export const renderInput = (
         showPassword?: boolean;
         onTogglePassword?: () => void;
         readOnly?: boolean;
+        contentAfter?: React.ReactElement;
     },
 ) => {
     if (!component || component.hidden) return undefined;
@@ -43,7 +44,7 @@ export const renderInput = (
             validationState={getValidationState(component.validation)}
             orientation="horizontal">
             <Input
-                size="medium"
+                size="small"
                 type={isPasswordField ? (options?.showPassword ? "text" : "password") : "text"}
                 value={value}
                 placeholder={component.placeholder ?? ""}
@@ -52,7 +53,9 @@ export const renderInput = (
                 onChange={(_, data) => onChange(data.value)}
                 onBlur={() => options?.onBlur?.(value)}
                 contentAfter={
-                    isPasswordField && options?.onTogglePassword ? (
+                    options?.contentAfter ? (
+                        options.contentAfter
+                    ) : isPasswordField && options?.onTogglePassword ? (
                         <Button
                             onClick={options.onTogglePassword}
                             icon={options.showPassword ? <EyeRegular /> : <EyeOffRegular />}
@@ -86,7 +89,7 @@ export const renderDropdown = (
             validationState={getValidationState(component.validation)}
             orientation="horizontal">
             <Dropdown
-                size="medium"
+                size="small"
                 selectedOptions={value ? [value] : []}
                 value={
                     component.options.find(
@@ -136,6 +139,7 @@ export const renderCheckbox = (
                     whiteSpace: "nowrap",
                 }}>
                 <Checkbox
+                    size="medium"
                     checked={checked}
                     onChange={(_, data) => onChange(data.checked === true)}
                 />

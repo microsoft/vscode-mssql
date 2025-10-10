@@ -4,12 +4,27 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useContext, useState, useEffect } from "react";
+import { Button, makeStyles } from "@fluentui/react-components";
+import { PlugDisconnectedRegular } from "@fluentui/react-icons";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
 import { renderInput } from "./FormFieldComponents";
+import { useFormStyles } from "../../../common/forms/form.component";
+
+const useStyles = makeStyles({
+    root: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+        maxWidth: "640px",
+        width: "100%",
+    },
+});
 
 export const ConnectionSection: React.FC = () => {
     const publishCtx = useContext(PublishProjectContext);
+    const formStyles = useFormStyles();
+    const classes = useStyles();
     const serverComponent = usePublishDialogSelector((s) => s.formComponents.serverName);
     const databaseComponent = usePublishDialogSelector((s) => s.formComponents.databaseName);
     const serverValue = usePublishDialogSelector((s) => s.formState.serverName);
@@ -26,9 +41,24 @@ export const ConnectionSection: React.FC = () => {
     }
 
     return (
-        <>
-            {renderInput(serverComponent, localServer, setLocalServer)}
-            {renderInput(databaseComponent, localDatabase, setLocalDatabase)}
-        </>
+        <div className={formStyles.formComponentDiv}>
+            <div className={classes.root}>
+                {renderInput(serverComponent, localServer, setLocalServer, {
+                    readOnly: true,
+                    contentAfter: (
+                        <Button
+                            size="small"
+                            aria-label="Connect to server"
+                            icon={<PlugDisconnectedRegular />}
+                            appearance="transparent"
+                            onClick={() => {
+                                // TODO: Open connection dialog
+                            }}
+                        />
+                    ),
+                })}
+                {renderInput(databaseComponent, localDatabase, setLocalDatabase)}
+            </div>
+        </div>
     );
 };
