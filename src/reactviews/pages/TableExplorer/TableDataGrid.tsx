@@ -245,13 +245,19 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                             const changeKey = `${row}-${cell - 1}`;
                             const isModified = cellChangesRef.current.has(changeKey);
                             const displayValue = value ?? "";
+                            const isNullValue = displayValue === "NULL";
 
                             const tooltipText = displayValue;
 
+                            // Style for NULL values (italic and dimmed)
+                            const nullStyle = isNullValue
+                                ? "font-style: italic; color: var(--vscode-editorGhostText-foreground, #888);"
+                                : "";
+
                             if (isModified) {
-                                return `<span title="${tooltipText}" style="display: block; background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%;">${displayValue}</span>`;
+                                return `<span title="${tooltipText}" style="display: block; background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%; ${nullStyle}">${displayValue}</span>`;
                             }
-                            return `<span title="${tooltipText}">${displayValue}</span>`;
+                            return `<span title="${tooltipText}" style="${nullStyle}">${displayValue}</span>`;
                         },
                     };
                 });
@@ -266,8 +272,18 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         id: row.id,
                     };
                     row.cells.forEach((cell, cellIndex) => {
-                        const cellValue = cell.displayValue;
+                        // Display "NULL" for null cells or empty displayValue
+                        // Check both isNull flag and if displayValue is empty/null/undefined
+                        const cellValue =
+                            cell.isNull || !cell.displayValue ? "NULL" : cell.displayValue;
                         dataRow[`col${cellIndex}`] = cellValue;
+
+                        // Debug logging for first row to understand data structure
+                        if (row.id === 0 || (row.isDirty && row.state === 1)) {
+                            console.log(
+                                `Row ${row.id}, Cell ${cellIndex}: isNull=${cell.isNull}, displayValue="${cell.displayValue}", final="${cellValue}"`,
+                            );
+                        }
                     });
                     return dataRow;
                 });
