@@ -1068,6 +1068,8 @@
     "SQL Plan Files": "SQL Plan Files",
     "Script copied to clipboard": "Script copied to clipboard",
     "Copied": "Copied",
+    "Copying results...": "Copying results...",
+    "Results copied to clipboard": "Results copied to clipboard",
     "Do you want to always display query results in a new tab instead of the query pane?": "Do you want to always display query results in a new tab instead of the query pane?",
     "Always show in new tab": "Always show in new tab",
     "Keep in query pane": "Keep in query pane",
@@ -1280,18 +1282,18 @@
         "message": "Sum: {0}",
         "comment": ["{0} is the sum"]
     },
+    "An error occurred while copying results: {0}/{0} is the error message": {
+        "message": "An error occurred while copying results: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "{0} rows selected, click to load summary/{0} is the number of rows to fetch summary statistics for": {
         "message": "{0} rows selected, click to load summary",
         "comment": ["{0} is the number of rows to fetch summary statistics for"]
     },
     "Click to load summary": "Click to load summary",
-    "Loading summary {0}/{1} ({2}%) (Click to cancel)/{0} is the current row{1} is the total number of rows{2} is the percentage of rows loaded": {
-        "message": "Loading summary {0}/{1} ({2}%) (Click to cancel)",
-        "comment": [
-            "{0} is the current row",
-            "{1} is the total number of rows",
-            "{2} is the percentage of rows loaded"
-        ]
+    "Loading summary for {0} rows (Click to cancel)/{0} is the total number of rows": {
+        "message": "Loading summary for {0} rows (Click to cancel)",
+        "comment": ["{0} is the total number of rows"]
     },
     "Click to cancel loading summary": "Click to cancel loading summary",
     "Summary loading canceled": "Summary loading canceled",

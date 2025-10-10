@@ -38,6 +38,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
         grid: Slick.Grid<T>;
         column: FilterableColumn<T>;
     }>();
+    public onSortChanged = new Slick.Event<SortProperties>();
     public onCommand = new Slick.Event<CommandEventArgs<T>>();
     public enabled: boolean = true;
 
@@ -305,6 +306,8 @@ export class HeaderMenu<T extends Slick.SlickData> {
         if (headerNode) {
             this.updateSortIndicator(headerNode, command);
         }
+
+        this.onSortChanged.notify(command);
     }
 
     private getHeaderNode(columnId: string): HTMLElement | null {
