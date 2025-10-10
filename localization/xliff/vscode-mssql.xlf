@@ -1038,6 +1038,9 @@
     <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
       <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
     </trans-unit>
+    <trans-unit id="++CODE++75081b593d15cf6e631971bc6768723f593b88b172477e40ae7d363e4829816d">
+      <source xml:lang="en">Disabled</source>
+    </trans-unit>
     <trans-unit id="++CODE++acfc5be785a9bb3da11c9f05adb69bd5633096f09002aa44813a1b3207e912ad">
       <source xml:lang="en">Disconnect</source>
     </trans-unit>
@@ -1124,6 +1127,9 @@
     </trans-unit>
     <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
       <source xml:lang="en">Enable Trust Server Certificate</source>
+    </trans-unit>
+    <trans-unit id="++CODE++92c1cdfdf4cb9cf6fcca962f206de36fd5d60db1178bc9461052f8de703a0e06">
+      <source xml:lang="en">Enabled</source>
     </trans-unit>
     <trans-unit id="++CODE++76ad7b53af548367c78d7216972ce81ee53ecf7ee1d6fe5f3d16a73633bd4e49">
       <source xml:lang="en">Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!</source>
@@ -3735,6 +3741,9 @@
     <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
       <source xml:lang="en">Disable Group By Schema</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.disabledLabel">
+      <source xml:lang="en">Disabled</source>
+    </trans-unit>
     <trans-unit id="mssql.disconnect">
       <source xml:lang="en">Disconnect</source>
     </trans-unit>
@@ -3845,6 +3854,9 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.description">
       <source xml:lang="en">Enable the new set of data development features that provide a modern way to work with your SQL database in VS Code.&#10;[Enable New Experiences](command:mssql.enableRichExperiences)</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
+      <source xml:lang="en">Enabled</source>
     </trans-unit>
     <trans-unit id="mssql.enableRichExperiences.description">
       <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>

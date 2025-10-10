@@ -728,6 +728,8 @@
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
+    "Enabled": "Enabled",
+    "Disabled": "Disabled",
     "User": "User",
     "Port": "Port",
     "SQL Container Name": "SQL Container Name",
