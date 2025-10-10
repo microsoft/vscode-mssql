@@ -244,7 +244,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                             const displayValue = value ?? "";
                             const isNullValue = displayValue === "NULL";
 
-                            const tooltipText = displayValue;
+                            // HTML-escape the display value to prevent HTML injection
+                            const escapedDisplayValue = displayValue
+                                .replace(/&/g, "&amp;")
+                                .replace(/</g, "&lt;")
+                                .replace(/>/g, "&gt;")
+                                .replace(/"/g, "&quot;")
+                                .replace(/'/g, "&#039;");
+
+                            const escapedTooltip = escapedDisplayValue;
 
                             // Style for NULL values (italic and dimmed)
                             const nullStyle = isNullValue
@@ -252,9 +260,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                                 : "";
 
                             if (isModified) {
-                                return `<span title="${tooltipText}" style="display: block; background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%; ${nullStyle}">${displayValue}</span>`;
+                                return `<span title="${escapedTooltip}" style="display: block; background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%; ${nullStyle}">${escapedDisplayValue}</span>`;
                             }
-                            return `<span title="${tooltipText}" style="${nullStyle}">${displayValue}</span>`;
+                            return `<span title="${escapedTooltip}" style="${nullStyle}">${escapedDisplayValue}</span>`;
                         },
                     };
 
@@ -287,10 +295,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         // Debug logging for first row to understand data structure
                         if (row.id === 0 || (row.isDirty && row.state === 1)) {
                             console.log(
-                                `Row ${row.id}, Cell ${cellIndex}: isNull=${cell.isNull}, displayValue="${cell.displayValue}", final="${cellValue}"`,
+                                `Row ${row.id}, Cell ${cellIndex}: isNull=${cell.isNull}, displayValue="${cell.displayValue}", !cell.displayValue=${!cell.displayValue}, final="${cellValue}", dataRow.col${cellIndex}="${dataRow[`col${cellIndex}`]}"`,
                             );
                         }
                     });
+                    console.log(`Row ${row.id} dataRow:`, dataRow);
                     return dataRow;
                 });
                 setDataset(convertedDataset);
