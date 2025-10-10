@@ -5,6 +5,7 @@
 
 import { TreeNodeInfo } from "./treeNodeInfo";
 import * as vscode from "vscode";
+import * as os from "os";
 import * as vscodeMssql from "vscode-mssql";
 import { ConnectionProfile } from "../../models/connectionProfile";
 import { ObjectExplorerUtils } from "../objectExplorerUtils";
@@ -92,83 +93,70 @@ export class ConnectionNode extends TreeNodeInfo {
         // Default values for comparison
         const connectionNodeDefaults: Partial<IConnectionProfile> = getDefaultConnection();
 
-        let props: { key: string; value: string; label: string; defaultValue: string }[] = [
+        let props: { key: string; value: string; defaultValue: string }[] = [
             {
                 key: "profileName",
                 value: "",
-                label: "Profile Name",
                 defaultValue: (connectionNodeDefaults as any).profileName,
             },
             {
                 key: "server",
                 value: "",
-                label: "Server",
                 defaultValue: (connectionNodeDefaults as any).server,
             },
             {
                 key: "database",
                 value: "",
-                label: "Database",
                 defaultValue: (connectionNodeDefaults as any).database,
             },
             {
                 key: "authenticationType",
                 value: "",
-                label: "Authentication Type",
                 defaultValue: (connectionNodeDefaults as any).authenticationType,
             },
             {
                 key: "user",
                 value: "",
-                label: "User",
                 defaultValue: (connectionNodeDefaults as any).user,
             },
             {
                 key: "port",
                 value: "",
-                label: "Port",
                 defaultValue: (connectionNodeDefaults as any).port,
             },
             {
                 key: "containerName",
                 value: "",
-                label: "SQL Container Name",
                 defaultValue: (connectionNodeDefaults as any).containerName,
             },
             {
                 key: "version",
                 value: "",
-                label: "SQL Container Version",
                 defaultValue: (connectionNodeDefaults as any).version,
             },
             {
                 key: "applicationIntent",
                 value: "",
-                label: "Application Intent",
                 defaultValue: (connectionNodeDefaults as any).applicationIntent,
             },
             {
                 key: "connectTimeout",
                 value: "",
-                label: "Connection Timeout",
                 defaultValue: (connectionNodeDefaults as any).connectionTimeout,
             },
             {
                 key: "commandTimeout",
                 value: "",
-                label: "Command Timeout",
                 defaultValue: (connectionNodeDefaults as any).commandTimeout,
             },
             {
                 key: "alwaysEncrypted",
                 value: "",
-                label: "Always Encrypted",
                 defaultValue: (connectionNodeDefaults as any).alwaysEncrypted,
             },
             {
                 key: "replication",
                 value: "",
-                label: "Replication",
                 defaultValue: (connectionNodeDefaults as any).replication,
             },
         ];
@@ -185,47 +173,65 @@ export class ConnectionNode extends TreeNodeInfo {
             }
         }
 
-        Object.keys(connectionProfile).forEach((key) => {
-            const value = (connectionProfile as any)[key];
-            if (!value || value === "") {
+        let lines = props.map((p) => {
+            const value = (connectionProfile as any)[p.key];
+            if (value !== p.defaultValue) {
+                if (value === Constants.azureMfa || value === Constants.integratedauth) {
+                    // Show authentication type as "Azure MFA" or "Windows Authentication"
+                    const authTypeValueLabel =
+                        connectionProfile.authenticationType === Constants.azureMfa
+                            ? vscode.l10n.t("Azure MFA")
+                            : vscode.l10n.t("Windows Authentication");
+                    p.value = authTypeValueLabel;
+                } else {
+                    p.value = value;
+                }
+            } else if (!value || value === "") {
                 return;
             }
 
-            const prop = props.find((p) => p.key === key);
-            if (prop) {
-                if (value !== prop.defaultValue) {
-                    if (value === Constants.azureMfa || value === Constants.integratedauth) {
-                        // Show authentication type as "Azure MFA" or "Windows Authentication"
-                        const authTypeValueLabel =
-                            connectionProfile.authenticationType === Constants.azureMfa
-                                ? vscode.l10n.t("Azure MFA")
-                                : vscode.l10n.t("Windows Authentication");
-                        prop.value = authTypeValueLabel;
-                    } else {
-                        prop.value = value;
-                    }
-                }
-            }
-        });
-
-        let lines = props.map((p) => {
             if (p.value) {
                 if (excludedLabelKeys.find((k) => k === p.key)) {
                     return `${p.value}`;
                 } else {
-                    if (p.label) {
-                        const localizedLabel = vscode.l10n.t(p.label);
-                        return `${localizedLabel}: ${p.value}`;
-                    } else {
-                        return `${p.label}: ${p.value}`;
-                    }
+                    const localizedLabel = (() => {
+                        switch (p.key) {
+                            case "server":
+                                return vscode.l10n.t("Server");
+                            case "database":
+                                return vscode.l10n.t("Database");
+                            case "authenticationType":
+                                return vscode.l10n.t("Authentication Type");
+                            case "user":
+                                return vscode.l10n.t("User");
+                            case "port":
+                                return vscode.l10n.t("Port");
+                            case "containerName":
+                                return vscode.l10n.t("SQL Container Name");
+                            case "version":
+                                return vscode.l10n.t("SQL Container Version");
+                            case "applicationIntent":
+                                return vscode.l10n.t("Application Intent");
+                            case "connectTimeout":
+                                return vscode.l10n.t("Connection Timeout");
+                            case "commandTimeout":
+                                return vscode.l10n.t("Command Timeout");
+                            case "alwaysEncrypted":
+                                return vscode.l10n.t("Always Encrypted");
+                            case "replication":
+                                return vscode.l10n.t("Replication");
+                            default:
+                                return p.key;
+                        }
+                    })();
+                    return `${localizedLabel}: ${p.value}`;
                 }
             } else {
                 return undefined;
             }
         });
         lines = lines.filter((line): line is string => line !== undefined);
-        return lines.length > 0 ? lines.join("\n") : undefined;
+        return lines.length > 0 ? lines.join(os.EOL) : undefined;
     }
 
     protected override generateId(): string {
