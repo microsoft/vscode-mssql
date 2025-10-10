@@ -188,6 +188,8 @@
     "mssql.objectExplorer.Tooltip.commandTimeoutLabel": "Command Timeout",
     "mssql.objectExplorer.Tooltip.alwaysEncryptedLabel": "Always Encrypted",
     "mssql.objectExplorer.Tooltip.replicationLabel": "Replication",
+    "mssql.objectExplorer.Tooltip.enabledLabel": "Enabled",
+    "mssql.objectExplorer.Tooltip.disabledLabel": "Disabled",
     "mssql.newTable": "New Table",
     "mssql.editTable": "Edit Table",
     "mssql.editConnection": "Edit Connection",

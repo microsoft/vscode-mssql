@@ -42,7 +42,7 @@ suite("ConnectionNode Tests", () => {
             groupId: "shouldBeExcluded",
             alwaysEncrypted: true,
             email: "email@example.com",
-            replication: "enabled",
+            replication: true,
         };
 
         const node = new ConnectionNode(profile as any);
@@ -66,8 +66,8 @@ suite("ConnectionNode Tests", () => {
         expect(node.tooltip).to.not.contain("applicationName: MyApp");
         expect(node.tooltip).to.not.contain("profileName:");
         expect(node.tooltip).to.not.contain("groupId:");
-        expect(node.tooltip).to.contain("Always Encrypted: true");
-        expect(node.tooltip).to.contain("Replication: enabled");
+        expect(node.tooltip).to.contain("Always Encrypted: Enabled");
+        expect(node.tooltip).to.contain("Replication: Enabled");
     });
 
     test("constructor should set tooltip including labels for auth type MFA", () => {

@@ -183,6 +183,10 @@ export class ConnectionNode extends TreeNodeInfo {
                             ? vscode.l10n.t("Azure MFA")
                             : vscode.l10n.t("Windows Authentication");
                     p.value = authTypeValueLabel;
+                } else if (value === true) {
+                    p.value = vscode.l10n.t("Enabled");
+                } else if (value === false) {
+                    p.value = vscode.l10n.t("Disabled");
                 } else {
                     p.value = value;
                 }
