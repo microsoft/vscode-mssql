@@ -4,20 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as mssql from "vscode-mssql";
+import * as path from "path";
 import * as constants from "../constants/constants";
 import { SqlProjectsService } from "../services/sqlProjectsService";
-
-// Shape returned by sqlProjectsService.getProjectProperties (partial, only fields we use)
-export interface ProjectProperties {
-    projectGuid?: string;
-    configuration?: string;
-    outputPath: string;
-    databaseSource?: string;
-    defaultCollation: string;
-    databaseSchemaProvider: string;
-    projectStyle: unknown;
-    targetVersion?: string;
-}
+import type { ProjectProperties } from "../sharedInterfaces/publishDialog";
+import { promises as fs } from "fs";
 
 /**
  * Target platforms for a sql project
@@ -107,6 +98,11 @@ export async function readProjectProperties(
             return undefined;
         }
         const version = await getProjectTargetVersion(sqlProjectsService, projectFilePath);
+
+        // Calculate project name and folder path from the project file path
+        const projectName = path.basename(projectFilePath, path.extname(projectFilePath));
+        const projectFolderPath = path.dirname(projectFilePath);
+
         const props: ProjectProperties = {
             projectGuid: result.projectGuid,
             configuration: result.configuration,
@@ -116,6 +112,8 @@ export async function readProjectProperties(
             databaseSchemaProvider: result.databaseSchemaProvider,
             projectStyle: result.projectStyle,
             targetVersion: version,
+            projectName: projectName,
+            projectFolderPath: projectFolderPath,
         };
         return props;
     } catch {
@@ -169,4 +167,117 @@ export function isValidSqlAdminPassword(password: string, userName = "sa"): bool
     const hasDigit = /\d/.test(password) ? 1 : 0;
     const hasSymbol = /\W/.test(password) ? 1 : 0;
     return hasUpper + hasLower + hasDigit + hasSymbol >= 3;
+}
+
+/**
+ * Read SQLCMD variables from publish profile text
+ * @param profileText Publish profile XML text
+ * @returns Object with SQLCMD variable names as keys and values
+ */
+export function readSqlCmdVariables(profileText: string): { [key: string]: string } {
+    const sqlCmdVariables: { [key: string]: string } = {};
+    const sqlCmdVarRegex =
+        /<SqlCmdVariable Include="([^"]+)">\s*<Value>(.*?)<\/Value>\s*<\/SqlCmdVariable>/gs;
+    let match;
+    while ((match = sqlCmdVarRegex.exec(profileText)) !== undefined) {
+        if (!match) {
+            break;
+        }
+        const varName = match[1];
+        const varValue = match[2];
+        sqlCmdVariables[varName] = varValue;
+    }
+    return sqlCmdVariables;
+}
+
+/**
+ * Read connection string from publish profile text
+ * @param profileText Publish profile XML text
+ * @returns Connection string and server name
+ */
+export function readConnectionString(profileText: string): {
+    connectionString: string;
+    server: string;
+} {
+    // Parse TargetConnectionString
+    const connStrMatch = profileText.match(
+        /<TargetConnectionString>(.*?)<\/TargetConnectionString>/s,
+    );
+    const connectionString = connStrMatch ? connStrMatch[1].trim() : "";
+
+    // Extract server name from connection string
+    const server = extractServerFromConnectionString(connectionString);
+
+    return { connectionString, server };
+}
+
+/**
+ * Extracts the server name from a SQL Server connection string
+ */
+export function extractServerFromConnectionString(connectionString: string): string {
+    if (!connectionString) {
+        return "";
+    }
+
+    // Match "Data Source=serverName" or "Server=serverName" (case-insensitive)
+    // TODO: currently returning the whole connection string, need to revist with server|database connection task
+    const match = connectionString.match(/(?:Data Source|Server)=([^;]+)/i);
+    return match ? match[1].trim() : "";
+}
+
+/**
+ * Parses a publish profile XML file to extract database name, connection string, SQLCMD variables, and deployment options
+ * Uses regex parsing for XML fields and DacFx service getOptionsFromProfile() for deployment options
+ * @param profilePath Path to the publish profile XML file
+ * @param dacFxService DacFx service instance for getting deployment options from profile
+ */
+export async function parsePublishProfileXml(
+    profilePath: string,
+    dacFxService?: mssql.IDacFxService,
+): Promise<{
+    databaseName: string;
+    serverName: string;
+    connectionString: string;
+    sqlCmdVariables: { [key: string]: string };
+    deploymentOptions?: mssql.DeploymentOptions;
+}> {
+    try {
+        const profileText = await fs.readFile(profilePath, "utf-8");
+
+        // Read target database name
+        // if there is more than one TargetDatabaseName nodes, SSDT uses the name in the last one so we'll do the same here
+        let databaseName = "";
+        const dbNameMatches = profileText.matchAll(
+            /<TargetDatabaseName>(.*?)<\/TargetDatabaseName>/g,
+        );
+        const dbNameArray = Array.from(dbNameMatches);
+        if (dbNameArray.length > 0) {
+            databaseName = dbNameArray[dbNameArray.length - 1][1];
+        }
+
+        // Read connection string using readConnectionString function
+        const connectionInfo = readConnectionString(profileText);
+        const connectionString = connectionInfo.connectionString;
+        const serverName = connectionInfo.server;
+
+        // Get all SQLCMD variables using readSqlCmdVariables function
+        const sqlCmdVariables = readSqlCmdVariables(profileText);
+
+        // Get deployment options from DacFx service using getOptionsFromProfile
+        let deploymentOptions: mssql.DeploymentOptions | undefined = undefined;
+        if (dacFxService) {
+            try {
+                const optionsResult = await dacFxService.getOptionsFromProfile(profilePath);
+                if (optionsResult.success && optionsResult.deploymentOptions) {
+                    deploymentOptions = optionsResult.deploymentOptions;
+                }
+            } catch (error) {
+                console.warn("Failed to load deployment options from profile:", error);
+            }
+        }
+
+        return { databaseName, serverName, connectionString, sqlCmdVariables, deploymentOptions };
+    } catch (error) {
+        throw new Error(`Failed to parse publish profile: ${error}`);
+    }
 }
