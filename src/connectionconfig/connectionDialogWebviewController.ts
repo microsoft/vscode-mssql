@@ -27,6 +27,7 @@ import {
     GetConnectionDisplayNameRequest,
     IAzureAccount,
     GetSqlAnalyticsEndpointUriFromFabricRequest,
+    ChangePasswordDialogProps,
 } from "../sharedInterfaces/connectionDialog";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
 import {
@@ -86,6 +87,10 @@ import {
     getSqlConnectionErrorType,
     SqlConnectionErrorType,
 } from "../controllers/connectionManager";
+import {
+    ChangePasswordWebviewRequest,
+    ChangePasswordWebviewState,
+} from "../sharedInterfaces/changePassword";
 import { getCloudId } from "../azure/providerSettings";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
@@ -766,6 +771,23 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return undefined;
             }
         });
+
+        this.onRequest(ChangePasswordWebviewRequest.type, async (newPassword: string) => {
+            const passwordChangeResponse =
+                await this._mainController.connectionManager.changePasswordService.changePassword(
+                    this.state.connectionProfile,
+                    newPassword,
+                );
+            if (passwordChangeResponse.result) {
+                this.state.dialog = undefined;
+                this.state.connectionProfile.password = newPassword;
+                this.updateState();
+                const state = await this.connectHelper(this.state);
+                this.updateState(state);
+            } else {
+                return passwordChangeResponse;
+            }
+        });
     }
 
     //#region Helpers
@@ -1095,84 +1117,89 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             },
             result.credentials,
         );
-        switch (errorType) {
-            case SqlConnectionErrorType.TrustServerCertificateNotEnabled:
-                this.state.connectionStatus = ApiStatus.Error;
-                this.state.dialog = {
-                    type: "trustServerCert",
-                    message: result.errorMessage,
-                } as TrustServerCertDialogProps;
+        if (errorType === SqlConnectionErrorType.TrustServerCertificateNotEnabled) {
+            this.state.connectionStatus = ApiStatus.Error;
+            this.state.dialog = {
+                type: "trustServerCert",
+                message: result.errorMessage,
+            } as TrustServerCertDialogProps;
 
-                // connection failing because the user didn't trust the server cert is not an error worth logging;
-                // just prompt the user to trust the cert
+            // connection failing because the user didn't trust the server cert is not an error worth logging;
+            // just prompt the user to trust the cert
 
-                return state;
-            case SqlConnectionErrorType.FirewallRuleError:
-                this.state.connectionStatus = ApiStatus.Error;
+            return state;
+        } else if (errorType === SqlConnectionErrorType.FirewallRuleError) {
+            this.state.connectionStatus = ApiStatus.Error;
 
-                const handleFirewallErrorResult =
-                    await this._mainController.connectionManager.firewallService.handleFirewallRule(
-                        result.errorNumber,
-                        result.errorMessage,
-                    );
-
-                if (!handleFirewallErrorResult.result) {
-                    sendErrorEvent(
-                        TelemetryViews.ConnectionDialog,
-                        TelemetryActions.AddFirewallRule,
-                        new Error(result.errorMessage),
-                        true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
-                        undefined, // errorCode
-                        "parseIP", // errorType
-                    );
-
-                    // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
-                    handleFirewallErrorResult.ipAddress = "0.0.0.0";
-                }
-
-                const addFirewallDialogState: AddFirewallRuleState = {
-                    message: result.errorMessage,
-                    clientIp: handleFirewallErrorResult.ipAddress,
-                    accounts: [],
-                    tenants: {},
-                    isSignedIn: true,
-                    serverName: this.state.connectionProfile.server,
-                    addFirewallRuleStatus: ApiStatus.NotStarted,
-                };
-
-                if (addFirewallDialogState.isSignedIn) {
-                    await populateAzureAccountInfo(
-                        addFirewallDialogState,
-                        false /* forceSignInPrompt */,
-                    );
-                }
-
-                addFirewallDialogState.isSignedIn = await VsCodeAzureHelper.isSignedIn();
-
-                this.state.dialog = {
-                    type: "addFirewallRule",
-                    props: addFirewallDialogState,
-                } as AddFirewallRuleDialogProps;
-
-                return state;
-            default:
-                this.state.formError = result.errorMessage;
-                this.state.connectionStatus = ApiStatus.Error;
-
-                sendActionEvent(
-                    TelemetryViews.ConnectionDialog,
-                    TelemetryActions.CreateConnection,
-                    {
-                        result: "connectionError",
-                        errorNumber: String(result.errorNumber),
-                        newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
-                        connectionInputType: this.state.selectedInputMode,
-                        authMode: this.state.connectionProfile.authenticationType,
-                        cloudType: getCloudId(),
-                    },
+            const handleFirewallErrorResult =
+                await this._mainController.connectionManager.firewallService.handleFirewallRule(
+                    result.errorNumber,
+                    result.errorMessage,
                 );
 
-                return state;
+            if (!handleFirewallErrorResult.result) {
+                sendErrorEvent(
+                    TelemetryViews.ConnectionDialog,
+                    TelemetryActions.AddFirewallRule,
+                    new Error(result.errorMessage),
+                    true, // includeErrorMessage; parse failed because it couldn't detect an IP address, so that'd be the only PII
+                    undefined, // errorCode
+                    "parseIP", // errorType
+                );
+
+                // Proceed with 0.0.0.0 as the client IP, and let user fill it out manually.
+                handleFirewallErrorResult.ipAddress = "0.0.0.0";
+            }
+
+            const addFirewallDialogState: AddFirewallRuleState = {
+                message: result.errorMessage,
+                clientIp: handleFirewallErrorResult.ipAddress,
+                accounts: [],
+                tenants: {},
+                isSignedIn: true,
+                serverName: this.state.connectionProfile.server,
+                addFirewallRuleStatus: ApiStatus.NotStarted,
+            };
+
+            if (addFirewallDialogState.isSignedIn) {
+                await populateAzureAccountInfo(
+                    addFirewallDialogState,
+                    false /* forceSignInPrompt */,
+                );
+            }
+
+            addFirewallDialogState.isSignedIn = await VsCodeAzureHelper.isSignedIn();
+
+            this.state.dialog = {
+                type: "addFirewallRule",
+                props: addFirewallDialogState,
+            } as AddFirewallRuleDialogProps;
+
+            return state;
+        } else if (errorType === SqlConnectionErrorType.PasswordExpired) {
+            this.state.connectionStatus = ApiStatus.Error;
+            this.state.formError = `${result.errorNumber}: ${result.errorMessage}`;
+            this.state.dialog = {
+                type: "changePassword",
+                props: {
+                    server: result.credentials.server,
+                    userName: result.credentials.user,
+                } as ChangePasswordWebviewState,
+            } as ChangePasswordDialogProps;
+            return state;
+        } else {
+            this.state.formError = result.errorMessage;
+            this.state.connectionStatus = ApiStatus.Error;
+
+            sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
+                result: "connectionError",
+                errorNumber: String(result.errorNumber),
+                newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
+                connectionInputType: this.state.selectedInputMode,
+                authMode: this.state.connectionProfile.authenticationType,
+            });
+
+            return state;
         }
     }
 
