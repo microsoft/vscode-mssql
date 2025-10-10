@@ -1077,13 +1077,6 @@ export class QueryResult {
             args: [error],
             comment: ["{0} is the error message"],
         });
-    public static largeCopyConfirmation = (numRows: number) =>
-        l10n.t({
-            message:
-                "{0} rows selected. Are you sure you want to copy all of these rows to the clipboard?",
-            args: [numRows],
-            comment: ["{0} is the number of rows to copy"],
-        });
 }
 
 export class LocalContainers {

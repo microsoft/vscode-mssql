@@ -667,20 +667,6 @@ export default class QueryRunner {
             encoding?: string;
         },
     ): Promise<void> {
-        const totalSelectedRows = this.getTotalSelectedRows(selection);
-        const inMemoryThreshold = getInMemoryGridDataProcessingThreshold();
-        if (totalSelectedRows > inMemoryThreshold) {
-            const confirmation = await vscode.window.showWarningMessage(
-                LocalizedConstants.QueryResult.largeCopyConfirmation(totalSelectedRows),
-                { modal: false },
-                LocalizedConstants.msgYes,
-                LocalizedConstants.msgNo,
-            );
-            if (confirmation !== LocalizedConstants.msgYes) {
-                return;
-            }
-        }
-
         await vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
