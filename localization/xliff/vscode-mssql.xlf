@@ -3528,10 +3528,6 @@
       <source xml:lang="en">{0} rows selected, click to load summary</source>
       <note>{0} is the number of rows to fetch summary statistics for</note>
     </trans-unit>
-    <trans-unit id="++CODE++7a0da615cb58007b02d708ab1836262d1cc5bff6003a28eaad9a824a45cee57a">
-      <source xml:lang="en">{0} rows selected. Are you sure you want to copy all of these rows to the clipboard?</source>
-      <note>{0} is the number of rows to copy</note>
-    </trans-unit>
     <trans-unit id="++CODE++00e1f9b501086ed75248767b54cc5caa0b62853d91c148fa2da0b388be7a6388">
       <source xml:lang="en">{0} selected</source>
       <note>{0} is the number of selected rows</note>
