@@ -207,6 +207,11 @@
         <source xml:lang="en">An error occurred refreshing nodes. See the MSSQL output channel for more details.</source>
         <target state="translated">노드를 새로 고치는 동안 오류가 발생했습니다. 자세한 내용은 MSSQL 출력 채널을 참조하세요.</target>
       </trans-unit>
+      <trans-unit id="++CODE++0e0aa36ee32c59d59231919e47412a12d29c1f3459800637634bb73fb949f541">
+        <source xml:lang="en">An error occurred while copying results: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">An error occurred while copying results: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++b80f19578e3d6cc4f8693e307caf7f4fc739be0f2eb550a9f78a0874ae0205e5">
         <source xml:lang="en">An error occurred while processing your request.</source>
         <target state="translated">요청을 처리하는 중 오류가 발생했습니다.</target>
@@ -366,15 +371,15 @@
       </trans-unit>
       <trans-unit id="++CODE++994c049faf0fd65f191759cacf91508d01743fda1b2f06cfc7f779fc49ae4991">
         <source xml:lang="en">Azure (China)</source>
-        <target state="new">Azure (China)</target>
+        <target state="translated">Azure(중국)</target>
       </trans-unit>
       <trans-unit id="++CODE++cdf9c75db21efc1ddc557d567de91e9bc67533606ce4bbc049c592d77f122e68">
         <source xml:lang="en">Azure (Public)</source>
-        <target state="new">Azure (Public)</target>
+        <target state="translated">Azure(퍼블릭)</target>
       </trans-unit>
       <trans-unit id="++CODE++cf582c92b799b117f2d093534bbe7b99aea5df658f201220f320f2976c0ebbba">
         <source xml:lang="en">Azure (US Government)</source>
-        <target state="new">Azure (US Government)</target>
+        <target state="translated">Azure(미국 정부)</target>
       </trans-unit>
       <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
         <source xml:lang="en">Azure Account</source>
@@ -1100,6 +1105,10 @@
         <source xml:lang="en">Copy with Headers</source>
         <target state="translated">복사(머리글 포함)</target>
       </trans-unit>
+      <trans-unit id="++CODE++35c380196401c05c48fe5f5fffd349ba06d9988118b87a1c12e1164a28175997">
+        <source xml:lang="en">Copying results...</source>
+        <target state="new">Copying results...</target>
+      </trans-unit>
       <trans-unit id="++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126">
         <source xml:lang="en">Cost</source>
         <target state="translated">비용</target>
@@ -1742,7 +1751,7 @@ Error:
         <source xml:lang="en">Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.</source>
         <note>{0} is the cloud name
 {1} is the setting name</note>
-        <target state="new">Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.</target>
+        <target state="translated">패브릭은 현재 클라우드({0})에서 지원되지 않습니다.  '{1}' 설정이 올바르게 구성되었는지 확인합니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++3db198c251ac68aeafbdfbb134d03b8be7bca7a5b2f612addb78f72b2da67a90">
         <source xml:lang="en">Fabric long-running API error with error code '{0}': {1}</source>
@@ -1827,7 +1836,7 @@ Error:
         <note>{0} is the tenant name
 {1} is the tenant id
 {2} is the error message</note>
-        <target state="new">Failed to get Fabric workspaces for tenant '{0} ({1})': {2}</target>
+        <target state="translated">테넌트 '{0} ({1})'에 대한 Fabric 작업 영역을 가져오지 못했습니다.{2}</target>
       </trans-unit>
       <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
         <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
@@ -2509,12 +2518,10 @@ Error:
         <source xml:lang="en">Loading results...</source>
         <target state="translated">결과를 로드하는 중...</target>
       </trans-unit>
-      <trans-unit id="++CODE++ba622a4c63bd7d102bdc3057b04b4cfd8d2af5b2adb230bebc98414fc46afae0">
-        <source xml:lang="en">Loading summary {0}/{1} ({2}%) (Click to cancel)</source>
-        <note>{0} is the current row
-{1} is the total number of rows
-{2} is the percentage of rows loaded</note>
-        <target state="translated">요약 로드 중 {0}/{1}({2}%) (취소하려면 클릭)</target>
+      <trans-unit id="++CODE++71499b4de6ef3b8d0c19b76e76295f5dd9f5690a180de07ed861fdce757182aa">
+        <source xml:lang="en">Loading summary for {0} rows (Click to cancel)</source>
+        <note>{0} is the total number of rows</note>
+        <target state="new">Loading summary for {0} rows (Click to cancel)</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -3367,6 +3374,10 @@ Error:
         <note>{0} is the number of results</note>
         <target state="translated">결과({0})</target>
       </trans-unit>
+      <trans-unit id="++CODE++a71f9e2908cf7df2e5ce9dafa67f3f4949fc4c74f525b9f4a6229ff6a7f93c86">
+        <source xml:lang="en">Results copied to clipboard</source>
+        <target state="new">Results copied to clipboard</target>
+      </trans-unit>
       <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
         <source xml:lang="en">Retry</source>
         <target state="translated">다시 시도</target>
@@ -4135,7 +4146,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
         <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
-        <target state="new">The custom cloud choice is not configured. Please configure the setting `{0}`.</target>
+        <target state="translated">사용자 지정 클라우드 선택이 구성되지 않았습니다. '{0}' 설정을 구성하세요.</target>
       </trans-unit>
       <trans-unit id="++CODE++f229c94b4c9b8ecfa1096d1daf79194e84616c49df8fb6e229fa944592ff373e">
         <source xml:lang="en">The description of the check constraint.</source>
@@ -5329,35 +5340,35 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</source>
-        <target state="new">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</target>
+        <target state="translated">'.database.fabric.microsoft.com'에 해당하는 소버린 클라우드(선행 점 포함)</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.sqlServerHostnameSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.database.windows.net` (including leading dot)</source>
-        <target state="new">Sovereign cloud equivalent for `.database.windows.net` (including leading dot)</target>
+        <target state="translated">'.database.windows.net'에 해당하는 소버린 클라우드(선행 점 포함)</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricDataWarehouseDnsSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)</source>
-        <target state="new">Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)</target>
+        <target state="translated">'.datawarehouse.fabric.microsoft.com'에 해당하는 소버린 클라우드(선행 점 포함)</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.analyticsDnsSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)</source>
-        <target state="new">Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)</target>
+        <target state="translated">'.sql.azuresynapse.net'에 해당하는 소버린 클라우드(선행 점 포함)</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricScopeUriBase">
         <source xml:lang="en">Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`</source>
-        <target state="new">Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`</target>
+        <target state="translated">'https://analysis.windows.net/powerbi/api/'에 해당하는 소버린 클라우드</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricApiUriBase">
         <source xml:lang="en">Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`</source>
-        <target state="new">Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`</target>
+        <target state="translated">'https://api.fabric.microsoft.com/v1/'에 해당하는 소버린 클라우드</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.sqlEndpoint">
         <source xml:lang="en">Sovereign cloud equivalent for `https://database.windows.net/`</source>
-        <target state="new">Sovereign cloud equivalent for `https://database.windows.net/`</target>
+        <target state="translated">'https://database.windows.net/'에 해당하는 소버린 클라우드</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.keyVaultEndpoint">
         <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
-        <target state="new">Sovereign cloud equivalent for `https://vault.azure.net/`</target>
+        <target state="translated">'https://vault.azure.net/'에 해당하는 소버린 클라우드</target>
       </trans-unit>
       <trans-unit id="mssql.startContainer">
         <source xml:lang="en">Start Container</source>
@@ -5381,7 +5392,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.customEnvironment">
         <source xml:lang="en">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</source>
-        <target state="new">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</target>
+        <target state="translated">Microsoft Sovereign Cloud 인증 공급자와 함께 사용할 소버린 클라우드에 대한 MSSQL 관련 추가 사용자 지정 구성입니다. MSSQL에서 이 기능을 사용하려면 'microsoft-sovereign-cloud.environment'를 'custom'으로 설정하고 'microsoft-sovereign-cloud.customEnvironment'에 대한 값을 제공해야 합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroup.color">
         <source xml:lang="en">The color of the connection group.</source>
