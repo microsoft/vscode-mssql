@@ -1413,6 +1413,9 @@
       <note>{0} is the tenant id
 {1} is the account name</note>
     </trans-unit>
+    <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
+      <source xml:lang="en">Failed to load publish profile</source>
+    </trans-unit>
     <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
       <source xml:lang="en">Failed to open scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the open scmp operation</note>
@@ -1424,6 +1427,9 @@
       <source xml:lang="en">Failed to refresh connection ${0} with uri {1}, invalid connection result.</source>
       <note>{0} is the connection id
 {1} is the uri</note>
+    </trans-unit>
+    <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
+      <source xml:lang="en">Failed to save publish profile</source>
     </trans-unit>
     <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
       <source xml:lang="en">Failed to save results. </source>
@@ -2493,6 +2499,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d5ce61b547d2e5793b2ac208be904ea9f94d5e5594d0c5c02bdda22abf61fcf0">
       <source xml:lang="en">Publish Target</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f9f3a475ce7608957aa4ae746b37117f26d543fb676f2f78eff8e185a3cbb143">
+      <source xml:lang="en">Publish profile saved to: {0}</source>
     </trans-unit>
     <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
       <source xml:lang="en">Publishing Changes</source>
