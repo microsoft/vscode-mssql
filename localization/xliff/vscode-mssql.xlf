@@ -295,6 +295,9 @@
     <trans-unit id="++CODE++c5023bdd36d362e05c245ab15ab6839ad7562bcd42f1e1b0c759dca9d5fec4f7">
       <source xml:lang="en">Azure Device Code</source>
     </trans-unit>
+    <trans-unit id="++CODE++aa3e45296e9592fa302b1adc67d9b4467e467a4ffa11fee0c0430063a3372707">
+      <source xml:lang="en">Azure MFA</source>
+    </trans-unit>
     <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
       <source xml:lang="en">Azure sign in failed.</source>
     </trans-unit>
@@ -3254,6 +3257,9 @@
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>
     </trans-unit>
+    <trans-unit id="++CODE++8746aa4543652187c8719dbebc36f0609e31bbc53b14ed2ca12b0207c9e79345">
+      <source xml:lang="en">Windows Authentication</source>
+    </trans-unit>
     <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
       <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>
     </trans-unit>
@@ -3485,11 +3491,17 @@
     <trans-unit id="mssql.deviceCode.description">
       <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.alwaysEncryptedLabel">
+      <source xml:lang="en">Always Encrypted</source>
+    </trans-unit>
     <trans-unit id="mssql.query.executionTimeout">
       <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.analyzeQueryPerformance">
       <source xml:lang="en">Analyze Query Performance (Preview)</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.applicationIntentLabel">
+      <source xml:lang="en">Application Intent</source>
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.autoSizeColumns">
       <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
@@ -3499,6 +3511,9 @@
     </trans-unit>
     <trans-unit id="mssql.autoRevealResultsPanel">
       <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when &apos;Open Results in Tab&apos; is enabled.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.MFALabel">
+      <source xml:lang="en">Azure MFA</source>
     </trans-unit>
     <trans-unit id="mssql.cancelQuery">
       <source xml:lang="en">Cancel Query</source>
@@ -3530,6 +3545,9 @@
     <trans-unit id="mssql.clearPooledConnections">
       <source xml:lang="en">Clear Pooled Connections</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.commandTimeoutLabel">
+      <source xml:lang="en">Command Timeout</source>
+    </trans-unit>
     <trans-unit id="mssql.connect">
       <source xml:lang="en">Connect</source>
     </trans-unit>
@@ -3538,6 +3556,9 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.altText">
       <source xml:lang="en">Connection Dialog</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.connectionTimeoutLabel">
+      <source xml:lang="en">Connection Timeout</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroups">
       <source xml:lang="en">Connection groups</source>
@@ -3839,6 +3860,9 @@
     <trans-unit id="mssql.removeAadAccount">
       <source xml:lang="en">Remove Microsoft Entra Account</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
+      <source xml:lang="en">Replication</source>
+    </trans-unit>
     <trans-unit id="mssql.revealQueryResult">
       <source xml:lang="en">Reveal Query Result</source>
     </trans-unit>
@@ -3850,6 +3874,12 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.runQueries.title">
       <source xml:lang="en">Run a SQL Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.containerNameLabel">
+      <source xml:lang="en">SQL Container Name</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.containerVersionLabel">
+      <source xml:lang="en">SQL Container Version</source>
     </trans-unit>
     <trans-unit id="mssql.schemaCompare">
       <source xml:lang="en">Schema Compare</source>
@@ -4040,6 +4070,9 @@
     <trans-unit id="mssql.objectExplorer.groupBySchema">
       <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.WindowsAuthLabel">
+      <source xml:lang="en">Windows Authentication</source>
+    </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.runQueries.description">
       <source xml:lang="en">Write a SQL query, and run it against your database.&#10;You can also click the &apos;Open in New Tab&apos; button to view your query results in their own tab, and optionally set that as the default behavior.</source>
     </trans-unit>
@@ -4184,8 +4217,23 @@
     <trans-unit id="mssql.connection.server">
       <source xml:lang="en">[Required] Specify the server name to connect to. Use &apos;hostname instance&apos; or &apos;&lt;server&gt;.database.windows.net&apos; for Azure SQL Database.</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.authenticationTypeLabel">
+      <source xml:lang="en">auth</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.databaseLabel">
+      <source xml:lang="en">database</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.portLabel">
+      <source xml:lang="en">port</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.serverLabel">
+      <source xml:lang="en">server</source>
+    </trans-unit>
     <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
       <source xml:lang="en">should commas be placed at the beginning of each statement in a list e.g. &apos;, mycolumn2&apos; instead of at the end e.g. &apos;mycolumn1,&apos;</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.userLabel">
+      <source xml:lang="en">user</source>
     </trans-unit>
   </body></file>
 </xliff>

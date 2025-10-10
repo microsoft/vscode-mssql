@@ -698,6 +698,8 @@
     "Smart performance": "Smart performance",
     "Automatic tuning features like automatic index creation enabled by default.": "Automatic tuning features like automatic index creation enabled by default.",
     "Object Explorer Filter": "Object Explorer Filter",
+    "Azure MFA": "Azure MFA",
+    "Windows Authentication": "Windows Authentication",
     "{0} (filtered)": "{0} (filtered)",
     "Remind Me Later": "Remind Me Later",
     "Don't Show Again": "Don't Show Again",
