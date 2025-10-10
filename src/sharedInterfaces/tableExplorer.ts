@@ -86,10 +86,15 @@ export interface EditSubsetParams extends IEditSessionOperationParams {
     rowCount: number;
 }
 
+export interface EditColumnInfo {
+    name: string;
+    isEditable: boolean;
+}
+
 export interface EditSubsetResult {
     rowCount: number;
     subset: EditRow[];
-    columnNames: string[];
+    columnInfo: EditColumnInfo[];
 }
 
 //#endregion

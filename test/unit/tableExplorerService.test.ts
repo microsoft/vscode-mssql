@@ -196,7 +196,10 @@ suite("TableExplorerService Tests", () => {
                         state: EditRowState.clean,
                     },
                 ],
-                columnNames: ["Id", "Name"],
+                columnInfo: [
+                    { name: "Id", isEditable: true },
+                    { name: "Name", isEditable: true },
+                ],
             };
 
             mockClient.sendRequest
@@ -221,7 +224,7 @@ suite("TableExplorerService Tests", () => {
             const mockResult: EditSubsetResult = {
                 rowCount: 25,
                 subset: [],
-                columnNames: [],
+                columnInfo: [],
             };
 
             mockClient.sendRequest
@@ -729,7 +732,10 @@ suite("TableExplorerService Tests", () => {
             const subsetResult: EditSubsetResult = {
                 rowCount: 1,
                 subset: [],
-                columnNames: ["Id", "Name"],
+                columnInfo: [
+                    { name: "Id", isEditable: true },
+                    { name: "Name", isEditable: true },
+                ],
             };
             mockClient.sendRequest
                 .withArgs(EditSubsetRequest.type, sinon.match.any)

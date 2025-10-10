@@ -209,7 +209,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         // Convert resultSet data to SlickGrid format (initial setup)
         useEffect(() => {
-            if (resultSet?.columnNames && resultSet?.subset) {
+            if (resultSet?.columnInfo && resultSet?.subset) {
                 // Create a simple row number column
                 const rowNumberColumn: Column = {
                     id: "rowNumber",
@@ -229,17 +229,14 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         `<span style="color: var(--vscode-foreground); padding-left: 8px;">${row + 1}</span>`,
                 };
 
-                // Create columns using the columnNames from resultSet
-                const dataColumns: Column[] = resultSet.columnNames.map((columnName, index) => {
-                    return {
+                // Create columns using the columnInfo from resultSet
+                const dataColumns: Column[] = resultSet.columnInfo.map((colInfo, index) => {
+                    const column: Column = {
                         id: `col${index}`,
-                        name: columnName,
+                        name: colInfo.name,
                         field: `col${index}`,
                         sortable: false,
                         minWidth: 100,
-                        editor: {
-                            model: Editors.text,
-                        },
                         formatter: (row: number, cell: number, value: any) => {
                             // The first column is row number, so data columns start at cell 1
                             const changeKey = `${row}-${cell - 1}`;
@@ -260,6 +257,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                             return `<span title="${tooltipText}" style="${nullStyle}">${displayValue}</span>`;
                         },
                     };
+
+                    // Only add editor if the column is editable
+                    if (colInfo.isEditable) {
+                        column.editor = {
+                            model: Editors.text,
+                        };
+                    }
+
+                    return column;
                 });
 
                 // Add row number column as the first column
