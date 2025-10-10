@@ -5,12 +5,16 @@
 
 import { TreeNodeInfo } from "./treeNodeInfo";
 import * as vscode from "vscode";
+import * as os from "os";
 import * as vscodeMssql from "vscode-mssql";
 import { ConnectionProfile } from "../../models/connectionProfile";
 import { ObjectExplorerUtils } from "../objectExplorerUtils";
 import * as ConnInfo from "../../models/connectionInfo";
 import { NodeInfo } from "../../models/contracts/objectExplorer/nodeInfo";
 import { disconnectedDockerContainer, dockerContainer } from "../../constants/constants";
+import { IConnectionProfile } from "../../models/interfaces";
+import * as Constants from "../../constants/constants";
+import { getDefaultConnection } from "../../models/connectionInfo";
 
 // Constants for node types and icon names
 export const SERVER_NODE_DISCONNECTED = "disconnectedServer";
@@ -59,6 +63,179 @@ export class ConnectionNode extends TreeNodeInfo {
         } else {
             this.iconPath = ObjectExplorerUtils.iconPath(ICON_SERVER_DISCONNECTED);
         }
+
+        // Tooltip logic: show all non-default properties except those in the label (database, user, server)
+        const connectionTooltip = this.getConnectionTooltip(connectionProfile);
+        if (connectionTooltip) {
+            this.tooltip = connectionTooltip;
+        }
+    }
+
+    /**
+     * Generates a tooltip for the connection profile; it should include:
+     * [<profileName>] # note: no tag
+     * Server: <serverName>
+     * Database: <db name>
+     * Auth: <username or type>
+     * [Port: <port>]
+     * [SQL Container Name: <container name>]
+     * [SQL Container Version: <version>]
+     * [Application intent: <intent>]
+     * [Connection timeout: <timeout>]
+     * [Command timeout: <timeout>]
+     * [Always encrypted: <enabled/disabled>]
+     * [Replication: <enabled/disabled>]
+     * @param connectionProfile The connection profile to generate the tooltip for
+     * @returns the tooltip string or undefined if no properties to show
+     */
+    private getConnectionTooltip(connectionProfile: IConnectionProfile): string | undefined {
+        const excludedLabelKeys = ["profileName"];
+        // Default values for comparison
+        const connectionNodeDefaults: Partial<IConnectionProfile> = getDefaultConnection();
+
+        let props: { key: string; value: string; defaultValue: string }[] = [
+            {
+                key: "profileName",
+                value: "",
+                defaultValue: (connectionNodeDefaults as any).profileName,
+            },
+            {
+                key: "server",
+                value: "",
+                defaultValue: (connectionNodeDefaults as any).server,
+            },
+            {
+                key: "database",
+                value: "",
+                defaultValue: (connectionNodeDefaults as any).database,
+            },
+            {
+                key: "authenticationType",
+                value: "",
+                defaultValue: (connectionNodeDefaults as any).authenticationType,
+            },
+            {
+                key: "user",
+                value: "",
+                defaultValue: (connectionNodeDefaults as any).user,
+            },
+            {
+                key: "port",
+                value: "",
+                defaultValue: (connectionNodeDefaults as any).port,
+            },
+            {
+                key: "containerName",
+                value: "",
+                defaultValue: (connectionNodeDefaults as any).containerName,
+            },
+            {
+                key: "version",
+                value: "",
+                defaultValue: (connectionNodeDefaults as any).version,
+            },
+            {
+                key: "applicationIntent",
+                value: "",
+                defaultValue: (connectionNodeDefaults as any).applicationIntent,
+            },
+            {
+                key: "connectTimeout",
+                value: "",
+                defaultValue: (connectionNodeDefaults as any).connectionTimeout,
+            },
+            {
+                key: "commandTimeout",
+                value: "",
+                defaultValue: (connectionNodeDefaults as any).commandTimeout,
+            },
+            {
+                key: "alwaysEncrypted",
+                value: "",
+                defaultValue: (connectionNodeDefaults as any).alwaysEncrypted,
+            },
+            {
+                key: "replication",
+                value: "",
+                defaultValue: (connectionNodeDefaults as any).replication,
+            },
+        ];
+
+        //handle auth types properly
+        if (
+            connectionProfile.authenticationType === Constants.azureMfa ||
+            connectionProfile.authenticationType === Constants.integratedauth
+        ) {
+            // If auth type is not SQL Login, remove user property
+            const userIndex = props.findIndex((p) => p.key === "user");
+            if (userIndex !== -1) {
+                props.splice(userIndex, 1);
+            }
+        }
+
+        let lines = props.map((p) => {
+            const value = (connectionProfile as any)[p.key];
+            if (value !== p.defaultValue) {
+                if (value === Constants.azureMfa || value === Constants.integratedauth) {
+                    // Show authentication type as "Azure MFA" or "Windows Authentication"
+                    const authTypeValueLabel =
+                        connectionProfile.authenticationType === Constants.azureMfa
+                            ? vscode.l10n.t("Azure MFA")
+                            : vscode.l10n.t("Windows Authentication");
+                    p.value = authTypeValueLabel;
+                } else if (value === true) {
+                    p.value = vscode.l10n.t("Enabled");
+                } else if (value === false) {
+                    p.value = vscode.l10n.t("Disabled");
+                } else {
+                    p.value = value;
+                }
+            } else if (!value || value === "") {
+                return;
+            }
+
+            if (p.value) {
+                if (excludedLabelKeys.find((k) => k === p.key)) {
+                    return `${p.value}`;
+                } else {
+                    const localizedLabel = (() => {
+                        switch (p.key) {
+                            case "server":
+                                return vscode.l10n.t("Server");
+                            case "database":
+                                return vscode.l10n.t("Database");
+                            case "authenticationType":
+                                return vscode.l10n.t("Authentication Type");
+                            case "user":
+                                return vscode.l10n.t("User");
+                            case "port":
+                                return vscode.l10n.t("Port");
+                            case "containerName":
+                                return vscode.l10n.t("SQL Container Name");
+                            case "version":
+                                return vscode.l10n.t("SQL Container Version");
+                            case "applicationIntent":
+                                return vscode.l10n.t("Application Intent");
+                            case "connectTimeout":
+                                return vscode.l10n.t("Connection Timeout");
+                            case "commandTimeout":
+                                return vscode.l10n.t("Command Timeout");
+                            case "alwaysEncrypted":
+                                return vscode.l10n.t("Always Encrypted");
+                            case "replication":
+                                return vscode.l10n.t("Replication");
+                            default:
+                                return p.key;
+                        }
+                    })();
+                    return `${localizedLabel}: ${p.value}`;
+                }
+            } else {
+                return undefined;
+            }
+        });
+        lines = lines.filter((line): line is string => line !== undefined);
+        return lines.length > 0 ? lines.join(os.EOL) : undefined;
     }
 
     protected override generateId(): string {
