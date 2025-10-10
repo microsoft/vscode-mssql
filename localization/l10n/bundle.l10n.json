@@ -2083,6 +2083,58 @@
       "{0} is the connection group name"
     ]
   },
+  "Unable to open Table Explorer: No target node provided.": "Unable to open Table Explorer: No target node provided.",
+  "Changes saved successfully.": "Changes saved successfully.",
+  "New row created.": "New row created.",
+  "Row removed.": "Row removed.",
+  "Table Explorer: {0} (Preview)/{0} is the table name": {
+    "message": "Table Explorer: {0} (Preview)",
+    "comment": [
+      "{0} is the table name"
+    ]
+  },
+  "Failed to save changes: {0}/{0} is the error message": {
+    "message": "Failed to save changes: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "Failed to load data: {0}/{0} is the error message": {
+    "message": "Failed to load data: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "Failed to create a new row: {0}/{0} is the error message": {
+    "message": "Failed to create a new row: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "Failed to remove row: {0}/{0} is the error message": {
+    "message": "Failed to remove row: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "Failed to update cell: {0}/{0} is the error message": {
+    "message": "Failed to update cell: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "Failed to revert cell: {0}/{0} is the error message": {
+    "message": "Failed to revert cell: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "Failed to revert row: {0}/{0} is the error message": {
+    "message": "Failed to revert row: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
