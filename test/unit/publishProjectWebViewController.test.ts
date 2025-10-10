@@ -20,6 +20,10 @@ suite("PublishProjectWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let contextStub: vscode.ExtensionContext;
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let mockSqlProjectsService: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let mockDacFxService: any;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -32,40 +36,48 @@ suite("PublishProjectWebViewController Tests", () => {
         contextStub = rawContext as vscode.ExtensionContext;
 
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
+        mockSqlProjectsService = {};
+        mockDacFxService = {};
     });
 
     teardown(() => {
         sandbox.restore();
     });
 
-    test("constructor initializes state and derives database name", () => {
-        const projectPath = "c:/work/MySampleProject.sqlproj";
-        const controller = new PublishProjectWebViewController(
+    /**
+     * Helper factory to create PublishProjectWebViewController with default test setup.
+     * @param projectPath Optional project path (defaults to standard test path)
+     */
+    function createTestController(
+        projectPath = "c:/work/TestProject.sqlproj",
+    ): PublishProjectWebViewController {
+        return new PublishProjectWebViewController(
             contextStub,
             vscodeWrapperStub,
             projectPath,
+            mockSqlProjectsService,
+            mockDacFxService,
         );
+    }
+
+    test("constructor initializes state and derives database name", async () => {
+        const controller = createTestController("c:/work/MySampleProject.sqlproj");
+
+        await controller.initialized.promise;
 
         // Verify initial state
-        expect(controller.state.projectFilePath).to.equal(projectPath);
+        expect(controller.state.projectFilePath).to.equal("c:/work/MySampleProject.sqlproj");
         expect(controller.state.formState.databaseName).to.equal("MySampleProject");
 
-        // Form components should be initialized synchronously
+        // Form components should be initialized after initialization completes
         const components = controller.state.formComponents;
-        // Basic fields expected from generatePublishFormComponents()
-        expect(components.publishProfilePath, "publishProfilePath component should exist").to.exist;
         expect(components.serverName, "serverName component should exist").to.exist;
         expect(components.databaseName, "databaseName component should exist").to.exist;
         expect(components.publishTarget, "publishTarget component should exist").to.exist;
     });
 
     test("reducer handlers are registered on construction", async () => {
-        const projectPath = "c:/work/TestProject.sqlproj";
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            projectPath,
-        );
+        const controller = createTestController();
 
         await controller.initialized.promise;
 
@@ -90,12 +102,7 @@ suite("PublishProjectWebViewController Tests", () => {
     });
 
     test("default publish target is EXISTING_SERVER", async () => {
-        const projectPath = "c:/work/TestProject.sqlproj";
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            projectPath,
-        );
+        const controller = createTestController();
 
         await controller.initialized.promise;
 
@@ -103,12 +110,7 @@ suite("PublishProjectWebViewController Tests", () => {
     });
 
     test("getActiveFormComponents returns correct fields for EXISTING_SERVER target", async () => {
-        const projectPath = "c:/work/TestProject.sqlproj";
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            projectPath,
-        );
+        const controller = createTestController();
 
         await controller.initialized.promise;
 
@@ -128,13 +130,9 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(activeComponents).to.not.include("containerAdminPassword");
     });
 
+    //#region Publish Target Section Tests
     test("getActiveFormComponents returns correct fields for LOCAL_CONTAINER target", async () => {
-        const projectPath = "c:/work/TestProject.sqlproj";
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            projectPath,
-        );
+        const controller = createTestController();
 
         await controller.initialized.promise;
 
@@ -157,12 +155,7 @@ suite("PublishProjectWebViewController Tests", () => {
     });
 
     test("state tracks inProgress and lastPublishResult", async () => {
-        const projectPath = "c:/work/TestProject.sqlproj";
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            projectPath,
-        );
+        const controller = createTestController();
 
         await controller.initialized.promise;
 
@@ -176,12 +169,7 @@ suite("PublishProjectWebViewController Tests", () => {
     });
 
     test("container target values are properly saved to formState", async () => {
-        const projectPath = "c:/work/ContainerProject.sqlproj";
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            projectPath,
-        );
+        const controller = createTestController("c:/work/ContainerProject.sqlproj");
 
         await controller.initialized.promise;
 
@@ -239,21 +227,14 @@ suite("PublishProjectWebViewController Tests", () => {
     });
 
     test("Azure SQL project shows Azure-specific labels", async () => {
-        const mockSqlProjectsService = {
-            getProjectProperties: sandbox.stub().resolves({
-                success: true,
-                projectGuid: "test-guid",
-                databaseSchemaProvider:
-                    "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
-            }),
-        };
+        mockSqlProjectsService.getProjectProperties = sandbox.stub().resolves({
+            success: true,
+            projectGuid: "test-guid",
+            databaseSchemaProvider:
+                "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
+        });
 
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            "c:/work/AzureProject.sqlproj",
-            mockSqlProjectsService as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-        );
+        const controller = createTestController("c:/work/AzureProject.sqlproj");
 
         await controller.initialized.promise;
 
@@ -277,21 +258,14 @@ suite("PublishProjectWebViewController Tests", () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any);
 
-        const mockSqlProjectsService = {
-            getProjectProperties: sandbox.stub().resolves({
-                success: true,
-                projectGuid: "test-guid",
-                databaseSchemaProvider:
-                    "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
-            }),
-        };
+        mockSqlProjectsService.getProjectProperties = sandbox.stub().resolves({
+            success: true,
+            projectGuid: "test-guid",
+            databaseSchemaProvider:
+                "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
+        });
 
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            "c:/work/AzureProject.sqlproj",
-            mockSqlProjectsService as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-        );
+        const controller = createTestController("c:/work/AzureProject.sqlproj");
 
         await controller.initialized.promise;
 
@@ -322,44 +296,73 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(isValidSqlAdminPassword("Pass1"), "too short invalid").to.be.false;
         expect(isValidSqlAdminPassword("Password123!".repeat(20)), "too long invalid").to.be.false;
     });
+    //#endregion
 
-    test("selectPublishProfile reducer is invoked and triggers file picker", async () => {
-        const projectPath = "c:/work/TestProject.sqlproj";
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            projectPath,
-        );
-
+    //#region Publish Profile Section Tests
+    test("selectPublishProfile reducer parses real-world XML profile correctly", async () => {
+        const controller = createTestController();
         await controller.initialized.promise;
 
-        // Stub showOpenDialog to simulate user selecting a profile
-        const selectedProfilePath = "c:/profiles/MyProfile.publish.xml";
-        const showOpenDialogStub = sandbox
-            .stub(vscode.window, "showOpenDialog")
-            .resolves([vscode.Uri.file(selectedProfilePath)]);
+        // Real-world ADS-generated publish profile XML with all features
+        const adsProfileXml = `<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseName>MyDatabase</TargetDatabaseName>
+    <DeployScriptFileName>MyDatabase.sql</DeployScriptFileName>
+    <TargetConnectionString>Data Source=myserver.database.windows.net;Persist Security Info=False;User ID=admin;Pooling=False;MultipleActiveResultSets=False;</TargetConnectionString>
+    <ProfileVersionNumber>1</ProfileVersionNumber>
+  </PropertyGroup>
+  <ItemGroup>
+    <SqlCmdVariable Include="Var1">
+      <Value>Value1</Value>
+    </SqlCmdVariable>
+    <SqlCmdVariable Include="Var2">
+      <Value>Value2</Value>
+    </SqlCmdVariable>
+  </ItemGroup>
+</Project>`;
+
+        const profilePath = "c:/profiles/TestProfile.publish.xml";
+
+        // Mock file system read
+        const fs = await import("fs");
+        sandbox.stub(fs.promises, "readFile").resolves(adsProfileXml);
+
+        // Mock file picker
+        sandbox.stub(vscode.window, "showOpenDialog").resolves([vscode.Uri.file(profilePath)]);
+
+        // Mock DacFx service to return deployment options
+        mockDacFxService.getOptionsFromProfile = sandbox.stub().resolves({
+            success: true,
+            deploymentOptions: {
+                excludeObjectTypes: { value: ["Users", "Logins"] },
+                ignoreTableOptions: { value: true },
+            },
+        });
 
         const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
         const selectPublishProfile = reducerHandlers.get("selectPublishProfile");
         expect(selectPublishProfile, "selectPublishProfile reducer should be registered").to.exist;
 
         // Invoke the reducer
-        await selectPublishProfile(controller.state, {});
+        const newState = await selectPublishProfile(controller.state, {});
 
-        // Verify file picker was shown
-        expect(showOpenDialogStub.calledOnce, "showOpenDialog should be called once").to.be.true;
+        // Verify parsed values are in the returned state (normalize paths for cross-platform)
+        expect(newState.formState.publishProfilePath.replace(/\\/g, "/")).to.equal(profilePath);
+        expect(newState.formState.databaseName).to.equal("MyDatabase");
+        expect(newState.formState.serverName).to.equal("myserver.database.windows.net");
+        expect(newState.formState.sqlCmdVariables).to.deep.equal({
+            Var1: "Value1",
+            Var2: "Value2",
+        });
 
-        // Verify the profile path was updated in formState
-        expect(controller.state.formState.publishProfilePath).to.equal(selectedProfilePath);
+        // Verify deployment options were loaded from DacFx
+        expect(mockDacFxService.getOptionsFromProfile.calledOnce).to.be.true;
     });
 
     test("savePublishProfile reducer is invoked and triggers save file dialog", async () => {
-        const projectPath = "c:/work/TestProject.sqlproj";
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            projectPath,
-        );
+        const controller = createTestController();
 
         await controller.initialized.promise;
 
@@ -369,21 +372,27 @@ suite("PublishProjectWebViewController Tests", () => {
 
         // Stub showSaveDialog to simulate user choosing a save location
         const savedProfilePath = "c:/profiles/NewProfile.publish.xml";
-        const showSaveDialogStub = sandbox
-            .stub(vscode.window, "showSaveDialog")
-            .resolves(vscode.Uri.file(savedProfilePath));
+        sandbox.stub(vscode.window, "showSaveDialog").resolves(vscode.Uri.file(savedProfilePath));
+
+        // Mock DacFx service
+        mockDacFxService.savePublishProfile = sandbox.stub().resolves({ success: true });
 
         const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
         const savePublishProfile = reducerHandlers.get("savePublishProfile");
         expect(savePublishProfile, "savePublishProfile reducer should be registered").to.exist;
 
         // Invoke the reducer with an optional default filename
-        await savePublishProfile(controller.state, { event: "TestProject.publish.xml" });
+        const newState = await savePublishProfile(controller.state, {
+            event: "TestProject.publish.xml",
+        });
 
-        // Verify save dialog was shown
-        expect(showSaveDialogStub.calledOnce, "showSaveDialog should be called once").to.be.true;
+        // Verify DacFx save was called
+        expect(mockDacFxService.savePublishProfile.calledOnce).to.be.true;
 
-        // Verify the saved profile path was updated in formState
-        expect(controller.state.formState.publishProfilePath).to.equal(savedProfilePath);
+        // Verify the state is returned unchanged (savePublishProfile does NOT update path in state)
+        expect(newState.formState.publishProfilePath).to.equal(
+            controller.state.formState.publishProfilePath,
+        );
     });
+    //#endregion
 });

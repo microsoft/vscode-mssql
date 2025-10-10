@@ -39,9 +39,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
         context: vscode.ExtensionContext,
         _vscodeWrapper: VscodeWrapper,
         projectFilePath: string,
+        sqlProjectsService: SqlProjectsService,
+        dacFxService: mssql.IDacFxService,
         deploymentOptions?: mssql.DeploymentOptions,
-        sqlProjectsService?: SqlProjectsService,
-        dacFxService?: mssql.IDacFxService,
     ) {
         super(
             context,
@@ -170,7 +170,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 defaultUri: projectFolderPath ? vscode.Uri.file(projectFolderPath) : undefined,
                 openLabel: Loc.SelectPublishProfile,
                 filters: {
-                    [Loc.PublishProfileFiles]: [constants.PublishProfileExtension],
+                    [Loc.PublishSettingsFile]: [constants.PublishProfileExtension],
                 },
             });
 
@@ -185,10 +185,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     );
 
                     // Send telemetry for profile loaded
-                    sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.profileLoaded);
-
-                    void vscode.window.showInformationMessage(
-                        `Publish profile loaded: ${selectedPath}`,
+                    sendActionEvent(
+                        TelemetryViews.SqlProjects,
+                        TelemetryActions.PublishProfileLoaded,
                     );
 
                     // Update state with all parsed values - UI components will consume when available
@@ -207,8 +206,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                             parsedProfile.deploymentOptions || state.deploymentOptions,
                     };
                 } catch (error) {
-                    void vscode.window.showErrorMessage(`Failed to load publish profile: ${error}`);
-                    return state;
+                    void vscode.window.showErrorMessage(
+                        `${Loc.PublishProfileLoadFailed}: ${error}`,
+                    );
                 }
             }
 
@@ -236,7 +236,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     defaultUri: defaultPath,
                     saveLabel: Loc.SaveAs,
                     filters: {
-                        [Loc.PublishProfileFiles]: [constants.PublishProfileExtension],
+                        [Loc.PublishSettingsFile]: [constants.PublishProfileExtension],
                     },
                 });
 
@@ -244,50 +244,39 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     return state; // User cancelled
                 }
 
-                // Call DacFx service to save the profile
-                if (this._dacFxService) {
-                    try {
-                        const databaseName = state.formState.databaseName || projectName;
-                        // TODO: Build connection string from connection details when server/database selection is implemented
-                        const connectionString = "";
-                        const sqlCmdVariables = new Map(
-                            Object.entries(state.formState.sqlCmdVariables || {}),
-                        );
+                // Save the profile using DacFx service
+                try {
+                    const databaseName = state.formState.databaseName || projectName;
+                    // TODO: Build connection string from connection details when server/database selection is implemented
+                    const connectionString = "";
+                    const sqlCmdVariables = new Map(
+                        Object.entries(state.formState.sqlCmdVariables || {}),
+                    );
 
-                        await this._dacFxService.savePublishProfile(
-                            fileUri.fsPath,
-                            databaseName,
-                            connectionString,
-                            sqlCmdVariables,
-                            state.deploymentOptions,
-                        );
+                    await this._dacFxService!.savePublishProfile(
+                        fileUri.fsPath,
+                        databaseName,
+                        connectionString,
+                        sqlCmdVariables,
+                        state.deploymentOptions,
+                    );
 
-                        // Send telemetry for profile saved
-                        sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.profileSaved);
+                    // Send telemetry for profile saved
+                    sendActionEvent(
+                        TelemetryViews.SqlProjects,
+                        TelemetryActions.PublishProfileSaved,
+                    );
 
-                        void vscode.window.showInformationMessage(
-                            `Publish profile saved to: ${fileUri.fsPath}`,
-                        );
-                    } catch (error) {
-                        void vscode.window.showErrorMessage(
-                            `Failed to save publish profile: ${error}`,
-                        );
-                    }
-
-                    return state;
+                    void vscode.window.showInformationMessage(
+                        Loc.PublishProfileSavedSuccessfully(fileUri.fsPath),
+                    );
+                } catch (error) {
+                    void vscode.window.showErrorMessage(
+                        `${Loc.PublishProfileSaveFailed}: ${error}`,
+                    );
                 }
 
-                // If DacFx service is not available, just update the path
-                void vscode.window.showWarningMessage(
-                    "DacFx service not available. Profile path updated but not saved.",
-                );
-                return {
-                    ...state,
-                    formState: {
-                        ...state.formState,
-                        publishProfilePath: fileUri.fsPath,
-                    },
-                };
+                return state;
             },
         );
     }

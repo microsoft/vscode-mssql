@@ -1285,7 +1285,7 @@ export class PublishProject {
     public static PublishProfilePlaceholder = l10n.t("Select or enter a publish profile");
     public static SelectPublishProfile = l10n.t("Select Profile");
     public static SaveAs = l10n.t("Save As");
-    public static PublishProfileFiles = l10n.t("Publish Profile Files");
+    public static PublishSettingsFile = l10n.t("Publish Settings File");
     public static ServerLabel = l10n.t("Server");
     public static DatabaseLabel = l10n.t("Database");
     public static DatabaseRequiredMessage = l10n.t("Database name is required");
@@ -1322,6 +1322,11 @@ export class PublishProject {
     public static PasswordNotMatchMessage = (name: string) => {
         return l10n.t("{0} password doesn't match the confirmation password", name);
     };
+    public static PublishProfileLoadFailed = l10n.t("Failed to load publish profile");
+    public static PublishProfileSavedSuccessfully = (path: string) => {
+        return l10n.t("Publish profile saved to: {0}", path);
+    };
+    public static PublishProfileSaveFailed = l10n.t("Failed to save publish profile");
 }
 
 export class SchemaCompare {

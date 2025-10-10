@@ -1431,7 +1431,7 @@
     "Publish Profile": "Publish Profile",
     "Select or enter a publish profile": "Select or enter a publish profile",
     "Save As": "Save As",
-    "Publish Profile Files": "Publish Profile Files",
+    "Publish Settings File": "Publish Settings File",
     "Database name is required": "Database name is required",
     "SQLCMD Variables": "SQLCMD Variables",
     "Publish Target": "Publish Target",
@@ -1453,6 +1453,9 @@
     "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
     "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy": "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy",
     "{0} password doesn't match the confirmation password": "{0} password doesn't match the confirmation password",
+    "Failed to load publish profile": "Failed to load publish profile",
+    "Publish profile saved to: {0}": "Publish profile saved to: {0}",
+    "Failed to save publish profile": "Failed to save publish profile",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
