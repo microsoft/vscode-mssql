@@ -2808,6 +2808,9 @@
     <trans-unit id="++CODE++3052f090b2dd0312f6564fb52c1f06b0efbe9fd7c77fdf38dcb96b4521b06b24">
       <source xml:lang="en">Select Azure account with Key Vault access for column decryption</source>
     </trans-unit>
+    <trans-unit id="++CODE++fb36706789e855faf92bf6900c060554f0e8513ebb831ffe81ed991b28d07f8c">
+      <source xml:lang="en">Select Connection</source>
+    </trans-unit>
     <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
       <source xml:lang="en">Select Profile</source>
     </trans-unit>

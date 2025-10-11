@@ -1444,6 +1444,7 @@
     "SQL Server admin password": "SQL Server admin password",
     "Confirm SQL Server admin password": "Confirm SQL Server admin password",
     "Image tag": "Image tag",
+    "Select Connection": "Select Connection",
     "I accept the <a href=\"{0}\" target=\"_blank\" rel=\"noopener noreferrer\">Microsoft SQL Server License Agreement</a>/{0} is the hyperlink URL to the Microsoft SQL Server License Agreement used in an HTML anchor tag": {
         "message": "I accept the <a href=\"{0}\" target=\"_blank\" rel=\"noopener noreferrer\">Microsoft SQL Server License Agreement</a>",
         "comment": [
