@@ -966,7 +966,6 @@
         "message": "Disconnected on document \"{0}\"",
         "comment": ["{0} is the document name"]
     },
-    "OpenSSL version >=1.0.1 is required to connect.": "OpenSSL version >=1.0.1 is required to connect.",
     "Help": "Help",
     "macOS Sierra or newer is required to use this feature.": "macOS Sierra or newer is required to use this feature.",
     "Getting definition ...": "Getting definition ...",

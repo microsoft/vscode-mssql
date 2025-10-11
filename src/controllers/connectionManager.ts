@@ -29,7 +29,7 @@ import * as ConnectionContracts from "../models/contracts/connection";
 import { ClearPooledConnectionsRequest, ConnectionSummary } from "../models/contracts/connection";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
 import { AuthenticationTypes, EncryptOptions, IConnectionProfile } from "../models/interfaces";
-import { PlatformInformation, Runtime } from "../models/platform";
+import { PlatformInformation } from "../models/platform";
 import * as Utils from "../models/utils";
 import { IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { Deferred } from "../protocol";
@@ -1492,26 +1492,13 @@ export default class ConnectionManager {
         } else if (errorType === SqlConnectionErrorType.KerberosNonWindows) {
             await showWithHelp(
                 LocalizedConstants.msgConnectionError2(errorMessage),
-                LocalizedConstants.macOpenSslHelpButton,
+                LocalizedConstants.help,
                 Constants.integratedAuthHelpLink,
             );
             return {
                 isHandled: false,
                 updatedCredentials: credentials,
                 errorHandled: SqlConnectionErrorType.KerberosNonWindows,
-            };
-        } else if (errorType === SqlConnectionErrorType.MacOpenSsl) {
-            // macOS 10.11 OpenSSL shim missing
-
-            await showWithHelp(
-                LocalizedConstants.msgConnectionError2(LocalizedConstants.macOpenSslErrorMessage),
-                LocalizedConstants.macOpenSslHelpButton,
-                Constants.macOpenSslHelpLink,
-            );
-            return {
-                isHandled: false,
-                updatedCredentials: credentials,
-                errorHandled: SqlConnectionErrorType.MacOpenSsl,
             };
         } else if (errorType === SqlConnectionErrorType.EntraTokenExpired) {
             try {
@@ -1993,7 +1980,6 @@ export enum SqlConnectionErrorType {
     TrustServerCertificateNotEnabled = "trustServerCertificate",
     FirewallRuleError = "firewallRule",
     KerberosNonWindows = "kerberosNonWindows",
-    MacOpenSsl = "macOpenSsl",
     EntraTokenExpired = "entraTokenExpired",
     Generic = "generic",
 }
@@ -2004,7 +1990,7 @@ export async function getSqlConnectionErrorType(
 ): Promise<SqlConnectionErrorType> {
     const platformInfo = await PlatformInformation.getCurrent();
 
-    const { errorNumber, errorMessage, message } = error;
+    const { errorNumber, errorMessage } = error;
     if (
         errorNumber === Constants.errorPasswordExpired ||
         errorNumber === Constants.errorPasswordNeedsReset
@@ -2019,12 +2005,6 @@ export async function getSqlConnectionErrorType(
         errorMessage?.includes(Constants.errorKerberosSubString)
     ) {
         return SqlConnectionErrorType.KerberosNonWindows;
-    } else if (
-        platformInfo.runtimeId === Runtime.OSX_10_11_64 &&
-        (message?.includes(Constants.errorMacOsOpenSSLErrorSubstring) ||
-            errorMessage?.includes(Constants.errorMacOsOpenSSLErrorSubstring))
-    ) {
-        return SqlConnectionErrorType.MacOpenSsl;
     } else if (
         credentials.authenticationType === Constants.azureMfa &&
         needsAccountRefresh(errorMessage, credentials.user)
