@@ -61,9 +61,9 @@ export interface PublishDialogState
     lastPublishResult?: { success: boolean; details?: string };
     deploymentOptions?: mssql.DeploymentOptions;
     projectProperties?: ProjectProperties;
-    // Connection management state (similar to schema compare)
     waitingForNewConnection?: boolean;
     activeServers?: { [connectionUri: string]: { profileName: string; server: string } };
+    connectionString?: string;
 }
 
 /**

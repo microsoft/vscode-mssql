@@ -249,8 +249,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                                 parsedProfile.databaseName || state.formState.databaseName,
                             serverName: parsedProfile.serverName || state.formState.serverName,
                             sqlCmdVariables: parsedProfile.sqlCmdVariables,
-                            // TODO: connectionString stored in parsed profile, will be used when connection UI is ready
                         },
+                        connectionString: parsedProfile.connectionString || state.connectionString,
                         deploymentOptions:
                             parsedProfile.deploymentOptions || state.deploymentOptions,
                     };
@@ -296,8 +296,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 // Save the profile using DacFx service
                 try {
                     const databaseName = state.formState.databaseName || projectName;
-                    // TODO: Build connection string from connection details when server/database selection is implemented
-                    const connectionString = "";
+                    const connectionString = state.connectionString || "";
                     const sqlCmdVariables = new Map(
                         Object.entries(state.formState.sqlCmdVariables || {}),
                     );
@@ -374,6 +373,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
             if (connectionProfile) {
                 // Update server name
                 this.state.formState.serverName = connectionProfile.server;
+
+                // Get connection string (include password for publishing)
+                const connectionString = await this._connectionManager.getConnectionString(
+                    connectionUri,
+                    true, // includePassword
+                    true, // includeApplicationName
+                );
+                this.state.connectionString = connectionString;
 
                 // Update database dropdown options
                 const databaseComponent =
