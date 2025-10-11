@@ -9,6 +9,8 @@ import * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import ConnectionManager from "../controllers/connectionManager";
+import { IConnectionProfile } from "../models/interfaces";
 import { PublishProject as Loc } from "../constants/locConstants";
 import {
     PublishDialogReducers,
@@ -34,10 +36,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _sqlProjectsService?: SqlProjectsService;
     private readonly _dacFxService?: mssql.IDacFxService;
+    private readonly _connectionManager: ConnectionManager;
 
     constructor(
         context: vscode.ExtensionContext,
         _vscodeWrapper: VscodeWrapper,
+        connectionManager: ConnectionManager,
         projectFilePath: string,
         sqlProjectsService: SqlProjectsService,
         dacFxService: mssql.IDacFxService,
@@ -61,6 +65,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 inProgress: false,
                 lastPublishResult: undefined,
                 deploymentOptions: deploymentOptions,
+                waitingForNewConnection: false,
+                activeServers: {},
             } as PublishDialogState,
             {
                 title: Loc.Title,
@@ -80,9 +86,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
             },
         );
 
-        // Store the SQL Projects Service
+        // Store the SQL Projects Service and Connection Manager
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
+        this._connectionManager = connectionManager;
 
         // Clear default excludeObjectTypes for publish dialog, no default exclude options should exist
         if (
@@ -94,6 +101,34 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         // Register reducers after initialization
         this.registerRpcHandlers();
+
+        // Listen for new connections (similar to schema compare)
+        this.registerDisposable(
+            this._connectionManager.onConnectionsChanged(async () => {
+                // Check if we're waiting for a new connection
+                if (this.state.waitingForNewConnection) {
+                    const activeServers = this.getActiveServersList();
+                    const newConnections = this.findNewConnections(
+                        this.state.activeServers,
+                        activeServers,
+                    );
+
+                    if (newConnections.length > 0) {
+                        // Update active servers first
+                        this.state.activeServers = activeServers;
+
+                        // Auto-select the first new connection
+                        const newConnectionUri = newConnections[0];
+                        await this.autoSelectNewConnection(newConnectionUri);
+                    }
+                } else {
+                    // Update active servers even if not waiting
+                    this.state.activeServers = this.getActiveServersList();
+                }
+
+                this.updateState();
+            }),
+        );
 
         // Initialize async to allow for future extensibility and proper error handling
         void this.initializeDialog(projectFilePath)
@@ -130,7 +165,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
         }
 
         // Load publish form components
-        this.state.formComponents = generatePublishFormComponents(projectTargetVersion);
+        this.state.formComponents = generatePublishFormComponents(
+            projectTargetVersion,
+            this.state.formState.databaseName,
+        );
 
         // Update state to notify UI of the project properties and form components
         this.updateState();
@@ -149,6 +187,17 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
     /** Registers all reducers in pure (immutable) style */
     private registerRpcHandlers(): void {
+        this.registerReducer("openConnectionDialog", async (state: PublishDialogState) => {
+            // Set waiting state to detect new connections
+            state.waitingForNewConnection = true;
+            this.updateState(state);
+
+            // Execute the command to open the connection dialog (same as "+" button in servers panel)
+            void vscode.commands.executeCommand(constants.cmdAddObjectExplorer);
+
+            return state;
+        });
+
         this.registerReducer("publishNow", async (state: PublishDialogState) => {
             // TODO: implement actual publish logic (currently just clears inProgress)
             return { ...state, inProgress: false };
@@ -279,6 +328,74 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 return state;
             },
         );
+    }
+
+    /** Get the list of active server connections */
+    private getActiveServersList(): {
+        [connectionUri: string]: { profileName: string; server: string };
+    } {
+        const activeServers: { [connectionUri: string]: { profileName: string; server: string } } =
+            {};
+        const activeConnections = this._connectionManager.activeConnections;
+        Object.keys(activeConnections).forEach((connectionUri) => {
+            const credentials = activeConnections[connectionUri].credentials as IConnectionProfile;
+            activeServers[connectionUri] = {
+                profileName: credentials.profileName ?? "",
+                server: credentials.server,
+            };
+        });
+        return activeServers;
+    }
+
+    /** Find new connections that were added */
+    private findNewConnections(
+        oldActiveServers: { [connectionUri: string]: { profileName: string; server: string } },
+        newActiveServers: { [connectionUri: string]: { profileName: string; server: string } },
+    ): string[] {
+        const newConnections: string[] = [];
+        for (const connectionUri in newActiveServers) {
+            if (!(connectionUri in oldActiveServers)) {
+                newConnections.push(connectionUri);
+            }
+        }
+        return newConnections;
+    }
+
+    /** Auto-select a new connection and populate server/database fields */
+    private async autoSelectNewConnection(connectionUri: string): Promise<void> {
+        try {
+            // Get the list of databases for the new connection
+            const databases = await this._connectionManager.listDatabases(connectionUri);
+
+            // Get the connection profile
+            const connection = this._connectionManager.activeConnections[connectionUri];
+            const connectionProfile = connection?.credentials as IConnectionProfile;
+
+            if (connectionProfile) {
+                // Update server name
+                this.state.formState.serverName = connectionProfile.server;
+
+                // Update database dropdown options
+                const databaseComponent =
+                    this.state.formComponents[constants.PublishFormFields.DatabaseName];
+                if (databaseComponent) {
+                    databaseComponent.options = databases.map((db) => ({
+                        displayName: db,
+                        value: db,
+                    }));
+                }
+
+                // Optionally select the first database if available
+                if (databases.length > 0 && !this.state.formState.databaseName) {
+                    this.state.formState.databaseName = databases[0];
+                }
+            }
+        } catch {
+            // Silently fail - connection issues are handled elsewhere
+        } finally {
+            // Reset the waiting state
+            this.state.waitingForNewConnection = false;
+        }
     }
 
     protected getActiveFormComponents(state: PublishDialogState): (keyof IPublishForm)[] {

@@ -1302,6 +1302,7 @@ export class PublishProject {
     public static SqlServerAdminPassword = l10n.t("SQL Server admin password");
     public static SqlServerAdminPasswordConfirm = l10n.t("Confirm SQL Server admin password");
     public static SqlServerImageTag = l10n.t("Image tag");
+    public static ServerConnectionPlaceholder = l10n.t("Select Connection");
     public static UserLicenseAgreement = (licenseUrl: string) =>
         l10n.t({
             message:

@@ -8,7 +8,7 @@ import { Button, makeStyles } from "@fluentui/react-components";
 import { PlugDisconnectedRegular } from "@fluentui/react-icons";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
-import { renderInput } from "./FormFieldComponents";
+import { renderInput, renderCombobox } from "./FormFieldComponents";
 import { useFormStyles } from "../../../common/forms/form.component";
 
 const useStyles = makeStyles({
@@ -52,12 +52,12 @@ export const ConnectionSection: React.FC = () => {
                             icon={<PlugDisconnectedRegular />}
                             appearance="transparent"
                             onClick={() => {
-                                // TODO: Open connection dialog
+                                publishCtx.openConnectionDialog();
                             }}
                         />
                     ),
                 })}
-                {renderInput(databaseComponent, localDatabase, setLocalDatabase)}
+                {renderCombobox(databaseComponent, localDatabase, false, setLocalDatabase)}
             </div>
         </div>
     );

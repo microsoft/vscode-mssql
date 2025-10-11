@@ -3,7 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Field, Dropdown, Option, Input, Checkbox, Button } from "@fluentui/react-components";
+import {
+    Field,
+    Dropdown,
+    Option,
+    Input,
+    Checkbox,
+    Button,
+    Combobox,
+} from "@fluentui/react-components";
 import { EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
 import { FormItemType } from "../../../../sharedInterfaces/form";
 import type { PublishDialogFormItemSpec } from "../../../../sharedInterfaces/publishDialog";
@@ -110,6 +118,55 @@ export const renderDropdown = (
                     ),
                 )}
             </Dropdown>
+        </Field>
+    );
+};
+
+// Generic Combobox Field - can be used for editable dropdowns (allows custom text input)
+export const renderCombobox = (
+    component: PublishDialogFormItemSpec | undefined,
+    value: string | undefined,
+    freeform: boolean | undefined,
+    onChange: (value: string) => void,
+) => {
+    if (!component || component.hidden) return undefined;
+    if (component.type !== FormItemType.Dropdown || !component.options) return undefined;
+
+    return (
+        <Field
+            key={component.propertyName}
+            required={component.required}
+            label={component.label}
+            validationMessage={component.validation?.validationMessage}
+            validationState={getValidationState(component.validation)}
+            orientation="horizontal">
+            <Combobox
+                size="small"
+                freeform={freeform || false}
+                value={value || ""}
+                placeholder={component.placeholder ?? ""}
+                input={{
+                    style: {
+                        borderColor: "var(--vscode-input-border, transparent)",
+                    },
+                }}
+                onOptionSelect={(_, data) => {
+                    if (data.optionValue) {
+                        onChange(data.optionValue);
+                    }
+                }}
+                onChange={(event) => {
+                    // Allow custom text input
+                    onChange((event.target as HTMLInputElement).value);
+                }}>
+                {component.options.map(
+                    (opt: { value: string; displayName: string; color?: string }, i: number) => (
+                        <Option key={opt.value + i} value={opt.value} text={opt.displayName}>
+                            {opt.displayName}
+                        </Option>
+                    ),
+                )}
+            </Combobox>
         </Field>
     );
 };

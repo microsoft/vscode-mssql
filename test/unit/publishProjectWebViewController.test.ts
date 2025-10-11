@@ -24,6 +24,8 @@ suite("PublishProjectWebViewController Tests", () => {
     let mockSqlProjectsService: any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let mockDacFxService: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let mockConnectionManager: any;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -38,6 +40,11 @@ suite("PublishProjectWebViewController Tests", () => {
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
         mockSqlProjectsService = {};
         mockDacFxService = {};
+        mockConnectionManager = {
+            onConnectionsChanged: sandbox.stub().returns({ dispose: () => {} }),
+            activeConnections: {},
+            listDatabases: sandbox.stub().resolves([]),
+        };
     });
 
     teardown(() => {
@@ -54,6 +61,7 @@ suite("PublishProjectWebViewController Tests", () => {
         return new PublishProjectWebViewController(
             contextStub,
             vscodeWrapperStub,
+            mockConnectionManager,
             projectPath,
             mockSqlProjectsService,
             mockDacFxService,
