@@ -840,8 +840,6 @@ Report issues to [Github Issue Tracker] and provide your feedback.
 
 -   Installation Prerequisites: this extension requires the user to install some components needed by .Net Core applications, since this is used for connectivity to SQL Server.
 
-    -   For Mac OS, see [OpenSSL requirement on macOS]
-
     -   For Windows 8.1, Windows Server 2012 or lower, see [Windows 10 Universal C Runtime requirement]
 
 [getting started tutorial]: https://aka.ms/mssql-getting-started
@@ -849,7 +847,6 @@ Report issues to [Github Issue Tracker] and provide your feedback.
 [contribute]: https://github.com/Microsoft/vscode-mssql/wiki/contributing
 [GitHub Issue Tracker]: https://github.com/Microsoft/vscode-mssql/issues
 [manage connection profiles]: https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles
-[OpenSSL requirement on macOS]: https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration
 [Windows 10 Universal C Runtime requirement]: https://github.com/Microsoft/vscode-mssql/wiki/windows10-universal-c-runtime-requirement
 [Operating Systems]: https://github.com/Microsoft/vscode-mssql/wiki/operating-systems
 [#669]: https://github.com/Microsoft/vscode-mssql/issues/669
