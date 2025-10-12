@@ -325,7 +325,7 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
         }
 
         console.log(
-            `[SourceControl] Comparing ${totalObjects} objects in ${batches.length} batches of ${batchSize}`,
+            `[SourceControl] Comparing ${totalObjects} database objects in ${batches.length} batches of ${batchSize}`,
         );
 
         for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
@@ -378,25 +378,40 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
             const avgTimePerObject = batchTime / batch.length;
 
             // Update progress
-            const percentComplete = Math.floor((checkedCount / totalObjects) * 90) + 10; // 10-100%
+            const percentComplete = Math.floor((checkedCount / totalObjects) * 45) + 10; // 10-55%
             progress?.report({
-                message: `Checking objects: ${checkedCount}/${totalObjects} (${batchChanges.length} changes found)`,
+                message: `Checking database objects: ${checkedCount}/${totalObjects} (${batchChanges.length} changes found)`,
                 increment: percentComplete,
             });
 
             // Log batch performance
             if (batchIndex === 0 || batchIndex === batches.length - 1 || batchIndex % 10 === 0) {
                 console.log(
-                    `[SourceControl] Batch ${batchIndex + 1}/${batches.length}: ${batch.length} objects in ${batchTime}ms (${avgTimePerObject.toFixed(1)}ms/object), ${batchChanges.length} changes`,
+                    `[SourceControl] DB Batch ${batchIndex + 1}/${batches.length}: ${batch.length} objects in ${batchTime}ms (${avgTimePerObject.toFixed(1)}ms/object), ${batchChanges.length} changes`,
                 );
             }
         }
 
         const comparisonTime = Date.now() - comparisonStartTime;
-        const avgTimePerObject = comparisonTime / totalObjects;
+        const avgTimePerObject = totalObjects > 0 ? comparisonTime / totalObjects : 0;
         console.log(
-            `[SourceControl] Comparison complete: ${checkedCount} objects in ${comparisonTime}ms (${avgTimePerObject.toFixed(1)}ms/object), found ${changes.length} changes`,
+            `[SourceControl] Database comparison complete: ${checkedCount} objects in ${comparisonTime}ms (${avgTimePerObject.toFixed(1)}ms/object), found ${changes.length} changes`,
         );
+
+        // Check for deleted objects (exist in Git but not in database)
+        progress?.report({ message: "Checking for deleted objects...", increment: 60 });
+        const deletedObjectsStartTime = Date.now();
+        const deletedObjects = await this._findDeletedObjects(
+            gitInfo.localPath,
+            cacheMetadata,
+            connectionHash,
+            credentials,
+        );
+        const deletedObjectsTime = Date.now() - deletedObjectsStartTime;
+        console.log(
+            `[SourceControl] Deleted objects check complete: found ${deletedObjects.length} deleted objects in ${deletedObjectsTime}ms`,
+        );
+        changes.push(...deletedObjects);
 
         // Update changes group (exclude staged items)
         progress?.report({ message: "Updating view...", increment: 95 });
@@ -415,7 +430,7 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
             `[SourceControl] ✅ Complete in ${totalTime}ms: Displaying ${this._changesGroup.resourceStates.length} changes (${this._stagedGroup.resourceStates.length} staged)`,
         );
         console.log(
-            `[SourceControl] Performance breakdown: metadata=${metadataTime}ms, comparison=${comparisonTime}ms (${avgTimePerObject.toFixed(1)}ms/object)`,
+            `[SourceControl] Performance breakdown: metadata=${metadataTime}ms, dbComparison=${comparisonTime}ms (${avgTimePerObject.toFixed(1)}ms/object), deletedCheck=${deletedObjectsTime}ms`,
         );
 
         progress?.report({ message: "Done!", increment: 100 });
@@ -477,6 +492,89 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
             default:
                 return `other/${schema}.${name}.sql`;
         }
+    }
+
+    /**
+     * Find objects that exist in Git repository but not in database (deleted objects)
+     */
+    private async _findDeletedObjects(
+        gitRepoPath: string,
+        cacheMetadata: any,
+        connectionHash: string,
+        credentials: IConnectionInfo,
+    ): Promise<DatabaseResourceState[]> {
+        const fs = require("fs").promises;
+        const deletedObjects: DatabaseResourceState[] = [];
+
+        // Define the folders to scan in the Git repository
+        const foldersToScan = [
+            { folder: "stored-procedures", type: "SQL_STORED_PROCEDURE" },
+            { folder: "views", type: "VIEW" },
+            { folder: "functions", type: "SQL_SCALAR_FUNCTION" }, // We'll use a generic type for functions
+            { folder: "triggers", type: "SQL_TRIGGER" },
+            { folder: "tables", type: "USER_TABLE" },
+        ];
+
+        for (const { folder, type } of foldersToScan) {
+            const folderPath = path.join(gitRepoPath, folder);
+
+            try {
+                // Check if folder exists
+                await fs.access(folderPath);
+
+                // Read all .sql files in the folder
+                const files = await fs.readdir(folderPath);
+                const sqlFiles = files.filter((f: string) => f.endsWith(".sql"));
+
+                for (const file of sqlFiles) {
+                    // Parse filename: schema.name.sql
+                    const match = file.match(/^(.+)\.(.+)\.sql$/);
+                    if (!match) {
+                        console.log(`[SourceControl] Skipping invalid filename: ${file}`);
+                        continue;
+                    }
+
+                    const schema = match[1];
+                    const name = match[2];
+                    const objectKey = `${schema}.${name}`;
+
+                    // Check if object exists in database cache
+                    if (!cacheMetadata.objects[objectKey]) {
+                        // Object exists in Git but not in database - it's deleted
+                        const metadata: ObjectMetadata = {
+                            metadataTypeName: type,
+                            schema: schema,
+                            name: name,
+                            metadataType: 0,
+                            urn: objectKey,
+                        };
+
+                        const localCachePath = this._getLocalCachePath(connectionHash, metadata);
+                        const gitRepoFilePath = path.join(folderPath, file);
+
+                        deletedObjects.push(
+                            new DatabaseResourceState(
+                                metadata,
+                                GitObjectStatus.Deleted,
+                                connectionHash,
+                                credentials,
+                                localCachePath,
+                                gitRepoFilePath,
+                            ),
+                        );
+
+                        console.log(
+                            `[SourceControl] Found deleted object: ${schema}.${name} (${type})`,
+                        );
+                    }
+                }
+            } catch (error) {
+                // Folder doesn't exist or can't be read - skip it
+                console.log(`[SourceControl] Skipping folder ${folder}: ${error}`);
+            }
+        }
+
+        return deletedObjects;
     }
 
     /**
@@ -781,8 +879,12 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
     private async _executeDiscardScript(resourceState: DatabaseResourceState): Promise<void> {
         const fs = require("fs").promises;
 
-        // Read the Git repository version
-        const gitContent = await fs.readFile(resourceState.gitRepoPath, "utf-8");
+        // Read the Git repository version (only if the file exists in Git)
+        // For Added objects (exist in DB but not in Git), we don't need to read the Git file
+        let gitContent = "";
+        if (resourceState.status !== GitObjectStatus.Added) {
+            gitContent = await fs.readFile(resourceState.gitRepoPath, "utf-8");
+        }
 
         // Generate the appropriate script based on object type and status
         const script = this._generateDiscardScript(resourceState, gitContent);
