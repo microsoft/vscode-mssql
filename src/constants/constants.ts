@@ -207,7 +207,7 @@ export const copilotShowSchemaToolName = "mssql_show_schema";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
 
 // Configuration Constants
-export const copyIncludeHeaders = "copyIncludeHeaders";
+export const copyIncludeHeaders = "mssql.copyIncludeHeaders";
 export const configLogDebugInfo = "logDebugInfo";
 export const configMyConnections = "connections";
 export const configSaveAsCsv = "saveAsCsv";

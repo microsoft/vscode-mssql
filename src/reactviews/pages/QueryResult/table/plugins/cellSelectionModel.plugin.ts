@@ -17,6 +17,7 @@ import { mixin } from "../objects";
 import { tokens } from "@fluentui/react-components";
 import { Keys } from "../../../../common/keys";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
+import { convertDisplayedSelectionToActual } from "../utils";
 import { HeaderMenu } from "./headerFilter.plugin";
 
 export interface ICellSelectionModelOptions {
@@ -699,7 +700,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         e.stopPropagation();
     }
 
-    private async updateSummaryText(ranges?: Slick.Range[]): Promise<void> {
+    public async updateSummaryText(ranges?: Slick.Range[]): Promise<void> {
         if (!ranges) {
             ranges = this.getSelectedRanges();
         }
@@ -709,8 +710,9 @@ export class CellSelectionModel<T extends Slick.SlickData>
             toRow: range.toRow,
             toCell: range.toCell - 1, // adjust for number column
         }));
+        const actualRanges = convertDisplayedSelectionToActual(this.grid, simplifiedRanges);
         await this.context.extensionRpc.sendNotification(SetSelectionSummaryRequest.type, {
-            selection: simplifiedRanges,
+            selection: actualRanges,
             uri: this.uri,
             batchId: this.resultSetSummary.batchId,
             resultId: this.resultSetSummary.id,
