@@ -102,7 +102,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             : `untitled:${objectName}`;
 
         const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
-        const limitResults = 200;
 
         let connectionCreds = Object.assign({}, this._targetNode.connectionProfile);
         const databaseName = ObjectExplorerUtils.getDatabaseName(this._targetNode);
@@ -125,7 +124,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             schemaName,
             objectType,
             undefined,
-            limitResults,
         );
     }
 
