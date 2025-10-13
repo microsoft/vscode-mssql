@@ -218,6 +218,11 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         // Get Git link information
         const gitInfo = await this._gitStatusService!.getDatabaseGitInfo(dbCredentials);
 
+        // Update context value to include Git link status
+        const context = node.context;
+        context.gitLinked = gitInfo.isLinked;
+        node.context = context;
+
         if (gitInfo.isLinked) {
             // Show branch name in description (text on the right)
             node.description = gitInfo.branch;

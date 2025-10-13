@@ -547,97 +547,97 @@
                 {
                     "command": "mssql.refreshLocalCache",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/ && config.mssql.localCache.enabled",
-                    "group": "1_MSSQL_serverAndDbManagement@5"
+                    "group": "2_MSSQL_cacheAndGit@1"
                 },
                 {
                     "command": "mssql.linkDatabaseToGitBranch",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@6"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && viewItem =~ /\\bgitLinked=false\\b/",
+                    "group": "2_MSSQL_cacheAndGit@2"
                 },
                 {
                     "command": "mssql.unlinkDatabaseFromGit",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@7"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && viewItem =~ /\\bgitLinked=true\\b/",
+                    "group": "2_MSSQL_cacheAndGit@3"
                 },
                 {
                     "command": "mssql.showSourceControl",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@8"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && viewItem =~ /\\bgitLinked=true\\b/",
+                    "group": "2_MSSQL_cacheAndGit@4"
                 },
                 {
                     "command": "mssql.openGitRepository",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/",
-                    "group": "1_MSSQL_serverAndDbManagement@9"
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && viewItem =~ /\\bgitLinked=true\\b/",
+                    "group": "2_MSSQL_cacheAndGit@5"
                 },
                 {
                     "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences",
-                    "group": "2_MSSQL_serverDbActions@1"
+                    "group": "3_MSSQL_serverDbActions@1"
                 },
                 {
                     "command": "mssql.schemaCompare",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@2"
+                    "group": "3_MSSQL_serverDbActions@2"
                 },
                 {
                     "command": "mssql.scriptSelect",
                     "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|View)\\b/",
-                    "group": "3_MSSQL_script@1"
+                    "group": "4_MSSQL_script@1"
                 },
                 {
                     "command": "mssql.scriptCreate",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
-                    "group": "3_MSSQL_script@2"
+                    "group": "4_MSSQL_script@2"
                 },
                 {
                     "command": "mssql.scriptDelete",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
-                    "group": "3_MSSQL_script@3"
+                    "group": "4_MSSQL_script@3"
                 },
                 {
                     "command": "mssql.scriptAlter",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)\\b/",
-                    "group": "3_MSSQL_script@4"
+                    "group": "4_MSSQL_script@4"
                 },
                 {
                     "command": "mssql.scriptExecute",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(StoredProcedure)\\b/",
-                    "group": "3_MSSQL_script@5"
+                    "group": "4_MSSQL_script@5"
                 },
                 {
                     "command": "mssql.newTable",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/",
-                    "group": "4_MSSQL_object@1"
+                    "group": "5_MSSQL_object@1"
                 },
                 {
                     "command": "mssql.editTable",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "4_MSSQL_object@1"
+                    "group": "5_MSSQL_object@1"
                 },
                 {
                     "command": "mssql.filterNode",
                     "when": "view == objectExplorer && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/",
-                    "group": "5_MSSQL_tree@1"
+                    "group": "6_MSSQL_tree@1"
                 },
                 {
                     "command": "mssql.filterNodeWithExistingFilters",
                     "when": "view == objectExplorer && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
-                    "group": "5_MSSQL_tree@2"
+                    "group": "6_MSSQL_tree@2"
                 },
                 {
                     "command": "mssql.clearFilters",
                     "when": "view == objectExplorer && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
-                    "group": "5_MSSQL_tree@3"
+                    "group": "6_MSSQL_tree@3"
                 },
                 {
                     "command": "mssql.copyObjectName",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(?!Folder\\b)[^,]+/",
-                    "group": "5_MSSQL_tree@4"
+                    "group": "6_MSSQL_tree@4"
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
-                    "group": "5_MSSQL_tree@9999"
+                    "group": "6_MSSQL_tree@9999"
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabase",

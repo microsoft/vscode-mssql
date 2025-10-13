@@ -1777,6 +1777,7 @@ declare module "vscode-mssql" {
         subType: string;
         filterable: boolean;
         hasFilters: boolean;
+        gitLinked?: boolean;
     }
 
     export interface NodeFilterProperty {
