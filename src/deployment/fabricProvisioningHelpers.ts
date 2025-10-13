@@ -110,7 +110,6 @@ export function registerFabricProvisioningReducers(
     });
 
     deploymentController.registerReducer("handleWorkspaceFormAction", async (state, payload) => {
-        console.log("Payload in workspace form action: ", payload);
         const fabricProvisioningState = await handleWorkspaceFormAction(
             state.deploymentTypeState as fp.FabricProvisioningState,
             payload.workspaceId,
@@ -118,8 +117,6 @@ export function registerFabricProvisioningReducers(
         state.deploymentTypeState = fabricProvisioningState;
         state.formState = fabricProvisioningState.formState;
         state.formErrors = fabricProvisioningState.formErrors;
-        console.log("State in workspace form action: ", state.formState);
-        console.log("Deployment State in workspace form action: ", state.deploymentTypeState);
         return state;
     });
 
@@ -461,7 +458,6 @@ export async function getWorkspaces(
             },
         );
     } catch (err) {
-        console.log(err);
         state.isWorkspacesErrored = true;
         sendErrorEvent(
             TelemetryViews.FabricProvisioning,
