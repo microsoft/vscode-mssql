@@ -207,6 +207,11 @@
         <source xml:lang="en">An error occurred refreshing nodes. See the MSSQL output channel for more details.</source>
         <target state="translated">Errore durante l'aggiornamento dei nodi. Per altri dettagli, vedere il canale di output MSSQL.</target>
       </trans-unit>
+      <trans-unit id="++CODE++0e0aa36ee32c59d59231919e47412a12d29c1f3459800637634bb73fb949f541">
+        <source xml:lang="en">An error occurred while copying results: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">An error occurred while copying results: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++b80f19578e3d6cc4f8693e307caf7f4fc739be0f2eb550a9f78a0874ae0205e5">
         <source xml:lang="en">An error occurred while processing your request.</source>
         <target state="translated">Si è verificato un errore durante l'elaborazione della richiesta.</target>
@@ -354,10 +359,10 @@
         <source xml:lang="en">Available Servers</source>
         <target state="translated">Server disponibili</target>
       </trans-unit>
-      <trans-unit id="++CODE++92eb0b1fb89f1725b3c1fe652164720d7b2d17222e81bd5057f02f645fb24e67">
-        <source xml:lang="en">Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}</source>
-        <note>{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum</note>
-        <target state="translated">Media: {0}  Conteggio: {1}  Conteggio valori distinti: {2}  Max: {3}  Min: {4}  Conteggio valori Null: {5}  Somma: {6}</target>
+      <trans-unit id="++CODE++fb226d6b73aa48dadaf6a46992c5d7a707fb8d1fe58b0865de04d08c848fecff">
+        <source xml:lang="en">Average: {0}</source>
+        <note>{0} is the average</note>
+        <target state="new">Average: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++8dd4f3a846ac5cf5452d53cc438aaae7ad47df96a29ad32857a87718cdeefbca">
         <source xml:lang="en">Average: {0}  Count: {1}  Sum: {2}</source>
@@ -366,15 +371,15 @@
       </trans-unit>
       <trans-unit id="++CODE++994c049faf0fd65f191759cacf91508d01743fda1b2f06cfc7f779fc49ae4991">
         <source xml:lang="en">Azure (China)</source>
-        <target state="new">Azure (China)</target>
+        <target state="translated">Azure (Cina)</target>
       </trans-unit>
       <trans-unit id="++CODE++cdf9c75db21efc1ddc557d567de91e9bc67533606ce4bbc049c592d77f122e68">
         <source xml:lang="en">Azure (Public)</source>
-        <target state="new">Azure (Public)</target>
+        <target state="translated">Azure (pubblico)</target>
       </trans-unit>
       <trans-unit id="++CODE++cf582c92b799b117f2d093534bbe7b99aea5df658f201220f320f2976c0ebbba">
         <source xml:lang="en">Azure (US Government)</source>
-        <target state="new">Azure (US Government)</target>
+        <target state="translated">Azure (US Government)</target>
       </trans-unit>
       <trans-unit id="++CODE++63d6f58b83d48a7543f95534cb99f84ecd4273176e77feb7fd925ecbd81a4f39">
         <source xml:lang="en">Azure Account</source>
@@ -535,6 +540,10 @@
       <trans-unit id="++CODE++6bd09f9171ad9aa3824a8e54ea5edf59d28c768124be9dc7f9d2c5c7eee6780b">
         <source xml:lang="en">Change Database</source>
         <target state="translated">Modifica database</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a949f46230748d3f7496809b82cec6daa6ec8a671d17ac1ca03a17173cbcb2d6">
+        <source xml:lang="en">Change Password</source>
+        <target state="new">Change Password</target>
       </trans-unit>
       <trans-unit id="++CODE++00aecebb859a5ba020dd5aa5ffb71e7f9a4279e35f9c94e6d34ebf7c889a3f7e">
         <source xml:lang="en">Change database to '{1}' for connection '{0}'?</source>
@@ -836,6 +845,14 @@
         <source xml:lang="en">Configure and customize SQL Server containers</source>
         <target state="translated">Configurare e personalizzare i contenitori di SQL Server</target>
       </trans-unit>
+      <trans-unit id="++CODE++c292210c44167923a75b092a008f9d2b194fb08631a6aa43d753ed7931ad4d5e">
+        <source xml:lang="en">Confirm Password</source>
+        <target state="new">Confirm Password</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bf000421aeb39493cf8044ec73846d7da8ca97b7166208c0d1172a17ba23a388">
+        <source xml:lang="en">Confirm new password</source>
+        <target state="new">Confirm new password</target>
+      </trans-unit>
       <trans-unit id="++CODE++eb83f1820ce359dc5c9aa6ca4d08fad60256a9808c58ad93f89db3c182908364">
         <source xml:lang="en">Confirm to clear recent connections list</source>
         <target state="translated">Confermare per cancellare l'elenco delle connessioni recenti</target>
@@ -1088,9 +1105,18 @@
         <source xml:lang="en">Copy with Headers</source>
         <target state="translated">Copia con intestazioni</target>
       </trans-unit>
+      <trans-unit id="++CODE++35c380196401c05c48fe5f5fffd349ba06d9988118b87a1c12e1164a28175997">
+        <source xml:lang="en">Copying results...</source>
+        <target state="new">Copying results...</target>
+      </trans-unit>
       <trans-unit id="++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126">
         <source xml:lang="en">Cost</source>
         <target state="translated">Costo</target>
+      </trans-unit>
+      <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
+        <source xml:lang="en">Count: {0}</source>
+        <note>{0} is the count</note>
+        <target state="new">Count: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++4a8d5a21d0db63fc6a204170919855b12207337b5357f2bb7eedcb7cafa77fce">
         <source xml:lang="en">Count: {0}  Distinct Count: {1}  Null Count: {2}</source>
@@ -1241,6 +1267,10 @@
         <source xml:lang="en">Database name</source>
         <target state="translated">Nome del database</target>
       </trans-unit>
+      <trans-unit id="++CODE++3f0af542763ab0fd4d14de082ebedee3de024d89fb59bb569a6400087177d6db">
+        <source xml:lang="en">Database name is required</source>
+        <target state="new">Database name is required</target>
+      </trans-unit>
       <trans-unit id="++CODE++21b111cbfe6e8fca2d181c43f53ad548b22e38aca955b9824706a504b0a07a2d">
         <source xml:lang="en">Default</source>
         <target state="translated">Predefinito</target>
@@ -1360,6 +1390,11 @@
         <source xml:lang="en">Dissatisfied</source>
         <target state="translated">Insoddisfacente</target>
       </trans-unit>
+      <trans-unit id="++CODE++5aa581a11dd95f698fe9aa92dc7a36755c462342f790df3b8054f328cde4b94b">
+        <source xml:lang="en">Distinct Count: {0}</source>
+        <note>{0} is the distinct count</note>
+        <target state="new">Distinct Count: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c">
         <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</source>
         <target state="translated">Si è interessati a partecipare a un rapido sondaggio sull’estensione MSSQL per VS Code?</target>
@@ -1477,6 +1512,10 @@
       <trans-unit id="++CODE++b35ebaaf32f469f2fa86b0b2fb67e6f51fae3fb8e6ceaeaea97c2696321a8ee4">
         <source xml:lang="en">Enter new column width</source>
         <target state="translated">Specificare la larghezza della nuova colonna</target>
+      </trans-unit>
+      <trans-unit id="++CODE++15f691f800a4b76afbf264547e3718c96fbb46fc076005b8f12575eac2f1f136">
+        <source xml:lang="en">Enter new password</source>
+        <target state="new">Enter new password</target>
       </trans-unit>
       <trans-unit id="++CODE++03c72a0dd31428f797eaadef0452b218e6d7cfbfc8b66e7f47e404818a53cda0">
         <source xml:lang="en">Enter part of an object name to search for</source>
@@ -1654,6 +1693,10 @@ Errore:
         <source xml:lang="en">Execution Plan</source>
         <target state="translated">Piano di esecuzione</target>
       </trans-unit>
+      <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
+        <source xml:lang="en">Existing SQL server</source>
+        <target state="new">Existing SQL server</target>
+      </trans-unit>
       <trans-unit id="++CODE++07548c2c6511d4d1780564de8a237a1966cf9c99a97cf5c8a185e6c2aeacff09">
         <source xml:lang="en">Expand</source>
         <target state="translated">Espandi</target>
@@ -1708,7 +1751,7 @@ Errore:
         <source xml:lang="en">Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.</source>
         <note>{0} is the cloud name
 {1} is the setting name</note>
-        <target state="new">Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.</target>
+        <target state="translated">Fabric non è supportato nel cloud corrente ({0}).  Assicurarsi che l'impostazione '{1}' sia configurata correttamente.</target>
       </trans-unit>
       <trans-unit id="++CODE++3db198c251ac68aeafbdfbb134d03b8be7bca7a5b2f612addb78f72b2da67a90">
         <source xml:lang="en">Fabric long-running API error with error code '{0}': {1}</source>
@@ -1793,7 +1836,7 @@ Errore:
         <note>{0} is the tenant name
 {1} is the tenant id
 {2} is the error message</note>
-        <target state="new">Failed to get Fabric workspaces for tenant '{0} ({1})': {2}</target>
+        <target state="translated">Non è possibile ottenere le aree di lavoro di Fabric per il tenant '{0} ({1})': {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++8eec604197ddc90723c687678e1e97206d9146c079b5e0ead48d533c67970d23">
         <source xml:lang="en">Failed to get authentication method, please remove and re-add the account.</source>
@@ -1872,6 +1915,10 @@ Errore:
       <trans-unit id="++CODE++3905257a1ca17a05ee44a95330afe24483f05af738cc05090d1c2522910a5671">
         <source xml:lang="en">Filter Azure subscriptions</source>
         <target state="translated">Filtra sottoscrizioni di Azure</target>
+      </trans-unit>
+      <trans-unit id="++CODE++dcd87fabe8cdcdf7a36e88a2326e72e03e96ddd1b279d554ba9ef435af8f22f4">
+        <source xml:lang="en">Filter Options</source>
+        <target state="new">Filter Options</target>
       </trans-unit>
       <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
         <source xml:lang="en">Filter Settings</source>
@@ -2086,6 +2133,14 @@ Errore:
       <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
         <source xml:lang="en">Help</source>
         <target state="translated">Guida</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e05cee2e915ff0d693e5f5acff33d2a7cabfc340e7a977e993a6cf92fb686f4e">
+        <source xml:lang="en">Hide Confirm Password</source>
+        <target state="new">Hide Confirm Password</target>
+      </trans-unit>
+      <trans-unit id="++CODE++44900cb30578cbda86187326c4e7acfddc7828094583ff5d097f6080464aa6fc">
+        <source xml:lang="en">Hide New Password</source>
+        <target state="new">Hide New Password</target>
       </trans-unit>
       <trans-unit id="++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6">
         <source xml:lang="en">Hide full error message</source>
@@ -2463,12 +2518,10 @@ Errore:
         <source xml:lang="en">Loading results...</source>
         <target state="translated">Caricamento dei risultati...</target>
       </trans-unit>
-      <trans-unit id="++CODE++ba622a4c63bd7d102bdc3057b04b4cfd8d2af5b2adb230bebc98414fc46afae0">
-        <source xml:lang="en">Loading summary {0}/{1} ({2}%) (Click to cancel)</source>
-        <note>{0} is the current row
-{1} is the total number of rows
-{2} is the percentage of rows loaded</note>
-        <target state="translated">Caricamento riepilogo {0}/{1} ({2}%) (fai clic per annullare)</target>
+      <trans-unit id="++CODE++71499b4de6ef3b8d0c19b76e76295f5dd9f5690a180de07ed861fdce757182aa">
+        <source xml:lang="en">Loading summary for {0} rows (Click to cancel)</source>
+        <note>{0} is the total number of rows</note>
+        <target state="new">Loading summary for {0} rows (Click to cancel)</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -2493,6 +2546,10 @@ Errore:
       <trans-unit id="++CODE++2c91c2c68950d956381637d4e22e626dbf560a93aa4fc8126d755251a70230ea">
         <source xml:lang="en">Local SQL Server database container</source>
         <target state="translated">Contenitore del database di SQL Server locale</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9aa8c99c1e1071fa2070e9283b4cd9a737a77249f44f1a41b559073d99293249">
+        <source xml:lang="en">Local development container</source>
+        <target state="new">Local development container</target>
       </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
@@ -2537,6 +2594,11 @@ Errore:
       <trans-unit id="++CODE++3cb29430462001e8edb74afebb929c2e967e7eac89679c4d549a8305ec4a2fe7">
         <source xml:lang="en">Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold</source>
         <target state="translated">È stato superato il numero massimo di righe per i filtri/l'ordinamento. Per aggiornarlo, passare alle impostazioni utente e modificare l'impostazione: mssql.resultsGrid.inMemoryDataProcessingThreshold</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fc899519286f8da6256728b62d14e6ef9042346e7ad4191e21c95efaf1141a42">
+        <source xml:lang="en">Max: {0}</source>
+        <note>{0} is the max</note>
+        <target state="new">Max: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
         <source xml:lang="en">Maximize</source>
@@ -2603,6 +2665,11 @@ Errore:
         <source xml:lang="en">Microsoft would like your feedback</source>
         <target state="translated">La tua opinione è importante per Microsoft</target>
       </trans-unit>
+      <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
+        <source xml:lang="en">Min: {0}</source>
+        <note>{0} is the min</note>
+        <target state="new">Min: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++b58330ac25057a441365f4f4f1be20daba2d6d940142c891231e0eac66843ff4">
         <source xml:lang="en">Move Down</source>
         <target state="translated">Sposta giù</target>
@@ -2658,6 +2725,10 @@ Errore:
       <trans-unit id="++CODE++6334507f512e52b67d0a5a0fb392e35e5d3acc29acdce7218f66b6199150f589">
         <source xml:lang="en">New Microsoft Entra account could not be added.</source>
         <target state="translated">Non è stato possibile aggiungere il nuovo account Microsoft Entra.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7c451e0f436d04a6f321f8d5de8da296a66cfb1d8cdc3918b1ed7ecd480cce28">
+        <source xml:lang="en">New Password</source>
+        <target state="new">New Password</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -2852,6 +2923,11 @@ Errore:
         <source xml:lang="en">Note: A self-signed certificate offers only limited protection and is not a recommended practice for production environments. Do you want to enable 'Trust server certificate' on this connection and retry?</source>
         <target state="translated">Nota: un certificato autofirmato offre solo una protezione limitata e non è consigliato per gli ambienti di produzione. Abilitare 'Certificato del server attendibile' in questa connessione e riprovare?</target>
       </trans-unit>
+      <trans-unit id="++CODE++00faa1559589415a5c6ecf98b61606f4ab0b254a38471dd99f9182e638997a52">
+        <source xml:lang="en">Null Count: {0}</source>
+        <note>{0} is the null count</note>
+        <target state="new">Null Count: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++6091a3057f7b1b8140c1ad2fc9232cc4d483a484667f76fe8bb305d77ca3deb1">
         <source xml:lang="en">Number of Rows Read</source>
         <target state="translated">Numero di righe lette</target>
@@ -2988,6 +3064,25 @@ Errore:
       <trans-unit id="++CODE++b0f439de4ac489dfe75bf62e7fb55c9c993851f6f462fbbacae37851a6cad588">
         <source xml:lang="en">Password (SQL Login)</source>
         <target state="translated">Password (account di accesso SQL)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7aeae1412484f6378e5877b660a41baa6a521988eb8b2620ca3223b05e2ff20c">
+        <source xml:lang="en">Password is required</source>
+        <target state="new">Password is required</target>
+      </trans-unit>
+      <trans-unit id="++CODE++80dc52b50a4e9dc210b0dc44b71eaa2912aef3a1d931d41f51ad8bfc0061df16">
+        <source xml:lang="en">Password must be changed for '{0}' to continue logging into '{1}'</source>
+        <note>{0} is the username
+{1} is the name of the server</note>
+        <target state="new">Password must be changed for '{0}' to continue logging into '{1}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9a6b795a5a551cedd30148a98d54756e10a329d6dbd317ef8007d2837abc1100">
+        <source xml:lang="en">Password must be changed to continue logging into '{0}'</source>
+        <note>{0} is the name of the server</note>
+        <target state="new">Password must be changed to continue logging into '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b6eb82cd3300c838f99773b371b2f81d5ad517b3ba903de637d3e5920de7c04f">
+        <source xml:lang="en">Passwords do not match</source>
+        <target state="new">Passwords do not match</target>
       </trans-unit>
       <trans-unit id="++CODE++f3380f7b44bd70af2a369de6026bf2ca2a7b36fde9086935efcd62a0e379cc7a">
         <source xml:lang="en">Paste</source>
@@ -3128,6 +3223,18 @@ Errore:
         <source xml:lang="en">Publish Changes</source>
         <target state="translated">Pubblica modifiche</target>
       </trans-unit>
+      <trans-unit id="++CODE++dce49ef71e44b5c107d066069bd508af15fbffd22c8e410f76db1f120371635a">
+        <source xml:lang="en">Publish Profile</source>
+        <target state="new">Publish Profile</target>
+      </trans-unit>
+      <trans-unit id="++CODE++42b341b8072aa3adcb1b6f83353574f79b03c073faeb2c64253cdb6248c011c1">
+        <source xml:lang="en">Publish Project</source>
+        <target state="new">Publish Project</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d5ce61b547d2e5793b2ac208be904ea9f94d5e5594d0c5c02bdda22abf61fcf0">
+        <source xml:lang="en">Publish Target</source>
+        <target state="new">Publish Target</target>
+      </trans-unit>
       <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
         <source xml:lang="en">Publishing Changes</source>
         <target state="translated">Pubblicazione delle modifiche</target>
@@ -3220,6 +3327,10 @@ Errore:
         <source xml:lang="en">Remove</source>
         <target state="translated">Rimuovi</target>
       </trans-unit>
+      <trans-unit id="++CODE++67b215a4a9c0185c90cc9b971dcdf8dc2c3fddcaa5bfc78eed8cfcc2cefaf0d7">
+        <source xml:lang="en">Remove Sort</source>
+        <target state="new">Remove Sort</target>
+      </trans-unit>
       <trans-unit id="++CODE++7024a828547b51d9fb11f26d4d1d472691dd7e6ec7d7a2f499cb08731a63e943">
         <source xml:lang="en">Remove recent connection</source>
         <target state="translated">Rimuovi connessione recente</target>
@@ -3262,6 +3373,10 @@ Errore:
         <source xml:lang="en">Results ({0})</source>
         <note>{0} is the number of results</note>
         <target state="translated">Risultati ({0})</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a71f9e2908cf7df2e5ce9dafa67f3f4949fc4c74f525b9f4a6229ff6a7f93c86">
+        <source xml:lang="en">Results copied to clipboard</source>
+        <target state="new">Results copied to clipboard</target>
       </trans-unit>
       <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
         <source xml:lang="en">Retry</source>
@@ -3343,6 +3458,10 @@ Query: {1}</target>
         <source xml:lang="en">SQL database in Fabric (Preview)</source>
         <target state="translated">Database SQL in Fabric (anteprima)</target>
       </trans-unit>
+      <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
+        <source xml:lang="en">SQLCMD Variables</source>
+        <target state="new">SQLCMD Variables</target>
+      </trans-unit>
       <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
         <source xml:lang="en">SVG</source>
         <target state="translated">SVG</target>
@@ -3366,6 +3485,10 @@ Query: {1}</target>
       <trans-unit id="++CODE++088203b4cd88789e07f4e9a8f05cf6e8c1d0b413ae32d30cae69beeef94784e6">
         <source xml:lang="en">Save As</source>
         <target state="translated">Salva con nome</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4a3dca5ad8733bf29762c2315ae7e89e4f9a30c2ad082e4b01a93cc96e7d442e">
+        <source xml:lang="en">Save As...</source>
+        <target state="new">Save As...</target>
       </trans-unit>
       <trans-unit id="++CODE++df2839447956141d6503caf44145db003e70b17dc128d5c4fefec188b28d6966">
         <source xml:lang="en">Save Connection Group</source>
@@ -3514,6 +3637,10 @@ Query: {1}</target>
         <source xml:lang="en">Select Azure account with Key Vault access for column decryption</source>
         <target state="translated">Seleziona un account Azure con accesso a Key Vault per la decrittografia delle colonne</target>
       </trans-unit>
+      <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
+        <source xml:lang="en">Select Profile</source>
+        <target state="new">Select Profile</target>
+      </trans-unit>
       <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
         <source xml:lang="en">Select Source</source>
         <target state="translated">Seleziona origine</target>
@@ -3585,6 +3712,10 @@ Query: {1}</target>
         <source xml:lang="en">Select new permission for extension: '{0}'</source>
         <note>{0} is the extension name</note>
         <target state="translated">Selezionare una nuova autorizzazione per l'estensione: "{0}"</target>
+      </trans-unit>
+      <trans-unit id="++CODE++10484d8ed1877a7e126a17a3a144a55c6bf07784ecc22b01d87ee138fb808cd8">
+        <source xml:lang="en">Select or enter a publish profile</source>
+        <target state="new">Select or enter a publish profile</target>
       </trans-unit>
       <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
         <source xml:lang="en">Select profile to remove</source>
@@ -3672,13 +3803,21 @@ Query: {1}</target>
         <source xml:lang="en">Show All</source>
         <target state="translated">Mostra tutto</target>
       </trans-unit>
-      <trans-unit id="++CODE++a89fead964a8515cf74f4e5fcfbc0aaa029cee9744df340c6853e59a944de7ad">
-        <source xml:lang="en">Show Filter</source>
-        <target state="translated">Mostra filtro</target>
+      <trans-unit id="++CODE++70939b307b3a77407bd456a715ac3f6b7a100b246526c5a2d79f230c3c129294">
+        <source xml:lang="en">Show Confirm Password</source>
+        <target state="new">Show Confirm Password</target>
       </trans-unit>
       <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
         <source xml:lang="en">Show MSSQL output</source>
         <target state="translated">Mostra output MSSQL</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a16e132b133cc57c4d467bde193d78fe48f170a197d0581c2e6578162824902f">
+        <source xml:lang="en">Show Menu</source>
+        <target state="new">Show Menu</target>
+      </trans-unit>
+      <trans-unit id="++CODE++169b9d739add25522ff9a236b54583826c27bd79c2dcb1a4efcc50143164f78c">
+        <source xml:lang="en">Show New Password</source>
+        <target state="new">Show New Password</target>
       </trans-unit>
       <trans-unit id="++CODE++2228686dec07e7c9c6c8515f778b90a768e5a9474779610755f751e18e43805f">
         <source xml:lang="en">Show Schema</source>
@@ -3880,6 +4019,11 @@ Query: {1}</target>
         <source xml:lang="en">Successfully saved results to </source>
         <target state="translated">I risultati sono stati salvati in </target>
       </trans-unit>
+      <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
+        <source xml:lang="en">Sum: {0}</source>
+        <note>{0} is the sum</note>
+        <target state="new">Sum: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++17888248578c82867c18ea2dc512a96eabbbbb8184442d219746c3b8b8ff6030">
         <source xml:lang="en">Summary loading canceled</source>
         <target state="translated">Caricamento riepilogo annullato</target>
@@ -4002,7 +4146,7 @@ Query: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
         <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
-        <target state="new">The custom cloud choice is not configured. Please configure the setting `{0}`.</target>
+        <target state="translated">La scelta del cloud personalizzato non è configurata. Configurare l'impostazione `{0}`.</target>
       </trans-unit>
       <trans-unit id="++CODE++f229c94b4c9b8ecfa1096d1daf79194e84616c49df8fb6e229fa944592ff373e">
         <source xml:lang="en">The description of the check constraint.</source>
@@ -4217,6 +4361,10 @@ Query: {1}</target>
       <trans-unit id="++CODE++bb6e451b4ca453ef7b93d4a89b702cde206029b5c57a46ac64072d7e909018c4">
         <source xml:lang="en">User name is required</source>
         <target state="translated">Il nome utente è obbligatorio</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e3b89e9d33f88e523083d8b4436adcc3726c89e97fd3179a2e102d765d1b16ed">
+        <source xml:lang="en">Username</source>
+        <target state="new">Username</target>
       </trans-unit>
       <trans-unit id="++CODE++1806851cf9209ecb674faf6fe227aa165f6dbc4df5d05ea9f0cc71e3d00245c7">
         <source xml:lang="en">Using {0} ({1})...</source>
@@ -4480,6 +4628,11 @@ Query: {1}</target>
         <source xml:lang="en">{0} rows selected, click to load summary</source>
         <note>{0} is the number of rows to fetch summary statistics for</note>
         <target state="translated">{0} righe selezionate, fai clic per caricare il riepilogo</target>
+      </trans-unit>
+      <trans-unit id="++CODE++00e1f9b501086ed75248767b54cc5caa0b62853d91c148fa2da0b388be7a6388">
+        <source xml:lang="en">{0} selected</source>
+        <note>{0} is the number of selected rows</note>
+        <target state="new">{0} selected</target>
       </trans-unit>
       <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
         <source xml:lang="en">{0} started successfully.</source>
@@ -5187,35 +5340,35 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</source>
-        <target state="new">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `.database.fabric.microsoft.com` (incluso il punto iniziale)</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.sqlServerHostnameSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.database.windows.net` (including leading dot)</source>
-        <target state="new">Sovereign cloud equivalent for `.database.windows.net` (including leading dot)</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `.database.windows.net` (incluso il punto iniziale)</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricDataWarehouseDnsSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)</source>
-        <target state="new">Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `.datawarehouse.fabric.microsoft.com` (incluso il punto iniziale)</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.analyticsDnsSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)</source>
-        <target state="new">Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `.sql.azuresynapse.net` (incluso il punto iniziale)</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricScopeUriBase">
         <source xml:lang="en">Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`</source>
-        <target state="new">Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `https://analysis.windows.net/powerbi/api/`</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricApiUriBase">
         <source xml:lang="en">Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`</source>
-        <target state="new">Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `https://api.fabric.microsoft.com/v1/`</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.sqlEndpoint">
         <source xml:lang="en">Sovereign cloud equivalent for `https://database.windows.net/`</source>
-        <target state="new">Sovereign cloud equivalent for `https://database.windows.net/`</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `https://database.windows.net/`</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.keyVaultEndpoint">
         <source xml:lang="en">Sovereign cloud equivalent for `https://vault.azure.net/`</source>
-        <target state="new">Sovereign cloud equivalent for `https://vault.azure.net/`</target>
+        <target state="translated">Equivalente di Sovereign Cloud per `https://vault.azure.net/`</target>
       </trans-unit>
       <trans-unit id="mssql.startContainer">
         <source xml:lang="en">Start Container</source>
@@ -5239,7 +5392,7 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
       </trans-unit>
       <trans-unit id="mssql.customEnvironment">
         <source xml:lang="en">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</source>
-        <target state="new">The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.</target>
+        <target state="translated">La configurazione aggiuntiva e personalizzata specifica di MSSQL per il cloud sovrano da usare con il provider di autenticazione Microsoft Sovereign Cloud. Per usare questa funzionalità con MSSQL, è necessario impostare `microsoft-sovereign-cloud.environment` su `custom` e fornire i valori per `microsoft-sovereign-cloud.customEnvironment`.</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroup.color">
         <source xml:lang="en">The color of the connection group.</source>

@@ -93,6 +93,7 @@
         "@monaco-editor/react": "^4.6.0",
         "@playwright/test": "^1.45.0",
         "@stylistic/eslint-plugin": "^2.8.0",
+        "@tanstack/react-virtual": "^3.13.12",
         "@types/azdata": "^1.46.6",
         "@types/chai": "^5.2.2",
         "@types/jquery": "^3.3.31",
@@ -175,6 +176,7 @@
         "pretty-data": "^0.40.0",
         "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
         "shallow-equal": "^3.1.0",
+        "simple-git": "^3.28.0",
         "tar": "^7.4.3",
         "tmp": "^0.2.4",
         "tunnel": "0.0.6",
@@ -422,6 +424,11 @@
                     "submenu": "mssql.copilot.editorSubmenu",
                     "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
                     "group": "0_mssql"
+                },
+                {
+                    "command": "mssql.refreshLocalCache",
+                    "when": "editorLangId == sql && resource in mssql.connections && config.mssql.localCache.enabled",
+                    "group": "9_mssql_cache"
                 }
             ],
             "mssql.copilot.editorSubmenu": [
@@ -538,74 +545,99 @@
                     "group": "1_MSSQL_serverAndDbManagement@4"
                 },
                 {
+                    "command": "mssql.refreshLocalCache",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Server|Database)\\b/ && config.mssql.localCache.enabled",
+                    "group": "2_MSSQL_cacheAndGit@1"
+                },
+                {
+                    "command": "mssql.linkDatabaseToGitBranch",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && viewItem =~ /\\bgitLinked=false\\b/",
+                    "group": "2_MSSQL_cacheAndGit@2"
+                },
+                {
+                    "command": "mssql.unlinkDatabaseFromGit",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && viewItem =~ /\\bgitLinked=true\\b/",
+                    "group": "2_MSSQL_cacheAndGit@3"
+                },
+                {
+                    "command": "mssql.showSourceControl",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && viewItem =~ /\\bgitLinked=true\\b/",
+                    "group": "2_MSSQL_cacheAndGit@4"
+                },
+                {
+                    "command": "mssql.openGitRepository",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Database)\\b/ && viewItem =~ /\\bgitLinked=true\\b/",
+                    "group": "2_MSSQL_cacheAndGit@5"
+                },
+                {
                     "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences",
-                    "group": "2_MSSQL_serverDbActions@1"
+                    "group": "3_MSSQL_serverDbActions@1"
                 },
                 {
                     "command": "mssql.schemaCompare",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
-                    "group": "2_MSSQL_serverDbActions@2"
+                    "group": "3_MSSQL_serverDbActions@2"
                 },
                 {
                     "command": "mssql.scriptSelect",
                     "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|View)\\b/",
-                    "group": "3_MSSQL_script@1"
+                    "group": "4_MSSQL_script@1"
                 },
                 {
                     "command": "mssql.scriptCreate",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
-                    "group": "3_MSSQL_script@2"
+                    "group": "4_MSSQL_script@2"
                 },
                 {
                     "command": "mssql.scriptDelete",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
-                    "group": "3_MSSQL_script@3"
+                    "group": "4_MSSQL_script@3"
                 },
                 {
                     "command": "mssql.scriptAlter",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(AggregateFunction|PartitionFunction|ScalarValuedFunction|StoredProcedure|TableValuedFunction|View)\\b/",
-                    "group": "3_MSSQL_script@4"
+                    "group": "4_MSSQL_script@4"
                 },
                 {
                     "command": "mssql.scriptExecute",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(StoredProcedure)\\b/",
-                    "group": "3_MSSQL_script@5"
+                    "group": "4_MSSQL_script@5"
                 },
                 {
                     "command": "mssql.newTable",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/",
-                    "group": "4_MSSQL_object@1"
+                    "group": "5_MSSQL_object@1"
                 },
                 {
                     "command": "mssql.editTable",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "4_MSSQL_object@1"
+                    "group": "5_MSSQL_object@1"
                 },
                 {
                     "command": "mssql.filterNode",
                     "when": "view == objectExplorer && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/",
-                    "group": "5_MSSQL_tree@1"
+                    "group": "6_MSSQL_tree@1"
                 },
                 {
                     "command": "mssql.filterNodeWithExistingFilters",
                     "when": "view == objectExplorer && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
-                    "group": "5_MSSQL_tree@2"
+                    "group": "6_MSSQL_tree@2"
                 },
                 {
                     "command": "mssql.clearFilters",
                     "when": "view == objectExplorer && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=true\\b/",
-                    "group": "5_MSSQL_tree@3"
+                    "group": "6_MSSQL_tree@3"
                 },
                 {
                     "command": "mssql.copyObjectName",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(?!Folder\\b)[^,]+/",
-                    "group": "5_MSSQL_tree@4"
+                    "group": "6_MSSQL_tree@4"
                 },
                 {
                     "command": "mssql.refreshObjectExplorerNode",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(?!(disconnectedServer|ConnectionGroup)\\b)[^,]+/ ",
-                    "group": "5_MSSQL_tree@9999"
+                    "group": "6_MSSQL_tree@9999"
                 },
                 {
                     "command": "mssql.objectExplorerChatWithDatabase",
@@ -699,6 +731,40 @@
                 {
                     "command": "mssql.startContainer",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer)\\b/"
+                }
+            ],
+            "scm/resourceState/context": [
+                {
+                    "command": "mssql.sourceControl.stage",
+                    "when": "scmProvider == mssql-database && scmResourceGroup == changes",
+                    "group": "inline"
+                },
+                {
+                    "command": "mssql.sourceControl.unstage",
+                    "when": "scmProvider == mssql-database && scmResourceGroup == staged",
+                    "group": "inline"
+                },
+                {
+                    "command": "mssql.sourceControl.openDiff",
+                    "when": "scmProvider == mssql-database",
+                    "group": "navigation"
+                },
+                {
+                    "command": "mssql.sourceControl.discard",
+                    "when": "scmProvider == mssql-database && scmResourceGroup == changes",
+                    "group": "1_modification"
+                }
+            ],
+            "scm/resourceGroup/context": [
+                {
+                    "command": "mssql.sourceControl.stageAll",
+                    "when": "scmProvider == mssql-database && scmResourceGroup == changes",
+                    "group": "inline"
+                },
+                {
+                    "command": "mssql.sourceControl.unstageAll",
+                    "when": "scmProvider == mssql-database && scmResourceGroup == staged",
+                    "group": "inline"
                 }
             ],
             "commandPalette": [
@@ -1201,6 +1267,92 @@
                 "title": "%mssql.startContainer%",
                 "when": "mssql.enableRichExperiences",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.refreshLocalCache",
+                "title": "Refresh Local Cache",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.clearLocalCache",
+                "title": "Clear Local Cache",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.clearAllLocalCaches",
+                "title": "Clear All Local Caches",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.showLocalCacheStatus",
+                "title": "Show Local Cache Status",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.linkDatabaseToGitBranch",
+                "title": "Link to Git Branch...",
+                "category": "MS SQL",
+                "icon": "$(git-branch)"
+            },
+            {
+                "command": "mssql.unlinkDatabaseFromGit",
+                "title": "Unlink from Git",
+                "category": "MS SQL",
+                "icon": "$(close)"
+            },
+            {
+                "command": "mssql.showSourceControl",
+                "title": "Compare Database to Repo",
+                "category": "MS SQL",
+                "icon": "$(source-control)"
+            },
+            {
+                "command": "mssql.openGitRepository",
+                "title": "Open Git Repository in Source Control",
+                "category": "MS SQL",
+                "icon": "$(git-branch)"
+            },
+            {
+                "command": "mssql.sourceControl.stage",
+                "title": "Stage Changes",
+                "category": "MS SQL",
+                "icon": "$(add)"
+            },
+            {
+                "command": "mssql.sourceControl.unstage",
+                "title": "Unstage Changes",
+                "category": "MS SQL",
+                "icon": "$(remove)"
+            },
+            {
+                "command": "mssql.sourceControl.stageAll",
+                "title": "Stage All Changes",
+                "category": "MS SQL",
+                "icon": "$(add)"
+            },
+            {
+                "command": "mssql.sourceControl.unstageAll",
+                "title": "Unstage All Changes",
+                "category": "MS SQL",
+                "icon": "$(remove)"
+            },
+            {
+                "command": "mssql.sourceControl.commit",
+                "title": "Apply to Git Repo",
+                "category": "MS SQL",
+                "icon": "$(check)"
+            },
+            {
+                "command": "mssql.sourceControl.openDiff",
+                "title": "Open Changes",
+                "category": "MS SQL",
+                "icon": "$(go-to-file)"
+            },
+            {
+                "command": "mssql.sourceControl.discard",
+                "title": "Discard Changes",
+                "category": "MS SQL",
+                "icon": "$(discard)"
             }
         ],
         "keybindings": [
@@ -1876,6 +2028,32 @@
                     "type": "number",
                     "default": 20,
                     "description": "%mssql.queryHistoryLimit%",
+                    "scope": "window"
+                },
+                "mssql.localCache.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable automatic caching of database objects for offline access and improved performance",
+                    "scope": "window"
+                },
+                "mssql.localCache.autoRefreshEnabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable automatic periodic refresh of the local cache when connected to a database",
+                    "scope": "window"
+                },
+                "mssql.localCache.autoRefreshIntervalMinutes": {
+                    "type": "number",
+                    "default": 15,
+                    "minimum": 1,
+                    "maximum": 300,
+                    "description": "How frequently (in minutes) to automatically check for database changes and update the cache",
+                    "scope": "window"
+                },
+                "mssql.gitIntegration.autoRefreshCacheOnDDL": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Automatically refresh the local cache when DDL (Data Definition Language) statements are executed on Git-linked databases. This ensures the cache stays in sync with schema changes.",
                     "scope": "window"
                 },
                 "mssql.query.rowCount": {

@@ -8,6 +8,7 @@ export enum TelemetryViews {
     CommandPalette = "CommandPalette",
     SqlProjects = "SqlProjects",
     QueryEditor = "QueryEditor",
+    LocalCache = "LocalCache",
     /** react query result pane */
     QueryResult = "QueryResult",
     /** angular results grid */
@@ -77,6 +78,11 @@ export enum TelemetryActions {
     Edit = "Edit",
     Publish = "Publish",
     ContinueEditing = "ContinueEditing",
+    PopulateCache = "PopulateCache",
+    UpdateCache = "UpdateCache",
+    ClearCache = "ClearCache",
+    ClearAllCaches = "ClearAllCaches",
+    ShowCacheStatus = "ShowCacheStatus",
     Close = "Close",
     SurveySubmit = "SurveySubmit",
     SaveResults = "SaveResults",

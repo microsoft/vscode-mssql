@@ -10,16 +10,16 @@ import {
     CopyAsInsertIntoRequest,
     CopyHeadersRequest,
     CopySelectionRequest,
-    CopyWithHeadersRequest,
-    DbCellValue,
     GridContextMenuAction,
     ResultSetSummary,
-    SendToClipboardRequest,
 } from "../../../../../sharedInterfaces/queryResult";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
-import { IDisposableDataProvider } from "../dataProvider";
 import { HybridDataProvider } from "../hybridDataProvider";
-import { selectEntireGrid, selectionToRange, tryCombineSelectionsForResults } from "../utils";
+import {
+    convertDisplayedSelectionToActual,
+    selectEntireGrid,
+    tryCombineSelectionsForResults,
+} from "../utils";
 
 export class ContextMenu<T extends Slick.SlickData> {
     private grid!: Slick.Grid<T>;
@@ -29,7 +29,6 @@ export class ContextMenu<T extends Slick.SlickData> {
         private uri: string,
         private resultSetSummary: ResultSetSummary,
         private queryResultContext: QueryResultReactProvider,
-        private dataProvider: IDisposableDataProvider<T>,
     ) {
         this.uri = uri;
         this.resultSetSummary = resultSetSummary;
@@ -83,6 +82,8 @@ export class ContextMenu<T extends Slick.SlickData> {
             selection = selectEntireGrid(this.grid);
         }
 
+        const convertedSelection = convertDisplayedSelectionToActual(this.grid, selection);
+
         switch (action) {
             case GridContextMenuAction.SelectAll:
                 this.queryResultContext.log("Select All action triggered");
@@ -94,91 +95,23 @@ export class ContextMenu<T extends Slick.SlickData> {
                 break;
             case GridContextMenuAction.CopySelection:
                 this.queryResultContext.log("Copy action triggered");
-                if (this.dataProvider.isDataInMemory) {
-                    this.queryResultContext.log(
-                        "Sorted/filtered grid detected, fetching data from data provider",
-                    );
-                    let range = selectionToRange(selection[0]);
-                    let data = await this.dataProvider.getRangeAsync(range.start, range.length);
-                    const dataArray = data.map((map) => {
-                        const maxKey = Math.max(...Array.from(Object.keys(map)).map(Number)); // Get the maximum key
-                        return Array.from(
-                            { length: maxKey + 1 },
-                            (_, index) =>
-                                ({
-                                    rowId: index,
-                                    displayValue: map[index].displayValue || null,
-                                }) as DbCellValue,
-                        );
-                    });
-                    await this.queryResultContext.extensionRpc.sendRequest(
-                        SendToClipboardRequest.type,
-                        {
-                            uri: this.uri,
-                            data: dataArray,
-                            batchId: this.resultSetSummary.batchId,
-                            resultId: this.resultSetSummary.id,
-                            selection: selection,
-                            headersFlag: false,
-                        },
-                    );
-                } else {
-                    await this.queryResultContext.extensionRpc.sendRequest(
-                        CopySelectionRequest.type,
-                        {
-                            uri: this.uri,
-                            batchId: this.resultSetSummary.batchId,
-                            resultId: this.resultSetSummary.id,
-                            selection: selection,
-                        },
-                    );
-                }
-
+                await this.queryResultContext.extensionRpc.sendRequest(CopySelectionRequest.type, {
+                    uri: this.uri,
+                    batchId: this.resultSetSummary.batchId,
+                    resultId: this.resultSetSummary.id,
+                    selection: convertedSelection,
+                    includeHeaders: false,
+                });
                 break;
             case GridContextMenuAction.CopyWithHeaders:
                 this.queryResultContext.log("Copy with headers action triggered");
-
-                if (this.dataProvider.isDataInMemory) {
-                    this.queryResultContext.log(
-                        "Sorted/filtered grid detected, fetching data from data provider",
-                    );
-
-                    let range = selectionToRange(selection[0]);
-                    let data = await this.dataProvider.getRangeAsync(range.start, range.length);
-                    const dataArray = data.map((map) => {
-                        const maxKey = Math.max(...Array.from(Object.keys(map)).map(Number)); // Get the maximum key
-                        return Array.from(
-                            { length: maxKey + 1 },
-                            (_, index) =>
-                                ({
-                                    rowId: index,
-                                    displayValue: map[index].displayValue || null,
-                                }) as DbCellValue,
-                        );
-                    });
-                    await this.queryResultContext.extensionRpc.sendRequest(
-                        SendToClipboardRequest.type,
-                        {
-                            uri: this.uri,
-                            data: dataArray,
-                            batchId: this.resultSetSummary.batchId,
-                            resultId: this.resultSetSummary.id,
-                            selection: selection,
-                            headersFlag: true,
-                        },
-                    );
-                } else {
-                    await this.queryResultContext.extensionRpc.sendRequest(
-                        CopyWithHeadersRequest.type,
-                        {
-                            uri: this.uri,
-                            batchId: this.resultSetSummary.batchId,
-                            resultId: this.resultSetSummary.id,
-                            selection: selection,
-                        },
-                    );
-                }
-
+                await this.queryResultContext.extensionRpc.sendRequest(CopySelectionRequest.type, {
+                    uri: this.uri,
+                    batchId: this.resultSetSummary.batchId,
+                    resultId: this.resultSetSummary.id,
+                    selection: convertedSelection,
+                    includeHeaders: true,
+                });
                 break;
             case GridContextMenuAction.CopyHeaders:
                 this.queryResultContext.log("Copy Headers action triggered");
@@ -186,7 +119,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,
-                    selection: selection,
+                    selection: convertedSelection,
                 });
                 break;
             case GridContextMenuAction.CopyAsCsv:
@@ -195,8 +128,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,
-                    selection: selection,
-                    includeHeaders: true, // Default to including headers for CSV
+                    selection: convertedSelection,
                 });
                 break;
             case GridContextMenuAction.CopyAsJson:
@@ -205,7 +137,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,
-                    selection: selection,
+                    selection: convertedSelection,
                     includeHeaders: true, // Default to including headers for JSON
                 });
                 break;
@@ -215,7 +147,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                     uri: this.uri,
                     batchId: this.resultSetSummary.batchId,
                     resultId: this.resultSetSummary.id,
-                    selection: selection,
+                    selection: convertedSelection,
                 });
                 break;
             case GridContextMenuAction.CopyAsInsertInto:
@@ -226,7 +158,7 @@ export class ContextMenu<T extends Slick.SlickData> {
                         uri: this.uri,
                         batchId: this.resultSetSummary.batchId,
                         resultId: this.resultSetSummary.id,
-                        selection: selection,
+                        selection: convertedSelection,
                     },
                 );
                 break;
