@@ -244,8 +244,16 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     resizable: true,
                     focusable: false,
                     selectable: false,
-                    formatter: (row: number) =>
-                        `<span style="color: var(--vscode-foreground); padding-left: 8px;">${row + 1}</span>`,
+                    formatter: (row: number) => {
+                        // Calculate the actual row number accounting for pagination
+                        // Get the current page info from the grid
+                        const paginationService = reactGridRef.current?.paginationService;
+                        const pageNumber = paginationService?.pageNumber ?? 1; // SlickGrid pages are 1-indexed
+                        const itemsPerPage = paginationService?.itemsPerPage ?? pageSize;
+                        // Subtract 1 from pageNumber since it's 1-indexed
+                        const actualRowNumber = (pageNumber - 1) * itemsPerPage + row + 1;
+                        return `<span style="color: var(--vscode-foreground); padding-left: 8px;">${actualRowNumber}</span>`;
+                    },
                 };
 
                 // Create columns using the columnInfo from resultSet
