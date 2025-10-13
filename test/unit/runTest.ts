@@ -49,7 +49,12 @@ async function main() {
         await runTests({
             extensionDevelopmentPath,
             extensionTestsPath,
-            launchArgs: [],
+            launchArgs: [
+                "--disable-extensions",
+                "--skip-welcome",
+                "--skip-release-notes",
+                extensionDevelopmentPath, // Open the extension folder as workspace
+            ],
             extensionTestsEnv: {
                 ...process.env,
                 TEST_PATTERN: testPattern ?? "",

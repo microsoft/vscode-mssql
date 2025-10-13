@@ -138,4 +138,37 @@ suite("MainController Tests", function () {
             (mainController as any).onSchemaCompare = originalHandler;
         }
     });
+
+    test("publishDatabaseProject command should call onPublishDatabaseProject on the controller", async () => {
+        let called = false;
+        let gotProjectFilePath: string | undefined;
+
+        const originalHandler: (projectFilePath: string) => Promise<void> =
+            mainController.onPublishDatabaseProject.bind(mainController);
+        mainController.onPublishDatabaseProject = async (
+            projectFilePath: string,
+        ): Promise<void> => {
+            called = true;
+            gotProjectFilePath = projectFilePath;
+        };
+
+        const testProjectPath = "C:\\test\\project\\database.sqlproj";
+
+        try {
+            await vscode.commands.executeCommand(
+                Constants.cmdPublishDatabaseProject,
+                testProjectPath,
+            );
+
+            assert.equal(called, true, "Expected onPublishDatabaseProject to be called");
+            assert.deepStrictEqual(
+                gotProjectFilePath,
+                testProjectPath,
+                "Expected projectFilePath passed through to handler",
+            );
+        } finally {
+            // restore original handler so the test doesn't leak state
+            mainController.onPublishDatabaseProject = originalHandler;
+        }
+    });
 });

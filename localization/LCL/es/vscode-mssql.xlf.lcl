@@ -3313,6 +3313,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++56dd693767481cc69348e746edb945f23807899ed5736241c47000f787be902a" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Fabric no se admite en la nube actual ({0}).  Asegúrese de que el valor "{1}" esté configurado correctamente.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++56f99fbd59570e105fca5070d135f8f86c67f48168d43f8020b70523f06b21bb" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[An error occurred: {0}]]></Val>
@@ -5491,6 +5500,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The custom cloud choice is not configured. Please configure the setting `{0}`.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[No se ha configurado la opción de nube personalizada. Configure el valor "{0}".]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++90b901a30c3f089e10d82e1b842bbdc736a36b536a19d207b36a8e7be1904dcb" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Indexes]]></Val>
@@ -5757,6 +5775,15 @@
           <Val><![CDATA[Saturation]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Saturación]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++994c049faf0fd65f191759cacf91508d01743fda1b2f06cfc7f779fc49ae4991" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure (China)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure (China)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -6715,6 +6742,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++b4130b296ab05c9b6d46fa30eb4c7256fb9880192dca9262d2a8e524852dc226" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to get Fabric workspaces for tenant '{0} ({1})': {2}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Error al obtener las áreas de trabajo de Fabric para el inquilino "{0} ({1})": {2}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++b512d97e7cbf97c273e4db073bbb547aa65a84589227f8f3d9e4a72b9372a24d" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[User]]></Val>
@@ -7660,6 +7696,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++cdf9c75db21efc1ddc557d567de91e9bc67533606ce4bbc049c592d77f122e68" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure (Public)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure (público)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++cdfa68f01c8258a3933e2cc436e46a47425d2c5cde4ad327b70a59615b4a4892" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connecting to server {0}]]></Val>
@@ -7701,6 +7746,15 @@
           <Val><![CDATA[Changes published successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Cambios publicados correctamente]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++cf582c92b799b117f2d093534bbe7b99aea5df658f201220f320f2976c0ebbba" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure (US Government)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure (Gobierno de Estados Unidos)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10275,6 +10329,87 @@
           <Val><![CDATA[Create Azure Function with SQL binding]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Crear Azure Function con enlace SQL]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.customEnvironment" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The additional, MSSQL-specific custom configuration for the Sovereign Cloud to use with the Microsoft Sovereign Cloud authentication provider. This along with setting `microsoft-sovereign-cloud.environment` to `custom` and providing values for `microsoft-sovereign-cloud.customEnvironment` is required to use this feature with MSSQL.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[La configuración personalizada adicional específica para MSSQL de la nube soberana que se va a usar con el proveedor de autenticación de Microsoft Sovereign Cloud. Esto, además de configurar "microsoft-sovereign-cloud.environment" en "custom" y proporcionar valores para "microsoft-sovereign-cloud.customEnvironment", es necesario para usar esta función con MSSQL.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.customEnvironment.analyticsDnsSuffix" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sovereign cloud equivalent for `.sql.azuresynapse.net` (including leading dot)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Equivalente en nube soberana de ".sql.azuresynapse.net" (incluido el punto inicial)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.customEnvironment.fabricApiUriBase" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sovereign cloud equivalent for `https://api.fabric.microsoft.com/v1/`]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Equivalente en nube soberana de "https://api.fabric.microsoft.com/v1/"]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.customEnvironment.fabricDataWarehouseDnsSuffix" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Equivalente en nube soberana de ".datawarehouse.fabric.microsoft.com" (incluido el punto inicial)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.customEnvironment.fabricScopeUriBase" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Equivalente en nube soberana de "https://analysis.windows.net/powerbi/api/"]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.customEnvironment.fabricSqlDbDnsSuffix" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Equivalente en nube soberana de ".database.fabric.microsoft.com" (incluido el punto inicial)]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.customEnvironment.keyVaultEndpoint" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sovereign cloud equivalent for `https://vault.azure.net/`]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Equivalente en nube soberana de "https://vault.azure.net/"]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.customEnvironment.sqlEndpoint" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sovereign cloud equivalent for `https://database.windows.net/`]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Equivalente en nube soberana de "https://database.windows.net/"]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.customEnvironment.sqlServerHostnameSuffix" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Sovereign cloud equivalent for `.database.windows.net` (including leading dot)]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Equivalente en nube soberana de ".database.windows.net" (incluido el punto inicial)]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

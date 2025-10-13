@@ -64,6 +64,7 @@ import store from "../queryResult/singletonStore";
 import { SchemaCompareWebViewController } from "../schemaCompare/schemaCompareWebViewController";
 import { SchemaCompare } from "../constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
+import { PublishProjectWebViewController } from "../publishProject/publishProjectWebViewController";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { CopilotService } from "../services/copilotService";
 import * as Prompts from "../copilot/prompts";
@@ -92,6 +93,11 @@ import {
 } from "../deployment/dockerUtils";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { getCloudId } from "../azure/providerSettings";
+import { LocalCacheService } from "../services/localCacheService";
+import { GitIntegrationService } from "../services/gitIntegrationService";
+import { GitStatusService } from "../services/gitStatusService";
+import { DatabaseSourceControlProvider } from "../sourceControl/databaseSourceControlProvider";
+import { AutoCacheRefreshService } from "../services/autoCacheRefreshService";
 
 /**
  * The main controller class that initializes the extension
@@ -124,6 +130,10 @@ export default class MainController implements vscode.Disposable {
     public executionPlanService: ExecutionPlanService;
     public schemaDesignerService: SchemaDesignerService;
     public connectionSharingService: ConnectionSharingService;
+    public localCacheService: LocalCacheService;
+    public gitIntegrationService: GitIntegrationService;
+    public gitStatusService: GitStatusService;
+    public databaseSourceControlProvider: DatabaseSourceControlProvider;
 
     /**
      * The main controller constructor
@@ -482,6 +492,16 @@ export default class MainController implements vscode.Disposable {
                 },
             );
 
+            // -- PUBLISH PROJECT --
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(
+                    Constants.cmdPublishDatabaseProject,
+                    async (projectFilePath: string) => {
+                        await this.onPublishDatabaseProject(projectFilePath);
+                    },
+                ),
+            );
+
             // -- EXPLAIN QUERY --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(Constants.cmdExplainQuery, async () => {
@@ -576,6 +596,48 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper.onDidChangeConfiguration((params) =>
                 this.onDidChangeConfiguration(params),
             );
+
+            // Register local cache commands
+            this.registerCommand(Constants.cmdRefreshLocalCache);
+            this._event.on(Constants.cmdRefreshLocalCache, () => {
+                void this.onRefreshLocalCache();
+            });
+
+            this.registerCommand(Constants.cmdClearLocalCache);
+            this._event.on(Constants.cmdClearLocalCache, () => {
+                void this.onClearLocalCache();
+            });
+
+            this.registerCommand(Constants.cmdClearAllLocalCaches);
+            this._event.on(Constants.cmdClearAllLocalCaches, () => {
+                void this.onClearAllLocalCaches();
+            });
+
+            this.registerCommand(Constants.cmdShowLocalCacheStatus);
+            this._event.on(Constants.cmdShowLocalCacheStatus, () => {
+                void this.onShowLocalCacheStatus();
+            });
+
+            // Register Git integration commands
+            this.registerCommandWithArgs(Constants.cmdLinkDatabaseToGitBranch);
+            this._event.on(Constants.cmdLinkDatabaseToGitBranch, (node: TreeNodeInfo) => {
+                void this.onLinkDatabaseToGitBranch(node);
+            });
+
+            this.registerCommandWithArgs(Constants.cmdUnlinkDatabaseFromGit);
+            this._event.on(Constants.cmdUnlinkDatabaseFromGit, (node: TreeNodeInfo) => {
+                void this.onUnlinkDatabaseFromGit(node);
+            });
+
+            this.registerCommandWithArgs(Constants.cmdShowSourceControl);
+            this._event.on(Constants.cmdShowSourceControl, (node: TreeNodeInfo) => {
+                void this.onShowSourceControl(node);
+            });
+
+            this.registerCommandWithArgs(Constants.cmdOpenGitRepository);
+            this._event.on(Constants.cmdOpenGitRepository, (node: TreeNodeInfo) => {
+                void this.onOpenGitRepository(node);
+            });
 
             this.registerLanguageModelTools();
 
@@ -942,6 +1004,80 @@ export default class MainController implements vscode.Disposable {
 
         this._outputContentProvider.queryResultWebviewController.sqlDocumentService =
             this._sqlDocumentService;
+
+        // Initialize local cache service
+        this.localCacheService = new LocalCacheService(this._connectionMgr, this._context);
+
+        // Initialize Git integration service
+        this.gitIntegrationService = new GitIntegrationService(this._context);
+        void this.gitIntegrationService.initialize();
+
+        // Initialize Git status service
+        this.gitStatusService = new GitStatusService(
+            this.gitIntegrationService,
+            this.localCacheService,
+        );
+
+        // Initialize Auto Cache Refresh Service
+        const autoCacheRefreshService = AutoCacheRefreshService.getInstance(
+            this.localCacheService,
+            this.gitStatusService,
+            this._connectionMgr,
+        );
+
+        // Update SqlOutputContentProvider with auto-refresh service
+        (this._outputContentProvider as any)._autoCacheRefreshService = autoCacheRefreshService;
+        (this._outputContentProvider as any)._connectionManager = this._connectionMgr;
+
+        // Initialize Database Source Control Provider
+        this.databaseSourceControlProvider = new DatabaseSourceControlProvider(
+            this.gitIntegrationService,
+            this.localCacheService,
+            this.gitStatusService,
+            this._connectionMgr,
+            SqlToolsServerClient.instance,
+            this._vscodeWrapper,
+            this._context,
+        );
+        this._context.subscriptions.push(this.databaseSourceControlProvider);
+
+        // Listen for cache updates to refresh Git status decorations
+        this._context.subscriptions.push(
+            this.localCacheService.onCacheUpdated((credentials) => {
+                console.log(
+                    `[MainController] Cache updated for ${credentials.database}, clearing Git status cache`,
+                );
+                // Clear Git status cache so decorations refresh on next view
+                this.gitStatusService.clearCache(credentials);
+                // Refresh Object Explorer to update decorations
+                this._objectExplorerProvider.refresh(undefined);
+                // Refresh Source Control view if it's currently showing this database
+                void this.databaseSourceControlProvider.refreshIfActive(credentials);
+            }),
+        );
+
+        // Hook into connection success events
+        this._connectionMgr.onSuccessfulConnection((event) => {
+            this._connectionMgr.vscodeWrapper.logToOutputChannel(
+                `[MainController] Connection success event fired - fileUri: ${event.fileUri}, server: ${event.connection.credentials.server}, database: ${event.connection.credentials.database}`,
+            );
+            try {
+                this._connectionMgr.vscodeWrapper.logToOutputChannel(
+                    `[MainController] About to call localCacheService.onConnectionSuccess`,
+                );
+                void this.localCacheService.onConnectionSuccess(
+                    event.fileUri,
+                    event.connection.credentials,
+                );
+                this._connectionMgr.vscodeWrapper.logToOutputChannel(
+                    `[MainController] Called localCacheService.onConnectionSuccess`,
+                );
+            } catch (error) {
+                this._connectionMgr.vscodeWrapper.logToOutputChannel(
+                    `[MainController] Error calling localCacheService: ${error}`,
+                );
+            }
+        });
 
         void this.showOnLaunchPrompts();
 
@@ -1336,7 +1472,13 @@ export default class MainController implements vscode.Disposable {
                 this._vscodeWrapper,
                 this._connectionMgr,
                 this.isRichExperiencesEnabled,
+                this.gitStatusService,
             );
+
+        // If provider was passed in (for testing), set the Git status service
+        if (objectExplorerProvider && this.gitStatusService) {
+            objectExplorerProvider.setGitStatusService(this.gitStatusService);
+        }
 
         this.objectExplorerTree = vscode.window.createTreeView("objectExplorer", {
             treeDataProvider: this._objectExplorerProvider,
@@ -1348,6 +1490,12 @@ export default class MainController implements vscode.Disposable {
             ),
         });
         this._context.subscriptions.push(this.objectExplorerTree);
+
+        // Register Git decoration provider for Object Explorer
+        const gitDecorationProvider = this._objectExplorerProvider.getGitDecorationProvider();
+        this._context.subscriptions.push(
+            vscode.window.registerFileDecorationProvider(gitDecorationProvider),
+        );
 
         // Old style Add connection when experimental features are not enabled
 
@@ -2588,6 +2736,22 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Handler for the Publish Database Project command.
+     * Accepts the project file path as an argument.
+     * This method launches the Publish Project UI for the specified database project.
+     * @param projectFilePath The file path of the database project to publish.
+     */
+    public onPublishDatabaseProject(projectFilePath: string): void {
+        const publishProjectWebView = new PublishProjectWebViewController(
+            this._context,
+            this._vscodeWrapper,
+            projectFilePath,
+        );
+
+        publishProjectWebView.revealToForeground();
+    }
+
+    /**
      * Check if the extension launched file exists.
      * This is to detect when we are running in a clean install scenario.
      */
@@ -2848,6 +3012,479 @@ export default class MainController implements vscode.Disposable {
 
     public onClearAzureTokenCache(): void {
         this.connectionManager.onClearTokenCache();
+    }
+
+    /**
+     * Refresh local cache for the current connection
+     */
+    private async onRefreshLocalCache(): Promise<void> {
+        try {
+            const fileUri = this._vscodeWrapper.activeTextEditorUri;
+            if (!fileUri) {
+                void vscode.window.showWarningMessage("No active connection found");
+                return;
+            }
+
+            const connection = this._connectionMgr.getConnectionInfo(fileUri);
+            if (!connection || !connection.credentials) {
+                void vscode.window.showWarningMessage("No active connection found");
+                return;
+            }
+
+            await this.localCacheService.manualRefresh(fileUri, connection.credentials);
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to refresh cache: ${getErrorMessage(error)}`,
+            );
+        }
+    }
+
+    /**
+     * Clear local cache for the current connection
+     */
+    private async onClearLocalCache(): Promise<void> {
+        try {
+            const fileUri = this._vscodeWrapper.activeTextEditorUri;
+            if (!fileUri) {
+                void vscode.window.showWarningMessage("No active connection found");
+                return;
+            }
+
+            const connection = this._connectionMgr.getConnectionInfo(fileUri);
+            if (!connection || !connection.credentials) {
+                void vscode.window.showWarningMessage("No active connection found");
+                return;
+            }
+
+            const confirm = await vscode.window.showWarningMessage(
+                `Clear cache for ${connection.credentials.database}?`,
+                { modal: true },
+                "Clear",
+            );
+
+            if (confirm === "Clear") {
+                await this.localCacheService.clearCache(connection.credentials);
+                void vscode.window.showInformationMessage(
+                    `Cache cleared for ${connection.credentials.database}`,
+                );
+            }
+        } catch (error) {
+            void vscode.window.showErrorMessage(`Failed to clear cache: ${getErrorMessage(error)}`);
+        }
+    }
+
+    /**
+     * Clear all local caches
+     */
+    private async onClearAllLocalCaches(): Promise<void> {
+        try {
+            const confirm = await vscode.window.showWarningMessage(
+                "Clear all database caches?",
+                { modal: true },
+                "Clear All",
+            );
+
+            if (confirm === "Clear All") {
+                await this.localCacheService.clearAllCaches();
+                void vscode.window.showInformationMessage("All caches cleared");
+            }
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to clear all caches: ${getErrorMessage(error)}`,
+            );
+        }
+    }
+
+    /**
+     * Show local cache status for the current connection
+     */
+    private async onShowLocalCacheStatus(): Promise<void> {
+        try {
+            const fileUri = this._vscodeWrapper.activeTextEditorUri;
+            if (!fileUri) {
+                void vscode.window.showWarningMessage("No active connection found");
+                return;
+            }
+
+            const connection = this._connectionMgr.getConnectionInfo(fileUri);
+            if (!connection || !connection.credentials) {
+                void vscode.window.showWarningMessage("No active connection found");
+                return;
+            }
+
+            const status = await this.localCacheService.getCacheStatus(connection.credentials);
+
+            if (status.exists) {
+                const lastUpdate = status.lastUpdate
+                    ? new Date(status.lastUpdate).toLocaleString()
+                    : "Unknown";
+                void vscode.window.showInformationMessage(
+                    `Cache for ${connection.credentials.database}: ${status.objectCount} objects, last updated ${lastUpdate}`,
+                );
+            } else {
+                void vscode.window.showInformationMessage(
+                    `No cache exists for ${connection.credentials.database}`,
+                );
+            }
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to get cache status: ${getErrorMessage(error)}`,
+            );
+        }
+    }
+
+    /**
+     * Handle linking a database to a Git branch
+     */
+    private async onLinkDatabaseToGitBranch(node: TreeNodeInfo): Promise<void> {
+        try {
+            // Validate node and connection profile
+            if (!node || !node.connectionProfile) {
+                void vscode.window.showErrorMessage("No connection information available");
+                return;
+            }
+
+            // Get connection credentials from the node (IConnectionProfile extends IConnectionInfo)
+            const credentials: IConnectionInfo = Object.assign({}, node.connectionProfile);
+
+            // Get the actual database name from the node metadata (not from connectionProfile.database)
+            const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+            if (databaseName && databaseName !== LocalizedConstants.defaultDatabaseLabel) {
+                credentials.database = databaseName;
+            } else {
+                void vscode.window.showErrorMessage("Unable to determine database name");
+                return;
+            }
+
+            // Check if already linked
+            const status = await this.gitIntegrationService.getLinkStatus(credentials);
+            if (status.isLinked) {
+                void vscode.window.showWarningMessage(
+                    `Database ${credentials.database} is already linked to ${status.metadata.repositoryUrl} (${status.metadata.branch})`,
+                );
+                return;
+            }
+
+            // Step 1: Prompt for Git repository URL
+            const repoUrl = await vscode.window.showInputBox({
+                prompt: "Enter Git repository URL (HTTPS or SSH)",
+                placeHolder: "https://github.com/user/repo.git or git@github.com:user/repo.git",
+                validateInput: (value: string) => {
+                    const validation = this.gitIntegrationService.validateGitUrl(value);
+                    return validation.isValid ? null : validation.error;
+                },
+            });
+
+            if (!repoUrl) {
+                return; // User cancelled
+            }
+
+            // Step 2: Fetch and display branches
+            await vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: "Fetching branches...",
+                    cancellable: false,
+                },
+                async () => {
+                    const branchResult =
+                        await this.gitIntegrationService.fetchRemoteBranches(repoUrl);
+
+                    if (!branchResult.success) {
+                        void vscode.window.showErrorMessage(
+                            `Failed to fetch branches: ${branchResult.error}`,
+                        );
+                        return;
+                    }
+
+                    // Step 3: Let user select a branch
+                    const selectedBranch = await vscode.window.showQuickPick(
+                        branchResult.branches,
+                        {
+                            placeHolder: "Select a branch",
+                            canPickMany: false,
+                        },
+                    );
+
+                    if (!selectedBranch) {
+                        return; // User cancelled
+                    }
+
+                    // Step 4: Clone repository
+                    await vscode.window.withProgress(
+                        {
+                            location: vscode.ProgressLocation.Notification,
+                            title: `Cloning repository (branch: ${selectedBranch})...`,
+                            cancellable: false,
+                        },
+                        async () => {
+                            const cloneResult = await this.gitIntegrationService.cloneRepository(
+                                repoUrl,
+                                selectedBranch,
+                                credentials,
+                            );
+
+                            if (!cloneResult.success) {
+                                void vscode.window.showErrorMessage(
+                                    `Failed to clone repository: ${cloneResult.error}`,
+                                );
+                                return;
+                            }
+
+                            void vscode.window.showInformationMessage(
+                                `Database ${credentials.database} linked to ${selectedBranch} branch of ${repoUrl}`,
+                            );
+
+                            // Clear Git status cache and refresh Object Explorer to show Git decorations
+                            this.gitStatusService.clearCache(credentials);
+                            this._objectExplorerProvider.refresh(node);
+                        },
+                    );
+                },
+            );
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to link database to Git: ${getErrorMessage(error)}`,
+            );
+        }
+    }
+
+    /**
+     * Handle unlinking a database from Git
+     */
+    private async onUnlinkDatabaseFromGit(node: TreeNodeInfo): Promise<void> {
+        try {
+            // Validate node and connection profile
+            if (!node || !node.connectionProfile) {
+                void vscode.window.showErrorMessage("No connection information available");
+                return;
+            }
+
+            const credentials: IConnectionInfo = Object.assign({}, node.connectionProfile);
+
+            // Get the actual database name from the node metadata (not from connectionProfile.database)
+            const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+            if (databaseName && databaseName !== LocalizedConstants.defaultDatabaseLabel) {
+                credentials.database = databaseName;
+            } else {
+                void vscode.window.showErrorMessage("Unable to determine database name");
+                return;
+            }
+
+            // Check if linked
+            const status = await this.gitIntegrationService.getLinkStatus(credentials);
+            if (!status.isLinked) {
+                void vscode.window.showWarningMessage(
+                    `Database ${credentials.database} is not linked to any Git repository`,
+                );
+                return;
+            }
+
+            // Confirm unlink
+            const confirm = await vscode.window.showWarningMessage(
+                `Unlink database ${credentials.database} from ${status.metadata.repositoryUrl} (${status.metadata.branch})?`,
+                { modal: true },
+                "Unlink",
+            );
+
+            if (confirm !== "Unlink") {
+                return;
+            }
+
+            await this.gitIntegrationService.unlinkRepository(credentials);
+            void vscode.window.showInformationMessage(
+                `Database ${credentials.database} unlinked from Git repository`,
+            );
+
+            // Clear Git status cache and refresh Object Explorer to remove Git decorations
+            this.gitStatusService.clearCache(credentials);
+            this._objectExplorerProvider.refresh(node);
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to unlink database from Git: ${getErrorMessage(error)}`,
+            );
+        }
+    }
+
+    /**
+     * Handle showing Source Control view for a database
+     */
+    public async onShowSourceControl(node: TreeNodeInfo): Promise<void> {
+        try {
+            // Validate node and connection profile
+            if (!node || !node.connectionProfile) {
+                void vscode.window.showErrorMessage("No connection information available");
+                return;
+            }
+
+            // Get connection credentials from the node
+            const credentials: IConnectionInfo = Object.assign({}, node.connectionProfile);
+
+            // Get the actual database name from the node metadata
+            const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+            if (databaseName && databaseName !== LocalizedConstants.defaultDatabaseLabel) {
+                credentials.database = databaseName;
+            } else {
+                void vscode.window.showErrorMessage("Unable to determine database name");
+                return;
+            }
+
+            // Show Source Control view
+            await this.databaseSourceControlProvider.showChanges(credentials);
+
+            // Open Source Control view
+            await vscode.commands.executeCommand("workbench.view.scm");
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to show Source Control: ${getErrorMessage(error)}`,
+            );
+        }
+    }
+
+    /**
+     * Handle opening Git repository in VS Code's Source Control view
+     */
+    public async onOpenGitRepository(node: TreeNodeInfo): Promise<void> {
+        try {
+            // Validate node and connection profile
+            if (!node || !node.connectionProfile) {
+                void vscode.window.showErrorMessage("No connection information available");
+                return;
+            }
+
+            // Get connection credentials from the node
+            const credentials: IConnectionInfo = Object.assign({}, node.connectionProfile);
+
+            // Get the actual database name from the node metadata
+            const databaseName = ObjectExplorerUtils.getDatabaseName(node);
+            if (databaseName && databaseName !== LocalizedConstants.defaultDatabaseLabel) {
+                credentials.database = databaseName;
+            } else {
+                void vscode.window.showErrorMessage("Unable to determine database name");
+                return;
+            }
+
+            // Check if database is linked to Git
+            const gitInfo = await this.gitStatusService.getDatabaseGitInfo(credentials);
+            if (!gitInfo.isLinked || !gitInfo.localPath) {
+                void vscode.window.showWarningMessage(
+                    `Database ${credentials.database} is not linked to a Git repository. Use "Link to Git Branch..." first.`,
+                );
+                return;
+            }
+
+            // Open the Git repository folder in a new VS Code window
+            // This is the cleanest way to get full Git SCM functionality
+            try {
+                const repoUri = vscode.Uri.file(gitInfo.localPath);
+
+                // Check if repository is already in the workspace
+                const workspaceFolders = vscode.workspace.workspaceFolders || [];
+
+                // Normalize paths for comparison (handle Windows path case sensitivity and separators)
+                const normalizePathForComparison = (path: string): string => {
+                    // Convert to lowercase for case-insensitive comparison on Windows
+                    // Replace all backslashes with forward slashes for consistent comparison
+                    return path.toLowerCase().replace(/\\/g, "/");
+                };
+
+                const normalizedRepoPath = normalizePathForComparison(repoUri.fsPath);
+
+                console.log(`[MainController] Checking if repository is in workspace`);
+                console.log(`[MainController] Repository path: ${repoUri.fsPath}`);
+                console.log(`[MainController] Normalized repository path: ${normalizedRepoPath}`);
+                console.log(`[MainController] Workspace folders count: ${workspaceFolders.length}`);
+
+                workspaceFolders.forEach((folder, index) => {
+                    const normalizedFolderPath = normalizePathForComparison(folder.uri.fsPath);
+                    console.log(`[MainController] Workspace folder ${index}: ${folder.uri.fsPath}`);
+                    console.log(
+                        `[MainController] Normalized folder ${index}: ${normalizedFolderPath}`,
+                    );
+                    console.log(
+                        `[MainController] Match: ${normalizedFolderPath === normalizedRepoPath}`,
+                    );
+                });
+
+                const isInWorkspace = workspaceFolders.some(
+                    (folder) =>
+                        normalizePathForComparison(folder.uri.fsPath) === normalizedRepoPath,
+                );
+
+                console.log(`[MainController] Is repository in workspace: ${isInWorkspace}`);
+
+                if (isInWorkspace) {
+                    // Repository is already in workspace - just open Source Control view
+                    console.log(
+                        `[MainController] Git repository for ${credentials.database} is already in the workspace`,
+                    );
+                    await vscode.commands.executeCommand("workbench.view.scm");
+                    void vscode.window.showInformationMessage(
+                        `Git repository for ${credentials.database} is already in the workspace.`,
+                    );
+                    return;
+                }
+
+                // Ask user how they want to open the repository
+                const answer = await vscode.window.showInformationMessage(
+                    `Open Git repository for ${credentials.database}?`,
+                    { modal: false },
+                    "Open in New Window",
+                    "Add to Current Workspace",
+                    "Cancel",
+                );
+
+                if (answer === "Open in New Window") {
+                    // Open in a new window - cleanest approach, full Git SCM functionality
+                    console.log(
+                        `[MainController] Opening Git repository for ${credentials.database} in new window`,
+                    );
+                    await vscode.commands.executeCommand("vscode.openFolder", repoUri, {
+                        forceNewWindow: true,
+                    });
+                } else if (answer === "Add to Current Workspace") {
+                    // Add to current workspace - repository will appear in Git SCM
+                    console.log(
+                        `[MainController] Adding Git repository for ${credentials.database} to workspace`,
+                    );
+
+                    // Add to workspace
+                    const added = vscode.workspace.updateWorkspaceFolders(
+                        workspaceFolders.length,
+                        0,
+                        { uri: repoUri, name: `Git: ${credentials.database}` },
+                    );
+
+                    if (added) {
+                        // Wait for Git extension to detect the repository
+                        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+                        // Open Source Control view
+                        await vscode.commands.executeCommand("workbench.view.scm");
+
+                        void vscode.window.showInformationMessage(
+                            `Added Git repository for ${credentials.database} to workspace. You can now use Git operations in the Source Control view.`,
+                        );
+                    } else {
+                        void vscode.window.showErrorMessage(
+                            "Failed to add repository to workspace",
+                        );
+                    }
+                } else {
+                    console.log("[MainController] User cancelled opening Git repository");
+                }
+            } catch (gitError) {
+                console.error("[MainController] Failed to open Git repository:", gitError);
+
+                void vscode.window.showErrorMessage(
+                    `Failed to open Git repository: ${getErrorMessage(gitError)}. You can manually open the folder: ${gitInfo.localPath}`,
+                );
+            }
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to open Git repository: ${getErrorMessage(error)}`,
+            );
+        }
     }
 
     private ExecutionPlanCustomEditorProvider = class implements vscode.CustomTextEditorProvider {

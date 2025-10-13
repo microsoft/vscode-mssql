@@ -253,21 +253,11 @@ export interface CopySelectionRequestParams {
     batchId: number;
     resultId: number;
     selection: ISlickRange[];
-}
-export namespace CopySelectionRequest {
-    export const type = new RequestType<CopySelectionRequestParams, void, void>("copySelection");
+    includeHeaders?: boolean;
 }
 
-export interface SendToClipboardParams {
-    uri: string;
-    data: DbCellValue[][];
-    batchId: number;
-    resultId: number;
-    selection: ISlickRange[];
-    headersFlag?: boolean;
-}
-export namespace SendToClipboardRequest {
-    export const type = new RequestType<SendToClipboardParams, void, void>("sendToClipboard");
+export namespace CopySelectionRequest {
+    export const type = new RequestType<CopySelectionRequestParams, void, void>("copySelection");
 }
 
 export interface CopyHeadersParams {
@@ -280,17 +270,11 @@ export namespace CopyHeadersRequest {
     export const type = new RequestType<CopyHeadersParams, void, void>("copyHeaders");
 }
 
-export interface CopyWithHeadersParams extends CopyHeadersParams {}
-export namespace CopyWithHeadersRequest {
-    export const type = new RequestType<CopyWithHeadersParams, void, void>("copyWithHeaders");
-}
-
 export interface CopyAsCsvRequest {
     uri: string;
     batchId: number;
     resultId: number;
     selection: ISlickRange[];
-    includeHeaders: boolean;
 }
 
 export namespace CopyAsCsvRequest {

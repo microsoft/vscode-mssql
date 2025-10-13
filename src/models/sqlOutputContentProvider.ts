@@ -11,7 +11,7 @@ import QueryRunner from "../controllers/queryRunner";
 import ResultsSerializer from "../models/resultsSerializer";
 import StatusView from "../views/statusView";
 import VscodeWrapper from "./../controllers/vscodeWrapper";
-import { ISelectionData, ISlickRange } from "./interfaces";
+import { ISelectionData } from "./interfaces";
 import { Deferred } from "../protocol";
 import { ExecutionPlanOptions, ResultSetSubset, ResultSetSummary } from "./contracts/queryExecute";
 import { sendActionEvent } from "../telemetry/telemetry";
@@ -23,6 +23,8 @@ import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
 import { ApiStatus, StateChangeNotification } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
+import { AutoCacheRefreshService } from "../services/autoCacheRefreshService";
+import ConnectionManager from "../controllers/connectionManager";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 
@@ -53,6 +55,8 @@ export class SqlOutputContentProvider {
         private _statusView: StatusView,
         private _vscodeWrapper: VscodeWrapper,
         private _executionPlanService: ExecutionPlanService,
+        private _autoCacheRefreshService?: AutoCacheRefreshService,
+        private _connectionManager?: ConnectionManager,
     ) {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
@@ -183,29 +187,15 @@ export class SqlOutputContentProvider {
             .queryRunner.copyResults(selection, batchId, resultId, includeHeaders);
     }
 
-    public sendToClipboard(
-        uri: string,
-        data: qr.DbCellValue[][],
-        batchId: number,
-        resultId: number,
-        selection: ISlickRange[],
-        headersFlag: boolean,
-    ): void {
-        void this._queryResultsMap
-            .get(uri)
-            .queryRunner.exportCellsToClipboard(data, batchId, resultId, selection, headersFlag);
-    }
-
     public copyAsCsvRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-        includeHeaders?: boolean,
     ): void {
         void this._queryResultsMap
             .get(uri)
-            .queryRunner.copyResultsAsCsv(selection, batchId, resultId, includeHeaders);
+            .queryRunner.copyResultsAsCsv(selection, batchId, resultId);
     }
 
     public copyAsJsonRequestHandler(
@@ -213,11 +203,10 @@ export class SqlOutputContentProvider {
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-        includeHeaders?: boolean,
     ): void {
         void this._queryResultsMap
             .get(uri)
-            .queryRunner.copyResultsAsJson(selection, batchId, resultId, includeHeaders);
+            .queryRunner.copyResultsAsJson(selection, batchId, resultId);
     }
 
     public copyAsInClauseRequestHandler(
@@ -414,7 +403,16 @@ export class SqlOutputContentProvider {
         } else {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
-            queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
+            queryRunner = new QueryRunner(
+                uri,
+                title,
+                statusView ? statusView : this._statusView,
+                undefined,
+                undefined,
+                undefined,
+                this._autoCacheRefreshService,
+                this._connectionManager,
+            );
 
             const startFailedListener = queryRunner.onStartFailed(async (error) => {
                 this.updateWebviewState(queryRunner.uri, {

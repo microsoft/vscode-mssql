@@ -272,7 +272,10 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
         }
         let contextValue = "";
         Object.keys(context).forEach((key) => {
-            contextValue += key + "=" + context[key] + ",";
+            // Skip undefined values to avoid "key=undefined" in context string
+            if (context[key] !== undefined) {
+                contextValue += key + "=" + context[key] + ",";
+            }
         });
         return contextValue;
     }
