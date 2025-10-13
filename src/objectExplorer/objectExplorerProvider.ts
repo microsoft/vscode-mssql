@@ -238,6 +238,10 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
                 );
             }
             node.tooltip = tooltip;
+        } else {
+            // Clear Git information when database is not linked
+            node.description = undefined;
+            node.tooltip = undefined;
         }
     }
 
