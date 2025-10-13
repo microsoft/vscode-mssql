@@ -20,6 +20,7 @@ import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css"
 interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
     themeKind?: ColorThemeKind;
+    pageSize?: number;
     onDeleteRow?: (rowId: number) => void;
     onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
     onRevertCell?: (rowId: number, columnId: number) => void;
@@ -31,7 +32,18 @@ export interface TableDataGridRef {
 }
 
 export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
-    ({ resultSet, themeKind, onDeleteRow, onUpdateCell, onRevertCell, onRevertRow }, ref) => {
+    (
+        {
+            resultSet,
+            themeKind,
+            pageSize = 100,
+            onDeleteRow,
+            onUpdateCell,
+            onRevertCell,
+            onRevertRow,
+        },
+        ref,
+    ) => {
         const [dataset, setDataset] = useState<any[]>([]);
         const [columns, setColumns] = useState<Column[]>([]);
         const [options, setOptions] = useState<GridOption | undefined>(undefined);
@@ -57,6 +69,13 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         useImperativeHandle(ref, () => ({
             clearAllChangeTracking,
         }));
+
+        // Handle page size changes
+        useEffect(() => {
+            if (reactGridRef.current?.paginationService && pageSize) {
+                void reactGridRef.current.paginationService.changeItemPerPage(pageSize);
+            }
+        }, [pageSize]);
 
         function handleCellChange(_e: CustomEvent, args: any) {
             const rowIndex = args.row;
@@ -108,8 +127,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         onDeleteRow(dataContext.id);
                     }
 
-                    // Remove from grid using dataView
-                    reactGridRef.current?.dataView.deleteItem(dataContext.id);
+                    // Note: Don't remove from grid here - let the backend update state.resultSet
+                    // which will trigger the useEffect to rebuild the dataset with correct pagination
 
                     // Also remove any tracked changes for this row
                     const keysToDelete: string[] = [];
@@ -317,6 +336,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     enableSorting: false,
                     enableContextMenu: true,
                     contextMenu: getContextMenuOptions(),
+                    enablePagination: true,
+                    pagination: {
+                        pageSize: pageSize,
+                        pageSizes: [10, 50, 100, 1000],
+                    },
                     editCommandHandler: (_item, _column, editCommand) => {
                         // Add to command queue for undo functionality
                         commandQueue.push(editCommand);
@@ -327,7 +351,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         themeKind === ColorThemeKind.HighContrast,
                 });
             }
-        }, [resultSet, themeKind, commandQueue]);
+        }, [resultSet, themeKind, commandQueue, pageSize]);
 
         if (!resultSet || columns.length === 0 || !options) {
             return null;

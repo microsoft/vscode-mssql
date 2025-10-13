@@ -114,6 +114,7 @@ export interface EditCreateRowParams extends IEditSessionOperationParams {}
 export interface EditCreateRowResult {
     defaultValues: string[];
     newRowId: number;
+    row: EditRow;
 }
 
 //#endregion
@@ -185,6 +186,8 @@ export interface TableExplorerWebViewState {
     ownerUri: string;
     resultSet: EditSubsetResult | undefined;
     tableMetadata?: any; // This would be more specific based on actual metadata structure
+    currentRowCount: number; // Track the user's selected row count for data loading
+    newRows: EditRow[]; // Track newly created rows that haven't been committed yet
 }
 
 export interface TableExplorerContextProps {

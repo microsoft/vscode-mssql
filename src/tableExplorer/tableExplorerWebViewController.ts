@@ -50,6 +50,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 isLoading: false,
                 ownerUri: "",
                 resultSet: undefined,
+                currentRowCount: 100, // Default row count for data loading
+                newRows: [], // Track newly created rows
             },
             {
                 title: LocConstants.TableExplorer.title(tableName),
@@ -154,6 +156,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 vscode.window.showInformationMessage(
                     LocConstants.TableExplorer.changesSavedSuccessfully,
                 );
+
+                // Clear the new rows array since they're now committed to the database
+                state.newRows = [];
+                this.logger.info("Cleared new rows after successful commit");
             } catch (error) {
                 this.logger.error(`Error committing changes: ${error}`);
                 vscode.window.showErrorMessage(
@@ -171,11 +177,20 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     0,
                     payload.rowCount,
                 );
-                state.resultSet = subsetResult;
+
+                // Append any newly created rows to the subset
+                state.resultSet = {
+                    ...subsetResult,
+                    subset: [...subsetResult.subset, ...state.newRows],
+                    rowCount: subsetResult.rowCount + state.newRows.length,
+                };
+                state.currentRowCount = payload.rowCount; // Store the user's selection
 
                 this.updateState();
 
-                this.logger.info(`Loaded ${subsetResult.rowCount} rows`);
+                this.logger.info(
+                    `Loaded ${subsetResult.rowCount} rows from database + ${state.newRows.length} new rows`,
+                );
             } catch (error) {
                 this.logger.error(`Error loading subset: ${error}`);
                 vscode.window.showErrorMessage(
@@ -194,17 +209,25 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
                 this.logger.info(`Created row with ID: ${result.newRowId}`);
 
-                // Reload the result set to reflect the new row
-                const subsetResult = await this._tableExplorerService.subset(
-                    state.ownerUri,
-                    0,
-                    100,
-                );
-                state.resultSet = subsetResult;
+                // Add the new row to the newRows tracking array
+                state.newRows.push(result.row);
 
-                this.updateState();
+                // Append the new row to the existing result set
+                if (state.resultSet) {
+                    state.resultSet = {
+                        ...state.resultSet,
+                        subset: [...state.resultSet.subset, result.row],
+                        rowCount: state.resultSet.rowCount + 1,
+                    };
 
-                this.logger.info(`Reloaded ${subsetResult.rowCount} rows after creation`);
+                    this.updateState();
+
+                    this.logger.info(
+                        `Added new row to result set, now has ${state.resultSet.rowCount} rows (${state.newRows.length} new)`,
+                    );
+                } else {
+                    this.logger.warn("Cannot add row: result set is undefined");
+                }
             } catch (error) {
                 this.logger.error(`Error creating row: ${error}`);
                 vscode.window.showErrorMessage(
@@ -220,6 +243,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
                 vscode.window.showInformationMessage(LocConstants.TableExplorer.rowRemoved);
 
+                // Remove from newRows array if it's a newly created row
+                state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
+
                 if (state.resultSet) {
                     const updatedSubset = state.resultSet.subset.filter(
                         (row) => row.id !== payload.rowId,
@@ -232,7 +258,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                     this.updateState();
 
-                    this.logger.info(`Updated result set, now has ${updatedSubset.length} rows`);
+                    this.logger.info(
+                        `Updated result set, now has ${updatedSubset.length} rows (${state.newRows.length} new)`,
+                    );
                 }
             } catch (error) {
                 this.logger.error(`Error deleting row: ${error}`);

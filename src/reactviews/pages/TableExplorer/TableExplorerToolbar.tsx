@@ -32,8 +32,10 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({ onSa
     const handleDropdownChange = (_event: any, data: any) => {
         const newValue = data.optionValue;
         setSelectedValue(newValue);
+        const newRowCount = parseInt(newValue, 10);
         // Call the loadSubset reducer with the new row count
-        context.loadSubset(parseInt(newValue, 10));
+        // This loads data from the database, but doesn't change pagination size
+        context.loadSubset(newRowCount);
     };
 
     return (

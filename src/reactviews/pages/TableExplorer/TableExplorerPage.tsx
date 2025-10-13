@@ -27,6 +27,7 @@ export const TableExplorerPage: React.FC = () => {
                         ref={gridRef}
                         resultSet={state.resultSet}
                         themeKind={context?.themeKind}
+                        pageSize={10}
                         onDeleteRow={context?.deleteRow}
                         onUpdateCell={context?.updateCell}
                         onRevertCell={context?.revertCell}
