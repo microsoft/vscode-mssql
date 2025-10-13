@@ -154,11 +154,10 @@ export class VirtualizedCollection<T extends Slick.SlickData> implements IObserv
             this._window = this._bufferWindowBefore;
             this._bufferWindowBefore = windowToRecycle;
             let newWindowOffset = Math.max(0, this._window.getStartIndex() - this.windowSize);
+            // Ensure window length is never negative (defensive guard)
+            let newWindowLength = Math.max(0, this._window.getStartIndex() - newWindowOffset);
 
-            this._bufferWindowBefore.positionWindow(
-                newWindowOffset,
-                this._window.getStartIndex() - newWindowOffset,
-            );
+            this._bufferWindowBefore.positionWindow(newWindowOffset, newWindowLength);
         } else if (start >= this._bufferWindowAfter.getStartIndex()) {
             // scroll down, shift down
             let windowToRecycle = this._bufferWindowBefore;
@@ -169,7 +168,11 @@ export class VirtualizedCollection<T extends Slick.SlickData> implements IObserv
                 this._window.getStartIndex() + this.windowSize,
                 this.length,
             );
-            let newWindowLength = Math.min(this.length - newWindowOffset, this.windowSize);
+            // Ensure window length is never negative by using Math.max(0, ...)
+            let newWindowLength = Math.max(
+                0,
+                Math.min(this.length - newWindowOffset, this.windowSize),
+            );
 
             this._bufferWindowAfter.positionWindow(newWindowOffset, newWindowLength);
         }
@@ -201,21 +204,21 @@ export class VirtualizedCollection<T extends Slick.SlickData> implements IObserv
     public resetWindowsAroundIndex(index: number): void {
         let bufferWindowBeforeStart = Math.max(0, index - this.windowSize * 1.5);
         let bufferWindowBeforeEnd = Math.max(0, index - this.windowSize / 2);
-        this._bufferWindowBefore.positionWindow(
-            bufferWindowBeforeStart,
-            bufferWindowBeforeEnd - bufferWindowBeforeStart,
-        );
+        // Ensure window length is never negative
+        let bufferWindowBeforeLength = Math.max(0, bufferWindowBeforeEnd - bufferWindowBeforeStart);
+        this._bufferWindowBefore.positionWindow(bufferWindowBeforeStart, bufferWindowBeforeLength);
 
         let mainWindowStart = bufferWindowBeforeEnd;
         let mainWindowEnd = Math.min(mainWindowStart + this.windowSize, this.length);
-        this._window.positionWindow(mainWindowStart, mainWindowEnd - mainWindowStart);
+        // Ensure window length is never negative
+        let mainWindowLength = Math.max(0, mainWindowEnd - mainWindowStart);
+        this._window.positionWindow(mainWindowStart, mainWindowLength);
 
         let bufferWindowAfterStart = mainWindowEnd;
         let bufferWindowAfterEnd = Math.min(bufferWindowAfterStart + this.windowSize, this.length);
-        this._bufferWindowAfter.positionWindow(
-            bufferWindowAfterStart,
-            bufferWindowAfterEnd - bufferWindowAfterStart,
-        );
+        // Ensure window length is never negative
+        let bufferWindowAfterLength = Math.max(0, bufferWindowAfterEnd - bufferWindowAfterStart);
+        this._bufferWindowAfter.positionWindow(bufferWindowAfterStart, bufferWindowAfterLength);
     }
 }
 
