@@ -1024,6 +1024,8 @@ export default class MainController implements vscode.Disposable {
             this.gitStatusService,
             this._connectionMgr,
             SqlToolsServerClient.instance,
+            this._vscodeWrapper,
+            this._context,
         );
         this._context.subscriptions.push(this.databaseSourceControlProvider);
 

@@ -15,6 +15,8 @@ import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
 import { getErrorMessage } from "../utils/utils";
 import { TableMigrationService } from "./tableMigrationService";
+import { MigrationScriptPreviewController } from "../controllers/migrationScriptPreviewController";
+import VscodeWrapper from "../controllers/vscodeWrapper";
 
 /**
  * Represents a database object change in the source control view
@@ -122,6 +124,8 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
         private _gitStatusService: GitStatusService,
         private _connectionManager: ConnectionManager,
         private _sqlToolsClient: SqlToolsServiceClient,
+        private _vscodeWrapper: VscodeWrapper,
+        private _context: vscode.ExtensionContext,
     ) {
         // Initialize table migration service
         this._tableMigrationService = new TableMigrationService({
@@ -873,29 +877,16 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
 
             if (resourceState.status === GitObjectStatus.Added) {
                 // Table exists in database but not in Git - will be dropped
-                const answer = await vscode.window.showWarningMessage(
-                    `⚠️ WARNING: Data Loss Operation\n\n` +
-                        `Table "${resourceState.label}" exists in the database but not in the Git repository.\n\n` +
-                        `Discarding this change will DROP THE ENTIRE TABLE and ALL ITS DATA.\n\n` +
-                        `This operation CANNOT be undone. Are you sure you want to continue?`,
-                    { modal: true },
-                    "Preview DROP Script",
-                    "Cancel",
-                );
-
-                if (answer !== "Preview DROP Script") {
-                    return;
-                }
-
                 // Generate DROP script
                 const fullName = `[${resourceState.metadata.schema || "dbo"}].[${resourceState.metadata.name}]`;
                 const dropScript = `-- WARNING: This will DROP the table and ALL data\nDROP TABLE IF EXISTS ${fullName};`;
 
-                // Show preview
+                // Show preview in webview (DROP always has data loss)
                 const confirmed = await this._showMigrationScriptPreview(
                     dropScript,
                     resourceState.label,
                     "DROP TABLE",
+                    true, // hasDataLoss
                 );
 
                 if (!confirmed) {
@@ -909,24 +900,12 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
                 // Table exists in Git but not in database - will be created
                 gitSQL = await fs.readFile(resourceState.gitRepoPath, "utf-8");
 
-                const answer = await vscode.window.showWarningMessage(
-                    `Table "${resourceState.label}" exists in the Git repository but not in the database.\n\n` +
-                        `Discarding this change will CREATE the table in the database.\n\n` +
-                        `Continue?`,
-                    { modal: true },
-                    "Preview CREATE Script",
-                    "Cancel",
-                );
-
-                if (answer !== "Preview CREATE Script") {
-                    return;
-                }
-
-                // Show preview of CREATE script
+                // Show preview of CREATE script in webview (no data loss for CREATE)
                 const confirmed = await this._showMigrationScriptPreview(
                     gitSQL,
                     resourceState.label,
                     "CREATE TABLE",
+                    false, // hasDataLoss
                 );
 
                 if (!confirmed) {
@@ -947,51 +926,18 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
                 gitSQL,
             );
 
-            // Show data loss warning if applicable
-            if (dataLossSummary.hasDataLoss) {
-                const dataLossMessage =
-                    this._tableMigrationService.formatDataLossSummary(dataLossSummary);
-
-                const answer = await vscode.window.showWarningMessage(
-                    `⚠️ WARNING: Potential Data Loss\n\n` +
-                        `Discarding changes to table "${resourceState.label}" may result in data loss:\n\n` +
-                        `${dataLossMessage}\n\n` +
-                        `This operation CANNOT be undone. Do you want to preview the migration script?`,
-                    { modal: true },
-                    "Preview Migration Script",
-                    "Cancel",
-                );
-
-                if (answer !== "Preview Migration Script") {
-                    return;
-                }
-            } else {
-                // No data loss, but still show confirmation
-                const answer = await vscode.window.showInformationMessage(
-                    `Discard changes to table "${resourceState.label}"?\n\n` +
-                        `This will modify the table schema to match the Git repository version.\n\n` +
-                        `No data loss is expected, but you should preview the migration script.`,
-                    { modal: true },
-                    "Preview Migration Script",
-                    "Cancel",
-                );
-
-                if (answer !== "Preview Migration Script") {
-                    return;
-                }
-            }
-
             // Generate migration script
             const migrationScript = this._tableMigrationService.generateMigrationScript(
                 databaseSQL,
                 gitSQL,
             );
 
-            // Show preview and get final confirmation
+            // Show preview and get final confirmation (pass hasDataLoss from analysis)
             const confirmed = await this._showMigrationScriptPreview(
                 migrationScript,
                 resourceState.label,
                 "ALTER TABLE",
+                dataLossSummary.hasDataLoss,
             );
 
             if (!confirmed) {
@@ -1070,38 +1016,33 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
     }
 
     /**
-     * Show migration script preview in a new editor and get user confirmation
+     * Show migration script preview in a webview and get user confirmation
+     * @returns Whether the user confirmed execution of the script
      */
     private async _showMigrationScriptPreview(
         script: string,
         tableName: string,
         operationType: string,
+        hasDataLoss: boolean = false,
     ): Promise<boolean> {
-        // Create a new untitled document with the migration script
-        const doc = await vscode.workspace.openTextDocument({
-            content: script,
-            language: "sql",
-        });
-
-        // Show the document in a new editor
-        await vscode.window.showTextDocument(doc, {
-            preview: true,
-            viewColumn: vscode.ViewColumn.Beside,
-        });
-
-        // Show confirmation dialog
-        const answer = await vscode.window.showWarningMessage(
-            `⚠️ Review Migration Script\n\n` +
-                `Operation: ${operationType}\n` +
-                `Table: ${tableName}\n\n` +
-                `Please review the migration script in the editor.\n\n` +
-                `This operation CANNOT be undone. Execute the script?`,
-            { modal: true },
-            "Execute Script",
-            "Cancel",
+        // Create the migration script preview controller
+        const controller = new MigrationScriptPreviewController(
+            this._context,
+            this._vscodeWrapper,
+            script,
+            tableName,
+            operationType,
+            hasDataLoss,
         );
 
-        return answer === "Execute Script";
+        // Show the webview panel
+        controller.revealToForeground(vscode.ViewColumn.Beside);
+
+        // Wait for the user to either execute or cancel
+        const result = await controller.dialogResult.promise;
+
+        // Return whether the user confirmed
+        return result?.confirmed ?? false;
     }
 
     /**
