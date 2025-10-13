@@ -1085,6 +1085,36 @@ export class LocalCacheService implements vscode.Disposable {
             );
         }
 
+        // Create a dedicated cache URI for this connection
+        const connectionHash = this.generateConnectionHash(credentials);
+        const cacheOwnerUri = `vscode-mssql-cache://${connectionHash}`;
+        console.log(`[LocalCache] Using dedicated cache URI: ${cacheOwnerUri}`);
+
+        // Ensure the cache connection exists
+        if (!this._connectionManager.isConnected(cacheOwnerUri)) {
+            console.log(`[LocalCache] Creating cache connection...`);
+            try {
+                const connected = await this._connectionManager.connect(
+                    cacheOwnerUri,
+                    credentials,
+                    false, // Don't show error dialogs
+                );
+
+                if (!connected) {
+                    console.error(`[LocalCache] Failed to create cache connection`);
+                    this._client.logger.error(
+                        `[LocalCache] Failed to create cache connection for ${credentials.server}/${credentials.database}`,
+                    );
+                    return;
+                }
+                console.log(`[LocalCache] Cache connection created successfully`);
+            } catch (error) {
+                console.error(`[LocalCache] Error creating cache connection:`, error);
+                this._client.logger.error(`[LocalCache] Error creating cache connection: ${error}`);
+                return;
+            }
+        }
+
         try {
             console.log(`[LocalCache] Getting cache status...`);
             const status = await this.getCacheStatus(credentials);
@@ -1101,7 +1131,7 @@ export class LocalCacheService implements vscode.Disposable {
                     },
                     async (progress) => {
                         try {
-                            await this.populateCache(ownerUri, credentials, progress);
+                            await this.populateCache(cacheOwnerUri, credentials, progress);
                             void vscode.window.showInformationMessage(
                                 `Database cache created for ${credentials.database}`,
                             );
@@ -1122,7 +1152,7 @@ export class LocalCacheService implements vscode.Disposable {
                     },
                     async (progress) => {
                         try {
-                            await this.updateCache(ownerUri, credentials, progress);
+                            await this.updateCache(cacheOwnerUri, credentials, progress);
                         } catch (error) {
                             console.error(`[LocalCache] Failed to update cache:`, error);
                             this._client.logger.error(`Failed to update cache: ${error}`);
@@ -1161,6 +1191,44 @@ export class LocalCacheService implements vscode.Disposable {
             return;
         }
 
+        // Use dedicated cache URI if available, otherwise use the provided ownerUri
+        let cacheOwnerUri = ownerUri;
+        if (timerInfo?.cacheOwnerUri) {
+            // Use the existing dedicated cache connection URI
+            cacheOwnerUri = timerInfo.cacheOwnerUri;
+            console.log(`[LocalCache] Using existing dedicated cache URI: ${cacheOwnerUri}`);
+        } else {
+            // Create a dedicated cache URI for this manual refresh
+            cacheOwnerUri = `vscode-mssql-cache://${connectionHash}`;
+            console.log(`[LocalCache] Created new dedicated cache URI: ${cacheOwnerUri}`);
+        }
+
+        // Ensure the cache connection exists
+        if (!this._connectionManager.isConnected(cacheOwnerUri)) {
+            console.log(`[LocalCache] Cache connection doesn't exist, creating it...`);
+            try {
+                const connected = await this._connectionManager.connect(
+                    cacheOwnerUri,
+                    credentials,
+                    false, // Don't show error dialogs
+                );
+
+                if (!connected) {
+                    void vscode.window.showErrorMessage(
+                        `Failed to create cache connection for ${credentials.database}`,
+                    );
+                    return;
+                }
+                console.log(`[LocalCache] Cache connection created successfully`);
+            } catch (error) {
+                console.error(`[LocalCache] Error creating cache connection:`, error);
+                void vscode.window.showErrorMessage(
+                    `Failed to create cache connection: ${error instanceof Error ? error.message : String(error)}`,
+                );
+                return;
+            }
+        }
+
         // Perform manual refresh with progress notification
         await vscode.window.withProgress(
             {
@@ -1174,7 +1242,7 @@ export class LocalCacheService implements vscode.Disposable {
                         manual: "true",
                     });
 
-                    await this.updateCache(ownerUri, credentials, progress);
+                    await this.updateCache(cacheOwnerUri, credentials, progress);
 
                     void vscode.window.showInformationMessage(
                         `Cache refreshed for ${credentials.database}`,
