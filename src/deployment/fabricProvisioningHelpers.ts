@@ -110,6 +110,7 @@ export function registerFabricProvisioningReducers(
     });
 
     deploymentController.registerReducer("handleWorkspaceFormAction", async (state, payload) => {
+        console.log("Payload in workspace form action: ", payload);
         const fabricProvisioningState = await handleWorkspaceFormAction(
             state.deploymentTypeState as fp.FabricProvisioningState,
             payload.workspaceId,
@@ -117,6 +118,8 @@ export function registerFabricProvisioningReducers(
         state.deploymentTypeState = fabricProvisioningState;
         state.formState = fabricProvisioningState.formState;
         state.formErrors = fabricProvisioningState.formErrors;
+        console.log("State in workspace form action: ", state.formState);
+        console.log("Deployment State in workspace form action: ", state.deploymentTypeState);
         return state;
     });
 
@@ -623,6 +626,9 @@ export async function handleWorkspaceFormAction(
     state: fp.FabricProvisioningState,
     workspaceId: string,
 ): Promise<fp.FabricProvisioningState> {
+    // Clean up "databaseName" error if new workspace is selected
+    state.formErrors = state.formErrors.filter((err) => err !== "databaseName");
+
     const workspace = state.workspacesWithPermissions[workspaceId];
 
     // Check if the workspace has a role
@@ -648,13 +654,14 @@ export async function handleWorkspaceFormAction(
     }
 
     // Validate the workspace
-    state.formState.workspace = workspace.id;
+    state.formState.workspace = workspaceId;
     const workspaceComponent = state.formComponents["workspace"];
     const workspaceValidation = workspaceComponent.validate(state, state.formState.workspace);
     workspaceComponent.validation = workspaceValidation;
     if (!workspaceValidation.isValid) {
         state.formErrors.push("workspace");
         state.databaseNamesInWorkspace = [];
+        return state;
     } else {
         const startTime = Date.now();
 
@@ -686,6 +693,8 @@ export async function handleWorkspaceFormAction(
     if (!databaseNameValidation.isValid) {
         state.formErrors.push("databaseName");
     }
+    console.log("Workspace component: ", JSON.stringify(state.formComponents["workspace"]));
+    console.log("Workspace Databases: ", state.databaseNamesInWorkspace);
     return state;
 }
 
