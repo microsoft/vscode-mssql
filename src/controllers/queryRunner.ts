@@ -8,6 +8,8 @@ import StatusView from "../views/statusView";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "./queryNotificationHandler";
 import VscodeWrapper from "./vscodeWrapper";
+import { AutoCacheRefreshService } from "../services/autoCacheRefreshService";
+import ConnectionManager from "./connectionManager";
 import {
     BatchSummary,
     QueryExecuteParams,
@@ -156,6 +158,8 @@ export default class QueryRunner {
         private _client?: SqlToolsServerClient,
         private _notificationHandler?: QueryNotificationHandler,
         private _vscodeWrapper?: VscodeWrapper,
+        private _autoCacheRefreshService?: AutoCacheRefreshService,
+        private _connectionManager?: ConnectionManager,
     ) {
         if (!_client) {
             this._client = SqlToolsServerClient.instance;
@@ -398,6 +402,37 @@ export default class QueryRunner {
             TelemetryViews.QueryEditor,
             TelemetryActions.QueryExecutionCompleted,
             undefined,
+        );
+
+        // Trigger automatic cache refresh for DDL statements
+        this._handleAutoCacheRefresh(result.ownerUri, hasError);
+    }
+
+    /**
+     * Handle automatic cache refresh after query completion
+     */
+    private _handleAutoCacheRefresh(ownerUri: string, hasError: boolean): void {
+        // Skip if auto-refresh service is not available
+        if (!this._autoCacheRefreshService || !this._connectionManager) {
+            return;
+        }
+
+        // Get the query text
+        const queryText = this._uriToQueryStringMap.get(ownerUri);
+        if (!queryText) {
+            return;
+        }
+
+        // Get connection credentials
+        const connectionInfo = this._connectionManager.getConnectionInfo(ownerUri);
+        const credentials = connectionInfo?.credentials;
+
+        // Trigger auto-refresh (async, non-blocking)
+        void this._autoCacheRefreshService.handleQueryCompletion(
+            ownerUri,
+            queryText,
+            hasError,
+            credentials,
         );
     }
 

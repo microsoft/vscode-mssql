@@ -23,6 +23,8 @@ import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
 import { ApiStatus, StateChangeNotification } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
+import { AutoCacheRefreshService } from "../services/autoCacheRefreshService";
+import ConnectionManager from "../controllers/connectionManager";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 
@@ -53,6 +55,8 @@ export class SqlOutputContentProvider {
         private _statusView: StatusView,
         private _vscodeWrapper: VscodeWrapper,
         private _executionPlanService: ExecutionPlanService,
+        private _autoCacheRefreshService?: AutoCacheRefreshService,
+        private _connectionManager?: ConnectionManager,
     ) {
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
@@ -399,7 +403,16 @@ export class SqlOutputContentProvider {
         } else {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
-            queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
+            queryRunner = new QueryRunner(
+                uri,
+                title,
+                statusView ? statusView : this._statusView,
+                undefined,
+                undefined,
+                undefined,
+                this._autoCacheRefreshService,
+                this._connectionManager,
+            );
 
             const startFailedListener = queryRunner.onStartFailed(async (error) => {
                 this.updateWebviewState(queryRunner.uri, {

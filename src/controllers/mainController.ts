@@ -97,6 +97,7 @@ import { LocalCacheService } from "../services/localCacheService";
 import { GitIntegrationService } from "../services/gitIntegrationService";
 import { GitStatusService } from "../services/gitStatusService";
 import { DatabaseSourceControlProvider } from "../sourceControl/databaseSourceControlProvider";
+import { AutoCacheRefreshService } from "../services/autoCacheRefreshService";
 
 /**
  * The main controller class that initializes the extension
@@ -1016,6 +1017,17 @@ export default class MainController implements vscode.Disposable {
             this.gitIntegrationService,
             this.localCacheService,
         );
+
+        // Initialize Auto Cache Refresh Service
+        const autoCacheRefreshService = AutoCacheRefreshService.getInstance(
+            this.localCacheService,
+            this.gitStatusService,
+            this._connectionMgr,
+        );
+
+        // Update SqlOutputContentProvider with auto-refresh service
+        (this._outputContentProvider as any)._autoCacheRefreshService = autoCacheRefreshService;
+        (this._outputContentProvider as any)._connectionManager = this._connectionMgr;
 
         // Initialize Database Source Control Provider
         this.databaseSourceControlProvider = new DatabaseSourceControlProvider(

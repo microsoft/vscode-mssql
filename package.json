@@ -2050,6 +2050,12 @@
                     "description": "How frequently (in minutes) to automatically check for database changes and update the cache",
                     "scope": "window"
                 },
+                "mssql.gitIntegration.autoRefreshCacheOnDDL": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Automatically refresh the local cache when DDL (Data Definition Language) statements are executed on Git-linked databases. This ensures the cache stays in sync with schema changes.",
+                    "scope": "window"
+                },
                 "mssql.query.rowCount": {
                     "type": "number",
                     "default": 0,
