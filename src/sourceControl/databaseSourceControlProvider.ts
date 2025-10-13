@@ -224,6 +224,13 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
                 },
             ),
         );
+
+        // Discard all changes
+        this._disposables.push(
+            vscode.commands.registerCommand("mssql.sourceControl.discardAll", async () => {
+                await this._discardAllChanges();
+            }),
+        );
     }
 
     /**
@@ -861,6 +868,112 @@ export class DatabaseSourceControlProvider implements vscode.Disposable {
                 `Failed to sync ${resourceState.label}: ${getErrorMessage(error)}`,
             );
             console.error(`[SourceControl] Failed to discard changes:`, error);
+        }
+    }
+
+    /**
+     * Discard all changes (revert all objects to Git version)
+     */
+    private async _discardAllChanges(): Promise<void> {
+        const changesArray = this._changesGroup.resourceStates as DatabaseResourceState[];
+
+        if (changesArray.length === 0) {
+            vscode.window.showInformationMessage("No changes to discard.");
+            return;
+        }
+
+        // Show confirmation dialog
+        const answer = await vscode.window.showWarningMessage(
+            `This will modify ${changesArray.length} database object(s) to match the Git repository version. ` +
+                `Database changes cannot be undone. Continue?`,
+            { modal: true },
+            "Discard All Changes",
+            "Cancel",
+        );
+
+        if (answer !== "Discard All Changes") {
+            return;
+        }
+
+        try {
+            let successCount = 0;
+            let failureCount = 0;
+            const failures: string[] = [];
+
+            await vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: "Discarding all changes",
+                    cancellable: false,
+                },
+                async (progress) => {
+                    for (let i = 0; i < changesArray.length; i++) {
+                        const resourceState = changesArray[i];
+                        progress.report({
+                            message: `Processing ${resourceState.label} (${i + 1}/${changesArray.length})...`,
+                            increment: 100 / changesArray.length,
+                        });
+
+                        try {
+                            // Check if this is a table - requires special handling
+                            if (resourceState.metadata.metadataTypeName === "USER_TABLE") {
+                                // For tables, we need to handle them individually with user confirmation
+                                // Skip tables in batch discard - they require individual attention
+                                console.log(
+                                    `[SourceControl] Skipping table ${resourceState.label} in batch discard - requires individual confirmation`,
+                                );
+                                failures.push(
+                                    `${resourceState.label} (table - requires individual discard)`,
+                                );
+                                failureCount++;
+                                continue;
+                            }
+
+                            // Generate and execute the ALTER/CREATE/DROP script
+                            await this._executeDiscardScript(resourceState);
+
+                            // Update local cache file to match Git version
+                            await this._updateLocalCacheFile(resourceState);
+
+                            successCount++;
+                        } catch (error) {
+                            console.error(
+                                `[SourceControl] Failed to discard ${resourceState.label}:`,
+                                error,
+                            );
+                            failures.push(`${resourceState.label}: ${getErrorMessage(error)}`);
+                            failureCount++;
+                        }
+                    }
+
+                    // Clear Git status cache to force refresh
+                    if (this._currentDatabase) {
+                        this._gitStatusService.clearCache(this._currentDatabase.credentials);
+                    }
+
+                    // Refresh changes
+                    await this._refreshChanges(undefined);
+                },
+            );
+
+            // Show summary message
+            if (failureCount === 0) {
+                vscode.window.showInformationMessage(
+                    `Successfully discarded ${successCount} change(s).`,
+                );
+            } else if (successCount === 0) {
+                vscode.window.showErrorMessage(
+                    `Failed to discard all changes. ${failures.length} failure(s):\n${failures.join("\n")}`,
+                );
+            } else {
+                vscode.window.showWarningMessage(
+                    `Discarded ${successCount} change(s) with ${failureCount} failure(s). ` +
+                        `Failed items:\n${failures.join("\n")}`,
+                );
+            }
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to discard changes: ${getErrorMessage(error)}`);
+            console.error(`[SourceControl] Failed to discard all changes:`, error);
         }
     }
 

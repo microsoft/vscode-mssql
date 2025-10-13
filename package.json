@@ -745,6 +745,11 @@
                     "group": "inline"
                 },
                 {
+                    "command": "mssql.sourceControl.discard",
+                    "when": "scmProvider == mssql-database && scmResourceGroup == changes",
+                    "group": "inline@2"
+                },
+                {
                     "command": "mssql.sourceControl.openDiff",
                     "when": "scmProvider == mssql-database",
                     "group": "navigation"
@@ -765,6 +770,11 @@
                     "command": "mssql.sourceControl.unstageAll",
                     "when": "scmProvider == mssql-database && scmResourceGroup == staged",
                     "group": "inline"
+                },
+                {
+                    "command": "mssql.sourceControl.discardAll",
+                    "when": "scmProvider == mssql-database && scmResourceGroup == changes",
+                    "group": "inline@2"
                 }
             ],
             "commandPalette": [
@@ -1351,6 +1361,12 @@
             {
                 "command": "mssql.sourceControl.discard",
                 "title": "Discard Changes",
+                "category": "MS SQL",
+                "icon": "$(discard)"
+            },
+            {
+                "command": "mssql.sourceControl.discardAll",
+                "title": "Discard All Changes",
                 "category": "MS SQL",
                 "icon": "$(discard)"
             }
