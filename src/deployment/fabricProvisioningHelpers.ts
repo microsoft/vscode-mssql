@@ -693,8 +693,6 @@ export async function handleWorkspaceFormAction(
     if (!databaseNameValidation.isValid) {
         state.formErrors.push("databaseName");
     }
-    console.log("Workspace component: ", JSON.stringify(state.formComponents["workspace"]));
-    console.log("Workspace Databases: ", state.databaseNamesInWorkspace);
     return state;
 }
 
