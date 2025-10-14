@@ -33,8 +33,27 @@
                 "command": "connection-sharing-sample.requestApproval",
                 "title": "Request Approval for Connection Sharing",
                 "category": "ConnSharing"
+            },
+            {
+                "command": "connection-sharing-sample.customObjectExplorerDatabaseCommand",
+                "title": "Custom Object Explorer Database Command",
+                "category": "ConnSharing"
             }
-        ]
+        ],
+        "menus": {
+            "view/item/context": [
+                {
+                    "command": "connection-sharing-sample.customObjectExplorerDatabaseCommand",
+                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/"
+                }
+            ],
+            "commandPalette": [
+                {
+                    "command": "connection-sharing-sample.customObjectExplorerDatabaseCommand",
+                    "when": "false"
+                }
+            ]
+        }
     },
     "scripts": {
         "vscode:prepublish": "npm run package",
