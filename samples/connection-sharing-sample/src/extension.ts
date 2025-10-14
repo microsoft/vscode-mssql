@@ -20,7 +20,7 @@ export async function getConnectionSharingServiceApi(): Promise<
 
     await mssqlExtension.activate();
 
-    const mssqlExtensionApi = mssqlExtension.exports as any;
+    const mssqlExtensionApi = mssqlExtension.exports as mssql.IExtension;
     if (!mssqlExtensionApi) {
         vscode.window.showErrorMessage("Unable to access MSSQL extension API");
         return;
