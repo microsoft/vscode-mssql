@@ -43,8 +43,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
         _vscodeWrapper: VscodeWrapper,
         connectionManager: ConnectionManager,
         projectFilePath: string,
-        sqlProjectsService: SqlProjectsService,
-        dacFxService: mssql.IDacFxService,
+        sqlProjectsService?: SqlProjectsService,
+        dacFxService?: mssql.IDacFxService,
         deploymentOptions?: mssql.DeploymentOptions,
     ) {
         super(
