@@ -379,6 +379,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             <>
                 <style>
                     {`
+                    .table-explorer-grid-container {
+                        margin-bottom: 60px;
+                        padding-bottom: 20px;
+                    }
+
                     #tableExplorerGrid {
                         --slick-border-color: ${isDarkMode ? "#3e3e3e" : "#d4d4d4"};
                         --slick-cell-border-right: 1px solid var(--slick-border-color);
@@ -399,19 +404,29 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
+                        margin-top: 10px;
+                        margin-bottom: 20px;
+                        padding: 8px 0;
                     }
 
                     #tableExplorerGrid .slick-pagination .slick-pagination-settings {
                         float: none;
                         order: 1;
+                        margin-right: 10px;
                     }
 
                     #tableExplorerGrid .slick-pagination .slick-pagination-nav {
                         order: 2;
+                        margin: 0 10px;
+                    }
+
+                    #tableExplorerGrid .slick-pagination .slick-pagination-nav nav .pagination {
+                        padding-left: 0px;
                     }
 
                     #tableExplorerGrid .slick-pagination .slick-pagination-status {
                         order: 3;
+                        margin-left: 10px;
                     }
                     `}
                 </style>
