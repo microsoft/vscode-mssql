@@ -376,16 +376,56 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             themeKind === ColorThemeKind.Dark || themeKind === ColorThemeKind.HighContrast;
 
         return (
-            <div className={`table-explorer-grid-container ${isDarkMode ? "dark-mode" : ""}`}>
-                <SlickgridReact
-                    gridId="tableExplorerGrid"
-                    columns={columns}
-                    options={options}
-                    dataset={dataset}
-                    onReactGridCreated={($event) => reactGridReady($event.detail)}
-                    onCellChange={($event) => handleCellChange($event, $event.detail.args)}
-                />
-            </div>
+            <>
+                <style>
+                    {`
+                    #tableExplorerGrid {
+                        --slick-border-color: ${isDarkMode ? "#3e3e3e" : "#d4d4d4"};
+                        --slick-cell-border-right: 1px solid var(--slick-border-color);
+                        --slick-cell-border-top: 1px solid var(--slick-border-color);
+                        --slick-cell-border-bottom: 0;
+                        --slick-cell-border-left: 0;
+                        --slick-cell-box-shadow: none;
+                        --slick-grid-border-color: var(--slick-border-color);
+                    }
+
+                    #tableExplorerGrid .slick-cell {
+                        display: flex;
+                        align-items: center;
+                    }
+
+                    /* Reposition pagination footer to the left */
+                    #tableExplorerGrid .slick-pagination {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    }
+
+                    #tableExplorerGrid .slick-pagination .slick-pagination-settings {
+                        float: none;
+                        order: 1;
+                    }
+
+                    #tableExplorerGrid .slick-pagination .slick-pagination-nav {
+                        order: 2;
+                    }
+
+                    #tableExplorerGrid .slick-pagination .slick-pagination-status {
+                        order: 3;
+                    }
+                    `}
+                </style>
+                <div className={`table-explorer-grid-container ${isDarkMode ? "dark-mode" : ""}`}>
+                    <SlickgridReact
+                        gridId="tableExplorerGrid"
+                        columns={columns}
+                        options={options}
+                        dataset={dataset}
+                        onReactGridCreated={($event) => reactGridReady($event.detail)}
+                        onCellChange={($event) => handleCellChange($event, $event.detail.args)}
+                    />
+                </div>
+            </>
         );
     },
 );
