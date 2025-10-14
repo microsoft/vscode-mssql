@@ -199,6 +199,10 @@
         <source xml:lang="en">Alter</source>
         <target state="translated">更改</target>
       </trans-unit>
+      <trans-unit id="++CODE++2377437eeccabd24162dbc0f1d9e2ed6af6102f30ef6da601f39ce4237cb6bee">
+        <source xml:lang="en">Always Encrypted</source>
+        <target state="new">Always Encrypted</target>
+      </trans-unit>
       <trans-unit id="++CODE++1888bd4ce917e9c8cecde43608d69624f56668f86f1bbe4331494db33fb52578">
         <source xml:lang="en">Always show in new tab</source>
         <target state="translated">始终在新选项卡中显示</target>
@@ -255,6 +259,10 @@
       <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
         <source xml:lang="en">And</source>
         <target state="translated">和</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f548fb847184961d59c59fd5b4ff10720726475e1768037348dec8e7c6bd6468">
+        <source xml:lang="en">Application Intent</source>
+        <target state="new">Application Intent</target>
       </trans-unit>
       <trans-unit id="++CODE++31e392d1c0378beca611de66c0f4c71cba29159905cc54242d9bddee5b23d851">
         <source xml:lang="en">Apply</source>
@@ -392,6 +400,10 @@
       <trans-unit id="++CODE++c5023bdd36d362e05c245ab15ab6839ad7562bcd42f1e1b0c759dca9d5fec4f7">
         <source xml:lang="en">Azure Device Code</source>
         <target state="translated">Azure 设备代码</target>
+      </trans-unit>
+      <trans-unit id="++CODE++aa3e45296e9592fa302b1adc67d9b4467e467a4ffa11fee0c0430063a3372707">
+        <source xml:lang="en">Azure MFA</source>
+        <target state="new">Azure MFA</target>
       </trans-unit>
       <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
         <source xml:lang="en">Azure sign in failed.</source>
@@ -821,6 +833,10 @@
         <source xml:lang="en">Columns in the primary key.</source>
         <target state="translated">主键中的列。</target>
       </trans-unit>
+      <trans-unit id="++CODE++e665046133e22f0d3599a6c5de916445ed88c82a997a625a04af1827c42d790b">
+        <source xml:lang="en">Command Timeout</source>
+        <target state="new">Command Timeout</target>
+      </trans-unit>
       <trans-unit id="++CODE++e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9">
         <source xml:lang="en">Compare</source>
         <target state="translated">比较</target>
@@ -995,6 +1011,10 @@
       <trans-unit id="++CODE++a2caae6025f30a0976030ae3ea92ab948f6b580d5f50272514ba36e31c8d1d09">
         <source xml:lang="en">Connection String</source>
         <target state="translated">连接字符串</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e4ce453aa184d4cd0a2051dfb91ab491ba8b19c756bd9f113b7a1ce1e807b02e">
+        <source xml:lang="en">Connection Timeout</source>
+        <target state="new">Connection Timeout</target>
       </trans-unit>
       <trans-unit id="++CODE++8d137af9c64fba09bbb003aba93f0b029898fe19e7927cd696f4c3e2b69f538d">
         <source xml:lang="en">Connection error</source>
@@ -1347,6 +1367,10 @@
         <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
         <target state="translated">在当前文档中禁用 Intellisense 和语法错误检查</target>
       </trans-unit>
+      <trans-unit id="++CODE++75081b593d15cf6e631971bc6768723f593b88b172477e40ae7d363e4829816d">
+        <source xml:lang="en">Disabled</source>
+        <target state="new">Disabled</target>
+      </trans-unit>
       <trans-unit id="++CODE++acfc5be785a9bb3da11c9f05adb69bd5633096f09002aa44813a1b3207e912ad">
         <source xml:lang="en">Disconnect</source>
         <target state="translated">断开连接</target>
@@ -1460,6 +1484,10 @@
       <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
         <source xml:lang="en">Enable Trust Server Certificate</source>
         <target state="translated">启用“信任服务器证书”</target>
+      </trans-unit>
+      <trans-unit id="++CODE++92c1cdfdf4cb9cf6fcca962f206de36fd5d60db1178bc9461052f8de703a0e06">
+        <source xml:lang="en">Enabled</source>
+        <target state="new">Enabled</target>
       </trans-unit>
       <trans-unit id="++CODE++76ad7b53af548367c78d7216972ce81ee53ecf7ee1d6fe5f3d16a73633bd4e49">
         <source xml:lang="en">Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!</source>
@@ -3340,6 +3368,10 @@ Error:
         <note>{0} is the object type</note>
         <target state="translated">移除 {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
+        <source xml:lang="en">Replication</source>
+        <target state="new">Replication</target>
+      </trans-unit>
       <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
         <source xml:lang="en">Reset</source>
         <target state="translated">重置</target>
@@ -3428,6 +3460,14 @@ Query: {1}</source>
       <trans-unit id="++CODE++59b151f69d83edf3eb174ff38c0f77aebf28c9195c785f2003a1cd708de0dc77">
         <source xml:lang="en">SQL Analytics Endpoint</source>
         <target state="translated">SQL 分析终结点</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fa728e3cf6aa4aa3207afe540af912463db2631cd2358004e457e71dc0107148">
+        <source xml:lang="en">SQL Container Name</source>
+        <target state="new">SQL Container Name</target>
+      </trans-unit>
+      <trans-unit id="++CODE++418024d48b3bccf64d26f1031290f65e229c515336a4b5a08a0cde384d803ed7">
+        <source xml:lang="en">SQL Container Version</source>
+        <target state="new">SQL Container Version</target>
       </trans-unit>
       <trans-unit id="++CODE++7f779b8a3477b9909716127bf4ed2ef8e07e7f5fae134f7ad1506a7f267de247">
         <source xml:lang="en">SQL Database</source>
@@ -4421,6 +4461,10 @@ Query: {1}</source>
         <source xml:lang="en">Width cannot be 0 or negative</source>
         <target state="translated">宽度不能为 0 或负</target>
       </trans-unit>
+      <trans-unit id="++CODE++8746aa4543652187c8719dbebc36f0609e31bbc53b14ed2ca12b0207c9e79345">
+        <source xml:lang="en">Windows Authentication</source>
+        <target state="new">Windows Authentication</target>
+      </trans-unit>
       <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
         <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>
         <target state="translated">适用于 VS Code/SSMS，并采用 Microsoft Entra 身份验证和 Fabric 访问控制。</target>
@@ -4724,6 +4768,10 @@ Query: {1}</source>
         <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
         <target state="translated">允许用户登录到输入受限设备。</target>
       </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.alwaysEncryptedLabel">
+        <source xml:lang="en">Always Encrypted</source>
+        <target state="new">Always Encrypted</target>
+      </trans-unit>
       <trans-unit id="mssql.query.executionTimeout">
         <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
         <target state="translated">如果执行超时为 0，则表示无限等待(不会超时)</target>
@@ -4731,6 +4779,10 @@ Query: {1}</source>
       <trans-unit id="mssql.copilot.analyzeQueryPerformance">
         <source xml:lang="en">Analyze Query Performance (Preview)</source>
         <target state="translated">分析查询性能(预览)</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.applicationIntentLabel">
+        <source xml:lang="en">Application Intent</source>
+        <target state="new">Application Intent</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.autoSizeColumns">
         <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
@@ -4743,6 +4795,10 @@ Query: {1}</source>
       <trans-unit id="mssql.autoRevealResultsPanel">
         <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when 'Open Results in Tab' is enabled.</source>
         <target state="translated">切换到包含查询结果的编辑器时自动显示结果面板。仅在启用“在选项卡中打开结果”时适用。</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.MFALabel">
+        <source xml:lang="en">Azure MFA</source>
+        <target state="new">Azure MFA</target>
       </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
@@ -4784,6 +4840,10 @@ Query: {1}</source>
         <source xml:lang="en">Clear Pooled Connections</source>
         <target state="translated">清除共用连接</target>
       </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.commandTimeoutLabel">
+        <source xml:lang="en">Command Timeout</source>
+        <target state="new">Command Timeout</target>
+      </trans-unit>
       <trans-unit id="mssql.connect">
         <source xml:lang="en">Connect</source>
         <target state="translated">连接</target>
@@ -4795,6 +4855,10 @@ Query: {1}</source>
       <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.altText">
         <source xml:lang="en">Connection Dialog</source>
         <target state="translated">“连接”对话框</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.connectionTimeoutLabel">
+        <source xml:lang="en">Connection Timeout</source>
+        <target state="new">Connection Timeout</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroups">
         <source xml:lang="en">Connection groups</source>
@@ -4857,6 +4921,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
         <source xml:lang="en">Disable Group By Schema</source>
         <target state="translated">禁用分组依据架构</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.disabledLabel">
+        <source xml:lang="en">Disabled</source>
+        <target state="new">Disabled</target>
       </trans-unit>
       <trans-unit id="mssql.disconnect">
         <source xml:lang="en">Disconnect</source>
@@ -5007,6 +5075,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
 [Enable New Experiences](command:mssql.enableRichExperiences)</source>
         <target state="translated">启用一组新的数据开发功能，这些功能提供了在 VS Code 中使用 SQL 数据库的新式方法。
 [启用新体验](command:mssql.enableRichExperiences)</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
+        <source xml:lang="en">Enabled</source>
+        <target state="new">Enabled</target>
       </trans-unit>
       <trans-unit id="mssql.enableRichExperiences.description">
         <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
@@ -5206,6 +5278,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Remove Microsoft Entra Account</source>
         <target state="translated">移除 Microsoft Entra 帐户</target>
       </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
+        <source xml:lang="en">Replication</source>
+        <target state="new">Replication</target>
+      </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
         <source xml:lang="en">Reveal Query Result</source>
         <target state="translated">显示查询结果</target>
@@ -5221,6 +5297,14 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.walkthroughs.getStarted.runQueries.title">
         <source xml:lang="en">Run a SQL Query</source>
         <target state="translated">运行 SQL 查询</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.containerNameLabel">
+        <source xml:lang="en">SQL Container Name</source>
+        <target state="new">SQL Container Name</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.containerVersionLabel">
+        <source xml:lang="en">SQL Container Version</source>
+        <target state="new">SQL Container Version</target>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Schema Compare</source>
@@ -5476,6 +5560,10 @@ See the estimated plan without running the query, or view the actual query plan 
         <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
         <target state="translated">启用后，对象资源管理器中的数据库对象将按架构进行分类。</target>
       </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.WindowsAuthLabel">
+        <source xml:lang="en">Windows Authentication</source>
+        <target state="new">Windows Authentication</target>
+      </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.runQueries.description">
         <source xml:lang="en">Write a SQL query, and run it against your database.
 You can also click the 'Open in New Tab' button to view your query results in their own tab, and optionally set that as the default behavior.</source>
@@ -5670,9 +5758,29 @@ You can also click the 'Open in New Tab' button to view your query results in th
         <source xml:lang="en">[Required] Specify the server name to connect to. Use 'hostname instance' or '&lt;server&gt;.database.windows.net' for Azure SQL Database.</source>
         <target state="translated">[必需] 指定要连接到的服务器名称。对于 Azure SQL 数据库，请使用“主机名实例”或“&lt;server&gt;.database.windows.net”。</target>
       </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.authenticationTypeLabel">
+        <source xml:lang="en">auth</source>
+        <target state="new">auth</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.databaseLabel">
+        <source xml:lang="en">database</source>
+        <target state="new">database</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.portLabel">
+        <source xml:lang="en">port</source>
+        <target state="new">port</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.serverLabel">
+        <source xml:lang="en">server</source>
+        <target state="new">server</target>
+      </trans-unit>
       <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
         <source xml:lang="en">should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,'</source>
         <target state="translated">逗号是否应位于一串语句中每一条的开头(例如“, mycolumn2”)而不是结尾(例如“mycolumn1,”)</target>
+      </trans-unit>
+      <trans-unit id="mssql.objectExplorer.Tooltip.userLabel">
+        <source xml:lang="en">user</source>
+        <target state="new">user</target>
       </trans-unit>
     </body>
   </file>
