@@ -58,6 +58,22 @@ async function connectionSharingWithCommands() {
 
         console.log(`Active connection ID: ${activeConnectionId}`);
 
+        // New feature: Get the connection string for the active connection
+        const connectionString = (await vscode.commands.executeCommand(
+            "mssql.connectionSharing.getConnectionString",
+            EXTENSION_ID,
+            activeConnectionId,
+        )) as string;
+
+        if (connectionString) {
+            console.log(`Connection string: ${connectionString}`);
+            vscode.window.showInformationMessage(
+                `Retrieved connection string for connection ${activeConnectionId}`,
+            );
+        } else {
+            console.log("Unable to retrieve connection string");
+        }
+
         // New feature: Get the active database name using command approach
         const activeDatabase = (await vscode.commands.executeCommand(
             "mssql.connectionSharing.getActiveDatabase",
@@ -160,6 +176,20 @@ async function connectionSharingWithApis() {
         }
 
         console.log(`Retrieved connection ID: ${activeConnectionId}`);
+
+        // New feature: Get the connection string for the active connection
+        const connectionString = await connectionSharingService.getConnectionString(
+            EXTENSION_ID,
+            activeConnectionId,
+        );
+        if (connectionString) {
+            console.log(`Connection string: ${connectionString}`);
+            vscode.window.showInformationMessage(
+                `Retrieved connection string for connection ${activeConnectionId}`,
+            );
+        } else {
+            console.log("Unable to retrieve connection string");
+        }
 
         // New feature: Get the active database name
         const activeDatabase = await connectionSharingService.getActiveDatabase(EXTENSION_ID);
