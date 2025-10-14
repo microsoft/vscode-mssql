@@ -719,7 +719,8 @@ export class ConnectionDialog {
             comment: ["{0} is the account display name", "{1} is the tenant id"],
         });
     }
-    public static ClearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
+    public static clearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
+    public static clearTokenCache = l10n.t("Clear token cache");
 
     public static noWorkspacesFound = l10n.t(
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",

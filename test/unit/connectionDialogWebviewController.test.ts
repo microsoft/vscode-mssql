@@ -200,7 +200,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "Initial form state is incorrect",
             );
 
-            expect(controller.state.formError).to.deep.equal(
+            expect(controller.state.formMessage).to.deep.equal(
                 "",
                 "Should be no error in the initial state",
             );
@@ -391,7 +391,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
 
         test("loadConnection", async () => {
-            controller.state.formError = "Sample error";
+            controller.state.formMessage = { message: "Sample error" };
 
             expect(
                 controller["_connectionBeingEdited"],
@@ -424,7 +424,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             ).to.not.equal(testConnection);
 
             expect(
-                controller.state.formError,
+                controller.state.formMessage,
                 "Error should be cleared after loading the connection",
             ).to.equal("");
 
