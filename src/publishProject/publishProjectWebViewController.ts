@@ -53,7 +53,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     publishProfilePath: "",
                     serverName: "",
                     databaseName: path.basename(projectFilePath, path.extname(projectFilePath)),
-                    publishTarget: "existingServer",
+                    publishTarget: PublishTarget.ExistingServer,
                     sqlCmdVariables: {},
                 },
                 formComponents: {},

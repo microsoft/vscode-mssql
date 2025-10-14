@@ -39,7 +39,6 @@ function PublishProjectDialog() {
     const formComponents = usePublishDialogSelector((s) => s.formComponents);
     const formState = usePublishDialogSelector((s) => s.formState);
     const inProgress = usePublishDialogSelector((s) => s.inProgress);
-    console.debug();
     // Check if component is properly initialized and ready for user interaction
     const isComponentReady = !!context && !!formComponents && !!formState;
 
