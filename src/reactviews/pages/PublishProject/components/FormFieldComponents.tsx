@@ -145,11 +145,6 @@ export const renderCombobox = (
                 freeform={freeform || false}
                 value={value || ""}
                 placeholder={component.placeholder ?? ""}
-                input={{
-                    style: {
-                        borderColor: "var(--vscode-input-border, transparent)",
-                    },
-                }}
                 onOptionSelect={(_, data) => {
                     if (data.optionValue) {
                         onChange(data.optionValue);
