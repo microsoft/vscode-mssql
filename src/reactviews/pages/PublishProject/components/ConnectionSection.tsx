@@ -40,6 +40,17 @@ export const ConnectionSection: React.FC = () => {
         return undefined;
     }
 
+    const handleDatabaseChange = (value: string) => {
+        setLocalDatabase(value);
+        if (databaseComponent) {
+            publishCtx.formAction({
+                propertyName: databaseComponent.propertyName,
+                isAction: false,
+                value: value,
+            });
+        }
+    };
+
     return (
         <div className={formStyles.formComponentDiv}>
             <div className={classes.root}>
@@ -57,7 +68,7 @@ export const ConnectionSection: React.FC = () => {
                         />
                     ),
                 })}
-                {renderCombobox(databaseComponent, localDatabase, false, setLocalDatabase)}
+                {renderCombobox(databaseComponent, localDatabase, false, handleDatabaseChange)}
             </div>
         </div>
     );
