@@ -1,5 +1,6 @@
 [![Build and Test (Unit + E2E)](https://github.com/microsoft/vscode-mssql/actions/workflows/build-and-test.yml/badge.svg?branch=main)](https://github.com/microsoft/vscode-mssql/actions/workflows/build-and-test.yml)
 ![GitHub Discussions](https://img.shields.io/github/discussions/microsoft/vscode-mssql)
+[![codecov](https://codecov.io/github/microsoft/vscode-mssql/graph/badge.svg?token=NXLNAwJgRB)](https://codecov.io/github/microsoft/vscode-mssql)
 
 # MSSQL extension for Visual Studio Code
 

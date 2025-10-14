@@ -127,7 +127,6 @@ export class DeploymentWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("createConnectionGroup", async (state, payload) => {
-            console.log("Creating connection group with spec:", payload.connectionGroupSpec);
             const createConnectionGroupResult: IConnectionGroup | string =
                 await createConnectionGroup(
                     payload.connectionGroupSpec,
