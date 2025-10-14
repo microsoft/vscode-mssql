@@ -553,6 +553,9 @@
     <trans-unit id="++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643">
       <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++524ed5b794acd857648e76bead9db5ba131ebcb17f3a92d98ece51db61e65dbf">
+      <source xml:lang="en">Clear token cache</source>
+    </trans-unit>
     <trans-unit id="++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36">
       <source xml:lang="en">Click to cancel loading summary</source>
     </trans-unit>
