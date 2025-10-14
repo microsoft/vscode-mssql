@@ -82,6 +82,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             const cellIndex = args.cell; // The actual cell index in the grid
             const columnIndex = cellIndex - 1; // -1 because first column is row number
             const column = columns[cellIndex]; // Use cellIndex to get the correct column
+            const rowId = args.item.id; // Use the actual row ID from the data
 
             console.log(
                 `Cell Changed - Row: ${rowIndex}, Cell: ${cellIndex}, Column Index: ${columnIndex}`,
@@ -89,10 +90,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             console.log(`Column ID: ${column?.id}, Field: ${column?.field}`);
             console.log(`New Value: ${args.item[column?.field]}`);
 
-            // Store the change with a unique key (row-columnIndex)
-            // Use columnIndex (which excludes row number column) for consistency with formatter
-            const changeKey = `${rowIndex}-${columnIndex}`;
+            // Store the change with a unique key (rowId-columnIndex)
+            // Use rowId (actual data row ID) instead of rowIndex (visual position) for consistency across pages
+            const changeKey = `${rowId}-${columnIndex}`;
             cellChangesRef.current.set(changeKey, {
+                rowId,
                 rowIndex,
                 columnIndex,
                 columnId: column?.id,
@@ -105,7 +107,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
             // Call the updateCell reducer to update the backend edit session
             if (onUpdateCell) {
-                const rowId = args.item.id;
                 const newValue = args.item[column?.field];
                 onUpdateCell(rowId, columnIndex, newValue);
             }
@@ -120,20 +121,21 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         function handleContextMenuCommand(_e: any, args: any) {
             const command = args.command;
             const dataContext = args.dataContext;
+            const rowId = dataContext.id; // Use actual row ID from data
 
             switch (command) {
                 case "delete-row":
                     if (onDeleteRow) {
-                        onDeleteRow(dataContext.id);
+                        onDeleteRow(rowId);
                     }
 
                     // Note: Don't remove from grid here - let the backend update state.resultSet
                     // which will trigger the useEffect to rebuild the dataset with correct pagination
 
-                    // Also remove any tracked changes for this row
+                    // Also remove any tracked changes for this row using row ID
                     const keysToDelete: string[] = [];
                     cellChangesRef.current.forEach((_, key) => {
-                        if (key.startsWith(`${args.row}-`)) {
+                        if (key.startsWith(`${rowId}-`)) {
                             keysToDelete.push(key);
                         }
                     });
@@ -141,14 +143,13 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     break;
 
                 case "revert-cell":
-                    const rowIndex = args.row;
                     const cellIndex = args.cell;
                     const columnIndex = cellIndex - 1; // -1 because first column is row number
-                    const changeKey = `${rowIndex}-${columnIndex}`;
+                    const changeKey = `${rowId}-${columnIndex}`;
 
                     // Call the revertCell reducer to revert in the backend
                     if (onRevertCell) {
-                        onRevertCell(dataContext.id, columnIndex);
+                        onRevertCell(rowId, columnIndex);
                     }
 
                     // Clear the change tracking for this cell
@@ -162,21 +163,19 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         reactGridRef.current.slickGrid.render();
                     }
 
-                    console.log(`Reverted cell at row ${rowIndex}, column ${columnIndex}`);
+                    console.log(`Reverted cell for row ID ${rowId}, column ${columnIndex}`);
                     break;
 
                 case "revert-row":
-                    const rowIdx = args.row;
-
                     // Call the revertRow reducer to revert in the backend
                     if (onRevertRow) {
-                        onRevertRow(dataContext.id);
+                        onRevertRow(rowId);
                     }
 
-                    // Clear the change tracking for all cells in this row
+                    // Clear the change tracking for all cells in this row using row ID
                     const keysToDeleteForRevert: string[] = [];
                     cellChangesRef.current.forEach((_, key) => {
-                        if (key.startsWith(`${rowIdx}-`)) {
+                        if (key.startsWith(`${rowId}-`)) {
                             keysToDeleteForRevert.push(key);
                         }
                     });
@@ -190,7 +189,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         reactGridRef.current.slickGrid.render();
                     }
 
-                    console.log(`Reverted row at index ${rowIdx}`);
+                    console.log(`Reverted row with ID ${rowId}`);
                     break;
             }
         }
@@ -264,9 +263,17 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         field: `col${index}`,
                         sortable: false,
                         minWidth: 100,
-                        formatter: (row: number, cell: number, value: any) => {
+                        formatter: (
+                            _row: number,
+                            cell: number,
+                            value: any,
+                            _columnDef: any,
+                            dataContext: any,
+                        ) => {
+                            // Use the actual row ID from dataContext instead of visual row position
+                            const rowId = dataContext.id;
                             // The first column is row number, so data columns start at cell 1
-                            const changeKey = `${row}-${cell - 1}`;
+                            const changeKey = `${rowId}-${cell - 1}`;
                             const isModified = cellChangesRef.current.has(changeKey);
                             const displayValue = value ?? "";
                             const isNullValue = displayValue === "NULL";
