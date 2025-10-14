@@ -400,7 +400,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     }
 
                     /* Reposition pagination footer to the left */
-                    #tableExplorerGrid .slick-pagination {
+                    #pager {
+                        width: 98% !important;
+                    }
+
+                    #pager .slick-pagination {
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
@@ -409,22 +413,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         padding: 8px 0;
                     }
 
-                    #tableExplorerGrid .slick-pagination .slick-pagination-settings {
-                        float: none;
-                        order: 1;
-                        margin-right: 10px;
-                    }
-
-                    #tableExplorerGrid .slick-pagination .slick-pagination-nav {
-                        order: 2;
-                        margin: 0 10px;
-                    }
-
-                    #tableExplorerGrid .slick-pagination .slick-pagination-nav nav .pagination {
+                    #pager .slick-pagination .slick-pagination-nav .pagination {
                         padding-left: 0px;
                     }
 
-                    #tableExplorerGrid .slick-pagination .slick-pagination-status {
+                    #pager .slick-pagination .slick-pagination-status {
                         order: 3;
                         margin-left: 10px;
                     }
