@@ -1298,6 +1298,10 @@
       <source xml:lang="en">Failed to connect: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++c813934a8ac886dc843cc3dd41282656501a8c9f7da085c104e96d4d50d6fc93">
+      <source xml:lang="en">Failed to copy script: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++707f0ef201b7dca62aa44100faafcd54168f7614d4966e200f9188b638abdd52">
       <source xml:lang="en">Failed to create a new row: {0}</source>
       <note>{0} is the error message</note>
@@ -1326,6 +1330,10 @@
       <source xml:lang="en">Failed to generate script: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the generate script operation</note>
     </trans-unit>
+    <trans-unit id="++CODE++8d5f2e14eff0aed3f2ac97085dfd89e385dab998301ffa54088ed3f52b37babb">
+      <source xml:lang="en">Failed to generate script: {0}</source>
+      <note>{0} is the error message</note>
+    </trans-unit>
     <trans-unit id="++CODE++90971b4f986b2a5d6c3d6f32b711a0bbb3f93d8453a9f0006c0a30d1350cdaff">
       <source xml:lang="en">Failed to get Fabric workspaces for tenant &apos;{0} ({1})&apos;.</source>
       <note>{0} is the tenant name
@@ -1346,6 +1354,10 @@
     <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
       <source xml:lang="en">Failed to open scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the open scmp operation</note>
+    </trans-unit>
+    <trans-unit id="++CODE++00e34162fb43e373f12b352ea75d1e2241f480dbda87ec290aaa6f020232edaa">
+      <source xml:lang="en">Failed to open script: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
       <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
@@ -2105,6 +2117,9 @@
     <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
       <source xml:lang="en">No schema differences were found.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9d7ed36dee03c4fbfff36e19d91ab5b6a57f9a5b401819b5bbc23c8afca66936">
+      <source xml:lang="en">No script available. Make changes to the table data and generate a script first.</source>
+    </trans-unit>
     <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
       <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
     </trans-unit>
@@ -2615,6 +2630,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
       <source xml:lang="en">Script copied to clipboard</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0fa2fcc906f37ba513ba034858611a8ca8efb5bada90e29e0c66b5679dea5b92">
+      <source xml:lang="en">Script copied to clipboard.</source>
     </trans-unit>
     <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
       <source xml:lang="en">Search Workspaces</source>

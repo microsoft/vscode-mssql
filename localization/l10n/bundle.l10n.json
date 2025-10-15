@@ -2135,6 +2135,26 @@
       "{0} is the error message"
     ]
   },
+  "Failed to generate script: {0}/{0} is the error message": {
+    "message": "Failed to generate script: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "No script available. Make changes to the table data and generate a script first.": "No script available. Make changes to the table data and generate a script first.",
+  "Failed to open script: {0}/{0} is the error message": {
+    "message": "Failed to open script: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
+  "Script copied to clipboard.": "Script copied to clipboard.",
+  "Failed to copy script: {0}/{0} is the error message": {
+    "message": "Failed to copy script: {0}",
+    "comment": [
+      "{0} is the error message"
+    ]
+  },
   "Azure sign in failed.": "Azure sign in failed.",
   "Select subscriptions": "Select subscriptions",
   "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
