@@ -20,11 +20,13 @@ suite("QueryNotificationHandler tests", () => {
     let runnerMock: sinon.SinonStubbedInstance<QueryRunner>;
     let runner: QueryRunner;
 
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     let batchStartHandler: NotificationHandler<any>;
     let messageHandler: NotificationHandler<any>;
     let resultSetCompleteHandler: NotificationHandler<any>;
     let batchCompleteHandler: NotificationHandler<any>;
     let queryCompleteHandler: NotificationHandler<any>;
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -36,7 +38,7 @@ suite("QueryNotificationHandler tests", () => {
             runnerMock.setHasCompleted();
         });
 
-        runner = runnerMock as unknown as QueryRunner;
+        runner = runnerMock;
 
         batchStartHandler = notificationHandler.handleBatchStartNotification();
         messageHandler = notificationHandler.handleMessageNotification();

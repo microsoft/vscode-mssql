@@ -32,6 +32,11 @@ suite("MssqlProtocolHandler Tests", () => {
     let openConnectionDialogStub: sinon.SinonStub;
     let connectProfileStub: sinon.SinonStub;
 
+    const testServer = "TestServer";
+    const testDatabase = "TestDatabase";
+    const tenantId = "11111";
+    const accountId = `00000.${tenantId}`;
+
     setup(() => {
         sandbox = sinon.createSandbox();
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
@@ -143,6 +148,58 @@ suite("MssqlProtocolHandler Tests", () => {
             expect(openConnectionDialogStub).to.not.have.been.called;
         });
 
+        test("Should ignore partially-matching profile when additional specifiers do not match", async () => {
+            // Case 1: database specified but doesn't match
+            const params: Record<string, string> = {
+                server: testServer,
+                database: testDatabase,
+            };
+
+            const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+
+            sandbox.stub(mockMainController, "connectionManager").get(() => {
+                return mockConnectionManager;
+            });
+
+            mockConnectionManager.findMatchingProfile.resolves({
+                profile: {
+                    server: testServer, // database not set
+                } as IConnectionProfile,
+                score: MatchScore.Server,
+            });
+
+            await mssqlProtocolHandler.handleUri(
+                Uri.parse(
+                    `vscode://ms-mssql.mssql/connect?${new URLSearchParams(params).toString()}`,
+                ),
+            );
+
+            expect(
+                connectProfileStub,
+                "Should not have connected because database was specified, but not in best profile match",
+            ).to.not.have.been.called;
+            expect(openConnectionDialogStub).to.have.been.called;
+
+            // Case 2: auth info specified but doesn't match
+            params["accountId"] = accountId;
+
+            mockConnectionManager.findMatchingProfile.reset();
+            mockConnectionManager.findMatchingProfile.resolves({
+                profile: {
+                    server: testServer,
+                    database: testDatabase,
+                    accountId: "00000.22222", // different accountId
+                } as IConnectionProfile,
+                score: MatchScore.ServerAndDatabase,
+            });
+
+            expect(
+                connectProfileStub,
+                "Should not have connected because accountId was specified, but didn't match with the best available profile",
+            ).to.not.have.been.called;
+            expect(openConnectionDialogStub).to.have.been.called;
+        });
+
         test("Should open connection dialog with populated parameters when no matching profile is found", async () => {
             const params: Record<string, string> = {
                 server: "myServer",
@@ -245,14 +302,29 @@ suite("MssqlProtocolHandler Tests", () => {
     });
 
     suite("readProfileFromArgs", () => {
-        test("Should ignore invalid values for booleans and numbers", async () => {
+        test("Should include connection properties that aren't sourced from SQL Tools Service", async () => {
+            const profileName = "myProfile";
+
             const connInfo = await mssqlProtocolHandler["readProfileFromArgs"](
-                "server=myServer&database=dbName&trustServerCertificate=yes&connectTimeout=twenty",
+                `server=${testServer}&database=${testDatabase}&accountId=${accountId}&tenantId=${tenantId}&profileName=${profileName}`,
             );
 
             expect(connInfo).to.be.an("object");
-            expect(connInfo.server).to.equal("myServer");
-            expect(connInfo.database).to.equal("dbName");
+            expect(connInfo.server).to.equal(testServer);
+            expect(connInfo.database).to.equal(testDatabase);
+            expect(connInfo.profileName).to.equal(profileName);
+            expect(connInfo.accountId).to.equal(accountId);
+            expect(connInfo.tenantId).to.equal(tenantId);
+        });
+
+        test("Should ignore invalid values for booleans and numbers", async () => {
+            const connInfo = await mssqlProtocolHandler["readProfileFromArgs"](
+                `server=${testServer}&database=${testDatabase}&trustServerCertificate=yes&connectTimeout=twenty`,
+            );
+
+            expect(connInfo).to.be.an("object");
+            expect(connInfo.server).to.equal(testServer);
+            expect(connInfo.database).to.equal(testDatabase);
             expect(
                 connInfo.trustServerCertificate,
                 "trustServerCertificate should be false from an invalid value",
@@ -264,17 +336,18 @@ suite("MssqlProtocolHandler Tests", () => {
         });
 
         test("Should handle invalid parameter by ignoring it", async () => {
+            const madeUpParam = "madeUpParam";
             const connInfo = await mssqlProtocolHandler["readProfileFromArgs"](
-                "server=myServer&database=dbName&madeUpParam=great",
+                `server=${testServer}&database=${testDatabase}&${madeUpParam}=great`,
             );
 
             expect(connInfo).to.be.an("object");
-            expect(connInfo.server).to.equal("myServer");
-            expect(connInfo.database).to.equal("dbName");
+            expect(connInfo.server).to.equal(testServer);
+            expect(connInfo.database).to.equal(testDatabase);
             expect(
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (connInfo as any).madeUpParam,
-                "madeUpParam should be undefined from an invalid value",
+                (connInfo as any)[madeUpParam],
+                `${madeUpParam} should be undefined from an invalid value`,
             ).to.be.undefined;
         });
     });
