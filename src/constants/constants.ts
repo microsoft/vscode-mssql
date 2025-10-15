@@ -51,6 +51,7 @@ export const cmdCommandPaletteQueryHistory = "mssql.commandPaletteQueryHistory";
 export const cmdNewQuery = "mssql.newQuery";
 export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
+export const cmdPublishDatabaseProject = "mssql.publishDatabaseProject";
 export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
@@ -134,8 +135,6 @@ export const errorLoginFailed = 18456;
 export const errorFirewallRule = 40615;
 export const errorSSLCertificateValidationFailed = -2146893019;
 export const errorKerberosSubString = "Kerberos";
-export const errorMacOsOpenSSLErrorSubstring =
-    "Unable to load DLL 'System.Security.Cryptography.Native'";
 export const outputContentTypeRoot = "root";
 export const outputContentTypeMessages = "messages";
 export const outputContentTypeResultsetMeta = "resultsetsMeta";
@@ -157,8 +156,6 @@ export const contentProviderMinFile = "dist/js/app.min.js";
 export const untitledSaveTimeThreshold = 50.0;
 export const renamedOpenTimeThreshold = 10.0;
 export const timeToWaitForLanguageModeChange = 10000.0;
-export const macOpenSslHelpLink =
-    "https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration";
 export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
@@ -198,7 +195,7 @@ export const copilotShowSchemaToolName = "mssql_show_schema";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
 
 // Configuration Constants
-export const copyIncludeHeaders = "copyIncludeHeaders";
+export const copyIncludeHeaders = "mssql.copyIncludeHeaders";
 export const configLogDebugInfo = "logDebugInfo";
 export const configMyConnections = "connections";
 export const configSaveAsCsv = "saveAsCsv";

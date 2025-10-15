@@ -11,7 +11,7 @@ import * as DOM from "./dom";
 import { IDisposableDataProvider } from "./dataProvider";
 import { CellSelectionModel } from "./plugins/cellSelectionModel.plugin";
 import { mixin } from "./objects";
-import { HeaderFilter } from "./plugins/headerFilter.plugin";
+import { HeaderMenu } from "./plugins/headerFilter.plugin";
 import { ContextMenu } from "./plugins/contextMenu.plugin";
 import {
     ColumnFilterState,
@@ -57,7 +57,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     private _container: HTMLElement;
     protected _tableContainer: HTMLElement;
     private selectionModel: CellSelectionModel<T>;
-    public headerFilter: HeaderFilter<T>;
+    public headerFilter: HeaderMenu<T>;
     private _autoColumnSizePlugin: AutoColumnSize<T>;
     private _lastScrollAt: number = 0;
 
@@ -69,13 +69,21 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         private context: QueryResultReactProvider,
         private linkHandler: (fileContent: string, fileType: string) => void,
         private gridId: string,
-        private configuration: ITableConfiguration<T>,
+        configuration: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
         gridParentRef?: React.RefObject<HTMLDivElement>,
         autoSizeColumns: boolean = false,
         themeKind: ColorThemeKind = ColorThemeKind.Dark,
     ) {
         this.linkHandler = linkHandler;
+        this.headerFilter = new HeaderMenu(this.uri, themeKind, this.context, gridId);
+        this.headerFilter.onFilterApplied.subscribe(async () => {
+            this.selectionModel.setSelectedRanges([]);
+            await this.selectionModel.updateSummaryText();
+        });
+        this.headerFilter.onSortChanged.subscribe(async () => {
+            await this.selectionModel.updateSummaryText();
+        });
         this.selectionModel = new CellSelectionModel<T>(
             {
                 hasRowSelector: true,
@@ -83,6 +91,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             context,
             uri,
             resultSetSummary,
+            this.headerFilter,
         );
         if (
             !configuration ||
@@ -138,24 +147,9 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this._container.appendChild(this._tableContainer);
         this.styleElement = DOM.createStyleSheet(this._container);
         this._grid = new Slick.Grid<T>(this._tableContainer, this._data, [], newOptions);
-        this.headerFilter = new HeaderFilter(this.uri, themeKind, this.context, gridId);
         this.registerPlugin(this.headerFilter);
-        this.registerPlugin(
-            new ContextMenu(
-                this.uri,
-                this.resultSetSummary,
-                this.context,
-                this.configuration.dataProvider as IDisposableDataProvider<T>,
-            ),
-        );
-        this.registerPlugin(
-            new CopyKeybind(
-                this.uri,
-                this.resultSetSummary,
-                this.context,
-                this.configuration.dataProvider as IDisposableDataProvider<T>,
-            ),
-        );
+        this.registerPlugin(new ContextMenu(this.uri, this.resultSetSummary, this.context));
+        this.registerPlugin(new CopyKeybind(this.uri, this.resultSetSummary, this.context));
 
         this._autoColumnSizePlugin = new AutoColumnSize(
             {

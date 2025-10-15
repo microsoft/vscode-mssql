@@ -115,22 +115,6 @@ export function registerCommonRequestHandlers(
             );
     });
 
-    webviewController.onRequest(qr.SendToClipboardRequest.type, async (message) => {
-        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
-            correlationId: correlationId,
-        });
-        return webviewViewController
-            .getSqlOutputContentProvider()
-            .sendToClipboard(
-                message.uri,
-                message.data,
-                message.batchId,
-                message.resultId,
-                message.selection,
-                message.headersFlag,
-            );
-    });
-
     webviewController.onRequest(qr.CopySelectionRequest.type, async (message) => {
         sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResults, {
             correlationId: correlationId,
@@ -142,24 +126,8 @@ export function registerCommonRequestHandlers(
                 message.batchId,
                 message.resultId,
                 message.selection,
-                false,
+                shouldIncludeHeaders(message.includeHeaders),
             );
-    });
-
-    webviewController.onRequest(qr.CopyWithHeadersRequest.type, async (message) => {
-        sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.CopyResultsHeaders, {
-            correlationId: correlationId,
-            format: undefined,
-            selection: undefined,
-            origin: undefined,
-        });
-        return await webviewViewController.getSqlOutputContentProvider().copyRequestHandler(
-            message.uri,
-            message.batchId,
-            message.resultId,
-            message.selection,
-            true, //copy headers flag
-        );
     });
 
     webviewController.onRequest(qr.CopyHeadersRequest.type, async (message) => {
@@ -188,7 +156,6 @@ export function registerCommonRequestHandlers(
                 message.batchId,
                 message.resultId,
                 message.selection,
-                message.includeHeaders,
             );
     });
 
@@ -204,7 +171,6 @@ export function registerCommonRequestHandlers(
                 message.batchId,
                 message.resultId,
                 message.selection,
-                message.includeHeaders,
             );
     });
 
@@ -518,89 +484,19 @@ export async function selectionSummaryHelper(
     return summary;
 }
 
-/**
- * Calculate selection summary statistics from database row data
- * @param rowIdToRowMap Map of row IDs to database cell value arrays
- * @param rowIdToSelectionMap Map of row IDs to selection ranges
- * @returns SelectionSummaryStats Summary statistics
- */
-export function calculateSelectionSummaryFromData(
-    rowIdToRowMap: Map<number, qr.DbCellValue[]>,
-    rowIdToSelectionMap: Map<number, qr.ISlickRange[]>,
-): qr.SelectionSummaryStats {
-    const summary: qr.SelectionSummaryStats = {
-        count: 0,
-        average: "",
-        sum: 0,
-        min: Infinity,
-        max: -Infinity,
-        removeSelectionStats: false,
-        distinctCount: 0,
-        nullCount: 0,
-    };
-
-    if (rowIdToRowMap.size === 0) {
-        // No data; normalize min/max to 0 to match prior behavior
-        summary.min = 0;
-        summary.max = 0;
-        return summary;
-    }
-
-    const distinct = new Set<string>();
-    let numericCount = 0;
-
-    const isFiniteNumber = (v: string): boolean => {
-        const n = Number(v);
-        return Number.isFinite(n);
-    };
-
-    for (const [rowId, row] of rowIdToRowMap) {
-        const rowSelections = rowIdToSelectionMap.get(rowId) ?? [];
-        for (const sel of rowSelections) {
-            const start = Math.max(0, sel.fromCell);
-            const end = Math.min(row.length - 1, sel.toCell);
-            for (let c = start; c <= end; c++) {
-                const cell = row[c];
-                summary.count++;
-
-                if (cell?.isNull) {
-                    summary.nullCount++;
-                    continue;
-                }
-
-                const display = cell?.displayValue ?? "";
-                distinct.add(display);
-
-                if (isFiniteNumber(display)) {
-                    const n = Number(display);
-                    numericCount++;
-                    summary.sum += n;
-                    if (n < summary.min) summary.min = n;
-                    if (n > summary.max) summary.max = n;
-                } else {
-                    // There is at least one non-numeric (non-null) value
-                    summary.removeSelectionStats = false;
-                }
-            }
-        }
-    }
-
-    summary.distinctCount = distinct.size;
-
-    // Only compute average when we actually saw numeric cells and round to 2 decimal places
-    summary.average = numericCount > 0 ? (summary.sum / numericCount).toFixed(2) : "";
-
-    // Normalize min/max if there were no numeric values
-    if (!Number.isFinite(summary.min)) summary.min = 0;
-    if (!Number.isFinite(summary.max)) summary.max = 0;
-
-    return summary;
-}
-
 export function getInMemoryGridDataProcessingThreshold(): number {
     return (
         vscode.workspace
             .getConfiguration()
             .get<number>(Constants.configInMemoryDataProcessingThreshold) ?? 5000
     );
+}
+
+export function shouldIncludeHeaders(includeHeaders: boolean): boolean {
+    if (includeHeaders !== undefined) {
+        // Respect the value explicity passed into the method
+        return includeHeaders;
+    }
+    // else get config option from vscode config
+    return vscode.workspace.getConfiguration().get<boolean>(Constants.copyIncludeHeaders);
 }

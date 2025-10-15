@@ -199,3 +199,86 @@ export class QueryConnectionUriChangeParams {
     newOwnerUri: string;
     originalOwnerUri: string;
 }
+
+// ------------------------------- < Table Selection Range > ------------------------------------
+export interface TableSelectionRange {
+    fromRow: number;
+    toRow: number;
+    fromColumn: number;
+    toColumn: number;
+}
+
+// ------------------------------- < Grid Selection Summary Request > ------------------------------------
+export namespace GridSelectionSummaryRequest {
+    export const type = new RequestType<
+        GridSelectionSummaryRequestParams,
+        GridSelectionSummaryResponse,
+        void,
+        void
+    >("query/selectionsummary");
+}
+
+export namespace CancelGridSelectionSummaryNotification {
+    export const type = new NotificationType<
+        {
+            ownerUri: string;
+        },
+        void
+    >("query/cancelSelectionSummary");
+}
+
+export class GridSelectionSummaryRequestParams {
+    ownerUri: string;
+    batchIndex: number;
+    resultSetIndex: number;
+    rowsStartIndex: number;
+    rowsCount: number;
+    selections: TableSelectionRange[];
+}
+
+export class GridSelectionSummaryResponse {
+    count: number;
+    average?: number;
+    sum: number;
+    min?: number;
+    max?: number;
+    distinctCount: number;
+    nullCount: number;
+}
+
+// ------------------------------- < Copy Results 2 Request > ------------------------------------
+export enum CopyType {
+    Text = 0,
+    JSON = 1,
+    CSV = 2,
+    INSERT = 3,
+    IN = 4,
+}
+
+export namespace CopyResults2Request {
+    export const type = new RequestType<
+        CopyResults2RequestParams,
+        CopyResults2RequestResult,
+        void,
+        void
+    >("query/copy2");
+}
+
+export class CopyResults2RequestParams {
+    ownerUri: string;
+    batchIndex: number;
+    resultSetIndex: number;
+    copyType: CopyType;
+    includeHeaders: boolean;
+    selections: TableSelectionRange[];
+    delimiter?: string;
+    lineSeparator?: string;
+    textIdentifier?: string;
+    encoding?: string;
+}
+
+export class CopyResults2RequestResult {}
+
+export namespace CancelCopy2Notification {
+    export const type = new NotificationType<void, void>("query/cancelCopy2");
+}

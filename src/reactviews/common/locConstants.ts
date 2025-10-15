@@ -447,7 +447,7 @@ export class LocConstants {
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
             showplanXML: l10n.t("Showplan XML"),
-            showFilter: l10n.t("Show Filter"),
+            showMenu: l10n.t("Show Menu"),
             sortAscending: l10n.t("Sort Ascending"),
             sortDescending: l10n.t("Sort Descending"),
             clearSort: l10n.t("Clear Sort"),
@@ -509,6 +509,14 @@ export class LocConstants {
                 "Run a query in the current editor, or switch to an editor that has results.",
             ),
             failedToStartQuery: l10n.t("Failed to start query."),
+            filterOptions: l10n.t("Filter Options"),
+            removeSort: l10n.t("Remove Sort"),
+            selectedCount: (count: number) =>
+                l10n.t({
+                    message: "{0} selected",
+                    args: [count],
+                    comment: ["{0} is the number of selected rows"],
+                }),
         };
     }
 
@@ -889,6 +897,15 @@ export class LocConstants {
             includeExcludeAllOperationInProgress: l10n.t(
                 "Processing include or exclude all differences operation.",
             ),
+        };
+    }
+
+    public get publishProject() {
+        return {
+            SelectPublishProfile: l10n.t("Select Profile"),
+            SaveAs: l10n.t("Save As..."),
+            generateScript: l10n.t("Generate Script"),
+            publish: l10n.t("Publish"),
         };
     }
 
