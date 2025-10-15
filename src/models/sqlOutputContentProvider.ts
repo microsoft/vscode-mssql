@@ -11,7 +11,7 @@ import QueryRunner from "../controllers/queryRunner";
 import ResultsSerializer from "../models/resultsSerializer";
 import StatusView from "../views/statusView";
 import VscodeWrapper from "./../controllers/vscodeWrapper";
-import { ISelectionData, ISlickRange } from "./interfaces";
+import { ISelectionData } from "./interfaces";
 import { Deferred } from "../protocol";
 import { ExecutionPlanOptions, ResultSetSubset, ResultSetSummary } from "./contracts/queryExecute";
 import { sendActionEvent } from "../telemetry/telemetry";
@@ -119,11 +119,7 @@ export class SqlOutputContentProvider {
         return this._queryResultWebviewController;
     }
 
-    public setQueryResultWebviewController(
-        queryResultWebviewController: QueryResultWebviewController,
-    ): void {
-        this._queryResultWebviewController = queryResultWebviewController;
-    }
+    //#region  Request Handlers
 
     public rowRequestHandler(
         uri: string,
@@ -187,29 +183,15 @@ export class SqlOutputContentProvider {
             .queryRunner.copyResults(selection, batchId, resultId, includeHeaders);
     }
 
-    public sendToClipboard(
-        uri: string,
-        data: qr.DbCellValue[][],
-        batchId: number,
-        resultId: number,
-        selection: ISlickRange[],
-        headersFlag: boolean,
-    ): void {
-        void this._queryResultsMap
-            .get(uri)
-            .queryRunner.exportCellsToClipboard(data, batchId, resultId, selection, headersFlag);
-    }
-
     public copyAsCsvRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-        includeHeaders?: boolean,
     ): void {
         void this._queryResultsMap
             .get(uri)
-            .queryRunner.copyResultsAsCsv(selection, batchId, resultId, includeHeaders);
+            .queryRunner.copyResultsAsCsv(selection, batchId, resultId);
     }
 
     public copyAsJsonRequestHandler(
@@ -217,11 +199,43 @@ export class SqlOutputContentProvider {
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-        includeHeaders?: boolean,
     ): void {
         void this._queryResultsMap
             .get(uri)
-            .queryRunner.copyResultsAsJson(selection, batchId, resultId, includeHeaders);
+            .queryRunner.copyResultsAsJson(selection, batchId, resultId);
+    }
+
+    public copyAsInClauseRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsInClause(selection, batchId, resultId);
+    }
+
+    public copyAsInsertIntoRequestHandler(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+    ): void {
+        void this._queryResultsMap
+            .get(uri)
+            .queryRunner.copyResultsAsInsertInto(selection, batchId, resultId);
+    }
+
+    public generateSelectionSummaryData(
+        uri: string,
+        batchId: number,
+        resultId: number,
+        selection: Interfaces.ISlickRange[],
+    ): Promise<void> {
+        return this._queryResultsMap
+            .get(uri)
+            .queryRunner.generateSelectionSummaryData(selection, batchId, resultId);
     }
 
     public editorSelectionRequestHandler(uri: string, selection: ISelectionData): void {
@@ -236,6 +250,8 @@ export class SqlOutputContentProvider {
         this._vscodeWrapper.showWarningMessage(message);
     }
 
+    //#endregion
+
     // PUBLIC METHODS //////////////////////////////////////////////////////
 
     public isRunningQuery(uri: string): boolean {
@@ -244,6 +260,15 @@ export class SqlOutputContentProvider {
             : this._queryResultsMap.get(uri).queryRunner.isExecutingQuery;
     }
 
+    /**
+     * Runs a query against the database.
+     * @param statusView The status view to use for showing query progress
+     * @param uri The URI of the editor to run the query for
+     * @param selection The selection in the editor to run the query for
+     * @param title The title of the editor to run the query for
+     * @param executionPlanOptions Options for including execution plans
+     * @param promise A promise that will be resolved/rejected when the query completes or fails
+     */
     public async runQuery(
         statusView: StatusView,
         uri: string,
@@ -252,61 +277,77 @@ export class SqlOutputContentProvider {
         executionPlanOptions?: ExecutionPlanOptions,
         promise?: Deferred<boolean>,
     ): Promise<void> {
-        // execute the query with a query runner
-        await this.runQueryCallback(
+        const runner = await this.initializeRunnerAndWebviewState(
             statusView ? statusView : this._statusView,
             uri,
             title,
-            async (queryRunner: QueryRunner) => {
-                if (queryRunner) {
-                    await queryRunner.runQuery(
-                        selection,
-                        {
-                            includeActualExecutionPlanXml:
-                                executionPlanOptions?.includeActualExecutionPlanXml ??
-                                this._actualPlanStatuses.includes(uri),
-                            includeEstimatedExecutionPlanXml:
-                                executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false,
-                        },
-                        promise,
-                    );
-                }
-            },
             executionPlanOptions,
+        );
+
+        if (!runner) {
+            if (promise) {
+                promise.reject(false);
+            }
+            return;
+        }
+
+        const includeExecutionPlanXml =
+            executionPlanOptions?.includeActualExecutionPlanXml ??
+            this._actualPlanStatuses.includes(uri);
+        const includeEstimatedExecutionPlanXml =
+            executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false;
+
+        await runner.runQuery(
+            selection,
+            {
+                includeActualExecutionPlanXml: includeExecutionPlanXml,
+                includeEstimatedExecutionPlanXml: includeEstimatedExecutionPlanXml,
+            },
+            promise,
         );
     }
 
+    /**
+     * Runs a query against the database for the current statement based on the cursor position.
+     * If there is a selection, it will run the selection else it will run the current statement.
+     * @param statusView The status view to use for showing query progress
+     * @param uri The URI of the editor to run the query for
+     * @param selection The selection in the editor to run the query for
+     * @param title The title of the editor to run the query for
+     */
     public async runCurrentStatement(
         statusView: StatusView,
         uri: string,
         selection: ISelectionData,
         title: string,
     ): Promise<void> {
-        // execute the statement with a query runner
-        await this.runQueryCallback(
+        const runner = await this.initializeRunnerAndWebviewState(
             statusView ? statusView : this._statusView,
             uri,
             title,
-            async (queryRunner) => {
-                if (queryRunner) {
-                    await queryRunner.runStatement(selection.startLine, selection.startColumn);
-                }
-            },
         );
+
+        if (!runner) {
+            return;
+        }
+
+        await runner.runStatement(selection.startLine, selection.startColumn);
     }
 
-    private async runQueryCallback(
+    private async initializeRunnerAndWebviewState(
         statusView: StatusView,
         uri: string,
         title: string,
-        queryCallback: (queryRunner: QueryRunner) => Promise<void>,
         executionPlanOptions?: ExecutionPlanOptions,
-    ): Promise<void> {
+    ): Promise<QueryRunner | undefined> {
         let queryRunner = await this.createQueryRunner(
             statusView ? statusView : this._statusView,
             uri,
             title,
         );
+        if (!queryRunner) {
+            return;
+        }
         this._queryResultWebviewController.addQueryResultState(
             uri,
             title,
@@ -315,12 +356,26 @@ export class SqlOutputContentProvider {
                 executionPlanOptions?.includeActualExecutionPlanXml,
             this._actualPlanStatuses.includes(uri),
         );
-        if (queryRunner) {
-            void queryCallback(queryRunner);
+        if (isOpenQueryResultsInTabByDefaultEnabled()) {
+            await this._queryResultWebviewController.createPanelController(queryRunner.uri);
         }
+        return queryRunner;
     }
 
-    public createQueryRunner(statusView: StatusView, uri: string, title: string): QueryRunner {
+    /**
+     * Creates a new query runner for the given URI if one does not already exist.
+     * If one already exists and is not currently executing a query, it will be reused.
+     * If one already exists and is currently executing a query, undefined will be returned.
+     * @param statusView The status view to use for showing query progress
+     * @param uri  The URI of the editor to run the query for
+     * @param title The title of the editor to run the query for
+     * @returns A promise that resolves to the query runner or undefined if a query is already in progress
+     */
+    public async createQueryRunner(
+        statusView: StatusView,
+        uri: string,
+        title: string,
+    ): Promise<QueryRunner | undefined> {
         // Reuse existing query runner if it exists
         let queryRunner: QueryRunner;
 
@@ -333,6 +388,9 @@ export class SqlOutputContentProvider {
                     LocalizedConstants.msgRunQueryInProgress,
                 );
                 return;
+            } else {
+                // Cancel any lingering queries that haven't been disposed yet
+                await existingRunner.resetQueryRunner();
             }
 
             // If the query is not in progress, we can reuse the query runner
@@ -343,20 +401,30 @@ export class SqlOutputContentProvider {
             // and map it to the results uri
             queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
 
+            const startFailedListener = queryRunner.onStartFailed(async (error) => {
+                this.updateWebviewState(queryRunner.uri, {
+                    initializationError: getErrorMessage(error),
+                    resultSetSummaries: {},
+                    executionPlanState: {},
+                    messages: [],
+                    fontSettings: { fontSize: 0, fontFamily: "" },
+                });
+            });
+
             const startListener = queryRunner.onStart(async (_panelUri) => {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
                 resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                 resultWebviewState.isExecutionPlan = false;
-                if (isOpenQueryResultsInTabByDefaultEnabled()) {
-                    await this._queryResultWebviewController.createPanelController(queryRunner.uri);
-                }
+                resultWebviewState.initializationError = undefined;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                this.revealQueryResult(queryRunner.uri);
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });
             });
+
             const resultSetAvailableListener = queryRunner.onResultSetAvailable(
                 async (resultSet: ResultSetSummary) => {
                     const resultWebviewState =
@@ -431,6 +499,7 @@ export class SqlOutputContentProvider {
                 resultWebviewState.messages.push(message);
                 this.scheduleThrottledUpdate(queryRunner.uri);
             });
+
             const onMessageListener = queryRunner.onMessage(async (message) => {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
@@ -440,6 +509,7 @@ export class SqlOutputContentProvider {
 
                 this.scheduleThrottledUpdate(queryRunner.uri);
             });
+
             const onCompleteListener = queryRunner.onComplete(async (e) => {
                 const { totalMilliseconds, hasError, isRefresh } = e;
                 if (!isRefresh) {
@@ -508,8 +578,23 @@ export class SqlOutputContentProvider {
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
             });
 
+            const onSelectionSummaryListener = queryRunner.onSummaryChanged(async (e) => {
+                const state = this._queryResultWebviewController.getQueryResultState(e.uri);
+                if (!state) {
+                    return;
+                }
+                state.selectionSummary = {
+                    text: e.text,
+                    command: e.command,
+                    tooltip: e.tooltip,
+                    continue: e.continue,
+                };
+                this._queryResultWebviewController.updateSelectionSummary();
+            });
+
             const queryRunnerState = new QueryRunnerState(queryRunner);
             queryRunnerState.listeners.push(
+                startFailedListener,
                 startListener,
                 resultSetAvailableListener,
                 resultSetUpdatedListener,
@@ -518,6 +603,7 @@ export class SqlOutputContentProvider {
                 onMessageListener,
                 onCompleteListener,
                 onExecutionPlanListener,
+                onSelectionSummaryListener,
             );
 
             this._queryResultsMap.set(uri, queryRunnerState);
@@ -860,13 +946,6 @@ export class SqlOutputContentProvider {
             if (activeEditorUri === uri) {
                 this._queryResultWebviewController.state = state;
             }
-        }
-
-        /**
-         * Only reveal the panel if user is working on the same editor
-         */
-        if (activeEditorUri === uri) {
-            this.revealQueryResult(uri);
         }
     }
 }

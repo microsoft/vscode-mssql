@@ -3,12 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IConnectionInfo, IServerInfo } from "vscode-mssql";
+import { IAccount, IConnectionInfo, IServerInfo } from "vscode-mssql";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { EncryptOptions } from "../models/interfaces";
 import * as Interfaces from "./interfaces";
-import providerSettings from "../azure/providerSettings";
+import { getCloudProviderSettings } from "../azure/providerSettings";
+import { getErrorMessage } from "../utils/utils";
+import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 
 /**
  * Sets sensible defaults for key connection properties, especially
@@ -68,6 +70,20 @@ export function fixupConnectionCredentials(connCreds: IConnectionInfo): IConnect
         }
     }
     return connCreds;
+}
+
+/**
+ * Gets a connection profile with default values for key properties
+ * @returns the default connection profile
+ */
+export function getDefaultConnection(): IConnectionDialogProfile {
+    const connectionInfo = {
+        authenticationType: AuthenticationType.SqlLogin,
+        connectTimeout: 30, // seconds
+        applicationName: "vscode-mssql",
+        applicationIntent: "ReadWrite",
+    } as IConnectionDialogProfile;
+    return fixupConnectionCredentials(connectionInfo);
 }
 
 export function updateEncrypt(connection: IConnectionInfo): {
@@ -286,27 +302,45 @@ export enum ServerType {
     Unknown = "Unknown",
 }
 
-export function getServerTypes(connection: IConnectionInfo): ServerType[] {
+/**
+ * Attempts to determine the server type(s) of a connection based on the server name.
+ * @param account If provided, the account's cloud environment will be used to determine the server type.  Otherwise, the currently-selected cloud will be used.
+ * @returns Array of connection target tags that apply to the server
+ */
+export function getServerTypes(connection: IConnectionInfo, account?: IAccount): ServerType[] {
     if (connection?.server === undefined) {
         return [ServerType.Unknown];
     }
 
-    if (connection.server.includes(providerSettings.resources.databaseResource.dnsSuffix)) {
-        return [ServerType.Azure, ServerType.Sql];
-    }
+    try {
+        const providerSettings = getCloudProviderSettings(
+            account?.properties?.providerSettings?.id,
+        );
 
-    if (
-        connection.server.includes(providerSettings.resources.databaseResource.analyticsDnsSuffix)
-    ) {
-        return [ServerType.Azure, ServerType.DataWarehouse];
-    }
+        // Notes:
+        // Using includes() here instead of endsWith() because there may be additional suffixes (e.g. port: .database.windows.net,1433)
+        // Pre-prod environments may have different suffixes (e.g. msit-database.fabric.microsoft.com), so trim the leading dot.
 
-    if (connection.server.includes(providerSettings.fabric.sqlDbDnsSuffix)) {
-        return [ServerType.Fabric, ServerType.Sql];
-    }
+        const typeMappings: Record<string, ServerType[]> = {
+            [providerSettings.settings.sqlResource.dnsSuffix]: [ServerType.Azure, ServerType.Sql],
+            [providerSettings.settings.sqlResource.analyticsDnsSuffix]: [
+                ServerType.Azure,
+                ServerType.DataWarehouse,
+            ],
+            [providerSettings.fabric.sqlDbDnsSuffix]: [ServerType.Fabric, ServerType.Sql],
+            [providerSettings.fabric.dataWarehouseDnsSuffix]: [
+                ServerType.Fabric,
+                ServerType.DataWarehouse,
+            ],
+        };
 
-    if (connection.server.includes(providerSettings.fabric.dataWarehouseSuffix)) {
-        return [ServerType.Fabric, ServerType.DataWarehouse];
+        for (const [name, types] of Object.entries(typeMappings)) {
+            if (connection.server.includes(name.startsWith(".") ? name.slice(1) : name)) {
+                return types;
+            }
+        }
+    } catch (error) {
+        console.error("Error checking server types:", getErrorMessage(error));
     }
 
     // check if it's a local connection

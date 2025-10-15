@@ -34,6 +34,7 @@ export const cmdrevealQueryResult = "mssql.revealQueryResult";
 export const cmdCopyAll = "mssql.copyAll";
 export const cmdConnect = "mssql.connect";
 export const cmdDisconnect = "mssql.disconnect";
+export const cmdChangeConnection = "mssql.changeConnection";
 export const cmdChangeDatabase = "mssql.changeDatabase";
 export const cmdChooseDatabase = "mssql.chooseDatabase";
 export const cmdChooseLanguageFlavor = "mssql.chooseLanguageFlavor";
@@ -52,6 +53,7 @@ export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdTableExplorer = "mssql.tableExplorer";
 export const cmdTableNodeAction = "mssql.tableNodeAction";
 export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
+export const cmdPublishDatabaseProject = "mssql.publishDatabaseProject";
 export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
@@ -100,6 +102,8 @@ export const cmdAzureSignInToCloud = "azure-account.loginToCloud";
 export const cmdAadRemoveAccount = "mssql.removeAadAccount";
 export const cmdAadAddAccount = "mssql.addAadAccount";
 export const cmdClearAzureTokenCache = "mssql.clearAzureAccountTokenCache";
+export const vscodeWorkbenchChatOpenAgent = "workbench.action.chat.openagent";
+export const vscodeWorkbenchChatOpenAgentLegacy = "workbench.action.chat.openAgent";
 export const cmdShowEstimatedPlan = "mssql.showEstimatedPlan";
 export const cmdEnableActualPlan = "mssql.enableActualPlan";
 export const cmdDisableActualPlan = "mssql.disableActualPlan";
@@ -112,6 +116,7 @@ export const cmdDeployNewDatabase = "mssql.deployNewDatabase";
 export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
+export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
@@ -131,6 +136,7 @@ export const errorPasswordNeedsReset = 18488;
 export const errorLoginFailed = 18456;
 export const errorFirewallRule = 40615;
 export const errorSSLCertificateValidationFailed = -2146893019;
+export const errorKerberosSubString = "Kerberos";
 export const outputContentTypeRoot = "root";
 export const outputContentTypeMessages = "messages";
 export const outputContentTypeResultsetMeta = "resultsetsMeta";
@@ -152,8 +158,6 @@ export const contentProviderMinFile = "dist/js/app.min.js";
 export const untitledSaveTimeThreshold = 50.0;
 export const renamedOpenTimeThreshold = 10.0;
 export const timeToWaitForLanguageModeChange = 10000.0;
-export const macOpenSslHelpLink =
-    "https://github.com/Microsoft/vscode-mssql/wiki/OpenSSL-Configuration";
 export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
@@ -193,7 +197,7 @@ export const copilotShowSchemaToolName = "mssql_show_schema";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
 
 // Configuration Constants
-export const copyIncludeHeaders = "copyIncludeHeaders";
+export const copyIncludeHeaders = "mssql.copyIncludeHeaders";
 export const configLogDebugInfo = "logDebugInfo";
 export const configMyConnections = "connections";
 export const configSaveAsCsv = "saveAsCsv";
@@ -204,6 +208,7 @@ export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";
 export const configSplitPaneSelection = "splitPaneSelection";
 export const configShowBatchTime = "showBatchTime";
+export const configPreventAutoExecuteScript = "mssql.query.preventAutoExecuteScript";
 export enum extConfigResultKeys {
     Shortcuts = "shortcuts",
     MessagesDefaultOpen = "messagesDefaultOpen",
@@ -241,6 +246,15 @@ export const configSchemaDesignerEnableExpandCollapseButtons =
     "mssql.schemaDesigner.enableExpandCollapseButtons";
 export const configSavePasswordsUntilRestart =
     "mssql.connectionManagement.rememberPasswordsUntilRestart";
+export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
+export const configCustomEnvironment = "mssql.customEnvironment";
+
+// Built into VS Code
+export const sovereignCloudSectionName = "microsoft-sovereign-cloud";
+export const environmentSettingName = "environment";
+export const customEnvironmentSettingName = "customEnvironment";
+export const configSovereignCloudEnvironment = `${sovereignCloudSectionName}.${environmentSettingName}`;
+export const configSovereignCloudCustomEnvironment = `${sovereignCloudSectionName}.${customEnvironmentSettingName}`;
 
 // ToolsService Constants
 export const serviceInstallingTo = "Installing SQL tools service to";

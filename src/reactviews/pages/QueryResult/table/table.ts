@@ -11,7 +11,7 @@ import * as DOM from "./dom";
 import { IDisposableDataProvider } from "./dataProvider";
 import { CellSelectionModel } from "./plugins/cellSelectionModel.plugin";
 import { mixin } from "./objects";
-import { HeaderFilter } from "./plugins/headerFilter.plugin";
+import { HeaderMenu } from "./plugins/headerFilter.plugin";
 import { ContextMenu } from "./plugins/contextMenu.plugin";
 import {
     ColumnFilterState,
@@ -57,7 +57,8 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     private _container: HTMLElement;
     protected _tableContainer: HTMLElement;
     private selectionModel: CellSelectionModel<T>;
-    public headerFilter: HeaderFilter<T>;
+    public headerFilter: HeaderMenu<T>;
+    private _autoColumnSizePlugin: AutoColumnSize<T>;
     private _lastScrollAt: number = 0;
 
     constructor(
@@ -68,18 +69,29 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         private context: QueryResultReactProvider,
         private linkHandler: (fileContent: string, fileType: string) => void,
         private gridId: string,
-        private configuration: ITableConfiguration<T>,
+        configuration: ITableConfiguration<T>,
         options?: Slick.GridOptions<T>,
         gridParentRef?: React.RefObject<HTMLDivElement>,
         autoSizeColumns: boolean = false,
         themeKind: ColorThemeKind = ColorThemeKind.Dark,
     ) {
         this.linkHandler = linkHandler;
+        this.headerFilter = new HeaderMenu(this.uri, themeKind, this.context, gridId);
+        this.headerFilter.onFilterApplied.subscribe(async () => {
+            this.selectionModel.setSelectedRanges([]);
+            await this.selectionModel.updateSummaryText();
+        });
+        this.headerFilter.onSortChanged.subscribe(async () => {
+            await this.selectionModel.updateSummaryText();
+        });
         this.selectionModel = new CellSelectionModel<T>(
             {
                 hasRowSelector: true,
             },
             context,
+            uri,
+            resultSetSummary,
+            this.headerFilter,
         );
         if (
             !configuration ||
@@ -135,34 +147,18 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         this._container.appendChild(this._tableContainer);
         this.styleElement = DOM.createStyleSheet(this._container);
         this._grid = new Slick.Grid<T>(this._tableContainer, this._data, [], newOptions);
-        this.headerFilter = new HeaderFilter(this.uri, themeKind, this.context, gridId);
         this.registerPlugin(this.headerFilter);
-        this.registerPlugin(
-            new ContextMenu(
-                this.uri,
-                this.resultSetSummary,
-                this.context,
-                this.configuration.dataProvider as IDisposableDataProvider<T>,
-            ),
-        );
-        this.registerPlugin(
-            new CopyKeybind(
-                this.uri,
-                this.resultSetSummary,
-                this.context,
-                this.configuration.dataProvider as IDisposableDataProvider<T>,
-            ),
-        );
+        this.registerPlugin(new ContextMenu(this.uri, this.resultSetSummary, this.context));
+        this.registerPlugin(new CopyKeybind(this.uri, this.resultSetSummary, this.context));
 
-        this.registerPlugin(
-            new AutoColumnSize(
-                {
-                    maxWidth: MAX_COLUMN_WIDTH_PX,
-                    autoSizeOnRender: autoSizeColumns,
-                },
-                this.context,
-            ),
+        this._autoColumnSizePlugin = new AutoColumnSize(
+            {
+                maxWidth: MAX_COLUMN_WIDTH_PX,
+                autoSizeOnRender: autoSizeColumns,
+            },
+            this.context,
         );
+        this.registerPlugin(this._autoColumnSizePlugin);
 
         if (configuration && configuration.columns) {
             this.columns = configuration.columns;
@@ -542,7 +538,9 @@ export class Table<T extends Slick.SlickData> implements IThemable {
     }
 
     autosizeColumns() {
-        this._grid.autosizeColumns();
+        if (this._autoColumnSizePlugin) {
+            this._autoColumnSizePlugin.autosizeColumns();
+        }
     }
 
     set autoScroll(active: boolean) {
@@ -555,6 +553,87 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         if (styles.tableHeaderBackground) {
             content.push(
                 `.monaco-table .${this.idPrefix} .slick-header .slick-header-column { background-color: ${styles.tableHeaderBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellBackground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null { background-color: ${styles.nullCellBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellForeground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null { color: ${styles.nullCellForeground}; }`,
+            );
+        }
+
+        if (styles.nullCellHoverBackground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null:hover { background-color: ${styles.nullCellHoverBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellHoverForeground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null:hover { color: ${styles.nullCellHoverForeground}; }`,
+            );
+        }
+
+        if (styles.nullCellSelectionBackground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected { background-color: ${styles.nullCellSelectionBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellSelectionForeground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected { color: ${styles.nullCellSelectionForeground}; }`,
+            );
+        }
+
+        if (styles.nullCellHoverSelectionBackground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected:hover { background-color: ${styles.nullCellHoverSelectionBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellHoverSelectionForeground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected:hover { color: ${styles.nullCellHoverSelectionForeground}; }`,
+            );
+        }
+
+        if (styles.nullCellSelectionActiveBackground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected.active { background-color: ${styles.nullCellSelectionActiveBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellSelectionActiveForeground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected.active { color: ${styles.nullCellSelectionActiveForeground}; }`,
+            );
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected.active:hover { background-color: ${styles.nullCellSelectionActiveBackground}; }`,
+            );
+        }
+
+        if (styles.nullCellHoverForeground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null:hover { color: ${styles.nullCellHoverForeground}; }`,
+            );
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected.active:hover { color: ${styles.nullCellHoverForeground}; }`,
+            );
+        }
+
+        if (styles.nullCellHoverBackground) {
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null:hover { background-color: ${styles.nullCellHoverBackground}; }`,
+            );
+            content.push(
+                `.monaco-table.${this.idPrefix} .slick-row .slick-cell.cell-null.selected.active:hover { background-color: ${styles.nullCellHoverBackground}; }`,
             );
         }
 

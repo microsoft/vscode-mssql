@@ -15,6 +15,7 @@ import {
     makeStyles,
     shorthands,
     Text,
+    Spinner,
 } from "@fluentui/react-components";
 import {
     DataGridBody,
@@ -24,7 +25,7 @@ import {
     RowRenderer,
 } from "@fluentui-contrib/react-data-grid-react-window";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { DatabaseSearch24Regular, OpenRegular } from "@fluentui/react-icons";
+import { DatabaseSearch24Regular, ErrorCircle24Regular, OpenRegular } from "@fluentui/react-icons";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import ResultGrid, { ResultGridHandle } from "./resultGrid";
 import CommandBar from "./commandBar";
@@ -38,6 +39,7 @@ import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
 import { ExecutionPlanGraph } from "../../../sharedInterfaces/executionPlan";
+import { SLICKGRID_ROW_ID_PROP } from "./table/utils";
 
 const useStyles = makeStyles({
     root: {
@@ -134,7 +136,18 @@ const useStyles = makeStyles({
         display: "grid",
         placeItems: "center",
         borderRadius: "14px",
+        // Use VS Code theme info color for background accent
+        // color-mix provides theme-aware translucent gradient
         background: "linear-gradient(135deg, rgba(0,120,212,.16), rgba(0,120,212,.06))",
+    },
+    resultErrorIcon: {
+        width: "56px",
+        height: "56px",
+        display: "grid",
+        placeItems: "center",
+        borderRadius: "14px",
+        // Use VS Code theme error color for background accent
+        background: "linear-gradient(135deg, rgba(255,0,0,.16), rgba(255,0,0,.06))",
     },
 });
 
@@ -156,6 +169,9 @@ export const QueryResultPane = () => {
     const resultSetSummaries = useQueryResultSelector<
         Record<number, Record<number, qr.ResultSetSummary>>
     >((s) => s.resultSetSummaries);
+    const initilizationError = useQueryResultSelector<string | undefined>(
+        (s) => s.initializationError,
+    );
     const messages = useQueryResultSelector<qr.IMessage[]>((s) => s.messages);
     const uri = useQueryResultSelector<string | undefined>((s) => s.uri);
     const fontSettings = useQueryResultSelector<qr.FontSettings>((s) => s.fontSettings);
@@ -298,7 +314,7 @@ export const QueryResultPane = () => {
                             : "",
                     fontFamily: fontSettings.fontFamily
                         ? fontSettings.fontFamily
-                        : "var(--vscode-editor-font-family)",
+                        : "var(--vscode-font-family)",
                     fontSize: `${fontSettings.fontSize ?? 12}px`,
                 }}>
                 {/* Render Grid View */}
@@ -322,7 +338,7 @@ export const QueryResultPane = () => {
                             let r = response as qr.ResultSetSubset;
                             var columnLength =
                                 resultSetSummaries[batchId][resultId]?.columnInfo?.length;
-                            return r.rows.map((r) => {
+                            return r.rows.map((r, rowOffset) => {
                                 let dataWithSchema: {
                                     [key: string]: any;
                                 } = {};
@@ -339,6 +355,7 @@ export const QueryResultPane = () => {
                                         isNull: cell.isNull,
                                         invariantCultureDisplayValue: displayValue,
                                     };
+                                    dataWithSchema[SLICKGRID_ROW_ID_PROP] = offset + rowOffset;
                                 }
                                 return dataWithSchema;
                             });
@@ -638,28 +655,61 @@ export const QueryResultPane = () => {
         }, 10);
     }, [uri]);
 
-    return !uri || !hasResultsOrMessages(resultSetSummaries, messages) ? (
-        <div className={classes.root}>
-            <div className={classes.noResultsContainer}>
-                <div className={classes.noResultsScrollablePane}>
-                    <div className={classes.noResultsIcon} aria-hidden>
-                        <DatabaseSearch24Regular />
+    if (initilizationError) {
+        return (
+            <div className={classes.root}>
+                <div className={classes.noResultsContainer}>
+                    <div className={classes.noResultsScrollablePane}>
+                        <div className={classes.resultErrorIcon} aria-hidden>
+                            <ErrorCircle24Regular />
+                        </div>
+                        <Title3>{locConstants.queryResult.failedToStartQuery}</Title3>
+                        <Text className={classes.noResultMessage}>{initilizationError}</Text>
                     </div>
-                    <Title3>{locConstants.queryResult.noResultsHeader}</Title3>
-                    <Text>{locConstants.queryResult.noResultMessage}</Text>
-                    <Link
-                        className={classes.hidePanelLink}
-                        onClick={async () => {
-                            await context.extensionRpc.sendRequest(ExecuteCommandRequest.type, {
-                                command: "workbench.action.closePanel",
-                            });
-                        }}>
-                        {locConstants.queryResult.clickHereToHideThisPanel}
-                    </Link>
                 </div>
             </div>
-        </div>
-    ) : (
+        );
+    }
+
+    if (!uri || !hasResultsOrMessages(resultSetSummaries, messages)) {
+        return (
+            <div className={classes.root}>
+                <div className={classes.noResultsContainer}>
+                    <div className={classes.noResultsScrollablePane}>
+                        {webviewLocation === "document" ? (
+                            <Spinner
+                                label={locConstants.queryResult.loadingResultsMessage}
+                                labelPosition="below"
+                                size="large"
+                            />
+                        ) : (
+                            <>
+                                <div className={classes.noResultsIcon} aria-hidden>
+                                    <DatabaseSearch24Regular />
+                                </div>
+                                <Title3>{locConstants.queryResult.noResultsHeader}</Title3>
+                                <Text>{locConstants.queryResult.noResultMessage}</Text>
+                                <Link
+                                    className={classes.hidePanelLink}
+                                    onClick={async () => {
+                                        await context.extensionRpc.sendRequest(
+                                            ExecuteCommandRequest.type,
+                                            {
+                                                command: "workbench.action.closePanel",
+                                            },
+                                        );
+                                    }}>
+                                    {locConstants.queryResult.clickHereToHideThisPanel}
+                                </Link>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
         <div className={classes.root} ref={resultPaneParentRef}>
             <div className={classes.ribbon} ref={ribbonRef}>
                 <TabList

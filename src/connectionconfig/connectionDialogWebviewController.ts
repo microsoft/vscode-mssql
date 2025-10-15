@@ -27,8 +27,8 @@ import {
     GetConnectionDisplayNameRequest,
     IAzureAccount,
     GetSqlAnalyticsEndpointUriFromFabricRequest,
+    ChangePasswordDialogProps,
 } from "../sharedInterfaces/connectionDialog";
-import { ConnectionCompleteParams } from "../models/contracts/connection";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
 import {
     ConnectionDialog as Loc,
@@ -53,7 +53,11 @@ import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { UserSurvey } from "../nps/userSurvey";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { getConnectionDisplayName, getServerTypes } from "../models/connectionInfo";
+import {
+    getConnectionDisplayName,
+    getServerTypes,
+    getDefaultConnection,
+} from "../models/connectionInfo";
 import { getErrorMessage } from "../utils/utils";
 import { l10n } from "vscode";
 import {
@@ -66,11 +70,7 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import {
-    configSelectedAzureSubscriptions,
-    errorFirewallRule,
-    errorSSLCertificateValidationFailed,
-} from "../constants/constants";
+import { configSelectedAzureSubscriptions } from "../constants/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
 import {
@@ -82,6 +82,16 @@ import { MssqlVSCodeAzureSubscriptionProvider } from "../azure/MssqlVSCodeAzureS
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { FabricHelper } from "../fabric/fabricHelper";
 import { FabricSqlDbInfo, FabricWorkspaceInfo } from "../sharedInterfaces/fabric";
+import {
+    ConnectionInfo,
+    getSqlConnectionErrorType,
+    SqlConnectionErrorType,
+} from "../controllers/connectionManager";
+import {
+    ChangePasswordWebviewRequest,
+    ChangePasswordWebviewState,
+} from "../sharedInterfaces/changePassword";
+import { getCloudId } from "../azure/providerSettings";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 
@@ -358,8 +368,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     err.Name, // errorType
                     {
                         failure: err.Name,
+                        cloudType: getCloudId(),
                     },
                 );
+
+                return state;
             }
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.AddFirewallRule);
@@ -396,7 +409,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("openCreateConnectionGroupDialog", async (state) => {
-            return getDefaultConnectionGroupDialogProps(state) as ConnectionDialogWebviewState;
+            state.dialog = getDefaultConnectionGroupDialogProps();
+            return state;
         });
 
         this.registerReducer("closeDialog", async (state) => {
@@ -422,6 +436,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     TelemetryActions.FilterAzureSubscriptions,
                     err,
                     false, // includeErrorMessage
+                    undefined, // errorCode
+                    undefined, // errorType
+                    {
+                        cloudType: getCloudId(),
+                    },
                 );
             }
 
@@ -536,7 +555,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 let connectionString = "";
 
                 // if the current connection is the untouched default connection, connection string is left empty
-                if (!shallowEqualObjects(state.connectionProfile, this.getDefaultConnection())) {
+                if (!shallowEqualObjects(state.connectionProfile, getDefaultConnection())) {
                     const cleanedConnection = this.cleanConnection(state.connectionProfile);
 
                     const connectionDetails =
@@ -752,6 +771,23 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return undefined;
             }
         });
+
+        this.onRequest(ChangePasswordWebviewRequest.type, async (newPassword: string) => {
+            const passwordChangeResponse =
+                await this._mainController.connectionManager.changePasswordService.changePassword(
+                    this.state.connectionProfile,
+                    newPassword,
+                );
+            if (passwordChangeResponse.result) {
+                this.state.dialog = undefined;
+                this.state.connectionProfile.password = newPassword;
+                this.updateState();
+                const state = await this.connectHelper(this.state);
+                this.updateState(state);
+            } else {
+                return passwordChangeResponse;
+            }
+        });
     }
 
     //#region Helpers
@@ -944,13 +980,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         try {
             try {
-                const result = await this._mainController.connectionManager.connectDialog(
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const tempConnectionUri = Utils.generateGuid();
+                const result = await this._mainController.connectionManager.connect(
+                    tempConnectionUri,
                     cleanedConnection as any,
+                    false, // Connect should not handle errors, as we want to handle them here
                 );
 
-                if (result.errorMessage) {
-                    return await this.handleConnectionErrorCodes(result, state);
+                const connectionInfo =
+                    this._mainController.connectionManager?.getConnectionInfo(tempConnectionUri);
+
+                if (!result) {
+                    return await this.handleConnectionErrorCodes(connectionInfo, state);
                 }
             } catch (error) {
                 this.state.formError = getErrorMessage(error);
@@ -966,6 +1007,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     {
                         connectionInputType: this.state.selectedInputMode,
                         authMode: this.state.connectionProfile.authenticationType,
+                        cloudType: getCloudId(),
                     },
                 );
 
@@ -978,6 +1020,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 connectionInputType: this.state.selectedInputMode,
                 authMode: this.state.connectionProfile.authenticationType,
                 serverTypes: getServerTypes(this.state.connectionProfile).join(","),
+                cloudType: getCloudId(),
             });
 
             if (this._connectionBeingEdited) {
@@ -1053,6 +1096,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 {
                     connectionInputType: this.state.selectedInputMode,
                     authMode: this.state.connectionProfile.authenticationType,
+                    cloudType: getCloudId(),
                 },
             );
 
@@ -1062,10 +1106,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private async handleConnectionErrorCodes(
-        result: ConnectionCompleteParams,
+        result: ConnectionInfo,
         state: ConnectionDialogWebviewState,
     ): Promise<ConnectionDialogWebviewState> {
-        if (result.errorNumber === errorSSLCertificateValidationFailed) {
+        const errorType = await getSqlConnectionErrorType(
+            {
+                errorNumber: result.errorNumber,
+                errorMessage: result.errorMessage,
+                message: result.messages,
+            },
+            result.credentials,
+        );
+        if (errorType === SqlConnectionErrorType.TrustServerCertificateNotEnabled) {
             this.state.connectionStatus = ApiStatus.Error;
             this.state.dialog = {
                 type: "trustServerCert",
@@ -1076,7 +1128,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             // just prompt the user to trust the cert
 
             return state;
-        } else if (result.errorNumber === errorFirewallRule) {
+        } else if (errorType === SqlConnectionErrorType.FirewallRuleError) {
             this.state.connectionStatus = ApiStatus.Error;
 
             const handleFirewallErrorResult =
@@ -1124,20 +1176,31 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             } as AddFirewallRuleDialogProps;
 
             return state;
+        } else if (errorType === SqlConnectionErrorType.PasswordExpired) {
+            this.state.connectionStatus = ApiStatus.Error;
+            this.state.formError = `${result.errorNumber}: ${result.errorMessage}`;
+            this.state.dialog = {
+                type: "changePassword",
+                props: {
+                    server: result.credentials.server,
+                    userName: result.credentials.user,
+                } as ChangePasswordWebviewState,
+            } as ChangePasswordDialogProps;
+            return state;
+        } else {
+            this.state.formError = result.errorMessage;
+            this.state.connectionStatus = ApiStatus.Error;
+
+            sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
+                result: "connectionError",
+                errorNumber: String(result.errorNumber),
+                newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
+                connectionInputType: this.state.selectedInputMode,
+                authMode: this.state.connectionProfile.authenticationType,
+            });
+
+            return state;
         }
-
-        this.state.formError = result.errorMessage;
-        this.state.connectionStatus = ApiStatus.Error;
-
-        sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
-            result: "connectionError",
-            errorNumber: String(result.errorNumber),
-            newOrEditedConnection: this._connectionBeingEdited ? "edited" : "new",
-            connectionInputType: this.state.selectedInputMode,
-            authMode: this.state.connectionProfile.authenticationType,
-        });
-
-        return state;
     }
 
     private async loadConnectionToEdit(connectionToEdit: IConnectionInfo) {
@@ -1159,17 +1222,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
     }
 
-    private getDefaultConnection(): IConnectionDialogProfile {
-        return {
-            authenticationType: AuthenticationType.SqlLogin,
-            connectTimeout: 30, // seconds
-            applicationName: "vscode-mssql",
-            applicationIntent: "ReadWrite",
-        } as IConnectionDialogProfile;
-    }
-
     private loadEmptyConnection() {
-        this.state.connectionProfile = this.getDefaultConnection();
+        this.state.connectionProfile = getDefaultConnection();
     }
 
     private async initializeConnectionForDialog(
@@ -1541,6 +1595,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 true, // includeErrorMessage
                 undefined, // errorCode
                 undefined, // errorType
+                {
+                    cloudType: getCloudId(),
+                },
             );
         }
     }
@@ -1622,6 +1679,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 const locMessage = LocFabric.failedToGetWorkspacesForTenant(
                     tenant.displayName,
                     tenant.tenantId,
+                    getErrorMessage(err),
                 );
 
                 this.logger.error(message);

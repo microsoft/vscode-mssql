@@ -8,6 +8,7 @@ import * as Utils from "../../src/models/utils";
 import * as Constants from "../../src/constants/constants";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { IConnectionProfile } from "../../src/models/interfaces";
+import * as utilUtils from "../../src/utils/utils";
 
 suite("Utility Tests - parseTimeString", () => {
     test("should return false if nothing passed", () => {
@@ -142,6 +143,34 @@ suite.skip("Utility tests - Timer Class", () => {
             }, 100);
         });
         void p.then(() => done());
+    });
+});
+
+suite("Utility tests - parseEnum", () => {
+    test("should return the correct enum value", () => {
+        enum TestEnum {
+            Value1 = "ValueOne",
+            Value2 = "ValueTwo",
+            Value3 = "ValueThree",
+        }
+
+        const testCases = [
+            { input: "ValueOne", expected: TestEnum.Value1 },
+            { input: "ValueTwo", expected: TestEnum.Value2 },
+            { input: "ValueThree", expected: TestEnum.Value3 },
+            { input: "Value1", expected: TestEnum.Value1 },
+            { input: "Value2", expected: TestEnum.Value2 },
+            { input: "Value3", expected: TestEnum.Value3 },
+            { input: "somethingElse", expected: undefined },
+            { input: undefined, expected: undefined },
+        ];
+
+        for (const { input, expected } of testCases) {
+            const result = utilUtils.parseEnum(TestEnum, input);
+            expect(result, `'${input}' should return ${expected}, but was ${result}`).to.equal(
+                expected,
+            );
+        }
     });
 });
 

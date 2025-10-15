@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { l10n } from "vscode";
+import * as os from "os";
 
 // Warning: Only update these strings if you are sure you want to affect _all_ locations they're shared between.
 export class Common {
@@ -405,8 +406,7 @@ export function msgDisconnected(documentName: string) {
         comment: ["{0} is the document name"],
     });
 }
-export let macOpenSslErrorMessage = l10n.t("OpenSSL version >=1.0.1 is required to connect.");
-export let macOpenSslHelpButton = l10n.t("Help");
+export let help = l10n.t("Help");
 export let macSierraRequiredErrorMessage = l10n.t(
     "macOS Sierra or newer is required to use this feature.",
 );
@@ -583,6 +583,8 @@ export let executionPlan = l10n.t("Execution Plan");
 export let executionPlanFileFilter = l10n.t("SQL Plan Files");
 export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
 export let copied = l10n.t("Copied");
+export let copyingResults = l10n.t("Copying results...");
+export let resultsCopiedToClipboard = l10n.t("Results copied to clipboard");
 
 export let openQueryResultsInTabByDefaultPrompt = l10n.t(
     "Do you want to always display query results in a new tab instead of the query pane?",
@@ -770,15 +772,42 @@ export class Azure {
             comment: ["{0} is the tenant id", "{1} is the account name"],
         });
     };
+
+    public static PublicCloud = l10n.t("Azure (Public)");
+    public static USGovernmentCloud = l10n.t("Azure (US Government)");
+    public static ChinaCloud = l10n.t("Azure (China)");
+
+    public static customCloudNotConfigured = (missingSetting: string) => {
+        return l10n.t(
+            "The custom cloud choice is not configured. Please configure the setting `{0}`.",
+            missingSetting,
+        );
+    };
 }
 
 export class Fabric {
-    public static failedToGetWorkspacesForTenant = (tenantName: string, tenantId: string) => {
-        return l10n.t({
-            message: "Failed to get Fabric workspaces for tenant '{0} ({1})'.",
-            args: [tenantName, tenantId],
-            comment: ["{0} is the tenant name", "{1} is the tenant id"],
-        });
+    public static failedToGetWorkspacesForTenant = (
+        tenantName: string,
+        tenantId: string,
+        errorMessage?: string,
+    ) => {
+        if (errorMessage) {
+            return l10n.t({
+                message: "Failed to get Fabric workspaces for tenant '{0} ({1})': {2}",
+                args: [tenantName, tenantId, errorMessage],
+                comment: [
+                    "{0} is the tenant name",
+                    "{1} is the tenant id",
+                    "{2} is the error message",
+                ],
+            });
+        } else {
+            return l10n.t({
+                message: "Failed to get Fabric workspaces for tenant '{0} ({1})'.",
+                args: [tenantName, tenantId],
+                comment: ["{0} is the tenant name", "{1} is the tenant id"],
+            });
+        }
     };
 
     public static listingCapacitiesForTenant = (tenantId: string) => {
@@ -886,8 +915,17 @@ export class Fabric {
     public static selectAWorkspace = l10n.t("Select a Workspace");
     public static searchWorkspaces = l10n.t("Search Workspaces");
     public static workspaceIsRequired = l10n.t("Workspace is required");
-    public static insufficientWorkspacePermissions = l10n.t("Insufficient Worskpace Permissions");
+    public static insufficientWorkspacePermissions = l10n.t("Insufficient Workspace Permissions");
     public static insufficientCapacityPermissions = l10n.t("Insufficient Capacity Permissions");
+
+    public static fabricNotSupportedInCloud = (cloudName: string, settingName: string) => {
+        return l10n.t({
+            message:
+                "Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.",
+            args: [cloudName, settingName],
+            comment: ["{0} is the cloud name", "{1} is the setting name"],
+        });
+    };
 }
 
 export class Accounts {
@@ -940,14 +978,103 @@ export class QueryResult {
         min: number,
         nullCount: number,
         sum: number,
-    ) =>
+    ) => {
+        return [
+            l10n.t({
+                message: "Average: {0}",
+                args: [average],
+                comment: ["{0} is the average"],
+            }),
+            l10n.t({
+                message: "Count: {0}",
+                args: [count],
+                comment: ["{0} is the count"],
+            }),
+            l10n.t({
+                message: "Distinct Count: {0}",
+                args: [distinctCount],
+                comment: ["{0} is the distinct count"],
+            }),
+            l10n.t({
+                message: "Max: {0}",
+                args: [max],
+                comment: ["{0} is the max"],
+            }),
+            l10n.t({
+                message: "Min: {0}",
+                args: [min],
+                comment: ["{0} is the min"],
+            }),
+            l10n.t({
+                message: "Null Count: {0}",
+                args: [nullCount],
+                comment: ["{0} is the null count"],
+            }),
+            l10n.t({
+                message: "Sum: {0}",
+                args: [sum],
+                comment: ["{0} is the sum"],
+            }),
+        ].join(os.EOL);
+    };
+    public static nonNumericSelectionSummaryTooltip = (
+        count: number,
+        distinctCount: number,
+        nullCount: number,
+    ) => {
+        return [
+            l10n.t({
+                message: "Count: {0}",
+                args: [count],
+                comment: ["{0} is the count"],
+            }),
+            l10n.t({
+                message: "Distinct Count: {0}",
+                args: [distinctCount],
+                comment: ["{0} is the distinct count"],
+            }),
+            l10n.t({
+                message: "Null Count: {0}",
+                args: [nullCount],
+                comment: ["{0} is the null count"],
+            }),
+        ].join(os.EOL);
+    };
+    public static copyError = (error: string) =>
         l10n.t({
-            message:
-                "Average: {0}  Count: {1}  Distinct Count: {2}  Max: {3}  Min: {4}  Null Count: {5}  Sum: {6}",
-            args: [average, count, distinctCount, max, min, nullCount, sum],
-            comment: [
-                "{0} is the average, {1} is the count, {2} is the distinct count, {3} is the max, {4} is the min, {5} is the null count, {6} is the sum",
-            ],
+            message: "An error occurred while copying results: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static summaryFetchConfirmation = (numRows: number) =>
+        l10n.t({
+            message: "{0} rows selected, click to load summary",
+            args: [numRows],
+            comment: ["{0} is the number of rows to fetch summary statistics for"],
+        });
+    public static clickToFetchSummary = l10n.t("Click to load summary");
+    public static summaryLoadingProgress = (totalRows: number) => {
+        return l10n.t({
+            message: `Loading summary for {0} rows (Click to cancel)`,
+            args: [totalRows],
+            comment: ["{0} is the total number of rows"],
+        });
+    };
+    public static clickToCancelLoadingSummary = l10n.t("Click to cancel loading summary");
+    public static summaryLoadingCanceled = l10n.t("Summary loading canceled");
+    public static summaryLoadingCanceledTooltip = l10n.t("Summary loading was canceled by user");
+    public static errorLoadingSummary = l10n.t("Error loading summary");
+    public static errorLoadingSummaryTooltip = (error: string) =>
+        l10n.t({
+            message: "Error loading summary: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    public static getRowsError = (error: string) =>
+        l10n.t({
+            message: "An error occurred while retrieving rows: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
         });
 }
 
@@ -1177,6 +1304,23 @@ export class TableDesigner {
     public static AdvancedOptions = l10n.t("Advanced Options");
 }
 
+export class PublishProject {
+    public static Title = l10n.t("Publish Project");
+    public static PublishProfileLabel = l10n.t("Publish Profile");
+    public static PublishProfilePlaceholder = l10n.t("Select or enter a publish profile");
+    public static ServerLabel = l10n.t("Server");
+    public static DatabaseLabel = l10n.t("Database");
+    public static DatabaseRequiredMessage = l10n.t("Database name is required");
+    public static SqlCmdVariablesLabel = l10n.t("SQLCMD Variables");
+    public static PublishTargetLabel = l10n.t("Publish Target");
+    public static PublishTargetExisting = l10n.t("Existing SQL server");
+    public static PublishTargetContainer = l10n.t("Local development container");
+    public static SelectPublishProfile = l10n.t("Select Profile");
+    public static SaveAs = l10n.t("Save As");
+    public static GenerateScript = l10n.t("Generate Script");
+    public static Publish = l10n.t("Publish");
+}
+
 export class SchemaCompare {
     public static Title = l10n.t("Schema Compare");
     public static Open = l10n.t("Open");
@@ -1340,6 +1484,8 @@ export class Connection {
     );
     public static NoTenantSelected = l10n.t("No tenant selected");
     public static SelectTenant = l10n.t("Select a tenant");
+
+    public static ChangePassword = l10n.t("Change Password");
 }
 
 export class MssqlChatAgent {
@@ -1730,6 +1876,9 @@ export class MssqlChatAgent {
     public static unknownError = l10n.t("Unknown error");
     public static noActiveDatabaseConnection = l10n.t(
         "No active database connection in the current editor. Please establish a connection to continue.",
+    );
+    public static chatCommandNotAvailable = l10n.t(
+        "Chat command not available in this VS Code version",
     );
 }
 

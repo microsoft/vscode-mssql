@@ -21,7 +21,6 @@ const useStyles = makeStyles({
         alignItems: "center",
         justifyContent: "center",
         height: "100%",
-        width: "100%",
         minWidth: "750px",
         minHeight: "fit-content",
     },

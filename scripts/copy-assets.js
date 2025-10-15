@@ -12,7 +12,7 @@ const COPY_TASKS = [
         name: "Test Resources",
         source: "test/resources",
         destination: "out/test/resources",
-    }
+    },
 ];
 
 /**

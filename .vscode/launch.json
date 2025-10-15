@@ -9,7 +9,7 @@
             "runtimeExecutable": "${execPath}",
             "args": ["--extensionDevelopmentPath=${workspaceRoot}"],
             "sourceMaps": true,
-            "outFiles": ["${workspaceRoot}/out/src/**/*.js"],
+            "outFiles": ["${workspaceRoot}/dist/**/*.js", "${workspaceRoot}/out/src/**/*.js"],
             "rendererDebugOptions": {
                 "pauseForSourceMap": true,
                 "sourceMapRenames": true,
@@ -38,13 +38,13 @@
                 "--skip-welcome"
             ],
             "sourceMaps": true,
-            "outFiles": ["${workspaceRoot}/out/src/**/*.js"],
+            "outFiles": ["${workspaceRoot}/dist/**/*.js", "${workspaceRoot}/out/src/**/*.js"],
             "env": {
                 // Uncomment this to use a specified version of STS, see
                 // https://github.com/microsoft/vscode-mssql/blob/main/DEVELOPMENT.md#using-mssql_sqltoolsservice-environment-variable
                 // for more details
                 // "MSSQL_SQLTOOLSSERVICE": "<Path to STS>"
             }
-        },
+        }
     ]
 }

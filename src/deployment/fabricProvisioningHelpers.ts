@@ -38,6 +38,7 @@ export async function initializeFabricProvisioningState(
     deploymentController: DeploymentWebviewController,
     groupOptions: FormItemOptions[],
     logger: Logger,
+    selectedGroupId: string | undefined,
 ): Promise<fp.FabricProvisioningState> {
     const startTime = Date.now();
     const state = new fp.FabricProvisioningState();
@@ -65,7 +66,7 @@ export async function initializeFabricProvisioningState(
 
     state.formState = {
         accountId: defaultAccountId,
-        groupId: groupOptions[0].value,
+        groupId: selectedGroupId || groupOptions[0]?.value,
         tenantId: defaultTenantId,
         workspace: "",
         databaseName: "",
@@ -138,23 +139,31 @@ export function registerFabricProvisioningReducers(
 
         fabricProvisioningState.formErrors = await deploymentController.validateDeploymentForm();
         if (fabricProvisioningState.formErrors.length === 0) {
-            void provisionDatabase(deploymentController);
-            fabricProvisioningState.deploymentStartTime = new Date().toUTCString();
-
-            // Set tenant and workspace names to display later
-            fabricProvisioningState.tenantName =
-                fabricProvisioningState.formComponents.tenantId.options.find(
-                    (option) => option.value === fabricProvisioningState.formState.tenantId,
-                )?.displayName;
-            fabricProvisioningState.workspaceName =
-                fabricProvisioningState.formComponents.workspace.options.find(
-                    (option) => option.value === fabricProvisioningState.formState.workspace,
-                )?.displayName;
+            fabricProvisioningState = handleCreateDatabase(
+                deploymentController,
+                fabricProvisioningState,
+            );
             fabricProvisioningState.formValidationLoadState = ApiStatus.Loaded;
         } else {
             fabricProvisioningState.formValidationLoadState = ApiStatus.NotStarted;
         }
         state.deploymentTypeState = fabricProvisioningState;
+        return state;
+    });
+
+    deploymentController.registerReducer("retryCreateDatabase", async (state, _payload) => {
+        let fabricProvisioningState = state.deploymentTypeState as fp.FabricProvisioningState;
+        fabricProvisioningState.errorMessage = "";
+
+        state.deploymentTypeState = handleCreateDatabase(
+            deploymentController,
+            fabricProvisioningState,
+        );
+        return state;
+    });
+    deploymentController.registerReducer("resetFormValidationState", async (state, _payload) => {
+        state.deploymentTypeState.errorMessage = "";
+        state.deploymentTypeState.formValidationLoadState = ApiStatus.NotStarted;
         return state;
     });
 }
@@ -449,7 +458,6 @@ export async function getWorkspaces(
             },
         );
     } catch (err) {
-        console.log(err);
         state.isWorkspacesErrored = true;
         sendErrorEvent(
             TelemetryViews.FabricProvisioning,
@@ -614,6 +622,9 @@ export async function handleWorkspaceFormAction(
     state: fp.FabricProvisioningState,
     workspaceId: string,
 ): Promise<fp.FabricProvisioningState> {
+    // Clean up "databaseName" error if new workspace is selected
+    state.formErrors = state.formErrors.filter((err) => err !== "databaseName");
+
     const workspace = state.workspacesWithPermissions[workspaceId];
 
     // Check if the workspace has a role
@@ -639,13 +650,14 @@ export async function handleWorkspaceFormAction(
     }
 
     // Validate the workspace
-    state.formState.workspace = workspace.id;
+    state.formState.workspace = workspaceId;
     const workspaceComponent = state.formComponents["workspace"];
     const workspaceValidation = workspaceComponent.validate(state, state.formState.workspace);
     workspaceComponent.validation = workspaceValidation;
     if (!workspaceValidation.isValid) {
         state.formErrors.push("workspace");
         state.databaseNamesInWorkspace = [];
+        return state;
     } else {
         const startTime = Date.now();
 
@@ -815,4 +827,21 @@ export function getDefaultTenantId(accountId: string, tenants: AzureTenant[]): s
         : tenants.length > 0
           ? tenants[0].tenantId
           : "";
+}
+
+export function handleCreateDatabase(
+    deploymentController: DeploymentWebviewController,
+    state: fp.FabricProvisioningState,
+): fp.FabricProvisioningState {
+    void provisionDatabase(deploymentController);
+    state.deploymentStartTime = new Date().toUTCString();
+
+    // Set tenant and workspace names to display later
+    state.tenantName = state.formComponents.tenantId.options.find(
+        (option) => option.value === state.formState.tenantId,
+    )?.displayName;
+    state.workspaceName = state.formComponents.workspace.options.find(
+        (option) => option.value === state.formState.workspace,
+    )?.displayName;
+    return state;
 }

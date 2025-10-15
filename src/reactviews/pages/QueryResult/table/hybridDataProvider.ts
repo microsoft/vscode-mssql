@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ShowFilterDisabledMessageRequest } from "../../../../sharedInterfaces/queryResult";
+import { QueryResultReactProvider } from "../queryResultStateProvider";
 import { AsyncDataProvider, IObservableCollection } from "./asyncDataView";
 import { IDisposableDataProvider } from "./dataProvider";
 import { FilterableColumn } from "./interfaces";
@@ -33,6 +35,7 @@ export class HybridDataProvider<T extends Slick.SlickData> implements IDisposabl
         private _loadDataFn: (offset: number, count: number) => Thenable<T[]>,
         valueGetter: CellValueGetter,
         private readonly _options: HybridDataProviderOptions,
+        private queryResultContext: QueryResultReactProvider,
         filterFn?: TableFilterFunc<T>,
         sortFn?: TableSortFunc<T>,
     ) {
@@ -67,6 +70,12 @@ export class HybridDataProvider<T extends Slick.SlickData> implements IDisposabl
     }
 
     public async getColumnValues(column: Slick.Column<T>): Promise<string[]> {
+        if (this.thresholdReached) {
+            await this.queryResultContext.extensionRpc.sendRequest(
+                ShowFilterDisabledMessageRequest.type,
+            );
+            throw new Error("In-memory data processing is disabled.");
+        }
         await this.initializeCacheIfNeeded();
         return this.provider.getColumnValues(column);
     }
@@ -100,16 +109,34 @@ export class HybridDataProvider<T extends Slick.SlickData> implements IDisposabl
     }
 
     public async filter(columns: FilterableColumn<T>[]) {
+        if (this.thresholdReached) {
+            await this.queryResultContext.extensionRpc.sendRequest(
+                ShowFilterDisabledMessageRequest.type,
+            );
+            return;
+        }
         await this.initializeCacheIfNeeded();
         void this.provider.filter(columns);
     }
 
     public async sort(options: Slick.OnSortEventArgs<T>) {
+        if (this.thresholdReached) {
+            await this.queryResultContext.extensionRpc.sendRequest(
+                ShowFilterDisabledMessageRequest.type,
+            );
+            return;
+        }
         await this.initializeCacheIfNeeded();
         void this.provider.sort(options);
     }
 
     public async resetSort() {
+        if (this.thresholdReached) {
+            await this.queryResultContext.extensionRpc.sendRequest(
+                ShowFilterDisabledMessageRequest.type,
+            );
+            return;
+        }
         void this.provider.resetSort();
     }
 
