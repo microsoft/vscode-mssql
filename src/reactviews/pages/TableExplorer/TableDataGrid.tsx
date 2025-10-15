@@ -294,7 +294,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                                 : "";
 
                             if (isModified) {
-                                return `<span title="${escapedTooltip}" style="display: block; background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%; ${nullStyle}">${escapedDisplayValue}</span>`;
+                                return `<div title="${escapedTooltip}" style="background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%; width: 100%; box-sizing: border-box; ${nullStyle}">${escapedDisplayValue}</div>`;
                             }
                             return `<span title="${escapedTooltip}" style="${nullStyle}">${escapedDisplayValue}</span>`;
                         },
