@@ -95,7 +95,7 @@ import {
 import { getCloudId } from "../azure/providerSettings";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
-const CLEAR_TOKEN_CACHE = "clearTokenCache";
+export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,

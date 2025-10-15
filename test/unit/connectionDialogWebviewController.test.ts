@@ -6,11 +6,18 @@
 import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
-import { ConnectionDialogWebviewController } from "../../src/connectionconfig/connectionDialogWebviewController";
+import sinonChai from "sinon-chai";
+import * as chai from "chai";
+
+import { expect } from "chai";
+
+import {
+    CLEAR_TOKEN_CACHE,
+    ConnectionDialogWebviewController,
+} from "../../src/connectionconfig/connectionDialogWebviewController";
 import MainController from "../../src/controllers/mainController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerProvider";
-import { expect } from "chai";
 import {
     AuthenticationType,
     AzureSqlServerInfo,
@@ -40,6 +47,10 @@ import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { mockGetCapabilitiesRequest } from "./mocks";
 import { AzureController } from "../../src/azure/azureController";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import { multiple_matching_tokens_error } from "../../src/azure/constants";
+import { Logger } from "../../src/models/logger";
+
+chai.use(sinonChai);
 
 suite("ConnectionDialogWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -492,6 +503,71 @@ suite("ConnectionDialogWebviewController Tests", () => {
             });
         });
 
+        test("displays actionable error message for multiple_matching_tokens_error", async () => {
+            // Set up mocks
+            stubTelemetry(sandbox);
+            stubUserSurvey(sandbox);
+
+            mockObjectExplorerProvider
+                .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
+                .returns(() => {
+                    return Promise.resolve({
+                        sessionId: "testSessionId",
+                        rootNode: new TreeNodeInfo(
+                            "testNode",
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            "Database",
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                            undefined,
+                        ),
+                        success: true,
+                    } as CreateSessionResponse);
+                });
+
+            const errorMessage = `Error: Connection failed due to ${multiple_matching_tokens_error}`;
+
+            connectionManager
+                .setup((cm) =>
+                    cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                )
+                .throws(new Error(errorMessage));
+
+            let mockObjectExplorerTree = TypeMoq.Mock.ofType<vscode.TreeView<TreeNodeInfo>>(
+                undefined,
+                TypeMoq.MockBehavior.Loose,
+            );
+
+            mockObjectExplorerTree
+                .setup((oet) => oet.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                .returns(() => {
+                    return Promise.resolve();
+                });
+
+            mainController.objectExplorerTree = mockObjectExplorerTree.object;
+
+            // Run test
+
+            controller.state.formState = {
+                server: "localhost",
+                user: "testUser",
+                password: "testPassword",
+                authenticationType: AuthenticationType.SqlLogin,
+            } as IConnectionDialogProfile;
+
+            await controller["_reducerHandlers"].get("connect")(controller.state, {});
+
+            expect(controller.state.formMessage.message).to.equal(errorMessage);
+            expect(controller.state.formMessage.buttons).to.deep.equal([
+                { id: CLEAR_TOKEN_CACHE, label: "Clear token cache" },
+            ]);
+        });
+
         suite("filterAzureSubscriptions", () => {
             test("Filter change cancelled", async () => {
                 stubPromptForAzureSubscriptionFilter(sandbox, false);
@@ -529,6 +605,42 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     controller.state.azureSubscriptions,
                     "changing Azure subscription filter settings should trigger reloading subscriptions",
                 ).to.have.lengthOf(2);
+            });
+        });
+
+        suite("messageButtonClicked", () => {
+            test("clearTokenCache", async () => {
+                controller.state.formMessage = {
+                    message: "You need to clear your token cache",
+                    buttons: [{ id: CLEAR_TOKEN_CACHE, label: "Clear token cache" }],
+                };
+
+                const onClearAzureTokenCacheStub = sandbox.stub(
+                    mainController,
+                    "onClearAzureTokenCache",
+                );
+
+                await controller["_reducerHandlers"].get("messageButtonClicked")(controller.state, {
+                    buttonId: CLEAR_TOKEN_CACHE,
+                });
+
+                expect(controller.state.formMessage).to.be.undefined;
+                expect(onClearAzureTokenCacheStub.calledOnce).to.be.true;
+            });
+
+            test("unknown button", async () => {
+                const unknownButtonId = "unknownButtonId";
+
+                const loggerStub = sandbox.createStubInstance(Logger);
+                controller["logger"] = loggerStub;
+
+                await controller["_reducerHandlers"].get("messageButtonClicked")(controller.state, {
+                    buttonId: unknownButtonId,
+                });
+
+                expect(loggerStub.error).to.have.been.calledOnceWith(
+                    `Unknown message button clicked: ${unknownButtonId}`,
+                );
             });
         });
     });
