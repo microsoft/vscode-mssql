@@ -79,6 +79,11 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             `TableExplorerWebViewController created for table: ${tableName} in database: ${databaseName}`,
         );
 
+        this._tableExplorerService.sqlToolsClient.onNotification(
+            EditSessionReadyNotification.type,
+            this.handleEditSessionReadyNotification(),
+        );
+
         void this.initialize();
         this.registerRpcHandlers();
     }
@@ -93,11 +98,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             );
             return;
         }
-
-        this._tableExplorerService.sqlToolsClient.onNotification(
-            EditSessionReadyNotification.type,
-            this.handleEditSessionReadyNotification(),
-        );
 
         const schemaName = this.state.schemaName;
         const objectName = this.state.tableName;
@@ -116,9 +116,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         ) {
             connectionCreds.database = databaseName;
             if (!this._connectionManager.isConnecting(ownerUri)) {
-                const promise = new Deferred<boolean>();
-                await this._connectionManager.connect(ownerUri, connectionCreds, promise);
-                await promise;
+                await this._connectionManager.connect(ownerUri, connectionCreds);
             }
         }
 
