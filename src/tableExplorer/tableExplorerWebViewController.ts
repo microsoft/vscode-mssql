@@ -52,6 +52,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 resultSet: undefined,
                 currentRowCount: 100, // Default row count for data loading
                 newRows: [], // Track newly created rows
+                updateScript: undefined, // No script initially
+                showScriptPane: false, // Script pane hidden by default
             },
             {
                 title: LocConstants.TableExplorer.title(tableName),
@@ -399,6 +401,88 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     LocConstants.TableExplorer.failedToRevertRow(getErrorMessage(error)),
                 );
             }
+            return state;
+        });
+
+        this.registerReducer("generateScript", async (state) => {
+            this.logger.info(`Generating update script for: ${state.tableName}`);
+            try {
+                const scriptResult = await this._tableExplorerService.generateScripts(
+                    state.ownerUri,
+                );
+                // Join the array of scripts into a single string with newlines
+                const combinedScript = scriptResult.scripts?.join("\n") || "";
+                this.logger.info(
+                    `Script result received: ${scriptResult.scripts?.length} script(s), combined length: ${combinedScript.length}`,
+                );
+                state.updateScript = combinedScript;
+                state.showScriptPane = true; // Automatically show the script pane
+
+                this.logger.info(
+                    `State before updateState - updateScript length: ${state.updateScript?.length}, showScriptPane: ${state.showScriptPane}`,
+                );
+                this.updateState();
+                this.logger.info(
+                    `State after updateState - this.state.updateScript length: ${this.state.updateScript?.length}`,
+                );
+
+                this.logger.info("Script generated successfully");
+            } catch (error) {
+                this.logger.error(`Error generating script: ${error}`);
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToGenerateScript(getErrorMessage(error)),
+                );
+            }
+            return state;
+        });
+
+        this.registerReducer("openScriptInEditor", async (state) => {
+            this.logger.info("Opening script in SQL editor");
+            try {
+                if (state.updateScript) {
+                    const doc = await vscode.workspace.openTextDocument({
+                        content: state.updateScript,
+                        language: "sql",
+                    });
+                    await vscode.window.showTextDocument(doc);
+                    this.logger.info("Script opened in SQL editor successfully");
+                } else {
+                    vscode.window.showWarningMessage(LocConstants.TableExplorer.noScriptToOpen);
+                }
+            } catch (error) {
+                this.logger.error(`Error opening script in editor: ${error}`);
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToOpenScript(getErrorMessage(error)),
+                );
+            }
+            return state;
+        });
+
+        this.registerReducer("copyScriptToClipboard", async (state) => {
+            this.logger.info("Copying script to clipboard");
+            try {
+                if (state.updateScript) {
+                    await vscode.env.clipboard.writeText(state.updateScript);
+                    await vscode.window.showInformationMessage(
+                        LocConstants.TableExplorer.scriptCopiedToClipboard,
+                    );
+                    this.logger.info("Script copied to clipboard successfully");
+                } else {
+                    vscode.window.showWarningMessage(LocConstants.TableExplorer.noScriptToCopy);
+                }
+            } catch (error) {
+                this.logger.error(`Error copying script to clipboard: ${error}`);
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToCopyScript(getErrorMessage(error)),
+                );
+            }
+            return state;
+        });
+
+        this.registerReducer("toggleScriptPane", async (state) => {
+            state.showScriptPane = !state.showScriptPane;
+            this.logger.info(`Script pane toggled to: ${state.showScriptPane}`);
+            this.updateState();
             return state;
         });
     }

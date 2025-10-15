@@ -171,7 +171,7 @@ export interface EditDisposeResult {}
 export interface EditScriptParams extends IEditSessionOperationParams {}
 
 export interface EditScriptResult {
-    script: string;
+    scripts: string[];
 }
 
 //#endregion
@@ -188,6 +188,8 @@ export interface TableExplorerWebViewState {
     tableMetadata?: any; // This would be more specific based on actual metadata structure
     currentRowCount: number; // Track the user's selected row count for data loading
     newRows: EditRow[]; // Track newly created rows that haven't been committed yet
+    updateScript?: string; // SQL script generated from pending changes
+    showScriptPane: boolean; // Whether to show the script pane
 }
 
 export interface TableExplorerContextProps {
@@ -200,6 +202,10 @@ export interface TableExplorerContextProps {
     updateCell: (rowId: number, columnId: number, newValue: string) => void;
     revertCell: (rowId: number, columnId: number) => void;
     revertRow: (rowId: number) => void;
+    generateScript: () => void;
+    openScriptInEditor: () => void;
+    copyScriptToClipboard: () => void;
+    toggleScriptPane: () => void;
 }
 
 export interface TableExplorerReducers {
@@ -210,4 +216,8 @@ export interface TableExplorerReducers {
     updateCell: { rowId: number; columnId: number; newValue: string };
     revertCell: { rowId: number; columnId: number };
     revertRow: { rowId: number };
+    generateScript: {};
+    openScriptInEditor: {};
+    copyScriptToClipboard: {};
+    toggleScriptPane: {};
 }

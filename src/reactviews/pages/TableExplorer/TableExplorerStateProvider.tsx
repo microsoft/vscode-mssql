@@ -54,6 +54,22 @@ export const TableExplorerStateProvider: React.FC<{
                 revertRow: function (rowId: number): void {
                     webViewState?.extensionRpc.action("revertRow", { rowId });
                 },
+
+                generateScript: function (): void {
+                    webViewState?.extensionRpc.action("generateScript", {});
+                },
+
+                openScriptInEditor: function (): void {
+                    webViewState?.extensionRpc.action("openScriptInEditor", {});
+                },
+
+                copyScriptToClipboard: function (): void {
+                    webViewState?.extensionRpc.action("copyScriptToClipboard", {});
+                },
+
+                toggleScriptPane: function (): void {
+                    webViewState?.extensionRpc.action("toggleScriptPane", {});
+                },
             }}>
             {children}
         </TableExplorerContext.Provider>
