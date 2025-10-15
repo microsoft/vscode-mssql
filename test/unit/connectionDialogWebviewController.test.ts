@@ -19,6 +19,7 @@ import MainController from "../../src/controllers/mainController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerProvider";
 import {
+    AddFirewallRuleDialogProps,
     AuthenticationType,
     AzureSqlServerInfo,
     ConnectionInputMode,
@@ -53,6 +54,9 @@ import { multiple_matching_tokens_error } from "../../src/azure/constants";
 import { Logger } from "../../src/models/logger";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import { errorPasswordExpired } from "../../src/constants/constants";
+import { FirewallRuleSpec } from "../../src/sharedInterfaces/firewallRule";
+import { FirewallService } from "../../src/firewall/firewallService";
+import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
 
 chai.use(sinonChai);
 
@@ -443,7 +447,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             expect(
                 controller.state.formMessage,
                 "Error should be cleared after loading the connection",
-            ).to.equal(undefined);
+            ).to.be.undefined;
 
             expect(
                 controller.state.readyToConnect,
@@ -691,6 +695,37 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(loggerStub.error).to.have.been.calledOnceWith(
                     `Unknown message button clicked: ${unknownButtonId}`,
                 );
+            });
+        });
+
+        suite("addFirewallRule", () => {
+            test("displays error upon failure to create firewall rule", async () => {
+                const testFirewallSpec: FirewallRuleSpec = {} as FirewallRuleSpec;
+                const errorMessage = "Test create firewall rule error";
+
+                const mockFirewallService = sandbox.createStubInstance(FirewallService);
+                mockFirewallService.createFirewallRuleWithVscodeAccount.throws(
+                    new Error(errorMessage),
+                );
+
+                connectionManager
+                    .setup((cm) => cm.firewallService)
+                    .returns(() => mockFirewallService);
+
+                controller.state.dialog = {
+                    type: "addFirewallRule",
+                    props: {
+                        addFirewallRuleStatus: { status: ApiStatus.NotStarted },
+                    } as unknown as AddFirewallRuleState,
+                } as AddFirewallRuleDialogProps;
+
+                await controller["_reducerHandlers"].get("addFirewallRule")(controller.state, {
+                    firewallRuleSpec: testFirewallSpec,
+                });
+
+                expect(controller.state.formMessage).to.not.be.undefined;
+                expect(controller.state.formMessage.message).to.equal(errorMessage);
+                expect(controller.state.dialog).to.be.undefined;
             });
         });
     });
