@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const esbuild = require('esbuild');
-const fs = require('fs').promises;
+const esbuild = require("esbuild");
+const fs = require("fs").promises;
 const logger = require("./terminal-logger");
 
 function esbuildProblemMatcherPlugin(processName) {
@@ -53,7 +53,7 @@ function esbuildProblemMatcherPlugin(processName) {
  */
 async function build(config, isProd = false) {
     try {
-        logger.info(`Building in ${isProd ? 'production' : 'development'} mode...`);
+        logger.info(`Building in ${isProd ? "production" : "development"} mode...`);
         const ctx = await esbuild.context(config);
         const result = await ctx.rebuild();
 
@@ -110,5 +110,5 @@ async function watch(config) {
 module.exports = {
     esbuildProblemMatcherPlugin,
     build,
-    watch
+    watch,
 };

@@ -38,4 +38,4 @@ npm run update-grammar
 
 3. Send out a PR with the changes made to any files that were modified, making sure to link to the original PR in this repo where the changes were made
 
-*Note*: You can test Azure Data Studio locally by building and running it and verifying the colors are correct in a new editor window
+_Note_: You can test Azure Data Studio locally by building and running it and verifying the colors are correct in a new editor window

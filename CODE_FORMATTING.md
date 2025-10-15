@@ -13,9 +13,10 @@ Code formatting is done via Prettier, but that can be triggered in several diffe
 
 > 👉 Update _all_ locations when changing formatting rules.
 
-|File|Function|How to Use|
-|-|-|-|
-| `prettier.config.mjs` | used by the command-line `prettier` command for bulk formatting|`npm install -g prettier`<br /> `prettier "**/*.ts" [--write \| --check]` |
-| `.vscode/settings.json` | used by VS Code's Prettier extension | Install Prettier extension (`esbenp.prettier-vscode`), then run the "Format Document" command |
-| `eslint.config.mjs` | used by Git's precommit ESLint checks | Automatically run when creating a commit |
+| File                    | Function                                                        | How to Use                                                                                    |
+| ----------------------- | --------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `prettier.config.mjs`   | used by the command-line `prettier` command for bulk formatting | `npm install -g prettier`<br /> `prettier "**/*.ts" [--write \| --check]`                     |
+| `.vscode/settings.json` | used by VS Code's Prettier extension                            | Install Prettier extension (`esbenp.prettier-vscode`), then run the "Format Document" command |
+| `eslint.config.mjs`     | used by Git's precommit ESLint checks                           | Automatically run when creating a commit                                                      |
+
 ß

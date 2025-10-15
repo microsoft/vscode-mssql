@@ -51,6 +51,7 @@ export const cmdCommandPaletteQueryHistory = "mssql.commandPaletteQueryHistory";
 export const cmdNewQuery = "mssql.newQuery";
 export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
+export const cmdPublishDatabaseProject = "mssql.publishDatabaseProject";
 export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
@@ -198,7 +199,7 @@ export const copilotShowSchemaToolName = "mssql_show_schema";
 export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
 
 // Configuration Constants
-export const copyIncludeHeaders = "copyIncludeHeaders";
+export const copyIncludeHeaders = "mssql.copyIncludeHeaders";
 export const configLogDebugInfo = "logDebugInfo";
 export const configMyConnections = "connections";
 export const configSaveAsCsv = "saveAsCsv";
