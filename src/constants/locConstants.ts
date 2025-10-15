@@ -1901,4 +1901,35 @@ export class TableExplorer {
             args: [errorMessage],
             comment: ["{0} is the error message"],
         });
+
+    public static failedToGenerateScript = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to generate script: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static noScriptToOpen = l10n.t(
+        "No script available. Make changes to the table data and generate a script first.",
+    );
+
+    public static failedToOpenScript = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open script: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static scriptCopiedToClipboard = l10n.t("Script copied to clipboard.");
+
+    public static noScriptToCopy = l10n.t(
+        "No script available. Make changes to the table data and generate a script first.",
+    );
+
+    public static failedToCopyScript = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to copy script: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
 }
