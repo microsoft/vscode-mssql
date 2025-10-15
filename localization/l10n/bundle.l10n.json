@@ -1419,6 +1419,8 @@
     "Enter container name": "Enter container name",
     "Enter port": "Enter port",
     "Enter hostname": "Enter hostname",
+    "SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.": "SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.",
+    "SQL Server 2025 is not yet supported on Apple Silicon (ARM).": "SQL Server 2025 is not yet supported on Apple Silicon (ARM).",
     "How likely it is that you would recommend the MSSQL extension to a friend or colleague?": "How likely it is that you would recommend the MSSQL extension to a friend or colleague?",
     "What can we do to improve?": "What can we do to improve?",
     "Take Survey": "Take Survey",

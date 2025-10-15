@@ -21,7 +21,7 @@ import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { DeploymentWebviewController } from "./deploymentWebviewController";
 import * as dockerUtils from "./dockerUtils";
 import MainController from "../controllers/mainController";
-import { platform } from "os";
+import { arch, platform } from "os";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 
@@ -227,6 +227,18 @@ export async function validateDockerConnectionProfile(
                 component.validation = { isValid: true, validationMessage: "" };
             }
         }
+        // Handle ARM64 architecture case where SQL Server 2025 latest is broken
+        else if (
+            prop === "version" &&
+            arch() === "arm64" &&
+            state.formState.version.includes("2025")
+        ) {
+            component.validation = {
+                isValid: false,
+                validationMessage: LocalContainers.sqlServer2025ArmError,
+            };
+            erroredInputs.push(prop);
+        }
         // Default validation logic
         else if (component.validate) {
             const result = component.validate(state, state.formState[prop]);
@@ -321,7 +333,10 @@ export function setLocalContainersFormComponents(
             propertyName: "version",
             label: LocalContainers.selectImage,
             required: true,
-            tooltip: LocalContainers.selectImageTooltip,
+            tooltip:
+                arch() === "arm64"
+                    ? LocalContainers.sqlServer2025ArmErrorTooltip
+                    : LocalContainers.selectImageTooltip,
             options: versions,
         }),
 
