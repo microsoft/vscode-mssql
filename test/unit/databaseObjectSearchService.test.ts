@@ -21,7 +21,7 @@ suite("DatabaseObjectSearchService Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         client = sandbox.createStubInstance(SqlToolsServiceClient);
-        searchService = new DatabaseObjectSearchService(client as unknown as SqlToolsServiceClient);
+        searchService = new DatabaseObjectSearchService(client);
     });
 
     teardown(() => {
