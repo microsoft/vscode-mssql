@@ -458,7 +458,6 @@ export async function getWorkspaces(
             },
         );
     } catch (err) {
-        console.log(err);
         state.isWorkspacesErrored = true;
         sendErrorEvent(
             TelemetryViews.FabricProvisioning,
@@ -623,6 +622,9 @@ export async function handleWorkspaceFormAction(
     state: fp.FabricProvisioningState,
     workspaceId: string,
 ): Promise<fp.FabricProvisioningState> {
+    // Clean up "databaseName" error if new workspace is selected
+    state.formErrors = state.formErrors.filter((err) => err !== "databaseName");
+
     const workspace = state.workspacesWithPermissions[workspaceId];
 
     // Check if the workspace has a role
@@ -648,13 +650,14 @@ export async function handleWorkspaceFormAction(
     }
 
     // Validate the workspace
-    state.formState.workspace = workspace.id;
+    state.formState.workspace = workspaceId;
     const workspaceComponent = state.formComponents["workspace"];
     const workspaceValidation = workspaceComponent.validate(state, state.formState.workspace);
     workspaceComponent.validation = workspaceValidation;
     if (!workspaceValidation.isValid) {
         state.formErrors.push("workspace");
         state.databaseNamesInWorkspace = [];
+        return state;
     } else {
         const startTime = Date.now();
 
