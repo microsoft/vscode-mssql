@@ -311,9 +311,6 @@
     <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
       <source xml:lang="en">Azure sign in failed.</source>
     </trans-unit>
-    <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
-      <source xml:lang="en">Azure token cache cleared successfully.</source>
-    </trans-unit>
     <trans-unit id="++CODE++f71dfcecebed757febe54c711e436e17521c71da90d4c5cc61ef6717918173a4">
       <source xml:lang="en">Azure: Sign In</source>
     </trans-unit>
@@ -1194,6 +1191,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0a6b9ae24f863f5d06e0151c62f16b9327fdac6783807dc163e953559aa8287f">
       <source xml:lang="en">Enter profile name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
+      <source xml:lang="en">Entra token cache cleared successfully.</source>
     </trans-unit>
     <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
       <source xml:lang="en">Equals</source>
