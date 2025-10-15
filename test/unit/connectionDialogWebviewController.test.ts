@@ -213,7 +213,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             );
 
             expect(controller.state.formMessage).to.deep.equal(
-                "",
+                undefined,
                 "Should be no error in the initial state",
             );
 
@@ -438,7 +438,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             expect(
                 controller.state.formMessage,
                 "Error should be cleared after loading the connection",
-            ).to.equal("");
+            ).to.equal(undefined);
 
             expect(
                 controller.state.readyToConnect,
