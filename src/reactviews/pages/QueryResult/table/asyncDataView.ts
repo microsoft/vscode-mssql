@@ -64,9 +64,13 @@ class DataWindow<T> {
         return this._data[index - this._offsetFromDataSource];
     }
 
-    public positionWindow(offset: number, length: number): void {
+    public positionWindow(offset: number, length: number, totalItems: number): void {
         offset = Math.max(0, offset); // Ensure offset is never negative
+        offset = Math.min(offset, totalItems); // Ensure offset is within total items
+
         length = Math.max(0, length); // Ensure length is at least 0
+        length = Math.min(length, totalItems - offset); // Ensure length doesn't exceed total items
+
         this._offsetFromDataSource = offset;
         this._length = length;
         this._data = undefined;
@@ -206,6 +210,7 @@ export class VirtualizedCollection<T extends Slick.SlickData> implements IObserv
             this._bufferWindowBefore.positionWindow(
                 newWindowOffset,
                 this._window.getStartIndex() - newWindowOffset,
+                this.length,
             );
         } else if (start >= this._bufferWindowAfter.getStartIndex()) {
             // scroll down, shift down
@@ -219,7 +224,7 @@ export class VirtualizedCollection<T extends Slick.SlickData> implements IObserv
             );
             let newWindowLength = Math.min(this.length - newWindowOffset, this.windowSize);
 
-            this._bufferWindowAfter.positionWindow(newWindowOffset, newWindowLength);
+            this._bufferWindowAfter.positionWindow(newWindowOffset, newWindowLength, this.length);
         }
 
         return currentData;
@@ -252,17 +257,19 @@ export class VirtualizedCollection<T extends Slick.SlickData> implements IObserv
         this._bufferWindowBefore.positionWindow(
             bufferWindowBeforeStart,
             bufferWindowBeforeEnd - bufferWindowBeforeStart,
+            this.length,
         );
 
         let mainWindowStart = bufferWindowBeforeEnd;
         let mainWindowEnd = Math.min(mainWindowStart + this.windowSize, this.length);
-        this._window.positionWindow(mainWindowStart, mainWindowEnd - mainWindowStart);
+        this._window.positionWindow(mainWindowStart, mainWindowEnd - mainWindowStart, this.length);
 
         let bufferWindowAfterStart = mainWindowEnd;
         let bufferWindowAfterEnd = Math.min(bufferWindowAfterStart + this.windowSize, this.length);
         this._bufferWindowAfter.positionWindow(
             bufferWindowAfterStart,
             bufferWindowAfterEnd - bufferWindowAfterStart,
+            this.length,
         );
     }
 }
