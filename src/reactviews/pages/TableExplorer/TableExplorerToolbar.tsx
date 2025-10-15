@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Toolbar, ToolbarButton, Combobox, Option } from "@fluentui/react-components";
-import { SaveRegular, AddRegular } from "@fluentui/react-icons";
+import { SaveRegular, AddRegular, CodeRegular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { useState } from "react";
@@ -78,6 +78,13 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({ onSa
                 icon={<AddRegular />}
                 onClick={handleAddRow}>
                 {loc.tableExplorer.addRow}
+            </ToolbarButton>
+            <ToolbarButton
+                aria-label={loc.tableExplorer.generateScript}
+                title={loc.tableExplorer.generateScript}
+                icon={<CodeRegular />}
+                onClick={() => context.generateScript()}>
+                {loc.tableExplorer.generateScript}
             </ToolbarButton>
             <Combobox
                 value={selectedValue}
