@@ -25,7 +25,7 @@ import {
     IConnectionDialogProfile,
 } from "../../src/sharedInterfaces/connectionDialog";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import {
@@ -41,6 +41,8 @@ import {
     stubFetchServersFromAzure,
     stubPromptForAzureSubscriptionFilter,
     stubVscodeAzureHelperGetAccounts,
+    mockServerName,
+    mockUserName,
 } from "./azureHelperStubs";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
@@ -50,6 +52,7 @@ import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { multiple_matching_tokens_error } from "../../src/azure/constants";
 import { Logger } from "../../src/models/logger";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
+import { errorPasswordExpired } from "../../src/constants/constants";
 
 chai.use(sinonChai);
 
@@ -105,9 +108,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
         mockContext
             .setup((c) => c.globalState)
             .returns(() => {
+                /* eslint-disable @typescript-eslint/no-explicit-any */
                 return {
                     get: (key: string, defaultValue: any) => defaultValue,
                 } as any;
+                /* eslint-enable @typescript-eslint/no-explicit-any */
             });
 
         connectionManager = TypeMoq.Mock.ofType(
@@ -447,35 +452,50 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
 
         suite("connect", () => {
-            test("connect happy path", async () => {
-                // Set up mocks
+            let mockConnectionNode: TreeNodeInfo;
+            let testFormState: IConnectionDialogProfile;
+
+            setup(() => {
                 stubTelemetry(sandbox);
                 stubUserSurvey(sandbox);
 
+                mockConnectionNode = new TreeNodeInfo(
+                    "testNode",
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    "Database",
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                );
+
+                testFormState = {
+                    server: "localhost",
+                    user: "testUser",
+                    password: "testPassword",
+                    authenticationType: AuthenticationType.SqlLogin,
+                } as IConnectionDialogProfile;
+            });
+
+            test("connect happy path", async () => {
                 mockObjectExplorerProvider
                     .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
                     .returns(() => {
                         return Promise.resolve({
                             sessionId: "testSessionId",
-                            rootNode: new TreeNodeInfo(
-                                "testNode",
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                "Database",
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                            ),
+                            rootNode: mockConnectionNode,
                             success: true,
                         } as CreateSessionResponse);
                     });
 
                 connectionManager
-                    .setup((cm) => cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                    .setup((cm) =>
+                        cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                    )
                     .returns(() => Promise.resolve(true));
 
                 let mockObjectExplorerTree = TypeMoq.Mock.ofType<vscode.TreeView<TreeNodeInfo>>(
@@ -492,81 +512,109 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mainController.objectExplorerTree = mockObjectExplorerTree.object;
 
                 // Run test
-
-                controller.state.formState = {
-                    server: "localhost",
-                    user: "testUser",
-                    password: "testPassword",
-                    authenticationType: AuthenticationType.SqlLogin,
-                } as IConnectionDialogProfile;
+                controller.state.formState = testFormState;
 
                 await controller["_reducerHandlers"].get("connect")(controller.state, {});
             });
-        });
 
-        test("displays actionable error message for multiple_matching_tokens_error", async () => {
-            // Set up mocks
-            stubTelemetry(sandbox);
-            stubUserSurvey(sandbox);
+            test("displays actionable error message for multiple_matching_tokens_error", async () => {
+                mockObjectExplorerProvider
+                    .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
+                    .returns(() => {
+                        return Promise.resolve({
+                            sessionId: "testSessionId",
+                            rootNode: mockConnectionNode,
+                            success: true,
+                        } as CreateSessionResponse);
+                    });
 
-            mockObjectExplorerProvider
-                .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
-                .returns(() => {
-                    return Promise.resolve({
-                        sessionId: "testSessionId",
-                        rootNode: new TreeNodeInfo(
-                            "testNode",
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            "Database",
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                        ),
-                        success: true,
-                    } as CreateSessionResponse);
-                });
+                const errorMessage = `Error: Connection failed due to ${multiple_matching_tokens_error}`;
 
-            const errorMessage = `Error: Connection failed due to ${multiple_matching_tokens_error}`;
+                connectionManager
+                    .setup((cm) =>
+                        cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                    )
+                    .throws(new Error(errorMessage));
 
-            connectionManager
-                .setup((cm) =>
-                    cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                )
-                .throws(new Error(errorMessage));
+                // Run test
+                controller.state.formState = testFormState;
 
-            let mockObjectExplorerTree = TypeMoq.Mock.ofType<vscode.TreeView<TreeNodeInfo>>(
-                undefined,
-                TypeMoq.MockBehavior.Loose,
-            );
+                await controller["_reducerHandlers"].get("connect")(controller.state, {});
 
-            mockObjectExplorerTree
-                .setup((oet) => oet.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                .returns(() => {
-                    return Promise.resolve();
-                });
+                expect(controller.state.formMessage).to.not.be.undefined;
+                expect(controller.state.formMessage.message).to.equal(errorMessage);
+                expect(controller.state.formMessage.buttons).to.deep.equal([
+                    { id: CLEAR_TOKEN_CACHE, label: "Clear token cache" },
+                ]);
+            });
 
-            mainController.objectExplorerTree = mockObjectExplorerTree.object;
+            test("displays error when attempting to create OE session fails", async () => {
+                const errorMessage = "Test createSession error";
+                mockObjectExplorerProvider
+                    .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
+                    .throws(new Error(errorMessage));
 
-            // Run test
+                connectionManager
+                    .setup((cm) =>
+                        cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                    )
+                    .returns(() => Promise.resolve(true));
 
-            controller.state.formState = {
-                server: "localhost",
-                user: "testUser",
-                password: "testPassword",
-                authenticationType: AuthenticationType.SqlLogin,
-            } as IConnectionDialogProfile;
+                // Run test
+                controller.state.formState = testFormState;
 
-            await controller["_reducerHandlers"].get("connect")(controller.state, {});
+                await controller["_reducerHandlers"].get("connect")(controller.state, {});
 
-            expect(controller.state.formMessage.message).to.equal(errorMessage);
-            expect(controller.state.formMessage.buttons).to.deep.equal([
-                { id: CLEAR_TOKEN_CACHE, label: "Clear token cache" },
-            ]);
+                expect(controller.state.formMessage).to.not.be.undefined;
+                expect(controller.state.connectionStatus).to.equal(ApiStatus.Error);
+                expect(controller.state.formMessage.message).to.equal(errorMessage);
+            });
+
+            test("displays password changed dialog upon password expired error", async () => {
+                mockObjectExplorerProvider
+                    .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
+                    .returns(() => {
+                        return Promise.resolve({
+                            sessionId: "testSessionId",
+                            rootNode: mockConnectionNode,
+                            success: true,
+                        } as CreateSessionResponse);
+                    });
+
+                const errorMessage = "Your password has expired and needs to be changed.";
+
+                connectionManager
+                    .setup((cm) =>
+                        cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                    )
+                    .returns(() => {
+                        return Promise.resolve(false);
+                    });
+
+                connectionManager
+                    .setup((cm) => cm.getConnectionInfo(TypeMoq.It.isAny()))
+                    .returns(() => {
+                        return {
+                            errorNumber: errorPasswordExpired,
+                            errorMessage,
+                            messages: errorMessage,
+                            credentials: {
+                                server: mockServerName,
+                                user: mockUserName,
+                            },
+                        } as ConnectionInfo;
+                    });
+
+                // Run test
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("connect")(controller.state, {});
+
+                expect(controller.state.formMessage).to.not.be.undefined;
+                expect(controller.state.formMessage.message)
+                    .to.contain(errorMessage)
+                    .and.to.contain(errorPasswordExpired);
+            });
         });
 
         suite("filterAzureSubscriptions", () => {
