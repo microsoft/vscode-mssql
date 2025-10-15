@@ -64,6 +64,8 @@ export interface PublishDialogState
     waitingForNewConnection?: boolean;
     activeServers?: { [connectionUri: string]: { profileName: string; server: string } };
     connectionString?: string;
+    previousDatabaseList?: { displayName: string; value: string }[];
+    previousSelectedDatabase?: string;
 }
 
 /**

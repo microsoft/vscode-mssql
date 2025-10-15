@@ -420,6 +420,53 @@ export class PublishProjectWebViewController extends FormWebviewController<
         return activeComponents;
     }
 
+    /**
+     * Override to handle publish target changes and manage database dropdown options
+     */
+    public async afterSetFormProperty(propertyName: keyof IPublishForm): Promise<void> {
+        if (propertyName === constants.PublishFormFields.PublishTarget) {
+            const databaseComponent =
+                this.state.formComponents[constants.PublishFormFields.DatabaseName];
+
+            if (!databaseComponent) {
+                return;
+            }
+
+            // When switching TO LOCAL_CONTAINER
+            if (this.state.formState.publishTarget === PublishTarget.LocalContainer) {
+                // Store current database list and selected value to restore later
+                if (databaseComponent.options && databaseComponent.options.length > 0) {
+                    this.state.previousDatabaseList = [...databaseComponent.options];
+                    this.state.previousSelectedDatabase = this.state.formState.databaseName;
+                }
+                // Clear database dropdown options for container (freeform only)
+                databaseComponent.options = [];
+
+                // Reset to project name for container mode
+                this.state.formState.databaseName = path.basename(
+                    this.state.projectFilePath,
+                    path.extname(this.state.projectFilePath),
+                );
+            }
+            // When switching TO EXISTING_SERVER
+            else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
+                // Restore previous database list if it was stored (preserve the list from when user connected)
+                if (this.state.previousDatabaseList && this.state.previousDatabaseList.length > 0) {
+                    databaseComponent.options = [...this.state.previousDatabaseList];
+
+                    // Restore previously selected database
+                    if (this.state.previousSelectedDatabase) {
+                        this.state.formState.databaseName = this.state.previousSelectedDatabase;
+                    }
+                }
+            }
+
+            this.updateState();
+        }
+
+        return Promise.resolve();
+    }
+
     public updateItemVisibility(state?: PublishDialogState): Promise<void> {
         const currentState = state || this.state;
         const target = currentState.formState?.publishTarget;
