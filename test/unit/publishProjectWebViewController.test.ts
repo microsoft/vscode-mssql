@@ -307,7 +307,7 @@ suite("PublishProjectWebViewController Tests", () => {
     //#endregion
 
     //#region Publish Profile Section Tests
-    test("selectPublishProfile reducer parses real-world XML profile correctly", async () => {
+    test("selectPublishProfile reducer parses XML profile and loads server and database correctly", async () => {
         const controller = createTestController();
         await controller.initialized.promise;
 
@@ -369,17 +369,20 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(mockDacFxService.getOptionsFromProfile.calledOnce).to.be.true;
     });
 
-    test("savePublishProfile reducer is invoked and triggers save file dialog", async () => {
+    test("savePublishProfile reducer saves server and database names to file", async () => {
         const controller = createTestController();
 
         await controller.initialized.promise;
 
-        // Set up some form state to save
-        controller.state.formState.serverName = "localhost";
-        controller.state.formState.databaseName = "TestDB";
+        // Set up server and database state
+        controller.state.formState.serverName = "myserver.database.windows.net";
+        controller.state.formState.databaseName = "ProductionDB";
+        controller.state.formState.sqlCmdVariables = {
+            EnvironmentName: "Production",
+        };
 
         // Stub showSaveDialog to simulate user choosing a save location
-        const savedProfilePath = "c:/profiles/NewProfile.publish.xml";
+        const savedProfilePath = "c:/profiles/ProductionProfile.publish.xml";
         sandbox.stub(vscode.window, "showSaveDialog").resolves(vscode.Uri.file(savedProfilePath));
 
         // Mock DacFx service
@@ -389,18 +392,76 @@ suite("PublishProjectWebViewController Tests", () => {
         const savePublishProfile = reducerHandlers.get("savePublishProfile");
         expect(savePublishProfile, "savePublishProfile reducer should be registered").to.exist;
 
-        // Invoke the reducer with an optional default filename
-        const newState = await savePublishProfile(controller.state, {
-            event: "TestProject.publish.xml",
+        // Invoke the reducer
+        await savePublishProfile(controller.state, {
+            publishProfileName: "ProductionProfile.publish.xml",
         });
 
-        // Verify DacFx save was called
+        // Verify DacFx save was called with correct parameters
         expect(mockDacFxService.savePublishProfile.calledOnce).to.be.true;
 
-        // Verify the state is returned unchanged (savePublishProfile does NOT update path in state)
-        expect(newState.formState.publishProfilePath).to.equal(
-            controller.state.formState.publishProfilePath,
-        );
+        const saveCall = mockDacFxService.savePublishProfile.getCall(0);
+        expect(saveCall.args[0].replace(/\\/g, "/")).to.equal(savedProfilePath); // File path (normalize for cross-platform)
+        expect(saveCall.args[1]).to.equal("ProductionDB"); // Database name
+        // Connection string is args[2]
+        const sqlCmdVariables = saveCall.args[3]; // SQL CMD variables
+        expect(sqlCmdVariables.get("EnvironmentName")).to.equal("Production");
+    });
+    //#endregion
+
+    //#region Server and Database Connection Section Tests
+    test("server and database fields are initialized with correct default values", async () => {
+        const controller = createTestController("c:/work/MyTestProject.sqlproj");
+
+        await controller.initialized.promise;
+
+        // Verify server component and default value
+        const serverComponent = controller.state.formComponents.serverName;
+        expect(serverComponent).to.exist;
+        expect(serverComponent.label).to.exist;
+        expect(serverComponent.required).to.be.true;
+        expect(controller.state.formState.serverName).to.equal("");
+
+        // Verify database component and default value (project name)
+        const databaseComponent = controller.state.formComponents.databaseName;
+        expect(databaseComponent).to.exist;
+        expect(databaseComponent.label).to.exist;
+        expect(databaseComponent.required).to.be.true;
+        expect(controller.state.formState.databaseName).to.equal("MyTestProject");
+    });
+
+    test("formAction updates server and database names via user interaction", async () => {
+        const controller = createTestController();
+
+        await controller.initialized.promise;
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const formAction = reducerHandlers.get("formAction");
+        expect(formAction, "formAction reducer should be registered").to.exist;
+
+        // Simulate connection dialog setting server name
+        await formAction(controller.state, {
+            event: {
+                propertyName: "serverName",
+                value: "localhost,1433",
+                isAction: false,
+            },
+        });
+
+        // Verify server name is updated
+        expect(controller.state.formState.serverName).to.equal("localhost,1433");
+
+        // Simulate user selecting a database from dropdown
+        await formAction(controller.state, {
+            event: {
+                propertyName: "databaseName",
+                value: "SelectedDatabase",
+                isAction: false,
+            },
+        });
+
+        // Verify database name is updated
+        expect(controller.state.formState.databaseName).to.equal("SelectedDatabase");
     });
     //#endregion
 });
