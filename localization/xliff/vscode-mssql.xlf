@@ -2316,9 +2316,6 @@
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
     </trans-unit>
-    <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
-      <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
-    </trans-unit>
     <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
       <source xml:lang="en">Opening Publish Script. This may take a while...</source>
     </trans-unit>
