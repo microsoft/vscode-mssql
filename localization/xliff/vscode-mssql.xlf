@@ -1728,9 +1728,6 @@
     <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
       <source xml:lang="en">Instant Container Setup</source>
     </trans-unit>
-    <trans-unit id="++CODE++07fe70d13a25b3d4c4f7d4e64e1aaa9b9d80952a1478fb7e2da36209ccbf549f">
-      <source xml:lang="en">Insufficient Capacity Permissions</source>
-    </trans-unit>
     <trans-unit id="++CODE++207b04072a822fa8e76629bcd504bc8c19525b86f444ac77a6f3be1c88a502eb">
       <source xml:lang="en">Insufficient Workspace Permissions</source>
     </trans-unit>
