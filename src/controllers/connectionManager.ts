@@ -1703,9 +1703,11 @@ export default class ConnectionManager {
         }
     }
 
-    public onClearTokenCache(): void {
+    public onClearAzureTokenCache(): void {
         this.azureController.clearTokenCache();
-        this.vscodeWrapper.showInformationMessage(LocalizedConstants.clearedAzureTokenCache);
+        this.vscodeWrapper.showInformationMessage(
+            LocalizedConstants.Accounts.clearedEntraTokenCache,
+        );
     }
 
     private async migrateLegacyConnectionProfiles(): Promise<void> {

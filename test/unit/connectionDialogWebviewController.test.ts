@@ -49,6 +49,7 @@ import { AzureController } from "../../src/azure/azureController";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { multiple_matching_tokens_error } from "../../src/azure/constants";
 import { Logger } from "../../src/models/logger";
+import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 
 chai.use(sinonChai);
 
@@ -615,17 +616,18 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     buttons: [{ id: CLEAR_TOKEN_CACHE, label: "Clear token cache" }],
                 };
 
-                const onClearAzureTokenCacheStub = sandbox.stub(
-                    mainController,
-                    "onClearAzureTokenCache",
-                );
+                const azureControllerStub = sandbox.createStubInstance(MsalAzureController);
+
+                connectionManager
+                    .setup((cm) => cm.azureController)
+                    .returns(() => azureControllerStub);
 
                 await controller["_reducerHandlers"].get("messageButtonClicked")(controller.state, {
                     buttonId: CLEAR_TOKEN_CACHE,
                 });
 
                 expect(controller.state.formMessage).to.be.undefined;
-                expect(onClearAzureTokenCacheStub.calledOnce).to.be.true;
+                expect(azureControllerStub.clearTokenCache).to.have.been.calledOnce;
             });
 
             test("unknown button", async () => {

@@ -135,9 +135,7 @@ export class MsalAzureController extends AzureController {
         }
 
         await this._cachePluginProvider.unlinkMsalCache();
-
-        // Delete Encryption Keys
-        await this._cachePluginProvider.clearCacheEncryptionKeys();
+        await this._cachePluginProvider.clearCacheEncryptionKeys(); // Delete Encryption Keys
     }
 
     /**

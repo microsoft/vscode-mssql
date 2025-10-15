@@ -37,6 +37,7 @@ import {
     Fabric as LocFabric,
     refreshTokenLabel,
 } from "../constants/locConstants";
+import * as LocAll from "../constants/locConstants";
 import {
     getAccounts,
     getTenants,
@@ -750,7 +751,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         this.registerReducer("messageButtonClicked", async (state, payload) => {
             if (payload.buttonId === CLEAR_TOKEN_CACHE) {
-                this._mainController.onClearAzureTokenCache();
+                this._mainController.connectionManager.azureController.clearTokenCache();
+                this.vscodeWrapper.showInformationMessage(LocAll.Accounts.clearedEntraTokenCache);
                 this.state.formMessage = undefined;
             } else {
                 this.logger.error(`Unknown message button clicked: ${payload.buttonId}`);
