@@ -1572,9 +1572,9 @@ export default class ConnectionManager {
     /**
      * Called when the 'Manage Connection Profiles' command is issued.
      */
-    public onManageProfiles(): Promise<boolean> {
+    public async onManageProfiles(): Promise<void> {
         // Show quick pick to create, edit, or remove profiles
-        return this.connectionUI.promptToManageProfiles();
+        await this.connectionUI.promptToManageProfiles();
     }
 
     public async onClearPooledConnections(): Promise<void> {
@@ -1582,11 +1582,8 @@ export default class ConnectionManager {
     }
 
     public async onCreateProfile(): Promise<boolean> {
-        let self = this;
-        const profile = await self.connectionUI.createAndSaveProfile(
-            self.vscodeWrapper.isEditingSqlFile,
-        );
-        return profile ? true : false;
+        this.connectionUI.openConnectionDialog();
+        return false;
     }
 
     public onRemoveProfile(): Promise<boolean> {
