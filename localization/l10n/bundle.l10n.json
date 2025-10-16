@@ -845,7 +845,6 @@
         "comment": ["{0} is the error message"]
     },
     "No Microsoft Entra account can be found for removal.": "No Microsoft Entra account can be found for removal.",
-    "Azure token cache cleared successfully.": "Azure token cache cleared successfully.",
     "Cannot connect due to expired tokens. Please re-authenticate and try again.": "Cannot connect due to expired tokens. Please re-authenticate and try again.",
     "Microsoft Entra Id": "Microsoft Entra Id",
     "Choose a Microsoft Entra tenant": "Choose a Microsoft Entra tenant",
@@ -1153,6 +1152,7 @@
         "comment": ["{0} is the account display name", "{1} is the tenant id"]
     },
     "Clear cache and refresh token": "Clear cache and refresh token",
+    "Clear token cache": "Clear token cache",
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     "Add Firewall Rule to {0}/{0} is the server name": {
         "message": "Add Firewall Rule to {0}",
@@ -1251,6 +1251,7 @@
         "message": "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.",
         "comment": ["{0} is the number of invalid accounts that have been removed"]
     },
+    "Entra token cache cleared successfully.": "Entra token cache cleared successfully.",
     "Database Name": "Database Name",
     "Enter Database Name": "Enter Database Name",
     "Database Name is required": "Database Name is required",

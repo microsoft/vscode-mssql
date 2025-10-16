@@ -37,6 +37,7 @@ import {
     Fabric as LocFabric,
     refreshTokenLabel,
 } from "../constants/locConstants";
+import * as LocAll from "../constants/locConstants";
 import {
     getAccounts,
     getTenants,
@@ -71,6 +72,7 @@ import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
 import { configSelectedAzureSubscriptions } from "../constants/constants";
+import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
 import {
@@ -94,6 +96,7 @@ import {
 import { getCloudId } from "../azure/providerSettings";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
+export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -255,7 +258,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.registerReducer("setConnectionInputType", async (state, payload) => {
             this.state.selectedInputMode = payload.inputMode;
             await this.updateItemVisibility();
-            state.formError = "";
+            state.formMessage = undefined;
             this.updateState();
 
             if (state.selectedInputMode === ConnectionInputMode.AzureBrowse) {
@@ -356,7 +359,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 );
                 state.dialog = undefined;
             } catch (err) {
-                state.formError = getErrorMessage(err);
+                state.formMessage = { message: getErrorMessage(err) };
                 state.dialog = undefined;
 
                 sendErrorEvent(
@@ -392,7 +395,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 );
             if (typeof createConnectionGroupResult === "string") {
                 // If the result is a string, it means there was an error creating the group
-                state.formError = createConnectionGroupResult;
+                state.formMessage = { message: createConnectionGroupResult };
             } else {
                 // If the result is an IConnectionGroup, it means the group was created successfully
                 state.connectionProfile.groupId = createConnectionGroupResult.id;
@@ -419,7 +422,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         });
 
         this.registerReducer("closeMessage", async (state) => {
-            state.formError = undefined;
+            state.formMessage = undefined;
             return state;
         });
 
@@ -429,7 +432,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     await this.loadAllAzureServers(state);
                 }
             } catch (err) {
-                this.state.formError = getErrorMessage(err);
+                this.state.formMessage = { message: getErrorMessage(err) };
 
                 sendErrorEvent(
                     TelemetryViews.ConnectionDialog,
@@ -528,7 +531,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     (state.dialog as ConnectionStringDialogProps).connectionStringError =
                         errorMessage;
                 } else {
-                    state.formError = errorMessage;
+                    state.formMessage = { message: errorMessage };
                 }
 
                 sendErrorEvent(
@@ -547,7 +550,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.registerReducer("openConnectionStringDialog", async (state) => {
             if (state.selectedInputMode !== ConnectionInputMode.Parameters) {
                 state.selectedInputMode = ConnectionInputMode.Parameters;
-                state.formError = undefined;
+                state.formMessage = undefined;
                 this.updateState(state);
             }
 
@@ -623,7 +626,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             if (payload.browseTarget === ConnectionInputMode.AzureBrowse) {
                 if (state.selectedInputMode !== ConnectionInputMode.AzureBrowse) {
                     state.selectedInputMode = ConnectionInputMode.AzureBrowse;
-                    state.formError = undefined;
+                    state.formMessage = undefined;
                     this.updateState(state);
                 }
             }
@@ -641,7 +644,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
             } catch (error) {
                 this.logger.error("Error signing into Azure: " + getErrorMessage(error));
-                state.formError = LocAzure.errorSigningIntoAzure(getErrorMessage(error));
+                state.formMessage = {
+                    message: LocAzure.errorSigningIntoAzure(getErrorMessage(error)),
+                };
 
                 return state;
             }
@@ -739,6 +744,18 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 workspace.loadStatus.status === ApiStatus.Error
             ) {
                 await this.loadFabricDatabasesForWorkspace(state, workspace);
+            }
+
+            return state;
+        });
+
+        this.registerReducer("messageButtonClicked", async (state, payload) => {
+            if (payload.buttonId === CLEAR_TOKEN_CACHE) {
+                this._mainController.connectionManager.azureController.clearTokenCache();
+                this.vscodeWrapper.showInformationMessage(LocAll.Accounts.clearedEntraTokenCache);
+                this.state.formMessage = undefined;
+            } else {
+                this.logger.error(`Unknown message button clicked: ${payload.buttonId}`);
             }
 
             return state;
@@ -983,7 +1000,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 const tempConnectionUri = Utils.generateGuid();
                 const result = await this._mainController.connectionManager.connect(
                     tempConnectionUri,
-                    cleanedConnection as any,
+                    cleanedConnection,
                     false, // Connect should not handle errors, as we want to handle them here
                 );
 
@@ -994,8 +1011,16 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     return await this.handleConnectionErrorCodes(connectionInfo, state);
                 }
             } catch (error) {
-                this.state.formError = getErrorMessage(error);
+                this.state.formMessage = { message: getErrorMessage(error) };
                 this.state.connectionStatus = ApiStatus.Error;
+
+                if (
+                    getErrorMessage(error).includes(AzureConstants.multiple_matching_tokens_error)
+                ) {
+                    this.state.formMessage.buttons = [
+                        { id: CLEAR_TOKEN_CACHE, label: Loc.clearTokenCache },
+                    ];
+                }
 
                 sendErrorEvent(
                     TelemetryViews.ConnectionDialog,
@@ -1084,7 +1109,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             UserSurvey.getInstance().promptUserForNPSFeedback();
         } catch (error) {
             this.state.connectionStatus = ApiStatus.Error;
-            this.state.formError = getErrorMessage(error);
+            this.state.formMessage = { message: getErrorMessage(error) };
 
             sendErrorEvent(
                 TelemetryViews.ConnectionDialog,
@@ -1178,7 +1203,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         } else if (errorType === SqlConnectionErrorType.PasswordExpired) {
             this.state.connectionStatus = ApiStatus.Error;
-            this.state.formError = `${result.errorNumber}: ${result.errorMessage}`;
+            this.state.formMessage = { message: `${result.errorNumber}: ${result.errorMessage}` };
             this.state.dialog = {
                 type: "changePassword",
                 props: {
@@ -1188,7 +1213,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             } as ChangePasswordDialogProps;
             return state;
         } else {
-            this.state.formError = result.errorMessage;
+            this.state.formMessage = { message: result.errorMessage };
             this.state.connectionStatus = ApiStatus.Error;
 
             sendActionEvent(TelemetryViews.ConnectionDialog, TelemetryActions.CreateConnection, {
@@ -1432,7 +1457,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.azureTenants = [];
             this.updateState(state);
 
-            state.formError = "";
+            state.formMessage = undefined;
             state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
                 return {
                     id: a.id,
@@ -1452,7 +1477,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             try {
                 auth = await VsCodeAzureHelper.signIn();
             } catch (error) {
-                state.formError = LocAzure.errorSigningIntoAzure(getErrorMessage(error));
+                state.formMessage = {
+                    message: LocAzure.errorSigningIntoAzure(getErrorMessage(error)),
+                };
                 return undefined;
             }
 
@@ -1505,9 +1532,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             return tenantSubMap;
         } catch (error) {
-            state.formError = l10n.t("Error loading Azure subscriptions.");
+            state.formMessage = { message: l10n.t("Error loading Azure subscriptions.") };
             state.loadingAzureSubscriptionsStatus = ApiStatus.Error;
-            this.logger.error(state.formError + "\n" + getErrorMessage(error));
+            this.logger.error(state.formMessage + "\n" + getErrorMessage(error));
             telemActivity?.endFailed(error, false);
             return undefined;
         }
@@ -1526,9 +1553,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             if (tenantSubMap.size === 0) {
-                state.formError = l10n.t(
-                    "No subscriptions available.  Adjust your subscription filters to try again.",
-                );
+                state.formMessage = {
+                    message: l10n.t(
+                        "No subscriptions available.  Adjust your subscription filters to try again.",
+                    ),
+                };
             } else {
                 state.loadingAzureServersStatus = ApiStatus.Loading;
                 state.azureServers = [];
@@ -1554,9 +1583,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return;
             }
         } catch (error) {
-            state.formError = l10n.t("Error loading Azure databases.");
+            state.formMessage = { message: l10n.t("Error loading Azure databases.") };
             state.loadingAzureServersStatus = ApiStatus.Error;
-            this.logger.error(state.formError + os.EOL + getErrorMessage(error));
+            this.logger.error(state.formMessage.message + os.EOL + getErrorMessage(error));
 
             endActivity.endFailed(
                 error,
@@ -1693,7 +1722,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 );
             }
         } catch (err) {
-            state.formError = getErrorMessage(err);
+            state.formMessage = { message: getErrorMessage(err) };
 
             loadWorkspacesActivity.endFailed(
                 new Error("Failure while getting Fabric workspaces"),
@@ -1811,7 +1840,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     //#region Miscellanous helpers
 
     private clearFormError() {
-        this.state.formError = "";
+        this.state.formMessage = undefined;
         for (const component of this.getActiveFormComponents(this.state).map(
             (x) => this.state.formComponents[x],
         )) {
