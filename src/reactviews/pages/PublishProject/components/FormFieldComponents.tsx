@@ -23,7 +23,9 @@ const getValidationState = (
     return validation ? (validation.isValid ? "none" : "error") : "none";
 };
 
-// Generic Input Field - can be used for text, number, or password fields
+/*
+ * Generic Input Field - can be used for text, number, or password fields
+ */
 export const renderInput = (
     component: PublishDialogFormItemSpec | undefined,
     value: string,
@@ -79,7 +81,9 @@ export const renderInput = (
     );
 };
 
-// Generic Dropdown Field - can be used for any dropdown selection
+/*
+ * Generic Dropdown Field - can be used for any dropdown selection
+ */
 export const renderDropdown = (
     component: PublishDialogFormItemSpec | undefined,
     value: string | undefined,
@@ -122,7 +126,9 @@ export const renderDropdown = (
     );
 };
 
-// Generic Combobox Field - can be used for editable dropdowns (allows custom text input)
+/*
+ * Generic Combobox Field - can be used for editable dropdowns (allows custom text input)
+ */
 export const renderCombobox = (
     component: PublishDialogFormItemSpec | undefined,
     value: string | undefined,
@@ -152,7 +158,7 @@ export const renderCombobox = (
                 }}
                 onChange={(event) => {
                     // Allow custom text input
-                    onChange((event.target as HTMLInputElement).value);
+                    onChange(event.currentTarget.value);
                 }}>
                 {component.options.map(
                     (opt: { value: string; displayName: string; color?: string }, i: number) => (

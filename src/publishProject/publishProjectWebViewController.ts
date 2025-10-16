@@ -340,8 +340,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
             const connection = this._connectionManager.activeConnections[connectionUri];
             const connectionProfile = connection?.credentials as IConnectionProfile;
 
-            if (!connectionProfile) {
-                return; // Connection no longer available
+            if (!connectionProfile || !connectionProfile.server) {
+                return; // Connection no longer available or invalid
             }
 
             // Update server name immediately
@@ -375,8 +375,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             // Update UI immediately to reflect the new connection
             this.updateState();
-        } catch {
-            // Silently fail - connection issues are handled elsewhere
+        } catch (err) {
+            // Log the error for diagnostics
+            sendActionEvent(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.PublishProjectConnectionError,
+                { error: err instanceof Error ? err.message : String(err) },
+            );
         } finally {
             // Reset the waiting state
             this.state.waitingForNewConnection = false;
