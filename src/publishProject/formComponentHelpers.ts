@@ -75,6 +75,7 @@ export function generatePublishFormComponents(
         publishProfilePath: {
             propertyName: constants.PublishFormFields.PublishProfilePath,
             label: Loc.PublishProfileLabel,
+            placeholder: Loc.PublishProfilePlaceholder,
             required: false,
             type: FormItemType.Input,
         },

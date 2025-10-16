@@ -1429,7 +1429,7 @@
     "General": "General",
     "Publish Project": "Publish Project",
     "Publish Profile": "Publish Profile",
-    "Select or enter a publish profile": "Select or enter a publish profile",
+    "Load profile...": "Load profile...",
     "Save As": "Save As",
     "Publish Settings File": "Publish Settings File",
     "Database name is required": "Database name is required",

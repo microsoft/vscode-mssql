@@ -1894,8 +1894,14 @@
     <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
       <source xml:lang="en">Load</source>
     </trans-unit>
+    <trans-unit id="++CODE++7311ac4bd0577b850312e759be01b081f09b1ba3df2b85c576757efc928c572e">
+      <source xml:lang="en">Load Profile...</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b590dbe3ca2ba02770a0f91a1d06fddd3d9f474ffc479853d323f0545a6397b">
       <source xml:lang="en">Load from Connection String</source>
+    </trans-unit>
+    <trans-unit id="++CODE++323ed460497fcfa6d1f92f52778381421eefa8ba36a3e9896b3f05a4a2050ca2">
+      <source xml:lang="en">Load profile...</source>
     </trans-unit>
     <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
       <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
@@ -2865,9 +2871,6 @@
     <trans-unit id="++CODE++154f133b3d7ef488e01090c00b0104ba7bf48bf4368e2ad71333fd3d863fb270">
       <source xml:lang="en">Select new permission for extension: &apos;{0}&apos;</source>
       <note>{0} is the extension name</note>
-    </trans-unit>
-    <trans-unit id="++CODE++10484d8ed1877a7e126a17a3a144a55c6bf07784ecc22b01d87ee138fb808cd8">
-      <source xml:lang="en">Select or enter a publish profile</source>
     </trans-unit>
     <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
       <source xml:lang="en">Select profile to remove</source>
