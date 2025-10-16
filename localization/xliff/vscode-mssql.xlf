@@ -1894,9 +1894,6 @@
     <trans-unit id="++CODE++8a6bdb6b18da586fe7f2acbd8f1055533f2cd97a3681b3652bcd712224df45c3">
       <source xml:lang="en">Load</source>
     </trans-unit>
-    <trans-unit id="++CODE++7311ac4bd0577b850312e759be01b081f09b1ba3df2b85c576757efc928c572e">
-      <source xml:lang="en">Load Profile...</source>
-    </trans-unit>
     <trans-unit id="++CODE++6b590dbe3ca2ba02770a0f91a1d06fddd3d9f474ffc479853d323f0545a6397b">
       <source xml:lang="en">Load from Connection String</source>
     </trans-unit>
