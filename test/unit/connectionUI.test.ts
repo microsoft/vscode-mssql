@@ -14,9 +14,7 @@ import {
     IConnectionCredentialsQuickPickItem,
     CredentialsQuickPickItemType,
 } from "../../src/models/interfaces";
-// import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
-// import * as LocalizedConstants from "../../src/constants/locConstants";
 import { AccountStore } from "../../src/azure/accountStore";
 import * as sinon from "sinon";
 
@@ -73,7 +71,6 @@ suite("Connection UI tests", () => {
         mockAccountStore = new AccountStore(mockContext.object, vscodeWrapper.object);
         connectionUI = new ConnectionUI(
             connectionManager.object,
-            mockContext.object,
             connectionStore.object,
             mockAccountStore,
             prompter.object,
@@ -262,35 +259,4 @@ suite("Connection UI tests", () => {
         void connectionUI.promptToManageProfiles();
         prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
     });
-
-    // test("promptForRetryCreateProfile should show an error message and create profile", async () => {
-    //     let profile = new ConnectionProfile();
-    //     let mockConnection = { connectionString: "test" };
-    //     vscodeWrapper
-    //         .setup((v) => v.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-    //         .returns(() => Promise.resolve(LocalizedConstants.retryLabel));
-    //     prompter
-    //         .setup((p) => p.prompt(TypeMoq.It.isAny(), true))
-    //         .returns(() => Promise.resolve(mockConnection));
-
-    //     await connectionUI.promptForRetryCreateProfile(profile);
-
-    //     vscodeWrapper.verify(
-    //         (v) => v.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-    //         TypeMoq.Times.once(),
-    //     );
-    // });
-
-    // test("createProfileWithDifferentCredentials should prompt to recreate connection", () => {
-    //     let credentials = new ConnectionCredentials();
-    //     vscodeWrapper
-    //         .setup((v) => v.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-    //         .returns(() => Promise.resolve("test"));
-    //     return connectionUI.createProfileWithDifferentCredentials(credentials).then(() => {
-    //         vscodeWrapper.verify(
-    //             (v) => v.showErrorMessage(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-    //             TypeMoq.Times.once(),
-    //         );
-    //     });
-    // });
 });

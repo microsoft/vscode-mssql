@@ -38,7 +38,6 @@ export interface ISqlProviderItem extends vscode.QuickPickItem {
 export class ConnectionUI {
     constructor(
         private _connectionManager: ConnectionManager,
-        private _context: vscode.ExtensionContext,
         private _connectionStore: ConnectionStore,
         private _accountStore: AccountStore,
         private _prompter: IPrompter,

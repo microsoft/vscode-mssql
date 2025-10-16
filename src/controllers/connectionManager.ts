@@ -178,7 +178,6 @@ export default class ConnectionManager {
         if (!this._connectionUI) {
             this._connectionUI = new ConnectionUI(
                 this,
-                context,
                 this._connectionStore,
                 this._accountStore,
                 prompter,
