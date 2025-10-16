@@ -406,8 +406,7 @@ export function msgDisconnected(documentName: string) {
         comment: ["{0} is the document name"],
     });
 }
-export let macOpenSslErrorMessage = l10n.t("OpenSSL version >=1.0.1 is required to connect.");
-export let macOpenSslHelpButton = l10n.t("Help");
+export let help = l10n.t("Help");
 export let macSierraRequiredErrorMessage = l10n.t(
     "macOS Sierra or newer is required to use this feature.",
 );
