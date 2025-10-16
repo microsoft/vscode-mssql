@@ -637,6 +637,10 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             );
         }
 
+        content.push(
+            `.monaco-table .${this.idPrefix} .grid-cell-value-container { padding: 2px; }`,
+        );
+
         if (styles.tableHeaderForeground) {
             content.push(
                 `.monaco-table .${this.idPrefix} .slick-header .slick-header-column { color: ${styles.tableHeaderForeground}; }`,
