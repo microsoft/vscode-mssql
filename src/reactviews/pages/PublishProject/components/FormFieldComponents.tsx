@@ -24,6 +24,7 @@ export const renderInput = (
         onBlur?: (value: string) => void;
         showPassword?: boolean;
         onTogglePassword?: () => void;
+        readOnly?: boolean;
     },
 ) => {
     if (!component || component.hidden) return undefined;
@@ -47,6 +48,7 @@ export const renderInput = (
                 value={value}
                 placeholder={component.placeholder ?? ""}
                 required={component.required}
+                readOnly={options?.readOnly}
                 onChange={(_, data) => onChange(data.value)}
                 onBlur={() => options?.onBlur?.(value)}
                 contentAfter={

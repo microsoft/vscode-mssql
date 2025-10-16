@@ -5,7 +5,6 @@
 
 import { Button, makeStyles } from "@fluentui/react-components";
 import { useContext, useState, useEffect } from "react";
-import { useFormStyles } from "../../../common/forms/form.component";
 import { LocConstants } from "../../../common/locConstants";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
@@ -25,7 +24,7 @@ const useStyles = makeStyles({
     buttons: {
         display: "flex",
         flexDirection: "row",
-        gap: "4px",
+        gap: "8px",
         paddingBottom: "4px",
         alignSelf: "flex-end",
     },
@@ -38,7 +37,6 @@ const useStyles = makeStyles({
 // Publish profile name input with action buttons (select & save) rendered inline via selectors.
 export const PublishProfileField: React.FC = () => {
     const classes = useStyles();
-    const formStyles = useFormStyles();
     const loc = LocConstants.getInstance().publishProject;
     const context = useContext(PublishProjectContext) as PublishProjectProvider | undefined;
     const component = usePublishDialogSelector((s) => s.formComponents.publishProfilePath);
@@ -55,9 +53,9 @@ export const PublishProfileField: React.FC = () => {
     }
 
     return (
-        <div className={`${formStyles.formComponentDiv} ${classes.root}`}>
+        <div className={classes.root}>
             <div className={classes.fieldContainer}>
-                {renderInput(component, localValue, setLocalValue)}
+                {renderInput(component, localValue, setLocalValue, { readOnly: true })}
             </div>
             <div className={classes.buttons}>
                 <Button
@@ -69,12 +67,7 @@ export const PublishProfileField: React.FC = () => {
                 <Button
                     size="small"
                     appearance="secondary"
-                    onClick={() => {
-                        const publishProfileName = localValue;
-                        if (publishProfileName && publishProfileName.trim() !== "") {
-                            context.savePublishProfile?.(publishProfileName);
-                        }
-                    }}>
+                    onClick={() => context.savePublishProfile?.("")}>
                     {loc.SaveAs}
                 </Button>
             </div>

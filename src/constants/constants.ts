@@ -318,7 +318,7 @@ export const LicenseAcceptanceMessage = "You must accept the license";
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
 export const enablePreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
-
+export const PublishProfileExtension = "publish.xml";
 export const PublishFormFields = {
     PublishProfilePath: "publishProfilePath",
     ServerName: "serverName",
