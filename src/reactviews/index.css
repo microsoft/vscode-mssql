@@ -23,9 +23,15 @@
     border-radius: 2px;
 }
 
-/* Combobox styling */
+/* Dropdown and Combobox styling */
 .fui-Dropdown {
     border: 1px solid var(--vscode-input-border, transparent);
+}
+.fui-Combobox {
+    background-color: var(--vscode-settings-dropdownBackground, var(--vscode-dropdown-background));
+    color: var(--vscode-settings-dropdownForeground, var(--vscode-dropdown-foreground));
+    border: 1px solid var(--vscode-settings-dropdownBorder, var(--vscode-input-border, transparent));
+    border-radius: 2px;
 }
 button[role="combobox"] {
     background-color: var(

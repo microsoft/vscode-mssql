@@ -14,6 +14,7 @@ import {
 } from "../../../../sharedInterfaces/publishDialog";
 import { renderInput, renderDropdown, renderCheckbox } from "./FormFieldComponents";
 import { parseHtmlLabel } from "../../../common/utils";
+import { useFormStyles } from "../../../common/forms/form.component";
 
 const useStyles = makeStyles({
     root: {
@@ -34,6 +35,7 @@ const useStyles = makeStyles({
 
 export const PublishTargetSection: React.FC = () => {
     const classes = useStyles();
+    const formStyles = useFormStyles();
     const publishCtx = useContext(PublishProjectContext);
 
     // Select form components and values - components needed for rendering, values for logic
@@ -148,124 +150,127 @@ export const PublishTargetSection: React.FC = () => {
     }
 
     return (
-        <div className={classes.root}>
-            {/* Publish Target Dropdown */}
-            {renderDropdown(targetComponent, targetValue, (val) => {
-                publishCtx.formAction({
-                    propertyName: targetComponent.propertyName,
-                    isAction: false,
-                    value: val,
-                });
-            })}
+        <div className={formStyles.formComponentDiv}>
+            <div className={classes.root}>
+                {/* Publish Target Dropdown */}
+                {renderDropdown(targetComponent, targetValue, (val) => {
+                    publishCtx.formAction({
+                        propertyName: targetComponent.propertyName,
+                        isAction: false,
+                        value: val,
+                    });
+                })}
 
-            {/* Container Fields - Shown only when local container is selected */}
-            {isContainer && (
-                <div className={classes.containerGroup}>
-                    {/* Container Port */}
-                    {renderInput(
-                        portComponent,
-                        portValue?.toString() || "",
-                        (val) => {
-                            portComponent &&
-                                publishCtx.formAction({
-                                    propertyName: portComponent.propertyName,
-                                    isAction: false,
-                                    value: val,
-                                    updateValidation: false,
-                                });
-                        },
-                        {
-                            onBlur: (val) => {
+                {/* Container Fields - Shown only when local container is selected */}
+                {isContainer && (
+                    <div className={classes.containerGroup}>
+                        {/* Container Port */}
+                        {renderInput(
+                            portComponent,
+                            portValue?.toString() || "",
+                            (val) => {
                                 portComponent &&
                                     publishCtx.formAction({
                                         propertyName: portComponent.propertyName,
                                         isAction: false,
                                         value: val,
-                                        updateValidation: true,
+                                        updateValidation: false,
                                     });
                             },
-                        },
-                    )}
+                            {
+                                onBlur: (val) => {
+                                    portComponent &&
+                                        publishCtx.formAction({
+                                            propertyName: portComponent.propertyName,
+                                            isAction: false,
+                                            value: val,
+                                            updateValidation: true,
+                                        });
+                                },
+                            },
+                        )}
 
-                    {/* Admin Password */}
-                    {renderInput(passwordComponent, localAdminPassword, setLocalAdminPassword, {
-                        showPassword: showAdminPassword,
-                        onTogglePassword: () => setShowAdminPassword(!showAdminPassword),
-                        onBlur: (val) => {
-                            passwordComponent &&
-                                publishCtx.formAction({
-                                    propertyName: passwordComponent.propertyName,
-                                    isAction: false,
-                                    value: val,
-                                    updateValidation: true,
-                                });
-                        },
-                    })}
-
-                    {/* Confirm Password */}
-                    {renderInput(
-                        confirmPasswordComponent,
-                        localConfirmPassword,
-                        setLocalConfirmPassword,
-                        {
-                            showPassword: showConfirmPassword,
-                            onTogglePassword: () => setShowConfirmPassword(!showConfirmPassword),
+                        {/* Admin Password */}
+                        {renderInput(passwordComponent, localAdminPassword, setLocalAdminPassword, {
+                            showPassword: showAdminPassword,
+                            onTogglePassword: () => setShowAdminPassword(!showAdminPassword),
                             onBlur: (val) => {
-                                confirmPasswordComponent &&
+                                passwordComponent &&
                                     publishCtx.formAction({
-                                        propertyName: confirmPasswordComponent.propertyName,
+                                        propertyName: passwordComponent.propertyName,
                                         isAction: false,
                                         value: val,
                                         updateValidation: true,
                                     });
                             },
-                        },
-                    )}
+                        })}
 
-                    {/* Container Image Tag */}
-                    {renderDropdown(imageTagComponent, imageTagValue?.toString(), (val) => {
-                        imageTagComponent &&
-                            publishCtx.formAction({
-                                propertyName: imageTagComponent.propertyName,
-                                isAction: false,
-                                value: val,
-                                updateValidation: true,
-                            });
-                    })}
+                        {/* Confirm Password */}
+                        {renderInput(
+                            confirmPasswordComponent,
+                            localConfirmPassword,
+                            setLocalConfirmPassword,
+                            {
+                                showPassword: showConfirmPassword,
+                                onTogglePassword: () =>
+                                    setShowConfirmPassword(!showConfirmPassword),
+                                onBlur: (val) => {
+                                    confirmPasswordComponent &&
+                                        publishCtx.formAction({
+                                            propertyName: confirmPasswordComponent.propertyName,
+                                            isAction: false,
+                                            value: val,
+                                            updateValidation: true,
+                                        });
+                                },
+                            },
+                        )}
 
-                    {/* Accept License Checkbox */}
-                    {renderCheckbox(
-                        licenseComponent,
-                        Boolean(licenseValue),
-                        (checked) => {
-                            licenseComponent &&
+                        {/* Container Image Tag */}
+                        {renderDropdown(imageTagComponent, imageTagValue?.toString(), (val) => {
+                            imageTagComponent &&
                                 publishCtx.formAction({
-                                    propertyName: licenseComponent.propertyName,
+                                    propertyName: imageTagComponent.propertyName,
                                     isAction: false,
-                                    value: checked,
+                                    value: val,
                                     updateValidation: true,
                                 });
-                        },
-                        licenseComponent?.label ? (
-                            <>
-                                {parseHtmlLabel(licenseComponent.label)?.parts.map((part, i) =>
-                                    typeof part === "string" ? (
-                                        part
-                                    ) : (
-                                        <a
-                                            key={i}
-                                            href={part.href}
-                                            target="_blank"
-                                            rel="noopener noreferrer">
-                                            {part.text}
-                                        </a>
-                                    ),
-                                )}
-                            </>
-                        ) : undefined,
-                    )}
-                </div>
-            )}
+                        })}
+
+                        {/* Accept License Checkbox */}
+                        {renderCheckbox(
+                            licenseComponent,
+                            Boolean(licenseValue),
+                            (checked) => {
+                                licenseComponent &&
+                                    publishCtx.formAction({
+                                        propertyName: licenseComponent.propertyName,
+                                        isAction: false,
+                                        value: checked,
+                                        updateValidation: true,
+                                    });
+                            },
+                            licenseComponent?.label ? (
+                                <>
+                                    {parseHtmlLabel(licenseComponent.label)?.parts.map((part, i) =>
+                                        typeof part === "string" ? (
+                                            part
+                                        ) : (
+                                            <a
+                                                key={i}
+                                                href={part.href}
+                                                target="_blank"
+                                                rel="noopener noreferrer">
+                                                {part.text}
+                                            </a>
+                                        ),
+                                    )}
+                                </>
+                            ) : undefined,
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
