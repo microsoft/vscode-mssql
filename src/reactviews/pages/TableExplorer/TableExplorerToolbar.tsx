@@ -80,11 +80,27 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({ onSa
                 {loc.tableExplorer.addRow}
             </ToolbarButton>
             <ToolbarButton
-                aria-label={loc.tableExplorer.generateScript}
-                title={loc.tableExplorer.generateScript}
+                aria-label={
+                    context.state.showScriptPane
+                        ? loc.tableExplorer.hideScript
+                        : loc.tableExplorer.showScript
+                }
+                title={
+                    context.state.showScriptPane
+                        ? loc.tableExplorer.hideScript
+                        : loc.tableExplorer.showScript
+                }
                 icon={<CodeRegular />}
-                onClick={() => context.generateScript()}>
-                {loc.tableExplorer.generateScript}
+                onClick={() => {
+                    if (context.state.showScriptPane) {
+                        context.toggleScriptPane();
+                    } else {
+                        context.generateScript();
+                    }
+                }}>
+                {context.state.showScriptPane
+                    ? loc.tableExplorer.hideScript
+                    : loc.tableExplorer.showScript}
             </ToolbarButton>
             <Combobox
                 value={selectedValue}

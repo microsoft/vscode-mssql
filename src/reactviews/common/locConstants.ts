@@ -1058,7 +1058,8 @@ export class LocConstants {
         return {
             saveChanges: l10n.t("Save Changes"),
             addRow: l10n.t("Add Row"),
-            generateScript: l10n.t("Generate Script"),
+            showScript: l10n.t("Show Script"),
+            hideScript: l10n.t("Hide Script"),
         };
     }
 }
