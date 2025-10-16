@@ -190,7 +190,6 @@ export function accountRemovalFailed(error: string) {
 export let noAzureAccountForRemoval = l10n.t(
     "No Microsoft Entra account can be found for removal.",
 );
-export let clearedAzureTokenCache = l10n.t("Azure token cache cleared successfully.");
 export let cannotConnect = l10n.t(
     "Cannot connect due to expired tokens. Please re-authenticate and try again.",
 );
@@ -718,7 +717,8 @@ export class ConnectionDialog {
             comment: ["{0} is the account display name", "{1} is the tenant id"],
         });
     }
-    public static ClearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
+    public static clearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
+    public static clearTokenCache = l10n.t("Clear token cache");
 
     public static noWorkspacesFound = l10n.t(
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
@@ -937,6 +937,7 @@ export class Accounts {
             comment: ["{0} is the number of invalid accounts that have been removed"],
         });
     };
+    public static clearedEntraTokenCache = l10n.t("Entra token cache cleared successfully.");
 }
 
 export class FabricProvisioning {

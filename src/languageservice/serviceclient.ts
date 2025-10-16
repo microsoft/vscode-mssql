@@ -366,7 +366,7 @@ export default class SqlToolsServiceClient {
                 const resourceOverridePath = path.join(overrideDir, executablePath);
                 const resourceClientOverrideExists = await exists(resourceOverridePath);
                 if (resourceClientOverrideExists) {
-                    const overrideMessage = `Using ${resourceOverridePath} from ${overrideDir}`;
+                    const overrideMessage = `Using ${executablePath} from ${overrideDir}`;
                     void vscode.window.showInformationMessage(overrideMessage);
                     console.log(overrideMessage);
                     resourcePath = resourceOverridePath;

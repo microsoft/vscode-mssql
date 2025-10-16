@@ -293,7 +293,9 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdAadAddAccount);
             this._event.on(Constants.cmdAadAddAccount, () => this.addAadAccount());
             this.registerCommandWithArgs(Constants.cmdClearAzureTokenCache);
-            this._event.on(Constants.cmdClearAzureTokenCache, () => this.onClearAzureTokenCache());
+            this._event.on(Constants.cmdClearAzureTokenCache, () =>
+                this.connectionManager.onClearAzureTokenCache(),
+            );
             this.registerCommand(Constants.cmdShowEstimatedPlan);
             this._event.on(Constants.cmdShowEstimatedPlan, () => {
                 void this.onRunQuery({
@@ -2871,10 +2873,6 @@ export default class MainController implements vscode.Disposable {
 
     public addAadAccount(): void {
         void this.connectionManager.addAccount();
-    }
-
-    public onClearAzureTokenCache(): void {
-        this.connectionManager.onClearTokenCache();
     }
 
     private ExecutionPlanCustomEditorProvider = class implements vscode.CustomTextEditorProvider {
