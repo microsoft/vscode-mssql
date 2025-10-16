@@ -294,7 +294,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 // Save the profile using DacFx service
                 try {
                     const databaseName = state.formState.databaseName || projectName;
-                    const connectionString = state.connectionString || "";
+                    // Connection string depends on publish target:
+                    // - For container targets: empty string (no server connection)
+                    const connectionString =
+                        state.formState.publishTarget === PublishTarget.LocalContainer
+                            ? ""
+                            : state.connectionString || "";
                     const sqlCmdVariables = new Map(
                         Object.entries(state.formState.sqlCmdVariables || {}),
                     );
@@ -420,6 +425,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     this.state.projectFilePath,
                     path.extname(this.state.projectFilePath),
                 );
+
+                // Clear connection string when switching to container target
+                this.state.connectionString = undefined;
             }
             // When switching TO EXISTING_SERVER
             else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
