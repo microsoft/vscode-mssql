@@ -7,7 +7,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { IConnectionProfile, AuthenticationTypes } from "./interfaces";
 import { ConnectionStore } from "./connectionStore";
 import * as utils from "./utils";
-import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from "../prompts/question";
+import { QuestionTypes, IQuestion, INameValueChoice } from "../prompts/question";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
 
@@ -185,91 +185,91 @@ export class ConnectionCredentials implements IConnectionInfo {
         return output;
     }
 
-    public static async ensureRequiredPropertiesSet(
-        credentials: IConnectionInfo,
-        isProfile: boolean,
-        isPasswordRequired: boolean,
-        wasPasswordEmptyInConfigFile: boolean,
-        prompter: IPrompter,
-        connectionStore: ConnectionStore,
-        defaultProfileValues?: IConnectionInfo,
-        shouldSaveUpdates: boolean = true,
-    ): Promise<IConnectionInfo> {
-        let questions: IQuestion[] =
-            await ConnectionCredentials.getRequiredCredentialValuesQuestions(
-                credentials,
-                false,
-                isPasswordRequired,
-                connectionStore,
-                defaultProfileValues,
-            );
-        let unprocessedCredentials: IConnectionInfo = Object.assign({}, credentials);
+    // public static async ensureRequiredPropertiesSet(
+    //     credentials: IConnectionInfo,
+    //     isProfile: boolean,
+    //     isPasswordRequired: boolean,
+    //     wasPasswordEmptyInConfigFile: boolean,
+    //     prompter: IPrompter,
+    //     connectionStore: ConnectionStore,
+    //     defaultProfileValues?: IConnectionInfo,
+    //     shouldSaveUpdates: boolean = true,
+    // ): Promise<IConnectionInfo> {
+    //     let questions: IQuestion[] =
+    //         await ConnectionCredentials.getRequiredCredentialValuesQuestions(
+    //             credentials,
+    //             false,
+    //             isPasswordRequired,
+    //             connectionStore,
+    //             defaultProfileValues,
+    //         );
+    //     let unprocessedCredentials: IConnectionInfo = Object.assign({}, credentials);
 
-        // Potentially ask to save password
-        questions.push({
-            type: QuestionTypes.confirm,
-            name: LocalizedConstants.msgSavePassword,
-            message: LocalizedConstants.msgSavePassword,
-            shouldPrompt: (_answers) => {
-                if (credentials.connectionString || !shouldSaveUpdates) {
-                    return false;
-                }
+    //     // Potentially ask to save password
+    //     questions.push({
+    //         type: QuestionTypes.confirm,
+    //         name: LocalizedConstants.msgSavePassword,
+    //         message: LocalizedConstants.msgSavePassword,
+    //         shouldPrompt: (_answers) => {
+    //             if (credentials.connectionString || !shouldSaveUpdates) {
+    //                 return false;
+    //             }
 
-                if (isProfile) {
-                    // For profiles, ask to save password if we are using SQL authentication and the user just entered their password for the first time
-                    return (
-                        ConnectionCredentials.isPasswordBasedCredential(credentials) &&
-                        typeof (<IConnectionProfile>credentials).savePassword === "undefined" &&
-                        wasPasswordEmptyInConfigFile
-                    );
-                } else {
-                    // For MRU list items, ask to save password if we are using SQL authentication and the user has not been asked before
-                    return (
-                        ConnectionCredentials.isPasswordBasedCredential(credentials) &&
-                        typeof (<IConnectionProfile>credentials).savePassword === "undefined"
-                    );
-                }
-            },
-            onAnswered: (value) => {
-                (<IConnectionProfile>credentials).savePassword = value;
-            },
-        });
+    //             if (isProfile) {
+    //                 // For profiles, ask to save password if we are using SQL authentication and the user just entered their password for the first time
+    //                 return (
+    //                     ConnectionCredentials.isPasswordBasedCredential(credentials) &&
+    //                     typeof (<IConnectionProfile>credentials).savePassword === "undefined" &&
+    //                     wasPasswordEmptyInConfigFile
+    //                 );
+    //             } else {
+    //                 // For MRU list items, ask to save password if we are using SQL authentication and the user has not been asked before
+    //                 return (
+    //                     ConnectionCredentials.isPasswordBasedCredential(credentials) &&
+    //                     typeof (<IConnectionProfile>credentials).savePassword === "undefined"
+    //                 );
+    //             }
+    //         },
+    //         onAnswered: (value) => {
+    //             (<IConnectionProfile>credentials).savePassword = value;
+    //         },
+    //     });
 
-        return prompter.prompt(questions).then(async (answers) => {
-            if (answers) {
-                if (isProfile) {
-                    let profile: IConnectionProfile = <IConnectionProfile>credentials;
+    //     return prompter.prompt(questions).then(async (answers) => {
+    //         if (answers) {
+    //             if (isProfile) {
+    //                 let profile: IConnectionProfile = <IConnectionProfile>credentials;
 
-                    // If this is a profile, and the user has set save password to true and either
-                    // stored the password in the config file or purposefully set an empty password,
-                    // then transfer the password to the credential store
-                    if (
-                        shouldSaveUpdates &&
-                        profile.savePassword &&
-                        (!wasPasswordEmptyInConfigFile || profile.emptyPasswordInput)
-                    ) {
-                        // Remove profile, then save profile without plain text password
-                        await connectionStore.removeProfile(profile).then(async () => {
-                            await connectionStore.saveProfile(profile);
-                        });
-                        // Or, if the user answered any additional questions for the profile, be sure to save it
-                    } else if (
-                        profile.authenticationType !== unprocessedCredentials.authenticationType ||
-                        profile.savePassword !==
-                            (<IConnectionProfile>unprocessedCredentials).savePassword ||
-                        profile.password !== unprocessedCredentials.password
-                    ) {
-                        if (shouldSaveUpdates && (await connectionStore.removeProfile(profile))) {
-                            await connectionStore.saveProfile(profile);
-                        }
-                    }
-                }
-                return credentials;
-            } else {
-                return undefined;
-            }
-        });
-    }
+    //                 // If this is a profile, and the user has set save password to true and either
+    //                 // stored the password in the config file or purposefully set an empty password,
+    //                 // then transfer the password to the credential store
+    //                 if (
+    //                     shouldSaveUpdates &&
+    //                     profile.savePassword &&
+    //                     (!wasPasswordEmptyInConfigFile || profile.emptyPasswordInput)
+    //                 ) {
+    //                     // Remove profile, then save profile without plain text password
+    //                     await connectionStore.removeProfile(profile).then(async () => {
+    //                         await connectionStore.saveProfile(profile);
+    //                     });
+    //                     // Or, if the user answered any additional questions for the profile, be sure to save it
+    //                 } else if (
+    //                     profile.authenticationType !== unprocessedCredentials.authenticationType ||
+    //                     profile.savePassword !==
+    //                         (<IConnectionProfile>unprocessedCredentials).savePassword ||
+    //                     profile.password !== unprocessedCredentials.password
+    //                 ) {
+    //                     if (shouldSaveUpdates && (await connectionStore.removeProfile(profile))) {
+    //                         await connectionStore.saveProfile(profile);
+    //                     }
+    //                 }
+    //             }
+    //             return credentials;
+    //         } else {
+    //             return undefined;
+    //         }
+    //     });
+    // }
 
     // gets a set of questions that ensure all required and core values are set
     protected static async getRequiredCredentialValuesQuestions(

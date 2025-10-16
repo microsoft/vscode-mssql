@@ -136,7 +136,6 @@ export default class ConnectionManager {
         private context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
-        _useLegacyConnectionExperience: boolean = false,
         private _logger?: Logger,
         private _client?: SqlToolsServerClient,
         private _vscodeWrapper?: VscodeWrapper,
@@ -183,7 +182,6 @@ export default class ConnectionManager {
                 this._connectionStore,
                 this._accountStore,
                 prompter,
-                _useLegacyConnectionExperience,
                 this.vscodeWrapper,
             );
         }

@@ -10,19 +10,19 @@ import * as constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { ConnectionCredentials } from "../models/connectionCredentials";
-import { ConnectionProfile } from "../models/connectionProfile";
+// import { ConnectionCredentials } from "../models/connectionCredentials";
+// import { ConnectionProfile } from "../models/connectionProfile";
 import { ConnectionStore } from "../models/connectionStore";
 import {
     CredentialsQuickPickItemType,
     IConnectionCredentialsQuickPickItem,
     IConnectionProfile,
 } from "../models/interfaces";
-import * as Utils from "../models/utils";
+// import * as Utils from "../models/utils";
 import { Timer } from "../models/utils";
-import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
+// import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
-import { CancelError } from "../utils/utils";
+// import { CancelError } from "../utils/utils";
 import { CREATE_NEW_GROUP_ID, IConnectionGroup } from "../sharedInterfaces/connectionGroup";
 import { FormItemOptions } from "../sharedInterfaces/form";
 
@@ -47,7 +47,6 @@ export class ConnectionUI {
         private _connectionStore: ConnectionStore,
         private _accountStore: AccountStore,
         private _prompter: IPrompter,
-        private _useLegacyConnectionExperience: boolean = false,
         private _vscodeWrapper?: VscodeWrapper,
     ) {
         if (!this._vscodeWrapper) {
@@ -324,32 +323,32 @@ export class ConnectionUI {
         });
     }
 
-    public async createProfileWithDifferentCredentials(
-        connection: IConnectionInfo,
-    ): Promise<IConnectionInfo> {
-        const retryResult = await this.promptForRetryConnectWithDifferentCredentials();
+    // public async createProfileWithDifferentCredentials(
+    //     connection: IConnectionInfo,
+    // ): Promise<IConnectionInfo> {
+    //     const retryResult = await this.promptForRetryConnectWithDifferentCredentials();
 
-        if (!retryResult) {
-            return undefined;
-        }
+    //     if (!retryResult) {
+    //         return undefined;
+    //     }
 
-        let connectionWithoutCredentials = Object.assign({}, connection, {
-            user: "",
-            password: "",
-            emptyPasswordInput: false,
-        });
+    //     let connectionWithoutCredentials = Object.assign({}, connection, {
+    //         user: "",
+    //         password: "",
+    //         emptyPasswordInput: false,
+    //     });
 
-        return await ConnectionCredentials.ensureRequiredPropertiesSet(
-            connectionWithoutCredentials, // connection profile
-            true, // isProfile
-            false, // isPasswordRequired
-            true, // wasPasswordEmptyInConfigFile
-            this._prompter,
-            this._connectionStore,
-            connection,
-            false, // shouldSaveUpdates
-        );
-    }
+    //     return await ConnectionCredentials.ensureRequiredPropertiesSet(
+    //         connectionWithoutCredentials, // connection profile
+    //         true, // isProfile
+    //         false, // isPasswordRequired
+    //         true, // wasPasswordEmptyInConfigFile
+    //         this._prompter,
+    //         this._connectionStore,
+    //         connection,
+    //         false, // shouldSaveUpdates
+    //     );
+    // }
 
     private handleSelectedConnection(
         selection: IConnectionCredentialsQuickPickItem,
@@ -362,10 +361,7 @@ export class ConnectionUI {
                     connectFunc = this.createAndSaveProfile();
                 } else {
                     // user chose a connection from picklist. Prompt for mandatory info that's missing (e.g. username and/or password)
-                    connectFunc = this.fillOrPromptForMissingInfo(
-                        selection,
-                        false /* shouldSaveUpdates */,
-                    );
+                    connectFunc = this.fillOrPromptForMissingInfo(selection);
                 }
 
                 connectFunc.then(
@@ -491,55 +487,34 @@ export class ConnectionUI {
     public async createAndSaveProfile(
         validate: boolean = true,
     ): Promise<IConnectionProfile | undefined> {
-        if (!this._useLegacyConnectionExperience) {
-            // Opening the Connection Dialog is considering the end of the flow regardless of whether they create a new connection,
-            // so undefined is returned.
-            // It's considered the end of the flow because opening a complex dialog in the middle of a flow then continuing is disorienting.
-            // If they want to use their new connection, they can execute their query again.
-            vscode.commands.executeCommand(constants.cmdAddObjectExplorer);
-            return undefined;
-        } else {
-            let profile = await this.promptForCreateProfile();
-            if (profile) {
-                let savedProfile = validate
-                    ? await this.validateAndSaveProfile(profile)
-                    : await this.saveProfile(profile);
-                if (savedProfile) {
-                    if (validate) {
-                        this.vscodeWrapper.showInformationMessage(
-                            LocalizedConstants.msgProfileCreatedAndConnected,
-                        );
-                    } else {
-                        this.vscodeWrapper.showInformationMessage(
-                            LocalizedConstants.msgProfileCreated,
-                        );
-                    }
-                }
-                return savedProfile;
-            }
-        }
+        // Opening the Connection Dialog is considering the end of the flow regardless of whether they create a new connection,
+        // so undefined is returned.
+        // It's considered the end of the flow because opening a complex dialog in the middle of a flow then continuing is disorienting.
+        // If they want to use their new connection, they can execute their query again.
+        vscode.commands.executeCommand(constants.cmdAddObjectExplorer);
+        return undefined;
     }
 
     /**
      * Validate a connection profile by connecting to it, and save it if we are successful.
      */
-    public async validateAndSaveProfile(
-        profile: IConnectionProfile,
-    ): Promise<IConnectionProfile | undefined> {
-        let uri = this.vscodeWrapper.activeTextEditorUri;
-        if (!uri || !this.vscodeWrapper.isEditingSqlFile) {
-            uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
-        }
+    // public async validateAndSaveProfile(
+    //     profile: IConnectionProfile,
+    // ): Promise<IConnectionProfile | undefined> {
+    //     let uri = this.vscodeWrapper.activeTextEditorUri;
+    //     if (!uri || !this.vscodeWrapper.isEditingSqlFile) {
+    //         uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
+    //     }
 
-        const success = await this.connectionManager.connect(uri, profile);
-        if (success) {
-            // Success! save it
-            return await this.saveProfile(profile);
-        } else {
-            // Normal connection error! Let the user try again, prefilling values that they already entered
-            return await this.promptToRetryAndSaveProfile(profile);
-        }
-    }
+    //     const success = await this.connectionManager.connect(uri, profile);
+    //     if (success) {
+    //         // Success! save it
+    //         return await this.saveProfile(profile);
+    //     } else {
+    //         // Normal connection error! Let the user try again, prefilling values that they already entered
+    //         return await this.promptToRetryAndSaveProfile(profile);
+    //     }
+    // }
 
     /**
      * Get the options for connection groups.
@@ -605,72 +580,59 @@ export class ConnectionUI {
         return await this._connectionStore.saveProfile(profile);
     }
 
-    private async promptForCreateProfile(): Promise<IConnectionProfile> {
-        const profile = await ConnectionProfile.createProfile(
-            this._prompter,
-            this._connectionStore,
-            this._context,
-            this.connectionManager.azureController,
-            this._accountStore,
-        );
+    // private async promptToRetryAndSaveProfile(
+    //     profile: IConnectionProfile,
+    //     isFirewallError: boolean = false,
+    // ): Promise<IConnectionProfile> {
+    //     const updatedProfile = await this.promptForRetryCreateProfile(profile, isFirewallError);
+    //     if (updatedProfile) {
+    //         return await this.validateAndSaveProfile(updatedProfile);
+    //     } else {
+    //         return undefined;
+    //     }
+    // }
 
-        return profile;
-    }
+    // public async promptForRetryCreateProfile(
+    //     profile: IConnectionProfile,
+    //     isFirewallError: boolean = false,
+    // ): Promise<IConnectionProfile> {
+    //     // Ask if the user would like to fix the profile
+    //     let errorMessage = isFirewallError
+    //         ? LocalizedConstants.msgPromptRetryFirewallRuleAdded
+    //         : LocalizedConstants.msgPromptRetryCreateProfile;
+    //     let result = await this._vscodeWrapper.showErrorMessage(
+    //         errorMessage,
+    //         LocalizedConstants.retryLabel,
+    //     );
+    //     if (result === LocalizedConstants.retryLabel) {
+    //         const newProfile = await ConnectionProfile.createProfile(
+    //             this._prompter,
+    //             this._connectionStore,
+    //             this._context,
+    //             this.connectionManager.azureController,
+    //             this._accountStore,
+    //             profile,
+    //         );
 
-    private async promptToRetryAndSaveProfile(
-        profile: IConnectionProfile,
-        isFirewallError: boolean = false,
-    ): Promise<IConnectionProfile> {
-        const updatedProfile = await this.promptForRetryCreateProfile(profile, isFirewallError);
-        if (updatedProfile) {
-            return await this.validateAndSaveProfile(updatedProfile);
-        } else {
-            return undefined;
-        }
-    }
+    //         return newProfile;
+    //     } else {
+    //         // user cancelled the prompt - throw error so that we know user cancelled
+    //         throw new CancelError();
+    //     }
+    // }
 
-    public async promptForRetryCreateProfile(
-        profile: IConnectionProfile,
-        isFirewallError: boolean = false,
-    ): Promise<IConnectionProfile> {
-        // Ask if the user would like to fix the profile
-        let errorMessage = isFirewallError
-            ? LocalizedConstants.msgPromptRetryFirewallRuleAdded
-            : LocalizedConstants.msgPromptRetryCreateProfile;
-        let result = await this._vscodeWrapper.showErrorMessage(
-            errorMessage,
-            LocalizedConstants.retryLabel,
-        );
-        if (result === LocalizedConstants.retryLabel) {
-            const newProfile = await ConnectionProfile.createProfile(
-                this._prompter,
-                this._connectionStore,
-                this._context,
-                this.connectionManager.azureController,
-                this._accountStore,
-                profile,
-            );
+    // private async promptForRetryConnectWithDifferentCredentials(): Promise<boolean> {
+    //     // Ask if the user would like to fix the profile
+    //     const result = await this._vscodeWrapper.showErrorMessage(
+    //         LocalizedConstants.msgPromptRetryConnectionDifferentCredentials,
+    //         LocalizedConstants.retryLabel,
+    //     );
 
-            return newProfile;
-        } else {
-            // user cancelled the prompt - throw error so that we know user cancelled
-            throw new CancelError();
-        }
-    }
+    //     return result === LocalizedConstants.retryLabel;
+    // }
 
-    private async promptForRetryConnectWithDifferentCredentials(): Promise<boolean> {
-        // Ask if the user would like to fix the profile
-        const result = await this._vscodeWrapper.showErrorMessage(
-            LocalizedConstants.msgPromptRetryConnectionDifferentCredentials,
-            LocalizedConstants.retryLabel,
-        );
-
-        return result === LocalizedConstants.retryLabel;
-    }
-
-    private fillOrPromptForMissingInfo(
+    private async fillOrPromptForMissingInfo(
         selection: IConnectionCredentialsQuickPickItem,
-        shouldSaveUpdates: boolean = true,
     ): Promise<IConnectionInfo> {
         // If a connection string is present, don't prompt for any other info
         if (selection.connectionCreds.connectionString) {
@@ -679,21 +641,25 @@ export class ConnectionUI {
             });
         }
 
-        const passwordEmptyInConfigFile: boolean = Utils.isEmpty(
-            selection.connectionCreds.password,
-        );
-        return this._connectionStore.addSavedPassword(selection).then((sel) => {
-            return ConnectionCredentials.ensureRequiredPropertiesSet(
-                sel.connectionCreds,
-                selection.quickPickItemType === CredentialsQuickPickItemType.Profile,
-                false,
-                passwordEmptyInConfigFile,
-                this._prompter,
-                this._connectionStore,
-                undefined, // defaultProfileValues
-                shouldSaveUpdates,
-            );
-        });
+        // const passwordEmptyInConfigFile: boolean = Utils.isEmpty(
+        //     selection.connectionCreds.password,
+        // );
+
+        await this._connectionStore.addSavedPassword(selection);
+        return selection.connectionCreds;
+
+        // return this._connectionStore.addSavedPassword(selection).then((sel) => {
+        //     return ConnectionCredentials.ensureRequiredPropertiesSet(
+        //         sel.connectionCreds,
+        //         selection.quickPickItemType === CredentialsQuickPickItemType.Profile,
+        //         false,
+        //         passwordEmptyInConfigFile,
+        //         this._prompter,
+        //         this._connectionStore,
+        //         undefined, // defaultProfileValues
+        //         shouldSaveUpdates,
+        //     );
+        // });
     }
 
     public async addNewAccount(): Promise<IAccount> {
