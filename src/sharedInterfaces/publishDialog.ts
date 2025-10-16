@@ -62,7 +62,7 @@ export interface PublishDialogState
     deploymentOptions?: mssql.DeploymentOptions;
     projectProperties?: ProjectProperties;
     waitingForNewConnection?: boolean;
-    activeServers?: { [connectionUri: string]: { profileName: string; server: string } };
+    activeConnectionUris?: string[];
     connectionString?: string;
     previousDatabaseList?: { displayName: string; value: string }[];
     previousSelectedDatabase?: string;

@@ -41,9 +41,10 @@ suite("PublishProjectWebViewController Tests", () => {
         mockSqlProjectsService = {};
         mockDacFxService = {};
         mockConnectionManager = {
-            onConnectionsChanged: sandbox.stub().returns({ dispose: () => {} }),
+            onConnectionsChanged: sinon.stub(),
             activeConnections: {},
-            listDatabases: sandbox.stub().resolves([]),
+            listDatabases: sinon.stub().resolves([]),
+            getConnectionString: sinon.stub().returns(""),
         };
     });
 

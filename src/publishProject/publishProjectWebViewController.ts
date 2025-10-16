@@ -66,7 +66,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 lastPublishResult: undefined,
                 deploymentOptions: deploymentOptions,
                 waitingForNewConnection: false,
-                activeServers: {},
+                activeConnectionUris: [],
             } as PublishDialogState,
             {
                 title: Loc.Title,
@@ -102,31 +102,26 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Register reducers after initialization
         this.registerRpcHandlers();
 
-        // Listen for new connections (similar to schema compare)
+        // Listen for new connections
         this.registerDisposable(
             this._connectionManager.onConnectionsChanged(async () => {
-                // Check if we're waiting for a new connection
+                // If waiting for a new connection, find which one is new
                 if (this.state.waitingForNewConnection) {
-                    const activeServers = this.getActiveServersList();
-                    const newConnections = this.findNewConnections(
-                        this.state.activeServers,
-                        activeServers,
+                    const currentUris = Object.keys(this._connectionManager.activeConnections);
+
+                    // Find URIs that are in current but not in previous snapshot
+                    const newUris = currentUris.filter(
+                        (uri) => !this.state.activeConnectionUris!.includes(uri),
                     );
 
-                    if (newConnections.length > 0) {
-                        // Update active servers first
-                        this.state.activeServers = activeServers;
+                    if (newUris.length > 0) {
+                        // Update snapshot BEFORE auto-populating to prevent re-processing if event fires again
+                        this.state.activeConnectionUris = currentUris;
 
-                        // Auto-select the first new connection
-                        const newConnectionUri = newConnections[0];
-                        await this.autoSelectNewConnection(newConnectionUri);
+                        // Auto-populate from the first new connection (this will call updateState internally)
+                        await this.autoSelectNewConnection(newUris[0]);
                     }
-                } else {
-                    // Update active servers even if not waiting
-                    this.state.activeServers = this.getActiveServersList();
                 }
-
-                this.updateState();
             }),
         );
 
@@ -188,6 +183,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
     /** Registers all reducers in pure (immutable) style */
     private registerRpcHandlers(): void {
         this.registerReducer("openConnectionDialog", async (state: PublishDialogState) => {
+            // Capture current connections BEFORE opening dialog
+            state.activeConnectionUris = Object.keys(this._connectionManager.activeConnections);
+
             // Set waiting state to detect new connections
             state.waitingForNewConnection = true;
             this.updateState(state);
@@ -329,74 +327,49 @@ export class PublishProjectWebViewController extends FormWebviewController<
         );
     }
 
-    /** Get the list of active server connections */
-    private getActiveServersList(): {
-        [connectionUri: string]: { profileName: string; server: string };
-    } {
-        const activeServers: { [connectionUri: string]: { profileName: string; server: string } } =
-            {};
-        const activeConnections = this._connectionManager.activeConnections;
-        Object.keys(activeConnections).forEach((connectionUri) => {
-            const credentials = activeConnections[connectionUri].credentials as IConnectionProfile;
-            activeServers[connectionUri] = {
-                profileName: credentials.profileName ?? "",
-                server: credentials.server,
-            };
-        });
-        return activeServers;
-    }
-
-    /** Find new connections that were added */
-    private findNewConnections(
-        oldActiveServers: { [connectionUri: string]: { profileName: string; server: string } },
-        newActiveServers: { [connectionUri: string]: { profileName: string; server: string } },
-    ): string[] {
-        const newConnections: string[] = [];
-        for (const connectionUri in newActiveServers) {
-            if (!(connectionUri in oldActiveServers)) {
-                newConnections.push(connectionUri);
-            }
-        }
-        return newConnections;
-    }
-
     /** Auto-select a new connection and populate server/database fields */
     private async autoSelectNewConnection(connectionUri: string): Promise<void> {
         try {
-            // Get the list of databases for the new connection
-            const databases = await this._connectionManager.listDatabases(connectionUri);
-
-            // Get the connection profile
+            // IMPORTANT: Get the connection profile FIRST, before any async calls
+            // The connection URI may be removed from activeConnections during async operations
             const connection = this._connectionManager.activeConnections[connectionUri];
             const connectionProfile = connection?.credentials as IConnectionProfile;
 
-            if (connectionProfile) {
-                // Update server name
-                this.state.formState.serverName = connectionProfile.server;
-
-                // Get connection string (include password for publishing)
-                const connectionString = await this._connectionManager.getConnectionString(
-                    connectionUri,
-                    true, // includePassword
-                    true, // includeApplicationName
-                );
-                this.state.connectionString = connectionString;
-
-                // Update database dropdown options
-                const databaseComponent =
-                    this.state.formComponents[constants.PublishFormFields.DatabaseName];
-                if (databaseComponent) {
-                    databaseComponent.options = databases.map((db) => ({
-                        displayName: db,
-                        value: db,
-                    }));
-                }
-
-                // Optionally select the first database if available
-                if (databases.length > 0 && !this.state.formState.databaseName) {
-                    this.state.formState.databaseName = databases[0];
-                }
+            if (!connectionProfile) {
+                return; // Connection no longer available
             }
+
+            // Update server name immediately
+            this.state.formState.serverName = connectionProfile.server;
+
+            // Get connection string first
+            const connectionString = await this._connectionManager.getConnectionString(
+                connectionUri,
+                true, // includePassword
+                true, // includeApplicationName
+            );
+            this.state.connectionString = connectionString;
+
+            // Get databases
+            const databases = await this._connectionManager.listDatabases(connectionUri);
+
+            // Update database dropdown options
+            const databaseComponent =
+                this.state.formComponents[constants.PublishFormFields.DatabaseName];
+            if (databaseComponent) {
+                databaseComponent.options = databases.map((db) => ({
+                    displayName: db,
+                    value: db,
+                }));
+            }
+
+            // Optionally select the first database if available
+            if (databases.length > 0 && !this.state.formState.databaseName) {
+                this.state.formState.databaseName = databases[0];
+            }
+
+            // Update UI immediately to reflect the new connection
+            this.updateState();
         } catch {
             // Silently fail - connection issues are handled elsewhere
         } finally {
