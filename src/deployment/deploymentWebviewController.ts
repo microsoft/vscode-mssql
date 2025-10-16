@@ -113,6 +113,8 @@ export class DeploymentWebviewController extends FormWebviewController<
                     state.deploymentTypeState as LocalContainersState,
                     payload,
                 );
+                console.log(state.deploymentTypeState);
+                state.dialog = state.deploymentTypeState.dialog;
             } else {
                 state = (await this.handleDeploymentFormAction(
                     state,

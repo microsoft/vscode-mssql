@@ -24,6 +24,7 @@ import MainController from "../controllers/mainController";
 import { arch, platform } from "os";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
+// import * as vscode from "vscode";
 
 export async function initializeLocalContainersState(
     groupOptions: FormItemOptions[],
@@ -175,6 +176,17 @@ export function registerLocalContainersReducers(deploymentController: Deployment
             });
         }
         state.deploymentTypeState = localContainersState;
+
+        console.log(localContainersState.dialog);
+        if (localContainersState.dialog) {
+            state.dialog = localContainersState.dialog;
+        }
+        console.log(state.dialog);
+        return state;
+    });
+    deploymentController.registerReducer("closeArmSql2025ErrorDialog", async (state, _payload) => {
+        state.dialog = undefined;
+        state.deploymentTypeState.dialog = undefined;
         return state;
     });
 }
@@ -227,18 +239,6 @@ export async function validateDockerConnectionProfile(
                 component.validation = { isValid: true, validationMessage: "" };
             }
         }
-        // Handle ARM64 architecture case where SQL Server 2025 latest is broken
-        else if (
-            prop === "version" &&
-            arch() === "arm64" &&
-            state.formState.version.includes("2025")
-        ) {
-            component.validation = {
-                isValid: false,
-                validationMessage: LocalContainers.sqlServer2025ArmError,
-            };
-            erroredInputs.push(prop);
-        }
         // Default validation logic
         else if (component.validate) {
             const result = component.validate(state, state.formState[prop]);
@@ -250,6 +250,15 @@ export async function validateDockerConnectionProfile(
         }
     }
     state.formErrors = erroredInputs;
+    if (
+        (!propertyName || propertyName === "version") &&
+        arch() !== "arm64" &&
+        state.formState.version.includes("2025")
+    ) {
+        state.dialog = {
+            type: "armSql2025Error",
+        };
+    }
     return state;
 }
 
@@ -334,10 +343,18 @@ export function setLocalContainersFormComponents(
             label: LocalContainers.selectImage,
             required: true,
             tooltip:
-                arch() === "arm64"
+                arch() !== "arm64"
                     ? LocalContainers.sqlServer2025ArmErrorTooltip
                     : LocalContainers.selectImageTooltip,
             options: versions,
+            validate(_state, value) {
+                // Handle ARM64 architecture case where SQL Server 2025 latest is broken
+                const isArm64With2025 = arch() !== "arm64" && value.toString().includes("2025");
+                return {
+                    isValid: !isArm64With2025,
+                    validationMessage: isArm64With2025 ? LocalContainers.sqlServer2025ArmError : "",
+                };
+            },
         }),
 
         password: createFormItem({
