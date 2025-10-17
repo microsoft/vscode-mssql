@@ -916,12 +916,6 @@
                 "icon": "$(add)"
             },
             {
-                "command": "mssql.addObjectExplorerLegacy",
-                "title": "%mssql.addObjectExplorerLegacy%",
-                "category": "MS SQL",
-                "icon": "$(add)"
-            },
-            {
                 "command": "mssql.objectExplorer.enableGroupBySchema",
                 "title": "%mssql.objectExplorer.enableGroupBySchema%",
                 "category": "MS SQL",
