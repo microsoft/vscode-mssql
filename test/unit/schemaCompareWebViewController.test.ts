@@ -4,10 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from "assert";
-import * as vscode from "vscode";
-import * as TypeMoq from "typemoq";
 import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
+import { expect } from "chai";
+import * as chai from "chai";
+import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
+
+chai.use(sinonChai);
 
 import { SchemaCompareWebViewController } from "../../src/schemaCompare/schemaCompareWebViewController";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
@@ -21,6 +25,7 @@ import {
 } from "../../src/sharedInterfaces/schemaCompare";
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { IconUtils } from "../../src/utils/iconUtils";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { AzureAuthType } from "../../src/models/contracts/azure";
 
@@ -29,12 +34,16 @@ suite("SchemaCompareWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let treeNode: TreeNodeInfo;
-    let mockSchemaCompareService: TypeMoq.IMock<mssql.ISchemaCompareService>;
-    let mockConnectionManager: TypeMoq.IMock<ConnectionManager>;
-    let mockConnectionInfo: TypeMoq.IMock<ConnectionInfo>;
-    let mockServerConnInfo: TypeMoq.IMock<mssql.IConnectionInfo>;
+    let mockSchemaCompareService: sinon.SinonStubbedInstance<mssql.ISchemaCompareService>;
+    let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let mockConnectionInfo: ConnectionInfo;
+    let mockServerConnInfo: mssql.IConnectionInfo;
     let mockInitialState: SchemaCompareWebViewState;
-    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let schemaCompareService: mssql.ISchemaCompareService;
+    let connectionManagerStub: ConnectionManager;
+    let vscodeWrapperStub: VscodeWrapper;
+    let connectionChangedEmitter: vscode.EventEmitter<void>;
     const schemaCompareWebViewTitle = "Schema Compare";
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
     let generateOperationIdStub: sinon.SinonStub<[], string>;
@@ -216,6 +225,8 @@ suite("SchemaCompareWebViewController Tests", () => {
             extensionPath: "path",
         } as unknown as vscode.ExtensionContext;
 
+        IconUtils.initialize(mockContext.extensionUri);
+
         let context: mssql.TreeNodeContextValue = {
             type: "",
             subType: "",
@@ -293,52 +304,66 @@ suite("SchemaCompareWebViewController Tests", () => {
             undefined,
         );
 
-        mockSchemaCompareService = TypeMoq.Mock.ofType<mssql.ISchemaCompareService>();
+        mockSchemaCompareService = {
+            compare: sandbox.stub(),
+            generateScript: sandbox.stub(),
+            publishDatabaseChanges: sandbox.stub(),
+            publishProjectChanges: sandbox.stub(),
+            schemaCompareGetDefaultOptions: sandbox.stub(),
+            includeExcludeNode: sandbox.stub(),
+            includeExcludeAllNodes: sandbox.stub(),
+            openScmp: sandbox.stub(),
+            saveScmp: sandbox.stub(),
+            cancel: sandbox.stub(),
+        } as sinon.SinonStubbedInstance<mssql.ISchemaCompareService>;
 
-        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
+        vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
 
-        mockConnectionManager = TypeMoq.Mock.ofType<ConnectionManager>();
-        mockConnectionManager
-            .setup((mgr) => mgr.getUriForConnection(TypeMoq.It.isAny()))
-            .returns(() => "localhost,1433_undefined_sa_undefined");
+        mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+        connectionChangedEmitter = new vscode.EventEmitter<void>();
+        Object.defineProperty(mockConnectionManager, "onConnectionsChanged", {
+            value: connectionChangedEmitter.event,
+        });
+        mockConnectionManager.getUriForConnection.returns("localhost,1433_undefined_sa_undefined");
 
-        mockServerConnInfo = TypeMoq.Mock.ofType<mssql.IConnectionInfo>();
-        mockServerConnInfo.setup((info) => info.server).returns(() => "server1");
-        mockServerConnInfo.setup((info: any) => info.profileName).returns(() => "profile1");
+        mockServerConnInfo = {
+            server: "server1",
+            profileName: "profile1",
+        } as mssql.IConnectionInfo;
 
-        mockConnectionInfo = TypeMoq.Mock.ofType<ConnectionInfo>();
-        mockConnectionInfo
-            .setup((info) => info.credentials)
-            .returns(() => mockServerConnInfo.object);
+        mockConnectionInfo = {
+            credentials: mockServerConnInfo,
+        } as unknown as ConnectionInfo;
 
-        mockConnectionManager
-            .setup((mgr) => mgr.activeConnections)
-            .returns(() => ({
-                conn_uri: mockConnectionInfo.object,
-            }));
+        sandbox.stub(mockConnectionManager, "activeConnections").get(() => ({
+            conn_uri: mockConnectionInfo,
+        }));
 
-        mockConnectionManager
-            .setup((mgr) => mgr.listDatabases(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(["db1", "db2"]));
+        mockConnectionManager.listDatabases.resolves(["db1", "db2"]);
+
+        schemaCompareService = mockSchemaCompareService as unknown as mssql.ISchemaCompareService;
+        connectionManagerStub = mockConnectionManager as unknown as ConnectionManager;
+        vscodeWrapperStub = vscodeWrapper as unknown as VscodeWrapper;
 
         generateOperationIdStub = sandbox.stub(scUtils, "generateOperationId").returns(operationId);
 
         controller = new SchemaCompareWebViewController(
             mockContext,
-            vscodeWrapper.object,
+            vscodeWrapperStub,
             treeNode,
             undefined,
             false,
-            mockSchemaCompareService.object,
-            mockConnectionManager.object,
+            schemaCompareService,
+            connectionManagerStub,
             deploymentOptionsResultMock,
             schemaCompareWebViewTitle,
         );
     });
 
     teardown(() => {
-        generateOperationIdStub.restore();
+        generateOperationIdStub?.restore();
 
+        connectionChangedEmitter?.dispose();
         sandbox.restore();
     });
 
@@ -367,12 +392,12 @@ suite("SchemaCompareWebViewController Tests", () => {
         };
         controller = new SchemaCompareWebViewController(
             mockContext,
-            vscodeWrapper.object,
+            vscodeWrapperStub,
             undefined,
             mockTarget,
             false,
-            mockSchemaCompareService.object,
-            mockConnectionManager.object,
+            schemaCompareService,
+            connectionManagerStub,
             deploymentOptionsResultMock,
             schemaCompareWebViewTitle,
         );
@@ -426,12 +451,12 @@ suite("SchemaCompareWebViewController Tests", () => {
         };
         controller = new SchemaCompareWebViewController(
             mockContext,
-            vscodeWrapper.object,
+            vscodeWrapperStub,
             mockSource,
             mockTarget,
             true,
-            mockSchemaCompareService.object,
-            mockConnectionManager.object,
+            schemaCompareService,
+            connectionManagerStub,
             deploymentOptionsResultMock,
             schemaCompareWebViewTitle,
         );
@@ -470,12 +495,12 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const scController = new SchemaCompareWebViewController(
             mockContext,
-            vscodeWrapper.object,
+            vscodeWrapperStub,
             mockSqlProjectNode,
             undefined,
             false,
-            mockSchemaCompareService.object,
-            mockConnectionManager.object,
+            schemaCompareService,
+            connectionManagerStub,
             deploymentOptionsResultMock,
             schemaCompareWebViewTitle,
         );
@@ -525,7 +550,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             compareStub.firstCall.args,
-            [operationId, TaskExecutionMode.execute, payload, mockSchemaCompareService.object],
+            [operationId, TaskExecutionMode.execute, payload, schemaCompareService],
             "compare should be called with correct arguments",
         );
 
@@ -564,7 +589,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             generateScriptStub.firstCall.args,
-            [operationId, TaskExecutionMode.script, payload, mockSchemaCompareService.object],
+            [operationId, TaskExecutionMode.script, payload, schemaCompareService],
             "generateScript should be called with correct arguments",
         );
 
@@ -604,7 +629,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             publishDatabaseChangesStub.firstCall.args,
-            [operationId, TaskExecutionMode.execute, payload, mockSchemaCompareService.object],
+            [operationId, TaskExecutionMode.execute, payload, schemaCompareService],
             "publishDatabaseChanges should be called with correct arguments",
         );
 
@@ -648,7 +673,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
-            [operationId, payload, mockSchemaCompareService.object],
+            [operationId, payload, schemaCompareService],
             "publishProjectChanges should be called with correct arguments",
         );
 
@@ -677,7 +702,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             getDefaultOptionsStub.firstCall.args,
-            [mockSchemaCompareService.object],
+            [schemaCompareService],
             "getDefaultOptions should be called with correct arguments",
         );
 
@@ -728,7 +753,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
-            [operationId, TaskExecutionMode.execute, payload, mockSchemaCompareService.object],
+            [operationId, TaskExecutionMode.execute, payload, schemaCompareService],
             "includeExcludeNode should be called with correct arguments",
         );
 
@@ -780,7 +805,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             openScmpStub.firstCall.args,
-            [filePath, mockSchemaCompareService.object],
+            [filePath, schemaCompareService],
             "openScmp should be called with correct arguments",
         );
 
@@ -840,7 +865,7 @@ suite("SchemaCompareWebViewController Tests", () => {
                 savePath,
                 [],
                 [],
-                mockSchemaCompareService.object,
+                schemaCompareService,
             ],
             "saveScmp should be called with correct arguments",
         );
@@ -875,7 +900,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         assert.deepEqual(
             publishProjectChangesStub.firstCall.args,
-            [operationId, mockSchemaCompareService.object],
+            [operationId, schemaCompareService],
             "cancel should be called with correct arguments",
         );
 
