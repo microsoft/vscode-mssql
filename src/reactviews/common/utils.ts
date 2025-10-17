@@ -121,7 +121,7 @@ export function getEOL(): string {
 }
 
 export async function isMac(): Promise<boolean> {
-    const platform = await WebviewRpc.getInstance(undefined!).sendRequest(GetPlatformRequest.type);
+    const platform = await WebviewRpc.getInstance(undefined).sendRequest(GetPlatformRequest.type);
     return platform === "darwin";
 }
 

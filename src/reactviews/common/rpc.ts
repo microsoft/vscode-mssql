@@ -74,8 +74,10 @@ export class WebviewRpc<Reducers> {
      * @param vscodeApi The WebviewApi instance to communicate with the extension.
      * @returns The singleton instance of WebviewRpc.
      */
-    public static getInstance<Reducers>(vscodeApi: WebviewApi<unknown>): WebviewRpc<Reducers> {
-        if (!WebviewRpc._instance) {
+    public static getInstance<Reducers>(
+        vscodeApi: WebviewApi<unknown> | undefined,
+    ): WebviewRpc<Reducers> {
+        if (!WebviewRpc._instance && vscodeApi) {
             WebviewRpc._instance = new WebviewRpc<Reducers>(vscodeApi);
         }
         return WebviewRpc._instance;
