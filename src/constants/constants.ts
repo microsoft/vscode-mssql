@@ -56,7 +56,6 @@ export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
 export const cmdAddObjectExplorer = "mssql.addObjectExplorer";
-export const cmdAddObjectExplorerLegacy = "mssql.addObjectExplorerLegacy";
 export const cmdConnectionGroupCreate = "mssql.connectionGroups.create";
 export const cmdConnectionGroupEdit = "mssql.connectionGroups.edit";
 export const cmdConnectionGroupDelete = "mssql.connectionGroups.delete";
@@ -228,7 +227,6 @@ export const configEnableRichExperiencesDoNotShowPrompt =
     "mssql.enableRichExperiencesDoNotShowPrompt";
 export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
-export const configUseLegacyConnectionExperience = "mssql.useLegacyConnectionExperience";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
 export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";

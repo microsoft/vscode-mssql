@@ -695,7 +695,7 @@ export class ObjectExplorerService {
         let connectionProfile: IConnectionProfile = connectionInfo as IConnectionProfile;
         if (!connectionProfile) {
             const connectionUI = this._connectionManager.connectionUI;
-            connectionProfile = await connectionUI.createAndSaveProfile();
+            connectionUI.openConnectionDialog();
             sendActionEvent(
                 TelemetryViews.ObjectExplorer,
                 TelemetryActions.CreateConnection,

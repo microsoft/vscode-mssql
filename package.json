@@ -447,14 +447,8 @@
             ],
             "view/title": [
                 {
-                    "command": "mssql.addObjectExplorerLegacy",
-                    "when": "view == objectExplorer && config.mssql.useLegacyConnectionExperience",
-                    "title": "%mssql.addObjectExplorerLegacy%",
-                    "group": "navigation"
-                },
-                {
                     "command": "mssql.addObjectExplorer",
-                    "when": "view == objectExplorer && !config.mssql.useLegacyConnectionExperience",
+                    "when": "view == objectExplorer",
                     "title": "%mssql.addObjectExplorer%",
                     "group": "navigation"
                 },
@@ -525,7 +519,7 @@
                 },
                 {
                     "command": "mssql.editConnection",
-                    "when": "view == objectExplorer && !config.mssql.useLegacyConnectionExperience && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
                     "group": "1_MSSQL_serverAndDbManagement@2"
                 },
                 {
@@ -656,7 +650,7 @@
                 },
                 {
                     "command": "mssql.editConnection",
-                    "when": "view == objectExplorer && !config.mssql.useLegacyConnectionExperience && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server)\\b/",
                     "group": "inline@1"
                 },
                 {
@@ -766,10 +760,6 @@
                 {
                     "command": "mssql.editTable",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/"
-                },
-                {
-                    "command": "mssql.addObjectExplorerLegacy",
-                    "when": "config.mssql.useLegacyConnectionExperience"
                 },
                 {
                     "command": "mssql.schemaDesigner",
@@ -922,12 +912,6 @@
             {
                 "command": "mssql.addObjectExplorer",
                 "title": "%mssql.addObjectExplorer%",
-                "category": "MS SQL",
-                "icon": "$(add)"
-            },
-            {
-                "command": "mssql.addObjectExplorerLegacy",
-                "title": "%mssql.addObjectExplorerLegacy%",
                 "category": "MS SQL",
                 "icon": "$(add)"
             },
@@ -1255,13 +1239,6 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.enableRichExperiencesDoNotShowPrompt.description%",
-                    "scope": "application"
-                },
-                "mssql.useLegacyConnectionExperience": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.useLegacyConnectionExperience.description%",
-                    "deprecationMessage": "%mssql.legacySetting.deprecationMessage%",
                     "scope": "application"
                 },
                 "mssql.openQueryResultsInTabByDefault": {
