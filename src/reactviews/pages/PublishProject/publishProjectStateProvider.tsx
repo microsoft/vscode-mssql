@@ -41,6 +41,8 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
             savePublishProfile: (publishProfileName: string) =>
                 extensionRpc.action("savePublishProfile", { publishProfileName }),
             openConnectionDialog: () => extensionRpc.action("openConnectionDialog"),
+            updateDeploymentOption: (optionName: string, value: boolean) =>
+                extensionRpc.action("updateDeploymentOption", { optionName, value }),
             extensionRpc,
         }),
         [extensionRpc],

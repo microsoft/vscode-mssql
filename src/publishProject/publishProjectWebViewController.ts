@@ -99,6 +99,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this.state.deploymentOptions.excludeObjectTypes.value = [];
         }
 
+        // Create grouped advanced options for the UI
+        this.createGroupedAdvancedOptions();
+
         // Register reducers after initialization
         this.registerRpcHandlers();
 
@@ -205,6 +208,59 @@ export class PublishProjectWebViewController extends FormWebviewController<
             // TODO: implement script generation logic
             return state;
         });
+
+        this.registerReducer(
+            "updateDeploymentOption",
+            async (state: PublishDialogState, payload: { optionName: string; value: boolean }) => {
+                // Update a specific deployment option value
+                if (!state.deploymentOptions) {
+                    return state;
+                }
+
+                const updatedOptions = { ...state.deploymentOptions };
+
+                // Check if this is a boolean option
+                if (updatedOptions.booleanOptionsDictionary?.[payload.optionName]) {
+                    updatedOptions.booleanOptionsDictionary[payload.optionName] = {
+                        ...updatedOptions.booleanOptionsDictionary[payload.optionName],
+                        value: payload.value,
+                    };
+                }
+                // Check if this is an exclude object type
+                else if (updatedOptions.objectTypesDictionary?.[payload.optionName]) {
+                    // excludeObjectTypes.value is a string array of excluded types
+                    const currentExcluded = updatedOptions.excludeObjectTypes?.value || [];
+                    let newExcluded: string[];
+
+                    if (payload.value) {
+                        // Add to excluded list if not already there
+                        newExcluded = currentExcluded.includes(payload.optionName)
+                            ? currentExcluded
+                            : [...currentExcluded, payload.optionName];
+                    } else {
+                        // Remove from excluded list
+                        newExcluded = currentExcluded.filter((type) => type !== payload.optionName);
+                    }
+
+                    updatedOptions.excludeObjectTypes = {
+                        ...updatedOptions.excludeObjectTypes,
+                        value: newExcluded,
+                    };
+                }
+
+                const newState = {
+                    ...state,
+                    deploymentOptions: updatedOptions,
+                };
+
+                // Regenerate grouped options after update
+                this.state = newState;
+                this.createGroupedAdvancedOptions();
+                newState.groupedAdvancedOptions = this.state.groupedAdvancedOptions;
+
+                return newState;
+            },
+        );
 
         this.registerReducer("selectPublishProfile", async (state: PublishDialogState) => {
             const projectFolderPath = state.projectProperties?.projectFolderPath;
@@ -474,5 +530,70 @@ export class PublishProjectWebViewController extends FormWebviewController<
         }
 
         return Promise.resolve();
+    }
+
+    /**
+     * Creates grouped advanced options from deployment options
+     */
+    private createGroupedAdvancedOptions(): void {
+        if (!this.state.deploymentOptions) {
+            this.state.groupedAdvancedOptions = [];
+            return;
+        }
+
+        const groups: {
+            key: string;
+            label: string;
+            entries: { key: string; displayName: string; description: string; value: boolean }[];
+        }[] = [];
+
+        // General Options group
+        if (this.state.deploymentOptions.booleanOptionsDictionary) {
+            const generalEntries = Object.entries(
+                this.state.deploymentOptions.booleanOptionsDictionary,
+            ).map(([key, option]) => ({
+                key,
+                displayName: option.displayName,
+                description: option.description,
+                value: option.value,
+            }));
+
+            if (generalEntries.length > 0) {
+                groups.push({
+                    key: "General",
+                    label: Loc.GeneralOptions,
+                    entries: generalEntries,
+                });
+            }
+        }
+
+        // Exclude Object Types group
+        if (this.state.deploymentOptions.objectTypesDictionary) {
+            // excludeObjectTypes.value is an array of excluded type names
+            // We need to show ALL object types with checkboxes (checked = excluded)
+            const excludedTypes = this.state.deploymentOptions.excludeObjectTypes?.value || [];
+
+            const excludeEntries = Object.entries(
+                this.state.deploymentOptions.objectTypesDictionary,
+            )
+                .map(([key, displayName]) => ({
+                    key,
+                    displayName: displayName || key,
+                    description: "",
+                    value: Array.isArray(excludedTypes) ? excludedTypes.includes(key) : false,
+                }))
+                .filter((entry) => entry.displayName) // Only include entries with display names
+                .sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+            if (excludeEntries.length > 0) {
+                groups.push({
+                    key: "Exclude",
+                    label: Loc.ExcludeObjectTypes,
+                    entries: excludeEntries,
+                });
+            }
+        }
+
+        this.state.groupedAdvancedOptions = groups;
     }
 }

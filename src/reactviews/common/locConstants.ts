@@ -906,6 +906,10 @@ export class LocConstants {
             SaveAs: l10n.t("Save As..."),
             generateScript: l10n.t("Generate Script"),
             publish: l10n.t("Publish"),
+            advancedOptions: l10n.t("Advanced..."),
+            advancedPublishSettings: l10n.t("Advanced Deployment Options"),
+            generalOptions: l10n.t("General Options"),
+            excludeObjectTypes: l10n.t("Exclude Object Types"),
         };
     }
 
