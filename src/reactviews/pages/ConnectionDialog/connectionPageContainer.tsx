@@ -20,19 +20,8 @@ import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
 } from "../../../sharedInterfaces/connectionGroup";
-import {
-    Button,
-    Field,
-    Image,
-    Link,
-    makeStyles,
-    MessageBar,
-    MessageBarActions,
-    MessageBarBody,
-    Radio,
-    RadioGroup,
-} from "@fluentui/react-components";
-import { DismissRegular, Form20Regular } from "@fluentui/react-icons";
+import { Field, Image, Link, makeStyles, Radio, RadioGroup } from "@fluentui/react-components";
+import { Form20Regular } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ReactNode, useContext } from "react";
 
@@ -50,6 +39,7 @@ import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.compon
 import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
 import { FabricBrowsePage } from "./fabricBrowsePage";
 import { ChangePasswordDialog } from "../ChangePassword/changePasswordDialog";
+import { DialogMessage } from "../../common/dialogMessage";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
     switch (connectionDialogContext?.state.selectedInputMode) {
@@ -107,22 +97,12 @@ export const ConnectionInfoFormContainer = () => {
             <ConnectionHeader />
 
             <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
-                {context.state.formError && (
-                    <MessageBar intent="error" style={{ minHeight: "min-content" }}>
-                        <MessageBarBody style={{ padding: "8px 0" }}>
-                            {context.state.formError}
-                        </MessageBarBody>
-                        <MessageBarActions
-                            containerAction={
-                                <Button
-                                    onClick={context.closeMessage}
-                                    aria-label={locConstants.common.dismiss}
-                                    appearance="transparent"
-                                    icon={<DismissRegular />}
-                                />
-                            }
-                        />
-                    </MessageBar>
+                {context.state.formMessage && (
+                    <DialogMessage
+                        message={context.state.formMessage}
+                        onMessageButtonClicked={context.messageButtonClicked}
+                        onCloseMessage={context.closeMessage}
+                    />
                 )}
 
                 {context.state.dialog?.type === "trustServerCert" && (

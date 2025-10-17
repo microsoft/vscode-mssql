@@ -134,6 +134,11 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                         workspaceId,
                     });
                 },
+                messageButtonClicked: (buttonId: string) => {
+                    webviewContext.extensionRpc.action("messageButtonClicked", {
+                        buttonId,
+                    });
+                },
                 getConnectionDisplayName: async function (
                     connectionProfile: IConnectionDialogProfile,
                 ): Promise<string> {
