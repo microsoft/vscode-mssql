@@ -6,6 +6,7 @@
 import {
     ColorThemeKind,
     CoreRPCs,
+    GetPlatformRequest,
     LoggerLevel,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
@@ -117,4 +118,13 @@ export function getEOL(): string {
         }
     }
     return "\n";
+}
+
+export async function isMac(): Promise<boolean> {
+    const platform = await WebviewRpc.getInstance(undefined!).sendRequest(GetPlatformRequest.type);
+    return platform === "darwin";
+}
+
+export async function isMetaKeyPressed(e: KeyboardEvent | MouseEvent): Promise<boolean> {
+    return (await isMac()) ? e.metaKey : e.ctrlKey;
 }
