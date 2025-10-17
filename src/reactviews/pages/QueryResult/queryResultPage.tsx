@@ -6,7 +6,7 @@
 import { makeStyles, shorthands } from "@fluentui/react-components";
 import { useEffect } from "react";
 import { QueryResultPane } from "./queryResultPane";
-import { Keys } from "../../common/keys";
+import { KeyCode } from "../../common/keys";
 
 const useStyles = makeStyles({
     root: {
@@ -97,12 +97,12 @@ export const QueryResult = () => {
             const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
             if (isMac) {
                 // Cmd + A
-                if (e.metaKey && e.key === Keys.a) {
+                if (e.metaKey && e.code === KeyCode.KeyA) {
                     e.preventDefault();
                     e.stopPropagation();
                 }
             } else {
-                if (e.ctrlKey && e.key === Keys.a) {
+                if (e.ctrlKey && e.code === KeyCode.KeyA) {
                     e.preventDefault();
                     e.stopPropagation();
                 }

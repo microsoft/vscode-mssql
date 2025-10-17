@@ -11,6 +11,7 @@ import {
     Input,
     InputOnChangeData,
     Text,
+    Toolbar,
     makeStyles,
     mergeClasses,
     shorthands,
@@ -113,10 +114,10 @@ const useStyles = makeStyles({
         columnGap: tokens.spacingHorizontalXS,
     },
     sortButtons: {
-        display: "flex",
-        flexDirection: "column",
-        columnGap: "2px",
-        "& button": {
+        width: "100%",
+        padding: 0,
+        "> button": {
+            width: "100%",
             justifyContent: "flex-start",
         },
     },
@@ -530,7 +531,17 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={handleRootKeyDown}>
             <div className={styles.titleBar}>
-                <Text className={styles.sectionHeading}>Sort</Text>
+                <Text className={styles.sectionHeading}>
+                    {locConstants.queryResult.sort}
+                    <span
+                        style={{
+                            fontSize: "8px",
+                            fontWeight: "100",
+                            marginLeft: "6px",
+                        }}>
+                        (Shift + Alt + O)
+                    </span>
+                </Text>
                 <Button
                     ref={closeButtonRef}
                     appearance="subtle"
@@ -545,7 +556,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
             <div className={styles.divider} />
             <div className={styles.header}>
                 <div className={styles.section}>
-                    <div className={styles.sortButtons}>
+                    <Toolbar vertical className={styles.sortButtons}>
                         <Button
                             ref={(el) => {
                                 sortAscendingButtonRef.current = el;
@@ -580,12 +591,12 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                             disabled={currentSort === SortProperties.NONE}>
                             {locConstants.queryResult.removeSort}
                         </Button>
-                    </div>
+                    </Toolbar>
                 </div>
 
                 <div className={styles.divider} />
                 <div className={styles.section}>
-                    <Text className={styles.sectionHeading}>Filter</Text>
+                    <Text className={styles.sectionHeading}>{locConstants.queryResult.filter}</Text>
                     <div className={styles.topRow}>
                         <Input
                             ref={(el) => {

@@ -37,7 +37,7 @@ import {
 import { useState, useMemo } from "react";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 import { locConstants as Loc } from "../../../../common/locConstants";
-import { Keys } from "../../../../common/keys";
+import { KeyCode } from "../../../../common/keys";
 import { useFabricExplorerStyles } from "./fabricExplorer.styles";
 import { ApiStatus, ColorThemeKind, Status } from "../../../../../sharedInterfaces/webview";
 import { themeType } from "../../../../common/utils";
@@ -339,7 +339,7 @@ export const FabricWorkspaceContentsList = ({
                     handleServerSelected(item);
                 }}
                 onKeyDown={(e: React.KeyboardEvent) => {
-                    if (e.key === Keys.Enter || e.key === Keys.Space) {
+                    if (e.code === KeyCode.Enter || e.code === KeyCode.Space) {
                         handleServerSelected(item);
                         e.preventDefault();
                     }

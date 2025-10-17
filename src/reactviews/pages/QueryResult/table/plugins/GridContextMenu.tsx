@@ -7,6 +7,7 @@ import React, { useMemo, useRef } from "react";
 import { Menu, MenuList, MenuItem, MenuPopover, MenuTrigger } from "@fluentui/react-components";
 import { locConstants } from "../../../../common/locConstants";
 import { GridContextMenuAction } from "../../../../../sharedInterfaces/queryResult";
+import { isMac } from "../../../../common/utils";
 
 export interface GridContextMenuProps {
     x: number;
@@ -58,7 +59,14 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                 }}>
                 <MenuPopover onClick={(e) => e.stopPropagation()} ref={popoverRef}>
                     <MenuList>
-                        <MenuItem onClick={() => onAction(GridContextMenuAction.CopySelection)}>
+                        <MenuItem
+                            secondaryContent={isMac() ? "⌘A" : "Ctrl+A"}
+                            onClick={() => onAction(GridContextMenuAction.SelectAll)}>
+                            {locConstants.queryResult.selectAll}
+                        </MenuItem>
+                        <MenuItem
+                            secondaryContent={isMac() ? "⌘C" : "Ctrl+C"}
+                            onClick={() => onAction(GridContextMenuAction.CopySelection)}>
                             {locConstants.queryResult.copy}
                         </MenuItem>
                         <MenuItem onClick={() => onAction(GridContextMenuAction.CopyWithHeaders)}>

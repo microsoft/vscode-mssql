@@ -203,3 +203,20 @@ export function getNextFocusableElementOutside(container: HTMLElement): HTMLElem
     }
     return null; // no next element outside the container
 }
+
+export function getPreviousFocusableElementOutside(container: HTMLElement): HTMLElement | null {
+    const focusables = getFocusableElements();
+    const active = document.activeElement as HTMLElement | null;
+    if (!active) return null;
+
+    const currentIndex = focusables.findIndex((el) => el === active && container.contains(el));
+    if (currentIndex === -1) return null;
+    for (let i = currentIndex - 1; i >= 0; i--) {
+        const el = focusables[i];
+        if (!container.contains(el)) {
+            el.focus();
+            return el;
+        }
+    }
+    return null; // no previous element outside the container
+}
