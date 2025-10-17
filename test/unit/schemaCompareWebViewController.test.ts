@@ -28,6 +28,7 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IconUtils } from "../../src/utils/iconUtils";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { AzureAuthType } from "../../src/models/contracts/azure";
+import { SchemaCompareService } from "../../src/services/schemaCompareService";
 
 suite("SchemaCompareWebViewController Tests", () => {
     let controller: SchemaCompareWebViewController;
@@ -304,18 +305,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             undefined,
         );
 
-        mockSchemaCompareService = {
-            compare: sandbox.stub(),
-            generateScript: sandbox.stub(),
-            publishDatabaseChanges: sandbox.stub(),
-            publishProjectChanges: sandbox.stub(),
-            schemaCompareGetDefaultOptions: sandbox.stub(),
-            includeExcludeNode: sandbox.stub(),
-            includeExcludeAllNodes: sandbox.stub(),
-            openScmp: sandbox.stub(),
-            saveScmp: sandbox.stub(),
-            cancel: sandbox.stub(),
-        } as sinon.SinonStubbedInstance<mssql.ISchemaCompareService>;
+        mockSchemaCompareService = sandbox.createStubInstance(SchemaCompareService);
 
         vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
 
@@ -329,7 +319,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         mockServerConnInfo = {
             server: "server1",
             profileName: "profile1",
-        } as mssql.IConnectionInfo;
+        } as unknown as mssql.IConnectionInfo;
 
         mockConnectionInfo = {
             credentials: mockServerConnInfo,
@@ -368,10 +358,8 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("controller - initialize title - is 'Schema Compare'", () => {
-        assert.deepStrictEqual(
-            controller.panel.title,
+        expect(controller.panel.title, "Webview Title should match").to.equal(
             schemaCompareWebViewTitle,
-            "Webview Title should match",
         );
     });
 
@@ -406,16 +394,16 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         await controller.start(undefined, mockTarget, false);
 
-        sinon.assert.calledTwice(launchStub);
+        expect(launchStub).to.have.been.calledTwice;
 
         // First call: from constructor
         // Second call: from explicit start
         const [sourceArg2, targetArg2, runComparisonArg2] = launchStub.secondCall.args;
 
         // You can assert the second call matches your expectations
-        assert.strictEqual(sourceArg2, undefined, "source should be undefined");
-        assert.deepStrictEqual(targetArg2, mockTarget, "target should match mockTarget");
-        assert.strictEqual(runComparisonArg2, false, "runComparison should be false");
+        expect(sourceArg2, "source should be undefined").to.be.undefined;
+        expect(targetArg2, "target should match mockTarget").to.deep.equal(mockTarget);
+        expect(runComparisonArg2, "runComparison should be false").to.be.false;
 
         launchStub.restore();
     });
@@ -465,13 +453,13 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         await controller.start(mockSource, mockTarget, true);
 
-        sinon.assert.calledTwice(launchStub);
+        expect(launchStub).to.have.been.calledTwice;
 
         // Second call: from explicit start
         const [sourceArg2, targetArg2, runComparisonArg2] = launchStub.secondCall.args;
-        assert.deepStrictEqual(sourceArg2, mockSource, "source should match mockSource");
-        assert.deepStrictEqual(targetArg2, mockTarget, "target should match mockTarget");
-        assert.strictEqual(runComparisonArg2, true, "runComparison should be true");
+        expect(sourceArg2, "source should match mockSource").to.deep.equal(mockSource);
+        expect(targetArg2, "target should match mockTarget").to.deep.equal(mockTarget);
+        expect(runComparisonArg2, "runComparison should be true").to.be.true;
 
         launchStub.restore();
     });
@@ -519,11 +507,10 @@ suite("SchemaCompareWebViewController Tests", () => {
             extractTarget: 5,
         };
 
-        assert.deepEqual(
+        expect(
             scController.state.sourceEndpointInfo,
-            expected,
             "sourceEndpointInfo should match the expected path",
-        );
+        ).to.deep.equal(expected);
     });
 
     test("compare reducer - when called - completes successfully", async () => {
@@ -548,18 +535,15 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
-        assert.deepEqual(
+        expect(
             compareStub.firstCall.args,
-            [operationId, TaskExecutionMode.execute, payload, schemaCompareService],
             "compare should be called with correct arguments",
-        );
+        ).to.deep.equal([operationId, TaskExecutionMode.execute, payload, schemaCompareService]);
 
-        assert.ok(compareStub.calledOnce, "compare should be called once");
+        expect(compareStub, "compare should be called once").to.have.been.calledOnce;
 
-        assert.deepEqual(
-            result.schemaCompareResult,
+        expect(result.schemaCompareResult, "compare should return expected result").to.deep.equal(
             expectedCompareResultMock,
-            "compare should return expected result",
         );
 
         compareStub.restore();
@@ -585,19 +569,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
-        assert.ok(generateScriptStub.calledOnce, "generateScript should be called once");
+        expect(generateScriptStub, "generateScript should be called once").to.have.been.calledOnce;
 
-        assert.deepEqual(
+        expect(
             generateScriptStub.firstCall.args,
-            [operationId, TaskExecutionMode.script, payload, schemaCompareService],
             "generateScript should be called with correct arguments",
-        );
+        ).to.deep.equal([operationId, TaskExecutionMode.script, payload, schemaCompareService]);
 
-        assert.deepEqual(
+        expect(
             result.generateScriptResultStatus,
-            expectedScriptResultMock,
             "generateScript should return expected result",
-        );
+        ).to.deep.equal(expectedScriptResultMock);
 
         generateScriptStub.restore();
     });
@@ -622,22 +604,18 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
-        assert.ok(
-            publishDatabaseChangesStub.calledOnce,
-            "publishDatabaseChanges should be called once",
-        );
+        expect(publishDatabaseChangesStub, "publishDatabaseChanges should be called once").to.have
+            .been.calledOnce;
 
-        assert.deepEqual(
+        expect(
             publishDatabaseChangesStub.firstCall.args,
-            [operationId, TaskExecutionMode.execute, payload, schemaCompareService],
             "publishDatabaseChanges should be called with correct arguments",
-        );
+        ).to.deep.equal([operationId, TaskExecutionMode.execute, payload, schemaCompareService]);
 
-        assert.deepEqual(
+        expect(
             actualResult.publishDatabaseChangesResultStatus,
-            expectedResultMock,
             "publishDatabaseChanges should return expected result",
-        );
+        ).to.deep.equal(expectedResultMock);
 
         publishDatabaseChangesStub.restore();
     });
@@ -666,22 +644,18 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
-        assert.ok(
-            publishProjectChangesStub.calledOnce,
-            "publishProjectChanges should be called once",
-        );
+        expect(publishProjectChangesStub, "publishProjectChanges should be called once").to.have
+            .been.calledOnce;
 
-        assert.deepEqual(
+        expect(
             publishProjectChangesStub.firstCall.args,
-            [operationId, payload, schemaCompareService],
             "publishProjectChanges should be called with correct arguments",
-        );
+        ).to.deep.equal([operationId, payload, schemaCompareService]);
 
-        assert.deepEqual(
+        expect(
             actualResult.schemaComparePublishProjectResult,
-            expectedResultMock,
             "publishProjectChanges should return expected result",
-        );
+        ).to.deep.equal(expectedResultMock);
 
         publishProjectChangesStub.restore();
     });
@@ -698,19 +672,18 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
-        assert.ok(getDefaultOptionsStub.calledOnce, "getDefaultOptions should be called once");
+        expect(getDefaultOptionsStub, "getDefaultOptions should be called once").to.have.been
+            .calledOnce;
 
-        assert.deepEqual(
+        expect(
             getDefaultOptionsStub.firstCall.args,
-            [schemaCompareService],
             "getDefaultOptions should be called with correct arguments",
-        );
+        ).to.deep.equal([schemaCompareService]);
 
-        assert.deepEqual(
+        expect(
             actualResult.defaultDeploymentOptionsResult,
-            deploymentOptionsResultMock,
             "getDefaultOptions should return expected result",
-        );
+        ).to.deep.equal(deploymentOptionsResultMock);
 
         getDefaultOptionsStub.restore();
     });
@@ -749,19 +722,18 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
-        assert.ok(publishProjectChangesStub.calledOnce, "includeExcludeNode should be called once");
+        expect(publishProjectChangesStub, "includeExcludeNode should be called once").to.have.been
+            .calledOnce;
 
-        assert.deepEqual(
+        expect(
             publishProjectChangesStub.firstCall.args,
-            [operationId, TaskExecutionMode.execute, payload, schemaCompareService],
             "includeExcludeNode should be called with correct arguments",
-        );
+        ).to.deep.equal([operationId, TaskExecutionMode.execute, payload, schemaCompareService]);
 
-        assert.deepEqual(
+        expect(
             actualResult.schemaCompareIncludeExcludeResult,
-            expectedResultMock,
             "includeExcludeNode should return expected result",
-        );
+        ).to.deep.equal(expectedResultMock);
 
         publishProjectChangesStub.restore();
     });
@@ -796,31 +768,26 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
-        assert.ok(
-            showOpenDialogForScmpStub.calledOnce,
-            "showOpenDialogForScmp should be called once",
-        );
+        expect(showOpenDialogForScmpStub, "showOpenDialogForScmp should be called once").to.have
+            .been.calledOnce;
 
-        assert.ok(openScmpStub.calledOnce, "openScmp should be called once");
+        expect(openScmpStub, "openScmp should be called once").to.have.been.calledOnce;
 
-        assert.deepEqual(
+        expect(
             openScmpStub.firstCall.args,
-            [filePath, schemaCompareService],
             "openScmp should be called with correct arguments",
-        );
+        ).to.deep.equal([filePath, schemaCompareService]);
 
-        assert.deepEqual(
+        expect(
             actualResult.schemaCompareOpenScmpResult,
-            expectedResultMock,
             "openScmp should return expected result",
-        );
+        ).to.deep.equal(expectedResultMock);
 
         // Verify that intermediaryOptionsResult is updated with loaded options
-        assert.deepEqual(
+        expect(
             actualResult.intermediaryOptionsResult?.defaultDeploymentOptions,
-            expectedResultMock.deploymentOptions,
             "intermediaryOptionsResult should be updated with loaded deployment options",
-        );
+        ).to.deep.equal(expectedResultMock.deploymentOptions);
 
         openScmpStub.restore();
     });
@@ -848,33 +815,29 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
-        assert.ok(
-            showSaveDialogForScmpStub.calledOnce,
-            "showSaveDialogForScmp should be called once",
-        );
+        expect(showSaveDialogForScmpStub, "showSaveDialogForScmp should be called once").to.have
+            .been.calledOnce;
 
-        assert.ok(publishProjectChangesStub.calledOnce, "saveScmp should be called once");
+        expect(publishProjectChangesStub, "saveScmp should be called once").to.have.been.calledOnce;
 
-        assert.deepEqual(
+        expect(
             publishProjectChangesStub.firstCall.args,
-            [
-                databaseSourceEndpointInfo,
-                undefined,
-                TaskExecutionMode.execute,
-                deploymentOptions,
-                savePath,
-                [],
-                [],
-                schemaCompareService,
-            ],
             "saveScmp should be called with correct arguments",
-        );
+        ).to.deep.equal([
+            databaseSourceEndpointInfo,
+            undefined,
+            TaskExecutionMode.execute,
+            deploymentOptions,
+            savePath,
+            [],
+            [],
+            schemaCompareService,
+        ]);
 
-        assert.deepEqual(
+        expect(
             actualResult.saveScmpResultStatus,
-            expectedResultMock,
             "saveScmp should return expected result",
-        );
+        ).to.deep.equal(expectedResultMock);
 
         publishProjectChangesStub.restore();
     });
@@ -896,19 +859,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
-        assert.ok(publishProjectChangesStub.calledOnce, "cancel should be called once");
+        expect(publishProjectChangesStub, "cancel should be called once").to.have.been.calledOnce;
 
-        assert.deepEqual(
+        expect(
             publishProjectChangesStub.firstCall.args,
-            [operationId, schemaCompareService],
             "cancel should be called with correct arguments",
-        );
+        ).to.deep.equal([operationId, schemaCompareService]);
 
-        assert.deepEqual(
+        expect(
             actualResult.cancelResultStatus,
-            expectedResultMock,
             "cancel should be called with correct arguments",
-        );
+        ).to.deep.equal(expectedResultMock);
 
         publishProjectChangesStub.restore();
     });
@@ -923,11 +884,10 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const expectedResult = { conn_uri: { profileName: "profile1", server: "server1" } };
 
-        assert.deepEqual(
+        expect(
             actualResult.activeServers,
-            expectedResult,
             "listActiveServers should return: {conn_uri: {profileName: 'profile1', server: 'server1'}}",
-        );
+        ).to.deep.equal(expectedResult);
     });
 
     test("listDatabasesForActiveServer reducer - when called - returns: ['db1', 'db2']", async () => {
@@ -939,11 +899,10 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const expectedResult = ["db1", "db2"];
 
-        assert.deepEqual(
+        expect(
             actualResult.databases,
-            expectedResult,
             "listActiveServers should return ['db1', 'db2']",
-        );
+        ).to.deep.equal(expectedResult);
     });
 
     test("selectFile reducer - when called - returns correct auxiliary endpoint info", async () => {
@@ -974,11 +933,10 @@ suite("SchemaCompareWebViewController Tests", () => {
             targetScripts: [],
         };
 
-        assert.deepEqual(
+        expect(
             actualResult.auxiliaryEndpointInfo,
-            expectedResult,
             "selectFile should return the expected auxiliary endpoint info",
-        );
+        ).to.deep.equal(expectedResult);
     });
 
     test("confirmSelectedFile reducer - when called - auxiliary endpoint info becomes target endpoint info", async () => {
@@ -1008,11 +966,10 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
-        assert.deepEqual(
+        expect(
             actualResult.targetEndpointInfo,
-            expectedResult,
             "confirmSelectedSchema should make auxiliary endpoint info the target endpoint info",
-        );
+        ).to.deep.equal(expectedResult);
     });
 
     test("includeExcludeAllNodes reducer - when includeRequest is false - all nodes are excluded", async () => {
@@ -1081,13 +1038,13 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
-        assert.ok(includeExcludeAllStub.calledOnce, "includeExcludeAllNodes should be called once");
+        expect(includeExcludeAllStub, "includeExcludeAllNodes should be called once").to.have.been
+            .calledOnce;
 
-        assert.deepEqual(
+        expect(
             actualResult.schemaCompareResult.differences,
-            expectedResult.allIncludedOrExcludedDifferences,
             "includeExcludeAllNodes should return the expected result",
-        );
+        ).to.deep.equal(expectedResult.allIncludedOrExcludedDifferences);
 
         includeExcludeAllStub.restore();
     });
@@ -1158,13 +1115,13 @@ suite("SchemaCompareWebViewController Tests", () => {
             payload,
         );
 
-        assert.ok(includeExcludeAllStub.calledOnce, "includeExcludeAllNodes should be called once");
+        expect(includeExcludeAllStub, "includeExcludeAllNodes should be called once").to.have.been
+            .calledOnce;
 
-        assert.deepEqual(
+        expect(
             actualResult.schemaCompareResult.differences,
-            expectedResult.allIncludedOrExcludedDifferences,
             "includeExcludeAllNodes should return the expected result",
-        );
+        ).to.deep.equal(expectedResult.allIncludedOrExcludedDifferences);
 
         includeExcludeAllStub.restore();
     });
@@ -1198,22 +1155,22 @@ suite("SchemaCompareWebViewController Tests", () => {
         const excludeObjectTypes =
             actualResult.intermediaryOptionsResult.defaultDeploymentOptions.excludeObjectTypes
                 .value;
-        assert.ok(
+        expect(
             excludeObjectTypes.includes("Aggregates"),
             "Aggregates should be added to exclusion list",
-        );
-        assert.ok(
+        ).to.be.true;
+        expect(
             excludeObjectTypes.includes("ApplicationRoles"),
             "ApplicationRoles should be added to exclusion list",
-        );
-        assert.ok(
+        ).to.be.true;
+        expect(
             excludeObjectTypes.includes("ServerTriggers"),
             "Existing ServerTriggers should remain in exclusion list",
-        );
-        assert.ok(
+        ).to.be.true;
+        expect(
             excludeObjectTypes.includes("Routes"),
             "Existing Routes should remain in exclusion list",
-        );
+        ).to.be.true;
     });
 
     test("intermediaryIncludeObjectTypesBulkChanged reducer - when unchecking object types - removes them from exclusion list", async () => {
@@ -1245,22 +1202,22 @@ suite("SchemaCompareWebViewController Tests", () => {
         const excludeObjectTypes =
             actualResult.intermediaryOptionsResult.defaultDeploymentOptions.excludeObjectTypes
                 .value;
-        assert.ok(
+        expect(
             !excludeObjectTypes.includes("Aggregates"),
             "Aggregates should be removed from exclusion list",
-        );
-        assert.ok(
+        ).to.be.true;
+        expect(
             !excludeObjectTypes.includes("ApplicationRoles"),
             "ApplicationRoles should be removed from exclusion list",
-        );
-        assert.ok(
+        ).to.be.true;
+        expect(
             excludeObjectTypes.includes("ServerTriggers"),
             "Existing ServerTriggers should remain in exclusion list",
-        );
-        assert.ok(
+        ).to.be.true;
+        expect(
             excludeObjectTypes.includes("Routes"),
             "Existing Routes should remain in exclusion list",
-        );
+        ).to.be.true;
     });
 
     test("intermediaryIncludeObjectTypesBulkChanged reducer - when checking already included types - no duplicates added", async () => {
@@ -1292,23 +1249,19 @@ suite("SchemaCompareWebViewController Tests", () => {
         const excludeObjectTypes =
             actualResult.intermediaryOptionsResult.defaultDeploymentOptions.excludeObjectTypes
                 .value;
-        assert.strictEqual(
-            excludeObjectTypes.length,
-            1,
-            "Should only have 1 item in exclusion list",
-        );
-        assert.ok(
+        expect(excludeObjectTypes.length, "Should only have 1 item in exclusion list").to.equal(1);
+        expect(
             excludeObjectTypes.includes("ServerTriggers"),
             "ServerTriggers should remain in exclusion list",
-        );
-        assert.ok(
+        ).to.be.true;
+        expect(
             !excludeObjectTypes.includes("Aggregates"),
             "Aggregates should not be in exclusion list",
-        );
-        assert.ok(
+        ).to.be.true;
+        expect(
             !excludeObjectTypes.includes("ApplicationRoles"),
             "ApplicationRoles should not be in exclusion list",
-        );
+        ).to.be.true;
     });
 
     test("intermediaryIncludeObjectTypesBulkChanged reducer - when unchecking already excluded types - no duplicates added", async () => {
@@ -1341,20 +1294,17 @@ suite("SchemaCompareWebViewController Tests", () => {
             actualResult.intermediaryOptionsResult.defaultDeploymentOptions.excludeObjectTypes
                 .value;
         const aggregatesCount = excludeObjectTypes.filter((type) => type === "Aggregates").length;
-        assert.strictEqual(
-            aggregatesCount,
-            1,
-            "Aggregates should appear only once in exclusion list",
-        );
-        assert.ok(
+        expect(aggregatesCount, "Aggregates should appear only once in exclusion list").to.equal(1);
+        expect(
             excludeObjectTypes.includes("ApplicationRoles"),
             "ApplicationRoles should be added to exclusion list",
-        );
-        assert.ok(
+        ).to.be.true;
+        expect(
             excludeObjectTypes.includes("ServerTriggers"),
             "ServerTriggers should remain in exclusion list",
-        );
-        assert.ok(excludeObjectTypes.includes("Routes"), "Routes should remain in exclusion list");
+        ).to.be.true;
+        expect(excludeObjectTypes.includes("Routes"), "Routes should remain in exclusion list").to
+            .be.true;
     });
 
     test("intermediaryIncludeObjectTypesBulkChanged reducer - case insensitive comparison works correctly", async () => {
@@ -1386,11 +1336,10 @@ suite("SchemaCompareWebViewController Tests", () => {
         const excludeObjectTypes =
             actualResult.intermediaryOptionsResult.defaultDeploymentOptions.excludeObjectTypes
                 .value;
-        assert.strictEqual(
+        expect(
             excludeObjectTypes.length,
-            0,
             "All object types should be removed from exclusion list",
-        );
+        ).to.equal(0);
     });
 
     test("intermediaryIncludeObjectTypesBulkChanged reducer - with empty keys array - no changes made", async () => {
@@ -1422,11 +1371,10 @@ suite("SchemaCompareWebViewController Tests", () => {
         const excludeObjectTypes =
             actualResult.intermediaryOptionsResult.defaultDeploymentOptions.excludeObjectTypes
                 .value;
-        assert.deepStrictEqual(
-            excludeObjectTypes,
-            ["ServerTriggers", "Routes"],
-            "Exclusion list should remain unchanged",
-        );
+        expect(excludeObjectTypes, "Exclusion list should remain unchanged").to.deep.equal([
+            "ServerTriggers",
+            "Routes",
+        ]);
     });
 
     test("intermediaryGeneralOptionsBulkChanged reducer - when setting options to true - updates all specified options", async () => {
@@ -1470,21 +1418,18 @@ suite("SchemaCompareWebViewController Tests", () => {
         const booleanOptions =
             actualResult.intermediaryOptionsResult.defaultDeploymentOptions
                 .booleanOptionsDictionary;
-        assert.strictEqual(
+        expect(
             booleanOptions.allowDropBlockingAssemblies.value,
-            true,
             "allowDropBlockingAssemblies should be set to true",
-        );
-        assert.strictEqual(
+        ).to.equal(true);
+        expect(
             booleanOptions.allowExternalLanguagePaths.value,
-            true,
             "allowExternalLanguagePaths should be set to true",
-        );
-        assert.strictEqual(
+        ).to.equal(true);
+        expect(
             booleanOptions.allowExternalLibraryPaths.value,
-            true,
             "allowExternalLibraryPaths should remain unchanged (was already true)",
-        );
+        ).to.equal(true);
     });
 
     test("intermediaryGeneralOptionsBulkChanged reducer - when setting options to false - updates all specified options", async () => {
@@ -1528,21 +1473,18 @@ suite("SchemaCompareWebViewController Tests", () => {
         const booleanOptions =
             actualResult.intermediaryOptionsResult.defaultDeploymentOptions
                 .booleanOptionsDictionary;
-        assert.strictEqual(
+        expect(
             booleanOptions.allowDropBlockingAssemblies.value,
-            false,
             "allowDropBlockingAssemblies should be set to false",
-        );
-        assert.strictEqual(
+        ).to.equal(false);
+        expect(
             booleanOptions.allowExternalLanguagePaths.value,
-            false,
             "allowExternalLanguagePaths should be set to false",
-        );
-        assert.strictEqual(
+        ).to.equal(false);
+        expect(
             booleanOptions.allowExternalLibraryPaths.value,
-            false,
             "allowExternalLibraryPaths should remain unchanged (was already false)",
-        );
+        ).to.equal(false);
     });
 
     test("intermediaryGeneralOptionsBulkChanged reducer - when key does not exist - ignores non-existent options", async () => {
@@ -1581,29 +1523,23 @@ suite("SchemaCompareWebViewController Tests", () => {
         const booleanOptions =
             actualResult.intermediaryOptionsResult.defaultDeploymentOptions
                 .booleanOptionsDictionary;
-        assert.strictEqual(
+        expect(
             booleanOptions.allowDropBlockingAssemblies.value,
-            true,
             "allowDropBlockingAssemblies should be set to true",
-        );
-        assert.strictEqual(
+        ).to.equal(true);
+        expect(
             booleanOptions.allowExternalLanguagePaths.value,
-            true,
             "allowExternalLanguagePaths should remain unchanged",
-        );
-        assert.strictEqual(
-            Object.keys(booleanOptions).length,
-            2,
-            "No new options should be created",
-        );
-        assert.ok(
+        ).to.equal(true);
+        expect(Object.keys(booleanOptions).length, "No new options should be created").to.equal(2);
+        expect(
             !booleanOptions.hasOwnProperty("nonExistentOption"),
             "nonExistentOption should not be created",
-        );
-        assert.ok(
+        ).to.be.true;
+        expect(
             !booleanOptions.hasOwnProperty("anotherNonExistentOption"),
             "anotherNonExistentOption should not be created",
-        );
+        ).to.be.true;
     });
 
     test("intermediaryGeneralOptionsBulkChanged reducer - with empty keys array - no changes made", async () => {
@@ -1642,16 +1578,14 @@ suite("SchemaCompareWebViewController Tests", () => {
         const booleanOptions =
             actualResult.intermediaryOptionsResult.defaultDeploymentOptions
                 .booleanOptionsDictionary;
-        assert.strictEqual(
+        expect(
             booleanOptions.allowDropBlockingAssemblies.value,
-            false,
             "allowDropBlockingAssemblies should remain unchanged",
-        );
-        assert.strictEqual(
+        ).to.equal(false);
+        expect(
             booleanOptions.allowExternalLanguagePaths.value,
-            true,
             "allowExternalLanguagePaths should remain unchanged",
-        );
+        ).to.equal(true);
     });
 
     test("intermediaryGeneralOptionsBulkChanged reducer - with mixed option states - updates all specified options uniformly", async () => {
@@ -1699,21 +1633,18 @@ suite("SchemaCompareWebViewController Tests", () => {
         const booleanOptions =
             actualResult.intermediaryOptionsResult.defaultDeploymentOptions
                 .booleanOptionsDictionary;
-        assert.strictEqual(
+        expect(
             booleanOptions.allowDropBlockingAssemblies.value,
-            false,
             "allowDropBlockingAssemblies should be set to false",
-        );
-        assert.strictEqual(
+        ).to.equal(false);
+        expect(
             booleanOptions.allowExternalLanguagePaths.value,
-            false,
             "allowExternalLanguagePaths should be set to false",
-        );
-        assert.strictEqual(
+        ).to.equal(false);
+        expect(
             booleanOptions.allowExternalLibraryPaths.value,
-            false,
             "allowExternalLibraryPaths should be set to false",
-        );
+        ).to.equal(false);
     });
 
     test("intermediaryGeneralOptionsBulkChanged reducer - preserves option metadata - only changes value property", async () => {
@@ -1750,16 +1681,12 @@ suite("SchemaCompareWebViewController Tests", () => {
         const option =
             actualResult.intermediaryOptionsResult.defaultDeploymentOptions.booleanOptionsDictionary
                 .allowDropBlockingAssemblies;
-        assert.strictEqual(option.value, true, "Value should be updated to true");
-        assert.strictEqual(
-            option.description,
+        expect(option.value, "Value should be updated to true").to.equal(true);
+        expect(option.description, "Description should remain unchanged").to.equal(
             originalDescription,
-            "Description should remain unchanged",
         );
-        assert.strictEqual(
-            option.displayName,
+        expect(option.displayName, "Display name should remain unchanged").to.equal(
             originalDisplayName,
-            "Display name should remain unchanged",
         );
     });
 });
