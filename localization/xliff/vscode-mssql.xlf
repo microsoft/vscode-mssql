@@ -129,8 +129,14 @@
     <trans-unit id="++CODE++d2cab259e6e6da600d35907f2b627f8bf69c49ab40f8f129b9d9f206f149a8f9">
       <source xml:lang="en">Advanced Connection Settings</source>
     </trans-unit>
+    <trans-unit id="++CODE++3ea3cb63299720ecf6b645b51e4975999107f0927eb18d336c95308979f42719">
+      <source xml:lang="en">Advanced Deployment Options</source>
+    </trans-unit>
     <trans-unit id="++CODE++dfa2817fb2221c8b89c47c4fe8326d07c119b7c32e89e509d1061fc596fdf801">
       <source xml:lang="en">Advanced Options</source>
+    </trans-unit>
+    <trans-unit id="++CODE++97c59aa9b524fc50bc1c1eb646c9a306160017cda473234d8d5f3f32bb2e93f1">
+      <source xml:lang="en">Advanced...</source>
     </trans-unit>
     <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
       <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
@@ -1278,6 +1284,9 @@
     </trans-unit>
     <trans-unit id="++CODE++48d53635551c8fd4564251d49f4e6eba58c2774469144e4346310955fbadbf4c">
       <source xml:lang="en">Excel</source>
+    </trans-unit>
+    <trans-unit id="++CODE++01ae099f23b8fe85d27a9e26613eb2624bd76e11505385e3493f316afde824c2">
+      <source xml:lang="en">Exclude Object Types</source>
     </trans-unit>
     <trans-unit id="++CODE++e3a67d9540e9a204f7dc4aa9d44a0ec652856cfa932a21196bf9df23aa0e4cd1">
       <source xml:lang="en">Execute</source>
