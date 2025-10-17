@@ -2935,8 +2935,8 @@
     <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
       <source xml:lang="en">Show MSSQL output</source>
     </trans-unit>
-    <trans-unit id="++CODE++a16e132b133cc57c4d467bde193d78fe48f170a197d0581c2e6578162824902f">
-      <source xml:lang="en">Show Menu</source>
+    <trans-unit id="++CODE++1615831401345ad7af7c55f1b68f51dd051827cf4ab1e7f3864619ce377d6ef1">
+      <source xml:lang="en">Show Menu (F3)</source>
     </trans-unit>
     <trans-unit id="++CODE++169b9d739add25522ff9a236b54583826c27bd79c2dcb1a4efcc50143164f78c">
       <source xml:lang="en">Show New Password</source>
@@ -2999,6 +2999,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
       <source xml:lang="en">Smart performance</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bec69036aa27e7fab7d44cad3909477b76631c39ba46fd7841ea71aae7e5a735">
+      <source xml:lang="en">Sort</source>
     </trans-unit>
     <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
       <source xml:lang="en">Sort Ascending</source>
