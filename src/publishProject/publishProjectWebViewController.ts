@@ -66,7 +66,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 lastPublishResult: undefined,
                 deploymentOptions: deploymentOptions,
                 waitingForNewConnection: false,
-                activeConnectionUris: [],
             } as PublishDialogState,
             {
                 title: Loc.Title,
@@ -102,25 +101,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // Register reducers after initialization
         this.registerRpcHandlers();
 
-        // Listen for new connections
+        // Listen for successful connections
         this.registerDisposable(
-            this._connectionManager.onConnectionsChanged(async () => {
-                // If waiting for a new connection, find which one is new
+            this._connectionManager.onSuccessfulConnection(async (event) => {
+                // Only auto-populate if waiting for a new connection
                 if (this.state.waitingForNewConnection) {
-                    const currentUris = Object.keys(this._connectionManager.activeConnections);
-
-                    // Find URIs that are in current but not in previous snapshot
-                    const newUris = currentUris.filter(
-                        (uri) => !this.state.activeConnectionUris!.includes(uri),
-                    );
-
-                    if (newUris.length > 0) {
-                        // Update snapshot BEFORE auto-populating to prevent re-processing if event fires again
-                        this.state.activeConnectionUris = currentUris;
-
-                        // Auto-populate from the first new connection (this will call updateState internally)
-                        await this.autoSelectNewConnection(newUris[0]);
-                    }
+                    // Auto-populate from the new connection (this will call updateState internally)
+                    await this.autoSelectNewConnection(event.fileUri);
                 }
             }),
         );
@@ -183,9 +170,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
     /** Registers all reducers in pure (immutable) style */
     private registerRpcHandlers(): void {
         this.registerReducer("openConnectionDialog", async (state: PublishDialogState) => {
-            // Capture current connections BEFORE opening dialog
-            state.activeConnectionUris = Object.keys(this._connectionManager.activeConnections);
-
             // Set waiting state to detect new connections
             state.waitingForNewConnection = true;
             this.updateState(state);
