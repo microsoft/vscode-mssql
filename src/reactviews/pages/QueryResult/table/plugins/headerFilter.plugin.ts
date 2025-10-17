@@ -55,6 +55,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
 
     private _eventManager = new EventManager();
     private _currentSortColumn: string = "";
+    private _lastFocusedColumnIndex: number = 1; // Track last focused column (start with first data column)
 
     constructor(
         private readonly uri: string,
@@ -170,10 +171,16 @@ export class HeaderMenu<T extends Slick.SlickData> {
                 this._grid.onHeaderClick.notify();
             });
 
-            this._eventManager.addEventListener(buttonEl, "focus", (e: Event) => {
+            this._eventManager.addEventListener(buttonEl, "focus", (_e: Event) => {
                 // Scroll the column into view when the button receives focus
-                this._grid.scrollCellIntoView(0, this._grid.getColumnIndex(column.id!), false);
+                const columnIndex = this._grid.getColumnIndex(column.id!);
+                this._grid.scrollCellIntoView(0, columnIndex, false);
+                this._lastFocusedColumnIndex = columnIndex;
                 buttonEl.focus();
+            });
+
+            this._eventManager.addEventListener(buttonEl, "keydown", async (e) => {
+                await this.handleHeaderButtonKeyDown(e as KeyboardEvent, column);
             });
         }
         $menuButton.appendTo(args.node);
@@ -699,6 +706,160 @@ export class HeaderMenu<T extends Slick.SlickData> {
                 }
                 this._grid.setActiveCell(0, column);
                 this._grid.scrollCellIntoView(0, column, false);
+            }
+        }
+    }
+
+    private async handleHeaderButtonKeyDown(
+        e: KeyboardEvent,
+        column: FilterableColumn<T>,
+    ): Promise<void> {
+        const columns = this._grid.getColumns();
+        const currentColumnIndex = this._grid.getColumnIndex(column.id!);
+
+        switch (e.key) {
+            case "ArrowLeft": {
+                e.preventDefault();
+                e.stopPropagation();
+                // Move to previous column button (skip row selector at index 0)
+                let prevIndex = currentColumnIndex - 1;
+                if (prevIndex < 1) {
+                    prevIndex = columns.length - 1; // Wrap to last column
+                }
+                const prevColumn = columns[prevIndex];
+                const prevButton = this._columnFilterButtonMapping.get(prevColumn.id!);
+                if (prevButton) {
+                    prevButton.focus();
+                }
+                break;
+            }
+            case "ArrowRight": {
+                e.preventDefault();
+                e.stopPropagation();
+                // Move to next column button
+                let nextIndex = currentColumnIndex + 1;
+                if (nextIndex >= columns.length) {
+                    nextIndex = 1; // Wrap to first data column (skip row selector)
+                }
+                const nextColumn = columns[nextIndex];
+                const nextButton = this._columnFilterButtonMapping.get(nextColumn.id!);
+                if (nextButton) {
+                    nextButton.focus();
+                }
+                break;
+            }
+            case "ArrowDown": {
+                e.preventDefault();
+                e.stopPropagation();
+                // Move focus to first cell in this column
+                this._grid.setActiveCell(0, currentColumnIndex);
+                this._grid.focus();
+                const cellRange = new Slick.Range(0, currentColumnIndex, 0, currentColumnIndex);
+                const selectionModel = this._grid.getSelectionModel();
+                if (selectionModel && selectionModel.setSelectedRanges) {
+                    selectionModel.setSelectedRanges([cellRange]);
+                }
+                break;
+            }
+            case "Enter":
+            case " ": {
+                e.preventDefault();
+                e.stopPropagation();
+                // Open the column menu
+                const button = this._columnFilterButtonMapping.get(column.id!);
+                if (button) {
+                    await this.showColumnMenu(button);
+                }
+                break;
+            }
+            case "Tab": {
+                if (e.shiftKey) {
+                    // Shift+Tab from header should move to previous component (outside grid)
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Find all focusable elements in the document
+                    const focusableElements = Array.from(
+                        document.querySelectorAll(
+                            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+                        ),
+                    ) as HTMLElement[];
+
+                    // Find current element index
+                    const currentIndex = focusableElements.indexOf(e.target as HTMLElement);
+
+                    if (currentIndex > 0) {
+                        // Find the previous element that is outside the grid
+                        const gridContainer = this._grid.getContainerNode();
+                        let prevIndex = currentIndex - 1;
+                        while (prevIndex >= 0) {
+                            if (
+                                gridContainer &&
+                                !gridContainer.contains(focusableElements[prevIndex])
+                            ) {
+                                focusableElements[prevIndex].focus();
+                                break;
+                            }
+                            prevIndex--;
+                        }
+                    }
+                } else {
+                    // Tab from header should move to last active cell or first cell in that column
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const activeCell = this._grid.getActiveCell();
+                    const targetRow = activeCell ? activeCell.row : 0;
+                    const targetColumn = activeCell ? activeCell.cell : currentColumnIndex;
+
+                    this._grid.setActiveCell(targetRow, targetColumn);
+                    this._grid.focus();
+                    const cellRange = new Slick.Range(
+                        targetRow,
+                        targetColumn,
+                        targetRow,
+                        targetColumn,
+                    );
+                    const selectionModel = this._grid.getSelectionModel();
+                    if (selectionModel && selectionModel.setSelectedRanges) {
+                        selectionModel.setSelectedRanges([cellRange]);
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    public focusFirstHeaderButton(): void {
+        const columns = this._grid.getColumns();
+        // Start with first data column (index 1, skip row selector)
+        if (columns.length > 1) {
+            const firstColumn = columns[1];
+            const firstButton = this._columnFilterButtonMapping.get(firstColumn.id!);
+            if (firstButton) {
+                firstButton.focus();
+            }
+        }
+    }
+
+    public focusLastFocusedHeaderButton(): void {
+        const columns = this._grid.getColumns();
+        const columnIndex = Math.min(this._lastFocusedColumnIndex, columns.length - 1);
+        if (columnIndex >= 1) {
+            const column = columns[columnIndex];
+            const button = this._columnFilterButtonMapping.get(column.id!);
+            if (button) {
+                button.focus();
+            }
+        }
+    }
+
+    public focusHeaderButtonForColumn(columnIndex: number): void {
+        const columns = this._grid.getColumns();
+        if (columnIndex >= 1 && columnIndex < columns.length) {
+            const column = columns[columnIndex];
+            const button = this._columnFilterButtonMapping.get(column.id!);
+            if (button) {
+                button.focus();
             }
         }
     }

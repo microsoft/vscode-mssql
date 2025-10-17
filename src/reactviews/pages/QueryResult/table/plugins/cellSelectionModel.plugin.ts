@@ -606,6 +606,20 @@ export class CellSelectionModel<T extends Slick.SlickData>
         const key = e.key; // e.g., 'a', 'ArrowLeft'
         const metaOrCtrlPressed = this.isMac ? e.metaKey : e.ctrlKey;
 
+        // Arrow Up from first row moves to column header button
+        if (key === Keys.ArrowUp && !e.shiftKey && !e.altKey && !metaOrCtrlPressed) {
+            const active = this.grid.getActiveCell();
+            if (active && active.row === 0) {
+                e.preventDefault();
+                e.stopPropagation();
+                // Move focus to header button for this column
+                if (this.headerFilter) {
+                    this.headerFilter.focusHeaderButtonForColumn(active.cell);
+                }
+                return;
+            }
+        }
+
         // Select All (Cmd/Ctrl + A)
         if (metaOrCtrlPressed && key === Keys.a) {
             e.preventDefault();
@@ -780,19 +794,53 @@ export class CellSelectionModel<T extends Slick.SlickData>
             return;
         }
 
-        if (key === Keys.Tab && !e.shiftKey) {
-            console.log("Move to next component");
-            e.stopImmediatePropagation();
-            e.stopPropagation();
-            e.preventDefault();
-            return;
+        if (key === Keys.Tab && e.shiftKey) {
+            const active = this.grid.getActiveCell();
+            if (active) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                // Move focus to the header button for the active column
+                if (this.headerFilter) {
+                    this.headerFilter.focusHeaderButtonForColumn(active.cell);
+                }
+                return;
+            }
         }
 
-        if (key === Keys.Tab && e.shiftKey) {
-            console.log("Move to previous component");
+        if (key === Keys.Tab && !e.shiftKey) {
+            // Prevent SlickGrid's default Tab behavior and move focus to next component
+            e.preventDefault();
             e.stopImmediatePropagation();
             e.stopPropagation();
-            e.preventDefault();
+
+            // Move focus to the next focusable element outside the grid
+            const gridContainer = this.grid.getContainerNode();
+            if (gridContainer) {
+                // Find all focusable elements in the document
+                const focusableElements = Array.from(
+                    document.querySelectorAll(
+                        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+                    ),
+                ) as HTMLElement[];
+
+                // Find the current grid's position in the tab order
+                const currentIndex = focusableElements.findIndex(
+                    (el) => gridContainer.contains(el) && el === document.activeElement,
+                );
+
+                if (currentIndex !== -1 && currentIndex < focusableElements.length - 1) {
+                    // Focus the next element after the grid
+                    let nextIndex = currentIndex + 1;
+                    while (nextIndex < focusableElements.length) {
+                        if (!gridContainer.contains(focusableElements[nextIndex])) {
+                            focusableElements[nextIndex].focus();
+                            break;
+                        }
+                        nextIndex++;
+                    }
+                }
+            }
             return;
         }
     }

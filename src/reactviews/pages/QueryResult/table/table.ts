@@ -113,11 +113,23 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         DOM.addDisposableListener(
             this._container,
             DOM.EventType.FOCUS,
-            () => {
+            (e: FocusEvent) => {
                 clearTimeout(this._classChangeTimeout);
                 this._classChangeTimeout = setTimeout(() => {
                     this._container.classList.add("focused");
                 }, 100);
+
+                // When focus enters the grid container for the first time or via Tab,
+                // move focus to the first header button
+                if (e.target === this._container || e.target === this._tableContainer) {
+                    // Only if there's no active cell, focus the first header button
+                    const activeCell = this._grid.getSelectionModel().getSelectedRanges()?.[0];
+                    if (!activeCell) {
+                        this.headerFilter.focusFirstHeaderButton();
+                    } else {
+                        this._grid.setActiveCell(activeCell.fromRow, activeCell.fromCell);
+                    }
+                }
             },
             true,
         );
