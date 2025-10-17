@@ -248,16 +248,16 @@ export class HeaderMenu<T extends Slick.SlickData> {
             },
             onDismiss: () => {
                 this._activeColumnId = null;
-                this.setFocusToColumn(this._columnDef);
+                this._grid.focus();
             },
             onSortAscending: async () => {
-                await this.applySort(this._columnDef, SortProperties.ASC);
+                await this.applySort(this._columnDef, SortProperties.ASC, true);
             },
             onSortDescending: async () => {
-                await this.applySort(this._columnDef, SortProperties.DESC);
+                await this.applySort(this._columnDef, SortProperties.DESC, true);
             },
             onClearSort: async () => {
-                await this.handleClearSort(this._columnDef);
+                await this.handleClearSort(this._columnDef, true);
             },
             currentSort,
         });
@@ -346,7 +346,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
         }
     }
 
-    private async handleClearSort(column: FilterableColumn<T>) {
+    private async handleClearSort(column: FilterableColumn<T>, skipFocusReset: boolean = false) {
         const columnId = column.id!;
 
         // Only clear if this column is currently sorted
@@ -360,7 +360,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
         this._currentSortColumn = "";
 
         // Clear sort in grid
-        await this.handleMenuItemClick(SortProperties.NONE, column);
+        await this.handleMenuItemClick(SortProperties.NONE, column, skipFocusReset);
 
         // Update state
         const columnFilterState: ColumnFilterState = {
