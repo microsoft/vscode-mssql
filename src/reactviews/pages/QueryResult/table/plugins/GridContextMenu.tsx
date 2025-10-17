@@ -58,22 +58,15 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                 }}>
                 <MenuPopover onClick={(e) => e.stopPropagation()} ref={popoverRef}>
                     <MenuList>
-                        <MenuItem onClick={() => onAction(GridContextMenuAction.SelectAll)}>
-                            {locConstants.queryResult.selectAll}
+                        <MenuItem onClick={() => onAction(GridContextMenuAction.CopySelection)}>
+                            {locConstants.queryResult.copy}
                         </MenuItem>
-
-                        <MenuList>
-                            <MenuItem onClick={() => onAction(GridContextMenuAction.CopySelection)}>
-                                {locConstants.queryResult.copy}
-                            </MenuItem>
-                            <MenuItem
-                                onClick={() => onAction(GridContextMenuAction.CopyWithHeaders)}>
-                                {locConstants.queryResult.copyWithHeaders}
-                            </MenuItem>
-                            <MenuItem onClick={() => onAction(GridContextMenuAction.CopyHeaders)}>
-                                {locConstants.queryResult.copyHeaders}
-                            </MenuItem>
-                        </MenuList>
+                        <MenuItem onClick={() => onAction(GridContextMenuAction.CopyWithHeaders)}>
+                            {locConstants.queryResult.copyWithHeaders}
+                        </MenuItem>
+                        <MenuItem onClick={() => onAction(GridContextMenuAction.CopyHeaders)}>
+                            {locConstants.queryResult.copyHeaders}
+                        </MenuItem>
                         <Menu>
                             <MenuTrigger disableButtonEnhancement>
                                 <MenuItem>{locConstants.queryResult.copyAs}</MenuItem>

@@ -107,6 +107,12 @@ export class CellSelectionModel<T extends Slick.SlickData>
             this.selector.onBeforeCellRangeSelected,
             (e: Event, cell: Slick.Cell) => this.handleBeforeCellRangeSelected(e, cell),
         );
+
+        this._handler.subscribe(this.grid.onActiveCellChanged, async (_e: Event) => {
+            if (this.grid.getSelectionModel().getSelectedRanges().length === 0) {
+                this.handleAfterKeyboardNavigationEvent();
+            }
+        });
     }
 
     public destroy() {
@@ -601,7 +607,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         const metaOrCtrlPressed = this.isMac ? e.metaKey : e.ctrlKey;
 
         // Select All (Cmd/Ctrl + A)
-        if (metaOrCtrlPressed && key === Keys?.a) {
+        if (metaOrCtrlPressed && key === Keys.a) {
             e.preventDefault();
             e.stopPropagation();
             await this.handleSelectAll();
@@ -623,81 +629,172 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
         // Range selection via Shift + Arrow (no Alt, no Meta/Ctrl)
         const isArrow =
-            key === (Keys?.ArrowLeft ?? "ArrowLeft") ||
-            key === (Keys?.ArrowRight ?? "ArrowRight") ||
-            key === (Keys?.ArrowUp ?? "ArrowUp") ||
-            key === (Keys?.ArrowDown ?? "ArrowDown");
+            key === Keys.ArrowLeft ||
+            key === Keys.ArrowRight ||
+            key === Keys.ArrowUp ||
+            key === Keys.ArrowDown;
 
-        if (!isArrow || !e.shiftKey || metaOrCtrlPressed || e.altKey) {
-            return; // Not our concern—let the default handler run
+        if (isArrow && e.shiftKey && !e.altKey && !metaOrCtrlPressed) {
+            const active = this.grid.getActiveCell();
+            if (!active) {
+                return; // Nothing to extend from
+            }
+
+            // Grab existing ranges; ensure we have at least one range rooted at active
+            let ranges = this.getSelectedRanges();
+            if (!ranges?.length) {
+                ranges = [new Slick.Range(active.row, active.cell)];
+            }
+
+            // keyboard can work with last range only
+            let last = ranges.pop()!;
+
+            // If the active cell isn't inside the last range, start a fresh one
+            if (!last.contains(active.row, active.cell)) {
+                last = new Slick.Range(active.row, active.cell);
+            }
+
+            // Determine the "growth" direction relative to the active anchor
+            const dirRow = active.row === last.fromRow ? 1 : -1;
+            const dirCell = active.cell === last.fromCell ? 1 : -1;
+
+            // Current deltas
+            let dRow = last.toRow - last.fromRow;
+            let dCell = last.toCell - last.fromCell;
+
+            // Nudge the deltas based on the pressed arrow
+            switch (key) {
+                case Keys.ArrowLeft:
+                    dCell -= dirCell;
+                    break;
+                case Keys.ArrowRight:
+                    dCell += dirCell;
+                    break;
+                case Keys.ArrowUp:
+                    dRow -= dirRow;
+                    break;
+                case Keys.ArrowDown:
+                    dRow += dirRow;
+                    break;
+            }
+
+            // Compute new candidate range
+            const newRange = new Slick.Range(
+                active.row,
+                active.cell,
+                active.row + dirRow * dRow,
+                active.cell + dirCell * dCell,
+            );
+
+            // Validate and apply; fall back to previous range if invalid
+            const valid = this.removeInvalidRanges([newRange]).length > 0;
+            const finalRange = valid ? newRange : last;
+            ranges.push(finalRange);
+
+            // Keep the new edge in view
+            const viewRow = dirRow > 0 ? finalRange.toRow : finalRange.fromRow;
+            const viewCell = dirCell > 0 ? finalRange.toCell : finalRange.fromCell;
+            this.grid.scrollRowIntoView(viewRow, false);
+            this.grid.scrollCellIntoView(viewRow, viewCell, false);
+
+            // Commit selection and swallow the event
+            this.setSelectedRanges(ranges);
+            e.preventDefault();
+            e.stopPropagation();
         }
 
-        const active = this.grid.getActiveCell();
-        if (!active) {
-            return; // Nothing to extend from
+        if (key === Keys.ArrowLeft && metaOrCtrlPressed) {
+            console.log("Move to first column");
+            const active = this.grid.getActiveCell();
+            if (active) {
+                this.grid.setActiveCell(active.row, 1);
+                this.grid
+                    .getSelectionModel()
+                    .setSelectedRanges([new Slick.Range(active.row, 1, active.row, 1)]);
+            }
+            e.preventDefault();
+            e.stopPropagation();
+            return;
         }
 
-        // Grab existing ranges; ensure we have at least one range rooted at active
-        let ranges = this.getSelectedRanges();
-        if (!ranges?.length) {
-            ranges = [new Slick.Range(active.row, active.cell)];
+        if (key === Keys.ArrowRight && metaOrCtrlPressed) {
+            console.log("Move to last column");
+            const active = this.grid.getActiveCell();
+            if (active) {
+                this.grid.setActiveCell(active.row, this.grid.getColumns().length - 1);
+                this.grid
+                    .getSelectionModel()
+                    .setSelectedRanges([
+                        new Slick.Range(
+                            active.row,
+                            this.grid.getColumns().length - 1,
+                            active.row,
+                            this.grid.getColumns().length - 1,
+                        ),
+                    ]);
+            }
+            e.preventDefault();
+            e.stopPropagation();
+            return;
         }
 
-        // keyboard can work with last range only
-        let last = ranges.pop()!;
-
-        // If the active cell isn't inside the last range, start a fresh one
-        if (!last.contains(active.row, active.cell)) {
-            last = new Slick.Range(active.row, active.cell);
+        // shift + f10 or context menu key
+        if ((e.shiftKey && key === Keys.F10) || key === Keys.ContextMenu) {
+            console.log("Open context menu");
+            // Already handled by onContextMenu event
+            return;
         }
 
-        // Determine the "growth" direction relative to the active anchor
-        const dirRow = active.row === last.fromRow ? 1 : -1;
-        const dirCell = active.cell === last.fromCell ? 1 : -1;
-
-        // Current deltas
-        let dRow = last.toRow - last.fromRow;
-        let dCell = last.toCell - last.fromCell;
-
-        // Nudge the deltas based on the pressed arrow
-        switch (key) {
-            case Keys?.ArrowLeft ?? "ArrowLeft":
-                dCell -= dirCell;
-                break;
-            case Keys?.ArrowRight ?? "ArrowRight":
-                dCell += dirCell;
-                break;
-            case Keys?.ArrowUp ?? "ArrowUp":
-                dRow -= dirRow;
-                break;
-            case Keys?.ArrowDown ?? "ArrowDown":
-                dRow += dirRow;
-                break;
+        // ctrl + space
+        if (metaOrCtrlPressed && key === Keys.Space) {
+            console.log("Select current column");
+            const active = this.grid.getActiveCell();
+            if (active) {
+                const rowCount = this.grid.getDataLength();
+                const newSelectedRange = new Slick.Range(0, active.cell, rowCount - 1, active.cell);
+                this.setSelectedRanges([newSelectedRange]);
+                this.grid.setActiveCell(active.row, active.cell);
+            }
+            e.preventDefault();
+            e.stopPropagation();
+            return;
         }
 
-        // Compute new candidate range
-        const newRange = new Slick.Range(
-            active.row,
-            active.cell,
-            active.row + dirRow * dRow,
-            active.cell + dirCell * dCell,
-        );
+        // shift + space
+        if (e.shiftKey && key === Keys.Space) {
+            console.log("Select current row");
+            const active = this.grid.getActiveCell();
+            if (active) {
+                const columnCount = this.grid.getColumns().length;
+                const newSelectedRange = new Slick.Range(
+                    active.row,
+                    1,
+                    active.row,
+                    columnCount - 1,
+                );
+                this.setSelectedRanges([newSelectedRange]);
+                this.grid.setActiveCell(active.row, active.cell);
+            }
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
 
-        // Validate and apply; fall back to previous range if invalid
-        const valid = this.removeInvalidRanges([newRange]).length > 0;
-        const finalRange = valid ? newRange : last;
-        ranges.push(finalRange);
+        if (key === Keys.Tab && !e.shiftKey) {
+            console.log("Move to next component");
+            e.stopImmediatePropagation();
+            e.stopPropagation();
+            e.preventDefault();
+            return;
+        }
 
-        // Keep the new edge in view
-        const viewRow = dirRow > 0 ? finalRange.toRow : finalRange.fromRow;
-        const viewCell = dirCell > 0 ? finalRange.toCell : finalRange.fromCell;
-        this.grid.scrollRowIntoView(viewRow, false);
-        this.grid.scrollCellIntoView(viewRow, viewCell, false);
-
-        // Commit selection and swallow the event
-        this.setSelectedRanges(ranges);
-        e.preventDefault();
-        e.stopPropagation();
+        if (key === Keys.Tab && e.shiftKey) {
+            console.log("Move to previous component");
+            e.stopImmediatePropagation();
+            e.stopPropagation();
+            e.preventDefault();
+            return;
+        }
     }
 
     public async updateSummaryText(ranges?: Slick.Range[]): Promise<void> {

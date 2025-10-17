@@ -169,6 +169,12 @@ export class HeaderMenu<T extends Slick.SlickData> {
                 await this.showColumnMenu(buttonEl);
                 this._grid.onHeaderClick.notify();
             });
+
+            this._eventManager.addEventListener(buttonEl, "focus", (e: Event) => {
+                // Scroll the column into view when the button receives focus
+                this._grid.scrollCellIntoView(0, this._grid.getColumnIndex(column.id!), false);
+                buttonEl.focus();
+            });
         }
         $menuButton.appendTo(args.node);
 
@@ -692,6 +698,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
                     selectionModel.setSelectedRanges([cellRange]);
                 }
                 this._grid.setActiveCell(0, column);
+                this._grid.scrollCellIntoView(0, column, false);
             }
         }
     }

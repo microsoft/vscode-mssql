@@ -13,4 +13,7 @@ export enum Keys {
     Space = " ",
     c = "c",
     a = "a",
+    F10 = "F10",
+    ContextMenu = "ContextMenu",
+    Tab = "Tab",
 }
