@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import React from "react";
 import {
     ColorThemeKind,
     CoreRPCs,
-    GetPlatformRequest,
     LoggerLevel,
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
@@ -120,11 +120,19 @@ export function getEOL(): string {
     return "\n";
 }
 
-export async function isMac(): Promise<boolean> {
-    const platform = await WebviewRpc.getInstance(undefined).sendRequest(GetPlatformRequest.type);
-    return platform === "darwin";
+/**
+ * Checks if the current platform is Mac.
+ * @returns True if the platform is Mac, false otherwise.
+ */
+export function isMac(): boolean {
+    return navigator.platform.toUpperCase().indexOf("MAC") >= 0;
 }
 
-export async function isMetaKeyPressed(e: KeyboardEvent | MouseEvent): Promise<boolean> {
-    return (await isMac()) ? e.metaKey : e.ctrlKey;
+/**
+ * Checks if the meta key is pressed based on the user's OS.
+ * @param e The keyboard or mouse event to check.
+ * @returns True if the meta key is pressed, false otherwise.
+ */
+export function isMetaKeyPressed(e: KeyboardEvent | MouseEvent | React.KeyboardEvent): boolean {
+    return isMac() ? e.metaKey : e.ctrlKey;
 }

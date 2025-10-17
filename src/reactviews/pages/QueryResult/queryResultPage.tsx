@@ -7,6 +7,7 @@ import { makeStyles, shorthands } from "@fluentui/react-components";
 import { useEffect } from "react";
 import { QueryResultPane } from "./queryResultPane";
 import { KeyCode } from "../../common/keys";
+import { isMetaKeyPressed } from "../../common/utils";
 
 const useStyles = makeStyles({
     root: {
@@ -94,18 +95,9 @@ export const QueryResult = () => {
     // This is needed to stop the browser from selecting all the raw text in the webview when ctrl+a is pressed
     useEffect(() => {
         const handleKeyDown = async (e: KeyboardEvent): Promise<void> => {
-            const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-            if (isMac) {
-                // Cmd + A
-                if (e.metaKey && e.code === KeyCode.KeyA) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
-            } else {
-                if (e.ctrlKey && e.code === KeyCode.KeyA) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                }
+            if (isMetaKeyPressed(e) && e.code === KeyCode.KeyA) {
+                e.preventDefault();
+                e.stopPropagation();
             }
         };
         document.addEventListener("keydown", async (e) => {
