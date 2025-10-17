@@ -3,71 +3,93 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
+import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
+import { expect } from "chai";
+import * as chai from "chai";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import InputPrompt from "../../src/prompts/input";
 
+chai.use(sinonChai);
+
 suite("Input Prompt Tests", () => {
+    let sandbox: sinon.SinonSandbox;
+
     setup(() => {
-        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-        vscodeWrapper
-            .setup((v) => v.showInputBox(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve("test"));
+        sandbox = sinon.createSandbox();
     });
 
-    test("Test list prompt render simple question", () => {
-        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-        vscodeWrapper
-            .setup((v) => v.showInputBox(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve("test"));
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    test("Test list prompt render simple question", async () => {
+        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        vscodeWrapper.showInputBox.resolves("test");
         const question = {
             message: "test",
             placeHolder: "test",
             choices: [{ name: "test", value: "test" }],
         };
-        let listPrompt = new InputPrompt(question, vscodeWrapper.object);
-        listPrompt.render();
-        vscodeWrapper.verify((v) => v.showInputBox(TypeMoq.It.isAny()), TypeMoq.Times.once());
+        const listPrompt = new InputPrompt(question, vscodeWrapper as unknown as VscodeWrapper);
+
+        await listPrompt.render();
+
+        expect(vscodeWrapper.showInputBox).to.have.been.calledOnce;
     });
 
-    test.skip("Test prompt an error question should throw", () => {
-        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
+    test.skip("Test prompt an error question should throw", async () => {
+        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         const errorQuestion = {
             default: new Error("test"),
             placeHolder: undefined,
         };
-        vscodeWrapper
-            .setup((v) => v.showInputBox(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(undefined));
-        let listPrompt = new InputPrompt(errorQuestion, vscodeWrapper.object);
-        listPrompt.render();
-        vscodeWrapper.verify((v) => v.showInputBox(TypeMoq.It.isAny()), TypeMoq.Times.once());
+        vscodeWrapper.showInputBox.resolves(undefined);
+        const listPrompt = new InputPrompt(
+            errorQuestion,
+            vscodeWrapper as unknown as VscodeWrapper,
+        );
+
+        await listPrompt.render();
+
+        expect(vscodeWrapper.showInputBox).to.have.been.calledOnce;
     });
 
-    test("Test prompt question with default message", () => {
-        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
+    test("Test prompt question with default message", async () => {
+        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         const defaultQuestion = {
             default: "test_default",
         };
-        vscodeWrapper
-            .setup((v) => v.showInputBox(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(""));
-        let listPrompt = new InputPrompt(defaultQuestion, vscodeWrapper.object);
-        listPrompt.render();
-        vscodeWrapper.verify((v) => v.showInputBox(TypeMoq.It.isAny()), TypeMoq.Times.once());
+        vscodeWrapper.showInputBox.resolves("");
+        const listPrompt = new InputPrompt(
+            defaultQuestion,
+            vscodeWrapper as unknown as VscodeWrapper,
+        );
+
+        await listPrompt.render();
+
+        expect(vscodeWrapper.showInputBox).to.have.been.calledOnce;
     });
 
-    test("Test prompt question with validation error", () => {
-        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-        vscodeWrapper
-            .setup((v) => v.showInputBox(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(""));
+    test("Test prompt question with validation error", async () => {
+        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        vscodeWrapper.showInputBox.onFirstCall().resolves("");
+        vscodeWrapper.showInputBox.onSecondCall().resolves("valid");
+        let attempts = 0;
         const validationQuestion = {
             default: "test",
-            validate: (e) => false,
+            validate: () => {
+                attempts += 1;
+                return attempts === 1 ? "validation error" : undefined;
+            },
         };
-        let listPrompt = new InputPrompt(validationQuestion, vscodeWrapper.object);
-        listPrompt.render();
-        vscodeWrapper.verify((v) => v.showInputBox(TypeMoq.It.isAny()), TypeMoq.Times.once());
+        const listPrompt = new InputPrompt(
+            validationQuestion,
+            vscodeWrapper as unknown as VscodeWrapper,
+        );
+
+        await listPrompt.render();
+
+        expect(vscodeWrapper.showInputBox).to.have.been.calledTwice;
     });
 });
