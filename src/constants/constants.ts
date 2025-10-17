@@ -290,3 +290,45 @@ export const x64 = "x64";
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";
 export const docker = "docker";
 export const dockerDeploymentLoggerChannelName = "Docker Deployment";
+
+// SQL Database Projects Constants
+export const DSP_PREFIX = "Microsoft.Data.Tools.Schema.Sql.Sql";
+export const DSP_SUFFIX = "DatabaseSchemaProvider";
+export const sqlServerDockerRegistry = "mcr.microsoft.com";
+export const sqlServerDockerRepository = "mssql/server";
+export const sqlServerEulaLink = "https://aka.ms/mssql-container-license";
+export const licenseAgreementUrl =
+    "https://github.com/microsoft/containerregistry/blob/main/legal/Container-Images-Legal-Notice.md";
+export const dockerImageDefaultTag = "latest";
+export const AzureSqlDbFullDockerImageName = "Azure SQL Database (Edge emulation)";
+export const SqlServerDockerImageName = "SQL Server";
+export const MAX_PORT_NUMBER = 65535;
+export const SqlServerName = "SQL server";
+export const AzureSqlServerName = "Azure SQL server";
+export const DefaultSqlPortNumber = "1433";
+export const RequiredFieldMessage = "Required";
+export const DefaultAdminUsername = "sa";
+export const LicenseAcceptanceMessage = "You must accept the license";
+export const DBProjectConfigurationKey = "sqlDatabaseProjects";
+export const enablePreviewFeaturesKey = "enablePreviewFeatures";
+export const AzureSqlV12 = "AzureV12";
+
+export const PublishFormFields = {
+    PublishProfilePath: "publishProfilePath",
+    ServerName: "serverName",
+    DatabaseName: "databaseName",
+    PublishTarget: "publishTarget",
+    SqlCmdVariables: "sqlCmdVariables",
+    ContainerPort: "containerPort",
+    ContainerAdminPassword: "containerAdminPassword",
+    ContainerAdminPasswordConfirm: "containerAdminPasswordConfirm",
+    ContainerImageTag: "containerImageTag",
+    AcceptContainerLicense: "acceptContainerLicense",
+} as const;
+export const PublishFormContainerFields = [
+    PublishFormFields.ContainerPort,
+    PublishFormFields.ContainerAdminPassword,
+    PublishFormFields.ContainerAdminPasswordConfirm,
+    PublishFormFields.ContainerImageTag,
+    PublishFormFields.AcceptContainerLicense,
+] as const;

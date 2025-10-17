@@ -27,8 +27,8 @@ export const ConnectionSection: React.FC = () => {
 
     return (
         <>
-            {renderInput(serverComponent, localServer, setLocalServer, publishCtx)}
-            {renderInput(databaseComponent, localDatabase, setLocalDatabase, publishCtx)}
+            {renderInput(serverComponent, localServer, setLocalServer)}
+            {renderInput(databaseComponent, localDatabase, setLocalDatabase)}
         </>
     );
 };
