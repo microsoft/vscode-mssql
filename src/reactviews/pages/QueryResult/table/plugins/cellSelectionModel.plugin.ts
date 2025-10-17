@@ -19,6 +19,11 @@ import { Keys } from "../../../../common/keys";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
 import { convertDisplayedSelectionToActual } from "../utils";
 import { HeaderMenu } from "./headerFilter.plugin";
+import {
+    getNextFocusableElementOutside,
+    getPreviousFocusableElement,
+    isMetaKeyPressed,
+} from "../../../../common/utils";
 
 export interface ICellSelectionModelOptions {
     cellRangeSelector?: any;
@@ -43,7 +48,6 @@ export class CellSelectionModel<T extends Slick.SlickData>
     private selector: ICellRangeSelector<T>;
     private ranges: Array<Slick.Range> = [];
     private _handler = new Slick.EventHandler();
-    private isMac: boolean | undefined;
 
     public onSelectedRangesChanged = new Slick.Event<Array<Slick.Range>>();
 
@@ -69,7 +73,6 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     public init(grid: Slick.Grid<T>) {
         this.grid = grid;
-        this.isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
         this._handler.subscribe(this.grid.onKeyDown, (e: Slick.DOMEvent) =>
             this.handleKeyDown(e as unknown as KeyboardEvent),
         );
@@ -171,8 +174,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
         this.setSelectedRanges(ranges);
     }
 
-    private isMultiSelection(_e: MouseEvent): boolean {
-        return this.isMac ? _e.metaKey : _e.ctrlKey;
+    private isMultiSelection(e: MouseEvent): boolean {
+        return isMetaKeyPressed(e);
     }
 
     private handleHeaderClick(e: MouseEvent, args: Slick.OnHeaderClickEventArgs<T>) {
@@ -604,7 +607,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
         const key = e.key; // e.g., 'a', 'ArrowLeft'
-        const metaOrCtrlPressed = this.isMac ? e.metaKey : e.ctrlKey;
+        const metaOrCtrlPressed = isMetaKeyPressed(e);
 
         // Arrow Up from first row moves to column header button
         if (key === Keys.ArrowUp && !e.shiftKey && !e.altKey && !metaOrCtrlPressed) {
@@ -717,8 +720,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
             e.stopPropagation();
         }
 
+        // Move to first cell of row
         if (key === Keys.ArrowLeft && metaOrCtrlPressed) {
-            console.log("Move to first column");
             const active = this.grid.getActiveCell();
             if (active) {
                 this.grid.setActiveCell(active.row, 1);
@@ -731,8 +734,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
             return;
         }
 
+        // Move to last cell of row
         if (key === Keys.ArrowRight && metaOrCtrlPressed) {
-            console.log("Move to last column");
             const active = this.grid.getActiveCell();
             if (active) {
                 this.grid.setActiveCell(active.row, this.grid.getColumns().length - 1);
@@ -754,14 +757,13 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
         // shift + f10 or context menu key
         if ((e.shiftKey && key === Keys.F10) || key === Keys.ContextMenu) {
-            console.log("Open context menu");
+            // Open context menu
             // Already handled by onContextMenu event
             return;
         }
 
-        // ctrl + space
+        // Select current column (Cmd/Ctrl + space)
         if (metaOrCtrlPressed && key === Keys.Space) {
-            console.log("Select current column");
             const active = this.grid.getActiveCell();
             if (active) {
                 const rowCount = this.grid.getDataLength();
@@ -774,9 +776,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
             return;
         }
 
-        // shift + space
+        // Select current row (Shift + space)
         if (e.shiftKey && key === Keys.Space) {
-            console.log("Select current row");
             const active = this.grid.getActiveCell();
             if (active) {
                 const columnCount = this.grid.getColumns().length;
@@ -800,9 +801,14 @@ export class CellSelectionModel<T extends Slick.SlickData>
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
-                // Move focus to the header button for the active column
-                if (this.headerFilter) {
-                    this.headerFilter.focusHeaderButtonForColumn(active.cell);
+                // Move focus to the next focusable element outside the grid
+                const gridContainer = this.grid.getContainerNode();
+                if (gridContainer) {
+                    const nextElement = getPreviousFocusableElement(gridContainer);
+                    if (nextElement) {
+                        nextElement.focus();
+                        return;
+                    }
                 }
                 return;
             }
@@ -817,28 +823,10 @@ export class CellSelectionModel<T extends Slick.SlickData>
             // Move focus to the next focusable element outside the grid
             const gridContainer = this.grid.getContainerNode();
             if (gridContainer) {
-                // Find all focusable elements in the document
-                const focusableElements = Array.from(
-                    document.querySelectorAll(
-                        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-                    ),
-                ) as HTMLElement[];
-
-                // Find the current grid's position in the tab order
-                const currentIndex = focusableElements.findIndex(
-                    (el) => gridContainer.contains(el) && el === document.activeElement,
-                );
-
-                if (currentIndex !== -1 && currentIndex < focusableElements.length - 1) {
-                    // Focus the next element after the grid
-                    let nextIndex = currentIndex + 1;
-                    while (nextIndex < focusableElements.length) {
-                        if (!gridContainer.contains(focusableElements[nextIndex])) {
-                            focusableElements[nextIndex].focus();
-                            break;
-                        }
-                        nextIndex++;
-                    }
+                const nextElement = getNextFocusableElementOutside(gridContainer);
+                if (nextElement) {
+                    nextElement.focus();
+                    return;
                 }
             }
             return;

@@ -118,3 +118,88 @@ export function getEOL(): string {
     }
     return "\n";
 }
+
+export function isMac(): boolean {
+    return navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+}
+
+export function isMetaKeyPressed(e: KeyboardEvent | MouseEvent): boolean {
+    return isMac() ? e.metaKey : e.ctrlKey;
+}
+
+// Shared focusable selector (slightly generalized)
+const FOCUSABLE_SELECTOR = [
+    "a[href]",
+    "button",
+    "textarea",
+    'input:not([type="hidden"])',
+    "select",
+    "[tabindex]",
+    '[contenteditable="true"]',
+]
+    .map((s) => `${s}:not([tabindex="-1"])`)
+    .join(",");
+
+function isElementVisible(el: HTMLElement): boolean {
+    // Covers display:none/visibility:hidden/off-screen containers, etc.
+    const style = window.getComputedStyle(el);
+    if (style.visibility === "hidden" || style.display === "none") return false;
+
+    // offsetParent check misses fixed/absolute in some cases; getClientRects covers that
+    if (el.offsetParent === null && el.getClientRects().length === 0) return false;
+
+    return true;
+}
+
+function getFocusableElements(root: ParentNode = document): HTMLElement[] {
+    return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+        (el) => !el.hasAttribute("disabled") && isElementVisible(el),
+    );
+}
+
+function getAdjacentFocusableElement(
+    currentElement: HTMLElement,
+    step: 1 | -1,
+    root: ParentNode = document,
+): HTMLElement | null {
+    const focusable = getFocusableElements(root);
+    if (focusable.length === 0) return null;
+
+    const idx = focusable.indexOf(currentElement);
+    if (idx === -1) return null;
+
+    const nextIdx = (idx + step + focusable.length) % focusable.length;
+    return focusable[nextIdx] ?? null;
+}
+
+export function getNextFocusableElement(
+    currentElement: HTMLElement,
+    root?: ParentNode,
+): HTMLElement | null {
+    return getAdjacentFocusableElement(currentElement, 1, root ?? document);
+}
+
+export function getPreviousFocusableElement(
+    currentElement: HTMLElement,
+    root?: ParentNode,
+): HTMLElement | null {
+    return getAdjacentFocusableElement(currentElement, -1, root ?? document);
+}
+
+export function getNextFocusableElementOutside(container: HTMLElement): HTMLElement | null {
+    const focusables = getFocusableElements();
+    const active = document.activeElement as HTMLElement | null;
+    if (!active) return null;
+
+    const currentIndex = focusables.findIndex((el) => el === active && container.contains(el));
+    if (currentIndex === -1) return null;
+
+    for (let i = currentIndex + 1; i < focusables.length; i++) {
+        const el = focusables[i];
+        if (!container.contains(el)) {
+            el.focus();
+            return el;
+        }
+    }
+    return null; // no next element outside the container
+}
