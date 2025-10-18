@@ -245,7 +245,6 @@ suite("Fabric Provisioning logic", () => {
         const result = await fabricHelpers.reloadFabricComponents(deploymentController, "tenant1");
 
         // Check that sets and arrays were reset
-        assert.deepStrictEqual(Array.from(result.capacityIds), []);
         assert.deepStrictEqual(Array.from(result.userGroupIds), []);
         assert.deepStrictEqual(result.workspaces, []);
         assert.deepStrictEqual(result.databaseNamesInWorkspace, []);
@@ -288,11 +287,6 @@ suite("Fabric Provisioning logic", () => {
         assert.strictEqual(options[1].value, "ws2");
         assert.strictEqual(options[1].description, Fabric.insufficientWorkspacePermissions);
         assert.strictEqual(options[1].icon, "Warning20Regular");
-
-        // ws3 has no capacity permission
-        assert.strictEqual(options[2].value, "ws3");
-        assert.strictEqual(options[2].description, Fabric.insufficientCapacityPermissions);
-        assert.strictEqual(options[2].icon, "Warning20Regular");
     });
 
     test("getWorkspaces updates state with workspace options", async () => {

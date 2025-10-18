@@ -1242,7 +1242,6 @@
     "Search Workspaces": "Search Workspaces",
     "Workspace is required": "Workspace is required",
     "Insufficient Workspace Permissions": "Insufficient Workspace Permissions",
-    "Insufficient Capacity Permissions": "Insufficient Capacity Permissions",
     "Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly./{0} is the cloud name{1} is the setting name": {
         "message": "Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.",
         "comment": ["{0} is the cloud name", "{1} is the setting name"]
