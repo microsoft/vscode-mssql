@@ -3626,9 +3626,6 @@
     <trans-unit id="mssql.addObjectExplorer">
       <source xml:lang="en">Add Connection</source>
     </trans-unit>
-    <trans-unit id="mssql.addObjectExplorerLegacy">
-      <source xml:lang="en">Add Connection (Legacy)</source>
-    </trans-unit>
     <trans-unit id="mssql.connectionGroups.create">
       <source xml:lang="en">Add Connection Group</source>
     </trans-unit>
@@ -4207,9 +4204,6 @@
     </trans-unit>
     <trans-unit id="mssql.chooseDatabase">
       <source xml:lang="en">Use Database</source>
-    </trans-unit>
-    <trans-unit id="mssql.useLegacyConnectionExperience.description">
-      <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>

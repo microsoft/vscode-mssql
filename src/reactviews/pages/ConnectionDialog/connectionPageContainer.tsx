@@ -20,7 +20,7 @@ import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
 } from "../../../sharedInterfaces/connectionGroup";
-import { Field, Image, Link, makeStyles, Radio, RadioGroup } from "@fluentui/react-components";
+import { Field, Link, makeStyles, Radio, RadioGroup } from "@fluentui/react-components";
 import { Form20Regular } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ReactNode, useContext } from "react";
@@ -32,12 +32,11 @@ import { ConnectionHeader } from "./components/connectionHeader.component";
 import { TrustServerCertificateDialog } from "./components/trustServerCertificateDialog.component";
 import { ConnectionStringDialog } from "./components/connectionStringDialog.component";
 import { locConstants } from "../../common/locConstants";
-import { themeType } from "../../common/utils";
 import { AddFirewallRuleDialog } from "../AddFirewallRule/addFirewallRule.component";
-import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
 import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
 import { FabricBrowsePage } from "./fabricBrowsePage";
+import { AzureIcon20, FabricIcon20 } from "../../common/icons/fluentIcons";
 import { ChangePasswordDialog } from "../ChangePassword/changePasswordDialog";
 import { DialogMessage } from "../../common/dialogMessage";
 
@@ -68,24 +67,6 @@ export const ConnectionInfoFormContainer = () => {
         context.state.dialog?.type === "changePassword"
             ? (context.state.dialog as ChangePasswordDialogProps).props
             : undefined;
-
-    function azureIcon(colorTheme: ColorThemeKind) {
-        const theme = themeType(colorTheme);
-        const saveIcon =
-            theme === "dark"
-                ? require("../../media/azure-inverse.svg")
-                : require("../../media/azure.svg");
-        return saveIcon;
-    }
-
-    function fabricIcon(colorTheme: ColorThemeKind) {
-        const theme = themeType(colorTheme);
-        const saveIcon =
-            theme === "dark"
-                ? require("../../media/fabric-inverse.svg")
-                : require("../../media/fabric.svg");
-        return saveIcon;
-    }
 
     function handleConnect(event: React.FormEvent) {
         event.preventDefault();
@@ -208,13 +189,7 @@ export const ConnectionInfoFormContainer = () => {
                                 value={ConnectionInputMode.AzureBrowse}
                                 label={
                                     <div className={styles.inputLink}>
-                                        <Image
-                                            src={azureIcon(context.themeKind)}
-                                            alt="Azure"
-                                            height={20}
-                                            width={20}
-                                            style={{ marginRight: "8px" }}
-                                        />
+                                        <AzureIcon20 style={{ marginRight: "8px" }} />
                                         {locConstants.connectionDialog.browseAzure}
                                     </div>
                                 }
@@ -223,13 +198,7 @@ export const ConnectionInfoFormContainer = () => {
                                 value={ConnectionInputMode.FabricBrowse}
                                 label={
                                     <div className={styles.inputLink}>
-                                        <Image
-                                            src={fabricIcon(context.themeKind)}
-                                            alt={"Fabric"}
-                                            height={20}
-                                            width={20}
-                                            style={{ marginRight: "8px" }}
-                                        />
+                                        <FabricIcon20 style={{ marginRight: "8px" }} />
                                         {locConstants.connectionDialog.browseFabric}
                                     </div>
                                 }

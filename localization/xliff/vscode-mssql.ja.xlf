@@ -201,7 +201,7 @@
       </trans-unit>
       <trans-unit id="++CODE++2377437eeccabd24162dbc0f1d9e2ed6af6102f30ef6da601f39ce4237cb6bee">
         <source xml:lang="en">Always Encrypted</source>
-        <target state="new">Always Encrypted</target>
+        <target state="translated">Always Encrypted</target>
       </trans-unit>
       <trans-unit id="++CODE++1888bd4ce917e9c8cecde43608d69624f56668f86f1bbe4331494db33fb52578">
         <source xml:lang="en">Always show in new tab</source>
@@ -214,7 +214,7 @@
       <trans-unit id="++CODE++0e0aa36ee32c59d59231919e47412a12d29c1f3459800637634bb73fb949f541">
         <source xml:lang="en">An error occurred while copying results: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">An error occurred while copying results: {0}</target>
+        <target state="translated">結果のコピー中にエラーが発生しました: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++b80f19578e3d6cc4f8693e307caf7f4fc739be0f2eb550a9f78a0874ae0205e5">
         <source xml:lang="en">An error occurred while processing your request.</source>
@@ -262,7 +262,7 @@
       </trans-unit>
       <trans-unit id="++CODE++f548fb847184961d59c59fd5b4ff10720726475e1768037348dec8e7c6bd6468">
         <source xml:lang="en">Application Intent</source>
-        <target state="new">Application Intent</target>
+        <target state="translated">アプリケーションの意図</target>
       </trans-unit>
       <trans-unit id="++CODE++31e392d1c0378beca611de66c0f4c71cba29159905cc54242d9bddee5b23d851">
         <source xml:lang="en">Apply</source>
@@ -370,7 +370,7 @@
       <trans-unit id="++CODE++fb226d6b73aa48dadaf6a46992c5d7a707fb8d1fe58b0865de04d08c848fecff">
         <source xml:lang="en">Average: {0}</source>
         <note>{0} is the average</note>
-        <target state="new">Average: {0}</target>
+        <target state="translated">平均: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++8dd4f3a846ac5cf5452d53cc438aaae7ad47df96a29ad32857a87718cdeefbca">
         <source xml:lang="en">Average: {0}  Count: {1}  Sum: {2}</source>
@@ -403,15 +403,11 @@
       </trans-unit>
       <trans-unit id="++CODE++aa3e45296e9592fa302b1adc67d9b4467e467a4ffa11fee0c0430063a3372707">
         <source xml:lang="en">Azure MFA</source>
-        <target state="new">Azure MFA</target>
+        <target state="translated">Azure MFA</target>
       </trans-unit>
       <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
         <source xml:lang="en">Azure sign in failed.</source>
         <target state="translated">Azure サインインに失敗しました。</target>
-      </trans-unit>
-      <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
-        <source xml:lang="en">Azure token cache cleared successfully.</source>
-        <target state="translated">Azure トークン キャッシュが正常にクリアされました。</target>
       </trans-unit>
       <trans-unit id="++CODE++f71dfcecebed757febe54c711e436e17521c71da90d4c5cc61ef6717918173a4">
         <source xml:lang="en">Azure: Sign In</source>
@@ -555,7 +551,7 @@
       </trans-unit>
       <trans-unit id="++CODE++a949f46230748d3f7496809b82cec6daa6ec8a671d17ac1ca03a17173cbcb2d6">
         <source xml:lang="en">Change Password</source>
-        <target state="new">Change Password</target>
+        <target state="translated">パスワードの変更</target>
       </trans-unit>
       <trans-unit id="++CODE++00aecebb859a5ba020dd5aa5ffb71e7f9a4279e35f9c94e6d34ebf7c889a3f7e">
         <source xml:lang="en">Change database to '{1}' for connection '{0}'?</source>
@@ -723,6 +719,10 @@
         <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
         <target state="translated">接続にアクセスするためのすべての拡張機能のアクセス許可をクリアします</target>
       </trans-unit>
+      <trans-unit id="++CODE++524ed5b794acd857648e76bead9db5ba131ebcb17f3a92d98ece51db61e65dbf">
+        <source xml:lang="en">Clear token cache</source>
+        <target state="new">Clear token cache</target>
+      </trans-unit>
       <trans-unit id="++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36">
         <source xml:lang="en">Click to cancel loading summary</source>
         <target state="translated">クリックして要約の読み込みを取り消します</target>
@@ -835,7 +835,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e665046133e22f0d3599a6c5de916445ed88c82a997a625a04af1827c42d790b">
         <source xml:lang="en">Command Timeout</source>
-        <target state="new">Command Timeout</target>
+        <target state="translated">コマンド タイムアウト</target>
       </trans-unit>
       <trans-unit id="++CODE++e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9">
         <source xml:lang="en">Compare</source>
@@ -863,11 +863,11 @@
       </trans-unit>
       <trans-unit id="++CODE++c292210c44167923a75b092a008f9d2b194fb08631a6aa43d753ed7931ad4d5e">
         <source xml:lang="en">Confirm Password</source>
-        <target state="new">Confirm Password</target>
+        <target state="translated">パスワードの確認</target>
       </trans-unit>
       <trans-unit id="++CODE++bf000421aeb39493cf8044ec73846d7da8ca97b7166208c0d1172a17ba23a388">
         <source xml:lang="en">Confirm new password</source>
-        <target state="new">Confirm new password</target>
+        <target state="translated">新しいパスワードの確認入力</target>
       </trans-unit>
       <trans-unit id="++CODE++eb83f1820ce359dc5c9aa6ca4d08fad60256a9808c58ad93f89db3c182908364">
         <source xml:lang="en">Confirm to clear recent connections list</source>
@@ -1014,7 +1014,7 @@
       </trans-unit>
       <trans-unit id="++CODE++e4ce453aa184d4cd0a2051dfb91ab491ba8b19c756bd9f113b7a1ce1e807b02e">
         <source xml:lang="en">Connection Timeout</source>
-        <target state="new">Connection Timeout</target>
+        <target state="translated">接続タイムアウト</target>
       </trans-unit>
       <trans-unit id="++CODE++8d137af9c64fba09bbb003aba93f0b029898fe19e7927cd696f4c3e2b69f538d">
         <source xml:lang="en">Connection error</source>
@@ -1127,7 +1127,7 @@
       </trans-unit>
       <trans-unit id="++CODE++35c380196401c05c48fe5f5fffd349ba06d9988118b87a1c12e1164a28175997">
         <source xml:lang="en">Copying results...</source>
-        <target state="new">Copying results...</target>
+        <target state="translated">結果をコピーしています...</target>
       </trans-unit>
       <trans-unit id="++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126">
         <source xml:lang="en">Cost</source>
@@ -1136,7 +1136,7 @@
       <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
         <source xml:lang="en">Count: {0}</source>
         <note>{0} is the count</note>
-        <target state="new">Count: {0}</target>
+        <target state="translated">カウント: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++4a8d5a21d0db63fc6a204170919855b12207337b5357f2bb7eedcb7cafa77fce">
         <source xml:lang="en">Count: {0}  Distinct Count: {1}  Null Count: {2}</source>
@@ -1289,7 +1289,7 @@
       </trans-unit>
       <trans-unit id="++CODE++3f0af542763ab0fd4d14de082ebedee3de024d89fb59bb569a6400087177d6db">
         <source xml:lang="en">Database name is required</source>
-        <target state="new">Database name is required</target>
+        <target state="translated">データベース名は必須です</target>
       </trans-unit>
       <trans-unit id="++CODE++21b111cbfe6e8fca2d181c43f53ad548b22e38aca955b9824706a504b0a07a2d">
         <source xml:lang="en">Default</source>
@@ -1369,7 +1369,7 @@
       </trans-unit>
       <trans-unit id="++CODE++75081b593d15cf6e631971bc6768723f593b88b172477e40ae7d363e4829816d">
         <source xml:lang="en">Disabled</source>
-        <target state="new">Disabled</target>
+        <target state="translated">無効</target>
       </trans-unit>
       <trans-unit id="++CODE++acfc5be785a9bb3da11c9f05adb69bd5633096f09002aa44813a1b3207e912ad">
         <source xml:lang="en">Disconnect</source>
@@ -1417,7 +1417,7 @@
       <trans-unit id="++CODE++5aa581a11dd95f698fe9aa92dc7a36755c462342f790df3b8054f328cde4b94b">
         <source xml:lang="en">Distinct Count: {0}</source>
         <note>{0} is the distinct count</note>
-        <target state="new">Distinct Count: {0}</target>
+        <target state="translated">個別のカウント: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++5ce32ed24291b6ee178d1069ca31842e8ead67e82f070a284cec1ab95498476c">
         <source xml:lang="en">Do you mind taking a quick feedback survey about the MSSQL Extension for VS Code?</source>
@@ -1487,7 +1487,7 @@
       </trans-unit>
       <trans-unit id="++CODE++92c1cdfdf4cb9cf6fcca962f206de36fd5d60db1178bc9461052f8de703a0e06">
         <source xml:lang="en">Enabled</source>
-        <target state="new">Enabled</target>
+        <target state="translated">有効</target>
       </trans-unit>
       <trans-unit id="++CODE++76ad7b53af548367c78d7216972ce81ee53ecf7ee1d6fe5f3d16a73633bd4e49">
         <source xml:lang="en">Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!</source>
@@ -1543,7 +1543,7 @@
       </trans-unit>
       <trans-unit id="++CODE++15f691f800a4b76afbf264547e3718c96fbb46fc076005b8f12575eac2f1f136">
         <source xml:lang="en">Enter new password</source>
-        <target state="new">Enter new password</target>
+        <target state="translated">新しいパスワードの入力</target>
       </trans-unit>
       <trans-unit id="++CODE++03c72a0dd31428f797eaadef0452b218e6d7cfbfc8b66e7f47e404818a53cda0">
         <source xml:lang="en">Enter part of an object name to search for</source>
@@ -1560,6 +1560,10 @@
       <trans-unit id="++CODE++0a6b9ae24f863f5d06e0151c62f16b9327fdac6783807dc163e953559aa8287f">
         <source xml:lang="en">Enter profile name</source>
         <target state="translated">プロファイル名を入力してください</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
+        <source xml:lang="en">Entra token cache cleared successfully.</source>
+        <target state="new">Entra token cache cleared successfully.</target>
       </trans-unit>
       <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
         <source xml:lang="en">Equals</source>
@@ -1723,7 +1727,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
         <source xml:lang="en">Existing SQL server</source>
-        <target state="new">Existing SQL server</target>
+        <target state="translated">既存の SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++07548c2c6511d4d1780564de8a237a1966cf9c99a97cf5c8a185e6c2aeacff09">
         <source xml:lang="en">Expand</source>
@@ -1946,7 +1950,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++dcd87fabe8cdcdf7a36e88a2326e72e03e96ddd1b279d554ba9ef435af8f22f4">
         <source xml:lang="en">Filter Options</source>
-        <target state="new">Filter Options</target>
+        <target state="translated">フィルター オプション</target>
       </trans-unit>
       <trans-unit id="++CODE++103456e9e42f094edd7aa359537505ad54de66ac826f5bddd03f9f569fbace89">
         <source xml:lang="en">Filter Settings</source>
@@ -2164,11 +2168,11 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e05cee2e915ff0d693e5f5acff33d2a7cabfc340e7a977e993a6cf92fb686f4e">
         <source xml:lang="en">Hide Confirm Password</source>
-        <target state="new">Hide Confirm Password</target>
+        <target state="translated">パスワードの確認を非表示にする</target>
       </trans-unit>
       <trans-unit id="++CODE++44900cb30578cbda86187326c4e7acfddc7828094583ff5d097f6080464aa6fc">
         <source xml:lang="en">Hide New Password</source>
-        <target state="new">Hide New Password</target>
+        <target state="translated">新しいパスワードを非表示にする</target>
       </trans-unit>
       <trans-unit id="++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6">
         <source xml:lang="en">Hide full error message</source>
@@ -2549,7 +2553,7 @@ Error:
       <trans-unit id="++CODE++71499b4de6ef3b8d0c19b76e76295f5dd9f5690a180de07ed861fdce757182aa">
         <source xml:lang="en">Loading summary for {0} rows (Click to cancel)</source>
         <note>{0} is the total number of rows</note>
-        <target state="new">Loading summary for {0} rows (Click to cancel)</target>
+        <target state="translated">{0} 行の概要を読み込んでいます (クリックしてキャンセル)</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -2577,7 +2581,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++9aa8c99c1e1071fa2070e9283b4cd9a737a77249f44f1a41b559073d99293249">
         <source xml:lang="en">Local development container</source>
-        <target state="new">Local development container</target>
+        <target state="translated">ローカル開発コンテナー</target>
       </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
@@ -2626,7 +2630,7 @@ Error:
       <trans-unit id="++CODE++fc899519286f8da6256728b62d14e6ef9042346e7ad4191e21c95efaf1141a42">
         <source xml:lang="en">Max: {0}</source>
         <note>{0} is the max</note>
-        <target state="new">Max: {0}</target>
+        <target state="translated">最大: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
         <source xml:lang="en">Maximize</source>
@@ -2696,7 +2700,7 @@ Error:
       <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
         <source xml:lang="en">Min: {0}</source>
         <note>{0} is the min</note>
-        <target state="new">Min: {0}</target>
+        <target state="translated">最小: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++b58330ac25057a441365f4f4f1be20daba2d6d940142c891231e0eac66843ff4">
         <source xml:lang="en">Move Down</source>
@@ -2756,7 +2760,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++7c451e0f436d04a6f321f8d5de8da296a66cfb1d8cdc3918b1ed7ecd480cce28">
         <source xml:lang="en">New Password</source>
-        <target state="new">New Password</target>
+        <target state="translated">新しいパスワード</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -2954,7 +2958,7 @@ Error:
       <trans-unit id="++CODE++00faa1559589415a5c6ecf98b61606f4ab0b254a38471dd99f9182e638997a52">
         <source xml:lang="en">Null Count: {0}</source>
         <note>{0} is the null count</note>
-        <target state="new">Null Count: {0}</target>
+        <target state="translated">Null カウント: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++6091a3057f7b1b8140c1ad2fc9232cc4d483a484667f76fe8bb305d77ca3deb1">
         <source xml:lang="en">Number of Rows Read</source>
@@ -3091,22 +3095,22 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++7aeae1412484f6378e5877b660a41baa6a521988eb8b2620ca3223b05e2ff20c">
         <source xml:lang="en">Password is required</source>
-        <target state="new">Password is required</target>
+        <target state="translated">パスワードは必須です</target>
       </trans-unit>
       <trans-unit id="++CODE++80dc52b50a4e9dc210b0dc44b71eaa2912aef3a1d931d41f51ad8bfc0061df16">
         <source xml:lang="en">Password must be changed for '{0}' to continue logging into '{1}'</source>
         <note>{0} is the username
 {1} is the name of the server</note>
-        <target state="new">Password must be changed for '{0}' to continue logging into '{1}'</target>
+        <target state="translated">'{1}' へのログインを続行するには、'{0}' のパスワードを変更する必要があります</target>
       </trans-unit>
       <trans-unit id="++CODE++9a6b795a5a551cedd30148a98d54756e10a329d6dbd317ef8007d2837abc1100">
         <source xml:lang="en">Password must be changed to continue logging into '{0}'</source>
         <note>{0} is the name of the server</note>
-        <target state="new">Password must be changed to continue logging into '{0}'</target>
+        <target state="translated">'{0}' へのログインを続行するには、パスワードを変更する必要があります</target>
       </trans-unit>
       <trans-unit id="++CODE++b6eb82cd3300c838f99773b371b2f81d5ad517b3ba903de637d3e5920de7c04f">
         <source xml:lang="en">Passwords do not match</source>
-        <target state="new">Passwords do not match</target>
+        <target state="translated">パスワードが一致しません</target>
       </trans-unit>
       <trans-unit id="++CODE++f3380f7b44bd70af2a369de6026bf2ca2a7b36fde9086935efcd62a0e379cc7a">
         <source xml:lang="en">Paste</source>
@@ -3249,15 +3253,15 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++dce49ef71e44b5c107d066069bd508af15fbffd22c8e410f76db1f120371635a">
         <source xml:lang="en">Publish Profile</source>
-        <target state="new">Publish Profile</target>
+        <target state="translated">プロフィールの公開</target>
       </trans-unit>
       <trans-unit id="++CODE++42b341b8072aa3adcb1b6f83353574f79b03c073faeb2c64253cdb6248c011c1">
         <source xml:lang="en">Publish Project</source>
-        <target state="new">Publish Project</target>
+        <target state="translated">プロジェクトの公開</target>
       </trans-unit>
       <trans-unit id="++CODE++d5ce61b547d2e5793b2ac208be904ea9f94d5e5594d0c5c02bdda22abf61fcf0">
         <source xml:lang="en">Publish Target</source>
-        <target state="new">Publish Target</target>
+        <target state="translated">ターゲットの公開</target>
       </trans-unit>
       <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
         <source xml:lang="en">Publishing Changes</source>
@@ -3353,7 +3357,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++67b215a4a9c0185c90cc9b971dcdf8dc2c3fddcaa5bfc78eed8cfcc2cefaf0d7">
         <source xml:lang="en">Remove Sort</source>
-        <target state="new">Remove Sort</target>
+        <target state="translated">並べ替えの削除</target>
       </trans-unit>
       <trans-unit id="++CODE++7024a828547b51d9fb11f26d4d1d472691dd7e6ec7d7a2f499cb08731a63e943">
         <source xml:lang="en">Remove recent connection</source>
@@ -3366,7 +3370,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
         <source xml:lang="en">Replication</source>
-        <target state="new">Replication</target>
+        <target state="translated">レプリケーション</target>
       </trans-unit>
       <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
         <source xml:lang="en">Reset</source>
@@ -3404,7 +3408,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++a71f9e2908cf7df2e5ce9dafa67f3f4949fc4c74f525b9f4a6229ff6a7f93c86">
         <source xml:lang="en">Results copied to clipboard</source>
-        <target state="new">Results copied to clipboard</target>
+        <target state="translated">結果がクリップボードにコピーされました</target>
       </trans-unit>
       <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
         <source xml:lang="en">Retry</source>
@@ -3459,11 +3463,11 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++fa728e3cf6aa4aa3207afe540af912463db2631cd2358004e457e71dc0107148">
         <source xml:lang="en">SQL Container Name</source>
-        <target state="new">SQL Container Name</target>
+        <target state="translated">SQL コンテナー名</target>
       </trans-unit>
       <trans-unit id="++CODE++418024d48b3bccf64d26f1031290f65e229c515336a4b5a08a0cde384d803ed7">
         <source xml:lang="en">SQL Container Version</source>
-        <target state="new">SQL Container Version</target>
+        <target state="translated">SQL コンテナーのバージョン</target>
       </trans-unit>
       <trans-unit id="++CODE++7f779b8a3477b9909716127bf4ed2ef8e07e7f5fae134f7ad1506a7f267de247">
         <source xml:lang="en">SQL Database</source>
@@ -3496,7 +3500,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++33c911ed6f7c6e8d0093aecd7c73564bf2ef2992db044a0892fc3de8b92cdb71">
         <source xml:lang="en">SQLCMD Variables</source>
-        <target state="new">SQLCMD Variables</target>
+        <target state="translated">SQLCMD 変数</target>
       </trans-unit>
       <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
         <source xml:lang="en">SVG</source>
@@ -3524,7 +3528,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++4a3dca5ad8733bf29762c2315ae7e89e4f9a30c2ad082e4b01a93cc96e7d442e">
         <source xml:lang="en">Save As...</source>
-        <target state="new">Save As...</target>
+        <target state="translated">名前を付けて保存...</target>
       </trans-unit>
       <trans-unit id="++CODE++df2839447956141d6503caf44145db003e70b17dc128d5c4fefec188b28d6966">
         <source xml:lang="en">Save Connection Group</source>
@@ -3675,7 +3679,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
         <source xml:lang="en">Select Profile</source>
-        <target state="new">Select Profile</target>
+        <target state="translated">プロファイルの選択</target>
       </trans-unit>
       <trans-unit id="++CODE++498e179dee6c281c74c130a980b58ecfdf8c85a97cf907ed7d820ef06afd8b51">
         <source xml:lang="en">Select Source</source>
@@ -3751,7 +3755,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++10484d8ed1877a7e126a17a3a144a55c6bf07784ecc22b01d87ee138fb808cd8">
         <source xml:lang="en">Select or enter a publish profile</source>
-        <target state="new">Select or enter a publish profile</target>
+        <target state="translated">公開プロファイルを選択または入力してください</target>
       </trans-unit>
       <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
         <source xml:lang="en">Select profile to remove</source>
@@ -3841,7 +3845,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++70939b307b3a77407bd456a715ac3f6b7a100b246526c5a2d79f230c3c129294">
         <source xml:lang="en">Show Confirm Password</source>
-        <target state="new">Show Confirm Password</target>
+        <target state="translated">パスワードの確認を表示する</target>
       </trans-unit>
       <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
         <source xml:lang="en">Show MSSQL output</source>
@@ -3849,11 +3853,11 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++a16e132b133cc57c4d467bde193d78fe48f170a197d0581c2e6578162824902f">
         <source xml:lang="en">Show Menu</source>
-        <target state="new">Show Menu</target>
+        <target state="translated">メニューの表示</target>
       </trans-unit>
       <trans-unit id="++CODE++169b9d739add25522ff9a236b54583826c27bd79c2dcb1a4efcc50143164f78c">
         <source xml:lang="en">Show New Password</source>
-        <target state="new">Show New Password</target>
+        <target state="translated">新しいパスワードの表示</target>
       </trans-unit>
       <trans-unit id="++CODE++2228686dec07e7c9c6c8515f778b90a768e5a9474779610755f751e18e43805f">
         <source xml:lang="en">Show Schema</source>
@@ -4058,7 +4062,7 @@ Query: {1}</source>
       <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
         <source xml:lang="en">Sum: {0}</source>
         <note>{0} is the sum</note>
-        <target state="new">Sum: {0}</target>
+        <target state="translated">合計: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++17888248578c82867c18ea2dc512a96eabbbbb8184442d219746c3b8b8ff6030">
         <source xml:lang="en">Summary loading canceled</source>
@@ -4400,7 +4404,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++e3b89e9d33f88e523083d8b4436adcc3726c89e97fd3179a2e102d765d1b16ed">
         <source xml:lang="en">Username</source>
-        <target state="new">Username</target>
+        <target state="translated">ユーザー名</target>
       </trans-unit>
       <trans-unit id="++CODE++1806851cf9209ecb674faf6fe227aa165f6dbc4df5d05ea9f0cc71e3d00245c7">
         <source xml:lang="en">Using {0} ({1})...</source>
@@ -4459,7 +4463,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++8746aa4543652187c8719dbebc36f0609e31bbc53b14ed2ca12b0207c9e79345">
         <source xml:lang="en">Windows Authentication</source>
-        <target state="new">Windows Authentication</target>
+        <target state="translated">Windows 認証</target>
       </trans-unit>
       <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
         <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>
@@ -4672,7 +4676,7 @@ Query: {1}</source>
       <trans-unit id="++CODE++00e1f9b501086ed75248767b54cc5caa0b62853d91c148fa2da0b388be7a6388">
         <source xml:lang="en">{0} selected</source>
         <note>{0} is the number of selected rows</note>
-        <target state="new">{0} selected</target>
+        <target state="translated">{0} が選択済み</target>
       </trans-unit>
       <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
         <source xml:lang="en">{0} started successfully.</source>
@@ -4748,10 +4752,6 @@ Query: {1}</source>
         <source xml:lang="en">Add Connection</source>
         <target state="translated">接続の追加</target>
       </trans-unit>
-      <trans-unit id="mssql.addObjectExplorerLegacy">
-        <source xml:lang="en">Add Connection (Legacy)</source>
-        <target state="translated">接続の追加 (レガシ)</target>
-      </trans-unit>
       <trans-unit id="mssql.connectionGroups.create">
         <source xml:lang="en">Add Connection Group</source>
         <target state="translated">接続グループの追加</target>
@@ -4766,7 +4766,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.alwaysEncryptedLabel">
         <source xml:lang="en">Always Encrypted</source>
-        <target state="new">Always Encrypted</target>
+        <target state="translated">Always Encrypted</target>
       </trans-unit>
       <trans-unit id="mssql.query.executionTimeout">
         <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
@@ -4778,7 +4778,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.applicationIntentLabel">
         <source xml:lang="en">Application Intent</source>
-        <target state="new">Application Intent</target>
+        <target state="translated">アプリケーションの意図</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.autoSizeColumns">
         <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
@@ -4794,7 +4794,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.MFALabel">
         <source xml:lang="en">Azure MFA</source>
-        <target state="new">Azure MFA</target>
+        <target state="translated">Azure MFA</target>
       </trans-unit>
       <trans-unit id="mssql.cancelQuery">
         <source xml:lang="en">Cancel Query</source>
@@ -4838,7 +4838,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.commandTimeoutLabel">
         <source xml:lang="en">Command Timeout</source>
-        <target state="new">Command Timeout</target>
+        <target state="translated">コマンド タイムアウト</target>
       </trans-unit>
       <trans-unit id="mssql.connect">
         <source xml:lang="en">Connect</source>
@@ -4854,7 +4854,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.connectionTimeoutLabel">
         <source xml:lang="en">Connection Timeout</source>
-        <target state="new">Connection Timeout</target>
+        <target state="translated">接続タイムアウト</target>
       </trans-unit>
       <trans-unit id="mssql.connectionGroups">
         <source xml:lang="en">Connection groups</source>
@@ -4920,7 +4920,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.disabledLabel">
         <source xml:lang="en">Disabled</source>
-        <target state="new">Disabled</target>
+        <target state="translated">無効</target>
       </trans-unit>
       <trans-unit id="mssql.disconnect">
         <source xml:lang="en">Disconnect</source>
@@ -5074,7 +5074,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
         <source xml:lang="en">Enabled</source>
-        <target state="new">Enabled</target>
+        <target state="translated">有効</target>
       </trans-unit>
       <trans-unit id="mssql.enableRichExperiences.description">
         <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
@@ -5276,7 +5276,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
         <source xml:lang="en">Replication</source>
-        <target state="new">Replication</target>
+        <target state="translated">レプリケーション</target>
       </trans-unit>
       <trans-unit id="mssql.revealQueryResult">
         <source xml:lang="en">Reveal Query Result</source>
@@ -5296,11 +5296,11 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.containerNameLabel">
         <source xml:lang="en">SQL Container Name</source>
-        <target state="new">SQL Container Name</target>
+        <target state="translated">SQL コンテナー名</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.containerVersionLabel">
         <source xml:lang="en">SQL Container Version</source>
-        <target state="new">SQL Container Version</target>
+        <target state="translated">SQL コンテナーのバージョン</target>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Schema Compare</source>
@@ -5536,10 +5536,6 @@ See the estimated plan without running the query, or view the actual query plan 
         <source xml:lang="en">Use Database</source>
         <target state="translated">データベースの使用</target>
       </trans-unit>
-      <trans-unit id="mssql.useLegacyConnectionExperience.description">
-        <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
-        <target state="translated">最新のエクスペリエンスではなく、レガシ接続エクスペリエンスを使用します。</target>
-      </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
         <target state="translated">クエリ プランを視覚化する</target>
@@ -5558,7 +5554,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.WindowsAuthLabel">
         <source xml:lang="en">Windows Authentication</source>
-        <target state="new">Windows Authentication</target>
+        <target state="translated">Windows 認証</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.runQueries.description">
         <source xml:lang="en">Write a SQL query, and run it against your database.
@@ -5756,19 +5752,19 @@ You can also click the 'Open in New Tab' button to view your query results in th
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.authenticationTypeLabel">
         <source xml:lang="en">auth</source>
-        <target state="new">auth</target>
+        <target state="translated">認証</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.databaseLabel">
         <source xml:lang="en">database</source>
-        <target state="new">database</target>
+        <target state="translated">データベース</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.portLabel">
         <source xml:lang="en">port</source>
-        <target state="new">port</target>
+        <target state="translated">ポート</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.serverLabel">
         <source xml:lang="en">server</source>
-        <target state="new">server</target>
+        <target state="translated">サーバー</target>
       </trans-unit>
       <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
         <source xml:lang="en">should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,'</source>
@@ -5776,7 +5772,7 @@ You can also click the 'Open in New Tab' button to view your query results in th
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.userLabel">
         <source xml:lang="en">user</source>
-        <target state="new">user</target>
+        <target state="translated">ユーザー</target>
       </trans-unit>
     </body>
   </file>

@@ -3,20 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
 import * as LocalizedConstants from "../constants/locConstants";
 import { IConnectionProfile, AuthenticationTypes } from "./interfaces";
 import { ConnectionCredentials } from "./connectionCredentials";
-import { QuestionTypes, IQuestion, IPrompter, INameValueChoice } from "../prompts/question";
+import { INameValueChoice } from "../prompts/question";
 import * as utils from "./utils";
-import { ConnectionStore } from "./connectionStore";
-import { AzureController } from "../azure/azureController";
 import { AccountStore } from "../azure/accountStore";
-import { getCloudProviderSettings } from "../azure/providerSettings";
-import { AzureAuthType, IAccount, ITenant } from "./contracts/azure";
-import { getEnableSqlAuthenticationProviderConfig } from "../azure/utils";
-import { sendActionEvent } from "../telemetry/telemetry";
-import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
+import { AzureAuthType } from "./contracts/azure";
 
 // Concrete implementation of the IConnectionProfile interface
 
@@ -50,156 +43,6 @@ export class ConnectionProfile extends ConnectionCredentials implements IConnect
             this.password = connectionCredentials.password;
             this.server = connectionCredentials.server;
         }
-    }
-
-    /**
-     * Creates a new profile by prompting the user for information.
-     * @param prompter that asks user the questions needed to complete a profile
-     * @param (optional) default profile values that will be prefilled for questions, if any
-     * @returns Promise - resolves to undefined if profile creation was not completed, or IConnectionProfile if completed
-     */
-    public static async createProfile(
-        prompter: IPrompter,
-        connectionStore: ConnectionStore,
-        context: vscode.ExtensionContext,
-        azureController: AzureController,
-        accountStore?: AccountStore,
-        defaultProfileValues?: IConnectionProfile,
-    ): Promise<IConnectionProfile | undefined> {
-        let profile: ConnectionProfile = new ConnectionProfile();
-        // Ensure all core properties are entered
-        let authOptions: INameValueChoice[] = ConnectionCredentials.getAuthenticationTypesChoice();
-        if (authOptions.length === 1) {
-            // Set default value as there is only 1 option
-            profile.authenticationType = authOptions[0].value;
-        }
-        let azureAccountChoices: INameValueChoice[] =
-            await ConnectionProfile.getAccountChoices(accountStore);
-        let accountAnswer: IAccount;
-        azureAccountChoices.unshift({
-            name: LocalizedConstants.azureAddAccount,
-            value: "addAccount",
-        });
-        let tenantChoices: INameValueChoice[] = [];
-
-        let questions: IQuestion[] =
-            await ConnectionCredentials.getRequiredCredentialValuesQuestions(
-                profile,
-                true,
-                false,
-                connectionStore,
-                defaultProfileValues,
-            );
-
-        // Check if password needs to be saved
-        questions.push(
-            {
-                type: QuestionTypes.confirm,
-                name: LocalizedConstants.msgSavePassword,
-                message: LocalizedConstants.msgSavePassword,
-                shouldPrompt: () =>
-                    !profile.connectionString &&
-                    ConnectionCredentials.isPasswordBasedCredential(profile),
-                onAnswered: (value) => (profile.savePassword = value),
-            },
-            {
-                type: QuestionTypes.expand,
-                name: LocalizedConstants.aad,
-                message: LocalizedConstants.azureChooseAccount,
-                choices: azureAccountChoices,
-                shouldPrompt: () => profile.isAzureActiveDirectory(),
-                onAnswered: async (value) => {
-                    accountAnswer = value;
-                    if (value !== "addAccount") {
-                        let account = value;
-                        profile.accountId = account?.key.id;
-                        tenantChoices.push(
-                            ...account?.properties?.tenants!.map((t) => ({
-                                name: t.displayName,
-                                value: t,
-                            })),
-                        );
-                        if (tenantChoices.length === 1) {
-                            profile.tenantId = tenantChoices[0].value.id;
-                        }
-                        try {
-                            profile = await azureController.refreshTokenWrapper(
-                                profile,
-                                accountStore,
-                                accountAnswer,
-                                getCloudProviderSettings(account.key.providerId).settings
-                                    .sqlResource,
-                            );
-                        } catch (error) {
-                            console.log(`Refreshing tokens failed: ${error}`);
-                        }
-                    } else {
-                        try {
-                            profile = await azureController.populateAccountProperties(
-                                profile,
-                                accountStore,
-                                getCloudProviderSettings().settings.sqlResource,
-                            );
-                            if (profile) {
-                                vscode.window.showInformationMessage(
-                                    LocalizedConstants.accountAddedSuccessfully(profile.email),
-                                );
-                            }
-                        } catch (e) {
-                            console.error(`Could not add account: ${e}`);
-                            vscode.window.showErrorMessage(e);
-                        }
-                    }
-                },
-            },
-            {
-                type: QuestionTypes.expand,
-                name: LocalizedConstants.tenant,
-                message: LocalizedConstants.azureChooseTenant,
-                choices: tenantChoices,
-                default: defaultProfileValues ? defaultProfileValues.tenantId : undefined,
-                // Need not prompt for tenant question when 'Sql Authentication Provider' is enabled,
-                // since tenant information is received from Server with authority URI in the Login flow.
-                shouldPrompt: () =>
-                    profile.isAzureActiveDirectory() &&
-                    tenantChoices.length > 1 &&
-                    !getEnableSqlAuthenticationProviderConfig(),
-                onAnswered: (value: ITenant) => {
-                    profile.tenantId = value.id;
-                },
-            },
-            {
-                type: QuestionTypes.input,
-                name: LocalizedConstants.profileNamePrompt,
-                message: LocalizedConstants.profileNamePrompt,
-                placeHolder: LocalizedConstants.ConnectionDialog.profileNameTooltip,
-                default: defaultProfileValues ? defaultProfileValues.profileName : undefined,
-                onAnswered: (value) => {
-                    // Fall back to a default name if none specified
-                    profile.profileName = value ? value : undefined;
-                },
-            },
-        );
-
-        const answers = await prompter.prompt(questions, true);
-
-        if (answers && profile.isValidProfile()) {
-            sendActionEvent(
-                TelemetryViews.ConnectionPrompt,
-                TelemetryActions.CreateConnectionResult,
-                {
-                    authenticationType: profile.authenticationType,
-                    passwordSaved: profile.savePassword ? "true" : "false",
-                },
-            );
-
-            ConnectionProfile.addIdIfMissing(profile);
-
-            return profile;
-        }
-
-        // returning undefined to indicate failure to create the profile
-        return undefined;
     }
 
     public static addIdIfMissing(profile: IConnectionProfile): boolean {

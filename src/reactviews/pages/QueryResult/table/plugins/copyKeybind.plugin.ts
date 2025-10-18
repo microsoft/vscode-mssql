@@ -13,9 +13,9 @@ import {
     selectEntireGrid,
     tryCombineSelectionsForResults,
 } from "../utils";
-import { QueryResultReactProvider } from "../../queryResultStateProvider";
-import { GetPlatformRequest } from "../../../../../sharedInterfaces/webview";
 import { KeyCode } from "../../../../common/keys";
+import { QueryResultReactProvider } from "../../queryResultStateProvider";
+import { isMetaKeyPressed } from "../../../../common/utils";
 
 /**
  * Implements the various additional navigation keybindings we want out of slickgrid
@@ -48,18 +48,9 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
         let handled = false;
-        let platform = await this._qrContext.extensionRpc.sendRequest(GetPlatformRequest.type);
-        if (platform === "darwin") {
-            // Cmd + C
-            if (e.metaKey && e.code === KeyCode.KeyC) {
-                handled = true;
-                await this.handleCopySelection(this.grid, this.uri, this.resultSetSummary);
-            }
-        } else {
-            if (e.ctrlKey && e.code === KeyCode.KeyC) {
-                handled = true;
-                await this.handleCopySelection(this.grid, this.uri, this.resultSetSummary);
-            }
+        if (isMetaKeyPressed(e) && e.code === KeyCode.KeyC) {
+            handled = true;
+            await this.handleCopySelection(this.grid, this.uri, this.resultSetSummary);
         }
 
         if (handled) {
