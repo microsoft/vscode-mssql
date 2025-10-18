@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// import * as vscode from 'vscode';
 import { IDisposableDataProvider } from "./dataProvider";
+import { v4 as uuid } from "uuid";
 
 export interface IObservableCollection<T> {
     getLength(): number;
@@ -22,9 +22,9 @@ class DataWindow<T> {
     private _data: T[] | undefined;
     private _length: number = 0;
     private _offsetFromDataSource: number = -1;
-    private _currentRequestId: number = 0;
+    private _currentRequestId: string = uuid();
     private _debounceTimeout: NodeJS.Timeout | undefined;
-    private readonly _debounceDelay: number = 50; // ms to wait before sending request
+    private readonly _getRowsDebounceDelayMs: number = 50;
     private _lastPositionTime: number = 0;
     private _consecutivePositionCount: number = 0;
 
@@ -76,7 +76,7 @@ class DataWindow<T> {
         this._data = undefined;
 
         // Increment request ID to invalidate any pending requests
-        this._currentRequestId++;
+        this._currentRequestId = uuid();
         const currentRequestId = this._currentRequestId;
 
         if (length === 0) {
@@ -124,7 +124,7 @@ class DataWindow<T> {
             this._debounceTimeout = setTimeout(() => {
                 this._debounceTimeout = undefined;
                 executeLoad();
-            }, this._debounceDelay);
+            }, this._getRowsDebounceDelayMs);
         } else {
             // Otherwise, load immediately (scrollbar drag, single scroll, or first few scrolls)
             executeLoad();
