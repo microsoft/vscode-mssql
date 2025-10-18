@@ -737,7 +737,6 @@ export class HeaderMenu<T extends Slick.SlickData> {
                     selectionModel.setSelectedRanges([cellRange]);
                 }
                 this._grid.setActiveCell(0, column);
-                this._grid.scrollCellIntoView(0, column, false);
             }
         }
     }
