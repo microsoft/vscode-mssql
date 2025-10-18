@@ -702,7 +702,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
             return;
         }
 
-        // Move to first cell of row
+        // Move to first cell of row (Cmd/Ctrl + left)
         if (metaOrCtrlPressed && keyCode === KeyCode.ArrowLeft) {
             const active = this.grid.getActiveCell();
             if (active) {
@@ -716,7 +716,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
             return;
         }
 
-        // Move to last cell of row
+        // Move to last cell of row (Cmd/Ctrl + right)
         if (metaOrCtrlPressed && keyCode === KeyCode.ArrowRight) {
             const active = this.grid.getActiveCell();
             if (active) {
@@ -751,7 +751,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
             return;
         }
 
-        // shift + f10 or context menu key
+        // Open context menu (Shift + F10) or ContextMenu key
         if ((e.shiftKey && keyCode === KeyCode.F10) || keyCode === KeyCode.ContextMenu) {
             // Open context menu
             // Already handled by onContextMenu event
