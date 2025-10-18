@@ -4752,10 +4752,6 @@ Query: {1}</source>
         <source xml:lang="en">Add Connection</source>
         <target state="translated">Добавить подключение</target>
       </trans-unit>
-      <trans-unit id="mssql.addObjectExplorerLegacy">
-        <source xml:lang="en">Add Connection (Legacy)</source>
-        <target state="translated">Добавить подключение (устаревшее)</target>
-      </trans-unit>
       <trans-unit id="mssql.connectionGroups.create">
         <source xml:lang="en">Add Connection Group</source>
         <target state="translated">Добавить группу подключений</target>
@@ -5539,10 +5535,6 @@ See the estimated plan without running the query, or view the actual query plan 
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">Использовать базу данных</target>
-      </trans-unit>
-      <trans-unit id="mssql.useLegacyConnectionExperience.description">
-        <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
-        <target state="translated">Используйте устаревший интерфейс подключения вместо современного.</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>

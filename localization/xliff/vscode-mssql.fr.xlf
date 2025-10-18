@@ -4752,10 +4752,6 @@ Requête : {1}</target>
         <source xml:lang="en">Add Connection</source>
         <target state="translated">Ajouter une connexion</target>
       </trans-unit>
-      <trans-unit id="mssql.addObjectExplorerLegacy">
-        <source xml:lang="en">Add Connection (Legacy)</source>
-        <target state="translated">Ajouter une connexion (Héritée)</target>
-      </trans-unit>
       <trans-unit id="mssql.connectionGroups.create">
         <source xml:lang="en">Add Connection Group</source>
         <target state="translated">Ajouter un groupe de connexion</target>
@@ -5539,10 +5535,6 @@ Consultez le plan estimé sans exécuter la requête, ou consultez le plan de re
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">Utiliser la base de données</target>
-      </trans-unit>
-      <trans-unit id="mssql.useLegacyConnectionExperience.description">
-        <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
-        <target state="translated">Utilisez l’expérience de connexion héritée au lieu de l’expérience moderne.</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>

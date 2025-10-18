@@ -4752,10 +4752,6 @@ Abfrage: {1}</target>
         <source xml:lang="en">Add Connection</source>
         <target state="translated">Verbindung hinzufügen</target>
       </trans-unit>
-      <trans-unit id="mssql.addObjectExplorerLegacy">
-        <source xml:lang="en">Add Connection (Legacy)</source>
-        <target state="translated">Verbindung hinzufügen (Legacy)</target>
-      </trans-unit>
       <trans-unit id="mssql.connectionGroups.create">
         <source xml:lang="en">Add Connection Group</source>
         <target state="translated">Verbindungsgruppe hinzufügen</target>
@@ -5539,10 +5535,6 @@ Zeigen Sie den geschätzten Plan an, ohne die Abfrage auszuführen, oder zeigen 
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">Datenbank verwenden</target>
-      </trans-unit>
-      <trans-unit id="mssql.useLegacyConnectionExperience.description">
-        <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
-        <target state="translated">Verwenden Sie die Legacy-Benutzeroberfläche für die Verbindung anstelle der modernen Benutzeroberfläche.</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
