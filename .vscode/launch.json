@@ -7,15 +7,9 @@
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=C:/Projects/azuredatastudio/extensions/sql-database-projects",
-                "--extensionDevelopmentPath=C:/Projects/vscode-mssql"
-            ],
+            "args": ["--extensionDevelopmentPath=${workspaceRoot}"],
             "sourceMaps": true,
-            "outFiles": [
-                "${workspaceRoot}/out/src/**/*.js",
-                "C:/Projects/azuredatastudio/extensions/sql-database-projects/out/**/*.js"
-            ],
+            "outFiles": ["${workspaceRoot}/dist/**/*.js", "${workspaceRoot}/out/src/**/*.js"],
             "rendererDebugOptions": {
                 "pauseForSourceMap": true,
                 "sourceMapRenames": true,
@@ -44,7 +38,7 @@
                 "--skip-welcome"
             ],
             "sourceMaps": true,
-            "outFiles": ["${workspaceRoot}/out/src/**/*.js"],
+            "outFiles": ["${workspaceRoot}/dist/**/*.js", "${workspaceRoot}/out/src/**/*.js"],
             "env": {
                 // Uncomment this to use a specified version of STS, see
                 // https://github.com/microsoft/vscode-mssql/blob/main/DEVELOPMENT.md#using-mssql_sqltoolsservice-environment-variable
