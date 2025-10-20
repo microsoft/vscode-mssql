@@ -72,9 +72,9 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                         <MenuItem onClick={() => onAction(GridContextMenuAction.CopyWithHeaders)}>
                             {locConstants.queryResult.copyWithHeaders}
                         </MenuItem>
-                        {/* <MenuItem onClick={() => onAction(GridContextMenuAction.CopyHeaders)}>
+                        <MenuItem onClick={() => onAction(GridContextMenuAction.CopyHeaders)}>
                             {locConstants.queryResult.copyHeaders}
-                        </MenuItem> */}
+                        </MenuItem>
                         <Menu>
                             <MenuTrigger disableButtonEnhancement>
                                 <MenuItem>{locConstants.queryResult.copyAs}</MenuItem>
