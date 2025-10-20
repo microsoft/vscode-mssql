@@ -12,7 +12,11 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as Utils from "../../src/models/utils";
 import * as sinon from "sinon";
 import * as telemetry from "../../src/telemetry/telemetry";
-import { GetNextMessageResponse, MessageType } from "../../src/models/contracts/copilot";
+import {
+    GetNextMessageResponse,
+    MessageType,
+    MessageRole,
+} from "../../src/models/contracts/copilot";
 import { ActivityObject, ActivityStatus } from "../../src/sharedInterfaces/telemetry";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
@@ -441,5 +445,417 @@ suite("Chat Agent Request Handler Tests", () => {
             (x) => x.markdown(TypeMoq.It.is((msg) => msg.toString().includes("An error occurred"))),
             TypeMoq.Times.once(),
         );
+    });
+
+    suite("Tool Mapping Tests", () => {
+        test("Handles tools with valid JSON parameters in RequestLLM message", async () => {
+            // Setup mocks for startConversation
+            mockCopilotService
+                .setup((x) =>
+                    x.startConversation(
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAnyString(),
+                    ),
+                )
+                .returns(() => Promise.resolve(true));
+
+            // Mock the getConnectionInfo method to return a valid connection
+            mockConnectionManager
+                .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
+                .returns(() => mockConnectionInfo.object);
+
+            // Mock the getNextMessage to return RequestLLM with valid tools
+            const requestLLMResponse: GetNextMessageResponse = {
+                conversationUri: sampleConversationUri,
+                messageType: MessageType.RequestLLM,
+                responseText: "Processing request",
+                tools: [
+                    {
+                        functionName: "mssql_list_tables",
+                        functionDescription: "Lists all tables in the database",
+                        functionParameters:
+                            '{"type":"object","properties":{"connectionId":{"type":"string"}}}',
+                    },
+                ],
+                requestMessages: [
+                    {
+                        text: "List the tables",
+                        role: MessageRole.User,
+                    },
+                ],
+            };
+
+            const completeResponse: GetNextMessageResponse = {
+                conversationUri: sampleConversationUri,
+                messageType: MessageType.Complete,
+                responseText: "Request complete",
+                tools: [],
+                requestMessages: [],
+            };
+
+            let callCount = 0;
+            const responses = [requestLLMResponse, completeResponse];
+
+            mockCopilotService
+                .setup((x) =>
+                    x.getNextMessage(
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                    ),
+                )
+                .returns(() => Promise.resolve(responses[callCount++]));
+
+            const handler = createSqlAgentRequestHandler(
+                mockCopilotService.object,
+                mockVscodeWrapper.object,
+                mockContext.object,
+                mockMainController.object,
+            );
+
+            const result = await handler(
+                mockChatRequest.object,
+                mockChatContext.object,
+                mockChatStream.object,
+                mockToken.object,
+            );
+
+            // Verify that the handler completed successfully
+            expect(result).to.deep.equal({
+                metadata: { command: "", correlationId: sampleCorrelationId },
+            });
+
+            // Verify sendRequest was called with tools
+            mockLmChat.verify(
+                (x) =>
+                    x.sendRequest(
+                        TypeMoq.It.is((messages) => Array.isArray(messages)),
+                        TypeMoq.It.is(
+                            (options) => Array.isArray(options.tools) && options.tools.length > 0,
+                        ),
+                        TypeMoq.It.isAny(),
+                    ),
+                TypeMoq.Times.once(),
+            );
+        });
+
+        test("Handles tools with invalid JSON parameters by falling back to empty schema", async () => {
+            // Setup mocks for startConversation
+            mockCopilotService
+                .setup((x) =>
+                    x.startConversation(
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAnyString(),
+                    ),
+                )
+                .returns(() => Promise.resolve(true));
+
+            // Mock the getConnectionInfo method to return a valid connection
+            mockConnectionManager
+                .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
+                .returns(() => mockConnectionInfo.object);
+
+            // Mock the getNextMessage to return RequestLLM with invalid JSON in tool parameters
+            const requestLLMResponse: GetNextMessageResponse = {
+                conversationUri: sampleConversationUri,
+                messageType: MessageType.RequestLLM,
+                responseText: "Processing request",
+                tools: [
+                    {
+                        functionName: "mssql_run_query",
+                        functionDescription: "Runs a SQL query",
+                        functionParameters: "{invalid json syntax here}", // Invalid JSON
+                    },
+                ],
+                requestMessages: [
+                    {
+                        text: "Run query",
+                        role: MessageRole.User,
+                    },
+                ],
+            };
+
+            const completeResponse: GetNextMessageResponse = {
+                conversationUri: sampleConversationUri,
+                messageType: MessageType.Complete,
+                responseText: "Request complete",
+                tools: [],
+                requestMessages: [],
+            };
+
+            let callCount = 0;
+            const responses = [requestLLMResponse, completeResponse];
+
+            mockCopilotService
+                .setup((x) =>
+                    x.getNextMessage(
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                    ),
+                )
+                .returns(() => Promise.resolve(responses[callCount++]));
+
+            const handler = createSqlAgentRequestHandler(
+                mockCopilotService.object,
+                mockVscodeWrapper.object,
+                mockContext.object,
+                mockMainController.object,
+            );
+
+            // Should not throw, but handle gracefully with fallback schema
+            const result = await handler(
+                mockChatRequest.object,
+                mockChatContext.object,
+                mockChatStream.object,
+                mockToken.object,
+            );
+
+            // Verify that the handler completed successfully despite invalid JSON
+            expect(result).to.deep.equal({
+                metadata: { command: "", correlationId: sampleCorrelationId },
+            });
+
+            // Verify sendRequest was still called (with fallback empty schema)
+            mockLmChat.verify(
+                (x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                TypeMoq.Times.once(),
+            );
+        });
+
+        test("Handles tools with null or undefined description", async () => {
+            // Setup mocks for startConversation
+            mockCopilotService
+                .setup((x) =>
+                    x.startConversation(
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAnyString(),
+                    ),
+                )
+                .returns(() => Promise.resolve(true));
+
+            // Mock the getConnectionInfo method to return a valid connection
+            mockConnectionManager
+                .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
+                .returns(() => mockConnectionInfo.object);
+
+            // Mock the getNextMessage to return RequestLLM with null description
+            const requestLLMResponse: GetNextMessageResponse = {
+                conversationUri: sampleConversationUri,
+                messageType: MessageType.RequestLLM,
+                responseText: "Processing request",
+                tools: [
+                    {
+                        functionName: "mssql_connect",
+                        functionDescription: undefined as unknown as string, // Undefined description
+                        functionParameters: '{"type":"object"}',
+                    },
+                ],
+                requestMessages: [
+                    {
+                        text: "Connect to database",
+                        role: MessageRole.User,
+                    },
+                ],
+            };
+
+            const completeResponse: GetNextMessageResponse = {
+                conversationUri: sampleConversationUri,
+                messageType: MessageType.Complete,
+                responseText: "Request complete",
+                tools: [],
+                requestMessages: [],
+            };
+
+            let callCount = 0;
+            const responses = [requestLLMResponse, completeResponse];
+
+            mockCopilotService
+                .setup((x) =>
+                    x.getNextMessage(
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                    ),
+                )
+                .returns(() => Promise.resolve(responses[callCount++]));
+
+            const handler = createSqlAgentRequestHandler(
+                mockCopilotService.object,
+                mockVscodeWrapper.object,
+                mockContext.object,
+                mockMainController.object,
+            );
+
+            const result = await handler(
+                mockChatRequest.object,
+                mockChatContext.object,
+                mockChatStream.object,
+                mockToken.object,
+            );
+
+            // Verify that the handler completed successfully
+            expect(result).to.deep.equal({
+                metadata: { command: "", correlationId: sampleCorrelationId },
+            });
+        });
+
+        test("Handles tools with empty or whitespace-only parameters", async () => {
+            // Setup mocks for startConversation
+            mockCopilotService
+                .setup((x) =>
+                    x.startConversation(
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAnyString(),
+                    ),
+                )
+                .returns(() => Promise.resolve(true));
+
+            // Mock the getConnectionInfo method to return a valid connection
+            mockConnectionManager
+                .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
+                .returns(() => mockConnectionInfo.object);
+
+            // Mock the getNextMessage to return RequestLLM with empty parameters
+            const requestLLMResponse: GetNextMessageResponse = {
+                conversationUri: sampleConversationUri,
+                messageType: MessageType.RequestLLM,
+                responseText: "Processing request",
+                tools: [
+                    {
+                        functionName: "mssql_disconnect",
+                        functionDescription: "Disconnects from database",
+                        functionParameters: "   ", // Whitespace-only
+                    },
+                ],
+                requestMessages: [
+                    {
+                        text: "Disconnect",
+                        role: MessageRole.User,
+                    },
+                ],
+            };
+
+            const completeResponse: GetNextMessageResponse = {
+                conversationUri: sampleConversationUri,
+                messageType: MessageType.Complete,
+                responseText: "Request complete",
+                tools: [],
+                requestMessages: [],
+            };
+
+            let callCount = 0;
+            const responses = [requestLLMResponse, completeResponse];
+
+            mockCopilotService
+                .setup((x) =>
+                    x.getNextMessage(
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                    ),
+                )
+                .returns(() => Promise.resolve(responses[callCount++]));
+
+            const handler = createSqlAgentRequestHandler(
+                mockCopilotService.object,
+                mockVscodeWrapper.object,
+                mockContext.object,
+                mockMainController.object,
+            );
+
+            const result = await handler(
+                mockChatRequest.object,
+                mockChatContext.object,
+                mockChatStream.object,
+                mockToken.object,
+            );
+
+            // Verify that the handler completed successfully with fallback empty schema
+            expect(result).to.deep.equal({
+                metadata: { command: "", correlationId: sampleCorrelationId },
+            });
+        });
+
+        test("Throws error when tool has invalid or missing functionName", async () => {
+            // Setup mocks for startConversation
+            mockCopilotService
+                .setup((x) =>
+                    x.startConversation(
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAnyString(),
+                    ),
+                )
+                .returns(() => Promise.resolve(true));
+
+            // Mock the getConnectionInfo method to return a valid connection
+            mockConnectionManager
+                .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
+                .returns(() => mockConnectionInfo.object);
+
+            // Mock the getNextMessage to return RequestLLM with missing functionName
+            const requestLLMResponse: GetNextMessageResponse = {
+                conversationUri: sampleConversationUri,
+                messageType: MessageType.RequestLLM,
+                responseText: "Processing request",
+                tools: [
+                    {
+                        functionName: undefined as unknown as string, // Missing function name
+                        functionDescription: "A tool without a name",
+                        functionParameters: '{"type":"object"}',
+                    },
+                ],
+                requestMessages: [
+                    {
+                        text: "Test request",
+                        role: MessageRole.User,
+                    },
+                ],
+            };
+
+            mockCopilotService
+                .setup((x) =>
+                    x.getNextMessage(
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAnyString(),
+                        TypeMoq.It.isAny(),
+                        TypeMoq.It.isAny(),
+                    ),
+                )
+                .returns(() => Promise.resolve(requestLLMResponse));
+
+            const handler = createSqlAgentRequestHandler(
+                mockCopilotService.object,
+                mockVscodeWrapper.object,
+                mockContext.object,
+                mockMainController.object,
+            );
+
+            // Should handle the error and show error message
+            await handler(
+                mockChatRequest.object,
+                mockChatContext.object,
+                mockChatStream.object,
+                mockToken.object,
+            );
+
+            // Verify error message is shown
+            mockChatStream.verify(
+                (x) =>
+                    x.markdown(
+                        TypeMoq.It.is((msg) => msg.toString().includes("An error occurred")),
+                    ),
+                TypeMoq.Times.once(),
+            );
+        });
     });
 });
