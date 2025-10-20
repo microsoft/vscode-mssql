@@ -515,11 +515,13 @@ export const DataTierApplicationForm = () => {
             if (result?.success) {
                 setSuccessMessage(getSuccessMessage(operationType));
                 setProgressMessage("");
+                setIsOperationInProgress(false);
             } else {
                 setErrorMessage(
                     result?.errorMessage || locConstants.dataTierApplication.operationFailed,
                 );
                 setProgressMessage("");
+                setIsOperationInProgress(false);
             }
         } catch (error) {
             setErrorMessage(
@@ -528,7 +530,6 @@ export const DataTierApplicationForm = () => {
                     : locConstants.dataTierApplication.unexpectedError,
             );
             setProgressMessage("");
-        } finally {
             setIsOperationInProgress(false);
         }
     };
