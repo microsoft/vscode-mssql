@@ -47,6 +47,11 @@ import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInter
 import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
+import { DataTierApplicationWebviewController } from "./dataTierApplicationWebviewController";
+import {
+    DataTierApplicationWebviewState,
+    DataTierOperationType,
+} from "../sharedInterfaces/dataTierApplication";
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
 import {
     DatabaseObjectSearchService,
@@ -1761,6 +1766,166 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdScriptAlter,
                 async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Alter),
+            ),
+        );
+
+        // Data-tier Application - Main command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdDataTierApplication,
+                async (node?: TreeNodeInfo) => {
+                    const connectionProfile = node?.connectionProfile;
+                    const ownerUri = connectionProfile
+                        ? this._connectionMgr.getUriForConnection(connectionProfile)
+                        : "";
+                    const serverName = connectionProfile?.server || "";
+                    const databaseName = connectionProfile?.database || "";
+
+                    const initialState: DataTierApplicationWebviewState = {
+                        ownerUri,
+                        serverName,
+                        databaseName,
+                        operationType: undefined,
+                    };
+
+                    const controller = new DataTierApplicationWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        this._connectionMgr,
+                        this.dacFxService,
+                        initialState,
+                        ownerUri,
+                    );
+                    await controller.revealToForeground();
+                },
+            ),
+        );
+
+        // Data-tier Application - Deploy DACPAC
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdDeployDacpac,
+                async (node?: TreeNodeInfo) => {
+                    const connectionProfile = node?.connectionProfile;
+                    const ownerUri = connectionProfile
+                        ? this._connectionMgr.getUriForConnection(connectionProfile)
+                        : "";
+                    const serverName = connectionProfile?.server || "";
+                    const databaseName = connectionProfile?.database || "";
+
+                    const initialState: DataTierApplicationWebviewState = {
+                        ownerUri,
+                        serverName,
+                        databaseName,
+                        operationType: DataTierOperationType.Deploy,
+                    };
+
+                    const controller = new DataTierApplicationWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        this._connectionMgr,
+                        this.dacFxService,
+                        initialState,
+                        ownerUri,
+                    );
+                    await controller.revealToForeground();
+                },
+            ),
+        );
+
+        // Data-tier Application - Extract DACPAC
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdExtractDacpac,
+                async (node?: TreeNodeInfo) => {
+                    const connectionProfile = node?.connectionProfile;
+                    const ownerUri = connectionProfile
+                        ? this._connectionMgr.getUriForConnection(connectionProfile)
+                        : "";
+                    const serverName = connectionProfile?.server || "";
+                    const databaseName = connectionProfile?.database || "";
+
+                    const initialState: DataTierApplicationWebviewState = {
+                        ownerUri,
+                        serverName,
+                        databaseName,
+                        operationType: DataTierOperationType.Extract,
+                    };
+
+                    const controller = new DataTierApplicationWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        this._connectionMgr,
+                        this.dacFxService,
+                        initialState,
+                        ownerUri,
+                    );
+                    await controller.revealToForeground();
+                },
+            ),
+        );
+
+        // Data-tier Application - Import BACPAC
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdImportBacpac,
+                async (node?: TreeNodeInfo) => {
+                    const connectionProfile = node?.connectionProfile;
+                    const ownerUri = connectionProfile
+                        ? this._connectionMgr.getUriForConnection(connectionProfile)
+                        : "";
+                    const serverName = connectionProfile?.server || "";
+                    const databaseName = connectionProfile?.database || "";
+
+                    const initialState: DataTierApplicationWebviewState = {
+                        ownerUri,
+                        serverName,
+                        databaseName,
+                        operationType: DataTierOperationType.Import,
+                    };
+
+                    const controller = new DataTierApplicationWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        this._connectionMgr,
+                        this.dacFxService,
+                        initialState,
+                        ownerUri,
+                    );
+                    await controller.revealToForeground();
+                },
+            ),
+        );
+
+        // Data-tier Application - Export BACPAC
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdExportBacpac,
+                async (node?: TreeNodeInfo) => {
+                    const connectionProfile = node?.connectionProfile;
+                    const ownerUri = connectionProfile
+                        ? this._connectionMgr.getUriForConnection(connectionProfile)
+                        : "";
+                    const serverName = connectionProfile?.server || "";
+                    const databaseName = connectionProfile?.database || "";
+
+                    const initialState: DataTierApplicationWebviewState = {
+                        ownerUri,
+                        serverName,
+                        databaseName,
+                        operationType: DataTierOperationType.Export,
+                    };
+
+                    const controller = new DataTierApplicationWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        this._connectionMgr,
+                        this.dacFxService,
+                        initialState,
+                        ownerUri,
+                    );
+                    await controller.revealToForeground();
+                },
             ),
         );
 

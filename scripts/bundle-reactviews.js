@@ -17,6 +17,7 @@ const config = {
         addFirewallRule: "src/reactviews/pages/AddFirewallRule/index.tsx",
         connectionDialog: "src/reactviews/pages/ConnectionDialog/index.tsx",
         connectionGroup: "src/reactviews/pages/ConnectionGroup/index.tsx",
+        dataTierApplication: "src/reactviews/pages/DataTierApplication/index.tsx",
         deployment: "src/reactviews/pages/Deployment/index.tsx",
         executionPlan: "src/reactviews/pages/ExecutionPlan/index.tsx",
         tableDesigner: "src/reactviews/pages/TableDesigner/index.tsx",

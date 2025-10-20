@@ -543,6 +543,11 @@
                     "group": "2_MSSQL_serverDbActions@2"
                 },
                 {
+                    "command": "mssql.dataTierApplication",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "group": "2_MSSQL_serverDbActions@3"
+                },
+                {
                     "command": "mssql.scriptSelect",
                     "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|View)\\b/",
                     "group": "3_MSSQL_script@1"
@@ -1021,6 +1026,32 @@
             {
                 "command": "mssql.scriptAlter",
                 "title": "%mssql.scriptAlter%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.dataTierApplication",
+                "title": "%mssql.dataTierApplication%",
+                "category": "MS SQL",
+                "icon": "$(database)"
+            },
+            {
+                "command": "mssql.deployDacpac",
+                "title": "%mssql.deployDacpac%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.extractDacpac",
+                "title": "%mssql.extractDacpac%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.importBacpac",
+                "title": "%mssql.importBacpac%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.exportBacpac",
+                "title": "%mssql.exportBacpac%",
                 "category": "MS SQL"
             },
             {

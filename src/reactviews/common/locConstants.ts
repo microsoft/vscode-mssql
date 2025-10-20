@@ -1053,6 +1053,70 @@ export class LocConstants {
             passwordsDoNotMatch: l10n.t("Passwords do not match"),
         };
     }
+
+    public get dataTierApplication() {
+        return {
+            title: l10n.t("Data-tier Application"),
+            subtitle: l10n.t(
+                "Deploy, extract, import, or export data-tier applications on the selected database",
+            ),
+            operationLabel: l10n.t("Operation"),
+            selectOperation: l10n.t("Select an operation"),
+            serverLabel: l10n.t("Server"),
+            selectServer: l10n.t("Select a server"),
+            noConnectionsAvailable: l10n.t(
+                "No connections available. Please create a connection first.",
+            ),
+            connectingToServer: l10n.t("Connecting to server..."),
+            connectionFailed: l10n.t("Failed to connect to server"),
+            deployDacpac: l10n.t("Deploy DACPAC"),
+            extractDacpac: l10n.t("Extract DACPAC"),
+            importBacpac: l10n.t("Import BACPAC"),
+            exportBacpac: l10n.t("Export BACPAC"),
+            deployDescription: l10n.t("Deploy a DACPAC to create or update a database"),
+            extractDescription: l10n.t("Extract a DACPAC from an existing database"),
+            importDescription: l10n.t("Import a BACPAC to create a new database"),
+            exportDescription: l10n.t("Export a BACPAC from an existing database"),
+            packageFileLabel: l10n.t("Package file"),
+            outputFileLabel: l10n.t("Output file"),
+            selectPackageFile: l10n.t("Select a DACPAC or BACPAC file"),
+            selectOutputFile: l10n.t("Enter the path for the output file"),
+            browse: l10n.t("Browse..."),
+            targetDatabaseLabel: l10n.t("Target Database"),
+            sourceDatabaseLabel: l10n.t("Source Database"),
+            databaseNameLabel: l10n.t("Database Name"),
+            newDatabase: l10n.t("New Database"),
+            existingDatabase: l10n.t("Existing Database"),
+            selectDatabase: l10n.t("Select a database"),
+            enterDatabaseName: l10n.t("Enter database name"),
+            applicationNameLabel: l10n.t("Application Name"),
+            enterApplicationName: l10n.t("Enter application name"),
+            applicationVersionLabel: l10n.t("Application Version"),
+            cancel: l10n.t("Cancel"),
+            execute: l10n.t("Execute"),
+            filePathRequired: l10n.t("File path is required"),
+            invalidFile: l10n.t("Invalid file"),
+            databaseNameRequired: l10n.t("Database name is required"),
+            invalidDatabase: l10n.t("Invalid database"),
+            validationFailed: l10n.t("Validation failed"),
+            deployingDacpac: l10n.t("Deploying DACPAC..."),
+            extractingDacpac: l10n.t("Extracting DACPAC..."),
+            importingBacpac: l10n.t("Importing BACPAC..."),
+            exportingBacpac: l10n.t("Exporting BACPAC..."),
+            operationFailed: l10n.t("Operation failed"),
+            unexpectedError: l10n.t("An unexpected error occurred"),
+            deploySuccess: l10n.t("DACPAC deployed successfully"),
+            extractSuccess: l10n.t("DACPAC extracted successfully"),
+            importSuccess: l10n.t("BACPAC imported successfully"),
+            exportSuccess: l10n.t("BACPAC exported successfully"),
+            deployToExistingWarning: l10n.t("Deploy to Existing Database"),
+            deployToExistingMessage: l10n.t(
+                "You are about to deploy to an existing database. This operation will make permanent changes to the database schema and may result in data loss. Do you want to continue?",
+            ),
+            deployToExistingConfirm: l10n.t("Deploy"),
+            databaseAlreadyExists: l10n.t("A database with this name already exists on the server"),
+        };
+    }
 }
 
 export let locConstants = LocConstants.getInstance();
