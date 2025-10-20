@@ -24,6 +24,7 @@ export function renderInput(
     options?: {
         showPassword?: boolean;
         onTogglePassword?: () => void;
+        onChange?: (value: string) => void;
     },
 ) {
     if (!component || component.hidden) return undefined;
@@ -34,6 +35,7 @@ export function renderInput(
     const isPasswordField = component.type === FormItemType.Password;
 
     const handleChange = (newValue: string) => {
+        options?.onChange?.(newValue);
         if (context) {
             context.formAction({
                 propertyName: component.propertyName,

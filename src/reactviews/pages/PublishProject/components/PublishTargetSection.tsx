@@ -39,6 +39,10 @@ export const PublishTargetSection: React.FC = () => {
     const [showAdminPassword, setShowAdminPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    // Local state for password values to prevent cursor jumping
+    const [localPasswordValue, setLocalPasswordValue] = useState("");
+    const [localConfirmPasswordValue, setLocalConfirmPasswordValue] = useState("");
+
     // Select form components and values - components needed for rendering, values for logic
     const targetComponent = usePublishDialogSelector(
         (s) => s.formComponents[PublishFormFields.PublishTarget],
@@ -125,7 +129,7 @@ export const PublishTargetSection: React.FC = () => {
                 updateValidation: true,
             });
         }
-    }, [isContainer, passwordValue, publishCtx]);
+    }, [isContainer, passwordValue, confirmPasswordValue, publishCtx]);
 
     if (!publishCtx || !targetComponent) {
         return undefined;
@@ -143,21 +147,18 @@ export const PublishTargetSection: React.FC = () => {
                     {renderInput(portComponent, portValue?.toString() || "", publishCtx)}
 
                     {/* Admin Password */}
-                    {renderInput(passwordComponent, passwordValue?.toString() || "", publishCtx, {
+                    {renderInput(passwordComponent, localPasswordValue, publishCtx, {
                         showPassword: showAdminPassword,
                         onTogglePassword: () => setShowAdminPassword(!showAdminPassword),
+                        onChange: setLocalPasswordValue,
                     })}
 
                     {/* Confirm Password */}
-                    {renderInput(
-                        confirmPasswordComponent,
-                        confirmPasswordValue?.toString() || "",
-                        publishCtx,
-                        {
-                            showPassword: showConfirmPassword,
-                            onTogglePassword: () => setShowConfirmPassword(!showConfirmPassword),
-                        },
-                    )}
+                    {renderInput(confirmPasswordComponent, localConfirmPasswordValue, publishCtx, {
+                        showPassword: showConfirmPassword,
+                        onTogglePassword: () => setShowConfirmPassword(!showConfirmPassword),
+                        onChange: setLocalConfirmPasswordValue,
+                    })}
 
                     {/* Container Image Tag */}
                     {renderDropdown(imageTagComponent, imageTagValue?.toString(), publishCtx, {
