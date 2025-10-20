@@ -19,7 +19,6 @@ export class LocalContainersState
     formComponents: Partial<Record<keyof DockerConnectionProfile, LocalContainersFormItemSpec>> =
         {};
     formErrors: string[] = [];
-    platform: string = "";
     dialog: IDialogProps | undefined;
     /** Used for container name validation within the form */
     isValidContainerName: boolean = false;

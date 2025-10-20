@@ -11,12 +11,42 @@ import {
     DialogContent,
     DialogSurface,
     DialogTitle,
+    Link,
+    makeStyles,
     Text,
+    tokens,
 } from "@fluentui/react-components";
 import { locConstants as Loc } from "../../../common/locConstants";
 import { Keys } from "../../../common/keys";
+import { Warning24Filled } from "@fluentui/react-icons";
+
+const useStyles = makeStyles({
+    titleDiv: {
+        display: "flex",
+        flexDirection: "row",
+        paddingLeft: "20px",
+    },
+    titleIcon: {
+        marginTop: "4px",
+    },
+    titleText: {
+        marginLeft: "8px",
+        fontSize: "20px",
+        fontWeight: 600,
+    },
+    contentDiv: {
+        display: "flex",
+        flexDirection: "column",
+        padding: "15px",
+    },
+    contentItem: {
+        padding: "10px",
+    },
+});
 
 export const ArmSql2025ErrorDialog = ({ closeDialog }: { closeDialog: () => void }) => {
+    const classes = useStyles();
+
     return (
         <Dialog open={true /* standalone dialog always open*/}>
             <DialogSurface
@@ -27,9 +57,28 @@ export const ArmSql2025ErrorDialog = ({ closeDialog }: { closeDialog: () => void
                 }}>
                 <DialogBody>
                     {" "}
-                    <DialogTitle>Warning</DialogTitle>
-                    <DialogContent>
-                        <Text>The selected ARM template is not supported in SQL Server 2025.</Text>
+                    <DialogTitle className={classes.titleDiv}>
+                        {" "}
+                        <Warning24Filled
+                            className={classes.titleIcon}
+                            style={{ color: tokens.colorPaletteMarigoldForeground1 }}
+                        />
+                        <Text className={classes.titleText}> {Loc.common.warning} </Text>
+                    </DialogTitle>
+                    <DialogContent className={classes.contentDiv}>
+                        <Text className={classes.contentItem}>
+                            {Loc.localContainers.armErrorHeader}
+                        </Text>
+                        <Text className={classes.contentItem}>
+                            {Loc.localContainers.armErrorDescription}
+                        </Text>
+                        <Text className={classes.contentItem}>
+                            {Loc.localContainers.see}{" "}
+                            <Link href="https://aka.ms/sql-container-arm">
+                                https://aka.ms/sql-container-arm
+                            </Link>{" "}
+                            {Loc.localContainers.forMoreDetails}.
+                        </Text>
                     </DialogContent>
                     <DialogActions>
                         <Button
@@ -37,7 +86,7 @@ export const ArmSql2025ErrorDialog = ({ closeDialog }: { closeDialog: () => void
                             onClick={() => {
                                 closeDialog();
                             }}>
-                            {Loc.common.cancel}
+                            {Loc.common.close}
                         </Button>
                     </DialogActions>
                 </DialogBody>

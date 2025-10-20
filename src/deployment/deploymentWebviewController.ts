@@ -102,6 +102,7 @@ export class DeploymentWebviewController extends FormWebviewController<
 
             // Capture the initial deployment specific state in the overall controller's state
             state.deploymentTypeState = newDeploymentTypeState;
+            state.dialog = newDeploymentTypeState.dialog;
             state.formState = newDeploymentTypeState.formState;
             state.formComponents = newDeploymentTypeState.formComponents as any;
             return state;
@@ -113,7 +114,6 @@ export class DeploymentWebviewController extends FormWebviewController<
                     state.deploymentTypeState as LocalContainersState,
                     payload,
                 );
-                console.log(state.deploymentTypeState);
                 state.dialog = state.deploymentTypeState.dialog;
             } else {
                 state = (await this.handleDeploymentFormAction(
