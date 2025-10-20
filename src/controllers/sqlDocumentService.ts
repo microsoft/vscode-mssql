@@ -107,12 +107,14 @@ export default class SqlDocumentService implements vscode.Disposable {
         let connectionCreds: vscodeMssql.IConnectionInfo | undefined;
         let connectionStrategy: ConnectionStrategy;
         let nodeType: string | undefined;
+        let sourceNode: TreeNodeInfo | undefined;
 
         if (node) {
             // Case 1: User right-clicked on an OE node and selected "New Query"
             connectionCreds = node.connectionProfile;
             nodeType = node.nodeType;
             connectionStrategy = ConnectionStrategy.CopyConnectionFromInfo;
+            sourceNode = node;
         } else if (this._lastActiveConnectionInfo) {
             // Case 2: User triggered "New Query" from command palette and the active document has a connection
             connectionCreds = undefined;
@@ -120,8 +122,9 @@ export default class SqlDocumentService implements vscode.Disposable {
             connectionStrategy = ConnectionStrategy.CopyLastActive;
         } else if (this.objectExplorerTree.selection?.length === 1) {
             // Case 3: User triggered "New Query" from command palette while they have a connected OE node selected
-            connectionCreds = this.objectExplorerTree.selection[0].connectionProfile;
-            nodeType = this.objectExplorerTree.selection[0].nodeType;
+            sourceNode = this.objectExplorerTree.selection[0];
+            connectionCreds = sourceNode.connectionProfile;
+            nodeType = sourceNode.nodeType;
             connectionStrategy = ConnectionStrategy.CopyConnectionFromInfo;
         } else {
             // Case 4: User triggered "New Query" from command palette and there's no reasonable context
@@ -141,6 +144,10 @@ export default class SqlDocumentService implements vscode.Disposable {
         const newEditorUri = getUriKey(newEditor.document.uri);
 
         const connectionResult = this._connectionMgr.getConnectionInfo(newEditorUri);
+
+        if (sourceNode && connectionCreds) {
+            this.updateNodeConnectionProfile(sourceNode, connectionCreds);
+        }
 
         await this._connectionMgr.connectionStore.removeRecentlyUsed(
             connectionCreds as IConnectionProfile,
@@ -388,6 +395,13 @@ export default class SqlDocumentService implements vscode.Disposable {
                         connectionConfig.connectionInfo,
                     );
                 }
+
+                if (options.connectionInfo && connectionConfig.connectionInfo) {
+                    Object.assign(
+                        options.connectionInfo,
+                        this.filterDefinedProperties(connectionConfig.connectionInfo),
+                    );
+                }
             }
         }
 
@@ -495,6 +509,27 @@ export default class SqlDocumentService implements vscode.Disposable {
 
         // Update the URI in the output content provider query result map
         this._outputContentProvider?.onUntitledFileSaved(oldUri, newUri);
+    }
+
+    private updateNodeConnectionProfile(
+        node: TreeNodeInfo,
+        updatedCredentials: vscodeMssql.IConnectionInfo,
+    ): void {
+        if (!node || !updatedCredentials) {
+            return;
+        }
+
+        const mergedProfile = {
+            ...node.connectionProfile,
+            ...this.filterDefinedProperties(updatedCredentials),
+        };
+
+        node.updateConnectionProfile(mergedProfile as IConnectionProfile);
+    }
+
+    private filterDefinedProperties<T extends object>(source: T): Partial<T> {
+        const entries = Object.entries(source).filter(([, value]) => value !== undefined);
+        return Object.fromEntries(entries) as Partial<T>;
     }
 }
 

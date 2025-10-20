@@ -742,6 +742,8 @@ export default class MainController implements vscode.Disposable {
                 }
             }
 
+            this.persistUpdatedConnectionProfile(node, connectionCreds);
+
             const selectStatement = await this._scriptingService.scriptTreeNode(
                 node,
                 nodeUri,
@@ -754,6 +756,8 @@ export default class MainController implements vscode.Disposable {
                 connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
                 connectionInfo: connectionCreds,
             });
+
+            this.persistUpdatedConnectionProfile(node, connectionCreds);
             if (executeScript) {
                 const preventAutoExecute = vscode.workspace
                     .getConfiguration()
@@ -1105,6 +1109,7 @@ export default class MainController implements vscode.Disposable {
                         if (!connectionResult) {
                             return;
                         }
+                        this.persistUpdatedConnectionProfile(node, connectionCreds);
                     }
                 }
             } else {
@@ -2855,6 +2860,24 @@ export default class MainController implements vscode.Disposable {
 
     public addAadAccount(): void {
         void this.connectionManager.addAccount();
+    }
+
+    private persistUpdatedConnectionProfile(
+        node: TreeNodeInfo | undefined,
+        updatedCredentials: IConnectionInfo | undefined,
+    ): void {
+        if (!node || !updatedCredentials) {
+            return;
+        }
+
+        const definedUpdates = Object.fromEntries(
+            Object.entries(updatedCredentials).filter(([, value]) => value !== undefined),
+        ) as Partial<IConnectionProfile>;
+
+        node.updateConnectionProfile({
+            ...node.connectionProfile,
+            ...definedUpdates,
+        });
     }
 
     private ExecutionPlanCustomEditorProvider = class implements vscode.CustomTextEditorProvider {
