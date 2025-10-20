@@ -865,6 +865,10 @@
         <source xml:lang="en">Confirm Password</source>
         <target state="translated">Подтвердить пароль</target>
       </trans-unit>
+      <trans-unit id="++CODE++73dd96f4085ccfca56f43ca281a29ab8d195fe5fc79b4cb45be11d7830230d63">
+        <source xml:lang="en">Confirm SQL Server admin password</source>
+        <target state="new">Confirm SQL Server admin password</target>
+      </trans-unit>
       <trans-unit id="++CODE++bf000421aeb39493cf8044ec73846d7da8ca97b7166208c0d1172a17ba23a388">
         <source xml:lang="en">Confirm new password</source>
         <target state="translated">Подтвердить новый пароль</target>
@@ -1725,6 +1729,10 @@ Error:
         <source xml:lang="en">Execution Plan</source>
         <target state="translated">План выполнения</target>
       </trans-unit>
+      <trans-unit id="++CODE++b5f54c19df1649916f59331f9decf53dc337a2c241a3afb20d58810309ebe30f">
+        <source xml:lang="en">Existing Azure SQL logical server</source>
+        <target state="new">Existing Azure SQL logical server</target>
+      </trans-unit>
       <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
         <source xml:lang="en">Existing SQL server</source>
         <target state="translated">Существующий сервер SQL Server</target>
@@ -2219,6 +2227,10 @@ Error:
         <source xml:lang="en">Ignore Tenant</source>
         <target state="translated">Игнорировать клиента</target>
       </trans-unit>
+      <trans-unit id="++CODE++c4a77afa3d5cd701f32b5f09c195c635b256db8595687828c3ea0785ab5b72f4">
+        <source xml:lang="en">Image tag</source>
+        <target state="new">Image tag</target>
+      </trans-unit>
       <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
         <source xml:lang="en">Importance</source>
         <target state="translated">Важность</target>
@@ -2286,6 +2298,10 @@ Error:
       <trans-unit id="++CODE++4480c895a6e66acfc4e43550d8a60598168463e52699be5ed28eae3ecf7200c7">
         <source xml:lang="en">Invalid IP Address</source>
         <target state="translated">Недопустимый IP-адрес</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0c2f118ad5933157d00e2025f7cc3d3c3da84db32e18ffbb4f1032471cc643ef">
+        <source xml:lang="en">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</source>
+        <target state="new">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</target>
       </trans-unit>
       <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
         <source xml:lang="en">Invalid column width</source>
@@ -2681,6 +2697,10 @@ Error:
         <note>{0} is the account name</note>
         <target state="translated">Учетная запись Microsoft Entra {0} добавлена.</target>
       </trans-unit>
+      <trans-unit id="++CODE++ede0760e8703fdfcddf4d15e0406c0deeadd91e7907d2a3e7479c6a3d3e309e4">
+        <source xml:lang="en">Microsoft SQL Server License Agreement</source>
+        <target state="new">Microsoft SQL Server License Agreement</target>
+      </trans-unit>
       <trans-unit id="++CODE++951f4af90cfde827d87f358b3d8d275ee60a3306d9ddb5c4615483cff067697a">
         <source xml:lang="en">Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.</source>
         <target state="translated">Корпорация Майкрософт изучает ваши отзывы для совершенствования наших продуктов, поэтому не включайте в них личные, конфиденциальные или защищаемые данные.</target>
@@ -2730,6 +2750,10 @@ Error:
         <source xml:lang="en">Name of the primary key.</source>
         <target state="translated">Имя первичного ключа.</target>
       </trans-unit>
+      <trans-unit id="++CODE++47fcb7ca194ec7de1be8ea7b91df9b1e51e273673b6410255e55f48fe0061598">
+        <source xml:lang="en">New Azure SQL logical server (Preview)</source>
+        <target state="new">New Azure SQL logical server (Preview)</target>
+      </trans-unit>
       <trans-unit id="++CODE++e7d029a3c1b85e562db8e25ceb52958e3c3da9e6e50b95ebf95f3fae85091a15">
         <source xml:lang="en">New Check Constraint</source>
         <target state="translated">Новое проверочное ограничение</target>
@@ -2761,6 +2785,10 @@ Error:
       <trans-unit id="++CODE++7c451e0f436d04a6f321f8d5de8da296a66cfb1d8cdc3918b1ed7ecd480cce28">
         <source xml:lang="en">New Password</source>
         <target state="translated">Новый пароль</target>
+      </trans-unit>
+      <trans-unit id="++CODE++80e8f069713682d743cceecaad91cb538d199e18712328724d348491bfbb64af">
+        <source xml:lang="en">New SQL Server local development container</source>
+        <target state="new">New SQL Server local development container</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -3157,6 +3185,10 @@ Error:
         <source xml:lang="en">Port</source>
         <target state="translated">Порт</target>
       </trans-unit>
+      <trans-unit id="++CODE++ed66c5818178010b7908ff51b8195453260bb97629cc433ea0b53795840b8645">
+        <source xml:lang="en">Port must be a number between 1 and 65535</source>
+        <target state="new">Port must be a number between 1 and 65535</target>
+      </trans-unit>
       <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
         <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
         <target state="translated">Обнаружена возможная потеря данных. Проверьте изменения.</target>
@@ -3372,6 +3404,10 @@ Error:
         <source xml:lang="en">Replication</source>
         <target state="translated">Репликация</target>
       </trans-unit>
+      <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
+        <source xml:lang="en">Required</source>
+        <target state="new">Required</target>
+      </trans-unit>
       <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
         <source xml:lang="en">Reset</source>
         <target state="translated">Сбросить</target>
@@ -3485,9 +3521,17 @@ Query: {1}</source>
         <source xml:lang="en">SQL Server Container SA Password</source>
         <target state="translated">Пароль системного администратора контейнера с SQL Server</target>
       </trans-unit>
+      <trans-unit id="++CODE++8fb9e52bba9bdebaf10c130eca428ca15b770d0ba41c5f854c47db14a380f8ae">
+        <source xml:lang="en">SQL Server admin password</source>
+        <target state="new">SQL Server admin password</target>
+      </trans-unit>
       <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
         <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
         <target state="translated">SQL Server не поддерживает контейнеры с Windows. Переключитесь на контейнеры Linux в настройках Docker Desktop.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80">
+        <source xml:lang="en">SQL Server port number</source>
+        <target state="new">SQL Server port number</target>
       </trans-unit>
       <trans-unit id="++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8">
         <source xml:lang="en">SQL Server {0} - latest</source>
@@ -4485,6 +4529,10 @@ Query: {1}</source>
         <source xml:lang="en">You are not connected to any database.</source>
         <target state="translated">Вы не подключены ни к одной базе данных.</target>
       </trans-unit>
+      <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
+        <source xml:lang="en">You must accept the license</source>
+        <target state="new">You must accept the license</target>
+      </trans-unit>
       <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
         <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
         <target state="translated">Для просмотра баз данных SQL необходимо войти в Azure.</target>
@@ -4662,6 +4710,10 @@ Query: {1}</source>
         <note>{0} is the number of active elements
 {1} is the total number of elements</note>
         <target state="translated">{0} из {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
+        <source xml:lang="en">{0} password doesn't match the confirmation password</source>
+        <target state="new">{0} password doesn't match the confirmation password</target>
       </trans-unit>
       <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
         <source xml:lang="en">{0} properties</source>
