@@ -34,7 +34,7 @@ import {
     ConnectionGroupState,
 } from "../../../sharedInterfaces/connectionGroup";
 import { useState } from "react";
-import { Keys } from "../../common/keys";
+import { KeyCode } from "../../common/keys";
 
 const useStyles = makeStyles({
     previewColor: {
@@ -125,7 +125,7 @@ export const ConnectionGroupDialog = ({
         <Dialog open={true /* standalone dialog always open*/}>
             <DialogSurface
                 onKeyDown={(e: React.KeyboardEvent) => {
-                    if (e.key === Keys.Escape && popoverOpen === false) {
+                    if (e.code === KeyCode.Escape && popoverOpen === false) {
                         closeDialog();
                     }
                 }}>

@@ -165,7 +165,6 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
         if (this._data.length === this._allData.length) {
             await this.clearFilter();
         } else {
-            console.log("filterstatechange");
             // this._onFilterStateChange.fire();
         }
     }
@@ -203,7 +202,6 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
             column: args.sortCol!,
             sortDirection: args.sortAsc ? SortProperties.ASC : SortProperties.DESC,
         };
-        console.log(args);
         // this._onSortComplete.fire(args);
     }
 
@@ -263,7 +261,6 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
         } else {
             this._data.push(...inputArray);
         }
-        console.log(this.getLength());
         // this._onRowCountChange.fire(this.getLength());
     }
 
@@ -272,7 +269,6 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
         if (this._filterEnabled) {
             this._allData = new Array<T>();
         }
-        console.log(this.getLength());
         // this._onRowCountChange.fire(this.getLength());
     }
 
@@ -282,7 +278,6 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
         }
         this._findArray = new Array<IFindPosition>();
         this._findIndex = 0;
-        console.log(this._findArray.length);
         // this._onFindCountChange.fire(this._findArray.length);
         if (exp) {
             return new Promise<IFindPosition>(() => {
@@ -303,7 +298,6 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
                     const pos = result[j];
                     const index = { col: pos, row: i };
                     this._findArray!.push(index);
-                    console.log(this._findArray!.length);
                     // this._onFindCountChange.fire(this._findArray!.length);
                     if (maxMatches > 0 && this._findArray!.length === maxMatches) {
                         breakout = true;
@@ -321,7 +315,6 @@ export class TableDataView<T extends Slick.SlickData> implements IDisposableData
     clearFind() {
         this._findArray = new Array<IFindPosition>();
         this._findIndex = 0;
-        console.log(this._findArray.length);
         // this._onFindCountChange.fire(this._findArray.length);
     }
 

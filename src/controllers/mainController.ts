@@ -190,10 +190,6 @@ export default class MainController implements vscode.Disposable {
         return this.configuration.get(Constants.configEnableRichExperiences);
     }
 
-    public get useLegacyConnectionExperience(): boolean {
-        return this.configuration.get(Constants.configUseLegacyConnectionExperience);
-    }
-
     /**
      * Initializes the extension
      */
@@ -293,7 +289,9 @@ export default class MainController implements vscode.Disposable {
             this.registerCommand(Constants.cmdAadAddAccount);
             this._event.on(Constants.cmdAadAddAccount, () => this.addAadAccount());
             this.registerCommandWithArgs(Constants.cmdClearAzureTokenCache);
-            this._event.on(Constants.cmdClearAzureTokenCache, () => this.onClearAzureTokenCache());
+            this._event.on(Constants.cmdClearAzureTokenCache, () =>
+                this.connectionManager.onClearAzureTokenCache(),
+            );
             this.registerCommand(Constants.cmdShowEstimatedPlan);
             this._event.on(Constants.cmdShowEstimatedPlan, () => {
                 void this.onRunQuery({
@@ -946,7 +944,6 @@ export default class MainController implements vscode.Disposable {
             this._context,
             this._statusview,
             this._prompter,
-            this.useLegacyConnectionExperience,
         );
 
         this._sqlDocumentService = new SqlDocumentService(this);
@@ -969,7 +966,6 @@ export default class MainController implements vscode.Disposable {
         sendActionEvent(TelemetryViews.General, TelemetryActions.Activated, {
             experimentalFeaturesEnabled: this.isExperimentalEnabled.toString(),
             modernFeaturesEnabled: this.isRichExperiencesEnabled.toString(),
-            useLegacyConnections: this.useLegacyConnectionExperience.toString(),
             cloudType: getCloudId(),
         });
 
@@ -1339,7 +1335,6 @@ export default class MainController implements vscode.Disposable {
     private async initializeObjectExplorer(
         objectExplorerProvider?: ObjectExplorerProvider,
     ): Promise<void> {
-        const self = this;
         // Register the object explorer tree provider
         this._objectExplorerProvider =
             objectExplorerProvider ??
@@ -1366,38 +1361,28 @@ export default class MainController implements vscode.Disposable {
         this.registerCommandWithArgs(Constants.cmdAddObjectExplorer);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
-            if (this.useLegacyConnectionExperience) {
-                await self.createObjectExplorerSession();
-            } else {
-                let connectionInfo: IConnectionInfo | undefined = undefined;
-                let connectionGroup: IConnectionGroup | undefined = undefined;
-                if (args) {
-                    // validate that `args` is an IConnectionInfo before assigning
-                    if (isIConnectionInfo(args)) {
-                        connectionInfo = args;
-                    } else {
-                        if (args instanceof ConnectionGroupNode) {
-                            connectionGroup = args.connectionGroup;
-                        }
+            let connectionInfo: IConnectionInfo | undefined = undefined;
+            let connectionGroup: IConnectionGroup | undefined = undefined;
+            if (args) {
+                // validate that `args` is an IConnectionInfo before assigning
+                if (isIConnectionInfo(args)) {
+                    connectionInfo = args;
+                } else {
+                    if (args instanceof ConnectionGroupNode) {
+                        connectionGroup = args.connectionGroup;
                     }
                 }
-
-                const connDialog = new ConnectionDialogWebviewController(
-                    this._context,
-                    this._vscodeWrapper,
-                    this,
-                    this._objectExplorerProvider,
-                    connectionInfo,
-                    connectionGroup,
-                );
-                connDialog.revealToForeground();
             }
-        });
 
-        // redirect the "Legacy" command to the core command; that handler will differentiate
-        this.registerCommandWithArgs(Constants.cmdAddObjectExplorerLegacy);
-        this._event.on(Constants.cmdAddObjectExplorerLegacy, (args) => {
-            vscode.commands.executeCommand(Constants.cmdAddObjectExplorer, args);
+            const connDialog = new ConnectionDialogWebviewController(
+                this._context,
+                this._vscodeWrapper,
+                this,
+                this._objectExplorerProvider,
+                connectionInfo,
+                connectionGroup,
+            );
+            connDialog.revealToForeground();
         });
 
         // Object Explorer New Query
@@ -2678,7 +2663,6 @@ export default class MainController implements vscode.Disposable {
             Constants.enableConnectionPooling,
             Constants.configEnableExperimentalFeatures,
             Constants.configEnableRichExperiences,
-            Constants.configUseLegacyConnectionExperience,
             Constants.configSovereignCloudEnvironment,
             Constants.configSovereignCloudCustomEnvironment,
             Constants.configCustomEnvironment,
@@ -2872,10 +2856,6 @@ export default class MainController implements vscode.Disposable {
 
     public addAadAccount(): void {
         void this.connectionManager.addAccount();
-    }
-
-    public onClearAzureTokenCache(): void {
-        this.connectionManager.onClearTokenCache();
     }
 
     private ExecutionPlanCustomEditorProvider = class implements vscode.CustomTextEditorProvider {

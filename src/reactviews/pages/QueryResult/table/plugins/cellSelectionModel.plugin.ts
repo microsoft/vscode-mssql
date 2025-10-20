@@ -15,9 +15,11 @@ import {
 import { isUndefinedOrNull } from "../tableDataView";
 import { mixin } from "../objects";
 import { tokens } from "@fluentui/react-components";
-import { Keys } from "../../../../common/keys";
+import { KeyCode } from "../../../../common/keys";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
+import { convertDisplayedSelectionToActual } from "../utils";
 import { HeaderMenu } from "./headerFilter.plugin";
+import { isMetaKeyPressed } from "../../../../common/utils";
 
 export interface ICellSelectionModelOptions {
     cellRangeSelector?: any;
@@ -42,7 +44,6 @@ export class CellSelectionModel<T extends Slick.SlickData>
     private selector: ICellRangeSelector<T>;
     private ranges: Array<Slick.Range> = [];
     private _handler = new Slick.EventHandler();
-    private isMac: boolean | undefined;
 
     public onSelectedRangesChanged = new Slick.Event<Array<Slick.Range>>();
 
@@ -68,7 +69,6 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     public init(grid: Slick.Grid<T>) {
         this.grid = grid;
-        this.isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
         this._handler.subscribe(this.grid.onKeyDown, (e: Slick.DOMEvent) =>
             this.handleKeyDown(e as unknown as KeyboardEvent),
         );
@@ -164,11 +164,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         this.setSelectedRanges(ranges);
     }
 
-    private isMultiSelection(_e: MouseEvent): boolean {
-        return this.isMac ? _e.metaKey : _e.ctrlKey;
-    }
-
-    private handleHeaderClick(e: MouseEvent, args: Slick.OnHeaderClickEventArgs<T>) {
+    private async handleHeaderClick(e: MouseEvent, args: Slick.OnHeaderClickEventArgs<T>) {
         if (e.target) {
             if ((e.target as EventTargetWithClassName).className === "slick-resizable-handle") {
                 return;
@@ -205,7 +201,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
                         rowCount - 1,
                         columnIndex,
                     );
-                } else if (this.isMultiSelection(e)) {
+                } else if (await isMetaKeyPressed(e)) {
                     /**
                      * If the user clicks on a column header while holding down CTRL key, we select/deselect the entire column.
                      */
@@ -431,7 +427,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
                 } else {
                     newlySelectedRange = new Slick.Range(args.row, 1, args.row, columns.length - 1);
                 }
-            } else if (this.isMultiSelection(e)) {
+            } else if (await isMetaKeyPressed(e)) {
                 let isCurrentRowAlreadySelected = selectedRanges.some(
                     (range) => range.fromRow <= args.row && range.toRow >= args.row,
                 );
@@ -485,7 +481,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
                 } else {
                     newlySelectedRange = new Slick.Range(args.row, args.cell, args.row, args.cell);
                 }
-            } else if (this.isMultiSelection(e)) {
+            } else if (await isMetaKeyPressed(e)) {
                 const isCurrentCellAlreadySelected = selectedRanges.some(
                     (range) =>
                         range.fromRow <= args.row &&
@@ -596,11 +592,11 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
-        const key = e.key; // e.g., 'a', 'ArrowLeft'
-        const metaOrCtrlPressed = this.isMac ? e.metaKey : e.ctrlKey;
+        const key = e.code;
+        const metaOrCtrlPressed = await isMetaKeyPressed(e);
 
         // Select All (Cmd/Ctrl + A)
-        if (metaOrCtrlPressed && key === Keys?.a) {
+        if (metaOrCtrlPressed && key === KeyCode.KeyA) {
             e.preventDefault();
             e.stopPropagation();
             await this.handleSelectAll();
@@ -608,7 +604,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         }
 
         // Open Header menu  (Alt + F) ---
-        if (e.altKey && key === Keys?.ArrowDown && !e.shiftKey && !metaOrCtrlPressed) {
+        if (e.altKey && key === KeyCode?.ArrowDown && !e.shiftKey && !metaOrCtrlPressed) {
             e.preventDefault();
             e.stopPropagation();
             if (
@@ -622,10 +618,10 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
         // Range selection via Shift + Arrow (no Alt, no Meta/Ctrl)
         const isArrow =
-            key === (Keys?.ArrowLeft ?? "ArrowLeft") ||
-            key === (Keys?.ArrowRight ?? "ArrowRight") ||
-            key === (Keys?.ArrowUp ?? "ArrowUp") ||
-            key === (Keys?.ArrowDown ?? "ArrowDown");
+            key === KeyCode.ArrowLeft ||
+            key === KeyCode.ArrowRight ||
+            key === KeyCode.ArrowUp ||
+            key === KeyCode.ArrowDown;
 
         if (!isArrow || !e.shiftKey || metaOrCtrlPressed || e.altKey) {
             return; // Not our concern—let the default handler run
@@ -660,16 +656,16 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
         // Nudge the deltas based on the pressed arrow
         switch (key) {
-            case Keys?.ArrowLeft ?? "ArrowLeft":
+            case KeyCode.ArrowLeft:
                 dCell -= dirCell;
                 break;
-            case Keys?.ArrowRight ?? "ArrowRight":
+            case KeyCode.ArrowRight:
                 dCell += dirCell;
                 break;
-            case Keys?.ArrowUp ?? "ArrowUp":
+            case KeyCode.ArrowUp:
                 dRow -= dirRow;
                 break;
-            case Keys?.ArrowDown ?? "ArrowDown":
+            case KeyCode.ArrowDown:
                 dRow += dirRow;
                 break;
         }
@@ -699,7 +695,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         e.stopPropagation();
     }
 
-    private async updateSummaryText(ranges?: Slick.Range[]): Promise<void> {
+    public async updateSummaryText(ranges?: Slick.Range[]): Promise<void> {
         if (!ranges) {
             ranges = this.getSelectedRanges();
         }
@@ -709,8 +705,9 @@ export class CellSelectionModel<T extends Slick.SlickData>
             toRow: range.toRow,
             toCell: range.toCell - 1, // adjust for number column
         }));
+        const actualRanges = convertDisplayedSelectionToActual(this.grid, simplifiedRanges);
         await this.context.extensionRpc.sendNotification(SetSelectionSummaryRequest.type, {
-            selection: simplifiedRanges,
+            selection: actualRanges,
             uri: this.uri,
             batchId: this.resultSetSummary.batchId,
             resultId: this.resultSetSummary.id,
