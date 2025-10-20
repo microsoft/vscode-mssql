@@ -7,6 +7,7 @@ import { useContext } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { useFormStyles } from "../../common/forms/form.component";
 import { PublishProjectContext } from "./publishProjectStateProvider";
+import { PublishTarget } from "../../../sharedInterfaces/publishDialog";
 import { usePublishDialogSelector } from "./publishDialogSelector";
 import { LocConstants } from "../../common/locConstants";
 import { PublishProfileField } from "./components/PublishProfileSection";
@@ -35,33 +36,21 @@ function PublishProjectDialog() {
     const context = useContext(PublishProjectContext);
 
     // Select pieces of state needed for this component
-    const formComponents = usePublishDialogSelector((s) => s.formComponents, Object.is);
-    const formState = usePublishDialogSelector((s) => s.formState, Object.is);
-    const inProgress = usePublishDialogSelector((s) => s.inProgress, Object.is);
+    const formState = usePublishDialogSelector((s) => s.formState);
+    const inProgress = usePublishDialogSelector((s) => s.inProgress);
+    const hasValidationErrors = usePublishDialogSelector((s) => s.hasValidationErrors);
+    const hasMissingRequiredValues = usePublishDialogSelector((s) => s.hasMissingRequiredValues);
 
     // Check if component is properly initialized and ready for user interaction
-    const isComponentReady = !!context && !!formComponents && !!formState;
+    const isComponentReady = !!context && !!formState;
 
-    // Let the form framework handle validation - check if any visible components have validation errors
-    const hasValidationErrors =
-        isComponentReady && formComponents
-            ? Object.values(formComponents).some(
-                  (component) =>
-                      !component.hidden && component.validation && !component.validation.isValid,
-              )
-            : false;
-
-    // Buttons should be disabled when:
-    // - Component is not ready (missing context, form components, or form state)
-    // - Operation is in progress
-    // - Form has validation errors
-    const readyToPublish = !isComponentReady || inProgress || hasValidationErrors;
+    // Disabled criteria: disable when not ready, in progress, has validation errors, or missing required fields
+    const readyToPublish =
+        !isComponentReady || inProgress || hasValidationErrors || hasMissingRequiredValues;
 
     if (!isComponentReady) {
         return <div className={classes.root}>Loading...</div>;
     }
-
-    // Static ordering now expressed via explicit section components.
     return (
         <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
             <div className={classes.root}>
@@ -73,14 +62,17 @@ function PublishProjectDialog() {
                     <div className={classes.footer}>
                         <Button
                             appearance="secondary"
-                            disabled={readyToPublish}
-                            onClick={() => context!.generatePublishScript()}>
+                            disabled={
+                                readyToPublish ||
+                                formState?.publishTarget !== PublishTarget.ExistingServer
+                            }
+                            onClick={() => context.generatePublishScript()}>
                             {loc.generateScript}
                         </Button>
                         <Button
                             appearance="primary"
                             disabled={readyToPublish}
-                            onClick={() => context!.publishNow()}>
+                            onClick={() => context.publishNow()}>
                             {loc.publish}
                         </Button>
                     </div>
