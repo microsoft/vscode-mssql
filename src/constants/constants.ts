@@ -312,29 +312,7 @@ export const MAX_PORT_NUMBER = 65535;
 export const SqlServerName = "SQL server";
 export const AzureSqlServerName = "Azure SQL server";
 export const DefaultSqlPortNumber = "1433";
-export const RequiredFieldMessage = "Required";
 export const DefaultAdminUsername = "sa";
-export const LicenseAcceptanceMessage = "You must accept the license";
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
-export const enablePreviewFeaturesKey = "enablePreviewFeatures";
+export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
-
-export const PublishFormFields = {
-    PublishProfilePath: "publishProfilePath",
-    ServerName: "serverName",
-    DatabaseName: "databaseName",
-    PublishTarget: "publishTarget",
-    SqlCmdVariables: "sqlCmdVariables",
-    ContainerPort: "containerPort",
-    ContainerAdminPassword: "containerAdminPassword",
-    ContainerAdminPasswordConfirm: "containerAdminPasswordConfirm",
-    ContainerImageTag: "containerImageTag",
-    AcceptContainerLicense: "acceptContainerLicense",
-} as const;
-export const PublishFormContainerFields = [
-    PublishFormFields.ContainerPort,
-    PublishFormFields.ContainerAdminPassword,
-    PublishFormFields.ContainerAdminPasswordConfirm,
-    PublishFormFields.ContainerImageTag,
-    PublishFormFields.AcceptContainerLicense,
-] as const;

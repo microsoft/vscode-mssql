@@ -3,24 +3,26 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 
-// Shape returned by sqlProjectsService.getProjectProperties (partial, only fields we use)
-export interface ProjectProperties {
-    projectGuid?: string;
-    configuration?: string;
-    outputPath: string;
-    databaseSource?: string;
-    defaultCollation: string;
-    databaseSchemaProvider: string;
-    projectStyle: unknown;
-    targetVersion?: string;
+/**
+ * Checks if preview features are enabled in VS Code settings for SQL Database Projects.
+ * @returns true if preview features are enabled, false otherwise
+ */
+export function isPreviewFeaturesEnabled(): boolean {
+    return (
+        vscode.workspace
+            .getConfiguration(constants.DBProjectConfigurationKey)
+            .get<boolean>(constants.enableSqlProjPreviewFeaturesKey) ?? false
+    );
 }
 
 /**
- * Target platforms for a sql project
+ * Target platforms for a SQL project - these are user-facing display names shown in the VS Code UI.
+ * The corresponding internal version numbers used by DacFx are defined in targetPlatformToVersion map.
  */
 export const enum SqlTargetPlatform {
     sqlServer2012 = "SQL Server 2012",
@@ -31,7 +33,6 @@ export const enum SqlTargetPlatform {
     sqlServer2022 = "SQL Server 2022",
     sqlAzure = "Azure SQL Database",
     sqlDW = "Azure Synapse SQL Pool",
-    sqlEdge = "Azure SQL Edge",
     sqlDwServerless = "Azure Synapse Serverless SQL Pool",
     sqlDwUnified = "Synapse Data Warehouse in Microsoft Fabric",
     sqlDbFabric = "SQL database in Fabric (preview)",
@@ -58,7 +59,9 @@ export const targetPlatformToVersion: Map<string, string> = new Map<string, stri
 /**
  * Get project properties from the tools service and extract the target platform version portion
  * of the DatabaseSchemaProvider (e.g. 130, 150, 160, AzureV12, AzureDw, etc.).
- * Returns undefined if it cannot be determined or the service call fails.
+ * @param sqlProjectsService - The SQL Projects Service instance to use for retrieving project properties
+ * @param projectFilePath - The absolute path to the .sqlproj file
+ * @returns The target version string (e.g. "150", "AzureV12"), or undefined if it cannot be determined or the service call fails
  */
 export async function getProjectTargetVersion(
     sqlProjectsService: SqlProjectsService | mssql.ISqlProjectsService,
@@ -92,12 +95,14 @@ export async function getProjectTargetVersion(
 
 /**
  * Reads full project properties and augments with extracted targetVersion.
- * Returns undefined if retrieval fails.
+ * @param sqlProjectsService - The SQL Projects Service instance to use for retrieving project properties
+ * @param projectFilePath - The absolute path to the .sqlproj file
+ * @returns The project properties with an additional targetVersion field, or undefined if retrieval fails
  */
 export async function readProjectProperties(
     sqlProjectsService: SqlProjectsService | mssql.ISqlProjectsService,
     projectFilePath: string,
-): Promise<ProjectProperties | undefined> {
+): Promise<(mssql.GetProjectPropertiesResult & { targetVersion?: string }) | undefined> {
     try {
         if (!projectFilePath) {
             return undefined;
@@ -107,66 +112,31 @@ export async function readProjectProperties(
             return undefined;
         }
         const version = await getProjectTargetVersion(sqlProjectsService, projectFilePath);
-        const props: ProjectProperties = {
-            projectGuid: result.projectGuid,
-            configuration: result.configuration,
-            outputPath: result.outputPath,
-            databaseSource: result.databaseSource,
-            defaultCollation: result.defaultCollation,
-            databaseSchemaProvider: result.databaseSchemaProvider,
-            projectStyle: result.projectStyle,
+        return {
+            ...result,
             targetVersion: version,
         };
-        return props;
     } catch {
         return undefined;
     }
 }
 
+/**
+ * Gets the appropriate server name display string based on the target version.
+ * @param target - The target version string (e.g. "AzureV12", "150")
+ * @returns "Azure SQL server" for Azure SQL Database, "SQL server" for all other targets
+ */
 export function getPublishServerName(target: string) {
-    return target ===
-        targetPlatformToVersion.get("Azure SQL Database" /* SqlTargetPlatform.sqlAzure */)
+    return target === targetPlatformToVersion.get(SqlTargetPlatform.sqlAzure)
         ? constants.AzureSqlServerName
         : constants.SqlServerName;
 }
 
-/*
- * Validates the SQL Server port number.
- */
-export function validateSqlServerPortNumber(port: string | number | undefined): boolean {
-    if (port === undefined) {
-        return false;
-    }
-    const str = String(port).trim();
-    if (str.length === 0) {
-        return false;
-    }
-    // Must be all digits
-    if (!/^[0-9]+$/.test(str)) {
-        return false;
-    }
-    const n = Number(str);
-    return n >= 1 && n <= constants.MAX_PORT_NUMBER;
-}
-
 /**
- * Returns true if password meets SQL complexity (length 8-128, does not contain login name,
- * and contains at least 3 of 4 categories: upper, lower, digit, symbol).
+ * Validates the SQL Server port number.
+ * @param port - The port number to validate
+ * @returns true if the port is a whole number between 1 and 65535, false otherwise
  */
-export function isValidSqlAdminPassword(password: string, userName = "sa"): boolean {
-    if (!password) {
-        return false;
-    }
-    const containsUserName = !!userName && password.toUpperCase().includes(userName.toUpperCase());
-    if (containsUserName) {
-        return false;
-    }
-    if (password.length < 8 || password.length > 128) {
-        return false;
-    }
-    const hasUpper = /[A-Z]/.test(password) ? 1 : 0;
-    const hasLower = /[a-z]/.test(password) ? 1 : 0;
-    const hasDigit = /\d/.test(password) ? 1 : 0;
-    const hasSymbol = /\W/.test(password) ? 1 : 0;
-    return hasUpper + hasLower + hasDigit + hasSymbol >= 3;
+export function validateSqlServerPortNumber(port: number): boolean {
+    return Number.isInteger(port) && port >= 1 && port <= constants.MAX_PORT_NUMBER;
 }

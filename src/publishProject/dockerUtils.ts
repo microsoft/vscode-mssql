@@ -44,7 +44,11 @@ function findSqlVersionInImageName(imageName: string, regex?: RegExp): number | 
     return undefined;
 }
 
-// Extract a version year from a target platform string
+/**
+ * Returns SQL version number from target platform string
+ * @param target target platform string
+ * @returns SQL server version
+ */
 function findSqlVersionInTargetPlatform(target: string | undefined): number | undefined {
     if (!target) {
         return undefined;
@@ -55,6 +59,8 @@ function findSqlVersionInTargetPlatform(target: string | undefined): number | un
 
 /*
  * Returns the target platform string for a given SQL version number
+ * @param version SQL server version
+ * @returns target platform string
  */
 export function getTargetPlatformFromVersion(version: string): string {
     return Array.from(targetPlatformToVersion.keys()).filter(
@@ -119,6 +125,12 @@ export function filterAndSortTags(
     return imageTags;
 }
 
+/*
+ * Returns the Docker base image information for a given target platform
+ * @param target target platform string
+ * @param azureTargetVersion optional Azure target version
+ * @returns Docker image information
+ */
 export function getDockerBaseImage(target: string, azureTargetVersion?: string): DockerImageInfo {
     return {
         name: `${constants.sqlServerDockerRegistry}/${constants.sqlServerDockerRepository}`,

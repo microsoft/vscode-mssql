@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as constants from "../constants/constants";
+import * as mssql from "vscode-mssql";
 import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
 
 // Publish target options - defines where the database project will be published
@@ -13,8 +14,34 @@ export enum PublishTarget {
     NewAzureServer = "newAzureServer",
 }
 
-// export publish-related constants for use in webview code
-export const PublishFormFields = constants.PublishFormFields;
+/**
+ * Field names for the Publish form - defines the keys used in IPublishForm interface
+ */
+export const PublishFormFields = {
+    PublishProfilePath: "publishProfilePath",
+    ServerName: "serverName",
+    DatabaseName: "databaseName",
+    PublishTarget: "publishTarget",
+    SqlCmdVariables: "sqlCmdVariables",
+    ContainerPort: "containerPort",
+    ContainerAdminPassword: "containerAdminPassword",
+    ContainerAdminPasswordConfirm: "containerAdminPasswordConfirm",
+    ContainerImageTag: "containerImageTag",
+    AcceptContainerLicense: "acceptContainerLicense",
+} as const;
+
+/**
+ * Container-specific fields that are shown/hidden based on publish target
+ */
+export const PublishFormContainerFields = [
+    PublishFormFields.ContainerPort,
+    PublishFormFields.ContainerAdminPassword,
+    PublishFormFields.ContainerAdminPasswordConfirm,
+    PublishFormFields.ContainerImageTag,
+    PublishFormFields.AcceptContainerLicense,
+] as const;
+
+// Re-export other publish-related constants for use in webview code
 export const DefaultSqlPortNumber = constants.DefaultSqlPortNumber;
 
 /**
@@ -42,12 +69,9 @@ export interface PublishDialogState
     projectFilePath: string;
     inProgress: boolean;
     lastPublishResult?: { success: boolean; details?: string };
-    // Optional project metadata (target version, etc.) loaded asynchronously
-    projectProperties?: {
-        targetVersion?: string;
-        // Additional properties can be added here as needed
-        [key: string]: unknown;
-    };
+    projectProperties?: mssql.GetProjectPropertiesResult & { targetVersion?: string };
+    hasValidationErrors?: boolean;
+    hasMissingRequiredValues?: boolean;
 }
 
 /**

@@ -1300,15 +1300,7 @@ export class PublishProject {
     public static SqlServerAdminPassword = l10n.t("SQL Server admin password");
     public static SqlServerAdminPasswordConfirm = l10n.t("Confirm SQL Server admin password");
     public static SqlServerImageTag = l10n.t("Image tag");
-    public static UserLicenseAgreement = (licenseUrl: string) =>
-        l10n.t({
-            message:
-                'I accept the <a href="{0}" target="_blank" rel="noopener noreferrer">Microsoft SQL Server License Agreement</a>',
-            args: [licenseUrl],
-            comment: [
-                "{0} is the hyperlink URL to the Microsoft SQL Server License Agreement used in an HTML anchor tag",
-            ],
-        });
+    public static SqlServerLicenseAgreement = l10n.t("Microsoft SQL Server License Agreement");
     // Validation messages
     public static InvalidPortMessage = l10n.t("Port must be a number between 1 and 65535");
     public static InvalidSQLPasswordMessage(name: string) {
@@ -1320,6 +1312,8 @@ export class PublishProject {
     public static PasswordNotMatchMessage = (name: string) => {
         return l10n.t("{0} password doesn't match the confirmation password", name);
     };
+    public static RequiredFieldMessage = l10n.t("Required");
+    public static LicenseAcceptanceMessage = l10n.t("You must accept the license");
 }
 
 export class SchemaCompare {

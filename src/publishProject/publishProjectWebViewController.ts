@@ -5,7 +5,6 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
-import * as constants from "../constants/constants";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { PublishProject as Loc } from "../constants/locConstants";
@@ -13,6 +12,8 @@ import {
     PublishDialogReducers,
     PublishDialogFormItemSpec,
     IPublishForm,
+    PublishFormFields,
+    PublishFormContainerFields,
     PublishDialogState,
     PublishTarget,
 } from "../sharedInterfaces/publishDialog";
@@ -21,6 +22,8 @@ import { loadDockerTags } from "./dockerUtils";
 import { readProjectProperties } from "./projectUtils";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
+import { sendErrorEvent } from "../telemetry/telemetry";
+import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -105,17 +108,19 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     projectFilePath,
                 );
                 if (props) {
-                    this.state.projectProperties = {
-                        ...props,
-                    } as {
-                        [key: string]: unknown;
-                        targetVersion?: string;
-                    };
+                    this.state.projectProperties = props;
                     projectTargetVersion = props.targetVersion;
                 }
             }
-        } catch {
-            // swallow errors; keep dialog resilient
+        } catch (error) {
+            // Log error and send telemetry, but keep dialog resilient
+            console.error("Failed to read project properties:", error);
+            sendErrorEvent(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.PublishProjectChanges,
+                error instanceof Error ? error : new Error(String(error)),
+                false, // don't include error message in telemetry for privacy
+            );
         }
 
         // Load publish form components
@@ -126,8 +131,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         // Fetch Docker tags for the container image dropdown
         if (projectTargetVersion) {
-            const tagComponent =
-                this.state.formComponents[constants.PublishFormFields.ContainerImageTag];
+            const tagComponent = this.state.formComponents[PublishFormFields.ContainerImageTag];
             if (tagComponent) {
                 await loadDockerTags(projectTargetVersion, tagComponent, this.state.formState);
             }
@@ -138,41 +142,39 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
     /** Registers all reducers in pure (immutable) style */
     private registerRpcHandlers(): void {
-        this.registerReducer("publishNow", async (state: PublishDialogState) => {
+        this.registerReducer("publishNow", async (state) => {
             // TODO: implement actual publish logic (currently just clears inProgress)
-            return { ...state, inProgress: false };
+            state.inProgress = false;
+            return state;
         });
 
-        this.registerReducer("generatePublishScript", async (state: PublishDialogState) => {
+        this.registerReducer("generatePublishScript", async (state) => {
             // TODO: implement script generation logic
             return state;
         });
 
-        this.registerReducer("selectPublishProfile", async (state: PublishDialogState) => {
+        this.registerReducer("selectPublishProfile", async (state) => {
             // TODO: implement profile selection logic
             return state;
         });
 
-        this.registerReducer(
-            "savePublishProfile",
-            async (state: PublishDialogState, _payload: { publishProfileName: string }) => {
-                // TODO: implement profile saving logic using _payload.publishProfileName
-                // This should save current form state to a file with the given name
-                return state;
-            },
-        );
+        this.registerReducer("savePublishProfile", async (state, _payload) => {
+            // TODO: implement profile saving logic using _payload.publishProfileName
+            // This should save current form state to a file with the given name
+            return state;
+        });
     }
 
     protected getActiveFormComponents(state: PublishDialogState): (keyof IPublishForm)[] {
         const activeComponents: (keyof IPublishForm)[] = [
-            constants.PublishFormFields.PublishTarget,
-            constants.PublishFormFields.PublishProfilePath,
-            constants.PublishFormFields.ServerName,
-            constants.PublishFormFields.DatabaseName,
-        ] as (keyof IPublishForm)[];
+            PublishFormFields.PublishTarget,
+            PublishFormFields.PublishProfilePath,
+            PublishFormFields.ServerName,
+            PublishFormFields.DatabaseName,
+        ];
 
         if (state.formState.publishTarget === PublishTarget.LocalContainer) {
-            activeComponents.push(...constants.PublishFormContainerFields);
+            activeComponents.push(...PublishFormContainerFields);
         }
 
         return activeComponents;
@@ -185,13 +187,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         if (target === PublishTarget.LocalContainer) {
             // Container deployment: hide server name field
-            hidden.push(constants.PublishFormFields.ServerName);
+            hidden.push(PublishFormFields.ServerName);
         } else if (
             target === PublishTarget.ExistingServer ||
             target === PublishTarget.NewAzureServer
         ) {
             // Existing server or new Azure server: hide container-specific fields
-            hidden.push(...constants.PublishFormContainerFields);
+            hidden.push(...PublishFormContainerFields);
         }
 
         for (const component of Object.values(currentState.formComponents)) {
@@ -199,5 +201,56 @@ export class PublishProjectWebViewController extends FormWebviewController<
         }
 
         return Promise.resolve();
+    }
+
+    protected async validateForm(
+        formTarget: IPublishForm,
+        propertyName?: keyof IPublishForm,
+        updateValidation?: boolean,
+    ): Promise<(keyof IPublishForm)[]> {
+        // Call parent validation logic
+        const erroredInputs = await super.validateForm(formTarget, propertyName, updateValidation);
+
+        // Update validation state properties
+        if (updateValidation) {
+            this.updateFormValidationState();
+        }
+
+        return erroredInputs;
+    }
+
+    private updateFormValidationState(): void {
+        // Check if any visible component has validation errors
+        this.state.hasValidationErrors = Object.values(this.state.formComponents).some(
+            (component) =>
+                !component.hidden &&
+                component.validation !== undefined &&
+                component.validation.isValid === false,
+        );
+
+        // Check if any required fields are missing values
+        this.state.hasMissingRequiredValues = Object.values(this.state.formComponents).some(
+            (component) => {
+                if (component.hidden || !component.required) {
+                    return false;
+                }
+                const key = component.propertyName as keyof IPublishForm;
+                const raw = this.state.formState[key];
+                // Missing if undefined/null
+                if (raw === undefined) {
+                    return true;
+                }
+                // For strings, empty/whitespace is missing
+                if (typeof raw === "string") {
+                    return raw.trim().length === 0;
+                }
+                // For booleans (e.g. required checkbox), must be true
+                if (typeof raw === "boolean") {
+                    return raw !== true;
+                }
+                // For numbers, allow 0 (not missing)
+                return false;
+            },
+        );
     }
 }

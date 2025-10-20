@@ -1664,10 +1664,6 @@
     <trans-unit id="++CODE++4d7056f0e9bef4870b289d7b77634cead0e646a63708a1eb500c6eab11c1328e">
       <source xml:lang="en">Hue</source>
     </trans-unit>
-    <trans-unit id="++CODE++70c28ff8eecf388a53fbc8ff288f471398bdb9860e438b3eae4b7ef6c8f187e5">
-      <source xml:lang="en">I accept the &lt;a href=&quot;{0}&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;Microsoft SQL Server License Agreement&lt;/a&gt;</source>
-      <note>{0} is the hyperlink URL to the Microsoft SQL Server License Agreement used in an HTML anchor tag</note>
-    </trans-unit>
     <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
       <source xml:lang="en">I have read the summary and understand the potential risks.</source>
     </trans-unit>
@@ -2037,6 +2033,9 @@
     <trans-unit id="++CODE++d7f406a55a763bcaf21ae757e59b0ba9b5e2954c074d760a6afa484f977dcf3d">
       <source xml:lang="en">Microsoft Entra account {0} successfully added.</source>
       <note>{0} is the account name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ede0760e8703fdfcddf4d15e0406c0deeadd91e7907d2a3e7479c6a3d3e309e4">
+      <source xml:lang="en">Microsoft SQL Server License Agreement</source>
     </trans-unit>
     <trans-unit id="++CODE++951f4af90cfde827d87f358b3d8d275ee60a3306d9ddb5c4615483cff067697a">
       <source xml:lang="en">Microsoft reviews your feedback to improve our products, so don&apos;t share any personal data or confidential/proprietary content.</source>
@@ -2570,6 +2569,9 @@
     <trans-unit id="++CODE++4f98318295cf61965501b5ff934574dfd3efea58641100c01dfa70131a732b31">
       <source xml:lang="en">Remove {0}</source>
       <note>{0} is the object type</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
+      <source xml:lang="en">Required</source>
     </trans-unit>
     <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
       <source xml:lang="en">Reset</source>
@@ -3404,6 +3406,9 @@
     </trans-unit>
     <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
       <source xml:lang="en">You are not connected to any database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
+      <source xml:lang="en">You must accept the license</source>
     </trans-unit>
     <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
       <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
