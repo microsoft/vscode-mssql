@@ -1779,7 +1779,7 @@ export default class MainController implements vscode.Disposable {
                         ? this._connectionMgr.getUriForConnection(connectionProfile)
                         : "";
                     const serverName = connectionProfile?.server || "";
-                    const databaseName = connectionProfile?.database || "";
+                    const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
 
                     const initialState: DataTierApplicationWebviewState = {
                         ownerUri,
@@ -1811,7 +1811,7 @@ export default class MainController implements vscode.Disposable {
                         ? this._connectionMgr.getUriForConnection(connectionProfile)
                         : "";
                     const serverName = connectionProfile?.server || "";
-                    const databaseName = connectionProfile?.database || "";
+                    const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
 
                     const initialState: DataTierApplicationWebviewState = {
                         ownerUri,
@@ -1843,7 +1843,7 @@ export default class MainController implements vscode.Disposable {
                         ? this._connectionMgr.getUriForConnection(connectionProfile)
                         : "";
                     const serverName = connectionProfile?.server || "";
-                    const databaseName = connectionProfile?.database || "";
+                    const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
 
                     const initialState: DataTierApplicationWebviewState = {
                         ownerUri,
@@ -1875,7 +1875,7 @@ export default class MainController implements vscode.Disposable {
                         ? this._connectionMgr.getUriForConnection(connectionProfile)
                         : "";
                     const serverName = connectionProfile?.server || "";
-                    const databaseName = connectionProfile?.database || "";
+                    const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
 
                     const initialState: DataTierApplicationWebviewState = {
                         ownerUri,
@@ -1907,7 +1907,7 @@ export default class MainController implements vscode.Disposable {
                         ? this._connectionMgr.getUriForConnection(connectionProfile)
                         : "";
                     const serverName = connectionProfile?.server || "";
-                    const databaseName = connectionProfile?.database || "";
+                    const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
 
                     const initialState: DataTierApplicationWebviewState = {
                         ownerUri,

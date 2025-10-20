@@ -122,8 +122,10 @@ export const DataTierApplicationForm = () => {
     );
     const [filePath, setFilePath] = useState("");
     const [databaseName, setDatabaseName] = useState(initialDatabaseName || "");
-    const [isNewDatabase, setIsNewDatabase] = useState(true);
-    const [availableDatabases, setAvailableDatabases] = useState<string[]>([]);
+    const [isNewDatabase, setIsNewDatabase] = useState(!initialDatabaseName);
+    const [availableDatabases, setAvailableDatabases] = useState<string[]>(
+        initialDatabaseName ? [initialDatabaseName] : [],
+    );
     const [applicationName, setApplicationName] = useState("");
     const [applicationVersion, setApplicationVersion] = useState("1.0.0");
     const [isOperationInProgress, setIsOperationInProgress] = useState(false);
