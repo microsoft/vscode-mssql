@@ -721,7 +721,7 @@
       </trans-unit>
       <trans-unit id="++CODE++524ed5b794acd857648e76bead9db5ba131ebcb17f3a92d98ece51db61e65dbf">
         <source xml:lang="en">Clear token cache</source>
-        <target state="new">Clear token cache</target>
+        <target state="translated">清除令牌缓存</target>
       </trans-unit>
       <trans-unit id="++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36">
         <source xml:lang="en">Click to cancel loading summary</source>
@@ -1563,7 +1563,7 @@
       </trans-unit>
       <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
         <source xml:lang="en">Entra token cache cleared successfully.</source>
-        <target state="new">Entra token cache cleared successfully.</target>
+        <target state="translated">已成功清除 Entra 令牌缓存。</target>
       </trans-unit>
       <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
         <source xml:lang="en">Equals</source>
