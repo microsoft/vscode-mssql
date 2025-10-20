@@ -1329,6 +1329,10 @@
     "Clear cache and refresh token": "Clear cache and refresh token",
     "Clear token cache": "Clear token cache",
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+    "Unable to enforce default User Connections group: {0}/{0} is the error message": {
+        "message": "Unable to enforce default User Connections group: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "Add Firewall Rule to {0}/{0} is the server name": {
         "message": "Add Firewall Rule to {0}",
         "comment": ["{0} is the server name"]
