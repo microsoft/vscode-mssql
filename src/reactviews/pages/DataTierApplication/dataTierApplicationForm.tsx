@@ -164,9 +164,25 @@ export const DataTierApplicationForm = () => {
             if (result?.connections) {
                 setAvailableConnections(result.connections);
 
-                // If we have initial server/database from Object Explorer, find and select the matching connection
-                if (initialServerName && result.connections.length > 0) {
-                    // Match by server and database (or server only if database is not specified)
+                // If we have initial ownerUri from Object Explorer, we're already connected
+                // Just find and select the matching connection without trying to connect
+                if (initialOwnerUri && initialServerName && result.connections.length > 0) {
+                    const matchingConnection = result.connections.find((conn) => {
+                        const serverMatches = conn.server === initialServerName;
+                        const databaseMatches =
+                            !initialDatabaseName ||
+                            !conn.database ||
+                            conn.database === initialDatabaseName;
+                        return serverMatches && databaseMatches;
+                    });
+
+                    if (matchingConnection) {
+                        setSelectedProfileId(matchingConnection.profileId);
+                        // We already have ownerUri from Object Explorer, no need to connect
+                        setOwnerUri(initialOwnerUri);
+                    }
+                } else if (initialServerName && result.connections.length > 0) {
+                    // No ownerUri yet, need to find and potentially connect
                     const matchingConnection = result.connections.find((conn) => {
                         const serverMatches = conn.server === initialServerName;
                         const databaseMatches =
@@ -214,9 +230,18 @@ export const DataTierApplicationForm = () => {
                                 setIsConnecting(false);
                             }
                         } else {
-                            // Already connected, just set the ownerUri
-                            if (initialOwnerUri) {
-                                setOwnerUri(initialOwnerUri);
+                            // Already connected, get the ownerUri from the connect request
+                            try {
+                                const connectResult = await context?.extensionRpc?.sendRequest(
+                                    ConnectToServerWebviewRequest.type,
+                                    { profileId: matchingConnection.profileId },
+                                );
+
+                                if (connectResult?.ownerUri) {
+                                    setOwnerUri(connectResult.ownerUri);
+                                }
+                            } catch (error) {
+                                console.error("Failed to get ownerUri:", error);
                             }
                         }
                     }
