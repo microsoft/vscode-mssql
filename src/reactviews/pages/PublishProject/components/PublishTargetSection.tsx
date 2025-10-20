@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { makeStyles } from "@fluentui/react-components";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
@@ -12,7 +12,7 @@ import {
     PublishFormFields,
     DefaultSqlPortNumber,
 } from "../../../../sharedInterfaces/publishDialog";
-import { renderDropdown, renderCheckbox, InputField } from "./FormFieldComponents";
+import { renderInput, renderDropdown, renderCheckbox } from "./FormFieldComponents";
 
 const useStyles = makeStyles({
     root: {
@@ -34,6 +34,10 @@ const useStyles = makeStyles({
 export const PublishTargetSection: React.FC = () => {
     const styles = useStyles();
     const publishCtx = useContext(PublishProjectContext);
+
+    // Local state for password visibility toggles
+    const [showAdminPassword, setShowAdminPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     // Select form components and values - components needed for rendering, values for logic
     const targetComponent = usePublishDialogSelector(
@@ -130,58 +134,39 @@ export const PublishTargetSection: React.FC = () => {
     return (
         <div className={styles.root}>
             {/* Publish Target Dropdown */}
-            {renderDropdown(targetComponent, targetValue, (val) => {
-                publishCtx.formAction({
-                    propertyName: targetComponent.propertyName,
-                    isAction: false,
-                    value: val,
-                });
-            })}
+            {renderDropdown(targetComponent, targetValue, publishCtx)}
 
             {/* Container Fields - Shown only when local container is selected */}
             {isContainer && (
                 <div className={styles.containerGroup}>
                     {/* Container Port */}
-                    <InputField
-                        context={publishCtx}
-                        component={portComponent}
-                        value={portValue?.toString() || ""}
-                    />
+                    {renderInput(portComponent, portValue?.toString() || "", publishCtx)}
 
                     {/* Admin Password */}
-                    <InputField
-                        context={publishCtx}
-                        component={passwordComponent}
-                        value={passwordValue?.toString() || ""}
-                    />
+                    {renderInput(passwordComponent, passwordValue?.toString() || "", publishCtx, {
+                        showPassword: showAdminPassword,
+                        onTogglePassword: () => setShowAdminPassword(!showAdminPassword),
+                    })}
 
                     {/* Confirm Password */}
-                    <InputField
-                        context={publishCtx}
-                        component={confirmPasswordComponent}
-                        value={confirmPasswordValue?.toString() || ""}
-                    />
+                    {renderInput(
+                        confirmPasswordComponent,
+                        confirmPasswordValue?.toString() || "",
+                        publishCtx,
+                        {
+                            showPassword: showConfirmPassword,
+                            onTogglePassword: () => setShowConfirmPassword(!showConfirmPassword),
+                        },
+                    )}
 
                     {/* Container Image Tag */}
-                    {renderDropdown(imageTagComponent, imageTagValue?.toString(), (val) => {
-                        imageTagComponent &&
-                            publishCtx.formAction({
-                                propertyName: imageTagComponent.propertyName,
-                                isAction: false,
-                                value: val,
-                                updateValidation: true,
-                            });
+                    {renderDropdown(imageTagComponent, imageTagValue?.toString(), publishCtx, {
+                        validateOnChange: true,
                     })}
 
                     {/* Accept License Checkbox */}
-                    {renderCheckbox(licenseComponent, Boolean(licenseValue), (checked) => {
-                        licenseComponent &&
-                            publishCtx.formAction({
-                                propertyName: licenseComponent.propertyName,
-                                isAction: false,
-                                value: checked,
-                                updateValidation: true,
-                            });
+                    {renderCheckbox(licenseComponent, Boolean(licenseValue), publishCtx, {
+                        validateOnChange: true,
                     })}
                 </div>
             )}
