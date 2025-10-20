@@ -2596,11 +2596,11 @@
       <source xml:lang="en">Remove {0}</source>
       <note>{0} is the object type</note>
     </trans-unit>
-    <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
-      <source xml:lang="en">Required</source>
-    </trans-unit>
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
+      <source xml:lang="en">Required</source>
     </trans-unit>
     <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
       <source xml:lang="en">Reset</source>
