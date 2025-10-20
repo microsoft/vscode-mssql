@@ -18,12 +18,12 @@ import {
     PublishTarget,
 } from "../sharedInterfaces/publishDialog";
 import { generatePublishFormComponents } from "./formComponentHelpers";
-import { loadDockerTags } from "./dockerUtils";
 import { readProjectProperties } from "./projectUtils";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
+import { getSqlServerContainerTagsForTargetVersion } from "../deployment/dockerUtils";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -130,10 +130,23 @@ export class PublishProjectWebViewController extends FormWebviewController<
         this.updateState();
 
         // Fetch Docker tags for the container image dropdown
-        if (projectTargetVersion) {
-            const tagComponent = this.state.formComponents[PublishFormFields.ContainerImageTag];
-            if (tagComponent) {
-                await loadDockerTags(projectTargetVersion, tagComponent, this.state.formState);
+        // Use the deployment UI function with target version filtering
+        const tagComponent = this.state.formComponents[PublishFormFields.ContainerImageTag];
+        if (tagComponent) {
+            try {
+                const tagOptions =
+                    await getSqlServerContainerTagsForTargetVersion(projectTargetVersion);
+                if (tagOptions && tagOptions.length > 0) {
+                    tagComponent.options = tagOptions;
+
+                    // Set default to first option (most recent -latest) if not already set
+                    if (!this.state.formState.containerImageTag && tagOptions[0]) {
+                        this.state.formState.containerImageTag = tagOptions[0].value;
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch Docker container tags:", error);
+                // Keep dialog resilient - don't block if Docker tags fail to load
             }
         }
 
