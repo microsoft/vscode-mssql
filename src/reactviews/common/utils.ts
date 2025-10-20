@@ -182,6 +182,12 @@ function getAdjacentFocusableElement(
     return focusable[nextIdx] ?? null;
 }
 
+/**
+ * Get the next focusable element.
+ * @param currentElement The current focused element.
+ * @param root The root element to limit the search within. If not provided, document is used.
+ * @returns The next focusable element, or null if none found.
+ */
 export function getNextFocusableElement(
     currentElement: HTMLElement,
     root?: ParentNode,
@@ -189,6 +195,12 @@ export function getNextFocusableElement(
     return getAdjacentFocusableElement(currentElement, 1, root ?? document);
 }
 
+/**
+ * Get the previous focusable element.
+ * @param currentElement The current focused element.
+ * @param root The root element to limit the search within. If not provided, document is used.
+ * @returns The previous focusable element, or null if none found.
+ */
 export function getPreviousFocusableElement(
     currentElement: HTMLElement,
     root?: ParentNode,
@@ -196,6 +208,11 @@ export function getPreviousFocusableElement(
     return getAdjacentFocusableElement(currentElement, -1, root ?? document);
 }
 
+/**
+ * Get the next focusable element outside the given container.
+ * @param container The container element to check against.
+ * @returns The next focusable element outside the container, or null if none found.
+ */
 export function getNextFocusableElementOutside(container: HTMLElement): HTMLElement | null {
     const focusables = getFocusableElements();
     const active = document.activeElement as HTMLElement | null;
@@ -214,6 +231,11 @@ export function getNextFocusableElementOutside(container: HTMLElement): HTMLElem
     return null; // no next element outside the container
 }
 
+/**
+ * Get the previous focusable element outside the given container.
+ * @param container The container element to check against.
+ * @returns The previous focusable element outside the container, or null if none found.
+ */
 export function getPreviousFocusableElementOutside(container: HTMLElement): HTMLElement | null {
     const focusables = getFocusableElements();
     const active = document.activeElement as HTMLElement | null;
