@@ -190,7 +190,6 @@ export function accountRemovalFailed(error: string) {
 export let noAzureAccountForRemoval = l10n.t(
     "No Microsoft Entra account can be found for removal.",
 );
-export let clearedAzureTokenCache = l10n.t("Azure token cache cleared successfully.");
 export let cannotConnect = l10n.t(
     "Cannot connect due to expired tokens. Please re-authenticate and try again.",
 );
@@ -406,8 +405,7 @@ export function msgDisconnected(documentName: string) {
         comment: ["{0} is the document name"],
     });
 }
-export let macOpenSslErrorMessage = l10n.t("OpenSSL version >=1.0.1 is required to connect.");
-export let macOpenSslHelpButton = l10n.t("Help");
+export let help = l10n.t("Help");
 export let macSierraRequiredErrorMessage = l10n.t(
     "macOS Sierra or newer is required to use this feature.",
 );
@@ -719,7 +717,8 @@ export class ConnectionDialog {
             comment: ["{0} is the account display name", "{1} is the tenant id"],
         });
     }
-    public static ClearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
+    public static clearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
+    public static clearTokenCache = l10n.t("Clear token cache");
 
     public static noWorkspacesFound = l10n.t(
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
@@ -938,6 +937,7 @@ export class Accounts {
             comment: ["{0} is the number of invalid accounts that have been removed"],
         });
     };
+    public static clearedEntraTokenCache = l10n.t("Entra token cache cleared successfully.");
 }
 
 export class FabricProvisioning {
@@ -1315,11 +1315,30 @@ export class PublishProject {
     public static SqlCmdVariablesLabel = l10n.t("SQLCMD Variables");
     public static PublishTargetLabel = l10n.t("Publish Target");
     public static PublishTargetExisting = l10n.t("Existing SQL server");
+    public static PublishTargetExistingLogical = l10n.t("Existing Azure SQL logical server");
     public static PublishTargetContainer = l10n.t("Local development container");
-    public static SelectPublishProfile = l10n.t("Select Profile");
-    public static SaveAs = l10n.t("Save As");
+    public static PublishTargetAzureEmulator = l10n.t("New SQL Server local development container");
+    public static PublishTargetNewAzureServer = l10n.t("New Azure SQL logical server (Preview)");
     public static GenerateScript = l10n.t("Generate Script");
     public static Publish = l10n.t("Publish");
+    public static SqlServerPortNumber = l10n.t("SQL Server port number");
+    public static SqlServerAdminPassword = l10n.t("SQL Server admin password");
+    public static SqlServerAdminPasswordConfirm = l10n.t("Confirm SQL Server admin password");
+    public static SqlServerImageTag = l10n.t("Image tag");
+    public static SqlServerLicenseAgreement = l10n.t("Microsoft SQL Server License Agreement");
+    // Validation messages
+    public static InvalidPortMessage = l10n.t("Port must be a number between 1 and 65535");
+    public static InvalidSQLPasswordMessage(name: string) {
+        return l10n.t(
+            "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy",
+            name,
+        );
+    }
+    public static PasswordNotMatchMessage = (name: string) => {
+        return l10n.t("{0} password doesn't match the confirmation password", name);
+    };
+    public static RequiredFieldMessage = l10n.t("Required");
+    public static LicenseAcceptanceMessage = l10n.t("You must accept the license");
 }
 
 export class SchemaCompare {

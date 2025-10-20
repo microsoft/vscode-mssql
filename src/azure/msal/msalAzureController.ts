@@ -135,9 +135,7 @@ export class MsalAzureController extends AzureController {
         }
 
         await this._cachePluginProvider.unlinkMsalCache();
-
-        // Delete Encryption Keys
-        await this._cachePluginProvider.clearCacheEncryptionKeys();
+        await this._cachePluginProvider.clearCacheEncryptionKeys(); // Delete Encryption Keys
     }
 
     /**
@@ -293,7 +291,7 @@ export class MsalAzureController extends AzureController {
                         account?.displayInfo?.displayName,
                         tenantId,
                     ),
-                    LocalizedConstants.ConnectionDialog.ClearCacheAndRefreshToken,
+                    LocalizedConstants.ConnectionDialog.clearCacheAndRefreshToken,
                     LocalizedConstants.Common.cancel,
                 );
                 if (response === LocalizedConstants.msgYes) {

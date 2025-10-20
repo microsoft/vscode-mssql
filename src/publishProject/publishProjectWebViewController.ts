@@ -12,9 +12,18 @@ import {
     PublishDialogReducers,
     PublishDialogFormItemSpec,
     IPublishForm,
+    PublishFormFields,
+    PublishFormContainerFields,
     PublishDialogState,
+    PublishTarget,
 } from "../sharedInterfaces/publishDialog";
 import { generatePublishFormComponents } from "./formComponentHelpers";
+import { readProjectProperties } from "./projectUtils";
+import { SqlProjectsService } from "../services/sqlProjectsService";
+import { Deferred } from "../protocol";
+import { sendErrorEvent } from "../telemetry/telemetry";
+import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
+import { getSqlServerContainerTagsForTargetVersion } from "../deployment/dockerUtils";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -22,17 +31,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
     PublishDialogFormItemSpec,
     PublishDialogReducers
 > {
-    public static mainOptions: readonly (keyof IPublishForm)[] = [
-        "publishTarget",
-        "publishProfilePath",
-        "serverName",
-        "databaseName",
-    ];
+    public readonly initialized: Deferred<void> = new Deferred<void>();
+    private readonly _sqlProjectsService?: SqlProjectsService;
 
     constructor(
         context: vscode.ExtensionContext,
         _vscodeWrapper: VscodeWrapper,
         projectFilePath: string,
+        sqlProjectsService?: SqlProjectsService,
     ) {
         super(
             context,
@@ -44,10 +50,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     publishProfilePath: "",
                     serverName: "",
                     databaseName: path.basename(projectFilePath, path.extname(projectFilePath)),
-                    publishTarget: "existingServer",
+                    publishTarget: PublishTarget.ExistingServer,
                     sqlCmdVariables: {},
                 },
-                formComponents: generatePublishFormComponents(),
+                formComponents: {},
                 projectFilePath,
                 inProgress: false,
                 lastPublishResult: undefined,
@@ -70,57 +76,194 @@ export class PublishProjectWebViewController extends FormWebviewController<
             },
         );
 
+        // Store the SQL Projects Service
+        this._sqlProjectsService = sqlProjectsService;
+
         // Register reducers after initialization
         this.registerRpcHandlers();
 
-        // Update visibility based on initial publish target
+        // Initialize async to allow for future extensibility and proper error handling
+        void this.initializeDialog(projectFilePath)
+            .then(() => {
+                this.updateState();
+                this.initialized.resolve();
+            })
+            .catch((err) => {
+                this.initialized.reject(err);
+            });
+    }
+
+    private async initializeDialog(projectFilePath: string) {
+        // keep initial project path and computed database name
+        if (projectFilePath) {
+            this.state.projectFilePath = projectFilePath;
+        }
+
+        // Get the project properties from the proj file
+        let projectTargetVersion: string | undefined;
+        try {
+            if (this._sqlProjectsService && projectFilePath) {
+                const props = await readProjectProperties(
+                    this._sqlProjectsService,
+                    projectFilePath,
+                );
+                if (props) {
+                    this.state.projectProperties = props;
+                    projectTargetVersion = props.targetVersion;
+                }
+            }
+        } catch (error) {
+            // Log error and send telemetry, but keep dialog resilient
+            console.error("Failed to read project properties:", error);
+            sendErrorEvent(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.PublishProjectChanges,
+                error instanceof Error ? error : new Error(String(error)),
+                false, // don't include error message in telemetry for privacy
+            );
+        }
+
+        // Load publish form components
+        this.state.formComponents = generatePublishFormComponents(projectTargetVersion);
+
+        // Update state to notify UI of the project properties and form components
+        this.updateState();
+
+        // Fetch Docker tags for the container image dropdown
+        // Use the deployment UI function with target version filtering
+        const tagComponent = this.state.formComponents[PublishFormFields.ContainerImageTag];
+        if (tagComponent) {
+            try {
+                const tagOptions =
+                    await getSqlServerContainerTagsForTargetVersion(projectTargetVersion);
+                if (tagOptions && tagOptions.length > 0) {
+                    tagComponent.options = tagOptions;
+
+                    // Set default to first option (most recent -latest) if not already set
+                    if (!this.state.formState.containerImageTag && tagOptions[0]) {
+                        this.state.formState.containerImageTag = tagOptions[0].value;
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch Docker container tags:", error);
+                // Keep dialog resilient - don't block if Docker tags fail to load
+            }
+        }
+
         void this.updateItemVisibility();
     }
 
+    /** Registers all reducers in pure (immutable) style */
     private registerRpcHandlers(): void {
-        this.registerReducer("publishNow", async (state: PublishDialogState) => {
+        this.registerReducer("publishNow", async (state) => {
             // TODO: implement actual publish logic (currently just clears inProgress)
             state.inProgress = false;
             return state;
         });
 
-        this.registerReducer("generatePublishScript", async (state: PublishDialogState) => {
+        this.registerReducer("generatePublishScript", async (state) => {
             // TODO: implement script generation logic
             return state;
         });
 
-        this.registerReducer("selectPublishProfile", async (state: PublishDialogState) => {
+        this.registerReducer("selectPublishProfile", async (state) => {
             // TODO: implement profile selection logic
             return state;
         });
 
-        this.registerReducer(
-            "savePublishProfile",
-            async (state: PublishDialogState, _payload: { publishProfileName?: string }) => {
-                // TODO: implement profile saving logic using _payload.publishProfileName
-                // This should save current form state to a file with the given name
-                return state;
-            },
-        );
+        this.registerReducer("savePublishProfile", async (state, _payload) => {
+            // TODO: implement profile saving logic using _payload.publishProfileName
+            // This should save current form state to a file with the given name
+            return state;
+        });
     }
 
-    protected getActiveFormComponents(_state: PublishDialogState) {
-        return [...PublishProjectWebViewController.mainOptions];
-    }
+    protected getActiveFormComponents(state: PublishDialogState): (keyof IPublishForm)[] {
+        const activeComponents: (keyof IPublishForm)[] = [
+            PublishFormFields.PublishTarget,
+            PublishFormFields.PublishProfilePath,
+            PublishFormFields.ServerName,
+            PublishFormFields.DatabaseName,
+        ];
 
-    public updateItemVisibility(): Promise<void> {
-        const hidden: (keyof IPublishForm)[] = [];
-
-        // Example visibility: local container target doesn't require a server name
-        if (this.state.formState?.publishTarget === "localContainer") {
-            hidden.push("serverName");
+        if (state.formState.publishTarget === PublishTarget.LocalContainer) {
+            activeComponents.push(...PublishFormContainerFields);
         }
 
-        for (const component of Object.values(this.state.formComponents)) {
-            // mark hidden if the property is in hidden list
-            component.hidden = hidden.includes(component.propertyName as keyof IPublishForm);
+        return activeComponents;
+    }
+
+    public updateItemVisibility(state?: PublishDialogState): Promise<void> {
+        const currentState = state || this.state;
+        const target = currentState.formState?.publishTarget;
+        const hidden: string[] = [];
+
+        if (target === PublishTarget.LocalContainer) {
+            // Container deployment: hide server name field
+            hidden.push(PublishFormFields.ServerName);
+        } else if (
+            target === PublishTarget.ExistingServer ||
+            target === PublishTarget.NewAzureServer
+        ) {
+            // Existing server or new Azure server: hide container-specific fields
+            hidden.push(...PublishFormContainerFields);
+        }
+
+        for (const component of Object.values(currentState.formComponents)) {
+            component.hidden = hidden.includes(component.propertyName);
         }
 
         return Promise.resolve();
+    }
+
+    protected async validateForm(
+        formTarget: IPublishForm,
+        propertyName?: keyof IPublishForm,
+        updateValidation?: boolean,
+    ): Promise<(keyof IPublishForm)[]> {
+        // Call parent validation logic
+        const erroredInputs = await super.validateForm(formTarget, propertyName, updateValidation);
+
+        // Update validation state properties
+        if (updateValidation) {
+            this.updateFormValidationState();
+        }
+
+        return erroredInputs;
+    }
+
+    private updateFormValidationState(): void {
+        // Check if any visible component has validation errors
+        this.state.hasValidationErrors = Object.values(this.state.formComponents).some(
+            (component) =>
+                !component.hidden &&
+                component.validation !== undefined &&
+                component.validation.isValid === false,
+        );
+
+        // Check if any required fields are missing values
+        this.state.hasMissingRequiredValues = Object.values(this.state.formComponents).some(
+            (component) => {
+                if (component.hidden || !component.required) {
+                    return false;
+                }
+                const key = component.propertyName as keyof IPublishForm;
+                const raw = this.state.formState[key];
+                // Missing if undefined/null
+                if (raw === undefined) {
+                    return true;
+                }
+                // For strings, empty/whitespace is missing
+                if (typeof raw === "string") {
+                    return raw.trim().length === 0;
+                }
+                // For booleans (e.g. required checkbox), must be true
+                if (typeof raw === "boolean") {
+                    return raw !== true;
+                }
+                // For numbers, allow 0 (not missing)
+                return false;
+            },
+        );
     }
 }

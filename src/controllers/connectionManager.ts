@@ -29,7 +29,7 @@ import * as ConnectionContracts from "../models/contracts/connection";
 import { ClearPooledConnectionsRequest, ConnectionSummary } from "../models/contracts/connection";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
 import { AuthenticationTypes, EncryptOptions, IConnectionProfile } from "../models/interfaces";
-import { PlatformInformation, Runtime } from "../models/platform";
+import { PlatformInformation } from "../models/platform";
 import * as Utils from "../models/utils";
 import { IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { Deferred } from "../protocol";
@@ -136,7 +136,6 @@ export default class ConnectionManager {
         private context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
-        _useLegacyConnectionExperience: boolean = false,
         private _logger?: Logger,
         private _client?: SqlToolsServerClient,
         private _vscodeWrapper?: VscodeWrapper,
@@ -179,11 +178,9 @@ export default class ConnectionManager {
         if (!this._connectionUI) {
             this._connectionUI = new ConnectionUI(
                 this,
-                context,
                 this._connectionStore,
                 this._accountStore,
                 prompter,
-                _useLegacyConnectionExperience,
                 this.vscodeWrapper,
             );
         }
@@ -1492,26 +1489,13 @@ export default class ConnectionManager {
         } else if (errorType === SqlConnectionErrorType.KerberosNonWindows) {
             await showWithHelp(
                 LocalizedConstants.msgConnectionError2(errorMessage),
-                LocalizedConstants.macOpenSslHelpButton,
+                LocalizedConstants.help,
                 Constants.integratedAuthHelpLink,
             );
             return {
                 isHandled: false,
                 updatedCredentials: credentials,
                 errorHandled: SqlConnectionErrorType.KerberosNonWindows,
-            };
-        } else if (errorType === SqlConnectionErrorType.MacOpenSsl) {
-            // macOS 10.11 OpenSSL shim missing
-
-            await showWithHelp(
-                LocalizedConstants.msgConnectionError2(LocalizedConstants.macOpenSslErrorMessage),
-                LocalizedConstants.macOpenSslHelpButton,
-                Constants.macOpenSslHelpLink,
-            );
-            return {
-                isHandled: false,
-                updatedCredentials: credentials,
-                errorHandled: SqlConnectionErrorType.MacOpenSsl,
             };
         } else if (errorType === SqlConnectionErrorType.EntraTokenExpired) {
             try {
@@ -1587,9 +1571,9 @@ export default class ConnectionManager {
     /**
      * Called when the 'Manage Connection Profiles' command is issued.
      */
-    public onManageProfiles(): Promise<boolean> {
+    public async onManageProfiles(): Promise<void> {
         // Show quick pick to create, edit, or remove profiles
-        return this.connectionUI.promptToManageProfiles();
+        await this.connectionUI.promptToManageProfiles();
     }
 
     public async onClearPooledConnections(): Promise<void> {
@@ -1597,11 +1581,8 @@ export default class ConnectionManager {
     }
 
     public async onCreateProfile(): Promise<boolean> {
-        let self = this;
-        const profile = await self.connectionUI.createAndSaveProfile(
-            self.vscodeWrapper.isEditingSqlFile,
-        );
-        return profile ? true : false;
+        this.connectionUI.openConnectionDialog();
+        return false;
     }
 
     public onRemoveProfile(): Promise<boolean> {
@@ -1703,9 +1684,11 @@ export default class ConnectionManager {
         }
     }
 
-    public onClearTokenCache(): void {
+    public onClearAzureTokenCache(): void {
         this.azureController.clearTokenCache();
-        this.vscodeWrapper.showInformationMessage(LocalizedConstants.clearedAzureTokenCache);
+        this.vscodeWrapper.showInformationMessage(
+            LocalizedConstants.Accounts.clearedEntraTokenCache,
+        );
     }
 
     private async migrateLegacyConnectionProfiles(): Promise<void> {
@@ -1993,7 +1976,6 @@ export enum SqlConnectionErrorType {
     TrustServerCertificateNotEnabled = "trustServerCertificate",
     FirewallRuleError = "firewallRule",
     KerberosNonWindows = "kerberosNonWindows",
-    MacOpenSsl = "macOpenSsl",
     EntraTokenExpired = "entraTokenExpired",
     Generic = "generic",
 }
@@ -2004,7 +1986,7 @@ export async function getSqlConnectionErrorType(
 ): Promise<SqlConnectionErrorType> {
     const platformInfo = await PlatformInformation.getCurrent();
 
-    const { errorNumber, errorMessage, message } = error;
+    const { errorNumber, errorMessage } = error;
     if (
         errorNumber === Constants.errorPasswordExpired ||
         errorNumber === Constants.errorPasswordNeedsReset
@@ -2019,12 +2001,6 @@ export async function getSqlConnectionErrorType(
         errorMessage?.includes(Constants.errorKerberosSubString)
     ) {
         return SqlConnectionErrorType.KerberosNonWindows;
-    } else if (
-        platformInfo.runtimeId === Runtime.OSX_10_11_64 &&
-        (message?.includes(Constants.errorMacOsOpenSSLErrorSubstring) ||
-            errorMessage?.includes(Constants.errorMacOsOpenSSLErrorSubstring))
-    ) {
-        return SqlConnectionErrorType.MacOpenSsl;
     } else if (
         credentials.authenticationType === Constants.azureMfa &&
         needsAccountRefresh(errorMessage, credentials.user)

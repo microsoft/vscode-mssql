@@ -18,7 +18,7 @@ import { ApiStatus } from "../../../../../sharedInterfaces/webview";
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { IAzureAccount, IAzureTenant } from "../../../../../sharedInterfaces/connectionDialog";
 import { addNewMicrosoftAccount } from "../../../../common/constants";
-import { Keys } from "../../../../common/keys";
+import { KeyCode } from "../../../../common/keys";
 
 const FabricExplorerHeader = ({
     onSignIntoMicrosoftAccount,
@@ -156,7 +156,7 @@ const FabricExplorerHeader = ({
                                 }}
                                 onClick={(e) => handleSearchValueChanged("", e)}
                                 onKeyDown={(e) => {
-                                    if (e.key === Keys.Enter) {
+                                    if (e.code === KeyCode.Enter) {
                                         handleSearchValueChanged("", e);
                                     }
                                 }}

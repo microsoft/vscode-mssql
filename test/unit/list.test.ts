@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
+import * as sinon from "sinon";
 import ListPrompt from "../../src/prompts/list";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { stubVscodeWrapper } from "./utils";
 
 suite("List Prompt Tests", () => {
-    let listPrompt: ListPrompt;
-    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let sandbox: sinon.SinonSandbox;
+    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     const question = {
         choices: [
             { name: "test1", value: "test1" },
@@ -18,32 +19,32 @@ suite("List Prompt Tests", () => {
     };
 
     setup(() => {
-        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-        vscodeWrapper
-            .setup((v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve("test1"));
+        sandbox = sinon.createSandbox();
+        vscodeWrapper = stubVscodeWrapper(sandbox);
+        vscodeWrapper.showQuickPickStrings.resolves("test1");
     });
 
-    test("Test list prompt render", () => {
-        listPrompt = new ListPrompt(question, vscodeWrapper.object);
-        listPrompt.render();
-        vscodeWrapper.verify(
-            (v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    test("Test list prompt render", async () => {
+        const listPrompt = new ListPrompt(question, vscodeWrapper);
+        await listPrompt.render();
+
+        sinon.assert.calledOnceWithExactly(
+            vscodeWrapper.showQuickPickStrings,
+            sinon.match.array,
+            sinon.match.object,
         );
     });
 
     // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
-    test.skip("Test list prompt render with error", () => {
-        let errorWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-        errorWrapper
-            .setup((w) => w.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(undefined));
-        let errorPrompt = new ListPrompt(question, errorWrapper.object);
-        errorPrompt.render();
-        errorWrapper.verify(
-            (v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
-        );
+    test.skip("Test list prompt render with error", async () => {
+        const errorWrapper = stubVscodeWrapper(sandbox);
+        errorWrapper.showQuickPickStrings.resolves(undefined);
+        const errorPrompt = new ListPrompt(question, errorWrapper);
+        await errorPrompt.render();
+        sinon.assert.calledOnce(errorWrapper.showQuickPickStrings);
     });
 });

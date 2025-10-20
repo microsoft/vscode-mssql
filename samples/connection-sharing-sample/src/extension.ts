@@ -5,6 +5,36 @@ import * as mssql from "vscode-mssql";
 const EXTENSION_ID = "ms-mssql.connection-sharing-sample";
 const MSSQL_EXTENSION_ID = "ms-mssql.mssql";
 
+export async function getConnectionSharingServiceApi(): Promise<
+    mssql.IConnectionSharingService | undefined
+> {
+    console.log("--- Starting Connection Sharing Demo (Direct API Approach) ---");
+
+    const mssqlExtension = vscode.extensions.getExtension(MSSQL_EXTENSION_ID);
+    if (!mssqlExtension) {
+        vscode.window.showErrorMessage(
+            "MSSQL extension is not installed. Please install it first.",
+        );
+        return;
+    }
+
+    await mssqlExtension.activate();
+
+    const mssqlExtensionApi = mssqlExtension.exports as mssql.IExtension;
+    if (!mssqlExtensionApi) {
+        vscode.window.showErrorMessage("Unable to access MSSQL extension API");
+        return;
+    }
+
+    const connectionSharingService =
+        mssqlExtensionApi.connectionSharing as mssql.IConnectionSharingService;
+    if (!connectionSharingService) {
+        vscode.window.showErrorMessage("Connection sharing service is not available");
+        return;
+    }
+    return connectionSharingService;
+}
+
 export function activate(extensionContext: vscode.ExtensionContext) {
     console.log("Connection Sharing Sample extension is now active!");
 
@@ -40,6 +70,29 @@ export function registerCommands(extensionContext: vscode.ExtensionContext) {
             requestConnectionSharingPermissions,
         ),
     );
+
+    /**
+     * Example of registering a command that receives a tree node with a connection profile
+     * and generates a connection string from it.
+     */
+    extensionContext.subscriptions.push(
+        vscode.commands.registerCommand(
+            "connection-sharing-sample.customObjectExplorerDatabaseCommand",
+            async (treeNode) => {
+                const connectionProfile = treeNode.connectionProfile;
+                const connectionSharingService = await getConnectionSharingServiceApi();
+                if (!connectionSharingService) {
+                    return;
+                }
+                const connectionString = await connectionSharingService.getConnectionString(
+                    EXTENSION_ID,
+                    connectionProfile.id,
+                );
+                console.log(`Generated connection string: ${connectionString}`);
+                vscode.window.showInformationMessage(`Connection string generated`);
+            },
+        ),
+    );
 }
 
 async function connectionSharingWithCommands() {
@@ -57,6 +110,22 @@ async function connectionSharingWithCommands() {
         }
 
         console.log(`Active connection ID: ${activeConnectionId}`);
+
+        // New feature: Get the connection string for the active connection
+        const connectionString = (await vscode.commands.executeCommand(
+            "mssql.connectionSharing.getConnectionString",
+            EXTENSION_ID,
+            activeConnectionId,
+        )) as string;
+
+        if (connectionString) {
+            console.log(`Connection string: ${connectionString}`);
+            vscode.window.showInformationMessage(
+                `Retrieved connection string for connection ${activeConnectionId}`,
+            );
+        } else {
+            console.log("Unable to retrieve connection string");
+        }
 
         // New feature: Get the active database name using command approach
         const activeDatabase = (await vscode.commands.executeCommand(
@@ -127,28 +196,8 @@ async function connectionSharingWithCommands() {
 
 async function connectionSharingWithApis() {
     try {
-        console.log("--- Starting Connection Sharing Demo (Direct API Approach) ---");
-
-        const mssqlExtension = vscode.extensions.getExtension(MSSQL_EXTENSION_ID);
-        if (!mssqlExtension) {
-            vscode.window.showErrorMessage(
-                "MSSQL extension is not installed. Please install it first.",
-            );
-            return;
-        }
-
-        await mssqlExtension.activate();
-
-        const mssqlExtensionApi = mssqlExtension.exports as any;
-        if (!mssqlExtensionApi) {
-            vscode.window.showErrorMessage("Unable to access MSSQL extension API");
-            return;
-        }
-
-        const connectionSharingService =
-            mssqlExtensionApi.connectionSharing as mssql.IConnectionSharingService;
+        const connectionSharingService = await getConnectionSharingServiceApi();
         if (!connectionSharingService) {
-            vscode.window.showErrorMessage("Connection sharing service is not available");
             return;
         }
 
@@ -160,6 +209,20 @@ async function connectionSharingWithApis() {
         }
 
         console.log(`Retrieved connection ID: ${activeConnectionId}`);
+
+        // New feature: Get the connection string for the active connection
+        const connectionString = await connectionSharingService.getConnectionString(
+            EXTENSION_ID,
+            activeConnectionId,
+        );
+        if (connectionString) {
+            console.log(`Connection string: ${connectionString}`);
+            vscode.window.showInformationMessage(
+                `Retrieved connection string for connection ${activeConnectionId}`,
+            );
+        } else {
+            console.log("Unable to retrieve connection string");
+        }
 
         // New feature: Get the active database name
         const activeDatabase = await connectionSharingService.getActiveDatabase(EXTENSION_ID);

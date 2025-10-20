@@ -244,7 +244,7 @@ export async function promptForAzureSubscriptionFilter(
         const auth = await VsCodeAzureHelper.signIn();
 
         if (!auth) {
-            state.formError = l10n.t("Azure sign in failed.");
+            state.formMessage = { message: l10n.t("Azure sign in failed.") };
             return false;
         }
 
@@ -269,8 +269,8 @@ export async function promptForAzureSubscriptionFilter(
 
         return true;
     } catch (error) {
-        state.formError = l10n.t("Error loading Azure subscriptions.");
-        logger.error(state.formError + "\n" + getErrorMessage(error));
+        state.formMessage = { message: l10n.t("Error loading Azure subscriptions.") };
+        logger.error(state.formMessage.message + "\n" + getErrorMessage(error));
         return false;
     }
 }
