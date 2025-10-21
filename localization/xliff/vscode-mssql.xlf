@@ -2959,9 +2959,6 @@
     <trans-unit id="++CODE++b6d420411ce8b91f28e7fc43e45c44a8550af2984463e5dc85541595a0ac37ba">
       <source xml:lang="en">Select Target Schema</source>
     </trans-unit>
-    <trans-unit id="++CODE++03b976bc61d223e72a470e35ab117d115f10fba6627ca20672e2920da77f8e75">
-      <source xml:lang="en">Select package file</source>
-    </trans-unit>
     <trans-unit id="++CODE++35ce1fefb3478f2ba328f46db9deb60e08786a3f825f64dd5f9804459c6b8b4c">
       <source xml:lang="en">Select a Workspace</source>
     </trans-unit>
@@ -3016,6 +3013,9 @@
     </trans-unit>
     <trans-unit id="++CODE++10484d8ed1877a7e126a17a3a144a55c6bf07784ecc22b01d87ee138fb808cd8">
       <source xml:lang="en">Select or enter a publish profile</source>
+    </trans-unit>
+    <trans-unit id="++CODE++abfd7db0b03514a66749641525344550918faa842cd1455111b0531217e05074">
+      <source xml:lang="en">Select package file</source>
     </trans-unit>
     <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
       <source xml:lang="en">Select profile to remove</source>
