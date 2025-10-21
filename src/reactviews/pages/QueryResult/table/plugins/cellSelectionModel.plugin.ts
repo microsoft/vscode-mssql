@@ -631,13 +631,13 @@ export class CellSelectionModel<T extends Slick.SlickData>
         }
 
         // Move to first cell of row (Ctrl + left)
-        if (e.ctrlKey && keyCode === KeyCode.ArrowLeft) {
+        if (metaOrCtrlPressed && keyCode === KeyCode.ArrowLeft) {
             this.moveToFirstCellInRow();
             isHandled = true;
         }
 
         // Move to last cell of row (Ctrl + right)
-        if (e.ctrlKey && keyCode === KeyCode.ArrowRight) {
+        if (metaOrCtrlPressed && keyCode === KeyCode.ArrowRight) {
             this.moveToLastCellInRow();
             isHandled = true;
         }
