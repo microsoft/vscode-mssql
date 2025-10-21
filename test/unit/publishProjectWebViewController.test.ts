@@ -262,14 +262,13 @@ suite("PublishProjectWebViewController Tests", () => {
 
         // Password complexity validation (8-128 chars, 3 of 4: upper, lower, digit, special char)
         // validateSqlServerPassword returns empty string for valid, error message for invalid
-        expect(validateSqlServerPassword("Password123!"), "complex password valid").to.equal("");
-        expect(validateSqlServerPassword("Passw0rd"), "3 categories valid").to.equal("");
-        expect(validateSqlServerPassword("password"), "simple lowercase invalid").to.not.equal("");
-        expect(validateSqlServerPassword("PASSWORD"), "simple uppercase invalid").to.not.equal("");
-        expect(validateSqlServerPassword("Pass1"), "too short invalid").to.not.equal("");
-        expect(
-            validateSqlServerPassword("Password123!".repeat(20)),
-            "too long invalid",
-        ).to.not.equal("");
+        expect(validateSqlServerPassword("Abc123!@#"), "complex password valid").to.equal("");
+        expect(validateSqlServerPassword("MyTest99"), "3 categories valid").to.equal("");
+        expect(validateSqlServerPassword("alllower"), "simple lowercase invalid").to.not.equal("");
+        expect(validateSqlServerPassword("ALLUPPER"), "simple uppercase invalid").to.not.equal("");
+        expect(validateSqlServerPassword("Short1"), "too short invalid").to.not.equal("");
+        expect(validateSqlServerPassword("Abc123!@#".repeat(20)), "too long invalid").to.not.equal(
+            "",
+        );
     });
 });
