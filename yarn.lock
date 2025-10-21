@@ -751,13 +751,6 @@
     "@swc/helpers" "~0.5.1"
     react-window "^1.8.5"
 
-"@fluentui/keyboard-keys@^9.0.7":
-  version "9.0.7"
-  resolved "https://registry.yarnpkg.com/@fluentui/keyboard-keys/-/keyboard-keys-9.0.7.tgz#a603ea0827ccd48ab606fd48ff259b8a914d23d4"
-  integrity sha512-vaQ+lOveQTdoXJYqDQXWb30udSfTVcIuKk1rV0X0eGAgcHeSDeP1HxMy+OgHOQZH3OiBH4ZYeWxb+tmfiDiygQ==
-  dependencies:
-    "@swc/helpers" "^0.5.1"
-
 "@fluentui/keyboard-keys@^9.0.8":
   version "9.0.8"
   resolved "https://registry.yarnpkg.com/@fluentui/keyboard-keys/-/keyboard-keys-9.0.8.tgz#812b923f20d428f3c5cdff9922a4478b59e907c5"
@@ -1266,17 +1259,7 @@
     "@fluentui/react-motion" "*"
     "@swc/helpers" "^0.5.1"
 
-"@fluentui/react-motion@*":
-  version "9.5.0"
-  resolved "https://registry.yarnpkg.com/@fluentui/react-motion/-/react-motion-9.5.0.tgz#796bf1dd3dff82e3323e2a7c8b54172a779ab110"
-  integrity sha512-UQP62emJhfJOrVwNtfH+Mw8hELHhLW09PbKD8rGioth3TJpYTMMeaspF1LuhsFGNCqfww3ZqtB7vz1MxIuMEsA==
-  dependencies:
-    "@fluentui/react-shared-contexts" "^9.20.0"
-    "@fluentui/react-utilities" "^9.18.13"
-    "@swc/helpers" "^0.5.1"
-    react-is "^17.0.2"
-
-"@fluentui/react-motion@^9.11.1":
+"@fluentui/react-motion@*", "@fluentui/react-motion@9.11.1", "@fluentui/react-motion@^9.11.1":
   version "9.11.1"
   resolved "https://registry.yarnpkg.com/@fluentui/react-motion/-/react-motion-9.11.1.tgz#d98d74372940ac5e7b6899e8eb60d71db09c149b"
   integrity sha512-cPuRNV4GvM/MKO26Nn0fLXYk8D9YYWkW+drcz29CcsSr2pYSJwVaT4W8n9Vl7w6mNfa2cCB6n0sFR1cpIMJHDA==
@@ -1458,14 +1441,6 @@
     "@fluentui/react-theme" "^9.2.0"
     "@fluentui/react-utilities" "^9.25.1"
     "@griffel/react" "^1.5.22"
-    "@swc/helpers" "^0.5.1"
-
-"@fluentui/react-shared-contexts@^9.20.0":
-  version "9.20.0"
-  resolved "https://registry.yarnpkg.com/@fluentui/react-shared-contexts/-/react-shared-contexts-9.20.0.tgz#d8890a30aa6783855f39c878fe3722228f39b543"
-  integrity sha512-LOMgP51dC/dOQOopEhvRk9V/GlpkStMbXTsci+2raG+Zno3eIdS3TesWCango+r5rpBFCIZl4HOpGEErHGm03Q==
-  dependencies:
-    "@fluentui/react-theme" "^9.1.19"
     "@swc/helpers" "^0.5.1"
 
 "@fluentui/react-shared-contexts@^9.25.2":
@@ -1693,14 +1668,6 @@
     "@griffel/react" "^1.5.22"
     "@swc/helpers" "^0.5.1"
 
-"@fluentui/react-theme@^9.1.19":
-  version "9.1.19"
-  resolved "https://registry.yarnpkg.com/@fluentui/react-theme/-/react-theme-9.1.19.tgz#46122e65a08d0560af4b2f17dc1e741913e41825"
-  integrity sha512-mrVhKbr4o9UKERPxgghIRDU59S7gRizrgz3/wwyMt7elkr8Sw+OpwKIeEw9x6P0RTcFDC00nggaMJhBGs7Xo4A==
-  dependencies:
-    "@fluentui/tokens" "1.0.0-alpha.16"
-    "@swc/helpers" "^0.5.1"
-
 "@fluentui/react-theme@^9.2.0":
   version "9.2.0"
   resolved "https://registry.yarnpkg.com/@fluentui/react-theme/-/react-theme-9.2.0.tgz#5de3737ad3af89fcbe4caecba3cbf147409bd9a1"
@@ -1784,15 +1751,6 @@
     "@griffel/react" "^1.5.22"
     "@swc/helpers" "^0.5.1"
 
-"@fluentui/react-utilities@^9.18.13":
-  version "9.18.13"
-  resolved "https://registry.yarnpkg.com/@fluentui/react-utilities/-/react-utilities-9.18.13.tgz#d309b8dd4977c10684d660e3c416589d4c31bcaf"
-  integrity sha512-Qk9rL5tZI+az77+S2WKwLWu+WOSZZJSIthxp/ImjuiR6CS+LMrVdl0UC8lHpq03QU7hPgNxbbo0cVnCFazU3Lg==
-  dependencies:
-    "@fluentui/keyboard-keys" "^9.0.7"
-    "@fluentui/react-shared-contexts" "^9.20.0"
-    "@swc/helpers" "^0.5.1"
-
 "@fluentui/react-utilities@^9.25.1":
   version "9.25.1"
   resolved "https://registry.yarnpkg.com/@fluentui/react-utilities/-/react-utilities-9.25.1.tgz#7dac5b49c7beadf0764543f5cd85dfca58d1dd85"
@@ -1811,13 +1769,6 @@
     "@fluentui/react-shared-contexts" "^9.25.2"
     "@fluentui/react-utilities" "^9.25.1"
     "@griffel/react" "^1.5.22"
-    "@swc/helpers" "^0.5.1"
-
-"@fluentui/tokens@1.0.0-alpha.16":
-  version "1.0.0-alpha.16"
-  resolved "https://registry.yarnpkg.com/@fluentui/tokens/-/tokens-1.0.0-alpha.16.tgz#57adedcb926e7649c46e77e079f0b92cbb43bb54"
-  integrity sha512-Gr9G8LIlUhZYX5j6CfDQrofQqsWAz/q54KabWn1tWV/1083WwyoTZXiG1k6b37NnK7Feye7D7Nz+4MNqoKpXGw==
-  dependencies:
     "@swc/helpers" "^0.5.1"
 
 "@fluentui/tokens@1.0.0-alpha.22":

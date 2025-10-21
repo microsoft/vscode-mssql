@@ -56,6 +56,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         private context: QueryResultReactProvider,
         private uri: string,
         private resultSetSummary: ResultSetSummary,
+        private gridId: string,
         private headerFilter?: HeaderMenu<T>,
     ) {
         this.options = mixin(this.options, defaults, false);
@@ -824,6 +825,38 @@ export class CellSelectionModel<T extends Slick.SlickData>
             if (active && this.headerFilter) {
                 await this.headerFilter.toggleSortForColumn(active.cell);
             }
+            return;
+        }
+
+        // Resize column (Shift+Alt+S)
+        if (keyCode === KeyCode.KeyS && e.shiftKey && e.altKey && !metaOrCtrlPressed) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const active = this.grid.getActiveCell();
+            if (!active) {
+                return;
+            }
+
+            const columns = this.grid.getColumns();
+            const column = columns[active.cell];
+            if (!column) {
+                return;
+            }
+
+            this.context.openResizeDialog({
+                open: true,
+                columnId: column.id ?? "",
+                columnName: column.name ?? "",
+                initialWidth: column.width ?? 0,
+                gridId: this.gridId,
+                onDismiss: () => {
+                    this.headerFilter?.resizeCancel();
+                },
+                onSubmit: (newWidth: number) => {
+                    this.headerFilter?.resizeColumn(column.id ?? "", newWidth);
+                },
+            });
             return;
         }
     }

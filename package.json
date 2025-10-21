@@ -2612,5 +2612,8 @@
                 }
             }
         ]
+    },
+    "resolutions": {
+        "@fluentui/react-motion": "9.11.1"
     }
 }

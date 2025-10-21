@@ -519,6 +519,25 @@ export class LocConstants {
                 }),
             sort: l10n.t("Sort"),
             filter: l10n.t("Filter"),
+            resize: l10n.t("Resize"),
+            resizeColumn: (columnName: string) => {
+                return l10n.t({
+                    message: "Resize column '{0}'",
+                    args: [columnName],
+                    comment: ["{0} is the name of the column"],
+                });
+            },
+            enterDesiredColumnWidth: l10n.t("Enter desired column width in pixels"),
+            resizeHint: (minWidth: number, maxWidth: number) => {
+                return l10n.t({
+                    message: "Column width must be between {0} and {1}",
+                    args: [minWidth, maxWidth],
+                    comment: [
+                        "{0} is the minimum width of the column",
+                        "{1} is the maximum width of the column",
+                    ],
+                });
+            },
         };
     }
 
