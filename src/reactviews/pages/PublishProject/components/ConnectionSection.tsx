@@ -54,7 +54,7 @@ export const ConnectionSection: React.FC = () => {
     return (
         <div className={formStyles.formComponentDiv}>
             <div className={classes.root}>
-                {renderInput(serverComponent, localServer, setLocalServer, {
+                {renderInput(serverComponent, localServer, publishCtx, {
                     readOnly: true,
                     contentAfter: (
                         <Button

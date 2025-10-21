@@ -7,13 +7,11 @@ import * as assert from "assert";
 import * as locConstants from "../../src/constants/locConstants";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
-import * as TypeMoq from "typemoq";
 
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
 import { UserSurvey } from "../../src/nps/userSurvey";
-import { stubTelemetry } from "./utils";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { stubTelemetry, stubVscodeWrapper } from "./utils";
 
 suite("UserSurvey Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -28,7 +26,7 @@ suite("UserSurvey Tests", () => {
             update: sandbox.stub(),
         };
 
-        const vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
+        const vscodeWrapper = stubVscodeWrapper(sandbox);
 
         context = {
             globalState: globalState,
@@ -36,7 +34,7 @@ suite("UserSurvey Tests", () => {
         };
 
         showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
-        UserSurvey.createInstance(context, vscodeWrapper.object);
+        UserSurvey.createInstance(context, vscodeWrapper);
     });
 
     teardown(() => {
@@ -176,7 +174,6 @@ suite("UserSurvey Tests", () => {
                     q1: "answer1",
                     q2: "answer2",
                     modernFeaturesEnabled: true,
-                    useLegacyConnectionExperience: false,
                 },
                 {
                     q3: 3,

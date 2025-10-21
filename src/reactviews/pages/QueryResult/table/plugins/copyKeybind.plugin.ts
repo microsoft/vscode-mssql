@@ -6,15 +6,16 @@
 import { KeyboardEvent } from "react";
 import {
     ResultSetSummary,
-    DbCellValue,
-    SendToClipboardRequest,
     CopySelectionRequest,
 } from "../../../../../sharedInterfaces/queryResult";
-import { selectEntireGrid, selectionToRange, tryCombineSelectionsForResults } from "../utils";
-import { Keys } from "../../../../common/keys";
-import { IDisposableDataProvider } from "../dataProvider";
+import {
+    convertDisplayedSelectionToActual,
+    selectEntireGrid,
+    tryCombineSelectionsForResults,
+} from "../utils";
+import { KeyCode } from "../../../../common/keys";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
-import { GetPlatformRequest } from "../../../../../sharedInterfaces/webview";
+import { isMetaKeyPressed } from "../../../../common/utils";
 
 /**
  * Implements the various additional navigation keybindings we want out of slickgrid
@@ -29,7 +30,6 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
         uri: string,
         resultSetSummary: ResultSetSummary,
         private _qrContext: QueryResultReactProvider,
-        private dataProvider: IDisposableDataProvider<T>,
     ) {
         this.uri = uri;
         this.resultSetSummary = resultSetSummary;
@@ -48,18 +48,9 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
         let handled = false;
-        let platform = await this._qrContext.extensionRpc.sendRequest(GetPlatformRequest.type);
-        if (platform === "darwin") {
-            // Cmd + C
-            if (e.metaKey && e.key === Keys.c) {
-                handled = true;
-                await this.handleCopySelection(this.grid, this.uri, this.resultSetSummary);
-            }
-        } else {
-            if (e.ctrlKey && e.key === Keys.c) {
-                handled = true;
-                await this.handleCopySelection(this.grid, this.uri, this.resultSetSummary);
-            }
+        if (isMetaKeyPressed(e) && e.code === KeyCode.KeyC) {
+            handled = true;
+            await this.handleCopySelection(this.grid, this.uri, this.resultSetSummary);
         }
 
         if (handled) {
@@ -72,44 +63,21 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
         uri: string,
         resultSetSummary: ResultSetSummary,
     ) {
-        let selectedRanges = grid.getSelectionModel().getSelectedRanges();
-        let selection = tryCombineSelectionsForResults(selectedRanges);
+        const selectedRanges = grid.getSelectionModel().getSelectedRanges();
+        let selection = tryCombineSelectionsForResults(selectedRanges) ?? [];
 
-        // If no selection exists, create a selection for the entire grid
         if (!selection || selection.length === 0) {
             selection = selectEntireGrid(grid);
         }
 
-        if (this.dataProvider.isDataInMemory) {
-            let range = selectionToRange(selection[0]);
-            let data = await this.dataProvider.getRangeAsync(range.start, range.length);
-            const dataArray = data.map((map) => {
-                const maxKey = Math.max(...Array.from(Object.keys(map)).map(Number)); // Get the maximum key
-                return Array.from(
-                    { length: maxKey + 1 },
-                    (_, index) =>
-                        ({
-                            rowId: index,
-                            displayValue: map[index].displayValue || null,
-                            isNull: map[index].isNull || false,
-                        }) as DbCellValue,
-                );
-            });
-            await this._qrContext.extensionRpc.sendRequest(SendToClipboardRequest.type, {
-                uri: uri,
-                data: dataArray,
-                batchId: resultSetSummary.batchId,
-                resultId: resultSetSummary.id,
-                selection: selection,
-                headersFlag: false, // Assuming headers are not needed for in-memory data
-            });
-        } else {
-            await this._qrContext.extensionRpc.sendRequest(CopySelectionRequest.type, {
-                uri: uri,
-                batchId: resultSetSummary.batchId,
-                resultId: resultSetSummary.id,
-                selection: selection,
-            });
-        }
+        const convertedSelection = convertDisplayedSelectionToActual(grid, selection);
+
+        await this._qrContext.extensionRpc.sendRequest(CopySelectionRequest.type, {
+            uri: uri,
+            batchId: resultSetSummary.batchId,
+            resultId: resultSetSummary.id,
+            selection: convertedSelection,
+            includeHeaders: undefined, // Keeping it undefined so that it can be determined by user settings
+        });
     }
 }

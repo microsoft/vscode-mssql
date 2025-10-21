@@ -14,25 +14,35 @@ export enum PublishTarget {
     NewAzureServer = "newAzureServer",
 }
 
-// export publish-related constants for use in webview code
-export const PublishFormFields = constants.PublishFormFields;
-export const DefaultSqlPortNumber = constants.DefaultSqlPortNumber;
+/**
+ * Field names for the Publish form - defines the keys used in IPublishForm interface
+ */
+export const PublishFormFields = {
+    PublishProfilePath: "publishProfilePath",
+    ServerName: "serverName",
+    DatabaseName: "databaseName",
+    PublishTarget: "publishTarget",
+    SqlCmdVariables: "sqlCmdVariables",
+    ContainerPort: "containerPort",
+    ContainerAdminPassword: "containerAdminPassword",
+    ContainerAdminPasswordConfirm: "containerAdminPasswordConfirm",
+    ContainerImageTag: "containerImageTag",
+    AcceptContainerLicense: "acceptContainerLicense",
+} as const;
 
 /**
- * Project Properties interface -shared between server-side code and browser-side webviews.
+ * Container-specific fields that are shown/hidden based on publish target
  */
-export interface ProjectProperties {
-    projectGuid?: string;
-    configuration?: string;
-    outputPath: string;
-    databaseSource?: string;
-    defaultCollation: string;
-    databaseSchemaProvider: string;
-    projectStyle: unknown;
-    targetVersion?: string;
-    projectName?: string;
-    projectFolderPath?: string;
-}
+export const PublishFormContainerFields = [
+    PublishFormFields.ContainerPort,
+    PublishFormFields.ContainerAdminPassword,
+    PublishFormFields.ContainerAdminPasswordConfirm,
+    PublishFormFields.ContainerImageTag,
+    PublishFormFields.AcceptContainerLicense,
+] as const;
+
+// Re-export other publish-related constants for use in webview code
+export const DefaultSqlPortNumber = constants.DefaultSqlPortNumber;
 
 /**
  * Data fields shown in the Publish form.
@@ -59,10 +69,11 @@ export interface PublishDialogState
     projectFilePath: string;
     inProgress: boolean;
     lastPublishResult?: { success: boolean; details?: string };
+    projectProperties?: mssql.GetProjectPropertiesResult & { targetVersion?: string };
+    hasValidationErrors?: boolean;
+    hasMissingRequiredValues?: boolean;
     deploymentOptions?: mssql.DeploymentOptions;
-    projectProperties?: ProjectProperties;
     waitingForNewConnection?: boolean;
-    activeConnectionUris?: string[];
     connectionString?: string;
     previousDatabaseList?: { displayName: string; value: string }[];
     previousSelectedDatabase?: string;
