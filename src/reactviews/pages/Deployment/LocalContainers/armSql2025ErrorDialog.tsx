@@ -17,7 +17,7 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import { locConstants as Loc } from "../../../common/locConstants";
-import { Keys } from "../../../common/keys";
+import { KeyCode } from "../../../common/keys";
 import { Warning24Filled } from "@fluentui/react-icons";
 
 const useStyles = makeStyles({
@@ -51,7 +51,7 @@ export const ArmSql2025ErrorDialog = ({ closeDialog }: { closeDialog: () => void
         <Dialog open={true /* standalone dialog always open*/}>
             <DialogSurface
                 onKeyDown={(e: React.KeyboardEvent) => {
-                    if (e.key === Keys.Escape) {
+                    if (e.key === KeyCode.Escape) {
                         closeDialog();
                     }
                 }}>
