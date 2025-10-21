@@ -916,7 +916,6 @@ export class Fabric {
     public static searchWorkspaces = l10n.t("Search Workspaces");
     public static workspaceIsRequired = l10n.t("Workspace is required");
     public static insufficientWorkspacePermissions = l10n.t("Insufficient Workspace Permissions");
-    public static insufficientCapacityPermissions = l10n.t("Insufficient Capacity Permissions");
 
     public static fabricNotSupportedInCloud = (cloudName: string, settingName: string) => {
         return l10n.t({
