@@ -648,7 +648,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             // For Deploy operations, always warn if database exists to trigger confirmation
             // This ensures confirmation dialog is shown in both cases:
             // 1. User selected "New Database" but database already exists (shouldNotExist=true)
-            // 2. User selected "Existing Database" and selected existing database (shouldNotExist=true)
+            // 2. User selected "Existing Database" and selected existing database (shouldNotExist=false)
             if (operationType === DataTierOperationType.Deploy && exists) {
                 return {
                     isValid: true, // Allow the operation but with a warning
