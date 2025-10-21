@@ -372,11 +372,10 @@ export const DataTierApplicationForm = () => {
                     filePath: result.errorMessage || "", // This is a warning about overwrite
                 }));
             } else {
-                setValidationErrors((prev) => {
-                    
-                    const { filePath, ...rest } = prev;
-                    return rest;
-                });
+                setValidationErrors((prev) => ({
+                    ...prev,
+                    filePath: "",
+                }));
             }
             return true;
         } catch (error) {
