@@ -850,7 +850,6 @@
         "comment": ["{0} is the error message"]
     },
     "No Microsoft Entra account can be found for removal.": "No Microsoft Entra account can be found for removal.",
-    "Azure token cache cleared successfully.": "Azure token cache cleared successfully.",
     "Cannot connect due to expired tokens. Please re-authenticate and try again.": "Cannot connect due to expired tokens. Please re-authenticate and try again.",
     "Microsoft Entra Id": "Microsoft Entra Id",
     "Choose a Microsoft Entra tenant": "Choose a Microsoft Entra tenant",
@@ -1158,6 +1157,7 @@
         "comment": ["{0} is the account display name", "{1} is the tenant id"]
     },
     "Clear cache and refresh token": "Clear cache and refresh token",
+    "Clear token cache": "Clear token cache",
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     "Add Firewall Rule to {0}/{0} is the server name": {
         "message": "Add Firewall Rule to {0}",
@@ -1256,6 +1256,7 @@
         "message": "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.",
         "comment": ["{0} is the number of invalid accounts that have been removed"]
     },
+    "Entra token cache cleared successfully.": "Entra token cache cleared successfully.",
     "Database Name": "Database Name",
     "Enter Database Name": "Enter Database Name",
     "Database Name is required": "Database Name is required",
@@ -1454,8 +1455,20 @@
     "SQLCMD Variables": "SQLCMD Variables",
     "Publish Target": "Publish Target",
     "Existing SQL server": "Existing SQL server",
+    "Existing Azure SQL logical server": "Existing Azure SQL logical server",
     "Local development container": "Local development container",
-    "Save As": "Save As",
+    "New SQL Server local development container": "New SQL Server local development container",
+    "New Azure SQL logical server (Preview)": "New Azure SQL logical server (Preview)",
+    "SQL Server port number": "SQL Server port number",
+    "SQL Server admin password": "SQL Server admin password",
+    "Confirm SQL Server admin password": "Confirm SQL Server admin password",
+    "Image tag": "Image tag",
+    "Microsoft SQL Server License Agreement": "Microsoft SQL Server License Agreement",
+    "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
+    "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy": "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy",
+    "{0} password doesn't match the confirmation password": "{0} password doesn't match the confirmation password",
+    "Required": "Required",
+    "You must accept the license": "You must accept the license",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
@@ -1472,6 +1485,7 @@
     },
     "Loading Schema Designer Model...": "Loading Schema Designer Model...",
     "Schema Designer Model is ready. Changes can now be published.": "Schema Designer Model is ready. Changes can now be published.",
+    "Save As": "Save As",
     "Schema Designer": "Schema Designer",
     "Opening Publish Script. This may take a while...": "Opening Publish Script. This may take a while...",
     "Generating Report. This may take a while...": "Generating Report. This may take a while...",

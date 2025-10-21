@@ -975,13 +975,93 @@ export async function findAvailablePort(startPort: number): Promise<number> {
 }
 
 /**
- * Retrieves the SQL Server container versions from the Microsoft Container Registry.
+ * Retrieves all raw SQL Server container tags from the Microsoft Container Registry.
+ * @returns the complete list of available tags without filtering or processing.
  */
-export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]> {
+export async function getAllSqlServerContainerTags(): Promise<string[]> {
     try {
         const stdout = await execDockerCommand(COMMANDS.GET_SQL_SERVER_CONTAINER_VERSIONS());
         const parsed = JSON.parse(stdout);
-        const tags: string[] = parsed.tags ?? [];
+        return (parsed.tags ?? []).filter((tag: string) => tag);
+    } catch (e) {
+        dockerLogger.appendLine(`Error fetching SQL Server container tags: ${getErrorMessage(e)}`);
+        return [];
+    }
+}
+
+/**
+ * Retrieves and filters SQL Server container tags based on project target version.
+ * Used by Publish Project dialog to provide granular tag selection.
+ *
+ * @param targetVersion - The SQL Server version (e.g., "160" for SQL Server 2022)
+ * @returns Sorted array of tags filtered by version and organized by year
+ */
+export async function getSqlServerContainerTagsForTargetVersion(
+    targetVersion?: string,
+): Promise<FormItemOptions[]> {
+    try {
+        const allTags = await getAllSqlServerContainerTags();
+        if (!allTags || allTags.length === 0) {
+            return [];
+        }
+
+        // Extract year from tag (e.g., "2025-RC1-ubuntu-24.04" -> "2025")
+        const extractYear = (tag: string): string | undefined => {
+            const year = tag.slice(0, 4);
+            return /^\d{4}$/.test(year) ? year : undefined;
+        };
+
+        // Extract version number from tag (e.g., "2025-RC1-ubuntu-24.04" -> 2025)
+        const extractVersionNumber = (tag: string): number | undefined => {
+            const year = extractYear(tag);
+            return year ? parseInt(year, 10) : undefined;
+        };
+
+        // Determine minimum version based on target
+        let minVersion = 2017; // Default to SQL Server 2017
+        if (targetVersion) {
+            const versionNum = parseInt(targetVersion, 10);
+            if (versionNum >= 160)
+                minVersion = 2022; // SQL Server 2022
+            else if (versionNum >= 150)
+                minVersion = 2019; // SQL Server 2019
+            else if (versionNum >= 140) minVersion = 2017; // SQL Server 2017
+        }
+
+        // Filter and sort tags
+        const sortedTags = allTags
+            .filter((tag) => {
+                const version = extractVersionNumber(tag);
+                return version === undefined || version >= minVersion;
+            })
+            .sort((a, b) => (a.indexOf("latest") > 0 ? -1 : a.localeCompare(b)));
+
+        // Move "latest" to the very first position (as default selection)
+        const latestIndex = sortedTags.indexOf("latest");
+        if (latestIndex > 0) {
+            // Only move if it's not already at position 0
+            sortedTags.splice(latestIndex, 1);
+            sortedTags.unshift("latest");
+        }
+
+        // Convert to FormItemOptions format
+        return sortedTags.map((tag) => ({
+            value: tag,
+            displayName: tag,
+        }));
+    } catch (e) {
+        dockerLogger.appendLine(`Error filtering SQL Server container tags: ${getErrorMessage(e)}`);
+        return [];
+    }
+}
+
+/**
+ * Retrieves the SQL Server container versions from the Microsoft Container Registry.
+ * Returns a simplified year-based list (2025, 2022, 2019, 2017) for the deployment UI.
+ */
+export async function getSqlServerContainerVersions(): Promise<FormItemOptions[]> {
+    try {
+        const tags = await getAllSqlServerContainerTags();
 
         const versions: string[] = [];
         const yearSet = new Set<string>();

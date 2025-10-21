@@ -3,14 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export enum KeyCode {
-    Enter = "Enter",
-    Escape = "Escape",
-    ArrowLeft = "ArrowLeft",
-    ArrowRight = "ArrowRight",
-    ArrowUp = "ArrowUp",
-    ArrowDown = "ArrowDown",
-    Space = "Space",
-    KeyC = "KeyC",
-    KeyA = "KeyA",
+import { MessageBarIntent } from "@fluentui/react-components";
+
+export interface DialogMessageSpec {
+    message: string;
+    intent?: MessageBarIntent;
+    buttons?: DialogMessageButtonSpec[];
+}
+
+export interface DialogMessageButtonSpec {
+    label: string;
+    id: string;
 }

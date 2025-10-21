@@ -56,7 +56,8 @@ export const mockAccounts = [
     },
 ] as vscode.AuthenticationSessionAccountInformation[];
 
-const mockServerName = "testServer";
+export const mockServerName = "testServer";
+export const mockUserName = "testUser";
 
 export const mockAzureResources = {
     azureSqlDbServer: {
