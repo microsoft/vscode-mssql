@@ -214,7 +214,7 @@ export function extractServerFromConnectionString(connectionString: string): str
     }
 
     // Match "Data Source=serverName" or "Server=serverName" (case-insensitive)
-    // TODO: currently returning the whole connection string, need to revist with server|database connection task
+    // TODO: currently returning the whole connection string, need to revisit with server|database connection task
     const match = connectionString.match(/(?:Data Source|Server)=([^;]+)/i);
     return match ? match[1].trim() : "";
 }
