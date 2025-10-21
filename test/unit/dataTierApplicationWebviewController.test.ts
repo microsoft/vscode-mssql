@@ -42,6 +42,7 @@ import { ListDatabasesRequest } from "../../src/models/contracts/connection";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import * as fs from "fs";
+import * as path from "path";
 
 chai.use(sinonChai);
 
@@ -477,17 +478,23 @@ suite("DataTierApplicationWebviewController", () => {
 
         test("validates output file path when directory exists", async () => {
             // File doesn't exist, but directory does
-            fsExistsSyncStub.withArgs("C:\\output\\database.dacpac").returns(false);
-            fsExistsSyncStub.withArgs("C:\\output").returns(true);
+            const testDir = path.join(
+                path.sep === "\\" ? "C:\\database-test-folder" : "/database-test-folder",
+            );
+            const testFile = path.join(testDir, "database.dacpac");
+
+            fsExistsSyncStub.withArgs(testFile).returns(false);
+            fsExistsSyncStub.withArgs(testDir).returns(true);
             createController();
 
             const requestHandler = requestHandlers.get(ValidateFilePathWebviewRequest.type.method);
             const response = await requestHandler!({
-                filePath: "C:\\output\\database.dacpac",
+                filePath: testFile,
                 shouldExist: false,
             });
 
             expect(response.isValid).to.be.true;
+            expect(response.errorMessage).to.be.undefined;
         });
 
         test("warns when output file already exists", async () => {
