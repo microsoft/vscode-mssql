@@ -373,8 +373,8 @@ export const DataTierApplicationForm = () => {
                 }));
             } else {
                 setValidationErrors((prev) => {
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    const { filePath: _fp, ...rest } = prev;
+                    
+                    const { filePath, ...rest } = prev;
                     return rest;
                 });
             }
