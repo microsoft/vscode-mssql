@@ -959,7 +959,7 @@ suite("DataTierApplicationWebviewController", () => {
             const result = await handler!({});
 
             expect(result).to.exist;
-            expect(result.connections).to.have.lengthOf(3);
+            expect(result.connections).to.have.lengthOf(4);
 
             // Verify first connection
             const conn1 = result.connections[0];

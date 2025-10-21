@@ -115,6 +115,9 @@ export const DataTierApplicationForm = () => {
     const initialOwnerUri = useDataTierApplicationSelector((state) => state.ownerUri);
     const initialServerName = useDataTierApplicationSelector((state) => state.serverName);
     const initialDatabaseName = useDataTierApplicationSelector((state) => state.databaseName);
+    const initialSelectedProfileId = useDataTierApplicationSelector(
+        (state) => state.selectedProfileId,
+    );
 
     // Local state
     const [operationType, setOperationType] = useState<DataTierOperationType>(
@@ -134,7 +137,9 @@ export const DataTierApplicationForm = () => {
     const [successMessage, setSuccessMessage] = useState("");
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
     const [availableConnections, setAvailableConnections] = useState<ConnectionProfile[]>([]);
-    const [selectedProfileId, setSelectedProfileId] = useState<string>("");
+    const [selectedProfileId, setSelectedProfileId] = useState<string>(
+        initialSelectedProfileId || "",
+    );
     const [ownerUri, setOwnerUri] = useState<string>(initialOwnerUri || "");
     const [isConnecting, setIsConnecting] = useState(false);
 
@@ -164,85 +169,91 @@ export const DataTierApplicationForm = () => {
             if (result?.connections) {
                 setAvailableConnections(result.connections);
 
-                // If we have initial ownerUri from Object Explorer, we're already connected
-                // Just find and select the matching connection without trying to connect
-                if (initialOwnerUri && initialServerName && result.connections.length > 0) {
-                    const matchingConnection = result.connections.find((conn) => {
-                        const serverMatches = conn.server === initialServerName;
-                        const databaseMatches =
-                            !initialDatabaseName ||
-                            !conn.database ||
-                            conn.database === initialDatabaseName;
-                        return serverMatches && databaseMatches;
-                    });
-
-                    if (matchingConnection) {
-                        setSelectedProfileId(matchingConnection.profileId);
-                        // We already have ownerUri from Object Explorer, no need to connect
-                        setOwnerUri(initialOwnerUri);
+                const findMatchingConnection = (): ConnectionProfile | undefined => {
+                    if (initialSelectedProfileId) {
+                        const byProfileId = result.connections.find(
+                            (conn) => conn.profileId === initialSelectedProfileId,
+                        );
+                        if (byProfileId) {
+                            return byProfileId;
+                        }
                     }
-                } else if (initialServerName && result.connections.length > 0) {
-                    // No ownerUri yet, need to find and potentially connect
-                    const matchingConnection = result.connections.find((conn) => {
-                        const serverMatches = conn.server === initialServerName;
-                        const databaseMatches =
-                            !initialDatabaseName ||
-                            !conn.database ||
-                            conn.database === initialDatabaseName;
-                        return serverMatches && databaseMatches;
-                    });
 
-                    if (matchingConnection) {
-                        setSelectedProfileId(matchingConnection.profileId);
+                    if (initialServerName) {
+                        return result.connections.find((conn) => {
+                            const serverMatches = conn.server === initialServerName;
+                            const databaseMatches =
+                                !initialDatabaseName ||
+                                !conn.database ||
+                                conn.database === initialDatabaseName;
+                            return serverMatches && databaseMatches;
+                        });
+                    }
 
-                        // Auto-connect if not already connected
+                    return undefined;
+                };
+
+                const matchingConnection = findMatchingConnection();
+
+                if (matchingConnection) {
+                    setSelectedProfileId(matchingConnection.profileId);
+
+                    if (initialOwnerUri) {
+                        // Already connected via Object Explorer
+                        setOwnerUri(initialOwnerUri);
                         if (!matchingConnection.isConnected) {
-                            setIsConnecting(true);
-                            try {
-                                const connectResult = await context?.extensionRpc?.sendRequest(
-                                    ConnectToServerWebviewRequest.type,
-                                    { profileId: matchingConnection.profileId },
-                                );
+                            setAvailableConnections((prev) =>
+                                prev.map((conn) =>
+                                    conn.profileId === matchingConnection.profileId
+                                        ? { ...conn, isConnected: true }
+                                        : conn,
+                                ),
+                            );
+                        }
+                    } else if (!matchingConnection.isConnected) {
+                        setIsConnecting(true);
+                        try {
+                            const connectResult = await context?.extensionRpc?.sendRequest(
+                                ConnectToServerWebviewRequest.type,
+                                { profileId: matchingConnection.profileId },
+                            );
 
-                                if (connectResult?.isConnected && connectResult.ownerUri) {
-                                    setOwnerUri(connectResult.ownerUri);
-                                    // Update the connection status in our list
-                                    setAvailableConnections((prev) =>
-                                        prev.map((conn) =>
-                                            conn.profileId === matchingConnection.profileId
-                                                ? { ...conn, isConnected: true }
-                                                : conn,
-                                        ),
-                                    );
-                                } else {
-                                    setErrorMessage(
-                                        connectResult?.errorMessage ||
-                                            locConstants.dataTierApplication.connectionFailed,
-                                    );
-                                }
-                            } catch (error) {
-                                const errorMsg =
-                                    error instanceof Error ? error.message : String(error);
+                            if (connectResult?.isConnected && connectResult.ownerUri) {
+                                setOwnerUri(connectResult.ownerUri);
+                                setAvailableConnections((prev) =>
+                                    prev.map((conn) =>
+                                        conn.profileId === matchingConnection.profileId
+                                            ? { ...conn, isConnected: true }
+                                            : conn,
+                                    ),
+                                );
+                            } else {
                                 setErrorMessage(
-                                    `${locConstants.dataTierApplication.connectionFailed}: ${errorMsg}`,
+                                    connectResult?.errorMessage ||
+                                        locConstants.dataTierApplication.connectionFailed,
                                 );
-                            } finally {
-                                setIsConnecting(false);
                             }
-                        } else {
-                            // Already connected, get the ownerUri from the connect request
-                            try {
-                                const connectResult = await context?.extensionRpc?.sendRequest(
-                                    ConnectToServerWebviewRequest.type,
-                                    { profileId: matchingConnection.profileId },
-                                );
+                        } catch (error) {
+                            const errorMsg = error instanceof Error ? error.message : String(error);
+                            setErrorMessage(
+                                `${locConstants.dataTierApplication.connectionFailed}: ${errorMsg}`,
+                            );
+                        } finally {
+                            setIsConnecting(false);
+                        }
+                    } else {
+                        // Already connected, fetch ownerUri to ensure we have it
+                        try {
+                            const connectResult = await context?.extensionRpc?.sendRequest(
+                                ConnectToServerWebviewRequest.type,
+                                { profileId: matchingConnection.profileId },
+                            );
 
-                                if (connectResult?.ownerUri) {
-                                    setOwnerUri(connectResult.ownerUri);
-                                }
-                            } catch (error) {
-                                console.error("Failed to get ownerUri:", error);
+                            if (connectResult?.ownerUri) {
+                                setOwnerUri(connectResult.ownerUri);
                             }
+                        } catch (error) {
+                            console.error("Failed to get ownerUri:", error);
                         }
                     }
                 }
@@ -720,7 +731,7 @@ export const DataTierApplicationForm = () => {
                                     selectedProfileId
                                         ? availableConnections.find(
                                               (conn) => conn.profileId === selectedProfileId,
-                                          )?.displayName
+                                          )?.displayName || ""
                                         : ""
                                 }
                                 selectedOptions={selectedProfileId ? [selectedProfileId] : []}
@@ -736,10 +747,7 @@ export const DataTierApplicationForm = () => {
                                     </Option>
                                 ) : (
                                     availableConnections.map((conn) => (
-                                        <Option
-                                            key={conn.profileId}
-                                            value={conn.profileId}
-                                            text={`${conn.displayName}${conn.isConnected ? " ●" : ""}`}>
+                                        <Option key={conn.profileId} value={conn.profileId}>
                                             {conn.displayName}
                                             {conn.isConnected && " ●"}
                                         </Option>

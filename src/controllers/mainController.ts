@@ -1780,11 +1780,16 @@ export default class MainController implements vscode.Disposable {
                         : "";
                     const serverName = connectionProfile?.server || "";
                     const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
+                    const profileId = connectionProfile
+                        ? connectionProfile.id ||
+                          `${connectionProfile.server}_${connectionProfile.database || ""}`
+                        : undefined;
 
                     const initialState: DataTierApplicationWebviewState = {
                         ownerUri,
                         serverName,
                         databaseName,
+                        selectedProfileId: profileId,
                         operationType: undefined,
                     };
 
@@ -1812,11 +1817,16 @@ export default class MainController implements vscode.Disposable {
                         : "";
                     const serverName = connectionProfile?.server || "";
                     const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
+                    const profileId = connectionProfile
+                        ? connectionProfile.id ||
+                          `${connectionProfile.server}_${connectionProfile.database || ""}`
+                        : undefined;
 
                     const initialState: DataTierApplicationWebviewState = {
                         ownerUri,
                         serverName,
                         databaseName,
+                        selectedProfileId: profileId,
                         operationType: DataTierOperationType.Deploy,
                     };
 
@@ -1844,11 +1854,16 @@ export default class MainController implements vscode.Disposable {
                         : "";
                     const serverName = connectionProfile?.server || "";
                     const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
+                    const profileId = connectionProfile
+                        ? connectionProfile.id ||
+                          `${connectionProfile.server}_${connectionProfile.database || ""}`
+                        : undefined;
 
                     const initialState: DataTierApplicationWebviewState = {
                         ownerUri,
                         serverName,
                         databaseName,
+                        selectedProfileId: profileId,
                         operationType: DataTierOperationType.Extract,
                     };
 
@@ -1876,11 +1891,16 @@ export default class MainController implements vscode.Disposable {
                         : "";
                     const serverName = connectionProfile?.server || "";
                     const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
+                    const profileId = connectionProfile
+                        ? connectionProfile.id ||
+                          `${connectionProfile.server}_${connectionProfile.database || ""}`
+                        : undefined;
 
                     const initialState: DataTierApplicationWebviewState = {
                         ownerUri,
                         serverName,
                         databaseName,
+                        selectedProfileId: profileId,
                         operationType: DataTierOperationType.Import,
                     };
 
@@ -1908,11 +1928,16 @@ export default class MainController implements vscode.Disposable {
                         : "";
                     const serverName = connectionProfile?.server || "";
                     const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
+                    const profileId = connectionProfile
+                        ? connectionProfile.id ||
+                          `${connectionProfile.server}_${connectionProfile.database || ""}`
+                        : undefined;
 
                     const initialState: DataTierApplicationWebviewState = {
                         ownerUri,
                         serverName,
                         databaseName,
+                        selectedProfileId: profileId,
                         operationType: DataTierOperationType.Export,
                     };
 

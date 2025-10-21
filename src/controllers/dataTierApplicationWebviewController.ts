@@ -446,7 +446,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             // Get active connections
             const activeConnections = this.connectionManager.activeConnections;
 
-            // Build the connection profile list
+            // Build the connection profile list from recent connections
             for (const conn of recentConnections) {
                 const profile = conn as IConnectionProfile;
                 const displayName = this.buildConnectionDisplayName(profile);
@@ -471,6 +471,33 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
                     isConnected,
                     profileId,
                 });
+            }
+
+            const existingProfileIds = new Set(connections.map((conn) => conn.profileId));
+
+            // Include active connections that may not appear in the recent list
+            for (const activeConnection of Object.values(activeConnections)) {
+                const profile = activeConnection.credentials as IConnectionProfile;
+                const profileId = profile.id || `${profile.server}_${profile.database || ""}`;
+
+                if (existingProfileIds.has(profileId)) {
+                    continue;
+                }
+
+                const displayName = this.buildConnectionDisplayName(profile);
+
+                connections.push({
+                    displayName,
+                    server: profile.server,
+                    database: profile.database,
+                    authenticationType: this.getAuthenticationTypeString(
+                        profile.authenticationType,
+                    ),
+                    userName: profile.user,
+                    isConnected: true,
+                    profileId,
+                });
+                existingProfileIds.add(profileId);
             }
 
             return { connections };
