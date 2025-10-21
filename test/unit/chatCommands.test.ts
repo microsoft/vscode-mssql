@@ -19,6 +19,7 @@ import {
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import * as telemetry from "../../src/telemetry/telemetry";
+import { IServerInfo } from "vscode-mssql";
 
 const { expect } = chai;
 
@@ -29,7 +30,6 @@ suite("Chat Commands Tests", () => {
     let mockMainController: sinon.SinonStubbedInstance<MainController>;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let connectionInfo: ConnectionInfo;
-    let chatRequest: vscode.ChatRequest;
     let chatStream: vscode.ChatResponseStream;
     let chatStreamMarkdownStub: sinon.SinonStub;
 
@@ -48,7 +48,7 @@ suite("Chat Commands Tests", () => {
                 authenticationType: "Integrated",
                 user: "testuser",
             },
-        } as unknown as ConnectionInfo;
+        } as ConnectionInfo;
 
         mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
         mockConnectionManager.getConnectionInfo.returns(connectionInfo);
@@ -56,7 +56,7 @@ suite("Chat Commands Tests", () => {
             serverVersion: "15.0.2000.5",
             serverEdition: "Standard Edition",
             isCloud: false,
-        } as unknown as { serverVersion: string; serverEdition: string; isCloud: boolean });
+        } as IServerInfo);
         mockConnectionManager.disconnect.resolves(true);
 
         mockMainController = sandbox.createStubInstance(MainController);
@@ -70,11 +70,11 @@ suite("Chat Commands Tests", () => {
         chatStream = {
             markdown: chatStreamMarkdownStub,
         } as unknown as vscode.ChatResponseStream;
-
-        chatRequest = {
-            command: "",
-        } as unknown as vscode.ChatRequest;
     });
+
+    function createChatRequest(command?: string): vscode.ChatRequest {
+        return { command } as vscode.ChatRequest;
+    }
 
     teardown(() => {
         sandbox.restore();
@@ -132,7 +132,7 @@ suite("Chat Commands Tests", () => {
 
     suite("Command Handler Tests", () => {
         test("handleChatCommand returns handled=false for unknown command", async () => {
-            chatRequest.command = "unknownCommand";
+            const chatRequest = createChatRequest("unknownCommand");
 
             const result = await handleChatCommand(
                 chatRequest,
@@ -146,7 +146,7 @@ suite("Chat Commands Tests", () => {
         });
 
         test("handleChatCommand returns handled=false for undefined command", async () => {
-            chatRequest.command = undefined;
+            const chatRequest = createChatRequest(undefined);
 
             const result = await handleChatCommand(
                 chatRequest,
@@ -159,7 +159,7 @@ suite("Chat Commands Tests", () => {
         });
 
         test("handleChatCommand returns error for connection-required command without connection", async () => {
-            chatRequest.command = "disconnect";
+            const chatRequest = createChatRequest("disconnect");
             mockConnectionManager.getConnectionInfo.returns(undefined as unknown as ConnectionInfo);
 
             const result = await handleChatCommand(
@@ -174,7 +174,7 @@ suite("Chat Commands Tests", () => {
         });
 
         test("connect command executes successfully", async () => {
-            chatRequest.command = "connect";
+            const chatRequest = createChatRequest("connect");
 
             const result = await handleChatCommand(
                 chatRequest,
@@ -190,7 +190,7 @@ suite("Chat Commands Tests", () => {
         });
 
         test("disconnect command executes successfully with connection", async () => {
-            chatRequest.command = "disconnect";
+            const chatRequest = createChatRequest("disconnect");
 
             const result = await handleChatCommand(
                 chatRequest,
@@ -207,7 +207,7 @@ suite("Chat Commands Tests", () => {
         });
 
         test("getConnectionDetails command shows connection information", async () => {
-            chatRequest.command = "getConnectionDetails";
+            const chatRequest = createChatRequest("getConnectionDetails");
 
             const result = await handleChatCommand(
                 chatRequest,
@@ -224,7 +224,7 @@ suite("Chat Commands Tests", () => {
         });
 
         test("changeDatabase command executes successfully", async () => {
-            chatRequest.command = "changeDatabase";
+            const chatRequest = createChatRequest("changeDatabase");
 
             const result = await handleChatCommand(
                 chatRequest,
@@ -239,7 +239,7 @@ suite("Chat Commands Tests", () => {
         });
 
         test("listServers command executes successfully", async () => {
-            chatRequest.command = "listServers";
+            const chatRequest = createChatRequest("listServers");
             const mockConnectionStore = {
                 readAllConnections: async () => [
                     {
@@ -267,7 +267,7 @@ suite("Chat Commands Tests", () => {
         });
 
         test("prompt substitute command returns promptToAdd", async () => {
-            chatRequest.command = "runQuery";
+            const chatRequest = createChatRequest("runQuery");
 
             const result = await handleChatCommand(
                 chatRequest,
@@ -282,7 +282,7 @@ suite("Chat Commands Tests", () => {
         });
 
         test("command with exception returns error message", async () => {
-            chatRequest.command = "listServers";
+            const chatRequest = createChatRequest("listServers");
             const mockConnectionStore = {
                 readAllConnections: async () => {
                     throw new Error("Database error");
