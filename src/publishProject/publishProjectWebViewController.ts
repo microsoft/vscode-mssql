@@ -305,6 +305,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 }
 
                 // Save the profile using DacFx service
+                if (!this._dacFxService) {
+                    void vscode.window.showErrorMessage(Loc.DacFxServiceNotAvailable);
+                    return state;
+                }
+
                 try {
                     const databaseName = state.formState.databaseName || projectName;
                     // Connection string depends on publish target:
@@ -317,7 +322,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         Object.entries(state.formState.sqlCmdVariables || {}),
                     );
 
-                    await this._dacFxService!.savePublishProfile(
+                    await this._dacFxService.savePublishProfile(
                         fileUri.fsPath,
                         databaseName,
                         connectionString,
