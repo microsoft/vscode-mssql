@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import { expect } from "chai";
@@ -35,15 +34,12 @@ suite("SchemaCompareWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let treeNode: TreeNodeInfo;
-    let mockSchemaCompareService: sinon.SinonStubbedInstance<mssql.ISchemaCompareService>;
-    let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let mockConnectionInfo: ConnectionInfo;
     let mockServerConnInfo: mssql.IConnectionInfo;
     let mockInitialState: SchemaCompareWebViewState;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let schemaCompareService: mssql.ISchemaCompareService;
-    let connectionManagerStub: ConnectionManager;
-    let vscodeWrapperStub: VscodeWrapper;
+    let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
+    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let connectionChangedEmitter: vscode.EventEmitter<void>;
     const schemaCompareWebViewTitle = "Schema Compare";
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
@@ -305,16 +301,14 @@ suite("SchemaCompareWebViewController Tests", () => {
             undefined,
         );
 
-        mockSchemaCompareService = sandbox.createStubInstance(SchemaCompareService);
+        schemaCompareService = sandbox.createStubInstance(SchemaCompareService);
 
-        vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-
-        mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+        connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
         connectionChangedEmitter = new vscode.EventEmitter<void>();
-        Object.defineProperty(mockConnectionManager, "onConnectionsChanged", {
+        Object.defineProperty(connectionManagerStub, "onConnectionsChanged", {
             value: connectionChangedEmitter.event,
         });
-        mockConnectionManager.getUriForConnection.returns("localhost,1433_undefined_sa_undefined");
+        connectionManagerStub.getUriForConnection.returns("localhost,1433_undefined_sa_undefined");
 
         mockServerConnInfo = {
             server: "server1",
@@ -325,15 +319,13 @@ suite("SchemaCompareWebViewController Tests", () => {
             credentials: mockServerConnInfo,
         } as unknown as ConnectionInfo;
 
-        sandbox.stub(mockConnectionManager, "activeConnections").get(() => ({
+        sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({
             conn_uri: mockConnectionInfo,
         }));
 
-        mockConnectionManager.listDatabases.resolves(["db1", "db2"]);
+        connectionManagerStub.listDatabases.resolves(["db1", "db2"]);
 
-        schemaCompareService = mockSchemaCompareService as unknown as mssql.ISchemaCompareService;
-        connectionManagerStub = mockConnectionManager as unknown as ConnectionManager;
-        vscodeWrapperStub = vscodeWrapper as unknown as VscodeWrapper;
+        vscodeWrapperStub = sandbox.createStubInstance(VscodeWrapper);
 
         generateOperationIdStub = sandbox.stub(scUtils, "generateOperationId").returns(operationId);
 
