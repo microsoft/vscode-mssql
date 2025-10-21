@@ -412,10 +412,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
             // IMPORTANT: Get the connection profile FIRST, before any async calls
             // The connection URI may be removed from activeConnections during async operations
             const connection = this._connectionManager.activeConnections[connectionUri];
-            const connectionProfile = connection?.credentials as IConnectionProfile;
+            if (!connection || !connection.credentials) {
+                return; // Connection not found or no credentials available
+            }
 
+            const connectionProfile = connection.credentials as IConnectionProfile;
             if (!connectionProfile || !connectionProfile.server) {
-                return; // Connection no longer available or invalid
+                return; // Connection profile invalid or no server specified
             }
 
             // Update server name immediately
