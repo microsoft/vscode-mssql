@@ -702,8 +702,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
             return;
         }
 
-        // Move to first cell of row (Cmd/Ctrl + left)
-        if (metaOrCtrlPressed && keyCode === KeyCode.ArrowLeft) {
+        // Move to first cell of row (Ctrl + left)
+        if (e.ctrlKey && keyCode === KeyCode.ArrowLeft) {
             const active = this.grid.getActiveCell();
             if (active) {
                 this.grid.setActiveCell(active.row, 1);
@@ -716,8 +716,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
             return;
         }
 
-        // Move to last cell of row (Cmd/Ctrl + right)
-        if (metaOrCtrlPressed && keyCode === KeyCode.ArrowRight) {
+        // Move to last cell of row (Ctrl + right)
+        if (e.ctrlKey && keyCode === KeyCode.ArrowRight) {
             const active = this.grid.getActiveCell();
             if (active) {
                 this.grid.setActiveCell(active.row, this.grid.getColumns().length - 1);
@@ -737,8 +737,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
             return;
         }
 
-        // Select current column (Cmd/Ctrl + space)
-        if (metaOrCtrlPressed && keyCode === KeyCode.Space) {
+        // Select current column (Ctrl + space)
+        if (e.ctrlKey && keyCode === KeyCode.Space) {
             const active = this.grid.getActiveCell();
             if (active) {
                 const rowCount = this.grid.getDataLength();
