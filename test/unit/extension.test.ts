@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
+import * as sinon from "sinon";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import { IConnectionInfo, IExtension, IServerInfo, ITreeNodeInfo } from "vscode-mssql";
 import MainController from "../../src/controllers/mainController";
 import * as Extension from "../../src/extension";
 import { activateExtension } from "./utils";
-import { expect } from "chai";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import {
     CredentialsQuickPickItemType,
@@ -21,52 +22,41 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import { RequestType } from "vscode-languageclient";
 
+const { expect } = chai;
+
+chai.use(sinonChai);
+
 suite("Extension API Tests", () => {
+    let sandbox: sinon.SinonSandbox;
     let vscodeMssql: IExtension;
     let mainController: MainController;
-    let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
-    let connectionManager: TypeMoq.IMock<ConnectionManager>;
-    let connectionStore: TypeMoq.IMock<ConnectionStore>;
-    let connectionUi: TypeMoq.IMock<ConnectionUI>;
+    let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
+    let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
+    let connectionUiStub: sinon.SinonStubbedInstance<ConnectionUI>;
     let originalConnectionManager: ConnectionManager;
 
     setup(async () => {
+        sandbox = sinon.createSandbox();
         vscodeMssql = await activateExtension();
         mainController = await Extension.getController();
 
-        mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
+        connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
+        connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
+        connectionUiStub = sandbox.createStubInstance(ConnectionUI);
 
-        connectionManager = TypeMoq.Mock.ofType(
-            ConnectionManager,
-            TypeMoq.MockBehavior.Loose,
-            mockContext.object,
-        );
-
-        connectionStore = TypeMoq.Mock.ofType(
-            ConnectionStore,
-            TypeMoq.MockBehavior.Loose,
-            mockContext.object,
-        );
-
-        connectionUi = TypeMoq.Mock.ofType(
-            ConnectionUI,
-            TypeMoq.MockBehavior.Loose,
-            connectionManager.object,
-            mockContext.object,
-        );
-
-        connectionManager.setup((cm) => cm.connectionStore).returns(() => connectionStore.object);
-        connectionManager.setup((cm) => cm.connectionUI).returns(() => connectionUi.object);
+        sandbox.stub(connectionManagerStub, "connectionStore").get(() => connectionStoreStub);
+        sandbox.stub(connectionManagerStub, "connectionUI").get(() => connectionUiStub);
 
         // the Extension class doesn't reinitialize the controller for each test,
         // so we need to save the original properties we swap here and restore then after each test.
         originalConnectionManager = mainController.connectionManager;
-        mainController.connectionManager = connectionManager.object;
+        mainController.connectionManager = connectionManagerStub;
     });
 
     teardown(() => {
         // restore mocked properties
         mainController.connectionManager = originalConnectionManager;
+        sandbox.restore();
     });
 
     test("Gets sqlToolsServicePath", async () => {
@@ -85,23 +75,14 @@ suite("Extension API Tests", () => {
             quickPickItemType: CredentialsQuickPickItemType.Profile,
         } as IConnectionCredentialsQuickPickItem;
 
-        connectionStore
-            .setup((c) => c.getPickListItems())
-            .returns(() => {
-                return Promise.resolve([testQuickpickItem]);
-            });
-
-        connectionUi
-            .setup((c) => c.promptForConnection(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() => {
-                return Promise.resolve(testConnInfo);
-            });
+        connectionStoreStub.getPickListItems.resolves([testQuickpickItem]);
+        connectionUiStub.promptForConnection.resolves(testConnInfo);
 
         const result = await vscodeMssql.promptForConnection(true /* ignoreFocusOut */);
         expect(result.server).to.equal(testConnInfo.server);
-        connectionUi.verify(
-            (c) => c.promptForConnection([testQuickpickItem], true),
-            TypeMoq.Times.once(),
+        expect(connectionUiStub.promptForConnection).to.have.been.calledOnceWithExactly(
+            [testQuickpickItem],
+            true,
         );
     });
 
@@ -116,36 +97,30 @@ suite("Extension API Tests", () => {
             database: "testDb",
         } as IConnectionInfo;
 
-        const mockMainController = TypeMoq.Mock.ofType(
-            MainController,
-            TypeMoq.MockBehavior.Loose,
-            mockContext.object,
-        );
+        const mockMainController = sandbox.createStubInstance(MainController);
 
         // the Extension class doesn't reinitialize the controller for each test,
         // so we need to save the original controller here and restore it after the test.
         const originalMainController = Extension.controller;
 
         try {
-            let passedUri: string;
+            let passedUri: string | undefined;
 
-            mockMainController
-                .setup((m) => m.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                .returns(
-                    (
-                        uri: string,
-                        connectionInfo: IConnectionInfo,
-                        connectionPromise: Deferred<boolean>,
-                        _saveConnection?: boolean,
-                    ) => {
-                        passedUri = uri;
-                        connectionPromise.resolve(true);
-                        return Promise.resolve(true);
-                    },
-                );
+            mockMainController.connect.callsFake(
+                (
+                    uri: string,
+                    _connectionInfo: IConnectionInfo,
+                    connectionPromise: Deferred<boolean>,
+                    _saveConnection?: boolean,
+                ) => {
+                    passedUri = uri;
+                    connectionPromise.resolve(true);
+                    return Promise.resolve(true);
+                },
+            );
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (Extension as any).controller = mockMainController.object;
+            (Extension as any).controller = mockMainController;
 
             const returnedUri = await vscodeMssql.connect(testConnInfo, false /* saveConnection */);
 
@@ -160,13 +135,11 @@ suite("Extension API Tests", () => {
     test("listDatabases", async () => {
         const testDatabaseList = ["AdventureWorks", "WideWorldImporters"];
 
-        connectionManager
-            .setup((c) => c.listDatabases(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(testDatabaseList));
+        connectionManagerStub.listDatabases.resolves(testDatabaseList);
 
         const result = await vscodeMssql.listDatabases("test-uri");
 
-        connectionManager.verify((c) => c.listDatabases("test-uri"), TypeMoq.Times.once());
+        expect(connectionManagerStub.listDatabases).to.have.been.calledOnceWithExactly("test-uri");
 
         expect(result).to.deep.equal(testDatabaseList);
     });
@@ -178,39 +151,31 @@ suite("Extension API Tests", () => {
             label: "TestDatabase",
         } as ITreeNodeInfo;
 
-        const mockObjectExplorerUtils = TypeMoq.Mock.ofType<typeof ObjectExplorerUtils>();
-        mockObjectExplorerUtils
-            .setup((o) => o.getDatabaseName(TypeMoq.It.isValue(mockTreeNode)))
-            .returns(() => "MockDatabase");
-
-        // Replace the actual ObjectExplorerUtils with the mock
-        const originalGetDatabaseName = ObjectExplorerUtils.getDatabaseName;
-        ObjectExplorerUtils.getDatabaseName = mockObjectExplorerUtils.object.getDatabaseName;
+        const getDatabaseNameStub = sandbox
+            .stub(ObjectExplorerUtils, "getDatabaseName")
+            .withArgs(mockTreeNode)
+            .returns("MockDatabase");
 
         try {
             const result = vscodeMssql.getDatabaseNameFromTreeNode(mockTreeNode);
 
             expect(result).to.equal("MockDatabase");
         } finally {
-            // Restore the original function
-            ObjectExplorerUtils.getDatabaseName = originalGetDatabaseName;
+            getDatabaseNameStub.restore();
         }
     });
 
     test("getConnectionString", async () => {
         const mockConnectionString = "testConnectionString";
 
-        connectionManager
-            .setup((c) =>
-                c.getConnectionString(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            )
-            .returns(() => Promise.resolve(mockConnectionString));
+        connectionManagerStub.getConnectionString.resolves(mockConnectionString);
 
         const result = await vscodeMssql.getConnectionString("test-uri", true, false);
 
-        connectionManager.verify(
-            (c) => c.getConnectionString("test-uri", true, false),
-            TypeMoq.Times.once(),
+        expect(connectionManagerStub.getConnectionString).to.have.been.calledOnceWithExactly(
+            "test-uri",
+            true,
+            false,
         );
 
         expect(result).to.equal(mockConnectionString);
@@ -222,20 +187,17 @@ suite("Extension API Tests", () => {
             database: "testDb",
         } as IConnectionInfo;
 
-        connectionManager
-            .setup((c) => c.createConnectionDetails(TypeMoq.It.isAny()))
-            .returns(() => ({
-                options: {
-                    server: "testServer",
-                    database: "testDb",
-                },
-            }));
+        connectionManagerStub.createConnectionDetails.returns({
+            options: {
+                server: "testServer",
+                database: "testDb",
+            },
+        });
 
         const result = vscodeMssql.createConnectionDetails(testConnInfo);
 
-        connectionManager.verify(
-            (c) => c.createConnectionDetails(testConnInfo),
-            TypeMoq.Times.once(),
+        expect(connectionManagerStub.createConnectionDetails).to.have.been.calledOnceWithExactly(
+            testConnInfo,
         );
 
         expect(result.options.server).to.equal("testServer");
@@ -249,15 +211,13 @@ suite("Extension API Tests", () => {
         const mockParams: TestParams = { testParam: "testValue" };
         const mockResponse: TestResponse = { success: true };
 
-        connectionManager
-            .setup((c) => c.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(mockResponse));
+        connectionManagerStub.sendRequest.resolves(mockResponse);
 
         const result = await vscodeMssql.sendRequest(mockRequestType, mockParams);
 
-        connectionManager.verify(
-            (c) => c.sendRequest(mockRequestType, mockParams),
-            TypeMoq.Times.once(),
+        expect(connectionManagerStub.sendRequest).to.have.been.calledOnceWithExactly(
+            mockRequestType,
+            mockParams,
         );
 
         expect(result).to.deep.equal(mockResponse);
@@ -274,13 +234,13 @@ suite("Extension API Tests", () => {
             serverEdition: "Test Edition",
         } as IServerInfo;
 
-        connectionManager
-            .setup((c) => c.getServerInfo(TypeMoq.It.isAny()))
-            .returns(() => mockServerInfo);
+        connectionManagerStub.getServerInfo.returns(mockServerInfo);
 
         const result = vscodeMssql.getServerInfo(testConnInfo);
 
-        connectionManager.verify((c) => c.getServerInfo(testConnInfo), TypeMoq.Times.once());
+        expect(connectionManagerStub.getServerInfo).to.have.been.calledOnceWithExactly(
+            testConnInfo,
+        );
 
         expect(result.serverVersion).to.equal(mockServerInfo.serverVersion);
         expect(result.serverEdition).to.equal(mockServerInfo.serverEdition);
