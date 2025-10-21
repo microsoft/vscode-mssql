@@ -679,6 +679,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
             this.setSelectedRanges(ranges);
             e.preventDefault();
             e.stopPropagation();
+            return;
         }
 
         // Open Header menu (F3)
