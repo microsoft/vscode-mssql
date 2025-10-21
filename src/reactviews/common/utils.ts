@@ -137,7 +137,9 @@ export function isMetaKeyPressed(e: KeyboardEvent | MouseEvent | React.KeyboardE
     return isMac() ? e.metaKey : e.ctrlKey;
 }
 
-// Shared focusable selector (slightly generalized)
+/**
+ * Selector string for focusable elements.
+ */
 const FOCUSABLE_SELECTOR = [
     "a[href]",
     "button",
@@ -150,6 +152,11 @@ const FOCUSABLE_SELECTOR = [
     .map((s) => `${s}:not([tabindex="-1"])`)
     .join(",");
 
+/**
+ * Check if an element is visible.
+ * @param el The element to check.
+ * @returns True if the element is visible, false otherwise.
+ */
 function isElementVisible(el: HTMLElement): boolean {
     // Covers display:none/visibility:hidden/off-screen containers, etc.
     const style = window.getComputedStyle(el);
@@ -161,12 +168,24 @@ function isElementVisible(el: HTMLElement): boolean {
     return true;
 }
 
+/**
+ * Get all focusable elements within the given root.
+ * @param root The root element to limit the search within.
+ * @returns An array of focusable elements.
+ */
 function getFocusableElements(root: ParentNode = document): HTMLElement[] {
     return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
         (el) => !el.hasAttribute("disabled") && isElementVisible(el),
     );
 }
 
+/**
+ * Get the adjacent focusable element in the given direction.
+ * @param currentElement The current focused element.
+ * @param step The step direction: 1 for next, -1 for previous.
+ * @param root The root element to limit the search within.
+ * @returns The adjacent focusable element, or null if none found.
+ */
 function getAdjacentFocusableElement(
     currentElement: HTMLElement,
     step: 1 | -1,

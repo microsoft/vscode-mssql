@@ -8,6 +8,12 @@ import { Menu, MenuList, MenuItem, MenuPopover, MenuTrigger } from "@fluentui/re
 import { locConstants } from "../../../../common/locConstants";
 import { GridContextMenuAction } from "../../../../../sharedInterfaces/queryResult";
 import { isMac } from "../../../../common/utils";
+import {
+    cmdAKeyboardShortcut,
+    cmdCKeyboardShortcut,
+    ctrlAKeyboardShortcut,
+    ctrlCKeyboardShortcut,
+} from "../../../../common/constants";
 
 export interface GridContextMenuProps {
     x: number;
@@ -60,12 +66,16 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                 <MenuPopover onClick={(e) => e.stopPropagation()} ref={popoverRef}>
                     <MenuList>
                         <MenuItem
-                            secondaryContent={isMac() ? "⌘A" : "Ctrl+A"}
+                            secondaryContent={
+                                isMac() ? cmdAKeyboardShortcut : ctrlAKeyboardShortcut
+                            }
                             onClick={() => onAction(GridContextMenuAction.SelectAll)}>
                             {locConstants.queryResult.selectAll}
                         </MenuItem>
                         <MenuItem
-                            secondaryContent={isMac() ? "⌘C" : "Ctrl+C"}
+                            secondaryContent={
+                                isMac() ? cmdCKeyboardShortcut : ctrlCKeyboardShortcut
+                            }
                             onClick={() => onAction(GridContextMenuAction.CopySelection)}>
                             {locConstants.queryResult.copy}
                         </MenuItem>
