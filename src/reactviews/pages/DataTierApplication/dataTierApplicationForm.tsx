@@ -640,11 +640,6 @@ export const DataTierApplicationForm = () => {
 
     const isFormValid = () => {
         if (!filePath || !databaseName) return false;
-        if (
-            operationType === DataTierOperationType.Extract &&
-            (!applicationName || !applicationVersion)
-        )
-            return false;
         return Object.keys(validationErrors).length === 0;
     };
 
@@ -747,7 +742,10 @@ export const DataTierApplicationForm = () => {
                                     </Option>
                                 ) : (
                                     availableConnections.map((conn) => (
-                                        <Option key={conn.profileId} value={conn.profileId}>
+                                        <Option
+                                            key={conn.profileId}
+                                            value={conn.profileId}
+                                            text={`${conn.displayName}${conn.isConnected ? " ●" : ""}`}>
                                             {conn.displayName}
                                             {conn.isConnected && " ●"}
                                         </Option>
@@ -890,9 +888,7 @@ export const DataTierApplicationForm = () => {
 
                 {showApplicationInfo && (
                     <div className={classes.section}>
-                        <Field
-                            label={locConstants.dataTierApplication.applicationNameLabel}
-                            required>
+                        <Field label={locConstants.dataTierApplication.applicationNameLabel}>
                             <Input
                                 value={applicationName}
                                 onChange={(_, data) => setApplicationName(data.value)}
@@ -901,9 +897,7 @@ export const DataTierApplicationForm = () => {
                             />
                         </Field>
 
-                        <Field
-                            label={locConstants.dataTierApplication.applicationVersionLabel}
-                            required>
+                        <Field label={locConstants.dataTierApplication.applicationVersionLabel}>
                             <Input
                                 value={applicationVersion}
                                 onChange={(_, data) => setApplicationVersion(data.value)}

@@ -127,8 +127,8 @@ export interface DeployDacpacParams {
 export interface ExtractDacpacParams {
     databaseName: string;
     packageFilePath: string;
-    applicationName: string;
-    applicationVersion: string;
+    applicationName?: string;
+    applicationVersion?: string;
     ownerUri: string;
 }
 
