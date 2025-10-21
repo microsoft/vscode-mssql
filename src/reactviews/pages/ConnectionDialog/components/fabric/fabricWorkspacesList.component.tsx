@@ -34,7 +34,7 @@ import {
 import { locConstants as Loc } from "../../../../common/locConstants";
 import { useFabricExplorerStyles } from "./fabricExplorer.styles";
 import { ApiStatus, Status } from "../../../../../sharedInterfaces/webview";
-import { Keys } from "../../../../common/keys";
+import { KeyCode } from "../../../../common/keys";
 
 export const FabricWorkspacesList = ({
     workspaces,
@@ -110,7 +110,7 @@ export const FabricWorkspacesList = ({
                                 }}
                                 onClick={handleClearWorkspaceSearch}
                                 onKeyDown={(e) => {
-                                    if (e.key === Keys.Enter) {
+                                    if (e.code === KeyCode.Enter) {
                                         handleClearWorkspaceSearch(e);
                                     }
                                 }}
@@ -136,7 +136,7 @@ export const FabricWorkspacesList = ({
                     }
                     onClick={toggleExplorer}
                     onKeyDown={(e) => {
-                        if (e.key === Keys.Enter || e.key === Keys.Space) {
+                        if (e.code === KeyCode.Enter || e.code === KeyCode.Space) {
                             toggleExplorer();
                             e.preventDefault();
                         }

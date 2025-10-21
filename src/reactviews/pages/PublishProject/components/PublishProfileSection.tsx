@@ -8,10 +8,8 @@ import { useContext, useState, useEffect } from "react";
 import { LocConstants } from "../../../common/locConstants";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
-import type { PublishProjectProvider } from "../../../../sharedInterfaces/publishDialog";
 import { FormItemType } from "../../../../sharedInterfaces/form";
 import { renderInput } from "./FormFieldComponents";
-import { useFormStyles } from "../../../common/forms/form.component";
 
 const useStyles = makeStyles({
     root: {
@@ -38,9 +36,8 @@ const useStyles = makeStyles({
 // Publish profile name input with action buttons (select & save) rendered inline via selectors.
 export const PublishProfileField: React.FC = () => {
     const classes = useStyles();
-    const formStyles = useFormStyles();
     const loc = LocConstants.getInstance().publishProject;
-    const context = useContext(PublishProjectContext) as PublishProjectProvider | undefined;
+    const context = useContext(PublishProjectContext);
     const component = usePublishDialogSelector((s) => s.formComponents.publishProfilePath);
     const value = usePublishDialogSelector((s) => s.formState.publishProfilePath);
     const [localValue, setLocalValue] = useState(value || "");
@@ -55,25 +52,23 @@ export const PublishProfileField: React.FC = () => {
     }
 
     return (
-        <div className={formStyles.formComponentDiv}>
-            <div className={classes.root}>
-                <div className={classes.fieldContainer}>
-                    {renderInput(component, localValue, setLocalValue, { readOnly: true })}
-                </div>
-                <div className={classes.buttons}>
-                    <Button
-                        size="small"
-                        appearance="secondary"
-                        onClick={() => context.selectPublishProfile?.()}>
-                        {loc.SelectPublishProfile}
-                    </Button>
-                    <Button
-                        size="small"
-                        appearance="secondary"
-                        onClick={() => context.savePublishProfile?.("")}>
-                        {loc.SaveAs}
-                    </Button>
-                </div>
+        <div className={classes.root}>
+            <div className={classes.fieldContainer}>
+                {renderInput(component, localValue, context, { readOnly: true })}
+            </div>
+            <div className={classes.buttons}>
+                <Button
+                    size="small"
+                    appearance="secondary"
+                    onClick={() => context.selectPublishProfile?.()}>
+                    {loc.SelectPublishProfile}
+                </Button>
+                <Button
+                    size="small"
+                    appearance="secondary"
+                    onClick={() => context.savePublishProfile?.("")}>
+                    {loc.SaveAs}
+                </Button>
             </div>
         </div>
     );

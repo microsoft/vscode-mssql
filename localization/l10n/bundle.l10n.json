@@ -726,6 +726,19 @@
     "Hide Confirm Password": "Hide Confirm Password",
     "Passwords do not match": "Passwords do not match",
     "Object Explorer Filter": "Object Explorer Filter",
+    "Azure MFA": "Azure MFA",
+    "Windows Authentication": "Windows Authentication",
+    "Enabled": "Enabled",
+    "Disabled": "Disabled",
+    "User": "User",
+    "Port": "Port",
+    "SQL Container Name": "SQL Container Name",
+    "SQL Container Version": "SQL Container Version",
+    "Application Intent": "Application Intent",
+    "Connection Timeout": "Connection Timeout",
+    "Command Timeout": "Command Timeout",
+    "Always Encrypted": "Always Encrypted",
+    "Replication": "Replication",
     "{0} (filtered)": "{0} (filtered)",
     "Remind Me Later": "Remind Me Later",
     "Don't Show Again": "Don't Show Again",
@@ -832,7 +845,6 @@
         "comment": ["{0} is the error message"]
     },
     "No Microsoft Entra account can be found for removal.": "No Microsoft Entra account can be found for removal.",
-    "Azure token cache cleared successfully.": "Azure token cache cleared successfully.",
     "Cannot connect due to expired tokens. Please re-authenticate and try again.": "Cannot connect due to expired tokens. Please re-authenticate and try again.",
     "Microsoft Entra Id": "Microsoft Entra Id",
     "Choose a Microsoft Entra tenant": "Choose a Microsoft Entra tenant",
@@ -966,7 +978,6 @@
         "message": "Disconnected on document \"{0}\"",
         "comment": ["{0} is the document name"]
     },
-    "OpenSSL version >=1.0.1 is required to connect.": "OpenSSL version >=1.0.1 is required to connect.",
     "Help": "Help",
     "macOS Sierra or newer is required to use this feature.": "macOS Sierra or newer is required to use this feature.",
     "Getting definition ...": "Getting definition ...",
@@ -1068,6 +1079,8 @@
     "SQL Plan Files": "SQL Plan Files",
     "Script copied to clipboard": "Script copied to clipboard",
     "Copied": "Copied",
+    "Copying results...": "Copying results...",
+    "Results copied to clipboard": "Results copied to clipboard",
     "Do you want to always display query results in a new tab instead of the query pane?": "Do you want to always display query results in a new tab instead of the query pane?",
     "Always show in new tab": "Always show in new tab",
     "Keep in query pane": "Keep in query pane",
@@ -1139,6 +1152,7 @@
         "comment": ["{0} is the account display name", "{1} is the tenant id"]
     },
     "Clear cache and refresh token": "Clear cache and refresh token",
+    "Clear token cache": "Clear token cache",
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     "Add Firewall Rule to {0}/{0} is the server name": {
         "message": "Add Firewall Rule to {0}",
@@ -1237,6 +1251,7 @@
         "message": "{0} invalid Entra accounts have been removed; you may need to run `MS SQL: Clear Microsoft Entra account token cache` and log in again.",
         "comment": ["{0} is the number of invalid accounts that have been removed"]
     },
+    "Entra token cache cleared successfully.": "Entra token cache cleared successfully.",
     "Database Name": "Database Name",
     "Enter Database Name": "Enter Database Name",
     "Database Name is required": "Database Name is required",
@@ -1280,18 +1295,18 @@
         "message": "Sum: {0}",
         "comment": ["{0} is the sum"]
     },
+    "An error occurred while copying results: {0}/{0} is the error message": {
+        "message": "An error occurred while copying results: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "{0} rows selected, click to load summary/{0} is the number of rows to fetch summary statistics for": {
         "message": "{0} rows selected, click to load summary",
         "comment": ["{0} is the number of rows to fetch summary statistics for"]
     },
     "Click to load summary": "Click to load summary",
-    "Loading summary {0}/{1} ({2}%) (Click to cancel)/{0} is the current row{1} is the total number of rows{2} is the percentage of rows loaded": {
-        "message": "Loading summary {0}/{1} ({2}%) (Click to cancel)",
-        "comment": [
-            "{0} is the current row",
-            "{1} is the total number of rows",
-            "{2} is the percentage of rows loaded"
-        ]
+    "Loading summary for {0} rows (Click to cancel)/{0} is the total number of rows": {
+        "message": "Loading summary for {0} rows (Click to cancel)",
+        "comment": ["{0} is the total number of rows"]
     },
     "Click to cancel loading summary": "Click to cancel loading summary",
     "Summary loading canceled": "Summary loading canceled",
@@ -1344,7 +1359,6 @@
     "Container Name": "Container Name",
     "Choose a name for the SQL Server Docker Container": "Choose a name for the SQL Server Docker Container",
     "Please choose a unique name for the container": "Please choose a unique name for the container",
-    "Port": "Port",
     "Choose a port to host the SQL Server Docker Container": "Choose a port to host the SQL Server Docker Container",
     "Please make sure the port is a number, and choose a port that is not in use": "Please make sure the port is a number, and choose a port that is not in use",
     "Hostname": "Hostname",
@@ -1429,7 +1443,7 @@
     "General": "General",
     "Publish Project": "Publish Project",
     "Publish Profile": "Publish Profile",
-    "Select or enter a publish profile": "Select or enter a publish profile",
+    "Load profile...": "Load profile...",
     "Save As": "Save As",
     "Publish Settings File": "Publish Settings File",
     "Database name is required": "Database name is required",
@@ -1444,16 +1458,13 @@
     "SQL Server admin password": "SQL Server admin password",
     "Confirm SQL Server admin password": "Confirm SQL Server admin password",
     "Image tag": "Image tag",
+    "Microsoft SQL Server License Agreement": "Microsoft SQL Server License Agreement",
     "Select Connection": "Select Connection",
-    "I accept the <a href=\"{0}\" target=\"_blank\" rel=\"noopener noreferrer\">Microsoft SQL Server License Agreement</a>/{0} is the hyperlink URL to the Microsoft SQL Server License Agreement used in an HTML anchor tag": {
-        "message": "I accept the <a href=\"{0}\" target=\"_blank\" rel=\"noopener noreferrer\">Microsoft SQL Server License Agreement</a>",
-        "comment": [
-            "{0} is the hyperlink URL to the Microsoft SQL Server License Agreement used in an HTML anchor tag"
-        ]
-    },
     "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
     "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy": "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy",
     "{0} password doesn't match the confirmation password": "{0} password doesn't match the confirmation password",
+    "Required": "Required",
+    "You must accept the license": "You must accept the license",
     "Failed to load publish profile": "Failed to load publish profile",
     "Publish profile saved to: {0}": "Publish profile saved to: {0}",
     "Failed to save publish profile": "Failed to save publish profile",
@@ -1704,7 +1715,6 @@
     "Server Version": "Server Version",
     "Server Edition": "Server Edition",
     "Cloud": "Cloud",
-    "User": "User",
     "No connection information found": "No connection information found",
     "No active connection": "No active connection",
     "Opening schema designer...": "Opening schema designer...",

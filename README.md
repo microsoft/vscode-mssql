@@ -1,5 +1,6 @@
 [![Build and Test (Unit + E2E)](https://github.com/microsoft/vscode-mssql/actions/workflows/build-and-test.yml/badge.svg?branch=main)](https://github.com/microsoft/vscode-mssql/actions/workflows/build-and-test.yml)
 ![GitHub Discussions](https://img.shields.io/github/discussions/microsoft/vscode-mssql)
+[![codecov](https://codecov.io/github/microsoft/vscode-mssql/graph/badge.svg?token=NXLNAwJgRB)](https://codecov.io/github/microsoft/vscode-mssql)
 
 # MSSQL extension for Visual Studio Code
 
@@ -108,12 +109,11 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
 Follow these steps to get started with the MSSQL extension:
 
 1. Install [Visual Studio Code](https://code.visualstudio.com/#alt-downloads) and then install the **MSSQL extension** from the Extensions view or via the command palette (`F1`, then type `Install Extensions`).
-2. macOS users: Install OpenSSL. See the [DotNet Core instructions](https://www.microsoft.com/net/core) for prerequisites.
-3. Open or create a `.sql` file. To manually set language mode, press `Ctrl+K M` and select **SQL**.
-4. Press `F1`, type `MS SQL: Manage Connection Profile`, and follow the prompts to create a profile. See [manage connection profiles](https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles) for advanced options.
-5. Connect to a database using `F1` > `MS SQL: Connect` or the shortcut `Ctrl+Shift+C`.
-6. Write your T-SQL script using IntelliSense and snippets. Type `sql` to explore available snippets.
-7. Run queries by selecting **MS SQL: Execute Query** from the Command Palette (`F1`), or use the shortcut:
+2. Open or create a `.sql` file. To manually set language mode, press `Ctrl+K M` and select **SQL**.
+3. Press `F1`, type `MS SQL: Manage Connection Profile`, and follow the prompts to create a profile. See [manage connection profiles](https://github.com/Microsoft/vscode-mssql/wiki/manage-connection-profiles) for advanced options.
+4. Connect to a database using `F1` > `MS SQL: Connect` or the shortcut `Ctrl+Shift+C`.
+5. Write your T-SQL script using IntelliSense and snippets. Type `sql` to explore available snippets.
+6. Run queries by selecting **MS SQL: Execute Query** from the Command Palette (`F1`), or use the shortcut:
 
 -   **Windows/Linux**: `Ctrl+Shift+E`
 -   **macOS**: `Cmd+Shift+E`
@@ -208,7 +208,7 @@ The following Visual Studio Code settings are available for the mssql extension.
 // Status bar
 {
   "mssql.statusBar.connectionInfoMaxLength": -1,
-  "mssql.statusBar.enableConnectionColor": true,
+  "mssql.enableConnectionColor": true,
 }
 ```
 

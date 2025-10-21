@@ -13,8 +13,6 @@ import {
     DefaultSqlPortNumber,
 } from "../../../../sharedInterfaces/publishDialog";
 import { renderInput, renderDropdown, renderCheckbox } from "./FormFieldComponents";
-import { parseHtmlLabel } from "../../../common/utils";
-import { useFormStyles } from "../../../common/forms/form.component";
 
 const useStyles = makeStyles({
     root: {
@@ -34,9 +32,16 @@ const useStyles = makeStyles({
 });
 
 export const PublishTargetSection: React.FC = () => {
-    const classes = useStyles();
-    const formStyles = useFormStyles();
+    const styles = useStyles();
     const publishCtx = useContext(PublishProjectContext);
+
+    // Local state for password visibility toggles
+    const [showAdminPassword, setShowAdminPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    // Local state for password values to prevent cursor jumping
+    const [localPasswordValue, setLocalPasswordValue] = useState("");
+    const [localConfirmPasswordValue, setLocalConfirmPasswordValue] = useState("");
 
     // Select form components and values - components needed for rendering, values for logic
     const targetComponent = usePublishDialogSelector(
@@ -82,25 +87,6 @@ export const PublishTargetSection: React.FC = () => {
         (s) => s.formState[PublishFormFields.AcceptContainerLicense],
     );
 
-    // Password visibility state management
-    const [showAdminPassword, setShowAdminPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-    // Local password state to prevent cursor jumping to end of the text
-    const [localAdminPassword, setLocalAdminPassword] = useState(passwordValue?.toString() || "");
-    const [localConfirmPassword, setLocalConfirmPassword] = useState(
-        confirmPasswordValue?.toString() || "",
-    );
-
-    // Sync local password state with external state when external values change
-    useEffect(() => {
-        setLocalAdminPassword(passwordValue?.toString() || "");
-    }, [passwordValue]);
-
-    useEffect(() => {
-        setLocalConfirmPassword(confirmPasswordValue?.toString() || "");
-    }, [confirmPasswordValue]);
-
     // Auto-populate defaults and revalidate passwords
     useEffect(() => {
         if (!publishCtx || !isContainer) {
@@ -143,134 +129,48 @@ export const PublishTargetSection: React.FC = () => {
                 updateValidation: true,
             });
         }
-    }, [isContainer, passwordValue, publishCtx]);
+    }, [isContainer, passwordValue, confirmPasswordValue, publishCtx]);
 
     if (!publishCtx || !targetComponent) {
-        return <></>;
+        return undefined;
     }
 
     return (
-        <div className={formStyles.formComponentDiv}>
-            <div className={classes.root}>
-                {/* Publish Target Dropdown */}
-                {renderDropdown(targetComponent, targetValue, (val) => {
-                    publishCtx.formAction({
-                        propertyName: targetComponent.propertyName,
-                        isAction: false,
-                        value: val,
-                    });
-                })}
+        <div className={styles.root}>
+            {/* Publish Target Dropdown */}
+            {renderDropdown(targetComponent, targetValue, publishCtx)}
 
-                {/* Container Fields - Shown only when local container is selected */}
-                {isContainer && (
-                    <div className={classes.containerGroup}>
-                        {/* Container Port */}
-                        {renderInput(
-                            portComponent,
-                            portValue?.toString() || "",
-                            (val) => {
-                                portComponent &&
-                                    publishCtx.formAction({
-                                        propertyName: portComponent.propertyName,
-                                        isAction: false,
-                                        value: val,
-                                        updateValidation: false,
-                                    });
-                            },
-                            {
-                                onBlur: (val) => {
-                                    portComponent &&
-                                        publishCtx.formAction({
-                                            propertyName: portComponent.propertyName,
-                                            isAction: false,
-                                            value: val,
-                                            updateValidation: true,
-                                        });
-                                },
-                            },
-                        )}
+            {/* Container Fields - Shown only when local container is selected */}
+            {isContainer && (
+                <div className={styles.containerGroup}>
+                    {/* Container Port */}
+                    {renderInput(portComponent, portValue?.toString() || "", publishCtx)}
 
-                        {/* Admin Password */}
-                        {renderInput(passwordComponent, localAdminPassword, setLocalAdminPassword, {
-                            showPassword: showAdminPassword,
-                            onTogglePassword: () => setShowAdminPassword(!showAdminPassword),
-                            onBlur: (val) => {
-                                passwordComponent &&
-                                    publishCtx.formAction({
-                                        propertyName: passwordComponent.propertyName,
-                                        isAction: false,
-                                        value: val,
-                                        updateValidation: true,
-                                    });
-                            },
-                        })}
+                    {/* Admin Password */}
+                    {renderInput(passwordComponent, localPasswordValue, publishCtx, {
+                        showPassword: showAdminPassword,
+                        onTogglePassword: () => setShowAdminPassword(!showAdminPassword),
+                        onChange: setLocalPasswordValue,
+                    })}
 
-                        {/* Confirm Password */}
-                        {renderInput(
-                            confirmPasswordComponent,
-                            localConfirmPassword,
-                            setLocalConfirmPassword,
-                            {
-                                showPassword: showConfirmPassword,
-                                onTogglePassword: () =>
-                                    setShowConfirmPassword(!showConfirmPassword),
-                                onBlur: (val) => {
-                                    confirmPasswordComponent &&
-                                        publishCtx.formAction({
-                                            propertyName: confirmPasswordComponent.propertyName,
-                                            isAction: false,
-                                            value: val,
-                                            updateValidation: true,
-                                        });
-                                },
-                            },
-                        )}
+                    {/* Confirm Password */}
+                    {renderInput(confirmPasswordComponent, localConfirmPasswordValue, publishCtx, {
+                        showPassword: showConfirmPassword,
+                        onTogglePassword: () => setShowConfirmPassword(!showConfirmPassword),
+                        onChange: setLocalConfirmPasswordValue,
+                    })}
 
-                        {/* Container Image Tag */}
-                        {renderDropdown(imageTagComponent, imageTagValue?.toString(), (val) => {
-                            imageTagComponent &&
-                                publishCtx.formAction({
-                                    propertyName: imageTagComponent.propertyName,
-                                    isAction: false,
-                                    value: val,
-                                    updateValidation: true,
-                                });
-                        })}
+                    {/* Container Image Tag */}
+                    {renderDropdown(imageTagComponent, imageTagValue?.toString(), publishCtx, {
+                        validateOnChange: true,
+                    })}
 
-                        {/* Accept License Checkbox */}
-                        {renderCheckbox(
-                            licenseComponent,
-                            Boolean(licenseValue),
-                            (checked) => {
-                                licenseComponent &&
-                                    publishCtx.formAction({
-                                        propertyName: licenseComponent.propertyName,
-                                        isAction: false,
-                                        value: checked,
-                                        updateValidation: true,
-                                    });
-                            },
-                            licenseComponent?.label ? (
-                                <>
-                                    {parseHtmlLabel(licenseComponent.label)?.parts.map((part, i) =>
-                                        typeof part === "string" ? (
-                                            part
-                                        ) : (
-                                            <a
-                                                key={i}
-                                                href={part.href}
-                                                target="_blank"
-                                                rel="noopener noreferrer">
-                                                {part.text}
-                                            </a>
-                                        ),
-                                    )}
-                                </>
-                            ) : undefined,
-                        )}
-                    </div>
-                )}
-            </div>
+                    {/* Accept License Checkbox */}
+                    {renderCheckbox(licenseComponent, Boolean(licenseValue), publishCtx, {
+                        validateOnChange: true,
+                    })}
+                </div>
+            )}
         </div>
     );
 };

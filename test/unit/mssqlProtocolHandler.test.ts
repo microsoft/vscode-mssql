@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as TypeMoq from "typemoq";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import { expect } from "chai";
@@ -12,7 +11,6 @@ import * as chai from "chai";
 import { MssqlProtocolHandler } from "../../src/mssqlProtocolHandler";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { Uri } from "vscode";
-import { mockGetCapabilitiesRequest } from "./mocks";
 import { Logger } from "../../src/models/logger";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import MainController from "../../src/controllers/mainController";
@@ -20,13 +18,14 @@ import { generateUUID } from "../e2e/baseFixtures";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { MatchScore } from "../../src/models/utils";
 import { IConnectionProfile } from "../../src/models/interfaces";
+import { stubGetCapabilitiesRequest } from "./utils";
 
 chai.use(sinonChai);
 
 suite("MssqlProtocolHandler Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mssqlProtocolHandler: MssqlProtocolHandler;
-    let sqlToolsServiceClientMock: TypeMoq.IMock<SqlToolsServiceClient>;
+    let sqlToolsServiceClientMock: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockLogger: sinon.SinonStubbedInstance<Logger>;
     let mockMainController: sinon.SinonStubbedInstance<MainController>;
@@ -55,17 +54,12 @@ suite("MssqlProtocolHandler Tests", () => {
 
         sandbox.stub(Logger, "create").returns(mockLogger);
 
-        sqlToolsServiceClientMock = TypeMoq.Mock.ofType(
-            SqlToolsServiceClient,
-            TypeMoq.MockBehavior.Loose,
-        );
-
-        mockGetCapabilitiesRequest(sqlToolsServiceClientMock);
+        sqlToolsServiceClientMock = stubGetCapabilitiesRequest(sandbox);
 
         mssqlProtocolHandler = new MssqlProtocolHandler(
             mockVscodeWrapper,
             mockMainController,
-            sqlToolsServiceClientMock.object,
+            sqlToolsServiceClientMock,
         );
 
         openConnectionDialogStub = sandbox.stub(

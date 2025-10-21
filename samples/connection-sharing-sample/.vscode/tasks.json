@@ -18,7 +18,6 @@
             "type": "npm",
             "script": "watch:esbuild",
             "group": "build",
-            "problemMatcher": "$esbuild-watch",
             "isBackground": true,
             "label": "npm: watch:esbuild",
             "presentation": {

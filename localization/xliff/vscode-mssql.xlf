@@ -150,11 +150,18 @@
     <trans-unit id="++CODE++482b98e1609bd828db30a1c85f78a5e6e6ee55dcfb01db094432c1db2c1ae168">
       <source xml:lang="en">Alter</source>
     </trans-unit>
+    <trans-unit id="++CODE++2377437eeccabd24162dbc0f1d9e2ed6af6102f30ef6da601f39ce4237cb6bee">
+      <source xml:lang="en">Always Encrypted</source>
+    </trans-unit>
     <trans-unit id="++CODE++1888bd4ce917e9c8cecde43608d69624f56668f86f1bbe4331494db33fb52578">
       <source xml:lang="en">Always show in new tab</source>
     </trans-unit>
     <trans-unit id="++CODE++d4fd4b3da177dfc06dbcde0a7f62d637dbf3d90298fdc9b6aeba4f9230441e1f">
       <source xml:lang="en">An error occurred refreshing nodes. See the MSSQL output channel for more details.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0e0aa36ee32c59d59231919e47412a12d29c1f3459800637634bb73fb949f541">
+      <source xml:lang="en">An error occurred while copying results: {0}</source>
+      <note>{0} is the error message</note>
     </trans-unit>
     <trans-unit id="++CODE++b80f19578e3d6cc4f8693e307caf7f4fc739be0f2eb550a9f78a0874ae0205e5">
       <source xml:lang="en">An error occurred while processing your request.</source>
@@ -189,6 +196,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
       <source xml:lang="en">And</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f548fb847184961d59c59fd5b4ff10720726475e1768037348dec8e7c6bd6468">
+      <source xml:lang="en">Application Intent</source>
     </trans-unit>
     <trans-unit id="++CODE++31e392d1c0378beca611de66c0f4c71cba29159905cc54242d9bddee5b23d851">
       <source xml:lang="en">Apply</source>
@@ -295,11 +305,11 @@
     <trans-unit id="++CODE++c5023bdd36d362e05c245ab15ab6839ad7562bcd42f1e1b0c759dca9d5fec4f7">
       <source xml:lang="en">Azure Device Code</source>
     </trans-unit>
+    <trans-unit id="++CODE++aa3e45296e9592fa302b1adc67d9b4467e467a4ffa11fee0c0430063a3372707">
+      <source xml:lang="en">Azure MFA</source>
+    </trans-unit>
     <trans-unit id="++CODE++314afcc6e23d362133e764e1ebfacabe4d330308b528392570949a17270248b9">
       <source xml:lang="en">Azure sign in failed.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++3d1ae152f7c95ef16327aafe54bc82e4565547c236299ef06d54a8db5980c24f">
-      <source xml:lang="en">Azure token cache cleared successfully.</source>
     </trans-unit>
     <trans-unit id="++CODE++f71dfcecebed757febe54c711e436e17521c71da90d4c5cc61ef6717918173a4">
       <source xml:lang="en">Azure: Sign In</source>
@@ -540,6 +550,9 @@
     <trans-unit id="++CODE++21f5ea19572773c428e8375b3d63058ad4f04aea83df347deb633f9ddad9a643">
       <source xml:lang="en">Clear permissions for all extensions to access your connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++524ed5b794acd857648e76bead9db5ba131ebcb17f3a92d98ece51db61e65dbf">
+      <source xml:lang="en">Clear token cache</source>
+    </trans-unit>
     <trans-unit id="++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36">
       <source xml:lang="en">Click to cancel loading summary</source>
     </trans-unit>
@@ -623,6 +636,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9504ef48c5eab40c3e3a086cbbdc3d70b44e607552db6adfbdd7c278ddabe357">
       <source xml:lang="en">Columns in the primary key.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e665046133e22f0d3599a6c5de916445ed88c82a997a625a04af1827c42d790b">
+      <source xml:lang="en">Command Timeout</source>
     </trans-unit>
     <trans-unit id="++CODE++e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9">
       <source xml:lang="en">Compare</source>
@@ -762,6 +778,9 @@
     <trans-unit id="++CODE++a2caae6025f30a0976030ae3ea92ab948f6b580d5f50272514ba36e31c8d1d09">
       <source xml:lang="en">Connection String</source>
     </trans-unit>
+    <trans-unit id="++CODE++e4ce453aa184d4cd0a2051dfb91ab491ba8b19c756bd9f113b7a1ce1e807b02e">
+      <source xml:lang="en">Connection Timeout</source>
+    </trans-unit>
     <trans-unit id="++CODE++8d137af9c64fba09bbb003aba93f0b029898fe19e7927cd696f4c3e2b69f538d">
       <source xml:lang="en">Connection error</source>
     </trans-unit>
@@ -844,6 +863,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3ae569f53ee1e765e3551a7f7881999f868289afbf0b1c6077d906c68cd10525">
       <source xml:lang="en">Copy with Headers</source>
+    </trans-unit>
+    <trans-unit id="++CODE++35c380196401c05c48fe5f5fffd349ba06d9988118b87a1c12e1164a28175997">
+      <source xml:lang="en">Copying results...</source>
     </trans-unit>
     <trans-unit id="++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126">
       <source xml:lang="en">Cost</source>
@@ -1026,6 +1048,9 @@
     <trans-unit id="++CODE++6fbed214e0ea21c683db0ba2d648ef09b11edf4b4bb23835d4fdda84b5d097f3">
       <source xml:lang="en">Disable intellisense and syntax error checking on current document</source>
     </trans-unit>
+    <trans-unit id="++CODE++75081b593d15cf6e631971bc6768723f593b88b172477e40ae7d363e4829816d">
+      <source xml:lang="en">Disabled</source>
+    </trans-unit>
     <trans-unit id="++CODE++acfc5be785a9bb3da11c9f05adb69bd5633096f09002aa44813a1b3207e912ad">
       <source xml:lang="en">Disconnect</source>
     </trans-unit>
@@ -1113,6 +1138,9 @@
     <trans-unit id="++CODE++45e33ceba31737f1cb793c231fafc9dd99074ca1f26476a70b0c830ef155c9d3">
       <source xml:lang="en">Enable Trust Server Certificate</source>
     </trans-unit>
+    <trans-unit id="++CODE++92c1cdfdf4cb9cf6fcca962f206de36fd5d60db1178bc9461052f8de703a0e06">
+      <source xml:lang="en">Enabled</source>
+    </trans-unit>
     <trans-unit id="++CODE++76ad7b53af548367c78d7216972ce81ee53ecf7ee1d6fe5f3d16a73633bd4e49">
       <source xml:lang="en">Encountering a problem?  Share the details with us by opening a GitHub issue so we can improve!</source>
     </trans-unit>
@@ -1166,6 +1194,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0a6b9ae24f863f5d06e0151c62f16b9327fdac6783807dc163e953559aa8287f">
       <source xml:lang="en">Enter profile name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
+      <source xml:lang="en">Entra token cache cleared successfully.</source>
     </trans-unit>
     <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
       <source xml:lang="en">Equals</source>
@@ -1670,10 +1701,6 @@
     <trans-unit id="++CODE++4d7056f0e9bef4870b289d7b77634cead0e646a63708a1eb500c6eab11c1328e">
       <source xml:lang="en">Hue</source>
     </trans-unit>
-    <trans-unit id="++CODE++70c28ff8eecf388a53fbc8ff288f471398bdb9860e438b3eae4b7ef6c8f187e5">
-      <source xml:lang="en">I accept the &lt;a href=&quot;{0}&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;Microsoft SQL Server License Agreement&lt;/a&gt;</source>
-      <note>{0} is the hyperlink URL to the Microsoft SQL Server License Agreement used in an HTML anchor tag</note>
-    </trans-unit>
     <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
       <source xml:lang="en">I have read the summary and understand the potential risks.</source>
     </trans-unit>
@@ -1897,6 +1924,9 @@
     <trans-unit id="++CODE++6b590dbe3ca2ba02770a0f91a1d06fddd3d9f474ffc479853d323f0545a6397b">
       <source xml:lang="en">Load from Connection String</source>
     </trans-unit>
+    <trans-unit id="++CODE++323ed460497fcfa6d1f92f52778381421eefa8ba36a3e9896b3f05a4a2050ca2">
+      <source xml:lang="en">Load profile...</source>
+    </trans-unit>
     <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
       <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
     </trans-unit>
@@ -1943,11 +1973,9 @@
     <trans-unit id="++CODE++b00da16333ce9b6f0088556c62cd8766f0a1f02a823e3dca0cd8fd040136e297">
       <source xml:lang="en">Loading results...</source>
     </trans-unit>
-    <trans-unit id="++CODE++ba622a4c63bd7d102bdc3057b04b4cfd8d2af5b2adb230bebc98414fc46afae0">
-      <source xml:lang="en">Loading summary {0}/{1} ({2}%) (Click to cancel)</source>
-      <note>{0} is the current row
-{1} is the total number of rows
-{2} is the percentage of rows loaded</note>
+    <trans-unit id="++CODE++71499b4de6ef3b8d0c19b76e76295f5dd9f5690a180de07ed861fdce757182aa">
+      <source xml:lang="en">Loading summary for {0} rows (Click to cancel)</source>
+      <note>{0} is the total number of rows</note>
     </trans-unit>
     <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
       <source xml:lang="en">Loading tenants...</source>
@@ -2043,6 +2071,9 @@
     <trans-unit id="++CODE++d7f406a55a763bcaf21ae757e59b0ba9b5e2954c074d760a6afa484f977dcf3d">
       <source xml:lang="en">Microsoft Entra account {0} successfully added.</source>
       <note>{0} is the account name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ede0760e8703fdfcddf4d15e0406c0deeadd91e7907d2a3e7479c6a3d3e309e4">
+      <source xml:lang="en">Microsoft SQL Server License Agreement</source>
     </trans-unit>
     <trans-unit id="++CODE++951f4af90cfde827d87f358b3d8d275ee60a3306d9ddb5c4615483cff067697a">
       <source xml:lang="en">Microsoft reviews your feedback to improve our products, so don&apos;t share any personal data or confidential/proprietary content.</source>
@@ -2318,9 +2349,6 @@
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
     </trans-unit>
-    <trans-unit id="++CODE++ea56aa4cb881e4c3d61d84b95881280b4c10519222fcfe40febcbd4b2d548333">
-      <source xml:lang="en">OpenSSL version &gt;=1.0.1 is required to connect.</source>
-    </trans-unit>
     <trans-unit id="++CODE++3a8e07b84d53ba502ae8ee669003537bdbbe321d6c8c6fb6cbd63019cb3d400e">
       <source xml:lang="en">Opening Publish Script. This may take a while...</source>
     </trans-unit>
@@ -2583,6 +2611,12 @@
       <source xml:lang="en">Remove {0}</source>
       <note>{0} is the object type</note>
     </trans-unit>
+    <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
+      <source xml:lang="en">Replication</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
+      <source xml:lang="en">Required</source>
+    </trans-unit>
     <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
       <source xml:lang="en">Reset</source>
     </trans-unit>
@@ -2608,6 +2642,9 @@
     <trans-unit id="++CODE++ccb11e8d73c1d40ef67b26d9ca77a50ab2987d9ac9af361e065c3c1c6699c116">
       <source xml:lang="en">Results ({0})</source>
       <note>{0} is the number of results</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a71f9e2908cf7df2e5ce9dafa67f3f4949fc4c74f525b9f4a6229ff6a7f93c86">
+      <source xml:lang="en">Results copied to clipboard</source>
     </trans-unit>
     <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
       <source xml:lang="en">Retry</source>
@@ -2644,6 +2681,12 @@
     </trans-unit>
     <trans-unit id="++CODE++59b151f69d83edf3eb174ff38c0f77aebf28c9195c785f2003a1cd708de0dc77">
       <source xml:lang="en">SQL Analytics Endpoint</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fa728e3cf6aa4aa3207afe540af912463db2631cd2358004e457e71dc0107148">
+      <source xml:lang="en">SQL Container Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++418024d48b3bccf64d26f1031290f65e229c515336a4b5a08a0cde384d803ed7">
+      <source xml:lang="en">SQL Container Version</source>
     </trans-unit>
     <trans-unit id="++CODE++7f779b8a3477b9909716127bf4ed2ef8e07e7f5fae134f7ad1506a7f267de247">
       <source xml:lang="en">SQL Database</source>
@@ -2868,9 +2911,6 @@
     <trans-unit id="++CODE++154f133b3d7ef488e01090c00b0104ba7bf48bf4368e2ad71333fd3d863fb270">
       <source xml:lang="en">Select new permission for extension: &apos;{0}&apos;</source>
       <note>{0} is the extension name</note>
-    </trans-unit>
-    <trans-unit id="++CODE++10484d8ed1877a7e126a17a3a144a55c6bf07784ecc22b01d87ee138fb808cd8">
-      <source xml:lang="en">Select or enter a publish profile</source>
     </trans-unit>
     <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
       <source xml:lang="en">Select profile to remove</source>
@@ -3405,6 +3445,9 @@
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>
     </trans-unit>
+    <trans-unit id="++CODE++8746aa4543652187c8719dbebc36f0609e31bbc53b14ed2ca12b0207c9e79345">
+      <source xml:lang="en">Windows Authentication</source>
+    </trans-unit>
     <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
       <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>
     </trans-unit>
@@ -3419,6 +3462,9 @@
     </trans-unit>
     <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
       <source xml:lang="en">You are not connected to any database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
+      <source xml:lang="en">You must accept the license</source>
     </trans-unit>
     <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
       <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
@@ -3631,9 +3677,6 @@
     <trans-unit id="mssql.addObjectExplorer">
       <source xml:lang="en">Add Connection</source>
     </trans-unit>
-    <trans-unit id="mssql.addObjectExplorerLegacy">
-      <source xml:lang="en">Add Connection (Legacy)</source>
-    </trans-unit>
     <trans-unit id="mssql.connectionGroups.create">
       <source xml:lang="en">Add Connection Group</source>
     </trans-unit>
@@ -3643,11 +3686,17 @@
     <trans-unit id="mssql.deviceCode.description">
       <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.alwaysEncryptedLabel">
+      <source xml:lang="en">Always Encrypted</source>
+    </trans-unit>
     <trans-unit id="mssql.query.executionTimeout">
       <source xml:lang="en">An execution time-out of 0 indicates an unlimited wait (no time-out)</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.analyzeQueryPerformance">
       <source xml:lang="en">Analyze Query Performance (Preview)</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.applicationIntentLabel">
+      <source xml:lang="en">Application Intent</source>
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.autoSizeColumns">
       <source xml:lang="en">Automatically adjust the column widths based on the visible rows in the result set. Could have performance problems with a large number of columns or large cells</source>
@@ -3657,6 +3706,9 @@
     </trans-unit>
     <trans-unit id="mssql.autoRevealResultsPanel">
       <source xml:lang="en">Automatically reveal the results panel when switching to an editor with query results. Only applies when &apos;Open Results in Tab&apos; is enabled.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.MFALabel">
+      <source xml:lang="en">Azure MFA</source>
     </trans-unit>
     <trans-unit id="mssql.cancelQuery">
       <source xml:lang="en">Cancel Query</source>
@@ -3688,6 +3740,9 @@
     <trans-unit id="mssql.clearPooledConnections">
       <source xml:lang="en">Clear Pooled Connections</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.commandTimeoutLabel">
+      <source xml:lang="en">Command Timeout</source>
+    </trans-unit>
     <trans-unit id="mssql.connect">
       <source xml:lang="en">Connect</source>
     </trans-unit>
@@ -3696,6 +3751,9 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.connectToDatabase.altText">
       <source xml:lang="en">Connection Dialog</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.connectionTimeoutLabel">
+      <source xml:lang="en">Connection Timeout</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroups">
       <source xml:lang="en">Connection groups</source>
@@ -3741,6 +3799,9 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.disableGroupBySchema">
       <source xml:lang="en">Disable Group By Schema</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.disabledLabel">
+      <source xml:lang="en">Disabled</source>
     </trans-unit>
     <trans-unit id="mssql.disconnect">
       <source xml:lang="en">Disconnect</source>
@@ -3852,6 +3913,9 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.enableModernFeatures.description">
       <source xml:lang="en">Enable the new set of data development features that provide a modern way to work with your SQL database in VS Code.&#10;[Enable New Experiences](command:mssql.enableRichExperiences)</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.enabledLabel">
+      <source xml:lang="en">Enabled</source>
     </trans-unit>
     <trans-unit id="mssql.enableRichExperiences.description">
       <source xml:lang="en">Enables UI-based features in the MSSQL extension for richer and more powerful features. Restart Visual Studio Code after changing this setting.</source>
@@ -3997,6 +4061,9 @@
     <trans-unit id="mssql.removeAadAccount">
       <source xml:lang="en">Remove Microsoft Entra Account</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.replicationLabel">
+      <source xml:lang="en">Replication</source>
+    </trans-unit>
     <trans-unit id="mssql.revealQueryResult">
       <source xml:lang="en">Reveal Query Result</source>
     </trans-unit>
@@ -4008,6 +4075,12 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.runQueries.title">
       <source xml:lang="en">Run a SQL Query</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.containerNameLabel">
+      <source xml:lang="en">SQL Container Name</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.containerVersionLabel">
+      <source xml:lang="en">SQL Container Version</source>
     </trans-unit>
     <trans-unit id="mssql.schemaCompare">
       <source xml:lang="en">Schema Compare</source>
@@ -4183,9 +4256,6 @@
     <trans-unit id="mssql.chooseDatabase">
       <source xml:lang="en">Use Database</source>
     </trans-unit>
-    <trans-unit id="mssql.useLegacyConnectionExperience.description">
-      <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
-    </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>
     </trans-unit>
@@ -4197,6 +4267,9 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.groupBySchema">
       <source xml:lang="en">When enabled, the database objects in Object Explorer will be categorized by schema.</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.WindowsAuthLabel">
+      <source xml:lang="en">Windows Authentication</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.getStarted.runQueries.description">
       <source xml:lang="en">Write a SQL query, and run it against your database.&#10;You can also click the &apos;Open in New Tab&apos; button to view your query results in their own tab, and optionally set that as the default behavior.</source>
@@ -4342,8 +4415,23 @@
     <trans-unit id="mssql.connection.server">
       <source xml:lang="en">[Required] Specify the server name to connect to. Use &apos;hostname instance&apos; or &apos;&lt;server&gt;.database.windows.net&apos; for Azure SQL Database.</source>
     </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.authenticationTypeLabel">
+      <source xml:lang="en">auth</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.databaseLabel">
+      <source xml:lang="en">database</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.portLabel">
+      <source xml:lang="en">port</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.serverLabel">
+      <source xml:lang="en">server</source>
+    </trans-unit>
     <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
       <source xml:lang="en">should commas be placed at the beginning of each statement in a list e.g. &apos;, mycolumn2&apos; instead of at the end e.g. &apos;mycolumn1,&apos;</source>
+    </trans-unit>
+    <trans-unit id="mssql.objectExplorer.Tooltip.userLabel">
+      <source xml:lang="en">user</source>
     </trans-unit>
   </body></file>
 </xliff>

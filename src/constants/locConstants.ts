@@ -190,7 +190,6 @@ export function accountRemovalFailed(error: string) {
 export let noAzureAccountForRemoval = l10n.t(
     "No Microsoft Entra account can be found for removal.",
 );
-export let clearedAzureTokenCache = l10n.t("Azure token cache cleared successfully.");
 export let cannotConnect = l10n.t(
     "Cannot connect due to expired tokens. Please re-authenticate and try again.",
 );
@@ -406,8 +405,7 @@ export function msgDisconnected(documentName: string) {
         comment: ["{0} is the document name"],
     });
 }
-export let macOpenSslErrorMessage = l10n.t("OpenSSL version >=1.0.1 is required to connect.");
-export let macOpenSslHelpButton = l10n.t("Help");
+export let help = l10n.t("Help");
 export let macSierraRequiredErrorMessage = l10n.t(
     "macOS Sierra or newer is required to use this feature.",
 );
@@ -584,6 +582,8 @@ export let executionPlan = l10n.t("Execution Plan");
 export let executionPlanFileFilter = l10n.t("SQL Plan Files");
 export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
 export let copied = l10n.t("Copied");
+export let copyingResults = l10n.t("Copying results...");
+export let resultsCopiedToClipboard = l10n.t("Results copied to clipboard");
 
 export let openQueryResultsInTabByDefaultPrompt = l10n.t(
     "Do you want to always display query results in a new tab instead of the query pane?",
@@ -717,7 +717,8 @@ export class ConnectionDialog {
             comment: ["{0} is the account display name", "{1} is the tenant id"],
         });
     }
-    public static ClearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
+    public static clearCacheAndRefreshToken = l10n.t("Clear cache and refresh token");
+    public static clearTokenCache = l10n.t("Clear token cache");
 
     public static noWorkspacesFound = l10n.t(
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
@@ -936,6 +937,7 @@ export class Accounts {
             comment: ["{0} is the number of invalid accounts that have been removed"],
         });
     };
+    public static clearedEntraTokenCache = l10n.t("Entra token cache cleared successfully.");
 }
 
 export class FabricProvisioning {
@@ -1016,6 +1018,35 @@ export class QueryResult {
             }),
         ].join(os.EOL);
     };
+    public static nonNumericSelectionSummaryTooltip = (
+        count: number,
+        distinctCount: number,
+        nullCount: number,
+    ) => {
+        return [
+            l10n.t({
+                message: "Count: {0}",
+                args: [count],
+                comment: ["{0} is the count"],
+            }),
+            l10n.t({
+                message: "Distinct Count: {0}",
+                args: [distinctCount],
+                comment: ["{0} is the distinct count"],
+            }),
+            l10n.t({
+                message: "Null Count: {0}",
+                args: [nullCount],
+                comment: ["{0} is the null count"],
+            }),
+        ].join(os.EOL);
+    };
+    public static copyError = (error: string) =>
+        l10n.t({
+            message: "An error occurred while copying results: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
     public static summaryFetchConfirmation = (numRows: number) =>
         l10n.t({
             message: "{0} rows selected, click to load summary",
@@ -1023,16 +1054,11 @@ export class QueryResult {
             comment: ["{0} is the number of rows to fetch summary statistics for"],
         });
     public static clickToFetchSummary = l10n.t("Click to load summary");
-    public static summaryLoadingProgress = (currentRow: number, totalRows: number) => {
-        const percentage = Math.floor((currentRow / totalRows) * 100);
+    public static summaryLoadingProgress = (totalRows: number) => {
         return l10n.t({
-            message: `Loading summary {0}/{1} ({2}%) (Click to cancel)`,
-            args: [currentRow, totalRows, percentage],
-            comment: [
-                "{0} is the current row",
-                "{1} is the total number of rows",
-                "{2} is the percentage of rows loaded",
-            ],
+            message: `Loading summary for {0} rows (Click to cancel)`,
+            args: [totalRows],
+            comment: ["{0} is the total number of rows"],
         });
     };
     public static clickToCancelLoadingSummary = l10n.t("Click to cancel loading summary");
@@ -1282,7 +1308,7 @@ export class TableDesigner {
 export class PublishProject {
     public static Title = l10n.t("Publish Project");
     public static PublishProfileLabel = l10n.t("Publish Profile");
-    public static PublishProfilePlaceholder = l10n.t("Select or enter a publish profile");
+    public static PublishProfilePlaceholder = l10n.t("Load profile...");
     public static SelectPublishProfile = l10n.t("Select Profile");
     public static SaveAs = l10n.t("Save As");
     public static PublishSettingsFile = l10n.t("Publish Settings File");
@@ -1302,16 +1328,8 @@ export class PublishProject {
     public static SqlServerAdminPassword = l10n.t("SQL Server admin password");
     public static SqlServerAdminPasswordConfirm = l10n.t("Confirm SQL Server admin password");
     public static SqlServerImageTag = l10n.t("Image tag");
+    public static SqlServerLicenseAgreement = l10n.t("Microsoft SQL Server License Agreement");
     public static ServerConnectionPlaceholder = l10n.t("Select Connection");
-    public static UserLicenseAgreement = (licenseUrl: string) =>
-        l10n.t({
-            message:
-                'I accept the <a href="{0}" target="_blank" rel="noopener noreferrer">Microsoft SQL Server License Agreement</a>',
-            args: [licenseUrl],
-            comment: [
-                "{0} is the hyperlink URL to the Microsoft SQL Server License Agreement used in an HTML anchor tag",
-            ],
-        });
     // Validation messages
     public static InvalidPortMessage = l10n.t("Port must be a number between 1 and 65535");
     public static InvalidSQLPasswordMessage(name: string) {
@@ -1323,6 +1341,8 @@ export class PublishProject {
     public static PasswordNotMatchMessage = (name: string) => {
         return l10n.t("{0} password doesn't match the confirmation password", name);
     };
+    public static RequiredFieldMessage = l10n.t("Required");
+    public static LicenseAcceptanceMessage = l10n.t("You must accept the license");
     public static PublishProfileLoadFailed = l10n.t("Failed to load publish profile");
     public static PublishProfileSavedSuccessfully = (path: string) => {
         return l10n.t("Publish profile saved to: {0}", path);

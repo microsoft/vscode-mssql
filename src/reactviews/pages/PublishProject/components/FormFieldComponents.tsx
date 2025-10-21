@@ -15,35 +15,57 @@ import {
 import { EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
 import { FormItemType } from "../../../../sharedInterfaces/form";
 import type { PublishDialogFormItemSpec } from "../../../../sharedInterfaces/publishDialog";
+import { locConstants } from "../../../common/locConstants";
+import type { PublishProjectContextProps } from "../publishProjectStateProvider";
 
 // Helper to get validation state from component
-const getValidationState = (
-    validation: PublishDialogFormItemSpec["validation"],
-): "none" | "error" => {
+function getValidationState(validation: PublishDialogFormItemSpec["validation"]): "none" | "error" {
     return validation ? (validation.isValid ? "none" : "error") : "none";
-};
+}
 
-/*
- * Generic Input Field - can be used for text, number, or password fields
- */
-export const renderInput = (
+// Generic Input Field - can be used for text, number, or password fields
+// Automatically handles formAction with updateValidation: false on change, true on blur
+export function renderInput(
     component: PublishDialogFormItemSpec | undefined,
     value: string,
-    onChange: (value: string) => void,
+    context: PublishProjectContextProps | undefined,
     options?: {
-        onBlur?: (value: string) => void;
         showPassword?: boolean;
         onTogglePassword?: () => void;
+        onChange?: (value: string) => void;
         readOnly?: boolean;
         contentAfter?: React.ReactElement;
     },
-) => {
+) {
     if (!component || component.hidden) return undefined;
     if (component.type !== FormItemType.Input && component.type !== FormItemType.Password) {
         return undefined;
     }
 
     const isPasswordField = component.type === FormItemType.Password;
+
+    const handleChange = (newValue: string) => {
+        options?.onChange?.(newValue);
+        if (context) {
+            context.formAction({
+                propertyName: component.propertyName,
+                isAction: false,
+                value: newValue,
+                updateValidation: false,
+            });
+        }
+    };
+
+    const handleBlur = (currentValue: string) => {
+        if (context) {
+            context.formAction({
+                propertyName: component.propertyName,
+                isAction: false,
+                value: currentValue,
+                updateValidation: true,
+            });
+        }
+    };
 
     return (
         <Field
@@ -60,8 +82,8 @@ export const renderInput = (
                 placeholder={component.placeholder ?? ""}
                 required={component.required}
                 readOnly={options?.readOnly}
-                onChange={(_, data) => onChange(data.value)}
-                onBlur={() => options?.onBlur?.(value)}
+                onChange={(_, data) => handleChange(data.value)}
+                onBlur={(e) => handleBlur(e.target.value)}
                 contentAfter={
                     options?.contentAfter ? (
                         options.contentAfter
@@ -71,26 +93,46 @@ export const renderInput = (
                             icon={options.showPassword ? <EyeRegular /> : <EyeOffRegular />}
                             appearance="transparent"
                             size="small"
-                            aria-label={options.showPassword ? "Hide password" : "Show password"}
-                            title={options.showPassword ? "Hide password" : "Show password"}
+                            aria-label={
+                                options.showPassword
+                                    ? locConstants.common.hidePassword
+                                    : locConstants.common.showPassword
+                            }
+                            title={
+                                options.showPassword
+                                    ? locConstants.common.hidePassword
+                                    : locConstants.common.showPassword
+                            }
                         />
                     ) : undefined
                 }
             />
         </Field>
     );
-};
+}
 
-/*
- * Generic Dropdown Field - can be used for any dropdown selection
- */
-export const renderDropdown = (
+// Generic Dropdown Field - automatically handles formAction
+export function renderDropdown(
     component: PublishDialogFormItemSpec | undefined,
     value: string | undefined,
-    onChange: (value: string) => void,
-) => {
+    context: PublishProjectContextProps | undefined,
+    options?: {
+        validateOnChange?: boolean;
+    },
+) {
     if (!component || component.hidden) return undefined;
     if (component.type !== FormItemType.Dropdown || !component.options) return undefined;
+
+    const handleChange = (newValue: string) => {
+        if (context) {
+            context.formAction({
+                propertyName: component.propertyName,
+                isAction: false,
+                value: newValue,
+                updateValidation: options?.validateOnChange ?? false,
+            });
+        }
+    };
 
     return (
         <Field
@@ -111,7 +153,7 @@ export const renderDropdown = (
                 placeholder={component.placeholder ?? ""}
                 onOptionSelect={(_, data) => {
                     if (data.optionValue) {
-                        onChange(data.optionValue);
+                        handleChange(data.optionValue);
                     }
                 }}>
                 {component.options.map(
@@ -124,17 +166,17 @@ export const renderDropdown = (
             </Dropdown>
         </Field>
     );
-};
+}
 
 /*
  * Generic Combobox Field - can be used for editable dropdowns (allows custom text input)
  */
-export const renderCombobox = (
+export function renderCombobox(
     component: PublishDialogFormItemSpec | undefined,
     value: string | undefined,
     freeform: boolean | undefined,
     onChange: (value: string) => void,
-) => {
+) {
     if (!component || component.hidden) return undefined;
     if (component.type !== FormItemType.Dropdown || !component.options) return undefined;
 
@@ -170,18 +212,40 @@ export const renderCombobox = (
             </Combobox>
         </Field>
     );
-};
+}
 
-// Generic Checkbox Field - can be used for any checkbox
-export const renderCheckbox = (
+// Generic Checkbox Field - automatically handles formAction
+export function renderCheckbox(
     component: PublishDialogFormItemSpec | undefined,
     checked: boolean,
-    onChange: (checked: boolean) => void,
-    label?: React.ReactNode,
-) => {
+    context: PublishProjectContextProps | undefined,
+    options?: {
+        validateOnChange?: boolean;
+        label?: React.ReactNode;
+    },
+) {
     if (!component || component.hidden) return undefined;
 
-    const labelContent = label ?? component.label;
+    const handleChange = (newChecked: boolean) => {
+        if (context) {
+            context.formAction({
+                propertyName: component.propertyName,
+                isAction: false,
+                value: newChecked,
+                updateValidation: options?.validateOnChange ?? false,
+            });
+        }
+    };
+
+    // Use provided label, or fall back to component.label
+    // If component.label is a string, render it with dangerouslySetInnerHTML to support HTML
+    const labelContent =
+        options?.label ??
+        (typeof component.label === "string" ? (
+            <span dangerouslySetInnerHTML={{ __html: component.label }} />
+        ) : (
+            component.label
+        ));
 
     return (
         <Field
@@ -199,7 +263,7 @@ export const renderCheckbox = (
                 <Checkbox
                     size="medium"
                     checked={checked}
-                    onChange={(_, data) => onChange(data.checked === true)}
+                    onChange={(_, data) => handleChange(data.checked === true)}
                 />
                 <span style={{ whiteSpace: "normal" }}>
                     {labelContent}
@@ -210,4 +274,4 @@ export const renderCheckbox = (
             </div>
         </Field>
     );
-};
+}
