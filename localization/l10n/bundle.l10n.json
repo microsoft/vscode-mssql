@@ -743,7 +743,7 @@
     "Export a BACPAC from an existing database": "Export a BACPAC from an existing database",
     "Package file": "Package file",
     "Output file": "Output file",
-    "Select a DACPAC or BACPAC file": "Select a DACPAC or BACPAC file",
+    "Select package file": "Select package file",
     "Enter the path for the output file": "Enter the path for the output file",
     "Browse...": "Browse...",
     "Target Database": "Target Database",

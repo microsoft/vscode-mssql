@@ -2960,7 +2960,7 @@
       <source xml:lang="en">Select Target Schema</source>
     </trans-unit>
     <trans-unit id="++CODE++03b976bc61d223e72a470e35ab117d115f10fba6627ca20672e2920da77f8e75">
-      <source xml:lang="en">Select a DACPAC or BACPAC file</source>
+      <source xml:lang="en">Select package file</source>
     </trans-unit>
     <trans-unit id="++CODE++35ce1fefb3478f2ba328f46db9deb60e08786a3f825f64dd5f9804459c6b8b4c">
       <source xml:lang="en">Select a Workspace</source>

@@ -1079,7 +1079,7 @@ export class LocConstants {
             exportDescription: l10n.t("Export a BACPAC from an existing database"),
             packageFileLabel: l10n.t("Package file"),
             outputFileLabel: l10n.t("Output file"),
-            selectPackageFile: l10n.t("Select a DACPAC or BACPAC file"),
+            selectPackageFile: l10n.t("Select package file"),
             selectOutputFile: l10n.t("Enter the path for the output file"),
             browse: l10n.t("Browse..."),
             targetDatabaseLabel: l10n.t("Target Database"),
