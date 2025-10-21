@@ -31,7 +31,7 @@ suite("Input Prompt Tests", () => {
             placeHolder: "test",
             choices: [{ name: "test", value: "test" }],
         };
-        const listPrompt = new InputPrompt(question, vscodeWrapper as unknown as VscodeWrapper);
+        const listPrompt = new InputPrompt(question, vscodeWrapper);
 
         await listPrompt.render();
 
@@ -45,10 +45,7 @@ suite("Input Prompt Tests", () => {
             placeHolder: undefined,
         };
         vscodeWrapper.showInputBox.resolves(undefined);
-        const listPrompt = new InputPrompt(
-            errorQuestion,
-            vscodeWrapper as unknown as VscodeWrapper,
-        );
+        const listPrompt = new InputPrompt(errorQuestion, vscodeWrapper);
 
         await listPrompt.render();
 
@@ -61,10 +58,7 @@ suite("Input Prompt Tests", () => {
             default: "test_default",
         };
         vscodeWrapper.showInputBox.resolves("");
-        const listPrompt = new InputPrompt(
-            defaultQuestion,
-            vscodeWrapper as unknown as VscodeWrapper,
-        );
+        const listPrompt = new InputPrompt(defaultQuestion, vscodeWrapper);
 
         await listPrompt.render();
 
@@ -83,10 +77,7 @@ suite("Input Prompt Tests", () => {
                 return attempts === 1 ? "validation error" : undefined;
             },
         };
-        const listPrompt = new InputPrompt(
-            validationQuestion,
-            vscodeWrapper as unknown as VscodeWrapper,
-        );
+        const listPrompt = new InputPrompt(validationQuestion, vscodeWrapper);
 
         await listPrompt.render();
 

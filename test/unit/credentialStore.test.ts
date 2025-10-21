@@ -64,11 +64,7 @@ suite("Credential Store Tests", () => {
 
         vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
 
-        credentialStore = new CredentialStore(
-            context,
-            vscodeWrapper as unknown as VscodeWrapper,
-            client as unknown as SqlToolsServiceClient,
-        );
+        credentialStore = new CredentialStore(context, vscodeWrapper, client);
     });
 
     teardown(() => {

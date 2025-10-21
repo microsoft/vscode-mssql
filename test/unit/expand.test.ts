@@ -32,7 +32,7 @@ suite("Test Expand Prompt", () => {
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         vscodeWrapper.showQuickPickStrings.resolves("test");
 
-        const expand = new ExpandPrompt(question, vscodeWrapper as unknown as VscodeWrapper);
+        const expand = new ExpandPrompt(question, vscodeWrapper);
         await expand.render();
 
         expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
@@ -47,7 +47,7 @@ suite("Test Expand Prompt", () => {
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         vscodeWrapper.showQuickPickStrings.resolves(undefined);
 
-        const expand = new ExpandPrompt(question, vscodeWrapper as unknown as VscodeWrapper);
+        const expand = new ExpandPrompt(question, vscodeWrapper);
         await expand.render();
 
         expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
@@ -64,7 +64,7 @@ suite("Test Expand Prompt", () => {
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         vscodeWrapper.showQuickPick.resolves(quickPickItem);
 
-        const expand = new ExpandPrompt(question, vscodeWrapper as unknown as VscodeWrapper);
+        const expand = new ExpandPrompt(question, vscodeWrapper);
         await expand.render();
 
         expect(vscodeWrapper.showQuickPick).to.have.been.calledOnce;
@@ -81,7 +81,7 @@ suite("Test Expand Prompt", () => {
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         vscodeWrapper.showQuickPick.resolves(undefined);
 
-        const expand = new ExpandPrompt(question, vscodeWrapper as unknown as VscodeWrapper);
+        const expand = new ExpandPrompt(question, vscodeWrapper);
         await expand.render();
 
         expect(vscodeWrapper.showQuickPick).to.have.been.calledOnce;
