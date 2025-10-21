@@ -55,7 +55,12 @@ import {
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
-import { getErrorMessage, getUriKey, isIConnectionInfo } from "../utils/utils";
+import {
+    removeUndefinedProperties,
+    getErrorMessage,
+    getUriKey,
+    isIConnectionInfo,
+} from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
@@ -731,7 +736,9 @@ export default class MainController implements vscode.Disposable {
                         nodeUri,
                         connectionCreds,
                     );
-                    if (!isConnected) {
+                    if (isConnected) {
+                        node.updateEntraTokenInfo(connectionCreds); // may be updated Entra token after connect() call
+                    } else {
                         /**
                          * The connection wasn't successful. Stopping scripting operation.
                          * Not throwing an error because the user is already notified of
@@ -741,8 +748,6 @@ export default class MainController implements vscode.Disposable {
                     }
                 }
             }
-
-            this.persistUpdatedConnectionProfile(node, connectionCreds);
 
             const selectStatement = await this._scriptingService.scriptTreeNode(
                 node,
@@ -757,7 +762,7 @@ export default class MainController implements vscode.Disposable {
                 connectionInfo: connectionCreds,
             });
 
-            this.persistUpdatedConnectionProfile(node, connectionCreds);
+            node.updateEntraTokenInfo(connectionCreds); // newQuery calls connect() internally, so may be updated Entra token
             if (executeScript) {
                 const preventAutoExecute = vscode.workspace
                     .getConfiguration()
@@ -1106,10 +1111,12 @@ export default class MainController implements vscode.Disposable {
                             connectionUri,
                             connectionCreds,
                         );
-                        if (!connectionResult) {
+
+                        if (connectionResult) {
+                            node.updateEntraTokenInfo(connectionCreds);
+                        } else {
                             return;
                         }
-                        this.persistUpdatedConnectionProfile(node, connectionCreds);
                     }
                 }
             } else {
@@ -2860,24 +2867,6 @@ export default class MainController implements vscode.Disposable {
 
     public addAadAccount(): void {
         void this.connectionManager.addAccount();
-    }
-
-    private persistUpdatedConnectionProfile(
-        node: TreeNodeInfo | undefined,
-        updatedCredentials: IConnectionInfo | undefined,
-    ): void {
-        if (!node || !updatedCredentials) {
-            return;
-        }
-
-        const definedUpdates = Object.fromEntries(
-            Object.entries(updatedCredentials).filter(([, value]) => value !== undefined),
-        ) as Partial<IConnectionProfile>;
-
-        node.updateConnectionProfile({
-            ...node.connectionProfile,
-            ...definedUpdates,
-        });
     }
 
     private ExecutionPlanCustomEditorProvider = class implements vscode.CustomTextEditorProvider {
