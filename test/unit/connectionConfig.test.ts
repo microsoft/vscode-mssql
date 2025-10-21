@@ -34,18 +34,7 @@ suite("ConnectionConfig Tests", () => {
         mockWorkspaceConfigData = new Map();
         mockVscodeWrapper = stubVscodeWrapper(sandbox);
 
-        outputChannel = {
-            name: "",
-            append: sandbox.stub(),
-            appendLine: sandbox.stub(),
-            clear: sandbox.stub(),
-            show: sandbox.stub(),
-            replace: sandbox.stub(),
-            hide: sandbox.stub(),
-            dispose: sandbox.stub(),
-        } as unknown as vscode.OutputChannel;
-
-        sandbox.stub(mockVscodeWrapper, "outputChannel").get(() => outputChannel);
+        outputChannel = mockVscodeWrapper.outputChannel;
 
         const mockConfiguration = {
             inspect: (setting: string) => {
@@ -71,11 +60,10 @@ suite("ConnectionConfig Tests", () => {
                 return deepClone(result);
             },
         };
+        const workspaceConfiguration = mockConfiguration as vscode.WorkspaceConfiguration;
 
         mockVscodeWrapper.getConfiguration.callsFake((section: string) =>
-            section === Constants.extensionName
-                ? (mockConfiguration as unknown as vscode.WorkspaceConfiguration)
-                : (undefined as unknown as vscode.WorkspaceConfiguration),
+            section === Constants.extensionName ? workspaceConfiguration : undefined,
         );
 
         mockVscodeWrapper.setConfiguration.callsFake(async (_section, key, value) => {

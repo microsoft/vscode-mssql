@@ -35,9 +35,7 @@ suite("Service Client tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        testConfig = sandbox.createStubInstance(
-            ExtConfig,
-        ) as sinon.SinonStubbedInstance<ExtConfig> & IConfigUtils;
+        testConfig = sandbox.createStubInstance(ExtConfig);
         testServiceProvider = sandbox.createStubInstance(ServerProvider);
         testStatusView = sandbox.createStubInstance(StatusView);
         vscodeWrapper = stubVscodeWrapper(sandbox);
