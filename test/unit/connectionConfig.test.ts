@@ -21,11 +21,13 @@ chai.use(sinonChai);
 suite("ConnectionConfig Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
-    let outputChannel: vscode.OutputChannel;
 
     const rootGroupId = "root-group-id";
+
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     let mockGlobalConfigData: Map<string, any> = new Map();
     let mockWorkspaceConfigData: Map<string, any> = new Map();
+    /* eslint-enable @typescript-eslint/no-explicit-any */
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -33,8 +35,6 @@ suite("ConnectionConfig Tests", () => {
         mockGlobalConfigData = new Map();
         mockWorkspaceConfigData = new Map();
         mockVscodeWrapper = stubVscodeWrapper(sandbox);
-
-        outputChannel = mockVscodeWrapper.outputChannel;
 
         const mockConfiguration = {
             inspect: (setting: string) => {
