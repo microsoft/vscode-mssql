@@ -8,6 +8,7 @@ import * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { promises as fs } from "fs";
+import { DOMParser } from "@xmldom/xmldom";
 
 /**
  * Checks if preview features are enabled in VS Code settings for SQL Database Projects.
@@ -149,17 +150,37 @@ export function validateSqlServerPortNumber(port: number): boolean {
  */
 export function readSqlCmdVariables(profileText: string): { [key: string]: string } {
     const sqlCmdVariables: { [key: string]: string } = {};
-    const sqlCmdVarRegex =
-        /<SqlCmdVariable Include="([^"]+)">\s*<Value>(.*?)<\/Value>\s*<\/SqlCmdVariable>/gs;
-    let match;
-    while ((match = sqlCmdVarRegex.exec(profileText)) !== undefined) {
-        if (!match) {
-            break;
+
+    try {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(profileText, "application/xml");
+
+        // Get all SqlCmdVariable elements
+        const sqlCmdVarElements = xmlDoc.documentElement.getElementsByTagName("SqlCmdVariable");
+
+        for (let i = 0; i < sqlCmdVarElements.length; i++) {
+            const sqlCmdVar = sqlCmdVarElements[i];
+            const varName = sqlCmdVar.getAttribute("Include");
+
+            if (varName) {
+                // Look for Value first (preferred for publish profiles), then DefaultValue
+                let varValue = "";
+                const valueElements = sqlCmdVar.getElementsByTagName("Value");
+                const defaultValueElements = sqlCmdVar.getElementsByTagName("DefaultValue");
+
+                if (valueElements.length > 0 && valueElements[0].firstChild) {
+                    varValue = valueElements[0].firstChild.nodeValue || "";
+                } else if (defaultValueElements.length > 0 && defaultValueElements[0].firstChild) {
+                    varValue = defaultValueElements[0].firstChild.nodeValue || "";
+                }
+
+                sqlCmdVariables[varName] = varValue;
+            }
         }
-        const varName = match[1];
-        const varValue = match[2];
-        sqlCmdVariables[varName] = varValue;
+    } catch (error) {
+        console.warn("Failed to parse SQLCMD variables from XML:", error);
     }
+
     return sqlCmdVariables;
 }
 
