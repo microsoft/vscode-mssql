@@ -4,6 +4,95 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ISlickRange } from "../../../../sharedInterfaces/queryResult";
+import { FilterableColumn } from "./interfaces";
+
+export const SLICKGRID_ROW_ID_PROP = "_mssqlRowId";
+
+function hasSortOrFilterApplied(grid: Slick.Grid<any>): boolean {
+    const sortedColumns = grid.getSortColumns();
+
+    const columns = grid.getColumns() as FilterableColumn<any>[];
+
+    return columns.some((column) => {
+        if (!column) {
+            return false;
+        }
+
+        const isFiltered = column?.filterValues?.length ?? 0 > 0;
+        const isSorted = sortedColumns?.some(
+            (sort) => sort.columnId === column.id && sort.sortAsc !== undefined,
+        );
+
+        return isFiltered || isSorted;
+    });
+}
+
+function getActualRowIndex(grid: Slick.Grid<any>, displayRow: number): number | undefined {
+    const item = grid.getDataItem(displayRow) as Record<string, unknown>;
+    if (!item) {
+        return undefined;
+    }
+    return item[SLICKGRID_ROW_ID_PROP] as number;
+}
+
+export function convertDisplayedSelectionToActual(
+    grid: Slick.Grid<any>,
+    selections: ISlickRange[],
+): ISlickRange[] {
+    if (selections.length === 0) {
+        return selections;
+    }
+    const actualSelections: ISlickRange[] = [];
+    const shouldMapRows = hasSortOrFilterApplied(grid);
+
+    if (!shouldMapRows) {
+        return selections;
+    }
+
+    for (const selection of selections) {
+        const actualRows = new Set<number>();
+
+        for (let displayRow = selection.fromRow; displayRow <= selection.toRow; displayRow++) {
+            const actualRow = getActualRowIndex(grid, displayRow);
+            actualRows.add(actualRow ?? displayRow);
+        }
+
+        const orderedRows = Array.from(actualRows.values()).sort((a, b) => a - b);
+        if (orderedRows.length === 0) {
+            continue;
+        }
+
+        let rangeStart = orderedRows[0];
+        let previous = orderedRows[0];
+
+        for (let i = 1; i < orderedRows.length; i++) {
+            const current = orderedRows[i];
+            if (current <= previous + 1) {
+                previous = current;
+                continue;
+            }
+
+            actualSelections.push({
+                fromCell: selection.fromCell,
+                toCell: selection.toCell,
+                fromRow: rangeStart,
+                toRow: previous,
+            });
+
+            rangeStart = current;
+            previous = current;
+        }
+
+        actualSelections.push({
+            fromCell: selection.fromCell,
+            toCell: selection.toCell,
+            fromRow: rangeStart,
+            toRow: previous,
+        });
+    }
+
+    return actualSelections;
+}
 
 export interface RowRange {
     start: number;

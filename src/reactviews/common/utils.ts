@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import React from "react";
 import {
     ColorThemeKind,
     CoreRPCs,
@@ -120,46 +121,18 @@ export function getEOL(): string {
 }
 
 /**
- * Parses HTML string with anchor tags into a structured format suitable for React rendering.
- * Converts <a href="url" ...>text</a> tags into React-compatible elements.
- *
- * @param html - HTML string potentially containing anchor tags
- * @returns Object with parts array (text/link segments) or undefined if no HTML
- *
- * @example
- * const result = parseHtmlLabel('I accept the <a href="https://example.com">Terms</a>');
- * // Returns: { parts: ['I accept the ', { href: 'https://example.com', text: 'Terms' }] }
+ * Checks if the current platform is Mac.
+ * @returns True if the platform is Mac, false otherwise.
  */
-export function parseHtmlLabel(
-    html: string | undefined,
-): { parts: Array<string | { href: string; text: string }> } | undefined {
-    if (!html) return undefined;
+export function isMac(): boolean {
+    return navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+}
 
-    // Simple parser for anchor tags - matches <a href="url" ...>text</a>
-    const anchorRegex = /<a\s+([^>]*?)href="([^"]*)"([^>]*?)>(.*?)<\/a>/gi;
-
-    const parts: Array<string | { href: string; text: string }> = [];
-    let lastIndex = 0;
-    let match: RegExpExecArray | undefined;
-
-    while ((match = anchorRegex.exec(html) ?? undefined)) {
-        // Add text before the link
-        if (match.index > lastIndex) {
-            parts.push(html.substring(lastIndex, match.index));
-        }
-
-        // Add the link metadata
-        const href = match[2];
-        const linkText = match[4];
-        parts.push({ href, text: linkText });
-
-        lastIndex = anchorRegex.lastIndex;
-    }
-
-    // Add remaining text after last link
-    if (lastIndex < html.length) {
-        parts.push(html.substring(lastIndex));
-    }
-
-    return parts.length > 0 ? { parts } : undefined;
+/**
+ * Checks if the meta key is pressed based on the user's OS.
+ * @param e The keyboard or mouse event to check.
+ * @returns True if the meta key is pressed, false otherwise.
+ */
+export function isMetaKeyPressed(e: KeyboardEvent | MouseEvent | React.KeyboardEvent): boolean {
+    return isMac() ? e.metaKey : e.ctrlKey;
 }

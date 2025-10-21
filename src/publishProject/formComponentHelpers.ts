@@ -3,30 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
 import * as constants from "../constants/constants";
 import { FormItemType, FormItemOptions } from "../sharedInterfaces/form";
-import { PublishProject as Loc } from "../constants/locConstants";
+import { PublishProject as Loc, Common } from "../constants/locConstants";
 import {
     IPublishForm,
     PublishDialogFormItemSpec,
     PublishDialogState,
     PublishTarget,
+    PublishFormFields,
 } from "../sharedInterfaces/publishDialog";
-import { getPublishServerName, validateSqlServerPortNumber } from "./projectUtils";
+import {
+    getPublishServerName,
+    validateSqlServerPortNumber,
+    isPreviewFeaturesEnabled,
+} from "./projectUtils";
 import { validateSqlServerPassword } from "../deployment/dockerUtils";
-
-/**
- * Checks if preview features are enabled in VS Code settings for SQL Database Projects.
- * @returns true if preview features are enabled, false otherwise
- */
-function isPreviewFeaturesEnabled(): boolean {
-    return (
-        vscode.workspace
-            .getConfiguration(constants.DBProjectConfigurationKey)
-            .get<boolean>(constants.enablePreviewFeaturesKey) ?? false
-    );
-}
 
 /**
  * Generate publish target options based on project target version
@@ -73,20 +65,20 @@ export function generatePublishFormComponents(
 ): Record<keyof IPublishForm, PublishDialogFormItemSpec> {
     const components: Record<keyof IPublishForm, PublishDialogFormItemSpec> = {
         publishProfilePath: {
-            propertyName: constants.PublishFormFields.PublishProfilePath,
+            propertyName: PublishFormFields.PublishProfilePath,
             label: Loc.PublishProfileLabel,
             placeholder: Loc.PublishProfilePlaceholder,
             required: false,
             type: FormItemType.Input,
         },
         serverName: {
-            propertyName: constants.PublishFormFields.ServerName,
+            propertyName: PublishFormFields.ServerName,
             label: Loc.ServerLabel,
             required: true,
             type: FormItemType.Input,
         },
         databaseName: {
-            propertyName: constants.PublishFormFields.DatabaseName,
+            propertyName: PublishFormFields.DatabaseName,
             label: Loc.DatabaseLabel,
             required: true,
             type: FormItemType.Input,
@@ -96,20 +88,21 @@ export function generatePublishFormComponents(
             },
         },
         publishTarget: {
-            propertyName: constants.PublishFormFields.PublishTarget,
+            propertyName: PublishFormFields.PublishTarget,
             label: Loc.PublishTargetLabel,
             required: true,
             type: FormItemType.Dropdown,
             options: generatePublishTargetOptions(projectTargetVersion),
         },
         containerPort: {
-            propertyName: constants.PublishFormFields.ContainerPort,
+            propertyName: PublishFormFields.ContainerPort,
             label: Loc.SqlServerPortNumber,
             required: true,
             type: FormItemType.Input,
             validate: (_state: PublishDialogState, value) => {
                 const str = String(value ?? "").trim();
-                const isValid = validateSqlServerPortNumber(str);
+                const port = Number(str);
+                const isValid = str.length > 0 && !isNaN(port) && validateSqlServerPortNumber(port);
                 return {
                     isValid,
                     validationMessage: isValid ? "" : Loc.InvalidPortMessage,
@@ -117,7 +110,7 @@ export function generatePublishFormComponents(
             },
         },
         containerAdminPassword: {
-            propertyName: constants.PublishFormFields.ContainerAdminPassword,
+            propertyName: PublishFormFields.ContainerAdminPassword,
             label: Loc.SqlServerAdminPassword,
             required: true,
             type: FormItemType.Password,
@@ -131,7 +124,7 @@ export function generatePublishFormComponents(
             },
         },
         containerAdminPasswordConfirm: {
-            propertyName: constants.PublishFormFields.ContainerAdminPasswordConfirm,
+            propertyName: PublishFormFields.ContainerAdminPasswordConfirm,
             label: Loc.SqlServerAdminPasswordConfirm,
             required: true,
             type: FormItemType.Password,
@@ -150,26 +143,35 @@ export function generatePublishFormComponents(
             },
         },
         containerImageTag: {
-            propertyName: constants.PublishFormFields.ContainerImageTag,
+            propertyName: PublishFormFields.ContainerImageTag,
             label: Loc.SqlServerImageTag,
             required: true,
             type: FormItemType.Dropdown,
             options: [],
             validate: (_state: PublishDialogState, value) => {
                 const v = String(value ?? "").trim();
-                return { isValid: !!v, validationMessage: v ? "" : constants.RequiredFieldMessage };
+                return { isValid: !!v, validationMessage: v ? "" : Loc.RequiredFieldMessage };
             },
         },
         acceptContainerLicense: {
-            propertyName: constants.PublishFormFields.AcceptContainerLicense,
-            label: Loc.UserLicenseAgreement(constants.licenseAgreementUrl),
+            propertyName: PublishFormFields.AcceptContainerLicense,
+            label: `<span>
+						${Common.accept}
+						<a
+							href="${constants.licenseAgreementUrl}"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							${Loc.SqlServerLicenseAgreement}
+						</a>
+					</span>`,
             required: true,
             type: FormItemType.Checkbox,
             validate: (_state: PublishDialogState, value) => {
                 const accepted = value === true || value === "true";
                 return {
                     isValid: accepted,
-                    validationMessage: accepted ? "" : constants.LicenseAcceptanceMessage,
+                    validationMessage: accepted ? "" : Loc.LicenseAcceptanceMessage,
                 };
             },
         },

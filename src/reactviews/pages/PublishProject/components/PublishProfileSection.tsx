@@ -8,7 +8,6 @@ import { useContext, useState, useEffect } from "react";
 import { LocConstants } from "../../../common/locConstants";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
-import type { PublishProjectProvider } from "../../../../sharedInterfaces/publishDialog";
 import { FormItemType } from "../../../../sharedInterfaces/form";
 import { renderInput } from "./FormFieldComponents";
 
@@ -38,7 +37,7 @@ const useStyles = makeStyles({
 export const PublishProfileField: React.FC = () => {
     const classes = useStyles();
     const loc = LocConstants.getInstance().publishProject;
-    const context = useContext(PublishProjectContext) as PublishProjectProvider | undefined;
+    const context = useContext(PublishProjectContext);
     const component = usePublishDialogSelector((s) => s.formComponents.publishProfilePath);
     const value = usePublishDialogSelector((s) => s.formState.publishProfilePath);
     const [localValue, setLocalValue] = useState(value || "");
@@ -55,7 +54,7 @@ export const PublishProfileField: React.FC = () => {
     return (
         <div className={classes.root}>
             <div className={classes.fieldContainer}>
-                {renderInput(component, localValue, setLocalValue, { readOnly: true })}
+                {renderInput(component, localValue, context, { readOnly: true })}
             </div>
             <div className={classes.buttons}>
                 <Button

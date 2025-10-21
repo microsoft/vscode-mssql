@@ -707,13 +707,39 @@ export const createSqlAgentRequestHandler = (
         logger: Logger,
     ): vscode.LanguageModelChatTool[] {
         logger.verbose("in mapRequestTools...");
-        return tools.map(
-            (tool): vscode.LanguageModelChatTool => ({
-                name: tool.functionName,
-                description: tool.functionDescription,
-                inputSchema: JSON.parse(tool.functionParameters),
-            }),
-        );
+
+        return tools.map((tool, index): vscode.LanguageModelChatTool => {
+            try {
+                // Validate tool name
+                if (!tool.functionName || typeof tool.functionName !== "string") {
+                    throw new Error(`Tool at index ${index} must have a valid functionName`);
+                }
+
+                // Parse parameters with fallback for invalid JSON
+                let inputSchema = {};
+                const parameters = tool.functionParameters?.trim();
+                if (parameters && parameters !== "") {
+                    try {
+                        inputSchema = JSON.parse(parameters);
+                    } catch (parseError) {
+                        logger.error(
+                            `Failed to parse JSON schema for tool ${tool.functionName}:`,
+                            parseError,
+                        );
+                        // Fallback to empty schema
+                    }
+                }
+
+                return {
+                    name: tool.functionName,
+                    description: tool.functionDescription ?? "No description provided",
+                    inputSchema: inputSchema,
+                };
+            } catch (error) {
+                logger.error(`Error mapping tool at index ${index}:`, error);
+                throw error;
+            }
+        });
     }
 
     async function processResponseParts(

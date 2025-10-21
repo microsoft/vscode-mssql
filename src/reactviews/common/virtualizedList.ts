@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Keys } from "./keys";
+import { KeyCode } from "./keys";
 import { EventManager } from "./eventManager";
 
 const defaultConfig = {
@@ -127,13 +127,13 @@ export class VirtualizedList<T> {
             this._eventManager.addEventListener(itemDiv, "keydown", (e) => {
                 const event = e as KeyboardEvent;
                 let handled = false;
-                if (event.key === Keys.ArrowDown) {
+                if (event.code === KeyCode.ArrowDown) {
                     this.updateFocusedItemIndex(i + 1);
                     handled = true;
-                } else if (event.key === Keys.ArrowUp) {
+                } else if (event.code === KeyCode.ArrowUp) {
                     this.updateFocusedItemIndex(i - 1);
                     handled = true;
-                } else if (event.key === Keys.Enter || event.key === Keys.Space) {
+                } else if (event.code === KeyCode.Enter || event.code === KeyCode.Space) {
                     this._itemSelected(itemDiv, item);
                     handled = true;
                 }

@@ -11,7 +11,7 @@ import QueryRunner from "../controllers/queryRunner";
 import ResultsSerializer from "../models/resultsSerializer";
 import StatusView from "../views/statusView";
 import VscodeWrapper from "./../controllers/vscodeWrapper";
-import { ISelectionData, ISlickRange } from "./interfaces";
+import { ISelectionData } from "./interfaces";
 import { Deferred } from "../protocol";
 import { ExecutionPlanOptions, ResultSetSubset, ResultSetSummary } from "./contracts/queryExecute";
 import { sendActionEvent } from "../telemetry/telemetry";
@@ -183,29 +183,15 @@ export class SqlOutputContentProvider {
             .queryRunner.copyResults(selection, batchId, resultId, includeHeaders);
     }
 
-    public sendToClipboard(
-        uri: string,
-        data: qr.DbCellValue[][],
-        batchId: number,
-        resultId: number,
-        selection: ISlickRange[],
-        headersFlag: boolean,
-    ): void {
-        void this._queryResultsMap
-            .get(uri)
-            .queryRunner.exportCellsToClipboard(data, batchId, resultId, selection, headersFlag);
-    }
-
     public copyAsCsvRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-        includeHeaders?: boolean,
     ): void {
         void this._queryResultsMap
             .get(uri)
-            .queryRunner.copyResultsAsCsv(selection, batchId, resultId, includeHeaders);
+            .queryRunner.copyResultsAsCsv(selection, batchId, resultId);
     }
 
     public copyAsJsonRequestHandler(
@@ -213,11 +199,10 @@ export class SqlOutputContentProvider {
         batchId: number,
         resultId: number,
         selection: Interfaces.ISlickRange[],
-        includeHeaders?: boolean,
     ): void {
         void this._queryResultsMap
             .get(uri)
-            .queryRunner.copyResultsAsJson(selection, batchId, resultId, includeHeaders);
+            .queryRunner.copyResultsAsJson(selection, batchId, resultId);
     }
 
     public copyAsInClauseRequestHandler(

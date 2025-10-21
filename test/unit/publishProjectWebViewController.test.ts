@@ -9,12 +9,11 @@ import * as sinon from "sinon";
 
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { PublishProjectWebViewController } from "../../src/publishProject/publishProjectWebViewController";
-import {
-    validateSqlServerPortNumber,
-    isValidSqlAdminPassword,
-} from "../../src/publishProject/projectUtils";
+import { validateSqlServerPortNumber } from "../../src/publishProject/projectUtils";
+import { validateSqlServerPassword } from "../../src/deployment/dockerUtils";
 import { stubVscodeWrapper } from "./utils";
 import { PublishTarget } from "../../src/sharedInterfaces/publishDialog";
+import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 
 suite("PublishProjectWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -77,7 +76,12 @@ suite("PublishProjectWebViewController Tests", () => {
     });
 
     test("reducer handlers are registered on construction", async () => {
-        const controller = createTestController();
+        const projectPath = "c:/work/TestProject.sqlproj";
+        const controller = new PublishProjectWebViewController(
+            contextStub,
+            vscodeWrapperStub,
+            projectPath,
+        );
 
         await controller.initialized.promise;
 
@@ -102,7 +106,12 @@ suite("PublishProjectWebViewController Tests", () => {
     });
 
     test("default publish target is EXISTING_SERVER", async () => {
-        const controller = createTestController();
+        const projectPath = "c:/work/TestProject.sqlproj";
+        const controller = new PublishProjectWebViewController(
+            contextStub,
+            vscodeWrapperStub,
+            projectPath,
+        );
 
         await controller.initialized.promise;
 
@@ -110,7 +119,12 @@ suite("PublishProjectWebViewController Tests", () => {
     });
 
     test("getActiveFormComponents returns correct fields for EXISTING_SERVER target", async () => {
-        const controller = createTestController();
+        const projectPath = "c:/work/TestProject.sqlproj";
+        const controller = new PublishProjectWebViewController(
+            contextStub,
+            vscodeWrapperStub,
+            projectPath,
+        );
 
         await controller.initialized.promise;
 
@@ -130,9 +144,13 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(activeComponents).to.not.include("containerAdminPassword");
     });
 
-    //#region Publish Target Section Tests
     test("getActiveFormComponents returns correct fields for LOCAL_CONTAINER target", async () => {
-        const controller = createTestController();
+        const projectPath = "c:/work/TestProject.sqlproj";
+        const controller = new PublishProjectWebViewController(
+            contextStub,
+            vscodeWrapperStub,
+            projectPath,
+        );
 
         await controller.initialized.promise;
 
@@ -154,22 +172,13 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(activeComponents).to.include("acceptContainerLicense");
     });
 
-    test("state tracks inProgress and lastPublishResult", async () => {
-        const controller = createTestController();
-
-        await controller.initialized.promise;
-
-        // Initial state
-        expect(controller.state.inProgress).to.be.false;
-        expect(controller.state.lastPublishResult).to.be.undefined;
-
-        // Can be updated
-        controller.state.inProgress = true;
-        expect(controller.state.inProgress).to.be.true;
-    });
-
-    test("container target values are properly saved to formState", async () => {
-        const controller = createTestController("c:/work/ContainerProject.sqlproj");
+    test("formAction reducer saves values to formState and updates visibility", async () => {
+        const projectPath = "c:/work/ContainerProject.sqlproj";
+        const controller = new PublishProjectWebViewController(
+            contextStub,
+            vscodeWrapperStub,
+            projectPath,
+        );
 
         await controller.initialized.promise;
 
@@ -177,7 +186,7 @@ suite("PublishProjectWebViewController Tests", () => {
         const formAction = reducerHandlers.get("formAction");
         expect(formAction, "formAction reducer should be registered").to.exist;
 
-        // Set target to localContainer
+        // Test setting a value updates formState
         await formAction(controller.state, {
             event: {
                 propertyName: "publishTarget",
@@ -186,55 +195,28 @@ suite("PublishProjectWebViewController Tests", () => {
             },
         });
 
-        // Set container-specific values
-        await formAction(controller.state, {
-            event: { propertyName: "containerPort", value: "1434", isAction: false },
-        });
-        await formAction(controller.state, {
-            event: {
-                propertyName: "containerAdminPassword",
-                value: "TestPassword123!",
-                isAction: false,
-            },
-        });
-        await formAction(controller.state, {
-            event: {
-                propertyName: "containerAdminPasswordConfirm",
-                value: "TestPassword123!",
-                isAction: false,
-            },
-        });
-        await formAction(controller.state, {
-            event: { propertyName: "containerImageTag", value: "2022-latest", isAction: false },
-        });
-        await formAction(controller.state, {
-            event: { propertyName: "acceptContainerLicense", value: true, isAction: false },
-        });
-
-        // Verify all values are saved
         expect(controller.state.formState.publishTarget).to.equal(PublishTarget.LocalContainer);
-        expect(controller.state.formState.containerPort).to.equal("1434");
-        expect(controller.state.formState.containerAdminPassword).to.equal("TestPassword123!");
-        expect(controller.state.formState.containerAdminPasswordConfirm).to.equal(
-            "TestPassword123!",
-        );
-        expect(controller.state.formState.containerImageTag).to.equal("2022-latest");
-        expect(controller.state.formState.acceptContainerLicense).to.equal(true);
 
-        // Verify container fields are visible
+        // Test that changing publish target updates field visibility
         expect(controller.state.formComponents.containerPort?.hidden).to.not.be.true;
-        expect(controller.state.formComponents.containerAdminPassword?.hidden).to.not.be.true;
+        expect(controller.state.formComponents.serverName?.hidden).to.be.true;
     });
 
     test("Azure SQL project shows Azure-specific labels", async () => {
-        mockSqlProjectsService.getProjectProperties = sandbox.stub().resolves({
-            success: true,
-            projectGuid: "test-guid",
-            databaseSchemaProvider:
-                "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
-        });
+        const mockSqlProjectsService: Partial<SqlProjectsService> = {
+            getProjectProperties: sinon.stub().resolves({
+                success: true,
+                databaseSchemaProvider:
+                    "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
+            }),
+        };
 
-        const controller = createTestController("c:/work/AzureProject.sqlproj");
+        const controller = new PublishProjectWebViewController(
+            contextStub,
+            vscodeWrapperStub,
+            "test.sqlproj",
+            mockSqlProjectsService as SqlProjectsService,
+        );
 
         await controller.initialized.promise;
 
@@ -258,14 +240,21 @@ suite("PublishProjectWebViewController Tests", () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any);
 
-        mockSqlProjectsService.getProjectProperties = sandbox.stub().resolves({
-            success: true,
-            projectGuid: "test-guid",
-            databaseSchemaProvider:
-                "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
-        });
+        const mockSqlProjectsService: Partial<SqlProjectsService> = {
+            getProjectProperties: sandbox.stub().resolves({
+                success: true,
+                projectGuid: "test-guid",
+                databaseSchemaProvider:
+                    "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
+            }),
+        };
 
-        const controller = createTestController("c:/work/AzureProject.sqlproj");
+        const controller = new PublishProjectWebViewController(
+            contextStub,
+            vscodeWrapperStub,
+            "c:/work/AzureProject.sqlproj",
+            mockSqlProjectsService as SqlProjectsService,
+        );
 
         await controller.initialized.promise;
 
@@ -281,22 +270,25 @@ suite("PublishProjectWebViewController Tests", () => {
 
     test("field validators enforce container and server requirements", () => {
         // Port validation
-        expect(validateSqlServerPortNumber("1433")).to.be.true;
         expect(validateSqlServerPortNumber(1433)).to.be.true;
-        expect(validateSqlServerPortNumber(""), "empty string invalid").to.be.false;
-        expect(validateSqlServerPortNumber("0"), "port 0 invalid").to.be.false;
-        expect(validateSqlServerPortNumber("70000"), "out-of-range port invalid").to.be.false;
-        expect(validateSqlServerPortNumber("abc"), "non-numeric invalid").to.be.false;
+        expect(validateSqlServerPortNumber(80)).to.be.true;
+        expect(validateSqlServerPortNumber(0), "port 0 invalid").to.be.false;
+        expect(validateSqlServerPortNumber(70000), "out-of-range port invalid").to.be.false;
+        expect(validateSqlServerPortNumber(1.5), "decimal port invalid").to.be.false;
+        expect(validateSqlServerPortNumber(-1), "negative port invalid").to.be.false;
 
-        // Password complexity validation (8-128 chars, 3 of 4: upper, lower, digit, symbol)
-        expect(isValidSqlAdminPassword("Password123!"), "complex password valid").to.be.true;
-        expect(isValidSqlAdminPassword("Passw0rd"), "3 categories valid").to.be.true;
-        expect(isValidSqlAdminPassword("password"), "simple lowercase invalid").to.be.false;
-        expect(isValidSqlAdminPassword("PASSWORD"), "simple uppercase invalid").to.be.false;
-        expect(isValidSqlAdminPassword("Pass1"), "too short invalid").to.be.false;
-        expect(isValidSqlAdminPassword("Password123!".repeat(20)), "too long invalid").to.be.false;
+        // Password complexity validation (8-128 chars, 3 of 4: upper, lower, digit, special char)
+        // validateSqlServerPassword returns empty string for valid, error message for invalid
+        expect(validateSqlServerPassword("Password123!"), "complex password valid").to.equal("");
+        expect(validateSqlServerPassword("Passw0rd"), "3 categories valid").to.equal("");
+        expect(validateSqlServerPassword("password"), "simple lowercase invalid").to.not.equal("");
+        expect(validateSqlServerPassword("PASSWORD"), "simple uppercase invalid").to.not.equal("");
+        expect(validateSqlServerPassword("Pass1"), "too short invalid").to.not.equal("");
+        expect(
+            validateSqlServerPassword("Password123!".repeat(20)),
+            "too long invalid",
+        ).to.not.equal("");
     });
-    //#endregion
 
     //#region Publish Profile Section Tests
     test("selectPublishProfile reducer parses real-world XML profile correctly", async () => {
