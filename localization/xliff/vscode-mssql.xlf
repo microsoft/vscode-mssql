@@ -1701,10 +1701,6 @@
     <trans-unit id="++CODE++4d7056f0e9bef4870b289d7b77634cead0e646a63708a1eb500c6eab11c1328e">
       <source xml:lang="en">Hue</source>
     </trans-unit>
-    <trans-unit id="++CODE++70c28ff8eecf388a53fbc8ff288f471398bdb9860e438b3eae4b7ef6c8f187e5">
-      <source xml:lang="en">I accept the &lt;a href=&quot;{0}&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;Microsoft SQL Server License Agreement&lt;/a&gt;</source>
-      <note>{0} is the hyperlink URL to the Microsoft SQL Server License Agreement used in an HTML anchor tag</note>
-    </trans-unit>
     <trans-unit id="++CODE++9638b09db2ce74e3d600f9a512a6116df9ba9b3a147569930a5d5b4682ac5a20">
       <source xml:lang="en">I have read the summary and understand the potential risks.</source>
     </trans-unit>
