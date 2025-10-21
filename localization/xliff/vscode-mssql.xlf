@@ -631,6 +631,11 @@
     <trans-unit id="++CODE++bb7bef87d3a1f764c39c6df670038039c136d360153a1ced5c633afa9590fd36">
       <source xml:lang="en">Column name cannot be empty</source>
     </trans-unit>
+    <trans-unit id="++CODE++9c0d16969522181cc1a1ce449a0004334d3c7ad24027c1c333b6bfa776927384">
+      <source xml:lang="en">Column width must be between {0} and {1}</source>
+      <note>{0} is the minimum width of the column
+{1} is the maximum width of the column</note>
+    </trans-unit>
     <trans-unit id="++CODE++53aade77cd69a77bbb51bf8ca4e7ea8b282db75edce8883775e47042478d35b5">
       <source xml:lang="en">Columns</source>
     </trans-unit>
@@ -1170,6 +1175,9 @@
     </trans-unit>
     <trans-unit id="++CODE++91cf329b31a4b1a6c0bdec6de797b6a90ab9309490bd62ec38f98f2d0f6db423">
       <source xml:lang="en">Enter description (optional)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++657e6ba252bef59f38c0dbaab7e8e25d55503ba3a41d6ce527f92c88baea3576">
+      <source xml:lang="en">Enter desired column width in pixels</source>
     </trans-unit>
     <trans-unit id="++CODE++caaac8aa0d0641aea8406e7f1011aaeab33423fdd4ee9b3354ee88cc1487b0bf">
       <source xml:lang="en">Enter hostname</source>
@@ -2577,6 +2585,13 @@
     </trans-unit>
     <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
       <source xml:lang="en">Reset</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
+      <source xml:lang="en">Resize</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fc71b6e1d435d817984f9c7394f47e21505efa2a9f81b5f3e17082ced1432cc7">
+      <source xml:lang="en">Resize column &apos;{0}&apos;</source>
+      <note>{0} is the name of the column</note>
     </trans-unit>
     <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
       <source xml:lang="en">Resource Group</source>
