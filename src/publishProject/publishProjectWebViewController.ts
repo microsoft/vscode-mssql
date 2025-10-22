@@ -23,7 +23,7 @@ import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
-import { getSqlServerContainerTagsForTargetVersion } from "../deployment/dockerUtils";
+import { getSqlServerContainerTagsForTargetVersion } from "../publishProject/projectUtils";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -125,28 +125,20 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         // Load publish form components
         this.state.formComponents = generatePublishFormComponents(projectTargetVersion);
-
-        // Update state to notify UI of the project properties and form components
         this.updateState();
 
-        // Fetch Docker tags for the container image dropdown
-        // Use the deployment UI function with target version filtering
+        // Use deployment UI method to get filtered image tags
         const tagComponent = this.state.formComponents[PublishFormFields.ContainerImageTag];
         if (tagComponent) {
             try {
                 const tagOptions =
                     await getSqlServerContainerTagsForTargetVersion(projectTargetVersion);
-                if (tagOptions && tagOptions.length > 0) {
-                    tagComponent.options = tagOptions;
-
-                    // Set default to first option (most recent -latest) if not already set
-                    if (!this.state.formState.containerImageTag && tagOptions[0]) {
-                        this.state.formState.containerImageTag = tagOptions[0].value;
-                    }
+                tagComponent.options = tagOptions;
+                if (!this.state.formState.containerImageTag && tagOptions.length > 0) {
+                    this.state.formState.containerImageTag = tagOptions[0].value;
                 }
             } catch (error) {
                 console.error("Failed to fetch Docker container tags:", error);
-                // Keep dialog resilient - don't block if Docker tags fail to load
             }
         }
 

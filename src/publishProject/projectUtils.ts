@@ -7,6 +7,9 @@ import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
 import { SqlProjectsService } from "../services/sqlProjectsService";
+import { getSqlServerContainerVersions, dockerLogger } from "../deployment/dockerUtils";
+import { FormItemOptions } from "../sharedInterfaces/form";
+import { getErrorMessage } from "../utils/utils";
 
 /**
  * Checks if preview features are enabled in VS Code settings for SQL Database Projects.
@@ -31,6 +34,7 @@ export const enum SqlTargetPlatform {
     sqlServer2017 = "SQL Server 2017",
     sqlServer2019 = "SQL Server 2019",
     sqlServer2022 = "SQL Server 2022",
+    sqlServer2025 = "SQL Server 2025",
     sqlAzure = "Azure SQL Database",
     sqlDW = "Azure Synapse SQL Pool",
     sqlDwServerless = "Azure Synapse Serverless SQL Pool",
@@ -49,11 +53,26 @@ export const targetPlatformToVersion: Map<string, string> = new Map<string, stri
     [SqlTargetPlatform.sqlServer2017, "140"],
     [SqlTargetPlatform.sqlServer2019, "150"],
     [SqlTargetPlatform.sqlServer2022, "160"],
+    [SqlTargetPlatform.sqlServer2025, "170"],
     [SqlTargetPlatform.sqlAzure, "AzureV12"],
     [SqlTargetPlatform.sqlDW, "Dw"],
     [SqlTargetPlatform.sqlDwServerless, "Serverless"],
     [SqlTargetPlatform.sqlDwUnified, "DwUnified"],
     [SqlTargetPlatform.sqlDbFabric, "DbFabric"],
+]);
+
+/**
+ * Maps DSP version numbers to SQL Server release years.
+ * Add new versions here as they become available.
+ */
+const DSP_VERSION_TO_YEAR: Map<number, number> = new Map([
+    [170, 2025], // SQL Server 2025
+    [160, 2022], // SQL Server 2022
+    [150, 2019], // SQL Server 2019
+    [140, 2017], // SQL Server 2017
+    [130, 2016], // SQL Server 2016
+    [120, 2014], // SQL Server 2014
+    [110, 2012], // SQL Server 2012
 ]);
 
 /**
@@ -139,4 +158,42 @@ export function getPublishServerName(target: string) {
  */
 export function validateSqlServerPortNumber(port: number): boolean {
     return Number.isInteger(port) && port >= 1 && port <= constants.MAX_PORT_NUMBER;
+}
+
+/**
+ * Retrieves and filters SQL Server container tags based on project target version.
+ * Used by Publish Project dialog to provide granular tag selection.
+ *
+ * @param targetVersion - The SQL Server version (e.g., "160" for SQL Server 2022)
+ * @returns Sorted array of tags filtered by version from deployment UI versions
+ */
+export async function getSqlServerContainerTagsForTargetVersion(
+    targetVersion?: string,
+): Promise<FormItemOptions[]> {
+    try {
+        // Get the deployment UI versions first
+        const deploymentVersions = await getSqlServerContainerVersions();
+        if (!deploymentVersions || deploymentVersions.length === 0) {
+            return [];
+        }
+
+        // Determine minimum year based on target version
+        let minYear = 2017; // Default to SQL Server 2017
+        if (targetVersion) {
+            const versionNum = parseInt(targetVersion, 10);
+            // Find the corresponding year, or default to 2017 if not found
+            minYear = DSP_VERSION_TO_YEAR.get(versionNum) ?? 2017;
+        }
+
+        // Filter deployment versions based on target version
+        const filteredVersions = deploymentVersions.filter((option) => {
+            const year = parseInt(option.displayName.match(/\d{4}/)?.[0] || "0", 10);
+            return year >= minYear;
+        });
+
+        return filteredVersions;
+    } catch (e) {
+        dockerLogger.appendLine(`Error filtering SQL Server container tags: ${getErrorMessage(e)}`);
+        return [];
+    }
 }
