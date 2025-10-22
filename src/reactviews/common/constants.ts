@@ -10,3 +10,4 @@ export const ctrlAKeyboardShortcut = "Ctrl+A";
 export const cmdCKeyboardShortcut = "⌘C";
 export const ctrlCKeyboardShortcut = "Ctrl+C";
 export const altShiftOKeyboardShortcut = "Shift+Alt+O";
+export const altShiftSKeyboardShortcut = "Shift+Alt+S";
