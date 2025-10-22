@@ -28,6 +28,7 @@ import {
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { locConstants } from "../../../../common/locConstants";
 import { SortProperties } from "../../../../../sharedInterfaces/queryResult";
+import { altShiftOKeyboardShortcut, altShiftSKeyboardShortcut } from "../../../../common/constants";
 
 export type FilterValue = string | undefined;
 
@@ -542,7 +543,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                             fontWeight: "100",
                             marginLeft: "6px",
                         }}>
-                        Shift+Alt+O
+                        {altShiftOKeyboardShortcut}
                     </span>
                 </Text>
                 <Button
@@ -616,7 +617,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                                 marginLeft: "auto",
                                 paddingLeft: "6px",
                             }}>
-                            Alt+Shift+S
+                            {altShiftSKeyboardShortcut}
                         </span>
                     </Button>
                 </Toolbar>

@@ -721,7 +721,7 @@
       </trans-unit>
       <trans-unit id="++CODE++524ed5b794acd857648e76bead9db5ba131ebcb17f3a92d98ece51db61e65dbf">
         <source xml:lang="en">Clear token cache</source>
-        <target state="new">Clear token cache</target>
+        <target state="translated">토큰 캐시 삭제</target>
       </trans-unit>
       <trans-unit id="++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36">
         <source xml:lang="en">Click to cancel loading summary</source>
@@ -864,6 +864,10 @@
       <trans-unit id="++CODE++c292210c44167923a75b092a008f9d2b194fb08631a6aa43d753ed7931ad4d5e">
         <source xml:lang="en">Confirm Password</source>
         <target state="translated">암호 확인</target>
+      </trans-unit>
+      <trans-unit id="++CODE++73dd96f4085ccfca56f43ca281a29ab8d195fe5fc79b4cb45be11d7830230d63">
+        <source xml:lang="en">Confirm SQL Server admin password</source>
+        <target state="new">Confirm SQL Server admin password</target>
       </trans-unit>
       <trans-unit id="++CODE++bf000421aeb39493cf8044ec73846d7da8ca97b7166208c0d1172a17ba23a388">
         <source xml:lang="en">Confirm new password</source>
@@ -1563,7 +1567,7 @@
       </trans-unit>
       <trans-unit id="++CODE++d59e5e8f8a4bb3b14eb8af194553158e5dffd648ad462eeafb2f03589da5a8eb">
         <source xml:lang="en">Entra token cache cleared successfully.</source>
-        <target state="new">Entra token cache cleared successfully.</target>
+        <target state="translated">Entra 토큰 캐시를 성공적으로 지웠습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
         <source xml:lang="en">Equals</source>
@@ -1724,6 +1728,10 @@ Error:
       <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
         <source xml:lang="en">Execution Plan</source>
         <target state="translated">실행 계획</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b5f54c19df1649916f59331f9decf53dc337a2c241a3afb20d58810309ebe30f">
+        <source xml:lang="en">Existing Azure SQL logical server</source>
+        <target state="new">Existing Azure SQL logical server</target>
       </trans-unit>
       <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
         <source xml:lang="en">Existing SQL server</source>
@@ -2219,6 +2227,10 @@ Error:
         <source xml:lang="en">Ignore Tenant</source>
         <target state="translated">테넌트 무시</target>
       </trans-unit>
+      <trans-unit id="++CODE++c4a77afa3d5cd701f32b5f09c195c635b256db8595687828c3ea0785ab5b72f4">
+        <source xml:lang="en">Image tag</source>
+        <target state="new">Image tag</target>
+      </trans-unit>
       <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
         <source xml:lang="en">Importance</source>
         <target state="translated">중요도</target>
@@ -2263,10 +2275,6 @@ Error:
         <source xml:lang="en">Instant Container Setup</source>
         <target state="translated">인스턴트 컨테이너 설정</target>
       </trans-unit>
-      <trans-unit id="++CODE++07fe70d13a25b3d4c4f7d4e64e1aaa9b9d80952a1478fb7e2da36209ccbf549f">
-        <source xml:lang="en">Insufficient Capacity Permissions</source>
-        <target state="translated">용량 사용 권한 부족</target>
-      </trans-unit>
       <trans-unit id="++CODE++207b04072a822fa8e76629bcd504bc8c19525b86f444ac77a6f3be1c88a502eb">
         <source xml:lang="en">Insufficient Workspace Permissions</source>
         <target state="translated">작업 영역 사용 권한 부족</target>
@@ -2286,6 +2294,10 @@ Error:
       <trans-unit id="++CODE++4480c895a6e66acfc4e43550d8a60598168463e52699be5ed28eae3ecf7200c7">
         <source xml:lang="en">Invalid IP Address</source>
         <target state="translated">잘못된 IP 주소</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0c2f118ad5933157d00e2025f7cc3d3c3da84db32e18ffbb4f1032471cc643ef">
+        <source xml:lang="en">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</source>
+        <target state="new">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</target>
       </trans-unit>
       <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
         <source xml:lang="en">Invalid column width</source>
@@ -2681,6 +2693,10 @@ Error:
         <note>{0} is the account name</note>
         <target state="translated">Microsoft Entra 계정 {0}이(가) 추가되었습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++ede0760e8703fdfcddf4d15e0406c0deeadd91e7907d2a3e7479c6a3d3e309e4">
+        <source xml:lang="en">Microsoft SQL Server License Agreement</source>
+        <target state="new">Microsoft SQL Server License Agreement</target>
+      </trans-unit>
       <trans-unit id="++CODE++951f4af90cfde827d87f358b3d8d275ee60a3306d9ddb5c4615483cff067697a">
         <source xml:lang="en">Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.</source>
         <target state="translated">Microsoft는 사용자의 피드백을 검토하여 제품 개선 과정에 반영합니다. 개인 데이터나 기밀/독점 콘텐츠는 공유하지 마세요.</target>
@@ -2730,6 +2746,10 @@ Error:
         <source xml:lang="en">Name of the primary key.</source>
         <target state="translated">기본 키의 이름입니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++47fcb7ca194ec7de1be8ea7b91df9b1e51e273673b6410255e55f48fe0061598">
+        <source xml:lang="en">New Azure SQL logical server (Preview)</source>
+        <target state="new">New Azure SQL logical server (Preview)</target>
+      </trans-unit>
       <trans-unit id="++CODE++e7d029a3c1b85e562db8e25ceb52958e3c3da9e6e50b95ebf95f3fae85091a15">
         <source xml:lang="en">New Check Constraint</source>
         <target state="translated">새 CHECK 제약 조건</target>
@@ -2761,6 +2781,10 @@ Error:
       <trans-unit id="++CODE++7c451e0f436d04a6f321f8d5de8da296a66cfb1d8cdc3918b1ed7ecd480cce28">
         <source xml:lang="en">New Password</source>
         <target state="translated">새 암호</target>
+      </trans-unit>
+      <trans-unit id="++CODE++80e8f069713682d743cceecaad91cb538d199e18712328724d348491bfbb64af">
+        <source xml:lang="en">New SQL Server local development container</source>
+        <target state="new">New SQL Server local development container</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -3157,6 +3181,10 @@ Error:
         <source xml:lang="en">Port</source>
         <target state="translated">포트</target>
       </trans-unit>
+      <trans-unit id="++CODE++ed66c5818178010b7908ff51b8195453260bb97629cc433ea0b53795840b8645">
+        <source xml:lang="en">Port must be a number between 1 and 65535</source>
+        <target state="new">Port must be a number between 1 and 65535</target>
+      </trans-unit>
       <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
         <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
         <target state="translated">가능한 데이터 손실이 검색되었습니다. 변경 내용을 검토하세요.</target>
@@ -3372,6 +3400,10 @@ Error:
         <source xml:lang="en">Replication</source>
         <target state="translated">복제</target>
       </trans-unit>
+      <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
+        <source xml:lang="en">Required</source>
+        <target state="new">Required</target>
+      </trans-unit>
       <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
         <source xml:lang="en">Reset</source>
         <target state="translated">초기화</target>
@@ -3485,9 +3517,17 @@ Query: {1}</source>
         <source xml:lang="en">SQL Server Container SA Password</source>
         <target state="translated">SQL Server 컨테이너 SA 암호</target>
       </trans-unit>
+      <trans-unit id="++CODE++8fb9e52bba9bdebaf10c130eca428ca15b770d0ba41c5f854c47db14a380f8ae">
+        <source xml:lang="en">SQL Server admin password</source>
+        <target state="new">SQL Server admin password</target>
+      </trans-unit>
       <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
         <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
         <target state="translated">SQL Server는 Windows 컨테이너를 지원하지 않습니다. Docker Desktop 설정에서 Linux 컨테이너로 전환하세요.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80">
+        <source xml:lang="en">SQL Server port number</source>
+        <target state="new">SQL Server port number</target>
       </trans-unit>
       <trans-unit id="++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8">
         <source xml:lang="en">SQL Server {0} - latest</source>
@@ -3851,9 +3891,9 @@ Query: {1}</source>
         <source xml:lang="en">Show MSSQL output</source>
         <target state="translated">MSSQL 출력 표시</target>
       </trans-unit>
-      <trans-unit id="++CODE++a16e132b133cc57c4d467bde193d78fe48f170a197d0581c2e6578162824902f">
-        <source xml:lang="en">Show Menu</source>
-        <target state="translated">메뉴 표시</target>
+      <trans-unit id="++CODE++1615831401345ad7af7c55f1b68f51dd051827cf4ab1e7f3864619ce377d6ef1">
+        <source xml:lang="en">Show Menu (F3)</source>
+        <target state="new">Show Menu (F3)</target>
       </trans-unit>
       <trans-unit id="++CODE++169b9d739add25522ff9a236b54583826c27bd79c2dcb1a4efcc50143164f78c">
         <source xml:lang="en">Show New Password</source>
@@ -3936,6 +3976,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
         <source xml:lang="en">Smart performance</source>
         <target state="translated">스마트 성능</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bec69036aa27e7fab7d44cad3909477b76631c39ba46fd7841ea71aae7e5a735">
+        <source xml:lang="en">Sort</source>
+        <target state="new">Sort</target>
       </trans-unit>
       <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
         <source xml:lang="en">Sort Ascending</source>
@@ -4485,6 +4529,10 @@ Query: {1}</source>
         <source xml:lang="en">You are not connected to any database.</source>
         <target state="translated">데이터베이스에 연결되어 있지 않습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
+        <source xml:lang="en">You must accept the license</source>
+        <target state="new">You must accept the license</target>
+      </trans-unit>
       <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
         <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
         <target state="translated">SQL 데이터베이스를 탐색하려면 Azure에 로그인해야 합니다.</target>
@@ -4662,6 +4710,10 @@ Query: {1}</source>
         <note>{0} is the number of active elements
 {1} is the total number of elements</note>
         <target state="translated">{0}/{1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
+        <source xml:lang="en">{0} password doesn't match the confirmation password</source>
+        <target state="new">{0} password doesn't match the confirmation password</target>
       </trans-unit>
       <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
         <source xml:lang="en">{0} properties</source>
