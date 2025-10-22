@@ -1329,6 +1329,7 @@ export class PublishProject {
     public static SqlServerAdminPasswordConfirm = l10n.t("Confirm SQL Server admin password");
     public static SqlServerImageTag = l10n.t("Image tag");
     public static SqlServerLicenseAgreement = l10n.t("Microsoft SQL Server License Agreement");
+    public static ServerConnectionPlaceholder = l10n.t("Select Connection");
     // Validation messages
     public static InvalidPortMessage = l10n.t("Port must be a number between 1 and 65535");
     public static InvalidSQLPasswordMessage(name: string) {

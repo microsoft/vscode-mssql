@@ -72,6 +72,10 @@ export interface PublishDialogState
     projectProperties?: mssql.GetProjectPropertiesResult & { targetVersion?: string };
     hasFormErrors?: boolean;
     deploymentOptions?: mssql.DeploymentOptions;
+    waitingForNewConnection?: boolean;
+    connectionString?: string;
+    previousDatabaseList?: { displayName: string; value: string }[];
+    previousSelectedDatabase?: string;
 }
 
 /**
@@ -99,6 +103,7 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     openPublishAdvanced: {};
     selectPublishProfile: {};
     savePublishProfile: { publishProfileName: string };
+    openConnectionDialog: {};
 }
 
 /**
@@ -122,4 +127,6 @@ export interface PublishProjectProvider {
     selectPublishProfile(): void;
     /** Persist current form state as a named publish profile */
     savePublishProfile(publishProfileName: string): void;
+    /** Open connection dialog to select server and database */
+    openConnectionDialog(): void;
 }

@@ -56,12 +56,14 @@ function generatePublishTargetOptions(projectTargetVersion?: string): FormItemOp
 }
 
 /**
- * Generate publish form components. Kept async for future extensibility
- * (e.g. reading project metadata, fetching remote targets, etc.)
- * @param projectTargetVersion - The target version of the project (e.g., "AzureV12" for Azure SQL)
+ * Generates the publish form components for the publish dialog.
+ * @param projectTargetVersion - The target version of the project.
+ * @param initialDatabaseName - The initial database name to populate in the database dropdown.
+ * @returns The generated form components.
  */
 export function generatePublishFormComponents(
     projectTargetVersion?: string,
+    initialDatabaseName?: string,
 ): Record<keyof IPublishForm, PublishDialogFormItemSpec> {
     const components: Record<keyof IPublishForm, PublishDialogFormItemSpec> = {
         publishProfilePath: {
@@ -76,12 +78,16 @@ export function generatePublishFormComponents(
             label: Loc.ServerLabel,
             required: true,
             type: FormItemType.Input,
+            placeholder: Loc.ServerConnectionPlaceholder,
         },
         databaseName: {
             propertyName: PublishFormFields.DatabaseName,
             label: Loc.DatabaseLabel,
             required: true,
-            type: FormItemType.Input,
+            type: FormItemType.Dropdown,
+            options: initialDatabaseName
+                ? [{ displayName: initialDatabaseName, value: initialDatabaseName }]
+                : [],
             validate: (_state: PublishDialogState, value: string) => {
                 const isValid = (value ?? "").trim().length > 0;
                 return { isValid, validationMessage: isValid ? "" : Loc.DatabaseRequiredMessage };

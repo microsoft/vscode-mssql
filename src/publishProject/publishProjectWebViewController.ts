@@ -9,6 +9,8 @@ import * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import ConnectionManager from "../controllers/connectionManager";
+import { IConnectionProfile } from "../models/interfaces";
 import { PublishProject as Loc } from "../constants/locConstants";
 import {
     PublishDialogReducers,
@@ -36,10 +38,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _sqlProjectsService?: SqlProjectsService;
     private readonly _dacFxService?: mssql.IDacFxService;
+    private readonly _connectionManager: ConnectionManager;
 
     constructor(
         context: vscode.ExtensionContext,
         _vscodeWrapper: VscodeWrapper,
+        connectionManager: ConnectionManager,
         projectFilePath: string,
         sqlProjectsService?: SqlProjectsService,
         dacFxService?: mssql.IDacFxService,
@@ -64,6 +68,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 lastPublishResult: undefined,
                 hasFormErrors: true,
                 deploymentOptions: deploymentOptions,
+                waitingForNewConnection: false,
             } as PublishDialogState,
             {
                 title: Loc.Title,
@@ -83,9 +88,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
             },
         );
 
-        // Store the SQL Projects Service
+        // Store the SQL Projects Service and Connection Manager
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
+        this._connectionManager = connectionManager;
 
         // Clear default excludeObjectTypes for publish dialog, no default exclude options should exist
         if (
@@ -97,6 +103,17 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         // Register reducers after initialization
         this.registerRpcHandlers();
+
+        // Listen for successful connections
+        this.registerDisposable(
+            this._connectionManager.onSuccessfulConnection(async (event) => {
+                // Only auto-populate if waiting for a new connection
+                if (this.state.waitingForNewConnection) {
+                    // Auto-populate from the new connection (this will call updateState internally)
+                    await this.autoSelectNewConnection(event.fileUri);
+                }
+            }),
+        );
 
         // Initialize async to allow for future extensibility and proper error handling
         void this.initializeDialog(projectFilePath)
@@ -140,7 +157,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
         }
 
         // Load publish form components
-        this.state.formComponents = generatePublishFormComponents(projectTargetVersion);
+        this.state.formComponents = generatePublishFormComponents(
+            projectTargetVersion,
+            this.state.formState.databaseName,
+        );
 
         // Update state to notify UI of the project properties and form components
         this.updateState();
@@ -174,7 +194,18 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
     /** Registers all reducers in pure (immutable) style */
     private registerRpcHandlers(): void {
-        this.registerReducer("publishNow", async (state) => {
+        this.registerReducer("openConnectionDialog", async (state: PublishDialogState) => {
+            // Set waiting state to detect new connections
+            state.waitingForNewConnection = true;
+            this.updateState(state);
+
+            // Execute the command to open the connection dialog (same as "+" button in servers panel)
+            void vscode.commands.executeCommand(constants.cmdAddObjectExplorer);
+
+            return state;
+        });
+
+        this.registerReducer("publishNow", async (state: PublishDialogState) => {
             // TODO: implement actual publish logic (currently just clears inProgress)
             return { ...state, inProgress: false };
         });
@@ -228,8 +259,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                                 parsedProfile.databaseName || state.formState.databaseName,
                             serverName: parsedProfile.serverName || state.formState.serverName,
                             sqlCmdVariables: parsedProfile.sqlCmdVariables,
-                            // TODO: connectionString stored in parsed profile, will be used when connection UI is ready
                         },
+                        connectionString: parsedProfile.connectionString || state.connectionString,
                         deploymentOptions:
                             parsedProfile.deploymentOptions || state.deploymentOptions,
                     };
@@ -285,8 +316,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
                 try {
                     const databaseName = state.formState.databaseName || projectName;
-                    // TODO: Build connection string from connection details when server/database selection is implemented
-                    const connectionString = "";
+                    // Connection string depends on publish target:
+                    // - For container targets: empty string (no server connection)
+                    const connectionString =
+                        state.formState.publishTarget === PublishTarget.LocalContainer
+                            ? ""
+                            : state.connectionString || "";
                     const sqlCmdVariables = new Map(
                         Object.entries(state.formState.sqlCmdVariables || {}),
                     );
@@ -319,6 +354,67 @@ export class PublishProjectWebViewController extends FormWebviewController<
         );
     }
 
+    /** Auto-select a new connection and populate server/database fields */
+    private async autoSelectNewConnection(connectionUri: string): Promise<void> {
+        try {
+            // IMPORTANT: Get the connection profile FIRST, before any async calls
+            // The connection URI may be removed from activeConnections during async operations
+            const connection = this._connectionManager.activeConnections[connectionUri];
+            if (!connection || !connection.credentials) {
+                return; // Connection not found or no credentials available
+            }
+
+            const connectionProfile = connection.credentials as IConnectionProfile;
+            if (!connectionProfile || !connectionProfile.server) {
+                return; // Connection profile invalid or no server specified
+            }
+
+            // Update server name immediately
+            this.state.formState.serverName = connectionProfile.server;
+
+            // Get connection string first
+            const connectionString = await this._connectionManager.getConnectionString(
+                connectionUri,
+                true, // includePassword
+                true, // includeApplicationName
+            );
+            this.state.connectionString = connectionString;
+
+            // Get databases
+            const databases = await this._connectionManager.listDatabases(connectionUri);
+
+            // Update database dropdown options
+            const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
+            if (databaseComponent) {
+                databaseComponent.options = databases.map((db) => ({
+                    displayName: db,
+                    value: db,
+                }));
+            }
+
+            // Optionally select the first database if available
+            if (databases.length > 0 && !this.state.formState.databaseName) {
+                this.state.formState.databaseName = databases[0];
+            }
+
+            // Validate form to update button state after connection
+            await this.validateForm(this.state.formState, undefined, false);
+
+            // Update UI immediately to reflect the new connection
+            this.updateState();
+        } catch (err) {
+            // Log the error for diagnostics
+            sendActionEvent(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.PublishProjectConnectionError,
+                { error: err instanceof Error ? err.message : String(err) },
+            );
+        } finally {
+            // Reset the waiting state
+            this.state.waitingForNewConnection = false;
+        }
+    }
+
     protected getActiveFormComponents(state: PublishDialogState): (keyof IPublishForm)[] {
         const activeComponents: (keyof IPublishForm)[] = [
             PublishFormFields.PublishTarget,
@@ -332,6 +428,58 @@ export class PublishProjectWebViewController extends FormWebviewController<
         }
 
         return activeComponents;
+    }
+
+    /**
+     * Called after a form property is set and validated.
+     * Handles publish target changes for both validation and database dropdown management.
+     */
+    public async afterSetFormProperty(propertyName: keyof IPublishForm): Promise<void> {
+        if (propertyName === PublishFormFields.PublishTarget) {
+            const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
+
+            if (databaseComponent) {
+                // When switching TO LOCAL_CONTAINER
+                if (this.state.formState.publishTarget === PublishTarget.LocalContainer) {
+                    // Store current database list and selected value to restore later
+                    if (databaseComponent.options && databaseComponent.options.length > 0) {
+                        this.state.previousDatabaseList = [...databaseComponent.options];
+                        this.state.previousSelectedDatabase = this.state.formState.databaseName;
+                    }
+                    // Clear database dropdown options for container (freeform only)
+                    databaseComponent.options = [];
+
+                    // Reset to project name for container mode
+                    this.state.formState.databaseName = path.basename(
+                        this.state.projectFilePath,
+                        path.extname(this.state.projectFilePath),
+                    );
+
+                    // Clear connection string when switching to container target
+                    this.state.connectionString = undefined;
+                }
+                // When switching TO EXISTING_SERVER
+                else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
+                    // Restore previous database list if it was stored (preserve the list from when user connected)
+                    if (
+                        this.state.previousDatabaseList &&
+                        this.state.previousDatabaseList.length > 0
+                    ) {
+                        databaseComponent.options = [...this.state.previousDatabaseList];
+
+                        // Restore previously selected database
+                        if (this.state.previousSelectedDatabase) {
+                            this.state.formState.databaseName = this.state.previousSelectedDatabase;
+                        }
+                    }
+                }
+            }
+
+            // Update visibility and validate for button enablement (without showing validation messages)
+            await this.updateItemVisibility();
+            await this.validateForm(this.state.formState, undefined, false);
+            this.updateState();
+        }
     }
 
     public updateItemVisibility(state?: PublishDialogState): Promise<void> {
@@ -391,19 +539,5 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 (typeof value === "boolean" && value !== true)
             );
         });
-    }
-
-    /**
-     * Called after a form property is set and validated.
-     * Revalidates all fields when publish target changes to update button state.
-     * Update visibility first, then validate based on new visibility
-     */
-    public async afterSetFormProperty(propertyName: keyof IPublishForm): Promise<void> {
-        // When publish target changes, fields get hidden/shown, so revalidate everything
-        if (propertyName === PublishFormFields.PublishTarget) {
-            await this.updateItemVisibility();
-            await this.validateForm(this.state.formState, undefined, false);
-            this.updateState();
-        }
     }
 }
