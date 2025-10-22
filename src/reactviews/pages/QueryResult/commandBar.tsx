@@ -95,12 +95,14 @@ const CommandBar = (props: CommandBarProps) => {
     if (props.viewMode === qr.QueryResultViewMode.Text) {
         return (
             <div className={classes.commandBar}>
-                <Tooltip content={locConstants.queryResult.toggleToGridView} relationship="label">
+                <Tooltip
+                    content={locConstants.queryResult.toggleToGridView}
+                    relationship="description">
                     <Button
                         appearance="subtle"
                         onClick={toggleViewMode}
                         icon={<TableRegular />}
-                        title={locConstants.queryResult.toggleToGridView}
+                        aria-label={locConstants.queryResult.toggleToGridView}
                     />
                 </Tooltip>
             </div>
@@ -116,7 +118,7 @@ const CommandBar = (props: CommandBarProps) => {
                         ? locConstants.queryResult.toggleToTextView
                         : locConstants.queryResult.toggleToGridView
                 }
-                relationship="label">
+                relationship="description">
                 <Button
                     appearance="subtle"
                     onClick={toggleViewMode}
@@ -127,7 +129,7 @@ const CommandBar = (props: CommandBarProps) => {
                             <TableRegular />
                         )
                     }
-                    title={
+                    aria-label={
                         props.viewMode === qr.QueryResultViewMode.Grid
                             ? locConstants.queryResult.toggleToTextView
                             : locConstants.queryResult.toggleToGridView
@@ -136,7 +138,13 @@ const CommandBar = (props: CommandBarProps) => {
             </Tooltip>
 
             {hasMultipleResults() && props.viewMode === qr.QueryResultViewMode.Grid && (
-                <Tooltip content={locConstants.queryResult.maximize} relationship="label">
+                <Tooltip
+                    content={
+                        maxView
+                            ? locConstants.queryResult.restore
+                            : locConstants.queryResult.maximize
+                    }
+                    relationship="description">
                     <Button
                         appearance="subtle"
                         onClick={() => {
@@ -150,7 +158,7 @@ const CommandBar = (props: CommandBarProps) => {
                                 <ArrowMaximize16Filled className={classes.buttonImg} />
                             )
                         }
-                        title={
+                        aria-label={
                             maxView
                                 ? locConstants.queryResult.restore
                                 : locConstants.queryResult.maximize
@@ -158,7 +166,7 @@ const CommandBar = (props: CommandBarProps) => {
                 </Tooltip>
             )}
 
-            <Tooltip content={locConstants.queryResult.saveAsCsv} relationship="label">
+            <Tooltip content={locConstants.queryResult.saveAsCsv} relationship="description">
                 <Button
                     appearance="subtle"
                     onClick={(_event) => {
@@ -166,10 +174,10 @@ const CommandBar = (props: CommandBarProps) => {
                     }}
                     icon={<img className={classes.buttonImg} src={saveAsCsvIcon(themeKind)} />}
                     className="codicon saveCsv"
-                    title={locConstants.queryResult.saveAsCsv}
+                    aria-label={locConstants.queryResult.saveAsCsv}
                 />
             </Tooltip>
-            <Tooltip content={locConstants.queryResult.saveAsJson} relationship="label">
+            <Tooltip content={locConstants.queryResult.saveAsJson} relationship="description">
                 <Button
                     appearance="subtle"
                     onClick={(_event) => {
@@ -177,10 +185,10 @@ const CommandBar = (props: CommandBarProps) => {
                     }}
                     icon={<img className={classes.buttonImg} src={saveAsJsonIcon(themeKind)} />}
                     className="codicon saveJson"
-                    title={locConstants.queryResult.saveAsJson}
+                    aria-label={locConstants.queryResult.saveAsJson}
                 />
             </Tooltip>
-            <Tooltip content={locConstants.queryResult.saveAsExcel} relationship="label">
+            <Tooltip content={locConstants.queryResult.saveAsExcel} relationship="description">
                 <Button
                     appearance="subtle"
                     onClick={(_event) => {
@@ -188,10 +196,10 @@ const CommandBar = (props: CommandBarProps) => {
                     }}
                     icon={<img className={classes.buttonImg} src={saveAsExcelIcon(themeKind)} />}
                     className="codicon saveExcel"
-                    title={locConstants.queryResult.saveAsExcel}
+                    aria-label={locConstants.queryResult.saveAsExcel}
                 />
             </Tooltip>
-            <Tooltip content={locConstants.queryResult.saveAsInsert} relationship="label">
+            <Tooltip content={locConstants.queryResult.saveAsInsert} relationship="description">
                 <Button
                     appearance="subtle"
                     onClick={(_event) => {
@@ -199,7 +207,7 @@ const CommandBar = (props: CommandBarProps) => {
                     }}
                     icon={<img className={classes.buttonImg} src={saveAsInsertIcon(themeKind)} />}
                     className="codicon saveInsert"
-                    title={locConstants.queryResult.saveAsInsert}
+                    aria-label={locConstants.queryResult.saveAsInsert}
                 />
             </Tooltip>
         </Toolbar>
