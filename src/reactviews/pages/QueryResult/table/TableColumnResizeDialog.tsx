@@ -43,9 +43,7 @@ export const TableColumnResizeDialog: React.FC<TableColumnResizeDialogProps> = (
 
     const isValid = (inputValue: string) => {
         const parsedWidth = parseInt(inputValue);
-        const isValid =
-            Number.isFinite(parsedWidth) && parsedWidth >= minWidth && parsedWidth <= maxWidth;
-        console.log("Is valid width:", isValid, parsedWidth);
+        const isValid = Number.isFinite(parsedWidth) && parsedWidth >= minWidth;
         return isValid;
     };
 
@@ -74,7 +72,11 @@ export const TableColumnResizeDialog: React.FC<TableColumnResizeDialogProps> = (
                     <DialogContent>
                         <Field
                             label={locConstants.queryResult.enterDesiredColumnWidth}
-                            hint={locConstants.queryResult.resizeHint(minWidth, maxWidth)}>
+                            validationMessage={
+                                isValid(inputValue)
+                                    ? undefined
+                                    : locConstants.queryResult.resizeValidationError(minWidth)
+                            }>
                             <Input
                                 type="number"
                                 value={inputValue}
