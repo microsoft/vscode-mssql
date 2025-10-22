@@ -453,6 +453,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 this.state.formState.databaseName = databases[0];
             }
 
+            // Validate form to update button state after connection
+            await this.validateForm(this.state.formState, undefined, false);
+
             // Update UI immediately to reflect the new connection
             this.updateState();
         } catch (err) {
@@ -484,52 +487,55 @@ export class PublishProjectWebViewController extends FormWebviewController<
     }
 
     /**
-     * Override to handle publish target changes and manage database dropdown options
+     * Called after a form property is set and validated.
+     * Handles publish target changes for both validation and database dropdown management.
      */
     public async afterSetFormProperty(propertyName: keyof IPublishForm): Promise<void> {
         if (propertyName === PublishFormFields.PublishTarget) {
             const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
 
-            if (!databaseComponent) {
-                return;
-            }
+            if (databaseComponent) {
+                // When switching TO LOCAL_CONTAINER
+                if (this.state.formState.publishTarget === PublishTarget.LocalContainer) {
+                    // Store current database list and selected value to restore later
+                    if (databaseComponent.options && databaseComponent.options.length > 0) {
+                        this.state.previousDatabaseList = [...databaseComponent.options];
+                        this.state.previousSelectedDatabase = this.state.formState.databaseName;
+                    }
+                    // Clear database dropdown options for container (freeform only)
+                    databaseComponent.options = [];
 
-            // When switching TO LOCAL_CONTAINER
-            if (this.state.formState.publishTarget === PublishTarget.LocalContainer) {
-                // Store current database list and selected value to restore later
-                if (databaseComponent.options && databaseComponent.options.length > 0) {
-                    this.state.previousDatabaseList = [...databaseComponent.options];
-                    this.state.previousSelectedDatabase = this.state.formState.databaseName;
+                    // Reset to project name for container mode
+                    this.state.formState.databaseName = path.basename(
+                        this.state.projectFilePath,
+                        path.extname(this.state.projectFilePath),
+                    );
+
+                    // Clear connection string when switching to container target
+                    this.state.connectionString = undefined;
                 }
-                // Clear database dropdown options for container (freeform only)
-                databaseComponent.options = [];
+                // When switching TO EXISTING_SERVER
+                else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
+                    // Restore previous database list if it was stored (preserve the list from when user connected)
+                    if (
+                        this.state.previousDatabaseList &&
+                        this.state.previousDatabaseList.length > 0
+                    ) {
+                        databaseComponent.options = [...this.state.previousDatabaseList];
 
-                // Reset to project name for container mode
-                this.state.formState.databaseName = path.basename(
-                    this.state.projectFilePath,
-                    path.extname(this.state.projectFilePath),
-                );
-
-                // Clear connection string when switching to container target
-                this.state.connectionString = undefined;
-            }
-            // When switching TO EXISTING_SERVER
-            else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
-                // Restore previous database list if it was stored (preserve the list from when user connected)
-                if (this.state.previousDatabaseList && this.state.previousDatabaseList.length > 0) {
-                    databaseComponent.options = [...this.state.previousDatabaseList];
-
-                    // Restore previously selected database
-                    if (this.state.previousSelectedDatabase) {
-                        this.state.formState.databaseName = this.state.previousSelectedDatabase;
+                        // Restore previously selected database
+                        if (this.state.previousSelectedDatabase) {
+                            this.state.formState.databaseName = this.state.previousSelectedDatabase;
+                        }
                     }
                 }
             }
 
+            // Update visibility and validate for button enablement (without showing validation messages)
+            await this.updateItemVisibility();
+            await this.validateForm(this.state.formState, undefined, false);
             this.updateState();
         }
-
-        return Promise.resolve();
     }
 
     public updateItemVisibility(state?: PublishDialogState): Promise<void> {
@@ -589,20 +595,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 (typeof value === "boolean" && value !== true)
             );
         });
-    }
-
-    /**
-     * Called after a form property is set and validated.
-     * Revalidates all fields when publish target changes to update button state.
-     * Update visibility first, then validate based on new visibility
-     */
-    public async afterSetFormProperty(propertyName: keyof IPublishForm): Promise<void> {
-        // When publish target changes, fields get hidden/shown, so revalidate everything
-        if (propertyName === PublishFormFields.PublishTarget) {
-            await this.updateItemVisibility();
-            await this.validateForm(this.state.formState, undefined, false);
-            this.updateState();
-        }
     }
 
     /**
