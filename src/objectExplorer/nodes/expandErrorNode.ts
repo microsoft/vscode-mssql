@@ -17,7 +17,9 @@ export class ExpandErrorNode extends vscode.TreeItem {
             LocalizedConstants.ObjectExplorer.ErrorLoadingRefreshToTryAgain,
             vscode.TreeItemCollapsibleState.None,
         );
-        this.tooltip = errorMessage;
+        // Use MarkdownString for better keyboard accessibility
+        this.tooltip = new vscode.MarkdownString(errorMessage);
+        this.tooltip.isTrusted = true;
         this.iconPath = {
             light: ObjectExplorerUtils.iconPath("Error_light"),
             dark: ObjectExplorerUtils.iconPath("Error_dark"),

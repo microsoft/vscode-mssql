@@ -67,7 +67,9 @@ export class ConnectionNode extends TreeNodeInfo {
         // Tooltip logic: show all non-default properties except those in the label (database, user, server)
         const connectionTooltip = this.getConnectionTooltip(connectionProfile);
         if (connectionTooltip) {
-            this.tooltip = connectionTooltip;
+            // Use MarkdownString for better keyboard accessibility
+            this.tooltip = new vscode.MarkdownString(connectionTooltip);
+            this.tooltip.isTrusted = true;
         }
     }
 

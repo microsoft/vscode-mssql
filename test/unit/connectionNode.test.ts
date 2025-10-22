@@ -47,27 +47,31 @@ suite("ConnectionNode Tests", () => {
 
         const node = new ConnectionNode(profile as any);
 
+        // Tooltip should be a MarkdownString for keyboard accessibility
+        expect(node.tooltip).to.be.an("object");
+        expect(node.tooltip).to.have.property("value");
+        const tooltipValue = (node.tooltip as any).value;
+
         // Tooltip should include keys that differ from defaults and should include only whitelisted keys
-        expect(node.tooltip).to.be.a("string");
-        expect(node.tooltip).to.contain("profileNameValue");
-        expect(node.tooltip).to.contain("Server: myServer");
-        expect(node.tooltip).to.contain("Database: myDb");
-        expect(node.tooltip).to.not.contain("authenticationType: sqlLogin");
-        expect(node.tooltip).to.contain("User: myUser");
-        expect(node.tooltip).to.contain("Port: 1234");
-        expect(node.tooltip).to.not.contain("password");
-        expect(node.tooltip).to.not.contain("savePassword: true");
-        expect(node.tooltip).to.contain("SQL Container Name: myContainer");
-        expect(node.tooltip).to.contain("SQL Container Version: 1.0");
-        expect(node.tooltip).to.not.contain("encrypt");
-        expect(node.tooltip).to.contain("Application Intent: Read");
-        expect(node.tooltip).to.contain("Connection Timeout: 10");
-        expect(node.tooltip).to.contain("Command Timeout: 441");
-        expect(node.tooltip).to.not.contain("applicationName: MyApp");
-        expect(node.tooltip).to.not.contain("profileName:");
-        expect(node.tooltip).to.not.contain("groupId:");
-        expect(node.tooltip).to.contain("Always Encrypted: Enabled");
-        expect(node.tooltip).to.contain("Replication: Enabled");
+        expect(tooltipValue).to.contain("profileNameValue");
+        expect(tooltipValue).to.contain("Server: myServer");
+        expect(tooltipValue).to.contain("Database: myDb");
+        expect(tooltipValue).to.not.contain("authenticationType: sqlLogin");
+        expect(tooltipValue).to.contain("User: myUser");
+        expect(tooltipValue).to.contain("Port: 1234");
+        expect(tooltipValue).to.not.contain("password");
+        expect(tooltipValue).to.not.contain("savePassword: true");
+        expect(tooltipValue).to.contain("SQL Container Name: myContainer");
+        expect(tooltipValue).to.contain("SQL Container Version: 1.0");
+        expect(tooltipValue).to.not.contain("encrypt");
+        expect(tooltipValue).to.contain("Application Intent: Read");
+        expect(tooltipValue).to.contain("Connection Timeout: 10");
+        expect(tooltipValue).to.contain("Command Timeout: 441");
+        expect(tooltipValue).to.not.contain("applicationName: MyApp");
+        expect(tooltipValue).to.not.contain("profileName:");
+        expect(tooltipValue).to.not.contain("groupId:");
+        expect(tooltipValue).to.contain("Always Encrypted: Enabled");
+        expect(tooltipValue).to.contain("Replication: Enabled");
     });
 
     test("constructor should set tooltip including labels for auth type MFA", () => {
@@ -89,9 +93,13 @@ suite("ConnectionNode Tests", () => {
 
         const node = new ConnectionNode(profile as any);
 
+        // Tooltip should be a MarkdownString for keyboard accessibility
+        expect(node.tooltip).to.be.an("object");
+        expect(node.tooltip).to.have.property("value");
+        const tooltipValue = (node.tooltip as any).value;
+
         // Tooltip should include keys that differ from defaults and should not include 'excluded' keys
-        expect(node.tooltip).to.be.a("string");
-        expect(node.tooltip).to.contain("Azure MFA");
+        expect(tooltipValue).to.contain("Azure MFA");
     });
 
     test("constructor should set tooltip including labels for auth type integrated windows auth", () => {
@@ -113,8 +121,12 @@ suite("ConnectionNode Tests", () => {
 
         const node = new ConnectionNode(profile as any);
 
+        // Tooltip should be a MarkdownString for keyboard accessibility
+        expect(node.tooltip).to.be.an("object");
+        expect(node.tooltip).to.have.property("value");
+        const tooltipValue = (node.tooltip as any).value;
+
         // Tooltip should include keys that differ from defaults and should not include 'excluded' keys
-        expect(node.tooltip).to.be.a("string");
-        expect(node.tooltip).to.contain("Windows Authentication");
+        expect(tooltipValue).to.contain("Windows Authentication");
     });
 });

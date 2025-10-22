@@ -526,8 +526,11 @@ suite("OE Service Tests", () => {
                 mappedChildren[0],
                 "First mapped child should be an ExpandErrorNode",
             ).to.be.instanceOf(ExpandErrorNode);
+            // Tooltip should be a MarkdownString for keyboard accessibility
+            const tooltip = (mappedChildren[0] as ExpandErrorNode).tooltip;
+            expect(tooltip, "Tooltip should be a MarkdownString").to.be.an("object");
             expect(
-                (mappedChildren[0] as ExpandErrorNode).tooltip,
+                (tooltip as any).value,
                 "First mapped child tooltip should be mock error message",
             ).to.equal(mockErrorMessage);
 
@@ -542,8 +545,11 @@ suite("OE Service Tests", () => {
             expect(result![0], "Result child should be an ExpandErrorNode").to.be.instanceOf(
                 ExpandErrorNode,
             );
+            // Tooltip should be a MarkdownString for keyboard accessibility
+            const resultTooltip = (result![0] as ExpandErrorNode).tooltip;
+            expect(resultTooltip, "Tooltip should be a MarkdownString").to.be.an("object");
             expect(
-                (result![0] as ExpandErrorNode).tooltip,
+                (resultTooltip as any).value,
                 "Result child tooltip should be mock error message",
             ).to.equal(mockErrorMessage);
         });
