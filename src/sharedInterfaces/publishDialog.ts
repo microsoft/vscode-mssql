@@ -70,8 +70,7 @@ export interface PublishDialogState
     inProgress: boolean;
     lastPublishResult?: { success: boolean; details?: string };
     projectProperties?: mssql.GetProjectPropertiesResult & { targetVersion?: string };
-    hasValidationErrors?: boolean;
-    hasMissingRequiredValues?: boolean;
+    hasFormErrors?: boolean;
     deploymentOptions?: mssql.DeploymentOptions;
 }
 

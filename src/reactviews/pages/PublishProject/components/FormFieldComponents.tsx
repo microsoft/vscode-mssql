@@ -42,7 +42,7 @@ export function renderInput(
                 propertyName: component.propertyName,
                 isAction: false,
                 value: newValue,
-                updateValidation: false,
+                updateValidation: true,
             });
         }
     };
@@ -67,7 +67,7 @@ export function renderInput(
             validationState={getValidationState(component.validation)}
             orientation="horizontal">
             <Input
-                size="medium"
+                size="small"
                 type={isPasswordField ? (options?.showPassword ? "text" : "password") : "text"}
                 value={value}
                 placeholder={component.placeholder ?? ""}
@@ -132,7 +132,7 @@ export function renderDropdown(
             validationState={getValidationState(component.validation)}
             orientation="horizontal">
             <Dropdown
-                size="medium"
+                size="small"
                 selectedOptions={value ? [value] : []}
                 value={
                     component.options.find(

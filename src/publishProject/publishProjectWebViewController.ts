@@ -62,6 +62,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 projectFilePath,
                 inProgress: false,
                 lastPublishResult: undefined,
+                hasFormErrors: true,
                 deploymentOptions: deploymentOptions,
             } as PublishDialogState,
             {
@@ -166,6 +167,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
         }
 
         void this.updateItemVisibility();
+
+        // Run initial validation to set hasFormErrors state for button enablement
+        await this.validateForm(this.state.formState, undefined, true);
     }
 
     /** Registers all reducers in pure (immutable) style */
@@ -358,49 +362,48 @@ export class PublishProjectWebViewController extends FormWebviewController<
         propertyName?: keyof IPublishForm,
         updateValidation?: boolean,
     ): Promise<(keyof IPublishForm)[]> {
-        // Call parent validation logic
+        // Call parent validation logic which returns array of fields with errors
         const erroredInputs = await super.validateForm(formTarget, propertyName, updateValidation);
 
-        // Update validation state properties
-        if (updateValidation) {
-            this.updateFormValidationState();
-        }
+        // erroredInputs only contains fields validated with updateValidation=true (on blur)
+        // So we also need to check for missing required values (which may not be validated yet on dialog open)
+        const hasValidationErrors = updateValidation && erroredInputs.length > 0;
+        const hasMissingRequiredValues = this.hasAnyMissingRequiredValues();
+
+        // hasFormErrors state tracks to disable buttons if ANY errors exist
+        this.state.hasFormErrors = hasValidationErrors || hasMissingRequiredValues;
 
         return erroredInputs;
     }
 
-    private updateFormValidationState(): void {
-        // Check if any visible component has validation errors
-        this.state.hasValidationErrors = Object.values(this.state.formComponents).some(
-            (component) =>
-                !component.hidden &&
-                component.validation !== undefined &&
-                component.validation.isValid === false,
-        );
+    /**
+     * Checks if any required fields are missing values.
+     * Used to determine if publish/generate script buttons should be disabled.
+     */
+    private hasAnyMissingRequiredValues(): boolean {
+        return Object.values(this.state.formComponents).some((component) => {
+            if (component.hidden || !component.required) return false;
 
-        // Check if any required fields are missing values
-        this.state.hasMissingRequiredValues = Object.values(this.state.formComponents).some(
-            (component) => {
-                if (component.hidden || !component.required) {
-                    return false;
-                }
-                const key = component.propertyName as keyof IPublishForm;
-                const raw = this.state.formState[key];
-                // Missing if undefined/null
-                if (raw === undefined) {
-                    return true;
-                }
-                // For strings, empty/whitespace is missing
-                if (typeof raw === "string") {
-                    return raw.trim().length === 0;
-                }
-                // For booleans (e.g. required checkbox), must be true
-                if (typeof raw === "boolean") {
-                    return raw !== true;
-                }
-                // For numbers, allow 0 (not missing)
-                return false;
-            },
-        );
+            const value = this.state.formState[component.propertyName as keyof IPublishForm];
+            return (
+                value === undefined ||
+                (typeof value === "string" && value.trim() === "") ||
+                (typeof value === "boolean" && value !== true)
+            );
+        });
+    }
+
+    /**
+     * Called after a form property is set and validated.
+     * Revalidates all fields when publish target changes to update button state.
+     * Update visibility first, then validate based on new visibility
+     */
+    public async afterSetFormProperty(propertyName: keyof IPublishForm): Promise<void> {
+        // When publish target changes, fields get hidden/shown, so revalidate everything
+        if (propertyName === PublishFormFields.PublishTarget) {
+            await this.updateItemVisibility();
+            await this.validateForm(this.state.formState, undefined, false);
+            this.updateState();
+        }
     }
 }

@@ -38,15 +38,13 @@ function PublishProjectDialog() {
     // Select pieces of state needed for this component
     const formState = usePublishDialogSelector((s) => s.formState);
     const inProgress = usePublishDialogSelector((s) => s.inProgress);
-    const hasValidationErrors = usePublishDialogSelector((s) => s.hasValidationErrors);
-    const hasMissingRequiredValues = usePublishDialogSelector((s) => s.hasMissingRequiredValues);
+    const hasFormErrors = usePublishDialogSelector((s) => s.hasFormErrors);
 
     // Check if component is properly initialized and ready for user interaction
     const isComponentReady = !!context && !!formState;
 
-    // Disabled criteria: disable when not ready, in progress, has validation errors, or missing required fields
-    const readyToPublish =
-        !isComponentReady || inProgress || hasValidationErrors || hasMissingRequiredValues;
+    // Disabled criteria: disable when not ready, in progress, or has form errors
+    const readyToPublish = !isComponentReady || inProgress || hasFormErrors;
 
     if (!isComponentReady) {
         return <div className={classes.root}>Loading...</div>;
