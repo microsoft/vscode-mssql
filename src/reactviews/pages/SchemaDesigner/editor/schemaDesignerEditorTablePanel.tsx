@@ -358,6 +358,7 @@ const ColumnsTable = ({
                         }}
                         size="small"
                         disabled={column.isComputed}
+                        ariaLabel={`${locConstants.schemaDesigner.dataType} for ${column.name}`}
                     />
                 );
 
@@ -594,6 +595,7 @@ export const SchemaDesignerEditorTablePanel = () => {
                         value: context.table.schema,
                     }}
                     onSelect={(selected) => updateTableSchema(selected.value)}
+                    ariaLabel={locConstants.schemaDesigner.schema}
                 />
             </Field>
 

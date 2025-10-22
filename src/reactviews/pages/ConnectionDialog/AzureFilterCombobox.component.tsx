@@ -103,7 +103,8 @@ export const AzureFilterCombobox = ({
                             label: val,
                         };
                     })}
-                    clearable={clearable}></SearchableDropdown>
+                    clearable={clearable}
+                    ariaLabel={label}></SearchableDropdown>
             </Field>
         </div>
     );

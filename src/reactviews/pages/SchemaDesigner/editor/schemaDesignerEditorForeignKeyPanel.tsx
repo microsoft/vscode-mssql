@@ -195,6 +195,7 @@ const ColumnMappingTable = ({
                             maxWidth: "150px",
                         }}
                         size="small"
+                        ariaLabel={locConstants.schemaDesigner.sourceColumn}
                     />
                 );
 
@@ -224,6 +225,7 @@ const ColumnMappingTable = ({
                             maxWidth: "150px",
                         }}
                         size="small"
+                        ariaLabel={locConstants.schemaDesigner.foreignColumn}
                     />
                 );
 
@@ -429,6 +431,7 @@ const ForeignKeyCard = ({
                         }}
                         style={{ minWidth: "auto" }}
                         size="small"
+                        ariaLabel={locConstants.schemaDesigner.targetTable}
                     />
                 </Field>
             </div>

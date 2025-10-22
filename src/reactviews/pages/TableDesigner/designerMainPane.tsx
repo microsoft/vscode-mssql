@@ -199,6 +199,7 @@ export const DesignerMainPane = () => {
                         selectedOption={{
                             value: schema,
                         }}
+                        ariaLabel={locConstants.tableDesigner.schema}
                     />
                 </Field>
                 <TabList
