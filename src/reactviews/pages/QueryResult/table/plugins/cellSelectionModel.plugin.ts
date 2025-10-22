@@ -686,30 +686,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
         // Resize column (Shift+Alt+S)
         if (keyCode === KeyCode.KeyS && e.shiftKey && e.altKey && !metaOrCtrlPressed) {
-            const active = this.grid.getActiveCell();
-            if (!active) {
-                return;
-            }
-
-            const columns = this.grid.getColumns();
-            const column = columns[active.cell];
-            if (!column) {
-                return;
-            }
-
-            this.context.openResizeDialog({
-                open: true,
-                columnId: column.id ?? "",
-                columnName: column.name ?? "",
-                initialWidth: column.width ?? 0,
-                gridId: this.gridId,
-                onDismiss: () => {
-                    this.headerFilter?.resizeCancel();
-                },
-                onSubmit: (newWidth: number) => {
-                    this.headerFilter?.resizeColumn(column.id ?? "", newWidth);
-                },
-            });
+            await this.resizeColumnForActiveCell();
             isHandled = true;
         }
 
@@ -853,6 +830,33 @@ export class CellSelectionModel<T extends Slick.SlickData>
         if (active && this.headerFilter) {
             await this.headerFilter.toggleSortForColumn(active.cell);
         }
+    }
+
+    private async resizeColumnForActiveCell(): Promise<void> {
+        const active = this.grid.getActiveCell();
+        if (!active) {
+            return;
+        }
+
+        const columns = this.grid.getColumns();
+        const column = columns[active.cell];
+        if (!column) {
+            return;
+        }
+
+        this.context.openResizeDialog({
+            open: true,
+            columnId: column.id ?? "",
+            columnName: column.name ?? "",
+            initialWidth: column.width ?? 0,
+            gridId: this.gridId,
+            onDismiss: () => {
+                this.headerFilter?.resizeCancel();
+            },
+            onSubmit: (newWidth: number) => {
+                this.headerFilter?.resizeColumn(column.id ?? "", newWidth);
+            },
+        });
     }
 
     public async updateSummaryText(ranges?: Slick.Range[]): Promise<void> {
