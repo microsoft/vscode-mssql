@@ -52,17 +52,6 @@ export const DesignerInputBox = ({
 
     return (
         <Field
-            label={
-                showLabel
-                    ? {
-                          children: (
-                              <InfoLabel size="small" info={component.description}>
-                                  {component.componentProperties.title}
-                              </InfoLabel>
-                          ),
-                      }
-                    : undefined
-            }
             validationState={context.getErrorMessage(componentPath) ? "error" : undefined}
             validationMessage={showError ? context.getErrorMessage(componentPath) : undefined}
             validationMessageIcon={
@@ -73,6 +62,11 @@ export const DesignerInputBox = ({
             style={{ width: width }}
             size="small"
             orientation={horizontal ? "horizontal" : "vertical"}>
+            {showLabel && (
+                <InfoLabel size="small" info={component.description}>
+                    {component.componentProperties.title}
+                </InfoLabel>
+            )}
             {!multiline ? (
                 <Input
                     aria-labelledby={dropdownId}
@@ -95,6 +89,11 @@ export const DesignerInputBox = ({
                     disabled={model.enabled === undefined ? false : !model.enabled}
                     type={model.inputType}
                     size="small"
+                    style={{
+                        border: "2px solid blue",
+                        borderRadius: "6px",
+                        padding: "4px",
+                    }}
                 />
             ) : (
                 <Textarea
@@ -117,6 +116,11 @@ export const DesignerInputBox = ({
                     }}
                     disabled={model.enabled === undefined ? false : !model.enabled}
                     size="small"
+                    style={{
+                        border: "2px solid blue",
+                        borderRadius: "6px",
+                        padding: "4px",
+                    }}
                 />
             )}
         </Field>
