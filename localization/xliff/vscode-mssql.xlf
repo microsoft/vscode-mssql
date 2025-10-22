@@ -1719,6 +1719,9 @@
     <trans-unit id="++CODE++d8d462ddc91939459ae107d47fee7a34b3601b20fcd01615f98e1941674f14ea">
       <source xml:lang="en">I&apos;m sorry, I can only assist with SQL-related questions.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b37cea142b959c4f6c75754d7b3d56bc41d1a2d6667600c748d7a168f10c8818">
+      <source xml:lang="en">Ignore Options</source>
+    </trans-unit>
     <trans-unit id="++CODE++1d59e3e131d04ce9ba04c0f297dbd4eddb83c0bfe977b2a6bf19bdeb73f2d5c3">
       <source xml:lang="en">Ignore Tenant</source>
     </trans-unit>
