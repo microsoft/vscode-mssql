@@ -3,43 +3,48 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
+import { expect } from "chai";
+import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { ConnectionStore } from "../../src/models/connectionStore";
-import { ICredentialStore } from "../../src/credentialstore/icredentialstore";
+import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import { Logger } from "../../src/models/logger";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { expect } from "chai";
-import * as sinon from "sinon";
-import { azureAuthConn, sqlAuthConn, connStringConn } from "./utils.test";
 import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
 import { MatchScore } from "../../src/models/utils";
+import { Deferred } from "../../src/protocol";
+import { azureAuthConn, sqlAuthConn, connStringConn } from "./utils.test";
+import { getMockContext } from "./utils";
 
 suite("ConnectionStore Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let connectionStore: ConnectionStore;
 
-    let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
-    let mockLogger: TypeMoq.IMock<Logger>;
-    let mockCredentialStore: TypeMoq.IMock<ICredentialStore>;
-    let mockConnectionConfig: TypeMoq.IMock<ConnectionConfig>;
-    let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let mockContext: vscode.ExtensionContext;
+    let mockLogger: sinon.SinonStubbedInstance<Logger>;
+    let mockCredentialStore: sinon.SinonStubbedInstance<CredentialStore>;
+    let mockConnectionConfig: sinon.SinonStubbedInstance<ConnectionConfig>;
+    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let initializedDeferred: Deferred<void>;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
 
-        mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
-        mockLogger = TypeMoq.Mock.ofType<Logger>();
-        mockCredentialStore = TypeMoq.Mock.ofType<ICredentialStore>();
-        mockConnectionConfig = TypeMoq.Mock.ofType<ConnectionConfig>();
+        mockContext = getMockContext();
+        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        mockLogger = sandbox.createStubInstance(Logger);
 
-        mockConnectionConfig
-            .setup((c) => c.getConnections(TypeMoq.It.isAny()))
-            .returns(() => {
-                return Promise.resolve([]);
-            });
+        mockCredentialStore = sandbox.createStubInstance(CredentialStore);
+        mockCredentialStore.readCredential.resolves(undefined as any);
+        mockCredentialStore.saveCredential.resolves(true);
+        mockCredentialStore.deleteCredential.resolves();
+
+        mockConnectionConfig = sandbox.createStubInstance(ConnectionConfig);
+        initializedDeferred = new Deferred<void>();
+        initializedDeferred.resolve();
+        mockConnectionConfig.initialized = initializedDeferred;
+        mockConnectionConfig.getConnections.resolves([]);
     });
 
     teardown(() => {
@@ -49,11 +54,11 @@ suite("ConnectionStore Tests", () => {
     test("Initializes correctly", async () => {
         expect(() => {
             connectionStore = new ConnectionStore(
-                mockContext.object,
-                mockCredentialStore.object,
-                mockLogger.object,
-                mockConnectionConfig.object,
-                mockVscodeWrapper.object,
+                mockContext,
+                mockCredentialStore,
+                mockLogger,
+                mockConnectionConfig,
+                mockVscodeWrapper,
             );
         }).to.not.throw();
 
@@ -102,11 +107,11 @@ suite("ConnectionStore Tests", () => {
 
     test("findMatchingProfile", async () => {
         connectionStore = new ConnectionStore(
-            mockContext.object,
-            mockCredentialStore.object,
-            mockLogger.object,
-            mockConnectionConfig.object,
-            mockVscodeWrapper.object,
+            mockContext,
+            mockCredentialStore,
+            mockLogger,
+            mockConnectionConfig,
+            mockVscodeWrapper,
         );
 
         await connectionStore.initialized;

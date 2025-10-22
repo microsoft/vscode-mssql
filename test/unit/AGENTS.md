@@ -2,11 +2,11 @@
 
 ### Rules & Expectations
 
--   Do not edit application/source files unless the refactor demands it. Confirm before editing files outside of /test/unit, and justify why you need to make those changes.
+-   Do not edit application/source files unless writing effective unit tests demands it. Confirm before editing files outside of /test/unit, and justify why you need to make those changes.
 -   Use Sinon, not TypeMoq. If easily possible, replace TypeMoq mocks/stubs/helpers with Sinon equivalents.
 -   Use a Sinon sandbox (setup/teardown with sinon.createSandbox()); keep helper closures (e.g., createServer) inside setup where the
     sandbox is created.
--   Default to chai.expect; when checking Sinon interactions, use sinon-chai.
+-   Use chai's `expect` for assertions; when checking Sinon interactions, use sinon-chai. Avoid `sinon.assert` and Node's `assert` in favor of `expect(...).to.have.been...` helpers.
 -   Avoid Object.defineProperty hacks and (if possible) fake/partial plain objects; use sandbox.createStubInstance(type) and sandbox.stub(obj, 'prop').value(...).
 -   Add shared Sinon helpers to test/unit/utils.ts when they’ll be reused.
 -   If updating preexisting tests, preserve relevant inline comments from the original tests.
@@ -14,7 +14,9 @@
     sandbox, create stub instances, and return them.
 -   Avoid unnecessary casts, like `myVar as unknown as MyType` when myVar is already a sinon-stubbed instance of MyType.
 -   Maintain existing formatting conventions, line endings, and text encoding.
--   Nest test suits as necessary to group tests in a logical manner.
+-   Nest test suites as necessary to group tests in a logical manner.
+-   Always await async prompt helpers (for example, `await prompt.render()`) so sinon stubs execute before assertions.
+-   If the class under test relies on VS Code services (event emitters, secret storage, etc.), stub their accessors via the sandbox (e.g., `sandbox.stub(obj, 'prop').get(() => emitter)` or provide a real `new vscode.EventEmitter()`) rather than providing a plain object.
 
 ### Process
 
