@@ -359,7 +359,7 @@
     "Message": "Message",
     "Open in New Tab": "Open in New Tab",
     "Showplan XML": "Showplan XML",
-    "Show Menu": "Show Menu",
+    "Show Menu (F3)": "Show Menu (F3)",
     "Sort Ascending": "Sort Ascending",
     "Sort Descending": "Sort Descending",
     "Clear Sort": "Clear Sort",
@@ -409,6 +409,7 @@
         "message": "{0} selected",
         "comment": ["{0} is the number of selected rows"]
     },
+    "Sort": "Sort",
     "Add new column": "Add new column",
     "Table": "Table",
     "Save": "Save",

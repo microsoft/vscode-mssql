@@ -447,7 +447,7 @@ export class LocConstants {
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
             showplanXML: l10n.t("Showplan XML"),
-            showMenu: l10n.t("Show Menu"),
+            showMenu: l10n.t("Show Menu (F3)"),
             sortAscending: l10n.t("Sort Ascending"),
             sortDescending: l10n.t("Sort Descending"),
             clearSort: l10n.t("Clear Sort"),
@@ -517,6 +517,8 @@ export class LocConstants {
                     args: [count],
                     comment: ["{0} is the number of selected rows"],
                 }),
+            sort: l10n.t("Sort"),
+            filter: l10n.t("Filter"),
         };
     }
 

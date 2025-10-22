@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, makeStyles, Tooltip } from "@fluentui/react-components";
+import { Button, makeStyles, Toolbar, Tooltip } from "@fluentui/react-components";
 import { useContext, useState } from "react";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
@@ -26,8 +26,7 @@ import {
 
 const useStyles = makeStyles({
     commandBar: {
-        display: "flex",
-        flexDirection: "column" /* Align buttons vertically */,
+        width: "16px",
     },
     buttonImg: {
         display: "block",
@@ -109,7 +108,7 @@ const CommandBar = (props: CommandBarProps) => {
     }
 
     return (
-        <div className={classes.commandBar}>
+        <Toolbar vertical className={classes.commandBar}>
             {/* View Mode Toggle */}
             <Tooltip
                 content={
@@ -203,7 +202,7 @@ const CommandBar = (props: CommandBarProps) => {
                     title={locConstants.queryResult.saveAsInsert}
                 />
             </Tooltip>
-        </div>
+        </Toolbar>
     );
 };
 
