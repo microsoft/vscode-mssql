@@ -416,12 +416,9 @@
         "comment": ["{0} is the name of the column"]
     },
     "Enter desired column width in pixels": "Enter desired column width in pixels",
-    "Column width must be between {0} and {1}/{0} is the minimum width of the column{1} is the maximum width of the column": {
-        "message": "Column width must be between {0} and {1}",
-        "comment": [
-            "{0} is the minimum width of the column",
-            "{1} is the maximum width of the column"
-        ]
+    "Column width must be at least {0} pixels./{0} is the minimum column width in pixels": {
+        "message": "Column width must be at least {0} pixels.",
+        "comment": ["{0} is the minimum column width in pixels"]
     },
     "Add new column": "Add new column",
     "Table": "Table",

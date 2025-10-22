@@ -631,10 +631,9 @@
     <trans-unit id="++CODE++bb7bef87d3a1f764c39c6df670038039c136d360153a1ced5c633afa9590fd36">
       <source xml:lang="en">Column name cannot be empty</source>
     </trans-unit>
-    <trans-unit id="++CODE++9c0d16969522181cc1a1ce449a0004334d3c7ad24027c1c333b6bfa776927384">
-      <source xml:lang="en">Column width must be between {0} and {1}</source>
-      <note>{0} is the minimum width of the column
-{1} is the maximum width of the column</note>
+    <trans-unit id="++CODE++79304c2a3f7dd799711c04e0513ca9fce1762fbdbf0e8dbd378987d42e35fee5">
+      <source xml:lang="en">Column width must be at least {0} pixels.</source>
+      <note>{0} is the minimum column width in pixels</note>
     </trans-unit>
     <trans-unit id="++CODE++53aade77cd69a77bbb51bf8ca4e7ea8b282db75edce8883775e47042478d35b5">
       <source xml:lang="en">Columns</source>
