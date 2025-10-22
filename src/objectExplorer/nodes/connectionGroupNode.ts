@@ -45,7 +45,11 @@ export class ConnectionGroupNode extends TreeNodeInfo {
         this.id = connectionGroup.id;
         this._connectionGroup = connectionGroup;
         this.iconPath = this.getIcon();
-        this.tooltip = connectionGroup.description;
+        // Use MarkdownString for better keyboard accessibility
+        if (connectionGroup.description) {
+            this.tooltip = new vscode.MarkdownString(connectionGroup.description);
+            this.tooltip.isTrusted = true;
+        }
     }
 
     private getIcon(): vscode.IconPath {

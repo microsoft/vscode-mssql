@@ -49,7 +49,10 @@ export class QueryHistoryNode extends vscode.TreeItem {
         const queryStatusLabel = this._isSuccess
             ? LocalizedConstants.querySuccess
             : LocalizedConstants.queryFailed;
-        this.tooltip = `${tooltip}${os.EOL}${os.EOL}${queryStatusLabel}`;
+        const tooltipContent = `${tooltip}${os.EOL}${os.EOL}${queryStatusLabel}`;
+        // Use MarkdownString for better keyboard accessibility
+        this.tooltip = new vscode.MarkdownString(tooltipContent);
+        this.tooltip.isTrusted = true;
         this.contextValue = QueryHistoryNode._contextValue;
         this.initializeIcons();
     }
