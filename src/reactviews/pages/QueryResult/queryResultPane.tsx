@@ -95,6 +95,8 @@ const useStyles = makeStyles({
     messagesLink: {
         fontSize: "var(--vscode-editor-font-size)",
         fontFamily: "var(--vscode-editor-font-family)",
+        minWidth: "auto",
+        padding: "0",
     },
     messagesRows: {
         lineHeight: "18px",
@@ -538,8 +540,9 @@ export const QueryResultPane = () => {
                         <DataGridCell focusMode="group" style={{ minHeight: "18px" }}>
                             <div style={{ whiteSpace: "pre" }}>
                                 {item.message}{" "}
-                                <Link
+                                <Button
                                     className={classes.messagesLink}
+                                    appearance="transparent"
                                     onClick={async () => {
                                         await context.extensionRpc.sendRequest(
                                             qr.SetEditorSelectionRequest.type,
@@ -548,10 +551,9 @@ export const QueryResultPane = () => {
                                                 selectionData: item.selection,
                                             },
                                         );
-                                    }}
-                                    inline>
+                                    }}>
                                     {item?.link?.text}
-                                </Link>
+                                </Button>
                             </div>
                         </DataGridCell>
                     );
