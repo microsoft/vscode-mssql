@@ -142,7 +142,8 @@ export function renderDropdown(
                     if (data.optionValue) {
                         handleChange(data.optionValue);
                     }
-                }}>
+                }}
+                aria-label={component.label}>
                 {component.options.map(
                     (opt: { value: string; displayName: string; color?: string }, i: number) => (
                         <Option key={opt.value + i} value={opt.value} color={opt.color}>
