@@ -17,6 +17,9 @@ export class EmptyHistoryNode extends vscode.TreeItem {
     constructor() {
         super(LocalizedConstants.msgNoQueriesAvailable, vscode.TreeItemCollapsibleState.None);
         this.contextValue = EmptyHistoryNode.contextValue;
+        this.accessibilityInformation = {
+            label: LocalizedConstants.msgNoQueriesAvailable,
+        };
     }
 }
 
@@ -51,6 +54,10 @@ export class QueryHistoryNode extends vscode.TreeItem {
             : LocalizedConstants.queryFailed;
         this.tooltip = `${tooltip}${os.EOL}${os.EOL}${queryStatusLabel}`;
         this.contextValue = QueryHistoryNode._contextValue;
+        // Add accessibility information so keyboard users can access tooltip content via screen readers
+        this.accessibilityInformation = {
+            label: `${tooltip}${os.EOL}${os.EOL}${queryStatusLabel}`,
+        };
         this.initializeIcons();
     }
 
