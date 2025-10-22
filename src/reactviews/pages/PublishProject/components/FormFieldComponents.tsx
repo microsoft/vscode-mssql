@@ -51,7 +51,7 @@ export function renderInput(
                 propertyName: component.propertyName,
                 isAction: false,
                 value: newValue,
-                updateValidation: false,
+                updateValidation: true,
             });
         }
     };
