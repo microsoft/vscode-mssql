@@ -31,11 +31,14 @@ export async function initializeLocalContainersState(
 ): Promise<lc.LocalContainersState> {
     const startTime = Date.now();
     const state = new lc.LocalContainersState();
+
+    // Issue tracking this: https://github.com/microsoft/vscode-mssql/issues/20337
     if (arch() === "arm64") {
         state.dialog = {
             type: "armSql2025Error",
         };
     }
+
     const versions = await dockerUtils.getSqlServerContainerVersions();
     state.formComponents = setLocalContainersFormComponents(versions, groupOptions);
     state.formState = {
@@ -251,6 +254,8 @@ export async function validateDockerConnectionProfile(
         }
     }
     state.formErrors = erroredInputs;
+
+    // Issue tracking this: https://github.com/microsoft/vscode-mssql/issues/20337
     if (
         (!propertyName || propertyName === "version") &&
         arch() === "arm64" &&
@@ -260,6 +265,7 @@ export async function validateDockerConnectionProfile(
             type: "armSql2025Error",
         };
     }
+
     return state;
 }
 
@@ -350,6 +356,7 @@ export function setLocalContainersFormComponents(
             options: versions,
             validate(_state, value) {
                 // Handle ARM64 architecture case where SQL Server 2025 latest is broken
+                // Issue tracking this: https://github.com/microsoft/vscode-mssql/issues/20337
                 const isArm64With2025 = arch() === "arm64" && value.toString().includes("2025");
                 return {
                     isValid: !isArm64With2025,

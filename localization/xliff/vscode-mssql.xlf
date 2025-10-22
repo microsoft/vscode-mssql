@@ -2688,8 +2688,8 @@
     <trans-unit id="++CODE++0404cd9b41a2ccda40d68efcab8008a39503e1487a468ad37a26417a02df844f">
       <source xml:lang="en">SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.</source>
     </trans-unit>
-    <trans-unit id="++CODE++46cc1ef320e8fef045d4a67556b28efb4ea12a180adcc58e7dde4f8f50fe503c">
-      <source xml:lang="en">SQL Server 2025 is not yet supported on Apple Silicon (ARM).</source>
+    <trans-unit id="++CODE++31aead661ae4eee1d516f5b824b2d74ec3221ad35899111d62eb58ea7a78aaf6">
+      <source xml:lang="en">SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.</source>
     </trans-unit>
     <trans-unit id="++CODE++8553f640204422619af23f71ce8e01bb39f23579ff44b08e5da1cd2eb4482c27">
       <source xml:lang="en">SQL Server Container SA Password</source>

@@ -1256,7 +1256,7 @@ export class LocalContainers {
         "SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.",
     );
     public static sqlServer2025ArmErrorTooltip = l10n.t(
-        "SQL Server 2025 is not yet supported on Apple Silicon (ARM).",
+        "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
     );
 }
 

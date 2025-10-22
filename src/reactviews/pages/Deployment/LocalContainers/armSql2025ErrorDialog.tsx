@@ -44,8 +44,10 @@ const useStyles = makeStyles({
     },
 });
 
+// Issue tracking this: https://github.com/microsoft/vscode-mssql/issues/20337
 export const ArmSql2025ErrorDialog = ({ closeDialog }: { closeDialog: () => void }) => {
     const classes = useStyles();
+    const armReferenceLink = "https://aka.ms/sql-container-arm";
 
     return (
         <Dialog open={true /* standalone dialog always open*/}>
@@ -56,9 +58,7 @@ export const ArmSql2025ErrorDialog = ({ closeDialog }: { closeDialog: () => void
                     }
                 }}>
                 <DialogBody>
-                    {" "}
                     <DialogTitle className={classes.titleDiv}>
-                        {" "}
                         <Warning24Filled
                             className={classes.titleIcon}
                             style={{ color: tokens.colorPaletteMarigoldForeground1 }}
@@ -74,9 +74,7 @@ export const ArmSql2025ErrorDialog = ({ closeDialog }: { closeDialog: () => void
                         </Text>
                         <Text className={classes.contentItem}>
                             {Loc.localContainers.see}{" "}
-                            <Link href="https://aka.ms/sql-container-arm">
-                                https://aka.ms/sql-container-arm
-                            </Link>{" "}
+                            <Link href={armReferenceLink}>{armReferenceLink}</Link>{" "}
                             {Loc.localContainers.forMoreDetails}.
                         </Text>
                     </DialogContent>
