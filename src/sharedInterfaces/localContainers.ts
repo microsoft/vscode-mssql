@@ -19,7 +19,6 @@ export class LocalContainersState
     formComponents: Partial<Record<keyof DockerConnectionProfile, LocalContainersFormItemSpec>> =
         {};
     formErrors: string[] = [];
-    platform: string = "";
     dialog: IDialogProps | undefined;
     /** Used for container name validation within the form */
     isValidContainerName: boolean = false;
@@ -80,6 +79,11 @@ export interface LocalContainersContextProps
      * Resets the states of the current Docker step to NotStarted.
      */
     resetDockerStepState(): void;
+
+    /**
+     * Closes the ARM SQL 2025 error dialog.
+     */
+    closeArmSql2025ErrorDialog(): void;
 }
 
 export interface LocalContainersReducers {
@@ -98,6 +102,11 @@ export interface LocalContainersReducers {
      * Reducer for Docker profile validation.
      */
     checkDockerProfile: {};
+
+    /**
+     * Reducer for closing the ARM SQL 2025 error dialog.
+     */
+    closeArmSql2025ErrorDialog: {};
 }
 
 /**
