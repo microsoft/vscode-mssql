@@ -91,6 +91,7 @@ export const ConnectionsListContainer = () => {
                     appearance="subtle"
                     onClick={context.refreshConnectionsList}
                     title={locConstants.common.refresh}
+                    aria-label={locConstants.common.refresh}
                 />
             </div>
             <div className={styles.main}>
@@ -121,6 +122,7 @@ export const ConnectionsListContainer = () => {
                     appearance="subtle"
                     onClick={context.refreshConnectionsList}
                     title={locConstants.common.refresh}
+                    aria-label={locConstants.common.refresh}
                 />
             </div>
             <Tree>
@@ -226,6 +228,7 @@ export const ConnectionCard = ({
                                     }
                                 }}
                                 title={actionButton.tooltip}
+                                aria-label={actionButton.tooltip}
                                 tabIndex={0}
                             />
                         </div>
