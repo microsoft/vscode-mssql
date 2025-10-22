@@ -11,7 +11,7 @@ import {
     DesignerUIArea,
     InputBoxProperties,
 } from "../../../sharedInterfaces/tableDesigner";
-import { Field, InfoLabel, Input, Textarea, useId } from "@fluentui/react-components";
+import { Field, InfoLabel, Input, Textarea } from "@fluentui/react-components";
 import { ErrorCircleRegular } from "@fluentui/react-icons";
 
 export type DesignerInputBoxProps = {
@@ -43,7 +43,6 @@ export const DesignerInputBox = ({
     if (!context) {
         return undefined;
     }
-    const dropdownId = useId(context.getComponentId(componentPath) ?? "");
     const width =
         UiArea === "PropertiesView" ? "100%" : (component.componentProperties.width ?? "400px");
     useEffect(() => {
@@ -75,7 +74,6 @@ export const DesignerInputBox = ({
             orientation={horizontal ? "horizontal" : "vertical"}>
             {!multiline ? (
                 <Input
-                    aria-labelledby={dropdownId}
                     ref={(el) => context.addElementRef(componentPath, el, UiArea)}
                     value={value ?? ""}
                     onChange={(_event, newValue) => {
@@ -98,7 +96,6 @@ export const DesignerInputBox = ({
                 />
             ) : (
                 <Textarea
-                    aria-labelledby={dropdownId}
                     ref={(el) => context.addElementRef(componentPath, el, UiArea)}
                     value={value ?? ""}
                     onChange={(_event, newValue) => {
