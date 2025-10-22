@@ -612,9 +612,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
             entries: { key: string; displayName: string; description: string; value: boolean }[];
         }[] = [];
 
-        // General Options group
+        // Process boolean options and split into General and Ignore groups
         if (this.state.deploymentOptions.booleanOptionsDictionary) {
-            const generalEntries = Object.entries(
+            const allBooleanEntries = Object.entries(
                 this.state.deploymentOptions.booleanOptionsDictionary,
             ).map(([key, option]) => ({
                 key,
@@ -623,11 +623,30 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 value: option.value,
             }));
 
+            // Split entries into General and Ignore based on displayName starting with "Ignore"
+            const generalEntries = allBooleanEntries
+                .filter((entry) => !entry.displayName.startsWith("Ignore"))
+                .sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+            const ignoreEntries = allBooleanEntries
+                .filter((entry) => entry.displayName.startsWith("Ignore"))
+                .sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+            // Add General Options group
             if (generalEntries.length > 0) {
                 groups.push({
                     key: "General",
                     label: Loc.GeneralOptions,
                     entries: generalEntries,
+                });
+            }
+
+            // Add Ignore Options group
+            if (ignoreEntries.length > 0) {
+                groups.push({
+                    key: "Ignore",
+                    label: Loc.IgnoreOptions,
+                    entries: ignoreEntries,
                 });
             }
         }

@@ -1327,6 +1327,7 @@ export class PublishProject {
     public static AdvancedOptions = l10n.t("Advanced...");
     public static AdvancedPublishSettings = l10n.t("Advanced Deployment Options");
     public static GeneralOptions = l10n.t("General Options");
+    public static IgnoreOptions = l10n.t("Ignore Options");
     public static ExcludeObjectTypes = l10n.t("Exclude Object Types");
     public static SqlServerPortNumber = l10n.t("SQL Server port number");
     public static SqlServerAdminPassword = l10n.t("SQL Server admin password");

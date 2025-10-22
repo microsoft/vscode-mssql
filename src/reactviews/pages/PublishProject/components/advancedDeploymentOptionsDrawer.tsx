@@ -79,11 +79,7 @@ export const AdvancedDeploymentOptionsDrawer = ({
         if (!searchText) return true;
 
         const lowerSearch = searchText.toLowerCase();
-        return (
-            option.displayName.toLowerCase().includes(lowerSearch) ||
-            option.key.toLowerCase().includes(lowerSearch) ||
-            option.description.toLowerCase().includes(lowerSearch)
-        );
+        return option.displayName.toLowerCase().includes(lowerSearch);
     };
 
     // Render a single option (same for all groups)
@@ -157,21 +153,23 @@ export const AdvancedDeploymentOptionsDrawer = ({
                         }
                     }}
                     openItems={searchText ? optionGroups.map((g) => g.key) : userOpenedSections}>
-                    {optionGroups.map((group) => (
-                        <AccordionItem
-                            key={group.key}
-                            value={group.key}
-                            className={accordionStyles.accordionItem}>
-                            <AccordionHeader>{group.label}</AccordionHeader>
-                            <AccordionPanel>
-                                <div className={classes.optionsList}>
-                                    {group.entries
-                                        .filter((option) => isOptionVisible(option))
-                                        .map((option) => renderOption(option))}
-                                </div>
-                            </AccordionPanel>
-                        </AccordionItem>
-                    ))}
+                    {optionGroups
+                        .filter((group) => group.entries.some((option) => isOptionVisible(option)))
+                        .map((group) => (
+                            <AccordionItem
+                                key={group.key}
+                                value={group.key}
+                                className={accordionStyles.accordionItem}>
+                                <AccordionHeader>{group.label}</AccordionHeader>
+                                <AccordionPanel>
+                                    <div className={classes.optionsList}>
+                                        {group.entries
+                                            .filter((option) => isOptionVisible(option))
+                                            .map((option) => renderOption(option))}
+                                    </div>
+                                </AccordionPanel>
+                            </AccordionItem>
+                        ))}
                 </Accordion>
             </DrawerBody>
         </OverlayDrawer>
