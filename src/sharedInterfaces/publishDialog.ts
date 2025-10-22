@@ -76,6 +76,20 @@ export interface PublishDialogState
     connectionString?: string;
     previousDatabaseList?: { displayName: string; value: string }[];
     previousSelectedDatabase?: string;
+    groupedAdvancedOptions?: DeploymentOptionGroup[];
+}
+
+export interface DeploymentOptionGroup {
+    key: string;
+    label: string;
+    entries: DeploymentOptionEntry[];
+}
+
+export interface DeploymentOptionEntry {
+    key: string;
+    displayName: string;
+    description: string;
+    value: boolean;
 }
 
 /**
@@ -100,10 +114,10 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
         publishProfilePath?: string;
     };
     generatePublishScript: {};
-    openPublishAdvanced: {};
     selectPublishProfile: {};
     savePublishProfile: { publishProfileName: string };
     openConnectionDialog: {};
+    updateDeploymentOption: { optionName: string; value: boolean };
 }
 
 /**
@@ -129,4 +143,6 @@ export interface PublishProjectProvider {
     savePublishProfile(publishProfileName: string): void;
     /** Open connection dialog to select server and database */
     openConnectionDialog(): void;
+    /** Update a specific deployment option */
+    updateDeploymentOption(optionName: string, value: boolean): void;
 }
