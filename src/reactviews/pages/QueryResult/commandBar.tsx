@@ -101,6 +101,7 @@ const CommandBar = (props: CommandBarProps) => {
                         onClick={toggleViewMode}
                         icon={<TableRegular />}
                         title={locConstants.queryResult.toggleToGridView}
+                        aria-label={locConstants.queryResult.toggleToGridView}
                     />
                 </Tooltip>
             </div>
@@ -132,6 +133,11 @@ const CommandBar = (props: CommandBarProps) => {
                             ? locConstants.queryResult.toggleToTextView
                             : locConstants.queryResult.toggleToGridView
                     }
+                    aria-label={
+                        props.viewMode === qr.QueryResultViewMode.Grid
+                            ? locConstants.queryResult.toggleToTextView
+                            : locConstants.queryResult.toggleToGridView
+                    }
                 />
             </Tooltip>
 
@@ -154,6 +160,11 @@ const CommandBar = (props: CommandBarProps) => {
                             maxView
                                 ? locConstants.queryResult.restore
                                 : locConstants.queryResult.maximize
+                        }
+                        aria-label={
+                            maxView
+                                ? locConstants.queryResult.restore
+                                : locConstants.queryResult.maximize
                         }></Button>
                 </Tooltip>
             )}
@@ -167,6 +178,7 @@ const CommandBar = (props: CommandBarProps) => {
                     icon={<img className={classes.buttonImg} src={saveAsCsvIcon(themeKind)} />}
                     className="codicon saveCsv"
                     title={locConstants.queryResult.saveAsCsv}
+                    aria-label={locConstants.queryResult.saveAsCsv}
                 />
             </Tooltip>
             <Tooltip content={locConstants.queryResult.saveAsJson} relationship="label">
@@ -178,6 +190,7 @@ const CommandBar = (props: CommandBarProps) => {
                     icon={<img className={classes.buttonImg} src={saveAsJsonIcon(themeKind)} />}
                     className="codicon saveJson"
                     title={locConstants.queryResult.saveAsJson}
+                    aria-label={locConstants.queryResult.saveAsJson}
                 />
             </Tooltip>
             <Tooltip content={locConstants.queryResult.saveAsExcel} relationship="label">
@@ -189,6 +202,7 @@ const CommandBar = (props: CommandBarProps) => {
                     icon={<img className={classes.buttonImg} src={saveAsExcelIcon(themeKind)} />}
                     className="codicon saveExcel"
                     title={locConstants.queryResult.saveAsExcel}
+                    aria-label={locConstants.queryResult.saveAsExcel}
                 />
             </Tooltip>
             <Tooltip content={locConstants.queryResult.saveAsInsert} relationship="label">
@@ -200,6 +214,7 @@ const CommandBar = (props: CommandBarProps) => {
                     icon={<img className={classes.buttonImg} src={saveAsInsertIcon(themeKind)} />}
                     className="codicon saveInsert"
                     title={locConstants.queryResult.saveAsInsert}
+                    aria-label={locConstants.queryResult.saveAsInsert}
                 />
             </Tooltip>
         </Toolbar>

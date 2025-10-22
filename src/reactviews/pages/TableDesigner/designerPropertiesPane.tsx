@@ -294,6 +294,7 @@ export const DesignerPropertiesPane = () => {
                         context.setPropertiesComponents(undefined);
                     }}
                     title={locConstants.common.close}
+                    aria-label={locConstants.common.close}
                     icon={<Dismiss16Regular />}
                 />
             </div>

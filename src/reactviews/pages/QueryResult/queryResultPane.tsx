@@ -762,6 +762,7 @@ export const QueryResultPane = () => {
                             });
                         }}
                         title={locConstants.queryResult.openResultInNewTab}
+                        aria-label={locConstants.queryResult.openResultInNewTab}
                         style={{ marginTop: "4px", marginBottom: "4px" }}>
                         {locConstants.queryResult.openResultInNewTab}
                     </Button>
