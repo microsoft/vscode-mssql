@@ -6,7 +6,6 @@
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
-import * as vscode from "vscode";
 import { IConnectionInfo, IExtension, IServerInfo, ITreeNodeInfo } from "vscode-mssql";
 import MainController from "../../src/controllers/mainController";
 import * as Extension from "../../src/extension";
@@ -17,7 +16,6 @@ import {
     IConnectionCredentialsQuickPickItem,
 } from "../../src/models/interfaces";
 import { ConnectionUI } from "../../src/views/connectionUI";
-import { Deferred } from "../../src/protocol";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import { RequestType } from "vscode-languageclient";
@@ -107,14 +105,8 @@ suite("Extension API Tests", () => {
             let passedUri: string | undefined;
 
             mockMainController.connect.callsFake(
-                (
-                    uri: string,
-                    _connectionInfo: IConnectionInfo,
-                    connectionPromise: Deferred<boolean>,
-                    _saveConnection?: boolean,
-                ) => {
+                (uri: string, _connectionInfo: IConnectionInfo, _saveConnection?: boolean) => {
                     passedUri = uri;
-                    connectionPromise.resolve(true);
                     return Promise.resolve(true);
                 },
             );
