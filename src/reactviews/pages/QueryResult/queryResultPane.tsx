@@ -189,6 +189,7 @@ export const QueryResultPane = () => {
     const ribbonRef = useRef<HTMLDivElement>(null);
     const gridParentRef = useRef<HTMLDivElement>(null);
     const scrollablePanelRef = useRef<HTMLDivElement>(null);
+    const tabListRef = useRef<HTMLDivElement>(null);
     const [messageGridHeight, setMessageGridHeight] = useState(0);
 
     const getGridCount = () => {
@@ -276,6 +277,16 @@ export const QueryResultPane = () => {
     const linkHandler = (fileContent: string, fileType: string) => {
         if (context) {
             context.openFileThroughLink(fileContent, fileType);
+        }
+    };
+
+    const handleLastButtonTab = () => {
+        // Focus the first Tab element in the TabList when Tab is pressed on the last CommandBar button
+        if (tabListRef.current) {
+            const firstTab = tabListRef.current.querySelector('[role="tab"]') as HTMLElement | null;
+            if (firstTab) {
+                firstTab.focus();
+            }
         }
     };
 
@@ -374,6 +385,7 @@ export const QueryResultPane = () => {
                         uri={uri}
                         resultSetSummary={resultSetSummaries[batchId][resultId]}
                         viewMode={viewMode}
+                        onLastButtonTab={handleLastButtonTab}
                         maximizeResults={() => {
                             if (
                                 viewMode === qr.QueryResultViewMode.Grid &&
@@ -489,7 +501,11 @@ export const QueryResultPane = () => {
                                 fontSettings={fontSettings}
                             />
                         </div>
-                        <CommandBar uri={uri} viewMode={viewMode} />
+                        <CommandBar
+                            uri={uri}
+                            viewMode={viewMode}
+                            onLastButtonTab={handleLastButtonTab}
+                        />
                     </div>
                 </div>
             );
@@ -725,6 +741,7 @@ export const QueryResultPane = () => {
         <div className={classes.root} ref={resultPaneParentRef}>
             <div className={classes.ribbon} ref={ribbonRef}>
                 <TabList
+                    ref={tabListRef}
                     size="medium"
                     selectedValue={tabStates!.resultPaneTab}
                     onTabSelect={(_event, data) => {

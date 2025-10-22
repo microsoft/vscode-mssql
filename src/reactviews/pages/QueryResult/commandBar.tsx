@@ -41,6 +41,7 @@ export interface CommandBarProps {
     maximizeResults?: () => void;
     restoreResults?: () => void;
     viewMode?: qr.QueryResultViewMode;
+    onLastButtonTab?: () => void;
 }
 
 const CommandBar = (props: CommandBarProps) => {
@@ -99,6 +100,13 @@ const CommandBar = (props: CommandBarProps) => {
                     <Button
                         appearance="subtle"
                         onClick={toggleViewMode}
+                        onKeyDown={(event) => {
+                            // When Tab is pressed on the last button, move focus to the TabList
+                            if (event.key === "Tab" && !event.shiftKey && props.onLastButtonTab) {
+                                event.preventDefault();
+                                props.onLastButtonTab();
+                            }
+                        }}
                         icon={<TableRegular />}
                         title={locConstants.queryResult.toggleToGridView}
                     />
@@ -196,6 +204,13 @@ const CommandBar = (props: CommandBarProps) => {
                     appearance="subtle"
                     onClick={(_event) => {
                         saveResults("insert");
+                    }}
+                    onKeyDown={(event) => {
+                        // When Tab is pressed on the last button, move focus to the TabList
+                        if (event.key === "Tab" && !event.shiftKey && props.onLastButtonTab) {
+                            event.preventDefault();
+                            props.onLastButtonTab();
+                        }
                     }}
                     icon={<img className={classes.buttonImg} src={saveAsInsertIcon(themeKind)} />}
                     className="codicon saveInsert"
