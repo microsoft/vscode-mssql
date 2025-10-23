@@ -301,6 +301,23 @@ suite("TableExplorerService Tests", () => {
             const mockResult: EditCreateRowResult = {
                 defaultValues: ["NULL", "Default Value"],
                 newRowId: 42,
+                row: {
+                    cells: [
+                        {
+                            displayValue: "NULL",
+                            isNull: true,
+                            invariantCultureDisplayValue: "NULL",
+                        },
+                        {
+                            displayValue: "Default Value",
+                            isNull: false,
+                            invariantCultureDisplayValue: "Default Value",
+                        },
+                    ],
+                    id: 42,
+                    isDirty: true,
+                    state: EditRowState.dirtyInsert,
+                },
             };
 
             mockClient.sendRequest
@@ -641,7 +658,7 @@ suite("TableExplorerService Tests", () => {
 
         test("should successfully generate scripts", async () => {
             const mockResult: EditScriptResult = {
-                script: "UPDATE TestTable SET Name = 'Updated' WHERE Id = 1;",
+                scripts: ["UPDATE TestTable SET Name = 'Updated' WHERE Id = 1;"],
             };
 
             mockClient.sendRequest
@@ -662,7 +679,7 @@ suite("TableExplorerService Tests", () => {
 
         test("should return empty script when no changes exist", async () => {
             const mockResult: EditScriptResult = {
-                script: "",
+                scripts: [],
             };
 
             mockClient.sendRequest
@@ -671,7 +688,7 @@ suite("TableExplorerService Tests", () => {
 
             const result = await tableExplorerService.generateScripts(ownerUri);
 
-            expect(result.script).to.equal("");
+            expect(result.scripts).to.deep.equal([]);
         });
 
         test("should handle generateScripts error and log it", async () => {
@@ -778,7 +795,16 @@ suite("TableExplorerService Tests", () => {
             const ownerUri = "row-ops-uri";
 
             // Create row
-            const createResult: EditCreateRowResult = { defaultValues: [], newRowId: 1 };
+            const createResult: EditCreateRowResult = {
+                defaultValues: [],
+                newRowId: 1,
+                row: {
+                    cells: [],
+                    id: 1,
+                    isDirty: true,
+                    state: EditRowState.dirtyInsert,
+                },
+            };
             mockClient.sendRequest
                 .withArgs(EditCreateRowRequest.type, sinon.match.any)
                 .resolves(createResult);
