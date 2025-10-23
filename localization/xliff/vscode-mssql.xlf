@@ -682,6 +682,9 @@
     <trans-unit id="++CODE++c292210c44167923a75b092a008f9d2b194fb08631a6aa43d753ed7931ad4d5e">
       <source xml:lang="en">Confirm Password</source>
     </trans-unit>
+    <trans-unit id="++CODE++73dd96f4085ccfca56f43ca281a29ab8d195fe5fc79b4cb45be11d7830230d63">
+      <source xml:lang="en">Confirm SQL Server admin password</source>
+    </trans-unit>
     <trans-unit id="++CODE++bf000421aeb39493cf8044ec73846d7da8ca97b7166208c0d1172a17ba23a388">
       <source xml:lang="en">Confirm new password</source>
     </trans-unit>
@@ -836,6 +839,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ca0fa7ee8e0d9d4e742094db2e8d59b963dce003cc884c8573d64d59fcfe16dd">
       <source xml:lang="en">Container Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ac2c68de32aa4911b308194e21f3d6754c675df3e7a84a21e90b097451b58572">
+      <source xml:lang="en">Container creation isn&apos;t supported on this system. ARM support will be available starting with the SQL Server 2025 CU1 container image.</source>
     </trans-unit>
     <trans-unit id="++CODE++06659b52e63599b06c4386ad5423c3dc67b010f0dbbd03cba2f48b68ed1b62f5">
       <source xml:lang="en">Container does not exist. Would you like to remove the connection?</source>
@@ -1394,6 +1400,9 @@
     <trans-unit id="++CODE++e6f85bab1a8295e091b4d2324b0e37eeacee571d5d3d7cd29827be17e7a0aa52">
       <source xml:lang="en">Existing Database</source>
     </trans-unit>
+    <trans-unit id="++CODE++b5f54c19df1649916f59331f9decf53dc337a2c241a3afb20d58810309ebe30f">
+      <source xml:lang="en">Existing Azure SQL logical server</source>
+    </trans-unit>
     <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
       <source xml:lang="en">Existing SQL server</source>
     </trans-unit>
@@ -1809,6 +1818,9 @@
     <trans-unit id="++CODE++09b493255c6cc11aae4f73f97494b4d0123bb42869372d0a2182f0a324eb5ef5">
       <source xml:lang="en">Import BACPAC</source>
     </trans-unit>
+    <trans-unit id="++CODE++c4a77afa3d5cd701f32b5f09c195c635b256db8595687828c3ea0785ab5b72f4">
+      <source xml:lang="en">Image tag</source>
+    </trans-unit>
     <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
       <source xml:lang="en">Importance</source>
     </trans-unit>
@@ -1845,9 +1857,6 @@
     <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
       <source xml:lang="en">Instant Container Setup</source>
     </trans-unit>
-    <trans-unit id="++CODE++07fe70d13a25b3d4c4f7d4e64e1aaa9b9d80952a1478fb7e2da36209ccbf549f">
-      <source xml:lang="en">Insufficient Capacity Permissions</source>
-    </trans-unit>
     <trans-unit id="++CODE++207b04072a822fa8e76629bcd504bc8c19525b86f444ac77a6f3be1c88a502eb">
       <source xml:lang="en">Insufficient Workspace Permissions</source>
     </trans-unit>
@@ -1862,6 +1871,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4480c895a6e66acfc4e43550d8a60598168463e52699be5ed28eae3ecf7200c7">
       <source xml:lang="en">Invalid IP Address</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0c2f118ad5933157d00e2025f7cc3d3c3da84db32e18ffbb4f1032471cc643ef">
+      <source xml:lang="en">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</source>
     </trans-unit>
     <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
       <source xml:lang="en">Invalid column width</source>
@@ -2174,6 +2186,9 @@
       <source xml:lang="en">Microsoft Entra account {0} successfully added.</source>
       <note>{0} is the account name</note>
     </trans-unit>
+    <trans-unit id="++CODE++ede0760e8703fdfcddf4d15e0406c0deeadd91e7907d2a3e7479c6a3d3e309e4">
+      <source xml:lang="en">Microsoft SQL Server License Agreement</source>
+    </trans-unit>
     <trans-unit id="++CODE++951f4af90cfde827d87f358b3d8d275ee60a3306d9ddb5c4615483cff067697a">
       <source xml:lang="en">Microsoft reviews your feedback to improve our products, so don&apos;t share any personal data or confidential/proprietary content.</source>
     </trans-unit>
@@ -2211,6 +2226,9 @@
     <trans-unit id="++CODE++ad4811485a0a0f3f000987d581730b04c0bf33a9d4ccf59a9ff1c127b33d76d1">
       <source xml:lang="en">Name of the primary key.</source>
     </trans-unit>
+    <trans-unit id="++CODE++47fcb7ca194ec7de1be8ea7b91df9b1e51e273673b6410255e55f48fe0061598">
+      <source xml:lang="en">New Azure SQL logical server (Preview)</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7d029a3c1b85e562db8e25ceb52958e3c3da9e6e50b95ebf95f3fae85091a15">
       <source xml:lang="en">New Check Constraint</source>
     </trans-unit>
@@ -2237,6 +2255,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7c451e0f436d04a6f321f8d5de8da296a66cfb1d8cdc3918b1ed7ecd480cce28">
       <source xml:lang="en">New Password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++80e8f069713682d743cceecaad91cb538d199e18712328724d348491bfbb64af">
+      <source xml:lang="en">New SQL Server local development container</source>
     </trans-unit>
     <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
       <source xml:lang="en">New SQL database</source>
@@ -2552,6 +2573,9 @@
     <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
       <source xml:lang="en">Port</source>
     </trans-unit>
+    <trans-unit id="++CODE++ed66c5818178010b7908ff51b8195453260bb97629cc433ea0b53795840b8645">
+      <source xml:lang="en">Port must be a number between 1 and 65535</source>
+    </trans-unit>
     <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
       <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
     </trans-unit>
@@ -2716,6 +2740,9 @@
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
     </trans-unit>
+    <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
+      <source xml:lang="en">Required</source>
+    </trans-unit>
     <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
       <source xml:lang="en">Reset</source>
     </trans-unit>
@@ -2796,11 +2823,23 @@
     <trans-unit id="++CODE++2ea04a74395b2376e4dd5e83ffd39385d7b3dbfe4af1cb43bc8080b8b91c548e">
       <source xml:lang="en">SQL Plan Files</source>
     </trans-unit>
+    <trans-unit id="++CODE++0404cd9b41a2ccda40d68efcab8008a39503e1487a468ad37a26417a02df844f">
+      <source xml:lang="en">SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++31aead661ae4eee1d516f5b824b2d74ec3221ad35899111d62eb58ea7a78aaf6">
+      <source xml:lang="en">SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8553f640204422619af23f71ce8e01bb39f23579ff44b08e5da1cd2eb4482c27">
       <source xml:lang="en">SQL Server Container SA Password</source>
     </trans-unit>
+    <trans-unit id="++CODE++8fb9e52bba9bdebaf10c130eca428ca15b770d0ba41c5f854c47db14a380f8ae">
+      <source xml:lang="en">SQL Server admin password</source>
+    </trans-unit>
     <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
       <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80">
+      <source xml:lang="en">SQL Server port number</source>
     </trans-unit>
     <trans-unit id="++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8">
       <source xml:lang="en">SQL Server {0} - latest</source>
@@ -2934,6 +2973,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7f55382219f0202c1b4f56deb099e2fedcec87ee73fe2edb2105df5447323bc6">
       <source xml:lang="en">Search...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6863067eb0a2c7499425c6c189b2c88bac55ca754285a6ab1ef37b75b4cfad4d">
+      <source xml:lang="en">See</source>
     </trans-unit>
     <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
       <source xml:lang="en">Select</source>
@@ -3088,8 +3130,8 @@
     <trans-unit id="++CODE++8c6f0777a59f6d55efb68be5323e48061f19e0b2c036c9f34f3ea7655eeaead2">
       <source xml:lang="en">Show MSSQL output</source>
     </trans-unit>
-    <trans-unit id="++CODE++a16e132b133cc57c4d467bde193d78fe48f170a197d0581c2e6578162824902f">
-      <source xml:lang="en">Show Menu</source>
+    <trans-unit id="++CODE++1615831401345ad7af7c55f1b68f51dd051827cf4ab1e7f3864619ce377d6ef1">
+      <source xml:lang="en">Show Menu (F3)</source>
     </trans-unit>
     <trans-unit id="++CODE++169b9d739add25522ff9a236b54583826c27bd79c2dcb1a4efcc50143164f78c">
       <source xml:lang="en">Show New Password</source>
@@ -3152,6 +3194,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ab3134048412e796a4a423dc1963ca8ff12b535d546d314470407639777e0ac5">
       <source xml:lang="en">Smart performance</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bec69036aa27e7fab7d44cad3909477b76631c39ba46fd7841ea71aae7e5a735">
+      <source xml:lang="en">Sort</source>
     </trans-unit>
     <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
       <source xml:lang="en">Sort Ascending</source>
@@ -3333,6 +3378,9 @@
     <trans-unit id="++CODE++acd64111965ff7af14fb0dc101deb52a5e3e7cfc6aae4d0fa9bf7a65ed37870a">
       <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
       <note>{0} is a url to learn more about the new features</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8284b2207062ceca3245e799f300ae72ab7e751c75b0f7e32f297adcfdf8e19f">
+      <source xml:lang="en">The SQL Server 2025 RTM container image isn&apos;t compatible with ARM-based systems (including Windows ARM and Apple Silicon).</source>
     </trans-unit>
     <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
       <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
@@ -3547,6 +3595,9 @@
     <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
       <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
     </trans-unit>
+    <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
+      <source xml:lang="en">Warning</source>
+    </trans-unit>
     <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
       <source xml:lang="en">Warnings detected. Please review the changes.</source>
     </trans-unit>
@@ -3582,6 +3633,9 @@
     </trans-unit>
     <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
       <source xml:lang="en">You are not connected to any database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
+      <source xml:lang="en">You must accept the license</source>
     </trans-unit>
     <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
       <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
@@ -3646,6 +3700,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
       <source xml:lang="en">encrypt</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4c7148e466d4434d1a1411c15f757ec78ba8f3ef4b6210d4a156bc3aaa6e71e5">
+      <source xml:lang="en">for more details</source>
     </trans-unit>
     <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
       <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
@@ -3720,6 +3777,9 @@
       <source xml:lang="en">{0} of {1}</source>
       <note>{0} is the number of active elements
 {1} is the total number of elements</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
+      <source xml:lang="en">{0} password doesn&apos;t match the confirmation password</source>
     </trans-unit>
     <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
       <source xml:lang="en">{0} properties</source>
