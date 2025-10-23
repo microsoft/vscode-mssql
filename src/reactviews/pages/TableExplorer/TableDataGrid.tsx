@@ -341,6 +341,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 // Set grid options
                 setOptions({
                     enableColumnPicker: false,
+                    enableGridMenu: false,
                     autoEdit: false,
                     autoCommitEdit: false,
                     editable: true,
