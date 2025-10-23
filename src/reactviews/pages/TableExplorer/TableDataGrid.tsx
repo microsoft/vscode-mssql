@@ -198,8 +198,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         function getContextMenuOptions(): ContextMenu {
             return {
                 hideCopyCellValueCommand: true,
-                hideCloseButton: false,
-                commandTitle: loc.tableExplorer.commands,
+                hideCloseButton: true,
                 commandItems: [
                     {
                         command: "delete-row",
@@ -341,6 +340,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                 // Set grid options
                 setOptions({
+                    enableColumnPicker: false,
                     autoEdit: false,
                     autoCommitEdit: false,
                     editable: true,
