@@ -10,8 +10,6 @@ import {
     Input,
     Label,
     makeStyles,
-    MessageBar,
-    MessageBarBody,
     Option,
     Radio,
     RadioGroup,
@@ -145,9 +143,6 @@ export const DataTierApplicationForm = () => {
     const [applicationName, setApplicationName] = useState("");
     const [applicationVersion, setApplicationVersion] = useState(DEFAULT_APPLICATION_VERSION);
     const [isOperationInProgress, setIsOperationInProgress] = useState(false);
-    const [progressMessage, setProgressMessage] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
-    const [successMessage, setSuccessMessage] = useState("");
     const [validationMessages, setValidationMessages] = useState<Record<string, ValidationMessage>>(
         {},
     );
@@ -243,14 +238,14 @@ export const DataTierApplicationForm = () => {
                                     ),
                                 );
                             } else {
-                                setErrorMessage(
+                                console.error(
                                     connectResult?.errorMessage ||
                                         locConstants.dataTierApplication.connectionFailed,
                                 );
                             }
                         } catch (error) {
                             const errorMsg = error instanceof Error ? error.message : String(error);
-                            setErrorMessage(
+                            console.error(
                                 `${locConstants.dataTierApplication.connectionFailed}: ${errorMsg}`,
                             );
                         } finally {
@@ -280,8 +275,6 @@ export const DataTierApplicationForm = () => {
 
     const handleServerChange = async (profileId: string) => {
         setSelectedProfileId(profileId);
-        setErrorMessage("");
-        setSuccessMessage("");
         setValidationMessages({});
         setIsConnecting(true);
 
@@ -313,15 +306,13 @@ export const DataTierApplicationForm = () => {
                     );
                     // Databases will be loaded automatically via useEffect
                 } else {
-                    setErrorMessage(
+                    console.error(
                         result?.errorMessage || locConstants.dataTierApplication.connectionFailed,
                     );
                 }
             } catch (error) {
                 const errorMsg = error instanceof Error ? error.message : String(error);
-                setErrorMessage(
-                    `${locConstants.dataTierApplication.connectionFailed}: ${errorMsg}`,
-                );
+                console.error(`${locConstants.dataTierApplication.connectionFailed}: ${errorMsg}`);
             } finally {
                 setIsConnecting(false);
             }
@@ -510,8 +501,6 @@ export const DataTierApplicationForm = () => {
     };
 
     const handleSubmit = async () => {
-        setErrorMessage("");
-        setSuccessMessage("");
         setIsOperationInProgress(true);
 
         try {
@@ -526,7 +515,6 @@ export const DataTierApplicationForm = () => {
                         setIsOperationInProgress(false);
                         return;
                     }
-                    setProgressMessage(locConstants.dataTierApplication.deployingDacpac);
                     result = await context?.extensionRpc?.sendRequest(
                         DeployDacpacWebviewRequest.type,
                         {
@@ -546,7 +534,6 @@ export const DataTierApplicationForm = () => {
                         setIsOperationInProgress(false);
                         return;
                     }
-                    setProgressMessage(locConstants.dataTierApplication.extractingDacpac);
                     result = await context?.extensionRpc?.sendRequest(
                         ExtractDacpacWebviewRequest.type,
                         {
@@ -567,7 +554,6 @@ export const DataTierApplicationForm = () => {
                         setIsOperationInProgress(false);
                         return;
                     }
-                    setProgressMessage(locConstants.dataTierApplication.importingBacpac);
                     result = await context?.extensionRpc?.sendRequest(
                         ImportBacpacWebviewRequest.type,
                         {
@@ -586,7 +572,6 @@ export const DataTierApplicationForm = () => {
                         setIsOperationInProgress(false);
                         return;
                     }
-                    setProgressMessage(locConstants.dataTierApplication.exportingBacpac);
                     result = await context?.extensionRpc?.sendRequest(
                         ExportBacpacWebviewRequest.type,
                         {
@@ -599,24 +584,20 @@ export const DataTierApplicationForm = () => {
             }
 
             if (result?.success) {
-                setSuccessMessage(getSuccessMessage(operationType));
-                setProgressMessage("");
                 setIsOperationInProgress(false);
                 clearForm();
             } else {
-                setErrorMessage(
+                console.error(
                     result?.errorMessage || locConstants.dataTierApplication.operationFailed,
                 );
-                setProgressMessage("");
                 setIsOperationInProgress(false);
             }
         } catch (error) {
-            setErrorMessage(
+            console.error(
                 error instanceof Error
                     ? error.message
                     : locConstants.dataTierApplication.unexpectedError,
             );
-            setProgressMessage("");
             setIsOperationInProgress(false);
         }
     };
@@ -659,19 +640,6 @@ export const DataTierApplicationForm = () => {
         await context?.extensionRpc?.sendNotification(
             CancelDataTierApplicationWebviewNotification.type,
         );
-    };
-
-    const getSuccessMessage = (type: DataTierOperationType): string => {
-        switch (type) {
-            case DataTierOperationType.Deploy:
-                return locConstants.dataTierApplication.deploySuccess;
-            case DataTierOperationType.Extract:
-                return locConstants.dataTierApplication.extractSuccess;
-            case DataTierOperationType.Import:
-                return locConstants.dataTierApplication.importSuccess;
-            case DataTierOperationType.Export:
-                return locConstants.dataTierApplication.exportSuccess;
-        }
     };
 
     const getOperationDescription = (type: DataTierOperationType): string => {
@@ -734,8 +702,6 @@ export const DataTierApplicationForm = () => {
                             selectedOptions={[operationType]}
                             onOptionSelect={(_, data) => {
                                 setOperationType(data.optionValue as DataTierOperationType);
-                                setErrorMessage("");
-                                setSuccessMessage("");
                                 setValidationMessages({});
                             }}
                             disabled={isOperationInProgress}>
