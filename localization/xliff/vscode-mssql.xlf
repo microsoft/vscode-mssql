@@ -646,6 +646,9 @@
     <trans-unit id="++CODE++e665046133e22f0d3599a6c5de916445ed88c82a997a625a04af1827c42d790b">
       <source xml:lang="en">Command Timeout</source>
     </trans-unit>
+    <trans-unit id="++CODE++b269dc4e81a528a4d42e9e74101923514a626f55f8dd76b1461e0690e72d041a">
+      <source xml:lang="en">Commands</source>
+    </trans-unit>
     <trans-unit id="++CODE++e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9">
       <source xml:lang="en">Compare</source>
     </trans-unit>
@@ -1023,6 +1026,9 @@
     </trans-unit>
     <trans-unit id="++CODE++129eabad7bcc761eb7966091c2bc01163b650ca0613f42c58db97eae5420a7bb">
       <source xml:lang="en">Delete Contents</source>
+    </trans-unit>
+    <trans-unit id="++CODE++43654c6556c7d0fca93516d81791b323c7746bb3becdcb8800aa9f31300fe30c">
+      <source xml:lang="en">Delete Row</source>
     </trans-unit>
     <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
       <source xml:lang="en">Delete saved connection</source>
@@ -2676,6 +2682,12 @@
     </trans-unit>
     <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
       <source xml:lang="en">Reverse Alphabetical</source>
+    </trans-unit>
+    <trans-unit id="++CODE++289de1729d4ea9f6d9ab040fb6f260a4bb860bac27ecd4e88b968575cfc726f0">
+      <source xml:lang="en">Revert Cell</source>
+    </trans-unit>
+    <trans-unit id="++CODE++196561ed1b886dfa24402369be0ac725998191df58790075d4c74ff0378851b5">
+      <source xml:lang="en">Revert Row</source>
     </trans-unit>
     <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
       <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable &quot;Use Rosetta for x86_64/amd64 emulation on Apple Silicon&quot; in Docker Desktop &gt; Settings &gt; General.</source>
