@@ -216,7 +216,6 @@ export const DataTierApplicationForm = () => {
     const handleServerChange = async (profileId: string) => {
         setSelectedProfileId(profileId);
         setValidationMessages({});
-        setIsConnecting(true);
 
         // Find the selected connection
         const selectedConnection = availableConnections.find(
@@ -227,10 +226,11 @@ export const DataTierApplicationForm = () => {
             return;
         }
 
-        // If not connected, connect to the server
-        if (!selectedConnection.isConnected) {
-            setIsConnecting(true);
-            try {
+        setIsConnecting(true);
+
+        try {
+            // If not connected, connect to the server
+            if (!selectedConnection.isConnected) {
                 const result = await context?.extensionRpc?.sendRequest(
                     ConnectToServerWebviewRequest.type,
                     { profileId },
@@ -246,21 +246,22 @@ export const DataTierApplicationForm = () => {
                     );
                     // Databases will be loaded automatically via useEffect
                 } else {
+                    // Connection failed - clear state
+                    setOwnerUri("");
+                    setAvailableDatabases([]);
+                    setDatabaseName("");
+                    // Ensure connection is marked as not connected
+                    setAvailableConnections((prev) =>
+                        prev.map((conn) =>
+                            conn.profileId === profileId ? { ...conn, isConnected: false } : conn,
+                        ),
+                    );
                     console.error(
                         result?.errorMessage || locConstants.dataTierApplication.connectionFailed,
                     );
                 }
-            } catch (error) {
-                const errorMsg = error instanceof Error ? error.message : String(error);
-                console.error(`${locConstants.dataTierApplication.connectionFailed}: ${errorMsg}`);
-            } finally {
-                setIsConnecting(false);
-            }
-        } else {
-            // Already connected, just need to get the ownerUri
-            // For now, we'll need to trigger a connection to get the ownerUri
-            // In a future enhancement, we could store ownerUri in the connection profile
-            try {
+            } else {
+                // Already connected, just need to get the ownerUri
                 const result = await context?.extensionRpc?.sendRequest(
                     ConnectToServerWebviewRequest.type,
                     { profileId },
@@ -269,9 +270,12 @@ export const DataTierApplicationForm = () => {
                 if (result?.ownerUri) {
                     setOwnerUri(result.ownerUri);
                 }
-            } catch (error) {
-                console.error("Failed to get ownerUri:", error);
             }
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            console.error(`${locConstants.dataTierApplication.connectionFailed}: ${errorMsg}`);
+        } finally {
+            setIsConnecting(false);
         }
     };
 
@@ -806,7 +810,7 @@ export const DataTierApplicationForm = () => {
                                     onOptionSelect={(_, data) =>
                                         setDatabaseName(data.optionText || "")
                                     }
-                                    disabled={isOperationInProgress}>
+                                    disabled={isOperationInProgress || !ownerUri}>
                                     {availableDatabases.map((db) => (
                                         <Option key={db} value={db}>
                                             {db}
@@ -837,7 +841,7 @@ export const DataTierApplicationForm = () => {
                                     onOptionSelect={(_, data) =>
                                         setDatabaseName(data.optionText || "")
                                     }
-                                    disabled={isOperationInProgress}>
+                                    disabled={isOperationInProgress || !ownerUri}>
                                     {availableDatabases.map((db) => (
                                         <Option key={db} value={db}>
                                             {db}
