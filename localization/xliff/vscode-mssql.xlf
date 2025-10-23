@@ -1397,11 +1397,11 @@
     <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
       <source xml:lang="en">Execution Plan</source>
     </trans-unit>
-    <trans-unit id="++CODE++e6f85bab1a8295e091b4d2324b0e37eeacee571d5d3d7cd29827be17e7a0aa52">
-      <source xml:lang="en">Existing Database</source>
-    </trans-unit>
     <trans-unit id="++CODE++b5f54c19df1649916f59331f9decf53dc337a2c241a3afb20d58810309ebe30f">
       <source xml:lang="en">Existing Azure SQL logical server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e6f85bab1a8295e091b4d2324b0e37eeacee571d5d3d7cd29827be17e7a0aa52">
+      <source xml:lang="en">Existing Database</source>
     </trans-unit>
     <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
       <source xml:lang="en">Existing SQL server</source>
@@ -1815,11 +1815,11 @@
     <trans-unit id="++CODE++1d59e3e131d04ce9ba04c0f297dbd4eddb83c0bfe977b2a6bf19bdeb73f2d5c3">
       <source xml:lang="en">Ignore Tenant</source>
     </trans-unit>
-    <trans-unit id="++CODE++09b493255c6cc11aae4f73f97494b4d0123bb42869372d0a2182f0a324eb5ef5">
-      <source xml:lang="en">Import BACPAC</source>
-    </trans-unit>
     <trans-unit id="++CODE++c4a77afa3d5cd701f32b5f09c195c635b256db8595687828c3ea0785ab5b72f4">
       <source xml:lang="en">Image tag</source>
+    </trans-unit>
+    <trans-unit id="++CODE++09b493255c6cc11aae4f73f97494b4d0123bb42869372d0a2182f0a324eb5ef5">
+      <source xml:lang="en">Import BACPAC</source>
     </trans-unit>
     <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
       <source xml:lang="en">Importance</source>
