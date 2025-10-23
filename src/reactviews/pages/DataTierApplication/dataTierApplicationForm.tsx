@@ -726,24 +726,6 @@ export const DataTierApplicationForm = () => {
                     </div>
                 </div>
 
-                {errorMessage && (
-                    <MessageBar intent="error">
-                        <MessageBarBody>{errorMessage}</MessageBarBody>
-                    </MessageBar>
-                )}
-
-                {successMessage && (
-                    <MessageBar intent="success">
-                        <MessageBarBody>{successMessage}</MessageBarBody>
-                    </MessageBar>
-                )}
-
-                {isOperationInProgress && (
-                    <div className={classes.progressContainer}>
-                        <Spinner size="small" label={progressMessage} />
-                    </div>
-                )}
-
                 <div className={classes.section}>
                     <Field label={locConstants.dataTierApplication.operationLabel} required>
                         <Dropdown
