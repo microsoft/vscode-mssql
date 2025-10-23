@@ -19,7 +19,7 @@ const useStyles = makeStyles({
         borderTop: "1px solid var(--vscode-editorWidget-border)",
     },
     toolbar: {
-        width: "100%",
+        width: "99vw",
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
