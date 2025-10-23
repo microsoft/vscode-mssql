@@ -1067,6 +1067,10 @@ export class LocConstants {
             maximizePanelSize: l10n.t("Maximize Panel Size"),
             restorePanelSize: l10n.t("Restore Panel Size"),
             updateScript: l10n.t("Update Script"),
+            commands: l10n.t("Commands"),
+            deleteRow: l10n.t("Delete Row"),
+            revertCell: l10n.t("Revert Cell"),
+            revertRow: l10n.t("Revert Row"),
         };
     }
 }

@@ -15,6 +15,7 @@ import {
 } from "slickgrid-react";
 import { EditSubsetResult } from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
+import { locConstants as loc } from "../../common/locConstants";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 
 interface TableDataGridProps {
@@ -198,11 +199,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             return {
                 hideCopyCellValueCommand: true,
                 hideCloseButton: false,
-                commandTitle: "Commands",
+                commandTitle: loc.tableExplorer.commands,
                 commandItems: [
                     {
                         command: "delete-row",
-                        title: "Delete Row",
+                        title: loc.tableExplorer.deleteRow,
                         iconCssClass: "mdi mdi-close",
                         cssClass: "red",
                         textCssClass: "bold",
@@ -210,14 +211,14 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     },
                     {
                         command: "revert-cell",
-                        title: "Revert Cell",
+                        title: loc.tableExplorer.revertCell,
                         iconCssClass: "mdi mdi-undo",
                         positionOrder: 2,
                     },
                     {
                         command: "revert-row",
-                        title: "Revert Row",
-                        iconCssClass: "mdi mdi-undo-variant",
+                        title: loc.tableExplorer.revertRow,
+                        iconCssClass: "mdi mdi-undo",
                         positionOrder: 3,
                     },
                 ],
