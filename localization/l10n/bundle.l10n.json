@@ -727,6 +727,8 @@
     "Passwords do not match": "Passwords do not match",
     "Save Changes": "Save Changes",
     "Add Row": "Add Row",
+    "Show Script": "Show Script",
+    "Hide Script": "Hide Script",
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
