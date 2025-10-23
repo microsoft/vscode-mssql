@@ -41,6 +41,14 @@ import { DataTierApplicationContext } from "./dataTierApplicationStateProvider";
 import { useDataTierApplicationSelector } from "./dataTierApplicationSelector";
 import { locConstants } from "../../common/locConstants";
 
+/**
+ * Validation message with severity level
+ */
+interface ValidationMessage {
+    message: string;
+    severity: "error" | "warning";
+}
+
 const useStyles = makeStyles({
     root: {
         display: "flex",
@@ -135,7 +143,9 @@ export const DataTierApplicationForm = () => {
     const [progressMessage, setProgressMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
-    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+    const [validationMessages, setValidationMessages] = useState<Record<string, ValidationMessage>>(
+        {},
+    );
     const [availableConnections, setAvailableConnections] = useState<ConnectionProfile[]>([]);
     const [selectedProfileId, setSelectedProfileId] = useState<string>(
         initialSelectedProfileId || "",
@@ -267,7 +277,8 @@ export const DataTierApplicationForm = () => {
         setSelectedProfileId(profileId);
         setErrorMessage("");
         setSuccessMessage("");
-        setValidationErrors({});
+        setValidationMessages({});
+        setIsConnecting(true);
 
         // Find the selected connection
         const selectedConnection = availableConnections.find(
@@ -344,9 +355,12 @@ export const DataTierApplicationForm = () => {
 
     const validateFilePath = async (path: string, shouldExist: boolean): Promise<boolean> => {
         if (!path) {
-            setValidationErrors((prev) => ({
+            setValidationMessages((prev) => ({
                 ...prev,
-                filePath: locConstants.dataTierApplication.filePathRequired,
+                filePath: {
+                    message: locConstants.dataTierApplication.filePathRequired,
+                    severity: "error",
+                },
             }));
             return false;
         }
@@ -358,24 +372,32 @@ export const DataTierApplicationForm = () => {
             );
 
             if (!result?.isValid) {
-                setValidationErrors((prev) => ({
+                setValidationMessages((prev) => ({
                     ...prev,
-                    filePath: result?.errorMessage || locConstants.dataTierApplication.invalidFile,
+                    filePath: {
+                        message:
+                            result?.errorMessage || locConstants.dataTierApplication.invalidFile,
+                        severity: "error",
+                    },
                 }));
                 return false;
             }
 
             // Clear error or set warning for file overwrite
             if (result.errorMessage) {
-                setValidationErrors((prev) => ({
+                setValidationMessages((prev) => ({
                     ...prev,
-                    filePath: result.errorMessage || "", // This is a warning about overwrite
+                    filePath: {
+                        message: result.errorMessage || "",
+                        severity: "warning", // This is a warning about overwrite
+                    },
                 }));
             } else {
-                setValidationErrors((prev) => ({
-                    ...prev,
-                    filePath: "",
-                }));
+                setValidationMessages((prev) => {
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    const { filePath: _fp, ...rest } = prev;
+                    return rest;
+                });
             }
             return true;
         } catch (error) {
@@ -383,9 +405,12 @@ export const DataTierApplicationForm = () => {
                 error instanceof Error
                     ? error.message
                     : locConstants.dataTierApplication.validationFailed;
-            setValidationErrors((prev) => ({
+            setValidationMessages((prev) => ({
                 ...prev,
-                filePath: errorMessage,
+                filePath: {
+                    message: errorMessage,
+                    severity: "error",
+                },
             }));
             return false;
         }
@@ -396,9 +421,12 @@ export const DataTierApplicationForm = () => {
         shouldNotExist: boolean,
     ): Promise<boolean> => {
         if (!dbName) {
-            setValidationErrors((prev) => ({
+            setValidationMessages((prev) => ({
                 ...prev,
-                databaseName: locConstants.dataTierApplication.databaseNameRequired,
+                databaseName: {
+                    message: locConstants.dataTierApplication.databaseNameRequired,
+                    severity: "error",
+                },
             }));
             return false;
         }
@@ -415,16 +443,20 @@ export const DataTierApplicationForm = () => {
             );
 
             if (!result?.isValid) {
-                setValidationErrors((prev) => ({
+                setValidationMessages((prev) => ({
                     ...prev,
-                    databaseName:
-                        result?.errorMessage || locConstants.dataTierApplication.invalidDatabase,
+                    databaseName: {
+                        message:
+                            result?.errorMessage ||
+                            locConstants.dataTierApplication.invalidDatabase,
+                        severity: "error",
+                    },
                 }));
                 return false;
             }
 
             // Clear validation errors if valid
-            setValidationErrors((prev) => {
+            setValidationMessages((prev) => {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { databaseName: _dn, ...rest } = prev;
                 return rest;
@@ -452,9 +484,12 @@ export const DataTierApplicationForm = () => {
                 error instanceof Error
                     ? error.message
                     : locConstants.dataTierApplication.validationFailed;
-            setValidationErrors((prev) => ({
+            setValidationMessages((prev) => ({
                 ...prev,
-                databaseName: errorMessage,
+                databaseName: {
+                    message: errorMessage,
+                    severity: "error",
+                },
             }));
             return false;
         }
@@ -597,9 +632,9 @@ export const DataTierApplicationForm = () => {
         if (result?.filePath) {
             setFilePath(result.filePath);
             // Clear validation error when file is selected
-            const newErrors = { ...validationErrors };
-            delete newErrors.filePath;
-            setValidationErrors(newErrors);
+            const newMessages = { ...validationMessages };
+            delete newMessages.filePath;
+            setValidationMessages(newMessages);
             // Validate the selected file path
             await validateFilePath(result.filePath, requiresInputFile);
         }
@@ -639,7 +674,12 @@ export const DataTierApplicationForm = () => {
 
     const isFormValid = () => {
         if (!filePath || !databaseName) return false;
-        return Object.keys(validationErrors).length === 0;
+        // Only check for errors, not warnings
+        const hasErrors = Object.values(validationMessages).some((msg) => msg.severity === "error");
+        Object.values(validationMessages).forEach((msg) => {
+            console.log(msg.message);
+        });
+        return !hasErrors;
     };
 
     const requiresInputFile =
@@ -651,6 +691,15 @@ export const DataTierApplicationForm = () => {
         operationType === DataTierOperationType.Export;
     const showNewDatabase = operationType === DataTierOperationType.Import;
     const showApplicationInfo = operationType === DataTierOperationType.Extract;
+
+    async function handleFilePathChange(value: string): Promise<void> {
+        setFilePath(value);
+        // Clear validation error when user types
+        const newMessages = { ...validationMessages };
+        delete newMessages.filePath;
+        setValidationMessages(newMessages);
+        await validateFilePath(value, requiresInputFile);
+    }
 
     return (
         <div className={classes.root}>
@@ -690,7 +739,7 @@ export const DataTierApplicationForm = () => {
                                 setOperationType(data.optionValue as DataTierOperationType);
                                 setErrorMessage("");
                                 setSuccessMessage("");
-                                setValidationErrors({});
+                                setValidationMessages({});
                             }}
                             disabled={isOperationInProgress}>
                             <Option value={DataTierOperationType.Deploy}>
@@ -763,13 +812,19 @@ export const DataTierApplicationForm = () => {
                                 : locConstants.dataTierApplication.outputFileLabel
                         }
                         required
-                        validationMessage={validationErrors.filePath}
-                        validationState={validationErrors.filePath ? "warning" : "none"}>
+                        validationMessage={validationMessages.filePath?.message}
+                        validationState={
+                            validationMessages.filePath
+                                ? validationMessages.filePath.severity === "error"
+                                    ? "error"
+                                    : "warning"
+                                : "none"
+                        }>
                         <div className={classes.fileInputGroup}>
                             <Input
                                 className={classes.fileInput}
                                 value={filePath}
-                                onChange={(_, data) => setFilePath(data.value)}
+                                onChange={(_, data) => handleFilePathChange(data.value)}
                                 placeholder={
                                     requiresInputFile
                                         ? locConstants.dataTierApplication.selectPackageFile
@@ -811,8 +866,12 @@ export const DataTierApplicationForm = () => {
                             <Field
                                 label={locConstants.dataTierApplication.databaseNameLabel}
                                 required
-                                validationMessage={validationErrors.databaseName}
-                                validationState={validationErrors.databaseName ? "error" : "none"}>
+                                validationMessage={validationMessages.databaseName?.message}
+                                validationState={
+                                    validationMessages.databaseName?.severity === "error"
+                                        ? "error"
+                                        : "none"
+                                }>
                                 <Input
                                     value={databaseName}
                                     onChange={(_, data) => setDatabaseName(data.value)}
@@ -824,8 +883,12 @@ export const DataTierApplicationForm = () => {
                             <Field
                                 label={locConstants.dataTierApplication.databaseNameLabel}
                                 required
-                                validationMessage={validationErrors.databaseName}
-                                validationState={validationErrors.databaseName ? "error" : "none"}>
+                                validationMessage={validationMessages.databaseName?.message}
+                                validationState={
+                                    validationMessages.databaseName?.severity === "error"
+                                        ? "error"
+                                        : "none"
+                                }>
                                 <Dropdown
                                     placeholder={locConstants.dataTierApplication.selectDatabase}
                                     value={databaseName}
@@ -851,8 +914,12 @@ export const DataTierApplicationForm = () => {
                             <Field
                                 label={locConstants.dataTierApplication.sourceDatabaseLabel}
                                 required
-                                validationMessage={validationErrors.databaseName}
-                                validationState={validationErrors.databaseName ? "error" : "none"}>
+                                validationMessage={validationMessages.databaseName?.message}
+                                validationState={
+                                    validationMessages.databaseName?.severity === "error"
+                                        ? "error"
+                                        : "none"
+                                }>
                                 <Dropdown
                                     placeholder={locConstants.dataTierApplication.selectDatabase}
                                     value={databaseName}
@@ -872,8 +939,12 @@ export const DataTierApplicationForm = () => {
                             <Field
                                 label={locConstants.dataTierApplication.databaseNameLabel}
                                 required
-                                validationMessage={validationErrors.databaseName}
-                                validationState={validationErrors.databaseName ? "error" : "none"}>
+                                validationMessage={validationMessages.databaseName?.message}
+                                validationState={
+                                    validationMessages.databaseName?.severity === "error"
+                                        ? "error"
+                                        : "none"
+                                }>
                                 <Input
                                     value={databaseName}
                                     onChange={(_, data) => setDatabaseName(data.value)}
@@ -918,7 +989,7 @@ export const DataTierApplicationForm = () => {
                         appearance="primary"
                         icon={<DatabaseArrowRight20Regular />}
                         onClick={handleSubmit}
-                        disabled={!isFormValid() || isOperationInProgress}>
+                        disabled={!isFormValid() || isOperationInProgress || isConnecting}>
                         {locConstants.dataTierApplication.execute}
                     </Button>
                 </div>

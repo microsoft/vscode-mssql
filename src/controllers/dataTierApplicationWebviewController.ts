@@ -6,6 +6,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
+import { existsSync } from "fs";
 import ConnectionManager from "./connectionManager";
 import { DacFxService } from "../services/dacFxService";
 import { IConnectionProfile } from "../models/interfaces";
@@ -375,9 +376,9 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             };
         }
 
-        const fileExists = fs.existsSync(filePath);
+        const fileFound = existsSync(filePath);
 
-        if (shouldExist && !fileExists) {
+        if (shouldExist && !fileFound) {
             return {
                 isValid: false,
                 errorMessage: LocConstants.DataTierApplication.FileNotFound,
@@ -403,7 +404,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             }
 
             // Check if file already exists (for output files)
-            if (fileExists) {
+            if (fileFound) {
                 // This is just a warning - the operation can continue with user confirmation
                 return {
                     isValid: true,
