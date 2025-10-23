@@ -1060,6 +1060,13 @@ export class LocConstants {
             addRow: l10n.t("Add Row"),
             showScript: l10n.t("Show Script"),
             hideScript: l10n.t("Hide Script"),
+            openInEditor: l10n.t("Open in Editor"),
+            openInSqlEditor: l10n.t("Open in SQL Editor"),
+            copyScript: l10n.t("Copy Script"),
+            copyScriptToClipboard: l10n.t("Copy Script to Clipboard"),
+            maximizePanelSize: l10n.t("Maximize Panel Size"),
+            restorePanelSize: l10n.t("Restore Panel Size"),
+            updateScript: l10n.t("Update Script"),
         };
     }
 }

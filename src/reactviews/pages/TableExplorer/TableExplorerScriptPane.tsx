@@ -9,6 +9,7 @@ import Editor from "@monaco-editor/react";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { resolveVscodeThemeType } from "../../common/utils";
 import { useState } from "react";
+import { locConstants as loc } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     root: {
@@ -69,28 +70,32 @@ export const TableExplorerScriptPane: React.FC = () => {
                 minHeight: isMaximized ? "70vh" : "150px",
             }}>
             <div className={classes.toolbar}>
-                <span className={classes.title}>Update Script</span>
+                <span className={classes.title}>{loc.tableExplorer.updateScript}</span>
                 <Button
                     size="small"
                     appearance="subtle"
                     onClick={() => context.openScriptInEditor()}
-                    title="Open in SQL Editor"
+                    title={loc.tableExplorer.openInSqlEditor}
                     icon={<OpenFilled />}>
-                    Open in Editor
+                    {loc.tableExplorer.openInEditor}
                 </Button>
                 <Button
                     size="small"
                     appearance="subtle"
                     onClick={() => context.copyScriptToClipboard()}
-                    title="Copy Script to Clipboard"
+                    title={loc.tableExplorer.copyScriptToClipboard}
                     icon={<CopyFilled />}>
-                    Copy Script
+                    {loc.tableExplorer.copyScript}
                 </Button>
                 <Button
                     size="small"
                     appearance="transparent"
                     onClick={() => setIsMaximized(!isMaximized)}
-                    title={isMaximized ? "Restore Panel Size" : "Maximize Panel Size"}
+                    title={
+                        isMaximized
+                            ? loc.tableExplorer.restorePanelSize
+                            : loc.tableExplorer.maximizePanelSize
+                    }
                     icon={isMaximized ? <ChevronDownFilled /> : <ChevronUpFilled />}
                 />
             </div>
