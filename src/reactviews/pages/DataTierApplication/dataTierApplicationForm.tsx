@@ -642,19 +642,6 @@ export const DataTierApplicationForm = () => {
         );
     };
 
-    const getOperationDescription = (type: DataTierOperationType): string => {
-        switch (type) {
-            case DataTierOperationType.Deploy:
-                return locConstants.dataTierApplication.deployDescription;
-            case DataTierOperationType.Extract:
-                return locConstants.dataTierApplication.extractDescription;
-            case DataTierOperationType.Import:
-                return locConstants.dataTierApplication.importDescription;
-            case DataTierOperationType.Export:
-                return locConstants.dataTierApplication.exportDescription;
-        }
-    };
-
     const isFormValid = () => {
         if (!filePath || !databaseName) return false;
         // Only check for errors, not warnings
@@ -696,31 +683,51 @@ export const DataTierApplicationForm = () => {
 
                 <div className={classes.section}>
                     <Field label={locConstants.dataTierApplication.operationLabel} required>
-                        <Dropdown
-                            placeholder={locConstants.dataTierApplication.selectOperation}
+                        <RadioGroup
                             value={operationType}
-                            selectedOptions={[operationType]}
-                            onOptionSelect={(_, data) => {
-                                setOperationType(data.optionValue as DataTierOperationType);
+                            onChange={(_, data) => {
+                                setOperationType(data.value as DataTierOperationType);
                                 setValidationMessages({});
                             }}
                             disabled={isOperationInProgress}>
-                            <Option value={DataTierOperationType.Deploy}>
-                                {locConstants.dataTierApplication.deployDacpac}
-                            </Option>
-                            <Option value={DataTierOperationType.Extract}>
-                                {locConstants.dataTierApplication.extractDacpac}
-                            </Option>
-                            <Option value={DataTierOperationType.Import}>
-                                {locConstants.dataTierApplication.importBacpac}
-                            </Option>
-                            <Option value={DataTierOperationType.Export}>
-                                {locConstants.dataTierApplication.exportBacpac}
-                            </Option>
-                        </Dropdown>
+                            <Radio
+                                value={DataTierOperationType.Deploy}
+                                label={
+                                    locConstants.dataTierApplication.deployDescription +
+                                    " (" +
+                                    locConstants.dataTierApplication.deployDacpac +
+                                    ")"
+                                }
+                            />
+                            <Radio
+                                value={DataTierOperationType.Extract}
+                                label={
+                                    locConstants.dataTierApplication.extractDescription +
+                                    " (" +
+                                    locConstants.dataTierApplication.extractDacpac +
+                                    ")"
+                                }
+                            />
+                            <Radio
+                                value={DataTierOperationType.Import}
+                                label={
+                                    locConstants.dataTierApplication.importDescription +
+                                    " (" +
+                                    locConstants.dataTierApplication.importBacpac +
+                                    ")"
+                                }
+                            />
+                            <Radio
+                                value={DataTierOperationType.Export}
+                                label={
+                                    locConstants.dataTierApplication.exportDescription +
+                                    " (" +
+                                    locConstants.dataTierApplication.exportBacpac +
+                                    ")"
+                                }
+                            />
+                        </RadioGroup>
                     </Field>
-
-                    <Label>{getOperationDescription(operationType)}</Label>
                 </div>
 
                 <div className={classes.section}>

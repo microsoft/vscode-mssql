@@ -1073,10 +1073,16 @@ export class LocConstants {
             extractDacpac: l10n.t("Extract DACPAC"),
             importBacpac: l10n.t("Import BACPAC"),
             exportBacpac: l10n.t("Export BACPAC"),
-            deployDescription: l10n.t("Deploy a DACPAC to create or update a database"),
-            extractDescription: l10n.t("Extract a DACPAC from an existing database"),
-            importDescription: l10n.t("Import a BACPAC to create a new database"),
-            exportDescription: l10n.t("Export a BACPAC from an existing database"),
+            deployDescription: l10n.t(
+                "Deploy a data-tier application .dacpac file to an instance of SQL Server",
+            ),
+            extractDescription: l10n.t(
+                "Extract a data-tier application .dacpac from an instance of SQL Server to a .dacpac file",
+            ),
+            importDescription: l10n.t("Create a database from a .bacpac file"),
+            exportDescription: l10n.t(
+                "Export the schema and data from a database to the logical .bacpac file format",
+            ),
             packageFileLabel: l10n.t("Package file"),
             outputFileLabel: l10n.t("Output file"),
             selectPackageFile: l10n.t("Select package file"),
