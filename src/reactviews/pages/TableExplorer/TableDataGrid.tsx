@@ -344,6 +344,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     autoCommitEdit: false,
                     editable: true,
                     enableAutoResize: true,
+                    forceFitColumns: true,
                     enableColumnReorder: false,
                     enableHeaderMenu: false,
                     gridHeight: 400,
@@ -382,6 +383,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     .table-explorer-grid-container {
                         margin-bottom: 60px;
                         padding-bottom: 20px;
+                        width: 100%;
+                        max-width: 100%;
+                        overflow: hidden;
                     }
 
                     #tableExplorerGrid {
@@ -392,6 +396,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         --slick-cell-border-left: 0;
                         --slick-cell-box-shadow: none;
                         --slick-grid-border-color: var(--slick-border-color);
+                        width: 100%;
+                        max-width: 100%;
+                    }
+
+                    #tableExplorerGrid .slick-viewport {
+                        overflow-x: hidden !important;
                     }
 
                     #tableExplorerGrid .slick-cell {
@@ -401,7 +411,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                     /* Reposition pagination footer to the left */
                     #pager {
-                        width: 98% !important;
+                        width: 97%;
+                        max-width: 100%;
+                        box-sizing: border-box;
                     }
 
                     #pager .slick-pagination {
@@ -411,6 +423,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         margin-top: 10px;
                         margin-bottom: 20px;
                         padding: 8px 0;
+                        width: 97vw;
                     }
 
                     #pager .slick-pagination .slick-pagination-nav .pagination {
