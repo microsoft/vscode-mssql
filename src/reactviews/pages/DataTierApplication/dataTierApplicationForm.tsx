@@ -49,6 +49,11 @@ interface ValidationMessage {
     severity: "error" | "warning";
 }
 
+/**
+ * Default application version for DACPAC extraction
+ */
+const DEFAULT_APPLICATION_VERSION = "1.0.0";
+
 const useStyles = makeStyles({
     root: {
         display: "flex",
@@ -138,7 +143,7 @@ export const DataTierApplicationForm = () => {
         initialDatabaseName ? [initialDatabaseName] : [],
     );
     const [applicationName, setApplicationName] = useState("");
-    const [applicationVersion, setApplicationVersion] = useState("1.0.0");
+    const [applicationVersion, setApplicationVersion] = useState(DEFAULT_APPLICATION_VERSION);
     const [isOperationInProgress, setIsOperationInProgress] = useState(false);
     const [progressMessage, setProgressMessage] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
@@ -495,6 +500,15 @@ export const DataTierApplicationForm = () => {
         }
     };
 
+    const clearForm = () => {
+        setFilePath("");
+        setDatabaseName("");
+        setApplicationName("");
+        setApplicationVersion(DEFAULT_APPLICATION_VERSION);
+        setValidationMessages({});
+        setIsNewDatabase(true);
+    };
+
     const handleSubmit = async () => {
         setErrorMessage("");
         setSuccessMessage("");
@@ -588,6 +602,7 @@ export const DataTierApplicationForm = () => {
                 setSuccessMessage(getSuccessMessage(operationType));
                 setProgressMessage("");
                 setIsOperationInProgress(false);
+                clearForm();
             } else {
                 setErrorMessage(
                     result?.errorMessage || locConstants.dataTierApplication.operationFailed,
@@ -971,7 +986,7 @@ export const DataTierApplicationForm = () => {
                             <Input
                                 value={applicationVersion}
                                 onChange={(_, data) => setApplicationVersion(data.value)}
-                                placeholder="1.0.0"
+                                placeholder={DEFAULT_APPLICATION_VERSION}
                                 disabled={isOperationInProgress}
                             />
                         </Field>
