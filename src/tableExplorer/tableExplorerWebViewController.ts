@@ -17,7 +17,6 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { ITableExplorerService } from "../services/tableExplorerService";
 import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
 import { NotificationHandler } from "vscode-languageclient";
-import { Deferred } from "../protocol";
 import * as LocConstants from "../constants/locConstants";
 import { getErrorMessage } from "../utils/utils";
 
