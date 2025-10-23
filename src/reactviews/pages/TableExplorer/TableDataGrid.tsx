@@ -423,7 +423,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         margin-top: 10px;
                         margin-bottom: 20px;
                         padding: 8px 0;
-                        width: 97vw;
+                        padding-right: 40px;
                     }
 
                     #pager .slick-pagination .slick-pagination-nav .pagination {
