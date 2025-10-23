@@ -32,6 +32,7 @@ import {
     ExtractDacpacWebviewRequest,
     ImportBacpacParams,
     ImportBacpacWebviewRequest,
+    InitializeConnectionWebviewRequest,
     ListConnectionsWebviewRequest,
     ListDatabasesWebviewRequest,
     ValidateDatabaseNameWebviewRequest,
@@ -144,6 +145,19 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
         this.onRequest(ListConnectionsWebviewRequest.type, async () => {
             return await this.listConnections();
         });
+
+        // Initialize connection request handler
+        this.onRequest(
+            InitializeConnectionWebviewRequest.type,
+            async (params: {
+                initialServerName?: string;
+                initialDatabaseName?: string;
+                initialOwnerUri?: string;
+                initialProfileId?: string;
+            }) => {
+                return await this.initializeConnection(params);
+            },
+        );
 
         // Connect to server request handler
         this.onRequest(
@@ -505,6 +519,175 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
         } catch (error) {
             this.logger.error(`Failed to list connections: ${error}`);
             return { connections: [] };
+        }
+    }
+
+    /**
+     * Initializes connection based on initial state from Object Explorer or previous session
+     * Handles auto-matching and auto-connecting to provide seamless user experience
+     */
+    private async initializeConnection(params: {
+        initialServerName?: string;
+        initialDatabaseName?: string;
+        initialOwnerUri?: string;
+        initialProfileId?: string;
+    }): Promise<{
+        connections: ConnectionProfile[];
+        selectedConnection?: ConnectionProfile;
+        ownerUri?: string;
+        autoConnected: boolean;
+        errorMessage?: string;
+    }> {
+        try {
+            // Get all connections (recent + active)
+            const { connections } = await this.listConnections();
+
+            // Helper to find matching connection
+            const findMatchingConnection = (): ConnectionProfile | undefined => {
+                // Priority 1: Match by profile ID if provided
+                if (params.initialProfileId) {
+                    const byProfileId = connections.find(
+                        (conn) => conn.profileId === params.initialProfileId,
+                    );
+                    if (byProfileId) {
+                        this.logger.verbose(
+                            `Found connection by profile ID: ${params.initialProfileId}`,
+                        );
+                        return byProfileId;
+                    }
+                }
+
+                // Priority 2: Match by server name and database
+                if (params.initialServerName) {
+                    const byServerAndDb = connections.find((conn) => {
+                        const serverMatches = conn.server === params.initialServerName;
+                        const databaseMatches =
+                            !params.initialDatabaseName ||
+                            !conn.database ||
+                            conn.database === params.initialDatabaseName;
+                        return serverMatches && databaseMatches;
+                    });
+                    if (byServerAndDb) {
+                        this.logger.verbose(
+                            `Found connection by server/database: ${params.initialServerName}/${params.initialDatabaseName || "default"}`,
+                        );
+                        return byServerAndDb;
+                    }
+                }
+
+                return undefined;
+            };
+
+            const matchingConnection = findMatchingConnection();
+
+            if (!matchingConnection) {
+                // No match found - return all connections, let user choose
+                this.logger.verbose("No matching connection found in initial state");
+                return {
+                    connections,
+                    autoConnected: false,
+                };
+            }
+
+            // Found a matching connection
+            let ownerUri = params.initialOwnerUri;
+            let updatedConnections = connections;
+
+            // Case 1: Already connected via Object Explorer (ownerUri provided)
+            if (params.initialOwnerUri) {
+                this.logger.verbose(
+                    `Using existing connection from Object Explorer: ${params.initialOwnerUri}`,
+                );
+                // Mark as connected if not already
+                if (!matchingConnection.isConnected) {
+                    updatedConnections = connections.map((conn) =>
+                        conn.profileId === matchingConnection.profileId
+                            ? { ...conn, isConnected: true }
+                            : conn,
+                    );
+                }
+                return {
+                    connections: updatedConnections,
+                    selectedConnection: { ...matchingConnection, isConnected: true },
+                    ownerUri: params.initialOwnerUri,
+                    autoConnected: false, // Was already connected
+                };
+            }
+
+            // Case 2: Connection exists but not connected - auto-connect
+            if (!matchingConnection.isConnected) {
+                this.logger.verbose(`Auto-connecting to profile: ${matchingConnection.profileId}`);
+                try {
+                    const connectResult = await this.connectToServer(matchingConnection.profileId);
+
+                    if (connectResult.isConnected && connectResult.ownerUri) {
+                        ownerUri = connectResult.ownerUri;
+                        updatedConnections = connections.map((conn) =>
+                            conn.profileId === matchingConnection.profileId
+                                ? { ...conn, isConnected: true }
+                                : conn,
+                        );
+                        this.logger.info(
+                            `Successfully auto-connected to: ${matchingConnection.server}`,
+                        );
+                        return {
+                            connections: updatedConnections,
+                            selectedConnection: { ...matchingConnection, isConnected: true },
+                            ownerUri,
+                            autoConnected: true,
+                        };
+                    } else {
+                        // Connection failed
+                        this.logger.error(
+                            `Auto-connect failed: ${connectResult.errorMessage || "Unknown error"}`,
+                        );
+                        return {
+                            connections,
+                            selectedConnection: matchingConnection,
+                            autoConnected: false,
+                            errorMessage: connectResult.errorMessage,
+                        };
+                    }
+                } catch (error) {
+                    const errorMsg = error instanceof Error ? error.message : String(error);
+                    this.logger.error(`Auto-connect exception: ${errorMsg}`);
+                    return {
+                        connections,
+                        selectedConnection: matchingConnection,
+                        autoConnected: false,
+                        errorMessage: errorMsg,
+                    };
+                }
+            }
+
+            // Case 3: Connection already active - fetch ownerUri
+            this.logger.verbose(
+                `Connection already active, fetching ownerUri for: ${matchingConnection.profileId}`,
+            );
+            try {
+                const connectResult = await this.connectToServer(matchingConnection.profileId);
+                if (connectResult.ownerUri) {
+                    ownerUri = connectResult.ownerUri;
+                    this.logger.verbose(`Fetched ownerUri: ${ownerUri}`);
+                }
+            } catch (error) {
+                this.logger.error(`Failed to fetch ownerUri: ${error}`);
+            }
+
+            return {
+                connections,
+                selectedConnection: matchingConnection,
+                ownerUri,
+                autoConnected: false, // Was already connected
+            };
+        } catch (error) {
+            this.logger.error(`Failed to initialize connection: ${error}`);
+            // Fallback: return empty state
+            return {
+                connections: [],
+                autoConnected: false,
+                errorMessage: error instanceof Error ? error.message : String(error),
+            };
         }
     }
 

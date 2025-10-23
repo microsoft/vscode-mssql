@@ -28,7 +28,7 @@ import {
     ExtractDacpacWebviewRequest,
     ImportBacpacWebviewRequest,
     ExportBacpacWebviewRequest,
-    ListConnectionsWebviewRequest,
+    InitializeConnectionWebviewRequest,
     ValidateFilePathWebviewRequest,
     ListDatabasesWebviewRequest,
     ValidateDatabaseNameWebviewRequest,
@@ -172,104 +172,44 @@ export const DataTierApplicationForm = () => {
 
     const loadConnections = async () => {
         try {
+            setIsConnecting(true);
+
             const result = await context?.extensionRpc?.sendRequest(
-                ListConnectionsWebviewRequest.type,
-                undefined,
+                InitializeConnectionWebviewRequest.type,
+                {
+                    initialServerName,
+                    initialDatabaseName,
+                    initialOwnerUri,
+                    initialProfileId: initialSelectedProfileId,
+                },
             );
-            if (result?.connections) {
+
+            if (result) {
+                // Set all available connections
                 setAvailableConnections(result.connections);
 
-                const findMatchingConnection = (): ConnectionProfile | undefined => {
-                    if (initialSelectedProfileId) {
-                        const byProfileId = result.connections.find(
-                            (conn) => conn.profileId === initialSelectedProfileId,
+                // If a connection was selected/matched
+                if (result.selectedConnection) {
+                    setSelectedProfileId(result.selectedConnection.profileId);
+
+                    // If we have an ownerUri (either provided or from auto-connect)
+                    if (result.ownerUri) {
+                        setOwnerUri(result.ownerUri);
+                    }
+
+                    // Show error if auto-connect failed
+                    if (result.errorMessage && !result.autoConnected) {
+                        console.error(
+                            `${locConstants.dataTierApplication.connectionFailed}: ${result.errorMessage}`,
                         );
-                        if (byProfileId) {
-                            return byProfileId;
-                        }
-                    }
-
-                    if (initialServerName) {
-                        return result.connections.find((conn) => {
-                            const serverMatches = conn.server === initialServerName;
-                            const databaseMatches =
-                                !initialDatabaseName ||
-                                !conn.database ||
-                                conn.database === initialDatabaseName;
-                            return serverMatches && databaseMatches;
-                        });
-                    }
-
-                    return undefined;
-                };
-
-                const matchingConnection = findMatchingConnection();
-
-                if (matchingConnection) {
-                    setSelectedProfileId(matchingConnection.profileId);
-
-                    if (initialOwnerUri) {
-                        // Already connected via Object Explorer
-                        setOwnerUri(initialOwnerUri);
-                        if (!matchingConnection.isConnected) {
-                            setAvailableConnections((prev) =>
-                                prev.map((conn) =>
-                                    conn.profileId === matchingConnection.profileId
-                                        ? { ...conn, isConnected: true }
-                                        : conn,
-                                ),
-                            );
-                        }
-                    } else if (!matchingConnection.isConnected) {
-                        setIsConnecting(true);
-                        try {
-                            const connectResult = await context?.extensionRpc?.sendRequest(
-                                ConnectToServerWebviewRequest.type,
-                                { profileId: matchingConnection.profileId },
-                            );
-
-                            if (connectResult?.isConnected && connectResult.ownerUri) {
-                                setOwnerUri(connectResult.ownerUri);
-                                setAvailableConnections((prev) =>
-                                    prev.map((conn) =>
-                                        conn.profileId === matchingConnection.profileId
-                                            ? { ...conn, isConnected: true }
-                                            : conn,
-                                    ),
-                                );
-                            } else {
-                                console.error(
-                                    connectResult?.errorMessage ||
-                                        locConstants.dataTierApplication.connectionFailed,
-                                );
-                            }
-                        } catch (error) {
-                            const errorMsg = error instanceof Error ? error.message : String(error);
-                            console.error(
-                                `${locConstants.dataTierApplication.connectionFailed}: ${errorMsg}`,
-                            );
-                        } finally {
-                            setIsConnecting(false);
-                        }
-                    } else {
-                        // Already connected, fetch ownerUri to ensure we have it
-                        try {
-                            const connectResult = await context?.extensionRpc?.sendRequest(
-                                ConnectToServerWebviewRequest.type,
-                                { profileId: matchingConnection.profileId },
-                            );
-
-                            if (connectResult?.ownerUri) {
-                                setOwnerUri(connectResult.ownerUri);
-                            }
-                        } catch (error) {
-                            console.error("Failed to get ownerUri:", error);
-                        }
                     }
                 }
             }
         } catch (error) {
-            console.error("Failed to load connections:", error);
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            console.error(`${locConstants.dataTierApplication.connectionFailed}: ${errorMsg}`);
+        } finally {
+            setIsConnecting(false);
         }
     };
 

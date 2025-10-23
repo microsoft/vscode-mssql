@@ -22,6 +22,7 @@ import {
     ExportBacpacWebviewRequest,
     ExtractDacpacWebviewRequest,
     ImportBacpacWebviewRequest,
+    InitializeConnectionWebviewRequest,
     ListConnectionsWebviewRequest,
     ListDatabasesWebviewRequest,
     ValidateDatabaseNameWebviewRequest,
@@ -1388,6 +1389,303 @@ suite("DataTierApplicationWebviewController", () => {
 
             expect(result.isValid).to.be.false;
             expect(result.errorMessage).to.include("No active connection");
+        });
+    });
+
+    suite("Initialize Connection", () => {
+        let connStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
+
+        setup(() => {
+            connStoreStub = sandbox.createStubInstance(ConnectionStore);
+            sandbox.stub(connectionManagerStub, "connectionStore").get(() => connStoreStub);
+        });
+
+        test("returns all connections when no initial state provided", async () => {
+            // Setup
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const recentConns: any[] = [
+                {
+                    id: "profile1",
+                    server: "server1",
+                    database: "db1",
+                    authenticationType: 2, // SqlLogin
+                    user: "sa",
+                },
+            ];
+
+            connStoreStub.getRecentlyUsedConnections.returns(recentConns);
+            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({}));
+
+            createController();
+
+            // Execute
+            const handler = requestHandlers.get(InitializeConnectionWebviewRequest.type.method);
+            expect(handler).to.exist;
+
+            const result = await handler!({});
+
+            // Verify
+            expect(result).to.exist;
+            expect(result.connections).to.have.lengthOf(1);
+            expect(result.autoConnected).to.be.false;
+            expect(result.selectedConnection).to.be.undefined;
+        });
+
+        test("matches and returns connection by profile ID", async () => {
+            // Setup
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const recentConns: any[] = [
+                {
+                    id: "profile1",
+                    server: "server1",
+                    database: "db1",
+                    authenticationType: 2, // SqlLogin
+                },
+                {
+                    id: "profile2",
+                    server: "server2",
+                    authenticationType: 1, // Integrated
+                },
+            ];
+
+            connStoreStub.getRecentlyUsedConnections.returns(recentConns);
+            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({}));
+
+            createController();
+
+            // Execute
+            const handler = requestHandlers.get(InitializeConnectionWebviewRequest.type.method);
+            const result = await handler!({
+                initialProfileId: "profile2",
+            });
+
+            // Verify
+            expect(result.selectedConnection).to.exist;
+            expect(result.selectedConnection?.server).to.equal("server2");
+            expect(result.autoConnected).to.be.false;
+        });
+
+        test("matches connection by server and database names", async () => {
+            // Setup
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const recentConns: any[] = [
+                {
+                    id: "profile1",
+                    server: "server1",
+                    database: "db1",
+                    authenticationType: 2, // SqlLogin
+                },
+                {
+                    id: "profile2",
+                    server: "testserver",
+                    database: "testdb",
+                    authenticationType: 1, // Integrated
+                },
+            ];
+
+            connStoreStub.getRecentlyUsedConnections.returns(recentConns);
+            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({}));
+
+            createController();
+
+            // Execute
+            const handler = requestHandlers.get(InitializeConnectionWebviewRequest.type.method);
+            const result = await handler!({
+                initialServerName: "testserver",
+                initialDatabaseName: "testdb",
+            });
+
+            // Verify
+            expect(result.selectedConnection).to.exist;
+            expect(result.selectedConnection?.server).to.equal("testserver");
+            expect(result.selectedConnection?.database).to.equal("testdb");
+        });
+
+        test("uses existing ownerUri when provided from Object Explorer", async () => {
+            // Setup
+            const testOwnerUri = "test-owner-uri";
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const recentConns: any[] = [
+                {
+                    id: "profile1",
+                    server: "server1",
+                    database: "db1",
+                    authenticationType: 2, // SqlLogin
+                },
+            ];
+
+            connStoreStub.getRecentlyUsedConnections.returns(recentConns);
+            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({}));
+
+            createController();
+
+            // Execute
+            const handler = requestHandlers.get(InitializeConnectionWebviewRequest.type.method);
+            const result = await handler!({
+                initialServerName: "server1",
+                initialOwnerUri: testOwnerUri,
+            });
+
+            // Verify
+            expect(result.selectedConnection).to.exist;
+            expect(result.ownerUri).to.equal(testOwnerUri);
+            expect(result.autoConnected).to.be.false; // Was already connected
+        });
+
+        test("auto-connects when matching connection is not active", async () => {
+            // Setup
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const recentConns: any[] = [
+                {
+                    id: "profile1",
+                    server: "server1",
+                    database: "db1",
+                    authenticationType: 2, // SqlLogin
+                    user: "sa",
+                },
+            ];
+
+            connStoreStub.getRecentlyUsedConnections.returns(recentConns);
+            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({}));
+            connectionManagerStub.getUriForConnection.returns("new-owner-uri");
+            connectionManagerStub.connect.resolves(true);
+
+            createController();
+
+            // Execute
+            const handler = requestHandlers.get(InitializeConnectionWebviewRequest.type.method);
+            const result = await handler!({
+                initialProfileId: "profile1",
+            });
+
+            // Verify
+            expect(result.selectedConnection).to.exist;
+            expect(result.autoConnected).to.be.true;
+            expect(result.ownerUri).to.equal("new-owner-uri");
+            expect(connectionManagerStub.connect).to.have.been.calledOnce;
+        });
+
+        test("returns error when auto-connect fails", async () => {
+            // Setup
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const recentConns: any[] = [
+                {
+                    id: "profile1",
+                    server: "server1",
+                    authenticationType: 2, // SqlLogin
+                },
+            ];
+
+            connStoreStub.getRecentlyUsedConnections.returns(recentConns);
+            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({}));
+            connectionManagerStub.connect.resolves(false);
+
+            createController();
+
+            // Execute
+            const handler = requestHandlers.get(InitializeConnectionWebviewRequest.type.method);
+            const result = await handler!({
+                initialProfileId: "profile1",
+            });
+
+            // Verify
+            expect(result.autoConnected).to.be.false;
+            expect(result.errorMessage).to.exist;
+        });
+
+        test("fetches ownerUri for already active connection", async () => {
+            // Setup
+            const activeOwnerUri = "active-owner-uri";
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const recentConns: any[] = [
+                {
+                    id: "profile1",
+                    server: "server1",
+                    database: "db1",
+                    authenticationType: 1, // Integrated
+                },
+            ];
+
+            connStoreStub.getRecentlyUsedConnections.returns(recentConns);
+            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({
+                [activeOwnerUri]: {
+                    credentials: recentConns[0],
+                    serverInfo: {},
+                },
+            }));
+            connectionManagerStub.getUriForConnection.returns(activeOwnerUri);
+
+            createController();
+
+            // Execute
+            const handler = requestHandlers.get(InitializeConnectionWebviewRequest.type.method);
+            const result = await handler!({
+                initialServerName: "server1",
+            });
+
+            // Verify
+            expect(result.selectedConnection).to.exist;
+            expect(result.ownerUri).to.equal(activeOwnerUri);
+            expect(result.autoConnected).to.be.false; // Already was connected
+        });
+
+        test("handles exception during initialization gracefully", async () => {
+            // Setup
+            connStoreStub.getRecentlyUsedConnections.throws(new Error("Store error"));
+
+            createController();
+
+            // Execute
+            const handler = requestHandlers.get(InitializeConnectionWebviewRequest.type.method);
+            expect(handler, "InitializeConnection handler should be registered").to.exist;
+
+            const result = await handler!({
+                initialProfileId: "profile1",
+            });
+
+            // Verify - when store fails, listConnections catches it and returns empty array
+            // initializeConnection then returns empty array with no match found
+            expect(result.connections).to.exist;
+            expect(result.connections).to.be.an("array").that.is.empty;
+            expect(result.autoConnected).to.be.false;
+            expect(result.selectedConnection).to.be.undefined;
+            // No error message is set because listConnections handles the error internally
+        });
+
+        test("prioritizes profile ID match over server name match", async () => {
+            // Setup
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const recentConns: any[] = [
+                {
+                    id: "profile1",
+                    server: "server1",
+                    database: "db1",
+                    authenticationType: 2, // SqlLogin
+                },
+                {
+                    id: "profile2",
+                    server: "server1",
+                    database: "db2",
+                    authenticationType: 1, // Integrated
+                },
+            ];
+
+            connStoreStub.getRecentlyUsedConnections.returns(recentConns);
+            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({}));
+
+            createController();
+
+            // Execute - both profile ID and server name match, profile ID should win
+            const handler = requestHandlers.get(InitializeConnectionWebviewRequest.type.method);
+            const result = await handler!({
+                initialProfileId: "profile2",
+                initialServerName: "server1",
+            });
+
+            // Verify - should match profile2 by ID, not profile1 by server
+            expect(result.selectedConnection).to.exist;
+            expect(result.selectedConnection?.profileId).to.equal("profile2");
+            expect(result.selectedConnection?.database).to.equal("db2");
         });
     });
 });

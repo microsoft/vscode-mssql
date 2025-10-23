@@ -241,6 +241,29 @@ export namespace ListConnectionsWebviewRequest {
 }
 
 /**
+ * Request to initialize connection based on initial state
+ * This handles auto-matching and auto-connecting if needed
+ */
+export namespace InitializeConnectionWebviewRequest {
+    export const type = new RequestType<
+        {
+            initialServerName?: string;
+            initialDatabaseName?: string;
+            initialOwnerUri?: string;
+            initialProfileId?: string;
+        },
+        {
+            connections: ConnectionProfile[];
+            selectedConnection?: ConnectionProfile;
+            ownerUri?: string;
+            autoConnected: boolean;
+            errorMessage?: string;
+        },
+        void
+    >("dataTierApplication/initializeConnection");
+}
+
+/**
  * Request to connect to a server from the webview
  */
 export namespace ConnectToServerWebviewRequest {
