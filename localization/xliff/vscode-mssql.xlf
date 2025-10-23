@@ -935,6 +935,9 @@
     <trans-unit id="++CODE++76475214b86cde3b17e547c917253368f60ab3fb43eb8f71dca4d4c45535c1c5">
       <source xml:lang="en">Create a SQL database in Fabric (Preview)</source>
     </trans-unit>
+    <trans-unit id="++CODE++c596645c9e18f8f49df67feda1d83d1015c9e4371593afaba2c24cedf1ae14b4">
+      <source xml:lang="en">Create a database from a .bacpac file</source>
+    </trans-unit>
     <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
       <source xml:lang="en">Create a new firewall rule</source>
     </trans-unit>
@@ -1069,8 +1072,8 @@
     <trans-unit id="++CODE++e1d68ffa03dfa562a04ba8039fc29b62f9e617556acba87a075a3a8924f621f6">
       <source xml:lang="en">Deploy DACPAC</source>
     </trans-unit>
-    <trans-unit id="++CODE++2040d5dee36e7b94b4968f840e0348a8420696a7535308551e566d865855248e">
-      <source xml:lang="en">Deploy a DACPAC to create or update a database</source>
+    <trans-unit id="++CODE++1642403d004fc160293e0464f1a9c0e1fdcff3e3674ba81cb2fbed23c4610739">
+      <source xml:lang="en">Deploy a data-tier application .dacpac file to an instance of SQL Server</source>
     </trans-unit>
     <trans-unit id="++CODE++97dc38d5949112e250523663a3556643b30754a83c8305adb6e79d88b13b200d">
       <source xml:lang="en">Deploy to Existing Database</source>
@@ -1415,8 +1418,8 @@
     <trans-unit id="++CODE++59be81f2f62e6ced348ccc806b1a50d9370c0f19a8bb5f7fbf8a801d4c93bdca">
       <source xml:lang="en">Export BACPAC</source>
     </trans-unit>
-    <trans-unit id="++CODE++4e09d71cea9a165eca6ffdf5c9f842291378212c10217bb9256d46a1d834ea70">
-      <source xml:lang="en">Export a BACPAC from an existing database</source>
+    <trans-unit id="++CODE++ac4a7f1b26c07b58805bc247b84f2cb8349fb9f206e4dcb2e3098cf508562332">
+      <source xml:lang="en">Export the schema and data from a database to the logical .bacpac file format</source>
     </trans-unit>
     <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
       <source xml:lang="en">Exporting BACPAC...</source>
@@ -1427,8 +1430,8 @@
     <trans-unit id="++CODE++09fb0b40c52653920efa7d90c989b0455616a837458b1690dd908a961ae768dc">
       <source xml:lang="en">Extract DACPAC</source>
     </trans-unit>
-    <trans-unit id="++CODE++5ef26bfab3ddc48b18c366bb422cf2c5b59f75b57101c43b3cfbabca3277f130">
-      <source xml:lang="en">Extract a DACPAC from an existing database</source>
+    <trans-unit id="++CODE++f86c7ef9f3f43395756fb5dbdf7f9c09cf9663ab86043982da835971f4ae29fb">
+      <source xml:lang="en">Extract a data-tier application .dacpac from an instance of SQL Server to a .dacpac file</source>
     </trans-unit>
     <trans-unit id="++CODE++e4c61f0d341293c441bab44693218614d6045d574d51221cd6a65d43ec0e04d4">
       <source xml:lang="en">Extracting DACPAC...</source>
@@ -1805,9 +1808,6 @@
     </trans-unit>
     <trans-unit id="++CODE++09b493255c6cc11aae4f73f97494b4d0123bb42869372d0a2182f0a324eb5ef5">
       <source xml:lang="en">Import BACPAC</source>
-    </trans-unit>
-    <trans-unit id="++CODE++17c4a34bd14be03daba0f0b8a032e4b8d3f6a818fc90eef8f2f026c575a18e63">
-      <source xml:lang="en">Import a BACPAC to create a new database</source>
     </trans-unit>
     <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
       <source xml:lang="en">Importance</source>
