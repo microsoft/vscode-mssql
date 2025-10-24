@@ -1546,6 +1546,9 @@
       <note>{0} is the tenant id
 {1} is the account name</note>
     </trans-unit>
+    <trans-unit id="++CODE++10b8baec7e7c3be69a945e7d6efbe3672d2a7a1b19642cd0867e8ea353335579">
+      <source xml:lang="en">Failed to load databases</source>
+    </trans-unit>
     <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
       <source xml:lang="en">Failed to open scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the open scmp operation</note>

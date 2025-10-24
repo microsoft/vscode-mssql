@@ -774,6 +774,7 @@
     "Exporting BACPAC...": "Exporting BACPAC...",
     "Operation failed": "Operation failed",
     "An unexpected error occurred": "An unexpected error occurred",
+    "Failed to load databases": "Failed to load databases",
     "DACPAC deployed successfully": "DACPAC deployed successfully",
     "DACPAC extracted successfully": "DACPAC extracted successfully",
     "BACPAC imported successfully": "BACPAC imported successfully",
