@@ -959,6 +959,18 @@ suite("DataTierApplicationWebviewController", () => {
                 .stub(connectionManagerStub, "activeConnections")
                 .get(() => mockActiveConnections);
 
+            // Stub getUriForConnection and isConnected for the test
+            connectionManagerStub.getUriForConnection.callsFake((profile) => {
+                if (
+                    profile.server === "server1.database.windows.net" &&
+                    profile.database === "db1"
+                ) {
+                    return "uri1";
+                }
+                return undefined;
+            });
+            connectionManagerStub.isConnected.callsFake((uri) => uri === "uri1");
+
             createController();
 
             const handler = requestHandlers.get(ListConnectionsWebviewRequest.type.method);
@@ -1112,6 +1124,7 @@ suite("DataTierApplicationWebviewController", () => {
         test("returns existing ownerUri when already connected", async () => {
             connectionStoreStub.getRecentlyUsedConnections.returns([mockConnections[0]]);
             connectionManagerStub.getUriForConnection.returns("existing-owner-uri");
+            connectionManagerStub.isConnected.withArgs("existing-owner-uri").returns(true);
 
             // Mock that connection already exists
             const mockActiveConnections = {
@@ -1204,6 +1217,15 @@ suite("DataTierApplicationWebviewController", () => {
                 .stub(connectionManagerStub, "activeConnections")
                 .get(() => mockActiveConnections);
 
+            // Stub getUriForConnection and isConnected
+            connectionManagerStub.getUriForConnection.callsFake((profile) => {
+                if (profile.server === "localhost" && profile.database === "master") {
+                    return "uri1";
+                }
+                return undefined;
+            });
+            connectionManagerStub.isConnected.callsFake((uri) => uri === "uri1");
+
             createController();
 
             const handler = requestHandlers.get(ListConnectionsWebviewRequest.type.method);
@@ -1234,6 +1256,15 @@ suite("DataTierApplicationWebviewController", () => {
             sandbox
                 .stub(connectionManagerStub, "activeConnections")
                 .get(() => mockActiveConnections);
+
+            // Stub getUriForConnection and isConnected
+            connectionManagerStub.getUriForConnection.callsFake((profile) => {
+                if (profile.server === "server2.database.windows.net") {
+                    return "uri1";
+                }
+                return undefined;
+            });
+            connectionManagerStub.isConnected.callsFake((uri) => uri === "uri1");
 
             createController();
 
@@ -1614,6 +1645,7 @@ suite("DataTierApplicationWebviewController", () => {
                 },
             }));
             connectionManagerStub.getUriForConnection.returns(activeOwnerUri);
+            connectionManagerStub.isConnected.withArgs(activeOwnerUri).returns(true);
 
             createController();
 
