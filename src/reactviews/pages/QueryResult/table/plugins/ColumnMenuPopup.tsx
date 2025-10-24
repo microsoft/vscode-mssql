@@ -21,13 +21,14 @@ import {
     Dismiss16Regular,
     DismissCircle16Regular,
     Search16Regular,
+    TableResizeColumn16Filled,
     TextSortAscending16Regular,
     TextSortDescending16Regular,
 } from "@fluentui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { locConstants } from "../../../../common/locConstants";
 import { SortProperties } from "../../../../../sharedInterfaces/queryResult";
-import { altShiftOKeyboardShortcut } from "../../../../common/constants";
+import { altShiftOKeyboardShortcut, altShiftSKeyboardShortcut } from "../../../../common/constants";
 
 export type FilterValue = string | undefined;
 
@@ -56,6 +57,7 @@ interface ColumnMenuPopupProps {
     onSortAscending: () => Promise<void> | void;
     onSortDescending: () => Promise<void> | void;
     onClearSort: () => Promise<void> | void;
+    onResize: () => void;
     currentSort: SortProperties;
 }
 
@@ -243,6 +245,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
     onSortAscending,
     onSortDescending,
     onClearSort,
+    onResize,
     currentSort = SortProperties.NONE,
 }) => {
     const styles = useStyles();
@@ -594,7 +597,30 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                         </Button>
                     </Toolbar>
                 </div>
-
+                <div className={styles.divider} />
+                <Toolbar vertical className={styles.sortButtons}>
+                    <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<TableResizeColumn16Filled />}
+                        title={locConstants.queryResult.resize}
+                        onClick={() => {
+                            if (onResize) {
+                                onResize();
+                            }
+                        }}
+                        aria-label={locConstants.queryResult.resize}>
+                        {locConstants.queryResult.resize}
+                        <span
+                            style={{
+                                fontWeight: "100",
+                                marginLeft: "auto",
+                                paddingLeft: "6px",
+                            }}>
+                            {altShiftSKeyboardShortcut}
+                        </span>
+                    </Button>
+                </Toolbar>
                 <div className={styles.divider} />
                 <div className={styles.section}>
                     <Text className={styles.sectionHeading}>{locConstants.queryResult.filter}</Text>

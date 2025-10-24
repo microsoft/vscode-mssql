@@ -22,7 +22,7 @@ import { HeaderMenu } from "./headerFilter.plugin";
 import {
     getNextFocusableElementOutside,
     getPreviousFocusableElementOutside,
-    isMetaKeyPressed,
+    isMetaOrCtrlKeyPressed,
 } from "../../../../common/utils";
 
 export interface ICellSelectionModelOptions {
@@ -56,6 +56,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         private context: QueryResultReactProvider,
         private uri: string,
         private resultSetSummary: ResultSetSummary,
+        private gridId: string,
         private headerFilter?: HeaderMenu<T>,
     ) {
         this.options = mixin(this.options, defaults, false);
@@ -211,7 +212,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
                         rowCount - 1,
                         columnIndex,
                     );
-                } else if (await isMetaKeyPressed(e)) {
+                } else if (isMetaOrCtrlKeyPressed(e)) {
                     /**
                      * If the user clicks on a column header while holding down CTRL key, we select/deselect the entire column.
                      */
@@ -437,7 +438,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
                 } else {
                     newlySelectedRange = new Slick.Range(args.row, 1, args.row, columns.length - 1);
                 }
-            } else if (await isMetaKeyPressed(e)) {
+            } else if (isMetaOrCtrlKeyPressed(e)) {
                 let isCurrentRowAlreadySelected = selectedRanges.some(
                     (range) => range.fromRow <= args.row && range.toRow >= args.row,
                 );
@@ -491,7 +492,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
                 } else {
                     newlySelectedRange = new Slick.Range(args.row, args.cell, args.row, args.cell);
                 }
-            } else if (await isMetaKeyPressed(e)) {
+            } else if (isMetaOrCtrlKeyPressed(e)) {
                 const isCurrentCellAlreadySelected = selectedRanges.some(
                     (range) =>
                         range.fromRow <= args.row &&
@@ -603,7 +604,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
         const keyCode = e.code;
-        const metaOrCtrlPressed = await isMetaKeyPressed(e);
+        const metaOrCtrlPressed = isMetaOrCtrlKeyPressed(e);
         let isHandled = false;
 
         // Range selection via Shift + Arrow (no Alt, no Meta/Ctrl)
@@ -680,6 +681,12 @@ export class CellSelectionModel<T extends Slick.SlickData>
         // Toggle sort (Shift+Alt+O)
         if (e.shiftKey && e.altKey && keyCode === KeyCode.KeyO && !metaOrCtrlPressed) {
             await this.toggleSortForActiveCell();
+            isHandled = true;
+        }
+
+        // Resize column (Alt+Shift+S)
+        if (e.altKey && e.shiftKey && keyCode === KeyCode.KeyS && !metaOrCtrlPressed) {
+            await this.resizeColumnForActiveCell();
             isHandled = true;
         }
 
@@ -823,6 +830,33 @@ export class CellSelectionModel<T extends Slick.SlickData>
         if (active && this.headerFilter) {
             await this.headerFilter.toggleSortForColumn(active.cell);
         }
+    }
+
+    private async resizeColumnForActiveCell(): Promise<void> {
+        const active = this.grid.getActiveCell();
+        if (!active) {
+            return;
+        }
+
+        const columns = this.grid.getColumns();
+        const column = columns[active.cell];
+        if (!column) {
+            return;
+        }
+
+        this.context.openResizeDialog({
+            open: true,
+            columnId: column.id ?? "",
+            columnName: column.name ?? "",
+            initialWidth: column.width ?? 0,
+            gridId: this.gridId,
+            onDismiss: () => {
+                this.headerFilter?.resizeCancel();
+            },
+            onSubmit: (newWidth: number) => {
+                this.headerFilter?.resizeColumn(column.id ?? "", newWidth);
+            },
+        });
     }
 
     public async updateSummaryText(ranges?: Slick.Range[]): Promise<void> {

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { isMetaKeyPressed } from "../../../../common/utils";
+import { isMetaOrCtrlKeyPressed } from "../../../../common/utils";
 import { mixin } from "../objects";
 
 const defaultOptions: ICellRangeSelectorOptions = {
@@ -157,7 +157,7 @@ export class CellRangeSelector<T extends Slick.SlickData> implements ICellRangeS
             dd.range.end.row,
             dd.range.end.cell,
         );
-        if (isMetaKeyPressed(e)) {
+        if (isMetaOrCtrlKeyPressed(e)) {
             this.onAppendCellRangeSelected.notify(newRange);
         } else {
             this.onCellRangeSelected.notify(newRange);
