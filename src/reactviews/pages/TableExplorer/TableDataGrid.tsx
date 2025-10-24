@@ -346,6 +346,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     autoCommitEdit: false,
                     editable: true,
                     enableAutoResize: true,
+                    autoResize: {
+                        container: "#grid-container",
+                        calculateAvailableSizeBy: "container",
+                    },
                     forceFitColumns: true,
                     enableColumnReorder: false,
                     enableHeaderMenu: false,
@@ -385,9 +389,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     .table-explorer-grid-container {
                         margin-bottom: 60px;
                         padding-bottom: 20px;
-                        width: 100%;
+                        width: 100vw;
                         max-width: 100%;
-                        overflow: hidden;
                     }
 
                     #tableExplorerGrid {
@@ -413,7 +416,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                     /* Reposition pagination footer to the left */
                     #pager {
-                        width: 97%;
+                        width: 100%;
                         max-width: 100%;
                         box-sizing: border-box;
                     }
@@ -438,7 +441,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     }
                     `}
                 </style>
-                <div className={`table-explorer-grid-container ${isDarkMode ? "dark-mode" : ""}`}>
+                <div
+                    id="grid-container"
+                    className={`table-explorer-grid-container ${isDarkMode ? "dark-mode" : ""}`}>
                     <SlickgridReact
                         gridId="tableExplorerGrid"
                         columns={columns}
