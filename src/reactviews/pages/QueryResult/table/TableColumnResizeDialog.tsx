@@ -16,7 +16,7 @@ import {
 } from "@fluentui/react-components";
 import { useEffect, useState } from "react";
 import { locConstants } from "../../../common/locConstants";
-import { MAX_COLUMN_WIDTH_PX as maxWidth, MIN_COLUMN_WIDTH as minWidth } from "../table/table";
+import { MAX_COLUMN_WIDTH_PX as maxWidth, MIN_COLUMN_WIDTH_PX as minWidth } from "../table/table";
 
 interface TableColumnResizeDialogProps {
     open: boolean;

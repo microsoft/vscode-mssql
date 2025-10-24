@@ -37,7 +37,7 @@ function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
 }
 
 export const MAX_COLUMN_WIDTH_PX = 400;
-export const MIN_COLUMN_WIDTH = 30;
+export const MIN_COLUMN_WIDTH_PX = 30;
 export const ACTIONBAR_WIDTH_PX = 30;
 export const TABLE_ALIGN_PX = 7;
 export const SCROLLBAR_PX = 15;

@@ -22,7 +22,7 @@ import { HeaderMenu } from "./headerFilter.plugin";
 import {
     getNextFocusableElementOutside,
     getPreviousFocusableElementOutside,
-    isMetaKeyPressed,
+    isMetaOrCtrlKeyPressed,
 } from "../../../../common/utils";
 
 export interface ICellSelectionModelOptions {
@@ -212,7 +212,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
                         rowCount - 1,
                         columnIndex,
                     );
-                } else if (await isMetaKeyPressed(e)) {
+                } else if (isMetaOrCtrlKeyPressed(e)) {
                     /**
                      * If the user clicks on a column header while holding down CTRL key, we select/deselect the entire column.
                      */
@@ -438,7 +438,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
                 } else {
                     newlySelectedRange = new Slick.Range(args.row, 1, args.row, columns.length - 1);
                 }
-            } else if (await isMetaKeyPressed(e)) {
+            } else if (isMetaOrCtrlKeyPressed(e)) {
                 let isCurrentRowAlreadySelected = selectedRanges.some(
                     (range) => range.fromRow <= args.row && range.toRow >= args.row,
                 );
@@ -492,7 +492,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
                 } else {
                     newlySelectedRange = new Slick.Range(args.row, args.cell, args.row, args.cell);
                 }
-            } else if (await isMetaKeyPressed(e)) {
+            } else if (isMetaOrCtrlKeyPressed(e)) {
                 const isCurrentCellAlreadySelected = selectedRanges.some(
                     (range) =>
                         range.fromRow <= args.row &&
@@ -604,7 +604,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
         const keyCode = e.code;
-        const metaOrCtrlPressed = await isMetaKeyPressed(e);
+        const metaOrCtrlPressed = isMetaOrCtrlKeyPressed(e);
         let isHandled = false;
 
         // Range selection via Shift + Arrow (no Alt, no Meta/Ctrl)
