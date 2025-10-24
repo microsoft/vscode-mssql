@@ -32,6 +32,7 @@ export enum TelemetryViews {
     Connection = "Connection",
     Credential = "Credential",
     ConnectionManager = "ConnectionManager",
+    DataTierApplication = "DataTierApplication",
 }
 
 export enum TelemetryActions {
@@ -153,6 +154,10 @@ export enum TelemetryActions {
     LoadFabricWorkspaces = "LoadFabricWorkspaces",
     LoadDatabases = "LoadDatabases",
     GetSqlAnalyticsEndpointUrlFromFabric = "GetSqlAnalyticsEndpointUrlFromFabric",
+    DeployDacpac = "DeployDacpac",
+    ExtractDacpac = "ExtractDacpac",
+    ImportBacpac = "ImportBacpac",
+    ExportBacpac = "ExportBacpac",
 }
 
 /**
