@@ -684,8 +684,8 @@ export class CellSelectionModel<T extends Slick.SlickData>
             isHandled = true;
         }
 
-        // Resize column (Shift+Alt+S)
-        if (keyCode === KeyCode.KeyS && e.shiftKey && e.altKey && !metaOrCtrlPressed) {
+        // Resize column (Alt+Shift+S)
+        if (e.altKey && e.shiftKey && keyCode === KeyCode.KeyS && !metaOrCtrlPressed) {
             await this.resizeColumnForActiveCell();
             isHandled = true;
         }
