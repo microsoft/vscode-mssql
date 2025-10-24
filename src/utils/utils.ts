@@ -141,3 +141,16 @@ export function parseEnum<T extends Record<string, string | number>>(
 
     return undefined;
 }
+
+/**
+ * Removes all properties with undefined values from the given object.  Null values are kept.
+ * @returns a Partial of the original object type with only defined (including null) properties.
+ */
+export function removeUndefinedProperties<T extends object>(source: T): Partial<T> {
+    if (!source) {
+        return {};
+    }
+
+    const entries = Object.entries(source).filter(([_key, value]) => value !== undefined);
+    return Object.fromEntries(entries) as Partial<T>;
+}

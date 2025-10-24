@@ -5,7 +5,7 @@
 -   Do not edit application/source files unless the refactor demands it. Confirm before editing files outside of /test/unit, and justify why you need to make those changes.
 -   Use Sinon, not TypeMoq. If easily possible, replace TypeMoq mocks/stubs/helpers with Sinon equivalents.
 -   Use a Sinon sandbox (setup/teardown with sinon.createSandbox()); keep helper closures (e.g., createServer) inside setup where the
-    sandbox is created.
+    sandbox is created. Similarly, let the teardown handle all the stub restores wherever possible; avoid manual restore() calls in tests unless the test design needs the stub behavior changed.
 -   Default to chai.expect; when checking Sinon interactions, use sinon-chai.
 -   Avoid Object.defineProperty hacks and (if possible) fake/partial plain objects; use sandbox.createStubInstance(type) and sandbox.stub(obj, 'prop').value(...).
 -   Add shared Sinon helpers to test/unit/utils.ts when they’ll be reused.

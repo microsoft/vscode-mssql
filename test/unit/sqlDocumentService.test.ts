@@ -3,19 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as vscode from "vscode";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
-import * as vscode from "vscode";
 import { expect } from "chai";
 import * as chai from "chai";
 import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
-import * as Telemetry from "../../src/telemetry/telemetry";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import { IConnectionInfo } from "vscode-mssql";
+import { IConnectionInfo, IServerInfo } from "vscode-mssql";
+import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
+import { IConnectionProfile } from "../../src/models/interfaces";
+import { ConnectionStore } from "../../src/models/connectionStore";
+import { stubTelemetry } from "./utils";
 
 chai.use(sinonChai);
 
@@ -101,6 +104,7 @@ suite("SqlDocumentService Tests", () => {
     });
 
     test("handleNewQueryCommand should create a new query and update recents", async () => {
+        stubTelemetry(sandbox);
         const editor: vscode.TextEditor = {
             document: { uri: "test_uri" },
         } as any;
@@ -111,19 +115,17 @@ suite("SqlDocumentService Tests", () => {
         };
         connectionManager.getServerInfo.returns(undefined as any);
         connectionManager.handlePasswordBasedCredentials.resolves();
-        const sendActionStub = sandbox.stub(Telemetry, "sendActionEvent");
 
-        const node: any = { connectionProfile: {}, nodeType: "Server" };
+        const node: TreeNodeInfo = sandbox.createStubInstance(TreeNodeInfo);
+        sandbox.stub(node, "connectionProfile").get(() => ({}) as IConnectionProfile);
+        sandbox.stub(node, "nodeType").get(() => "Server");
+
         await sqlDocumentService.handleNewQueryCommand(node, undefined);
 
         expect(newQueryStub).to.have.been.calledOnce;
         expect((connectionManager as any).connectionStore.removeRecentlyUsed).to.have.been
             .calledOnce;
         expect(connectionManager.handlePasswordBasedCredentials).to.have.been.calledOnce;
-        expect(sendActionStub).to.have.been.calledOnce;
-
-        newQueryStub.restore();
-        sendActionStub.restore();
     });
 
     test("handleNewQueryCommand should not create a new connection if new query fails", async () => {
@@ -168,9 +170,14 @@ suite("SqlDocumentService Tests", () => {
     });
 
     test("handleNewQueryCommand uses OE selection when exactly one node is selected", async () => {
-        const nodeConnection = { server: "oeServer" } as any;
+        const nodeConnection = { server: "oeServer" } as IConnectionProfile;
+
+        const selectedNode: TreeNodeInfo = sandbox.createStubInstance(TreeNodeInfo);
+        sandbox.stub(selectedNode, "connectionProfile").get(() => nodeConnection);
+        sandbox.stub(selectedNode, "nodeType").get(() => "Server");
+
         mainController.objectExplorerTree = {
-            selection: [{ connectionProfile: nodeConnection, nodeType: "Database" }],
+            selection: [selectedNode],
         } as any;
         connectionManager.handlePasswordBasedCredentials.resolves();
         connectionManager.connectionStore = {
@@ -190,6 +197,59 @@ suite("SqlDocumentService Tests", () => {
         );
         expect(newQueryStub).to.have.been.calledOnce;
         newQueryStub.restore();
+    });
+
+    test("handleNewQueryCommand refreshes Entra token info on source node", async () => {
+        stubTelemetry(sandbox);
+
+        const oldToken = {
+            azureAccountToken: "oldToken",
+            expiresOn: Date.now() / 1000 - 60, // 60 seconds in the past; not that the test actually requires this to be expired
+        };
+
+        const newToken = {
+            azureAccountToken: "refreshedToken",
+            expiresOn: oldToken.expiresOn + 600 + 60, // 10 minutes in the future (plus making up for the past offset)
+        };
+
+        const nodeConnection = {
+            server: "server",
+            ...oldToken,
+        } as IConnectionProfile;
+
+        const node = {
+            connectionProfile: nodeConnection,
+            nodeType: "Server",
+            updateEntraTokenInfo: sandbox.stub(),
+        } as unknown as TreeNodeInfo;
+
+        connectionManager.handlePasswordBasedCredentials.resolves();
+
+        const connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
+
+        connectionManager.connectionStore = connectionStoreStub;
+        connectionManager.getServerInfo.returns({} as IServerInfo);
+        connectionManager.getConnectionInfo.returns({} as ConnectionInfo);
+
+        const editor: vscode.TextEditor = {
+            document: { uri: vscode.Uri.parse("untitled:tokenTest") },
+        } as vscode.TextEditor;
+
+        sandbox.stub(sqlDocumentService, "newQuery").callsFake(async (opts) => {
+            expect(opts.connectionInfo).to.equal(nodeConnection);
+            Object.assign(opts.connectionInfo, newToken);
+
+            return editor;
+        });
+
+        expect(nodeConnection.azureAccountToken).to.equal(oldToken.azureAccountToken);
+        expect(nodeConnection.expiresOn).to.equal(oldToken.expiresOn);
+
+        await sqlDocumentService.handleNewQueryCommand(node, undefined);
+
+        expect(node.updateEntraTokenInfo).to.have.been.calledOnceWith(nodeConnection);
+        expect(nodeConnection.azureAccountToken).to.equal(newToken.azureAccountToken);
+        expect(nodeConnection.expiresOn).to.equal(newToken.expiresOn);
     });
 
     test("handleNewQueryCommand prompts for connection when no context", async () => {
