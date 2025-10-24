@@ -40,6 +40,8 @@ import {
 } from "../sharedInterfaces/dataTierApplication";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { ListDatabasesRequest } from "../models/contracts/connection";
+import { startActivity } from "../telemetry/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 /**
  * Controller for the Data-tier Application webview
@@ -242,6 +244,15 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
     private async handleDeployDacpac(
         params: DeployDacpacParams,
     ): Promise<DataTierApplicationResult> {
+        const activity = startActivity(
+            TelemetryViews.DataTierApplication,
+            TelemetryActions.DeployDacpac,
+            undefined,
+            {
+                isNewDatabase: params.isNewDatabase.toString(),
+            },
+        );
+
         try {
             const result = await this.dacFxService.deployDacpac(
                 params.packageFilePath,
@@ -258,13 +269,35 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             };
 
             if (result.success) {
+                activity.end(ActivityStatus.Succeeded, {
+                    databaseName: params.databaseName,
+                });
                 this.dialogResult.resolve(appResult);
                 // Don't dispose immediately to allow user to see success message
+            } else {
+                activity.endFailed(
+                    new Error(result.errorMessage || "Unknown error"),
+                    false,
+                    undefined,
+                    undefined,
+                    {
+                        databaseName: params.databaseName,
+                    },
+                );
             }
 
             return appResult;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
+            activity.endFailed(
+                error instanceof Error ? error : new Error(errorMessage),
+                false,
+                undefined,
+                undefined,
+                {
+                    databaseName: params.databaseName,
+                },
+            );
             return {
                 success: false,
                 errorMessage: errorMessage,
@@ -278,6 +311,16 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
     private async handleExtractDacpac(
         params: ExtractDacpacParams,
     ): Promise<DataTierApplicationResult> {
+        const activity = startActivity(
+            TelemetryViews.DataTierApplication,
+            TelemetryActions.ExtractDacpac,
+            undefined,
+            {
+                hasApplicationName: (!!params.applicationName).toString(),
+                hasApplicationVersion: (!!params.applicationVersion).toString(),
+            },
+        );
+
         try {
             const result = await this.dacFxService.extractDacpac(
                 params.databaseName,
@@ -295,12 +338,34 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             };
 
             if (result.success) {
+                activity.end(ActivityStatus.Succeeded, {
+                    databaseName: params.databaseName,
+                });
                 this.dialogResult.resolve(appResult);
+            } else {
+                activity.endFailed(
+                    new Error(result.errorMessage || "Unknown error"),
+                    false,
+                    undefined,
+                    undefined,
+                    {
+                        databaseName: params.databaseName,
+                    },
+                );
             }
 
             return appResult;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
+            activity.endFailed(
+                error instanceof Error ? error : new Error(errorMessage),
+                false,
+                undefined,
+                undefined,
+                {
+                    databaseName: params.databaseName,
+                },
+            );
             return {
                 success: false,
                 errorMessage: errorMessage,
@@ -314,6 +379,11 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
     private async handleImportBacpac(
         params: ImportBacpacParams,
     ): Promise<DataTierApplicationResult> {
+        const activity = startActivity(
+            TelemetryViews.DataTierApplication,
+            TelemetryActions.ImportBacpac,
+        );
+
         try {
             const result = await this.dacFxService.importBacpac(
                 params.packageFilePath,
@@ -329,12 +399,34 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             };
 
             if (result.success) {
+                activity.end(ActivityStatus.Succeeded, {
+                    databaseName: params.databaseName,
+                });
                 this.dialogResult.resolve(appResult);
+            } else {
+                activity.endFailed(
+                    new Error(result.errorMessage || "Unknown error"),
+                    false,
+                    undefined,
+                    undefined,
+                    {
+                        databaseName: params.databaseName,
+                    },
+                );
             }
 
             return appResult;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
+            activity.endFailed(
+                error instanceof Error ? error : new Error(errorMessage),
+                false,
+                undefined,
+                undefined,
+                {
+                    databaseName: params.databaseName,
+                },
+            );
             return {
                 success: false,
                 errorMessage: errorMessage,
@@ -348,6 +440,11 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
     private async handleExportBacpac(
         params: ExportBacpacParams,
     ): Promise<DataTierApplicationResult> {
+        const activity = startActivity(
+            TelemetryViews.DataTierApplication,
+            TelemetryActions.ExportBacpac,
+        );
+
         try {
             const result = await this.dacFxService.exportBacpac(
                 params.databaseName,
@@ -363,12 +460,34 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             };
 
             if (result.success) {
+                activity.end(ActivityStatus.Succeeded, {
+                    databaseName: params.databaseName,
+                });
                 this.dialogResult.resolve(appResult);
+            } else {
+                activity.endFailed(
+                    new Error(result.errorMessage || "Unknown error"),
+                    false,
+                    undefined,
+                    undefined,
+                    {
+                        databaseName: params.databaseName,
+                    },
+                );
             }
 
             return appResult;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
+            activity.endFailed(
+                error instanceof Error ? error : new Error(errorMessage),
+                false,
+                undefined,
+                undefined,
+                {
+                    databaseName: params.databaseName,
+                },
+            );
             return {
                 success: false,
                 errorMessage: errorMessage,

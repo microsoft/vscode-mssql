@@ -41,5 +41,6 @@
     },
     "[css]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+    },
+    "vscode-nmake-tools.workspaceBuildDirectories": ["."]
 }
