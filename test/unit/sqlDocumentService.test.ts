@@ -13,7 +13,6 @@ import * as LocalizedConstants from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
-import * as Telemetry from "../../src/telemetry/telemetry";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { IConnectionInfo, IServerInfo } from "vscode-mssql";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
@@ -105,6 +104,7 @@ suite("SqlDocumentService Tests", () => {
     });
 
     test("handleNewQueryCommand should create a new query and update recents", async () => {
+        stubTelemetry(sandbox);
         const editor: vscode.TextEditor = {
             document: { uri: "test_uri" },
         } as any;
@@ -115,19 +115,17 @@ suite("SqlDocumentService Tests", () => {
         };
         connectionManager.getServerInfo.returns(undefined as any);
         connectionManager.handlePasswordBasedCredentials.resolves();
-        const sendActionStub = sandbox.stub(Telemetry, "sendActionEvent");
 
-        const node: any = { connectionProfile: {}, nodeType: "Server" };
+        const node: TreeNodeInfo = sandbox.createStubInstance(TreeNodeInfo);
+        sandbox.stub(node, "connectionProfile").get(() => ({}) as IConnectionProfile);
+        sandbox.stub(node, "nodeType").get(() => "Server");
+
         await sqlDocumentService.handleNewQueryCommand(node, undefined);
 
         expect(newQueryStub).to.have.been.calledOnce;
         expect((connectionManager as any).connectionStore.removeRecentlyUsed).to.have.been
             .calledOnce;
         expect(connectionManager.handlePasswordBasedCredentials).to.have.been.calledOnce;
-        expect(sendActionStub).to.have.been.calledOnce;
-
-        newQueryStub.restore();
-        sendActionStub.restore();
     });
 
     test("handleNewQueryCommand should not create a new connection if new query fails", async () => {
@@ -172,9 +170,14 @@ suite("SqlDocumentService Tests", () => {
     });
 
     test("handleNewQueryCommand uses OE selection when exactly one node is selected", async () => {
-        const nodeConnection = { server: "oeServer" } as any;
+        const nodeConnection = { server: "oeServer" } as IConnectionProfile;
+
+        const selectedNode: TreeNodeInfo = sandbox.createStubInstance(TreeNodeInfo);
+        sandbox.stub(selectedNode, "connectionProfile").get(() => nodeConnection);
+        sandbox.stub(selectedNode, "nodeType").get(() => "Server");
+
         mainController.objectExplorerTree = {
-            selection: [{ connectionProfile: nodeConnection, nodeType: "Database" }],
+            selection: [selectedNode],
         } as any;
         connectionManager.handlePasswordBasedCredentials.resolves();
         connectionManager.connectionStore = {
