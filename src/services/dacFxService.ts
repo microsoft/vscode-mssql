@@ -44,16 +44,16 @@ export class DacFxService implements mssql.IDacFxService {
     public extractDacpac(
         databaseName: string,
         packageFilePath: string,
-        applicationName: string,
-        applicationVersion: string,
+        applicationName: string | undefined,
+        applicationVersion: string | undefined,
         ownerUri: string,
         taskExecutionMode: TaskExecutionMode,
     ): Thenable<mssql.DacFxResult> {
         const params: mssql.ExtractParams = {
             databaseName: databaseName,
             packageFilePath: packageFilePath,
-            applicationName: applicationName,
-            applicationVersion: applicationVersion,
+            applicationName: applicationName || databaseName,
+            applicationVersion: applicationVersion || "1.0.0.0",
             ownerUri: ownerUri,
             extractTarget: ExtractTarget.dacpac,
             taskExecutionMode: taskExecutionMode,
