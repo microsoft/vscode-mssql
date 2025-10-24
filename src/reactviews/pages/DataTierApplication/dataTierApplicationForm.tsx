@@ -156,6 +156,15 @@ export const DataTierApplicationForm = () => {
     // Load available connections when component mounts
     useEffect(() => {
         void loadConnections();
+
+        // Cleanup function - cancel ongoing operations when component unmounts
+        return () => {
+            if (isConnecting || isOperationInProgress) {
+                void context?.extensionRpc?.sendNotification(
+                    CancelDataTierApplicationWebviewNotification.type,
+                );
+            }
+        };
     }, []);
 
     // Load available databases when server or operation changes
@@ -199,15 +208,24 @@ export const DataTierApplicationForm = () => {
 
                     // Show error if auto-connect failed
                     if (result.errorMessage && !result.autoConnected) {
-                        console.error(
-                            `${locConstants.dataTierApplication.connectionFailed}: ${result.errorMessage}`,
-                        );
+                        setValidationMessages((prev) => ({
+                            ...prev,
+                            connection: {
+                                message: `${locConstants.dataTierApplication.connectionFailed}: ${result.errorMessage}`,
+                                severity: "error",
+                            },
+                        }));
                     }
                 }
             }
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
-            console.error(`${locConstants.dataTierApplication.connectionFailed}: ${errorMsg}`);
+            setValidationMessages({
+                connection: {
+                    message: `${locConstants.dataTierApplication.connectionFailed}: ${errorMsg}`,
+                    severity: "error",
+                },
+            });
         } finally {
             setIsConnecting(false);
         }
@@ -256,24 +274,56 @@ export const DataTierApplicationForm = () => {
                             conn.profileId === profileId ? { ...conn, isConnected: false } : conn,
                         ),
                     );
-                    console.error(
-                        result?.errorMessage || locConstants.dataTierApplication.connectionFailed,
-                    );
+                    // Show error message to user
+                    const errorMsg =
+                        result?.errorMessage || locConstants.dataTierApplication.connectionFailed;
+                    setValidationMessages({
+                        connection: {
+                            message: errorMsg,
+                            severity: "error",
+                        },
+                    });
                 }
             } else {
-                // Already connected, just need to get the ownerUri
+                // Already connected, verify connection state and get the ownerUri
                 const result = await context?.extensionRpc?.sendRequest(
                     ConnectToServerWebviewRequest.type,
                     { profileId },
                 );
 
-                if (result?.ownerUri) {
+                if (result?.isConnected && result.ownerUri) {
                     setOwnerUri(result.ownerUri);
+                    // Databases will be loaded automatically via useEffect
+                } else {
+                    // Connection is no longer valid - clear state
+                    setOwnerUri("");
+                    setAvailableDatabases([]);
+                    setDatabaseName("");
+                    // Mark connection as not connected
+                    setAvailableConnections((prev) =>
+                        prev.map((conn) =>
+                            conn.profileId === profileId ? { ...conn, isConnected: false } : conn,
+                        ),
+                    );
+                    // Show error message to user
+                    const errorMsg =
+                        result?.errorMessage || locConstants.dataTierApplication.connectionFailed;
+                    setValidationMessages({
+                        connection: {
+                            message: errorMsg,
+                            severity: "error",
+                        },
+                    });
                 }
             }
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
-            console.error(`${locConstants.dataTierApplication.connectionFailed}: ${errorMsg}`);
+            setValidationMessages({
+                connection: {
+                    message: `${locConstants.dataTierApplication.connectionFailed}: ${errorMsg}`,
+                    severity: "error",
+                },
+            });
         } finally {
             setIsConnecting(false);
         }
@@ -289,7 +339,14 @@ export const DataTierApplicationForm = () => {
                 setAvailableDatabases(result.databases);
             }
         } catch (error) {
-            console.error("Failed to load databases:", error);
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            setValidationMessages((prev) => ({
+                ...prev,
+                database: {
+                    message: `${locConstants.dataTierApplication.failedToLoadDatabases}: ${errorMsg}`,
+                    severity: "error",
+                },
+            }));
         }
     };
 
@@ -675,7 +732,13 @@ export const DataTierApplicationForm = () => {
                 </div>
 
                 <div className={classes.section}>
-                    <Field label={locConstants.dataTierApplication.serverLabel} required>
+                    <Field
+                        label={locConstants.dataTierApplication.serverLabel}
+                        required
+                        validationMessage={validationMessages.connection?.message}
+                        validationState={
+                            validationMessages.connection?.severity === "error" ? "error" : "none"
+                        }>
                         {isConnecting ? (
                             <Spinner
                                 size="tiny"
@@ -797,9 +860,13 @@ export const DataTierApplicationForm = () => {
                             <Field
                                 label={locConstants.dataTierApplication.databaseNameLabel}
                                 required
-                                validationMessage={validationMessages.databaseName?.message}
+                                validationMessage={
+                                    validationMessages.databaseName?.message ||
+                                    validationMessages.database?.message
+                                }
                                 validationState={
-                                    validationMessages.databaseName?.severity === "error"
+                                    validationMessages.databaseName?.severity === "error" ||
+                                    validationMessages.database?.severity === "error"
                                         ? "error"
                                         : "none"
                                 }>
@@ -828,9 +895,13 @@ export const DataTierApplicationForm = () => {
                             <Field
                                 label={locConstants.dataTierApplication.sourceDatabaseLabel}
                                 required
-                                validationMessage={validationMessages.databaseName?.message}
+                                validationMessage={
+                                    validationMessages.databaseName?.message ||
+                                    validationMessages.database?.message
+                                }
                                 validationState={
-                                    validationMessages.databaseName?.severity === "error"
+                                    validationMessages.databaseName?.severity === "error" ||
+                                    validationMessages.database?.severity === "error"
                                         ? "error"
                                         : "none"
                                 }>

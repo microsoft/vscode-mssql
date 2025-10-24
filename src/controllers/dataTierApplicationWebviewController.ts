@@ -467,13 +467,12 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
                 const displayName = this.buildConnectionDisplayName(profile);
                 const profileId = profile.id || `${profile.server}_${profile.database || ""}`;
 
-                // Check if this connection is active
-                const isConnected = Object.values(activeConnections).some(
-                    (activeConn) =>
-                        activeConn.credentials.server === profile.server &&
-                        (activeConn.credentials.database === profile.database ||
-                            (!activeConn.credentials.database && !profile.database)),
-                );
+                // Check if this connection is active and properly connected
+                const ownerUri = this.connectionManager.getUriForConnection(profile);
+                const isConnected =
+                    ownerUri && activeConnections[ownerUri]
+                        ? this.connectionManager.isConnected(ownerUri)
+                        : false;
 
                 connections.push({
                     displayName,
@@ -496,6 +495,12 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
                 const profileId = profile.id || `${profile.server}_${profile.database || ""}`;
 
                 if (existingProfileIds.has(profileId)) {
+                    continue;
+                }
+
+                // Only include if actually connected (not in connecting state or errored)
+                const ownerUri = this.connectionManager.getUriForConnection(profile);
+                if (!ownerUri || !this.connectionManager.isConnected(ownerUri)) {
                     continue;
                 }
 
@@ -715,20 +720,19 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
                 };
             }
 
-            // Check if already connected
+            // Check if already connected and the connection is valid
             let ownerUri = this.connectionManager.getUriForConnection(profile);
-            const existingConnection =
-                ownerUri && this.connectionManager.activeConnections[ownerUri];
-
-            if (existingConnection) {
+            if (ownerUri && this.connectionManager.isConnected(ownerUri)) {
+                // Connection is active and valid
                 return {
                     ownerUri,
                     isConnected: true,
                 };
             }
 
-            // Generate a new ownerUri if we don't have one (for new connections)
+            // Not connected or connection is stale - establish new connection
             // Pass empty string to let connect() generate the URI
+            // This will prompt for password if needed
             const result = await this.connectionManager.connect("", profile);
 
             if (result) {
@@ -739,10 +743,17 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
                     isConnected: true,
                 };
             } else {
+                // Check if connection failed due to error or if it was never initiated
+                // (e.g., user cancelled password prompt)
+                ownerUri = this.connectionManager.getUriForConnection(profile);
+                const connectionInfo = ownerUri
+                    ? this.connectionManager.activeConnections[ownerUri]
+                    : undefined;
+                const errorMessage = connectionInfo?.errorMessage || "Failed to connect to server";
                 return {
                     ownerUri: "",
                     isConnected: false,
-                    errorMessage: "Failed to connect to server",
+                    errorMessage,
                 };
             }
         } catch (error) {

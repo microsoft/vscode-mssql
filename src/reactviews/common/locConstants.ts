@@ -1122,6 +1122,7 @@ export class LocConstants {
             exportingBacpac: l10n.t("Exporting BACPAC..."),
             operationFailed: l10n.t("Operation failed"),
             unexpectedError: l10n.t("An unexpected error occurred"),
+            failedToLoadDatabases: l10n.t("Failed to load databases"),
             deploySuccess: l10n.t("DACPAC deployed successfully"),
             extractSuccess: l10n.t("DACPAC extracted successfully"),
             importSuccess: l10n.t("BACPAC imported successfully"),
