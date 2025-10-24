@@ -1072,6 +1072,7 @@ export default class ConnectionManager {
                     this.accountStore,
                     getCloudProviderSettings(account.key.providerId).settings.sqlResource!,
                 );
+
                 connectionInfo.azureAccountToken = profile.azureAccountToken;
                 connectionInfo.expiresOn = profile.expiresOn;
                 connectionInfo.accountId = profile.accountId;
