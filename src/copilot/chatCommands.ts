@@ -18,6 +18,24 @@ import {
     errorLabelPrefix,
 } from "./chatConstants";
 import { getErrorMessage } from "../utils/utils";
+import * as Constants from "../constants/constants";
+
+/**
+ * Gets the connection button info based on current editor context.
+ * @returns Button label and command arguments for establishing a connection
+ */
+export function getConnectionButtonInfo(): {
+    label: string;
+    args: { forceNewEditor: boolean; forceConnect: boolean };
+} {
+    const activeEditor = vscode.window.activeTextEditor;
+    const hasEditor = activeEditor && activeEditor.document.languageId === "sql";
+    const buttonLabel = hasEditor ? loc.connect : loc.openSqlEditorAndConnect;
+    const buttonArgs = hasEditor
+        ? { forceNewEditor: false, forceConnect: true }
+        : { forceNewEditor: true, forceConnect: true };
+    return { label: buttonLabel, args: buttonArgs };
+}
 
 export enum CommandType {
     Simple = "simple",
@@ -38,6 +56,36 @@ export interface CommandDefinition {
 
 export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
     // Simple command shortcuts - these are handled directly and don't go to language model
+    help: {
+        type: CommandType.Simple,
+        requiresConnection: false,
+        skipConnectionLabels: true, // Provides its own connection status
+        handler: async (stream, controller, connectionUri) => {
+            stream.markdown(`${loc.helpWelcome}\n\n`);
+            stream.markdown(`**${loc.helpWhatICanDo}**\n\n`);
+            stream.markdown(`• ${loc.helpCapabilityExploreDesign}\n`);
+            stream.markdown(`• ${loc.helpCapabilityContextualSuggestions}\n`);
+            stream.markdown(`• ${loc.helpCapabilityWriteOptimize}\n`);
+            stream.markdown(`• ${loc.helpCapabilityGenerateMockData}\n`);
+            stream.markdown(`• ${loc.helpCapabilityAccelerateSchema}\n`);
+            stream.markdown(`• ${loc.helpCapabilityUnderstandDocument}\n`);
+            stream.markdown(`• ${loc.helpCapabilitySecurityRecommendations}\n`);
+            stream.markdown(`• ${loc.helpCapabilityNaturalLanguage}\n`);
+            stream.markdown(`• ${loc.helpCapabilityReverseEngineer}\n`);
+            stream.markdown(`• ${loc.helpCapabilityScaffoldComponents}\n\n`);
+
+            // Only show button if not connected
+            if (!isConnectionActive(controller, connectionUri)) {
+                const buttonInfo = getConnectionButtonInfo();
+                stream.button({
+                    command: Constants.cmdCopilotNewQueryWithConnection,
+                    title: buttonInfo.label,
+                    arguments: [buttonInfo.args],
+                });
+            }
+            return true; // Command was handled
+        },
+    },
     connect: {
         type: CommandType.Simple,
         requiresConnection: false,
@@ -358,9 +406,18 @@ export async function handleChatCommand(
                 success: "false",
                 errorType: "noConnection",
             });
+
+            // Add button to help user establish connection
+            const buttonInfo = getConnectionButtonInfo();
+            stream.markdown(`${disconnectedLabelPrefix} ${loc.noActiveDatabaseConnection}\n\n`);
+            stream.button({
+                command: Constants.cmdCopilotNewQueryWithConnection,
+                title: buttonInfo.label,
+                arguments: [buttonInfo.args],
+            });
+
             return {
                 handled: true,
-                errorMessage: `${disconnectedLabelPrefix} ${loc.noActiveDatabaseConnection}\n\n`,
             };
         }
 

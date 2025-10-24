@@ -236,6 +236,10 @@
                 "isSticky": true,
                 "commands": [
                     {
+                        "name": "help",
+                        "description": "Provides a list of available commands and their descriptions."
+                    },
+                    {
                         "name": "runQuery",
                         "description": "Execute a SQL query in the currently connected database and return results."
                     },
@@ -1130,6 +1134,11 @@
             {
                 "command": "mssql.copilot.rewriteQuery",
                 "title": "%mssql.copilot.rewriteQuery%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.copilot.newQueryWithConnection",
+                "title": "%mssql.copilot.newQueryWithConnection%",
                 "category": "MS SQL"
             },
             {
