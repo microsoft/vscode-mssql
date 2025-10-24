@@ -337,7 +337,15 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
 });
 
 function isJsonCell(value: DbCellValue): boolean {
-    return !!(value && !value.isNull && value.displayValue?.match(IsJsonRegex));
+    if (value && !value.isNull && value.displayValue?.match(IsJsonRegex)) {
+        try {
+            JSON.parse(value.displayValue);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+    return false;
 }
 
 function isXmlCell(value: DBCellValue, log?: LogCallback): boolean {
@@ -365,7 +373,7 @@ function isXmlCell(value: DBCellValue, log?: LogCallback): boolean {
 // performant than trying to parse the string to object.
 // Regex explaination: after removing the trailing whitespaces and line breaks, the string must start with '[' (to support arrays)
 // or '{', and there must be a '}' or ']' to close it.
-const IsJsonRegex = /^\s*[\{|\[][\S\s]*[\}\]]\s*$/g;
+const IsJsonRegex = /^\s*(\{[\S\s]*\}|\[[\S\s]*\])\s*$/;
 
 // The css class for null cell
 const NULL_CELL_CSS_CLASS = "cell-null";
