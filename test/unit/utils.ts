@@ -26,11 +26,23 @@ export async function activateExtension(): Promise<IExtension> {
 export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
     sendActionEvent: sinon.SinonStub;
     sendErrorEvent: sinon.SinonStub;
+    startActivity: sinon.SinonStub;
 } {
     const stubber = sandbox || sinon;
+
+    // Create a mock activity object that startActivity should return
+    const mockActivity = {
+        startTime: 0,
+        correlationId: "test-correlation-id",
+        update: stubber.stub(),
+        end: stubber.stub(),
+        endFailed: stubber.stub(),
+    };
+
     return {
         sendActionEvent: stubber.stub(telemetry, "sendActionEvent").callsFake(() => {}),
         sendErrorEvent: stubber.stub(telemetry, "sendErrorEvent").callsFake(() => {}),
+        startActivity: stubber.stub(telemetry, "startActivity").returns(mockActivity),
     };
 }
 
