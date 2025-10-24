@@ -414,6 +414,76 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         align-items: center;
                     }
 
+                    /* VS Code-style context menu */
+                    .slick-context-menu {
+                        background-color: var(--vscode-menu-background) !important;
+                        border: 1px solid var(--vscode-menu-border) !important;
+                        border-radius: 5px !important;
+                        box-shadow: 0 2px 8px var(--vscode-widget-shadow) !important;
+                        padding: 4px 0 !important;
+                        min-width: 180px !important;
+                    }
+
+                    .slick-context-menu .slick-menu-item {
+                        background-color: transparent !important;
+                        color: var(--vscode-menu-foreground) !important;
+                        padding: 4px 20px 4px 30px !important;
+                        line-height: 22px !important;
+                        font-size: 13px !important;
+                        border: none !important;
+                        cursor: pointer !important;
+                        position: relative !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        white-space: nowrap !important;
+                    }
+
+                    .slick-context-menu .slick-menu-item:hover {
+                        background-color: var(--vscode-menu-selectionBackground) !important;
+                        color: var(--vscode-menu-selectionForeground) !important;
+                    }
+
+                    .slick-context-menu .slick-menu-item .slick-menu-icon {
+                        position: absolute !important;
+                        left: 8px !important;
+                        width: 16px !important;
+                        height: 16px !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                    }
+
+                    .slick-context-menu .slick-menu-item .slick-menu-content {
+                        flex: 1 !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                    }
+
+                    /* Hide default SlickGrid menu styling */
+                    .slick-context-menu .slick-menu-item.red {
+                        color: var(--vscode-menu-foreground) !important;
+                    }
+
+                    .slick-context-menu .slick-menu-item.red:hover {
+                        color: var(--vscode-menu-selectionForeground) !important;
+                    }
+
+                    /* Adjust icon colors to match VS Code */
+                    .slick-context-menu .slick-menu-item .mdi {
+                        color: var(--vscode-menu-foreground) !important;
+                        font-size: 16px !important;
+                    }
+
+                    .slick-context-menu .slick-menu-item:hover .mdi {
+                        color: var(--vscode-menu-selectionForeground) !important;
+                    }
+
+                    /* Remove any bold or special text styling */
+                    .slick-context-menu .slick-menu-item.bold,
+                    .slick-context-menu .slick-menu-item .bold {
+                        font-weight: normal !important;
+                    }
+
                     /* Reposition pagination footer to the left */
                     #pager {
                         width: 100%;
