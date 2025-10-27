@@ -27,6 +27,8 @@ import {
     ListDatabasesWebviewRequest,
     ValidateDatabaseNameWebviewRequest,
     ValidateFilePathWebviewRequest,
+    BrowseInputFileWebviewRequest,
+    BrowseOutputFileWebviewRequest,
 } from "../../src/sharedInterfaces/dataTierApplication";
 import * as LocConstants from "../../src/constants/locConstants";
 import {
@@ -418,6 +420,201 @@ suite("DataTierApplicationWebviewController", () => {
 
             expect(response.success).to.be.false;
             expect(response.errorMessage).to.equal("Export failed: Insufficient permissions");
+        });
+    });
+
+    suite("Browse File Operations", () => {
+        let showOpenDialogStub: sinon.SinonStub;
+        let showSaveDialogStub: sinon.SinonStub;
+
+        setup(() => {
+            showOpenDialogStub = sinon.stub(vscode.window, "showOpenDialog");
+            showSaveDialogStub = sinon.stub(vscode.window, "showSaveDialog");
+        });
+
+        teardown(() => {
+            showOpenDialogStub.restore();
+            showSaveDialogStub.restore();
+        });
+
+        test("browse input file returns file path when file is selected", async () => {
+            const mockUri = vscode.Uri.file("C:\\test\\database.dacpac");
+            showOpenDialogStub.resolves([mockUri]);
+            createController();
+
+            const requestHandler = requestHandlers.get(BrowseInputFileWebviewRequest.type.method);
+            expect(requestHandler, "Request handler was not registered").to.be.a("function");
+
+            const response = await requestHandler!({ fileExtension: "dacpac" });
+
+            expect(showOpenDialogStub).to.have.been.calledOnce;
+            expect(response.filePath).to.equal(mockUri.fsPath);
+        });
+
+        test("browse input file returns undefined when no file is selected", async () => {
+            showOpenDialogStub.resolves(undefined);
+            createController();
+
+            const requestHandler = requestHandlers.get(BrowseInputFileWebviewRequest.type.method);
+            const response = await requestHandler!({ fileExtension: "dacpac" });
+
+            expect(showOpenDialogStub).to.have.been.calledOnce;
+            expect(response.filePath).to.be.undefined;
+        });
+
+        test("browse input file returns undefined when empty array is returned", async () => {
+            showOpenDialogStub.resolves([]);
+            createController();
+
+            const requestHandler = requestHandlers.get(BrowseInputFileWebviewRequest.type.method);
+            const response = await requestHandler!({ fileExtension: "bacpac" });
+
+            expect(showOpenDialogStub).to.have.been.calledOnce;
+            expect(response.filePath).to.be.undefined;
+        });
+
+        test("browse output file returns file path when file is selected", async () => {
+            const mockUri = vscode.Uri.file("C:\\output\\database.dacpac");
+            showSaveDialogStub.resolves(mockUri);
+            createController();
+
+            const requestHandler = requestHandlers.get(BrowseOutputFileWebviewRequest.type.method);
+            expect(requestHandler, "Request handler was not registered").to.be.a("function");
+
+            const response = await requestHandler!({
+                fileExtension: "dacpac",
+                defaultFileName: "database.dacpac",
+            });
+
+            expect(showSaveDialogStub).to.have.been.calledOnce;
+            expect(response.filePath).to.equal(mockUri.fsPath);
+        });
+
+        test("browse output file returns undefined when dialog is cancelled", async () => {
+            showSaveDialogStub.resolves(undefined);
+            createController();
+
+            const requestHandler = requestHandlers.get(BrowseOutputFileWebviewRequest.type.method);
+            const response = await requestHandler!({
+                fileExtension: "bacpac",
+            });
+
+            expect(showSaveDialogStub).to.have.been.calledOnce;
+            expect(response.filePath).to.be.undefined;
+        });
+    });
+
+    suite("Operation Response Properties", () => {
+        test("extract DACPAC response includes all required properties", async () => {
+            const mockResult: DacFxResult = {
+                success: true,
+                errorMessage: undefined,
+                operationId: "extract-op-123",
+            };
+
+            dacFxServiceStub.extractDacpac.resolves(mockResult);
+            createController();
+
+            const requestHandler = requestHandlers.get(ExtractDacpacWebviewRequest.type.method);
+            const params = {
+                databaseName: "TestDB",
+                packageFilePath: "C:\\output\\test.dacpac",
+                applicationName: "TestApp",
+                applicationVersion: "1.0.0",
+                ownerUri: ownerUri,
+            };
+
+            const response = await requestHandler!(params);
+
+            expect(response).to.have.property("success");
+            expect(response).to.have.property("errorMessage");
+            expect(response).to.have.property("operationId");
+            expect(response.success).to.be.true;
+            expect(response.errorMessage).to.be.undefined;
+            expect(response.operationId).to.equal("extract-op-123");
+        });
+
+        test("extract DACPAC response includes error details on failure", async () => {
+            const mockResult: DacFxResult = {
+                success: false,
+                errorMessage: "Database extraction failed",
+                operationId: "extract-op-456",
+            };
+
+            dacFxServiceStub.extractDacpac.resolves(mockResult);
+            createController();
+
+            const requestHandler = requestHandlers.get(ExtractDacpacWebviewRequest.type.method);
+            const params = {
+                databaseName: "TestDB",
+                packageFilePath: "C:\\output\\test.dacpac",
+                applicationName: "TestApp",
+                applicationVersion: "1.0.0",
+                ownerUri: ownerUri,
+            };
+
+            const response = await requestHandler!(params);
+
+            expect(response).to.have.property("success");
+            expect(response).to.have.property("errorMessage");
+            expect(response).to.have.property("operationId");
+            expect(response.success).to.be.false;
+            expect(response.errorMessage).to.equal("Database extraction failed");
+            expect(response.operationId).to.equal("extract-op-456");
+        });
+
+        test("import BACPAC response includes all required properties", async () => {
+            const mockResult: DacFxResult = {
+                success: true,
+                errorMessage: undefined,
+                operationId: "import-op-789",
+            };
+
+            dacFxServiceStub.importBacpac.resolves(mockResult);
+            createController();
+
+            const requestHandler = requestHandlers.get(ImportBacpacWebviewRequest.type.method);
+            const params = {
+                packageFilePath: "C:\\backup\\test.bacpac",
+                databaseName: "RestoredDB",
+                ownerUri: ownerUri,
+            };
+
+            const response = await requestHandler!(params);
+
+            expect(response).to.have.property("success");
+            expect(response).to.have.property("errorMessage");
+            expect(response).to.have.property("operationId");
+            expect(response.success).to.be.true;
+            expect(response.errorMessage).to.be.undefined;
+            expect(response.operationId).to.equal("import-op-789");
+        });
+
+        test("import BACPAC response includes error details on failure", async () => {
+            const mockResult: DacFxResult = {
+                success: false,
+                errorMessage: "BACPAC file is corrupted",
+                operationId: "import-op-101",
+            };
+
+            dacFxServiceStub.importBacpac.resolves(mockResult);
+            createController();
+
+            const requestHandler = requestHandlers.get(ImportBacpacWebviewRequest.type.method);
+            const params = {
+                packageFilePath: "C:\\backup\\corrupted.bacpac",
+                databaseName: "TestDB",
+                ownerUri: ownerUri,
+            };
+
+            const response = await requestHandler!(params);
+
+            expect(response).to.have.property("success");
+            expect(response).to.have.property("errorMessage");
+            expect(response).to.have.property("operationId");
+            expect(response.success).to.be.false;
+            expect(response.errorMessage).to.equal("BACPAC file is corrupted");
+            expect(response.operationId).to.equal("import-op-101");
         });
     });
 

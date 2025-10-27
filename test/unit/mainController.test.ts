@@ -171,4 +171,46 @@ suite("MainController Tests", function () {
             mainController.onPublishDatabaseProject = originalHandler;
         }
     });
+
+    suite("Data-Tier Application Commands", () => {
+        test("cmdDataTierApplication command is registered", async () => {
+            const commands = await vscode.commands.getCommands(true);
+            assert.ok(
+                commands.includes(Constants.cmdDataTierApplication),
+                "Expected cmdDataTierApplication to be registered",
+            );
+        });
+
+        test("cmdDeployDacpac command is registered", async () => {
+            const commands = await vscode.commands.getCommands(true);
+            assert.ok(
+                commands.includes(Constants.cmdDeployDacpac),
+                "Expected cmdDeployDacpac to be registered",
+            );
+        });
+
+        test("cmdExtractDacpac command is registered", async () => {
+            const commands = await vscode.commands.getCommands(true);
+            assert.ok(
+                commands.includes(Constants.cmdExtractDacpac),
+                "Expected cmdExtractDacpac to be registered",
+            );
+        });
+
+        test("cmdImportBacpac command is registered", async () => {
+            const commands = await vscode.commands.getCommands(true);
+            assert.ok(
+                commands.includes(Constants.cmdImportBacpac),
+                "Expected cmdImportBacpac to be registered",
+            );
+        });
+
+        test("cmdExportBacpac command is registered", async () => {
+            const commands = await vscode.commands.getCommands(true);
+            assert.ok(
+                commands.includes(Constants.cmdExportBacpac),
+                "Expected cmdExportBacpac to be registered",
+            );
+        });
+    });
 });
