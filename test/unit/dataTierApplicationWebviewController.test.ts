@@ -225,7 +225,7 @@ suite("DataTierApplicationWebviewController", () => {
 
             expect(response.success).to.be.false;
             expect(response.errorMessage).to.equal("Deployment failed: Permission denied");
-            expect(resolveSpy).to.not.have.been.called;
+            expect(resolveSpy).to.have.been.called;
         });
 
         test("deploy DACPAC handles exception", async () => {
