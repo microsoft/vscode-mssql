@@ -147,6 +147,33 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         this.updateState();
     }
 
+    /**
+     * Helper method to regenerate the script and update state.
+     * Used when script pane is visible and data changes occur.
+     */
+    private async regenerateScript(state: TableExplorerWebViewState): Promise<void> {
+        try {
+            const scriptResult = await this._tableExplorerService.generateScripts(state.ownerUri);
+            const combinedScript = scriptResult.scripts?.join("\n") || "";
+            state.updateScript = combinedScript;
+            this.updateState();
+            this.logger.info("Script regenerated successfully in real-time");
+        } catch (error) {
+            this.logger.error(`Error regenerating script: ${error}`);
+            // Don't show error message to user since this is an automatic background update
+        }
+    }
+
+    /**
+     * Helper method to conditionally regenerate script if script pane is visible.
+     * Call this after updating state when data changes occur.
+     */
+    private async regenerateScriptIfVisible(state: TableExplorerWebViewState): Promise<void> {
+        if (state.showScriptPane) {
+            await this.regenerateScript(state);
+        }
+    }
+
     private registerRpcHandlers(): void {
         this.registerReducer("commitChanges", async (state) => {
             this.logger.info(`Committing changes for: ${state.tableName}`);
@@ -227,6 +254,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 } else {
                     this.logger.warn("Cannot add row: result set is undefined");
                 }
+
+                await this.regenerateScriptIfVisible(state);
             } catch (error) {
                 this.logger.error(`Error creating row: ${error}`);
                 vscode.window.showErrorMessage(
@@ -261,6 +290,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         `Updated result set, now has ${updatedSubset.length} rows (${state.newRows.length} new)`,
                     );
                 }
+
+                await this.regenerateScriptIfVisible(state);
             } catch (error) {
                 this.logger.error(`Error deleting row: ${error}`);
                 vscode.window.showErrorMessage(
@@ -298,6 +329,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 }
 
                 this.logger.info(`Cell updated successfully`);
+
+                await this.regenerateScriptIfVisible(state);
             } catch (error) {
                 this.logger.error(`Error updating cell: ${error}`);
                 vscode.window.showErrorMessage(
@@ -349,6 +382,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 }
 
                 this.logger.info(`Cell reverted successfully`);
+
+                await this.regenerateScriptIfVisible(state);
             } catch (error) {
                 this.logger.error(`Error reverting cell: ${error}`);
                 vscode.window.showErrorMessage(
@@ -392,6 +427,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 }
 
                 this.logger.info(`Row reverted successfully`);
+
+                await this.regenerateScriptIfVisible(state);
             } catch (error) {
                 this.logger.error(`Error reverting row: ${error}`);
                 vscode.window.showErrorMessage(
