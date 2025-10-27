@@ -1,0 +1,134 @@
+.table-explorer-custom-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 12px;
+    background-color: var(--vscode-editor-background);
+    border-top: 1px solid var(--vscode-panel-border);
+    font-size: 13px;
+    color: var(--vscode-foreground);
+    user-select: none;
+}
+
+.table-explorer-custom-pagination .row-count-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.table-explorer-custom-pagination .row-count-selector .row-count-label {
+    color: var(--vscode-descriptionForeground);
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+.table-explorer-custom-pagination .pagination-info {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.table-explorer-custom-pagination .pagination-count {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.table-explorer-custom-pagination .page-size-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.table-explorer-custom-pagination .page-size-selector .page-size-label {
+    color: var(--vscode-descriptionForeground);
+    white-space: nowrap;
+}
+
+.table-explorer-custom-pagination .page-from-to {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.table-explorer-custom-pagination .page-from-to .separator {
+    color: var(--vscode-descriptionForeground);
+}
+
+.table-explorer-custom-pagination .total-items {
+    font-weight: 500;
+}
+
+.table-explorer-custom-pagination .items-label {
+    color: var(--vscode-descriptionForeground);
+}
+
+.table-explorer-custom-pagination .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.table-explorer-custom-pagination .pagination-nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.table-explorer-custom-pagination .page-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8px;
+}
+
+.table-explorer-custom-pagination .page-info .page-label,
+.table-explorer-custom-pagination .page-info .separator {
+    color: var(--vscode-descriptionForeground);
+}
+
+.table-explorer-custom-pagination .page-info .page-number {
+    font-weight: 500;
+    min-width: 20px;
+    text-align: center;
+}
+
+.table-explorer-custom-pagination .page-info .page-count {
+    min-width: 20px;
+    text-align: center;
+}
+
+.table-explorer-custom-pagination .pagination-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background-color: transparent;
+    border: none;
+    border-radius: 3px;
+    color: var(--vscode-icon-foreground);
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+}
+
+.table-explorer-custom-pagination .pagination-button svg {
+    width: 16px;
+    height: 16px;
+}
+
+.table-explorer-custom-pagination .pagination-button:hover:not(:disabled) {
+    background-color: var(--vscode-toolbar-hoverBackground);
+}
+
+.table-explorer-custom-pagination .pagination-button:active:not(:disabled) {
+    background-color: var(--vscode-toolbar-activeBackground);
+}
+
+.table-explorer-custom-pagination .pagination-button:disabled {
+    color: var(--vscode-disabledForeground);
+    cursor: not-allowed;
+    opacity: 0.4;
+}

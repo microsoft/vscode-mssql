@@ -3,29 +3,38 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from "react";
+import React, {
+    useState,
+    useEffect,
+    useRef,
+    useImperativeHandle,
+    forwardRef,
+    useMemo,
+} from "react";
 import {
     SlickgridReactInstance,
     Column,
     GridOption,
     SlickgridReact,
-    EditCommand,
     Editors,
     ContextMenu,
 } from "slickgrid-react";
 import { EditSubsetResult } from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
+import TableExplorerCustomPager from "./TableExplorerCustomPager";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
 
 interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
     themeKind?: ColorThemeKind;
     pageSize?: number;
+    currentRowCount?: number;
     onDeleteRow?: (rowId: number) => void;
     onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
     onRevertCell?: (rowId: number, columnId: number) => void;
     onRevertRow?: (rowId: number) => void;
+    onLoadSubset?: (rowCount: number) => void;
 }
 
 export interface TableDataGridRef {
@@ -38,10 +47,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             resultSet,
             themeKind,
             pageSize = 100,
+            currentRowCount,
             onDeleteRow,
             onUpdateCell,
             onRevertCell,
             onRevertRow,
+            onLoadSubset,
         },
         ref,
     ) => {
@@ -54,6 +65,20 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const lastItemsPerPageRef = useRef<number>(pageSize);
         const previousResultSetRef = useRef<EditSubsetResult | undefined>(undefined);
         const isInitializedRef = useRef<boolean>(false);
+
+        // Create a custom pager component with bound props
+        const BoundCustomPager = useMemo(
+            () =>
+                React.forwardRef<any, any>((pagerProps, pagerRef) => (
+                    <TableExplorerCustomPager
+                        ref={pagerRef}
+                        {...pagerProps}
+                        currentRowCount={currentRowCount}
+                        onLoadSubset={onLoadSubset}
+                    />
+                )),
+            [currentRowCount, onLoadSubset],
+        );
 
         function reactGridReady(reactGrid: SlickgridReactInstance) {
             reactGridRef.current = reactGrid;
@@ -219,6 +244,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         enableSorting: false,
                         enableContextMenu: true,
                         contextMenu: getContextMenuOptions(),
+                        customPaginationComponent: BoundCustomPager,
                         enablePagination: true,
                         pagination: {
                             pageSize: pageSize,
@@ -442,8 +468,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 <style>
                     {`
                     .table-explorer-grid-container {
-                        margin-bottom: 60px;
-                        padding-bottom: 20px;
                         width: 100vw;
                         max-width: 100%;
                     }
@@ -534,31 +558,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     .slick-context-menu .slick-menu-item.bold,
                     .slick-context-menu .slick-menu-item .bold {
                         font-weight: normal !important;
-                    }
-
-                    #pager {
-                        width: 100%;
-                        max-width: 100%;
-                        box-sizing: border-box;
-                    }
-
-                    #pager .slick-pagination {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        margin-top: 10px;
-                        margin-bottom: 20px;
-                        padding: 8px 0;
-                        padding-right: 40px;
-                    }
-
-                    #pager .slick-pagination .slick-pagination-nav .pagination {
-                        padding-left: 0px;
-                    }
-
-                    #pager .slick-pagination .slick-pagination-status {
-                        order: 3;
-                        margin-left: 10px;
                     }
                     `}
                 </style>

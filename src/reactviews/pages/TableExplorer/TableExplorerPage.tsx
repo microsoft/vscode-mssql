@@ -54,10 +54,12 @@ export const TableExplorerPage: React.FC = () => {
                             resultSet={state.resultSet}
                             themeKind={context?.themeKind}
                             pageSize={10}
+                            currentRowCount={state.currentRowCount}
                             onDeleteRow={context?.deleteRow}
                             onUpdateCell={context?.updateCell}
                             onRevertCell={context?.revertCell}
                             onRevertRow={context?.revertRow}
+                            onLoadSubset={context?.loadSubset}
                         />
                     </div>
                 ) : state?.isLoading ? (
