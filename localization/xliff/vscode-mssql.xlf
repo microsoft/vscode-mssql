@@ -1450,6 +1450,9 @@
       <note>{0} is the tenant id
 {1} is the account name</note>
     </trans-unit>
+    <trans-unit id="++CODE++11b16df18b896654fb041aa90fd64079d60b741da33d4b5f931d75f8dcc7d1a4">
+      <source xml:lang="en">Failed to list databases</source>
+    </trans-unit>
     <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
       <source xml:lang="en">Failed to load publish profile</source>
     </trans-unit>

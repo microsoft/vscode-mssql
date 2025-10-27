@@ -28,7 +28,7 @@ import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getSqlServerContainerTagsForTargetVersion } from "../deployment/dockerUtils";
-import { hasAnyMissingRequiredValues } from "../utils/utils";
+import { hasAnyMissingRequiredValues, getErrorMessage } from "../utils/utils";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -382,20 +382,34 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this.state.connectionString = connectionString;
 
             // Get databases
-            const databases = await this._connectionManager.listDatabases(connectionUri);
+            try {
+                const databases = await this._connectionManager.listDatabases(connectionUri);
 
-            // Update database dropdown options
-            const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
-            if (databaseComponent) {
-                databaseComponent.options = databases.map((db) => ({
-                    displayName: db,
-                    value: db,
-                }));
-            }
+                // Update database dropdown options
+                const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
+                if (databaseComponent) {
+                    databaseComponent.options = databases.map((db) => ({
+                        displayName: db,
+                        value: db,
+                    }));
+                }
 
-            // Optionally select the first database if available
-            if (databases.length > 0 && !this.state.formState.databaseName) {
-                this.state.formState.databaseName = databases[0];
+                // Optionally select the first database if available
+                if (databases.length > 0 && !this.state.formState.databaseName) {
+                    this.state.formState.databaseName = databases[0];
+                }
+            } catch (dbError) {
+                // Show error message to user when database listing fails
+                void vscode.window.showErrorMessage(
+                    `${Loc.FailedToListDatabases}: ${getErrorMessage(dbError)}`,
+                );
+
+                // Log the error for diagnostics
+                sendActionEvent(
+                    TelemetryViews.SqlProjects,
+                    TelemetryActions.PublishProjectConnectionError,
+                    { error: dbError instanceof Error ? dbError.message : String(dbError) },
+                );
             }
 
             // Validate form to update button state after connection
