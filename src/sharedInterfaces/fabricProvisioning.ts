@@ -28,7 +28,6 @@ export class FabricProvisioningState
     workspacesWithPermissions: Record<string, IWorkspace> = {};
     workspacesWithoutPermissions: Record<string, IWorkspace> = {};
     isWorkspacesErrored: boolean = false;
-    capacityIds: string[] = [];
     userGroupIds: string[] = [];
     deploymentStartTime: string = "";
     workspaces: IWorkspace[] = [];

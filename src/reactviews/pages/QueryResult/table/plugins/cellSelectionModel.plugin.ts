@@ -19,7 +19,11 @@ import { KeyCode } from "../../../../common/keys";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
 import { convertDisplayedSelectionToActual } from "../utils";
 import { HeaderMenu } from "./headerFilter.plugin";
-import { isMetaKeyPressed } from "../../../../common/utils";
+import {
+    getNextFocusableElementOutside,
+    getPreviousFocusableElementOutside,
+    isMetaKeyPressed,
+} from "../../../../common/utils";
 
 export interface ICellSelectionModelOptions {
     cellRangeSelector?: any;
@@ -106,6 +110,12 @@ export class CellSelectionModel<T extends Slick.SlickData>
             this.selector.onBeforeCellRangeSelected,
             (e: Event, cell: Slick.Cell) => this.handleBeforeCellRangeSelected(e, cell),
         );
+
+        this._handler.subscribe(this.grid.onActiveCellChanged, async (_e: Event) => {
+            if (this.grid.getSelectionModel().getSelectedRanges().length === 0) {
+                this.handleAfterKeyboardNavigationEvent();
+            }
+        });
     }
 
     public destroy() {
@@ -592,41 +602,96 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
-        const key = e.code;
+        const keyCode = e.code;
         const metaOrCtrlPressed = await isMetaKeyPressed(e);
-
-        // Select All (Cmd/Ctrl + A)
-        if (metaOrCtrlPressed && key === KeyCode.KeyA) {
-            e.preventDefault();
-            e.stopPropagation();
-            await this.handleSelectAll();
-            return;
-        }
-
-        // Open Header menu  (Alt + F) ---
-        if (e.altKey && key === KeyCode?.ArrowDown && !e.shiftKey && !metaOrCtrlPressed) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (
-                this.headerFilter &&
-                typeof this.headerFilter.openMenuForActiveColumn === "function"
-            ) {
-                await this.headerFilter.openMenuForActiveColumn();
-            }
-            return;
-        }
+        let isHandled = false;
 
         // Range selection via Shift + Arrow (no Alt, no Meta/Ctrl)
         const isArrow =
-            key === KeyCode.ArrowLeft ||
-            key === KeyCode.ArrowRight ||
-            key === KeyCode.ArrowUp ||
-            key === KeyCode.ArrowDown;
+            keyCode === KeyCode.ArrowLeft ||
+            keyCode === KeyCode.ArrowRight ||
+            keyCode === KeyCode.ArrowUp ||
+            keyCode === KeyCode.ArrowDown;
 
-        if (!isArrow || !e.shiftKey || metaOrCtrlPressed || e.altKey) {
-            return; // Not our concern—let the default handler run
+        if (isArrow && e.shiftKey && !e.altKey && !metaOrCtrlPressed) {
+            this.expandSelection(keyCode);
+            isHandled = true;
         }
 
+        // Open Header menu (F3)
+        if (keyCode === KeyCode.F3) {
+            await this.headerFilter?.openMenuForActiveColumn();
+            isHandled = true;
+        }
+
+        // Select All (Cmd/Ctrl + A)
+        if (metaOrCtrlPressed && keyCode === KeyCode.KeyA) {
+            await this.handleSelectAll();
+            isHandled = true;
+        }
+
+        // Move to first cell of row (Ctrl + left)
+        if (metaOrCtrlPressed && keyCode === KeyCode.ArrowLeft) {
+            this.moveToFirstCellInRow();
+            isHandled = true;
+        }
+
+        // Move to last cell of row (Ctrl + right)
+        if (metaOrCtrlPressed && keyCode === KeyCode.ArrowRight) {
+            this.moveToLastCellInRow();
+            isHandled = true;
+        }
+
+        // Select current column (Ctrl + space)
+        if (e.ctrlKey && keyCode === KeyCode.Space) {
+            this.selectActiveCellColumn();
+            isHandled = true;
+        }
+
+        // Open context menu (Shift + F10) or ContextMenu key
+        if ((e.shiftKey && keyCode === KeyCode.F10) || keyCode === KeyCode.ContextMenu) {
+            // Open context menu
+            // Already handled by onContextMenu event
+            return;
+        }
+
+        // Select current row (Shift + space)
+        if (e.shiftKey && keyCode === KeyCode.Space) {
+            this.selectActiveCellRow();
+            isHandled = true;
+        }
+
+        // Move focus to previous focusable element outside the grid (Shift + Tab)
+        if (e.shiftKey && keyCode === KeyCode.Tab) {
+            // Prevent SlickGrid's default Tab behavior and move focus to previous component
+            e.stopImmediatePropagation();
+            await this.moveFocusToOutsideGrid(false);
+            isHandled = true;
+        }
+
+        // Move focus to next focusable element outside the grid (Tab)
+        if (!e.shiftKey && keyCode === KeyCode.Tab) {
+            // Prevent SlickGrid's default Tab behavior and move focus to next component
+            e.stopImmediatePropagation();
+            await this.moveFocusToOutsideGrid(true);
+            isHandled = true;
+        }
+
+        // Toggle sort (Shift+Alt+O)
+        if (e.shiftKey && e.altKey && keyCode === KeyCode.KeyO && !metaOrCtrlPressed) {
+            await this.toggleSortForActiveCell();
+            isHandled = true;
+        }
+
+        if (isHandled) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }
+
+    private expandSelection(
+        keyCode: KeyCode.ArrowUp | KeyCode.ArrowDown | KeyCode.ArrowLeft | KeyCode.ArrowRight,
+    ): void {
         const active = this.grid.getActiveCell();
         if (!active) {
             return; // Nothing to extend from
@@ -655,7 +720,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         let dCell = last.toCell - last.fromCell;
 
         // Nudge the deltas based on the pressed arrow
-        switch (key) {
+        switch (keyCode) {
             case KeyCode.ArrowLeft:
                 dCell -= dirCell;
                 break;
@@ -669,7 +734,6 @@ export class CellSelectionModel<T extends Slick.SlickData>
                 dRow += dirRow;
                 break;
         }
-
         // Compute new candidate range
         const newRange = new Slick.Range(
             active.row,
@@ -689,10 +753,76 @@ export class CellSelectionModel<T extends Slick.SlickData>
         this.grid.scrollRowIntoView(viewRow, false);
         this.grid.scrollCellIntoView(viewRow, viewCell, false);
 
-        // Commit selection and swallow the event
         this.setSelectedRanges(ranges);
-        e.preventDefault();
-        e.stopPropagation();
+    }
+
+    private moveToFirstCellInRow(): void {
+        const active = this.grid.getActiveCell();
+        if (active) {
+            this.grid.setActiveCell(active.row, 1);
+            this.grid
+                .getSelectionModel()
+                .setSelectedRanges([new Slick.Range(active.row, 1, active.row, 1)]);
+        }
+    }
+
+    private moveToLastCellInRow(): void {
+        const active = this.grid.getActiveCell();
+        if (active) {
+            this.grid.setActiveCell(active.row, this.grid.getColumns().length - 1);
+            this.grid
+                .getSelectionModel()
+                .setSelectedRanges([
+                    new Slick.Range(
+                        active.row,
+                        this.grid.getColumns().length - 1,
+                        active.row,
+                        this.grid.getColumns().length - 1,
+                    ),
+                ]);
+        }
+    }
+
+    private selectActiveCellColumn(): void {
+        const active = this.grid.getActiveCell();
+        if (active) {
+            const rowCount = this.grid.getDataLength();
+            const newSelectedRange = new Slick.Range(0, active.cell, rowCount - 1, active.cell);
+            this.setSelectedRanges([newSelectedRange]);
+            this.grid.setActiveCell(active.row, active.cell);
+        }
+    }
+
+    private selectActiveCellRow(): void {
+        const active = this.grid.getActiveCell();
+        if (active) {
+            const columnCount = this.grid.getColumns().length;
+            const newSelectedRange = new Slick.Range(active.row, 1, active.row, columnCount - 1);
+            this.setSelectedRanges([newSelectedRange]);
+            this.grid.setActiveCell(active.row, active.cell);
+        }
+    }
+
+    private async moveFocusToOutsideGrid(forward: boolean): Promise<void> {
+        const gridContainer = this.grid.getContainerNode();
+        if (gridContainer) {
+            let element: HTMLElement | null = null;
+            if (forward) {
+                element = getNextFocusableElementOutside(gridContainer);
+            } else {
+                element = getPreviousFocusableElementOutside(gridContainer);
+            }
+            if (element) {
+                element.focus();
+            }
+        }
+    }
+
+    private async toggleSortForActiveCell(): Promise<void> {
+        const active = this.grid.getActiveCell();
+        if (active && this.headerFilter) {
+            await this.headerFilter.toggleSortForColumn(active.cell);
+        }
     }
 
     public async updateSummaryText(ranges?: Slick.Range[]): Promise<void> {

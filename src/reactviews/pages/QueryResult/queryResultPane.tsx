@@ -428,12 +428,18 @@ export const QueryResultPane = () => {
     };
 
     const restoreResults = (gridRefs: ResultGridHandle[], scrollToGridIndex?: number) => {
+        const availableHeight = getAvailableHeight(
+            resultPaneParentRef.current!,
+            ribbonRef.current!,
+        );
+        const height = calculateGridHeight(gridRefs.length, availableHeight);
+        const width = calculateGridWidth(
+            resultPaneParentRef.current!,
+            gridRefs.length,
+            availableHeight,
+        );
+
         gridRefs.forEach((gridRef) => {
-            const height = calculateGridHeight(
-                gridRefs.length,
-                getAvailableHeight(resultPaneParentRef.current!, ribbonRef.current!),
-            );
-            const width = resultPaneParentRef.current?.clientWidth! - ACTIONBAR_WIDTH_PX;
             gridRef.resizeGrid(width, height);
         });
 
@@ -472,11 +478,17 @@ export const QueryResultPane = () => {
             return (
                 <div className={classes.textViewContainer}>
                     <div style={{ flex: 1, display: "flex", flexDirection: "row" }}>
-                        <TextView
-                            uri={uri}
-                            resultSetSummaries={resultSetSummaries}
-                            fontSettings={fontSettings}
-                        />
+                        <div
+                            style={{
+                                width: `calc(100% - ${ACTIONBAR_WIDTH_PX}px)`,
+                                height: "100%",
+                            }}>
+                            <TextView
+                                uri={uri}
+                                resultSetSummaries={resultSetSummaries}
+                                fontSettings={fontSettings}
+                            />
+                        </div>
                         <CommandBar uri={uri} viewMode={viewMode} />
                     </div>
                 </div>

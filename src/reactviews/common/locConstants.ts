@@ -61,6 +61,7 @@ export class LocConstants {
             error: l10n.t("Error"),
             getStarted: l10n.t("Get Started"),
             back: l10n.t("Back"),
+            warning: l10n.t("Warning"),
         };
     }
 
@@ -447,7 +448,7 @@ export class LocConstants {
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
             showplanXML: l10n.t("Showplan XML"),
-            showMenu: l10n.t("Show Menu"),
+            showMenu: l10n.t("Show Menu (F3)"),
             sortAscending: l10n.t("Sort Ascending"),
             sortDescending: l10n.t("Sort Descending"),
             clearSort: l10n.t("Clear Sort"),
@@ -517,6 +518,8 @@ export class LocConstants {
                     args: [count],
                     comment: ["{0} is the number of selected rows"],
                 }),
+            sort: l10n.t("Sort"),
+            filter: l10n.t("Filter"),
         };
     }
 
@@ -977,6 +980,14 @@ export class LocConstants {
             previousStepFailed: l10n.t(
                 "Previous step failed. Please check the error message and try again.",
             ),
+            armErrorHeader: l10n.t(
+                "The SQL Server 2025 RTM container image isn't compatible with ARM-based systems (including Windows ARM and Apple Silicon).",
+            ),
+            armErrorDescription: l10n.t(
+                "Container creation isn't supported on this system. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
+            ),
+            see: l10n.t("See"),
+            forMoreDetails: l10n.t("for more details"),
         };
     }
 
