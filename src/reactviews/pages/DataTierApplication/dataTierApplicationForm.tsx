@@ -690,7 +690,8 @@ export const DataTierApplicationForm = () => {
                                 setOperationType(data.value as DataTierOperationType);
                                 setValidationMessages({});
                             }}
-                            disabled={isOperationInProgress}>
+                            disabled={isOperationInProgress}
+                            aria-label={locConstants.dataTierApplication.operationLabel}>
                             <Radio
                                 value={DataTierOperationType.Deploy}
                                 label={
@@ -699,6 +700,7 @@ export const DataTierApplicationForm = () => {
                                     locConstants.dataTierApplication.deployDacpac +
                                     ")"
                                 }
+                                aria-label={locConstants.dataTierApplication.deployDacpac}
                             />
                             <Radio
                                 value={DataTierOperationType.Extract}
@@ -708,6 +710,7 @@ export const DataTierApplicationForm = () => {
                                     locConstants.dataTierApplication.extractDacpac +
                                     ")"
                                 }
+                                aria-label={locConstants.dataTierApplication.extractDacpac}
                             />
                             <Radio
                                 value={DataTierOperationType.Import}
@@ -717,6 +720,7 @@ export const DataTierApplicationForm = () => {
                                     locConstants.dataTierApplication.importBacpac +
                                     ")"
                                 }
+                                aria-label={locConstants.dataTierApplication.importBacpac}
                             />
                             <Radio
                                 value={DataTierOperationType.Export}
@@ -726,6 +730,7 @@ export const DataTierApplicationForm = () => {
                                     locConstants.dataTierApplication.exportBacpac +
                                     ")"
                                 }
+                                aria-label={locConstants.dataTierApplication.exportBacpac}
                             />
                         </RadioGroup>
                     </Field>
@@ -760,7 +765,8 @@ export const DataTierApplicationForm = () => {
                                 }}
                                 disabled={
                                     isOperationInProgress || availableConnections.length === 0
-                                }>
+                                }
+                                aria-label={locConstants.dataTierApplication.serverLabel}>
                                 {availableConnections.length === 0 ? (
                                     <Option value="" disabled text="">
                                         {locConstants.dataTierApplication.noConnectionsAvailable}
@@ -808,12 +814,18 @@ export const DataTierApplicationForm = () => {
                                         : locConstants.dataTierApplication.selectOutputFile
                                 }
                                 disabled={isOperationInProgress}
+                                aria-label={
+                                    requiresInputFile
+                                        ? locConstants.dataTierApplication.packageFileLabel
+                                        : locConstants.dataTierApplication.outputFileLabel
+                                }
                             />
                             <Button
                                 icon={<FolderOpen20Regular />}
                                 appearance="secondary"
                                 onClick={handleBrowseFile}
-                                disabled={isOperationInProgress}>
+                                disabled={isOperationInProgress}
+                                aria-label={locConstants.dataTierApplication.browse}>
                                 {locConstants.dataTierApplication.browse}
                             </Button>
                         </div>
@@ -826,16 +838,19 @@ export const DataTierApplicationForm = () => {
                         <RadioGroup
                             value={isNewDatabase ? "new" : "existing"}
                             onChange={(_, data) => setIsNewDatabase(data.value === "new")}
-                            className={classes.radioGroup}>
+                            className={classes.radioGroup}
+                            aria-label={locConstants.dataTierApplication.targetDatabaseLabel}>
                             <Radio
                                 value="new"
                                 label={locConstants.dataTierApplication.newDatabase}
                                 disabled={isOperationInProgress}
+                                aria-label={locConstants.dataTierApplication.newDatabase}
                             />
                             <Radio
                                 value="existing"
                                 label={locConstants.dataTierApplication.existingDatabase}
                                 disabled={isOperationInProgress}
+                                aria-label={locConstants.dataTierApplication.existingDatabase}
                             />
                         </RadioGroup>
 
@@ -854,6 +869,7 @@ export const DataTierApplicationForm = () => {
                                     onChange={(_, data) => setDatabaseName(data.value)}
                                     placeholder={locConstants.dataTierApplication.enterDatabaseName}
                                     disabled={isOperationInProgress}
+                                    aria-label={locConstants.dataTierApplication.databaseNameLabel}
                                 />
                             </Field>
                         ) : (
@@ -877,7 +893,8 @@ export const DataTierApplicationForm = () => {
                                     onOptionSelect={(_, data) =>
                                         setDatabaseName(data.optionText || "")
                                     }
-                                    disabled={isOperationInProgress || !ownerUri}>
+                                    disabled={isOperationInProgress || !ownerUri}
+                                    aria-label={locConstants.dataTierApplication.databaseNameLabel}>
                                     {availableDatabases.map((db) => (
                                         <Option key={db} value={db}>
                                             {db}
@@ -912,7 +929,10 @@ export const DataTierApplicationForm = () => {
                                     onOptionSelect={(_, data) =>
                                         setDatabaseName(data.optionText || "")
                                     }
-                                    disabled={isOperationInProgress || !ownerUri}>
+                                    disabled={isOperationInProgress || !ownerUri}
+                                    aria-label={
+                                        locConstants.dataTierApplication.sourceDatabaseLabel
+                                    }>
                                     {availableDatabases.map((db) => (
                                         <Option key={db} value={db}>
                                             {db}
@@ -935,6 +955,7 @@ export const DataTierApplicationForm = () => {
                                     onChange={(_, data) => setDatabaseName(data.value)}
                                     placeholder={locConstants.dataTierApplication.enterDatabaseName}
                                     disabled={isOperationInProgress}
+                                    aria-label={locConstants.dataTierApplication.databaseNameLabel}
                                 />
                             </Field>
                         )}
@@ -949,6 +970,7 @@ export const DataTierApplicationForm = () => {
                                 onChange={(_, data) => setApplicationName(data.value)}
                                 placeholder={locConstants.dataTierApplication.enterApplicationName}
                                 disabled={isOperationInProgress}
+                                aria-label={locConstants.dataTierApplication.applicationNameLabel}
                             />
                         </Field>
 
@@ -958,6 +980,9 @@ export const DataTierApplicationForm = () => {
                                 onChange={(_, data) => setApplicationVersion(data.value)}
                                 placeholder={DEFAULT_APPLICATION_VERSION}
                                 disabled={isOperationInProgress}
+                                aria-label={
+                                    locConstants.dataTierApplication.applicationVersionLabel
+                                }
                             />
                         </Field>
                     </div>
@@ -967,14 +992,16 @@ export const DataTierApplicationForm = () => {
                     <Button
                         appearance="secondary"
                         onClick={handleCancel}
-                        disabled={isOperationInProgress}>
+                        disabled={isOperationInProgress}
+                        aria-label={locConstants.dataTierApplication.cancel}>
                         {locConstants.dataTierApplication.cancel}
                     </Button>
                     <Button
                         appearance="primary"
                         icon={<DatabaseArrowRight20Regular />}
                         onClick={handleSubmit}
-                        disabled={!isFormValid() || isOperationInProgress || isConnecting}>
+                        disabled={!isFormValid() || isOperationInProgress || isConnecting}
+                        aria-label={locConstants.dataTierApplication.execute}>
                         {locConstants.dataTierApplication.execute}
                     </Button>
                 </div>

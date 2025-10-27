@@ -14,6 +14,8 @@ import * as vscodeMssql from "vscode-mssql";
 import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
+import { startActivity } from "../telemetry/telemetry";
+import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
 import {
     BrowseInputFileWebviewRequest,
     BrowseOutputFileWebviewRequest,
@@ -242,6 +244,15 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
     private async handleDeployDacpac(
         params: DeployDacpacParams,
     ): Promise<DataTierApplicationResult> {
+        const activity = startActivity(
+            TelemetryViews.DataTierApplication,
+            TelemetryActions.DacFxDeployDacpac,
+            undefined,
+            {
+                isNewDatabase: params.isNewDatabase.toString(),
+            },
+        );
+
         try {
             const result = await this.dacFxService.deployDacpac(
                 params.packageFilePath,
@@ -258,13 +269,20 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             };
 
             if (result.success) {
+                activity.end(ActivityStatus.Succeeded);
                 this.dialogResult.resolve(appResult);
-                // Don't dispose immediately to allow user to see success message
+            } else {
+                activity.endFailed(
+                    new Error(result.errorMessage || "Deploy operation failed"),
+                    false,
+                );
+                this.dialogResult.resolve(appResult);
             }
 
             return appResult;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
+            activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
             return {
                 success: false,
                 errorMessage: errorMessage,
@@ -278,6 +296,11 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
     private async handleExtractDacpac(
         params: ExtractDacpacParams,
     ): Promise<DataTierApplicationResult> {
+        const activity = startActivity(
+            TelemetryViews.DataTierApplication,
+            TelemetryActions.DacFxExtractDacpac,
+        );
+
         try {
             const result = await this.dacFxService.extractDacpac(
                 params.databaseName,
@@ -295,12 +318,20 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             };
 
             if (result.success) {
+                activity.end(ActivityStatus.Succeeded);
+                this.dialogResult.resolve(appResult);
+            } else {
+                activity.endFailed(
+                    new Error(result.errorMessage || "Extract operation failed"),
+                    false,
+                );
                 this.dialogResult.resolve(appResult);
             }
 
             return appResult;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
+            activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
             return {
                 success: false,
                 errorMessage: errorMessage,
@@ -314,6 +345,11 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
     private async handleImportBacpac(
         params: ImportBacpacParams,
     ): Promise<DataTierApplicationResult> {
+        const activity = startActivity(
+            TelemetryViews.DataTierApplication,
+            TelemetryActions.DacFxImportBacpac,
+        );
+
         try {
             const result = await this.dacFxService.importBacpac(
                 params.packageFilePath,
@@ -329,12 +365,20 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             };
 
             if (result.success) {
+                activity.end(ActivityStatus.Succeeded);
+                this.dialogResult.resolve(appResult);
+            } else {
+                activity.endFailed(
+                    new Error(result.errorMessage || "Import operation failed"),
+                    false,
+                );
                 this.dialogResult.resolve(appResult);
             }
 
             return appResult;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
+            activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
             return {
                 success: false,
                 errorMessage: errorMessage,
@@ -348,6 +392,11 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
     private async handleExportBacpac(
         params: ExportBacpacParams,
     ): Promise<DataTierApplicationResult> {
+        const activity = startActivity(
+            TelemetryViews.DataTierApplication,
+            TelemetryActions.DacFxExportBacpac,
+        );
+
         try {
             const result = await this.dacFxService.exportBacpac(
                 params.databaseName,
@@ -363,12 +412,20 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             };
 
             if (result.success) {
+                activity.end(ActivityStatus.Succeeded);
+                this.dialogResult.resolve(appResult);
+            } else {
+                activity.endFailed(
+                    new Error(result.errorMessage || "Export operation failed"),
+                    false,
+                );
                 this.dialogResult.resolve(appResult);
             }
 
             return appResult;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
+            activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
             return {
                 success: false,
                 errorMessage: errorMessage,
