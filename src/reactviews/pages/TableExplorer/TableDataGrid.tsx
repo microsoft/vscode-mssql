@@ -45,17 +45,19 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         },
         ref,
     ) => {
-        const [dataset, setDataset] = useState<any[]>([]);
         const [columns, setColumns] = useState<Column[]>([]);
         const [options, setOptions] = useState<GridOption | undefined>(undefined);
+        const [dataset, setDataset] = useState<any[]>([]);
         const reactGridRef = useRef<SlickgridReactInstance | null>(null);
-        const [commandQueue] = useState<EditCommand[]>([]);
         const cellChangesRef = useRef<Map<string, any>>(new Map());
-        const lastPageRef = useRef<number>(1); // Track the last known page internally
-        const lastItemsPerPageRef = useRef<number>(pageSize); // Track items per page
+        const lastPageRef = useRef<number>(1);
+        const lastItemsPerPageRef = useRef<number>(pageSize);
+        const previousResultSetRef = useRef<EditSubsetResult | undefined>(undefined);
+        const isInitializedRef = useRef<boolean>(false);
 
         function reactGridReady(reactGrid: SlickgridReactInstance) {
             reactGridRef.current = reactGrid;
+            isInitializedRef.current = true;
         }
 
         // Clear all change tracking (called after successful save)
@@ -64,7 +66,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             // Force grid to re-render to remove all yellow backgrounds
             if (reactGridRef.current?.slickGrid) {
                 reactGridRef.current.slickGrid.invalidate();
-                reactGridRef.current.slickGrid.render();
             }
         }
 
@@ -73,109 +74,284 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             clearAllChangeTracking,
         }));
 
-        // Handle page size changes
+        // Convert a single row to grid format
+        function convertRowToDataRow(row: any): any {
+            const dataRow: any = {
+                id: row.id,
+            };
+            row.cells.forEach((cell: any, cellIndex: number) => {
+                const cellValue = cell.isNull || !cell.displayValue ? "NULL" : cell.displayValue;
+                dataRow[`col${cellIndex}`] = cellValue;
+            });
+            return dataRow;
+        }
+
+        // Create columns from columnInfo
+        function createColumns(columnInfo: any[]): Column[] {
+            // Row number column
+            const rowNumberColumn: Column = {
+                id: "rowNumber",
+                name: '<span style="padding-left: 8px;">#</span>',
+                field: "id",
+                excludeFromColumnPicker: true,
+                excludeFromGridMenu: true,
+                excludeFromHeaderMenu: true,
+                width: 50,
+                minWidth: 40,
+                maxWidth: 80,
+                sortable: false,
+                resizable: true,
+                focusable: false,
+                selectable: false,
+                formatter: (row: number) => {
+                    const paginationService = reactGridRef.current?.paginationService;
+                    const pageNumber = paginationService?.pageNumber ?? 1;
+                    const itemsPerPage = paginationService?.itemsPerPage ?? pageSize;
+                    const actualRowNumber = (pageNumber - 1) * itemsPerPage + row + 1;
+                    return `<span style="color: var(--vscode-foreground); padding-left: 8px;">${actualRowNumber}</span>`;
+                },
+            };
+
+            // Data columns
+            const dataColumns: Column[] = columnInfo.map((colInfo, index) => {
+                const column: Column = {
+                    id: `col${index}`,
+                    name: colInfo.name,
+                    field: `col${index}`,
+                    sortable: false,
+                    minWidth: 100,
+                    formatter: (
+                        _row: number,
+                        cell: number,
+                        value: any,
+                        _columnDef: any,
+                        dataContext: any,
+                    ) => {
+                        const rowId = dataContext.id;
+                        const changeKey = `${rowId}-${cell - 1}`;
+                        const isModified = cellChangesRef.current.has(changeKey);
+                        const displayValue = value ?? "";
+                        const isNullValue = displayValue === "NULL";
+
+                        const escapedDisplayValue = displayValue
+                            .replace(/&/g, "&amp;")
+                            .replace(/</g, "&lt;")
+                            .replace(/>/g, "&gt;")
+                            .replace(/"/g, "&quot;")
+                            .replace(/'/g, "&#039;");
+
+                        const escapedTooltip = escapedDisplayValue;
+
+                        const nullStyle = isNullValue
+                            ? "font-style: italic; color: var(--vscode-editorGhostText-foreground, #888);"
+                            : "";
+
+                        if (isModified) {
+                            return `<div title="${escapedTooltip}" style="background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%; width: 100%; box-sizing: border-box; ${nullStyle}">${escapedDisplayValue}</div>`;
+                        }
+                        return `<span title="${escapedTooltip}" style="${nullStyle}">${escapedDisplayValue}</span>`;
+                    },
+                };
+
+                if (colInfo.isEditable) {
+                    column.editor = {
+                        model: Editors.text,
+                    };
+                }
+
+                return column;
+            });
+
+            return [rowNumberColumn, ...dataColumns];
+        }
+
+        // Handle page size changes from props
         useEffect(() => {
             if (reactGridRef.current?.paginationService && pageSize) {
                 void reactGridRef.current.paginationService.changeItemPerPage(pageSize);
             }
         }, [pageSize]);
 
-        // Restore the current page and items per page after resultSet changes
+        // Main effect: Handle resultSet changes
         useEffect(() => {
-            if (reactGridRef.current?.paginationService) {
-                const targetPage = lastPageRef.current;
-                const targetItemsPerPage = lastItemsPerPageRef.current;
-                const currentGridPage = reactGridRef.current.paginationService.pageNumber;
-                const currentItemsPerPage = reactGridRef.current.paginationService.itemsPerPage;
+            if (!resultSet?.columnInfo || !resultSet?.subset) {
+                return;
+            }
 
-                console.log(
-                    `Page restoration check - Grid page: ${currentGridPage}/${targetPage}, Items per page: ${currentItemsPerPage}/${targetItemsPerPage}`,
-                );
+            const previousResultSet = previousResultSetRef.current;
+            const isInitialLoad = !isInitializedRef.current || !previousResultSet;
+            const columnCountChanged =
+                previousResultSet?.columnInfo?.length !== resultSet.columnInfo.length;
+            const rowCountChanged = previousResultSet?.subset?.length !== resultSet.subset.length;
 
-                // Use setTimeout to ensure the grid is fully rendered before changing pagination
-                setTimeout(() => {
-                    if (reactGridRef.current?.paginationService) {
-                        // First restore items per page if it changed
-                        if (currentItemsPerPage !== targetItemsPerPage) {
-                            console.log(`Restoring items per page to: ${targetItemsPerPage}`);
-                            void reactGridRef.current.paginationService.changeItemPerPage(
-                                targetItemsPerPage,
-                            );
-                        }
+            console.log(
+                `ResultSet update - Initial: ${isInitialLoad}, Columns changed: ${columnCountChanged}, Rows changed: ${rowCountChanged}`,
+            );
 
-                        // Then restore page number if needed and page > 1
-                        if (targetPage > 1 && currentGridPage !== targetPage) {
-                            console.log(`Restoring page to: ${targetPage}`);
-                            void reactGridRef.current.paginationService.goToPageNumber(targetPage);
+            // Scenario 1: Initial load or structural changes - full recreation
+            if (isInitialLoad || columnCountChanged) {
+                console.log("Full grid initialization");
+
+                const newColumns = createColumns(resultSet.columnInfo);
+                setColumns(newColumns);
+
+                const convertedDataset = resultSet.subset.map(convertRowToDataRow);
+                setDataset(convertedDataset);
+
+                // Set grid options only on initial load
+                if (!options) {
+                    setOptions({
+                        enableColumnPicker: false,
+                        enableGridMenu: false,
+                        autoEdit: false,
+                        autoCommitEdit: false,
+                        editable: true,
+                        enableAutoResize: true,
+                        autoResize: {
+                            container: "#grid-container",
+                            calculateAvailableSizeBy: "container",
+                        },
+                        forceFitColumns: true,
+                        enableColumnReorder: false,
+                        enableHeaderMenu: false,
+                        gridHeight: 400,
+                        enableCellNavigation: true,
+                        enableSorting: false,
+                        enableContextMenu: true,
+                        contextMenu: getContextMenuOptions(),
+                        enablePagination: true,
+                        pagination: {
+                            pageSize: pageSize,
+                            pageSizes: [10, 50, 100, 1000],
+                        },
+                        editCommandHandler: (_item, _column, editCommand) => {
+                            editCommand.execute();
+                        },
+                        darkMode:
+                            themeKind === ColorThemeKind.Dark ||
+                            themeKind === ColorThemeKind.HighContrast,
+                    });
+                }
+            }
+            // Scenario 2: Row count changed (delete/add operations) - full dataset refresh
+            else if (rowCountChanged) {
+                console.log("Row count changed - refreshing dataset");
+                const convertedDataset = resultSet.subset.map(convertRowToDataRow);
+                setDataset(convertedDataset);
+            }
+            // Scenario 3: Row count same - incremental updates only
+            else if (reactGridRef.current?.dataView) {
+                console.log("Incremental update - checking for changed rows");
+                let hasChanges = false;
+
+                // Check each row for changes
+                for (let i = 0; i < resultSet.subset.length; i++) {
+                    const newRow = resultSet.subset[i];
+                    const oldRow = previousResultSet?.subset[i];
+
+                    // Compare row data
+                    if (!oldRow || JSON.stringify(newRow) !== JSON.stringify(oldRow)) {
+                        const dataRow = convertRowToDataRow(newRow);
+                        const existingItem = reactGridRef.current.dataView.getItemById(dataRow.id);
+
+                        if (existingItem) {
+                            // Update existing row incrementally
+                            console.log(`Updating row ${dataRow.id} incrementally`);
+                            reactGridRef.current.dataView.updateItem(dataRow.id, dataRow);
+                            hasChanges = true;
                         }
                     }
-                }, 100);
+                }
+
+                // Only invalidate if there were actual changes
+                if (hasChanges && reactGridRef.current?.slickGrid) {
+                    reactGridRef.current.slickGrid.invalidate();
+                }
             }
-        }, [resultSet]);
+
+            previousResultSetRef.current = resultSet;
+        }, [resultSet, options, themeKind, pageSize]);
+
+        // Restore pagination after dataset changes
+        useEffect(() => {
+            if (!reactGridRef.current?.paginationService || dataset.length === 0) {
+                return;
+            }
+
+            const targetPage = lastPageRef.current;
+            const targetItemsPerPage = lastItemsPerPageRef.current;
+
+            // Small delay to ensure grid is ready
+            const timeoutId = setTimeout(() => {
+                if (!reactGridRef.current?.paginationService) return;
+
+                const currentPage = reactGridRef.current.paginationService.pageNumber;
+                const currentItemsPerPage = reactGridRef.current.paginationService.itemsPerPage;
+
+                if (currentItemsPerPage !== targetItemsPerPage) {
+                    console.log(`Restoring items per page to: ${targetItemsPerPage}`);
+                    void reactGridRef.current.paginationService.changeItemPerPage(
+                        targetItemsPerPage,
+                    );
+                }
+
+                if (targetPage > 1 && currentPage !== targetPage) {
+                    console.log(`Restoring page to: ${targetPage}`);
+                    void reactGridRef.current.paginationService.goToPageNumber(targetPage);
+                }
+            }, 100);
+
+            return () => clearTimeout(timeoutId);
+        }, [dataset]);
 
         function handleCellChange(_e: CustomEvent, args: any) {
-            // Capture the current page and items per page before making changes
+            // Capture pagination state
             if (reactGridRef.current?.paginationService) {
                 lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
                 lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
-                console.log(
-                    `Captured pagination state - Page: ${lastPageRef.current}, Items per page: ${lastItemsPerPageRef.current}`,
-                );
             }
 
-            const rowIndex = args.row;
-            const cellIndex = args.cell; // The actual cell index in the grid
-            const columnIndex = cellIndex - 1; // -1 because first column is row number
-            const column = columns[cellIndex]; // Use cellIndex to get the correct column
-            const rowId = args.item.id; // Use the actual row ID from the data
+            const cellIndex = args.cell;
+            const columnIndex = cellIndex - 1;
+            const column = columns[cellIndex];
+            const rowId = args.item.id;
 
-            console.log(
-                `Cell Changed - Row: ${rowIndex}, Cell: ${cellIndex}, Column Index: ${columnIndex}`,
-            );
-            console.log(`Column ID: ${column?.id}, Field: ${column?.field}`);
-            console.log(`New Value: ${args.item[column?.field]}`);
+            console.log(`Cell Changed - Row ID: ${rowId}, Column Index: ${columnIndex}`);
 
-            // Store the change with a unique key (rowId-columnIndex)
-            // Use rowId (actual data row ID) instead of rowIndex (visual position) for consistency across pages
+            // Track the change
             const changeKey = `${rowId}-${columnIndex}`;
             cellChangesRef.current.set(changeKey, {
                 rowId,
-                rowIndex,
                 columnIndex,
                 columnId: column?.id,
                 field: column?.field,
                 newValue: args.item[column?.field],
-                item: args.item,
             });
 
             console.log(`Total changes tracked: ${cellChangesRef.current.size}`);
 
-            // Call the updateCell reducer to update the backend edit session
+            // Notify parent
             if (onUpdateCell) {
                 const newValue = args.item[column?.field];
                 onUpdateCell(rowId, columnIndex, newValue);
             }
 
-            // Force grid to re-render to show background color change
+            // Update the display without full re-render
             if (reactGridRef.current?.slickGrid) {
                 reactGridRef.current.slickGrid.invalidate();
-                reactGridRef.current.slickGrid.render();
             }
         }
 
         function handleContextMenuCommand(_e: any, args: any) {
-            // Capture the current page and items per page before making changes
+            // Capture pagination state
             if (reactGridRef.current?.paginationService) {
                 lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
                 lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
-                console.log(
-                    `Captured pagination state from context menu - Page: ${lastPageRef.current}, Items per page: ${lastItemsPerPageRef.current}`,
-                );
             }
 
             const command = args.command;
             const dataContext = args.dataContext;
-            const rowId = dataContext.id; // Use actual row ID from data
+            const rowId = dataContext.id;
 
             switch (command) {
                 case "delete-row":
@@ -183,10 +359,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         onDeleteRow(rowId);
                     }
 
-                    // Note: Don't remove from grid here - let the backend update state.resultSet
-                    // which will trigger the useEffect to rebuild the dataset with correct pagination
-
-                    // Also remove any tracked changes for this row using row ID
+                    // Remove tracked changes for this row
                     const keysToDelete: string[] = [];
                     cellChangesRef.current.forEach((_, key) => {
                         if (key.startsWith(`${rowId}-`)) {
@@ -198,35 +371,23 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                 case "revert-cell":
                     const cellIndex = args.cell;
-                    const columnIndex = cellIndex - 1; // -1 because first column is row number
+                    const columnIndex = cellIndex - 1;
                     const changeKey = `${rowId}-${columnIndex}`;
 
-                    // Call the revertCell reducer to revert in the backend
                     if (onRevertCell) {
                         onRevertCell(rowId, columnIndex);
                     }
 
-                    // Clear the change tracking for this cell
                     cellChangesRef.current.delete(changeKey);
-
-                    // The backend will update state.resultSet with the reverted value
-                    // The useEffect will rebuild the dataset with the correct value from backend
-                    // Force grid to re-render to remove yellow background
-                    if (reactGridRef.current?.slickGrid) {
-                        reactGridRef.current.slickGrid.invalidate();
-                        reactGridRef.current.slickGrid.render();
-                    }
-
                     console.log(`Reverted cell for row ID ${rowId}, column ${columnIndex}`);
                     break;
 
                 case "revert-row":
-                    // Call the revertRow reducer to revert in the backend
                     if (onRevertRow) {
                         onRevertRow(rowId);
                     }
 
-                    // Clear the change tracking for all cells in this row using row ID
+                    // Remove tracked changes for this row
                     const keysToDeleteForRevert: string[] = [];
                     cellChangesRef.current.forEach((_, key) => {
                         if (key.startsWith(`${rowId}-`)) {
@@ -234,15 +395,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         }
                     });
                     keysToDeleteForRevert.forEach((key) => cellChangesRef.current.delete(key));
-
-                    // The backend will update state.resultSet with the reverted row
-                    // The useEffect will rebuild the dataset with the correct values from backend
-                    // Force grid to re-render to remove yellow backgrounds
-                    if (reactGridRef.current?.slickGrid) {
-                        reactGridRef.current.slickGrid.invalidate();
-                        reactGridRef.current.slickGrid.render();
-                    }
-
                     console.log(`Reverted row with ID ${rowId}`);
                     break;
             }
@@ -277,162 +429,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 onCommand: (e, args) => handleContextMenuCommand(e, args),
             };
         }
-
-        // Convert resultSet data to SlickGrid format (initial setup)
-        useEffect(() => {
-            if (resultSet?.columnInfo && resultSet?.subset) {
-                // Create a simple row number column
-                const rowNumberColumn: Column = {
-                    id: "rowNumber",
-                    name: '<span style="padding-left: 8px;">#</span>',
-                    field: "id",
-                    excludeFromColumnPicker: true,
-                    excludeFromGridMenu: true,
-                    excludeFromHeaderMenu: true,
-                    width: 50,
-                    minWidth: 40,
-                    maxWidth: 80,
-                    sortable: false,
-                    resizable: true,
-                    focusable: false,
-                    selectable: false,
-                    formatter: (row: number) => {
-                        // Calculate the actual row number accounting for pagination
-                        // Get the current page info from the grid
-                        const paginationService = reactGridRef.current?.paginationService;
-                        const pageNumber = paginationService?.pageNumber ?? 1; // SlickGrid pages are 1-indexed
-                        const itemsPerPage = paginationService?.itemsPerPage ?? pageSize;
-                        // Subtract 1 from pageNumber since it's 1-indexed
-                        const actualRowNumber = (pageNumber - 1) * itemsPerPage + row + 1;
-                        return `<span style="color: var(--vscode-foreground); padding-left: 8px;">${actualRowNumber}</span>`;
-                    },
-                };
-
-                // Create columns using the columnInfo from resultSet
-                const dataColumns: Column[] = resultSet.columnInfo.map((colInfo, index) => {
-                    const column: Column = {
-                        id: `col${index}`,
-                        name: colInfo.name,
-                        field: `col${index}`,
-                        sortable: false,
-                        minWidth: 100,
-                        formatter: (
-                            _row: number,
-                            cell: number,
-                            value: any,
-                            _columnDef: any,
-                            dataContext: any,
-                        ) => {
-                            // Use the actual row ID from dataContext instead of visual row position
-                            const rowId = dataContext.id;
-                            // The first column is row number, so data columns start at cell 1
-                            const changeKey = `${rowId}-${cell - 1}`;
-                            const isModified = cellChangesRef.current.has(changeKey);
-                            const displayValue = value ?? "";
-                            const isNullValue = displayValue === "NULL";
-
-                            // HTML-escape the display value to prevent HTML injection
-                            const escapedDisplayValue = displayValue
-                                .replace(/&/g, "&amp;")
-                                .replace(/</g, "&lt;")
-                                .replace(/>/g, "&gt;")
-                                .replace(/"/g, "&quot;")
-                                .replace(/'/g, "&#039;");
-
-                            const escapedTooltip = escapedDisplayValue;
-
-                            // Style for NULL values (italic and dimmed)
-                            const nullStyle = isNullValue
-                                ? "font-style: italic; color: var(--vscode-editorGhostText-foreground, #888);"
-                                : "";
-
-                            if (isModified) {
-                                return `<div title="${escapedTooltip}" style="background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%; width: 100%; box-sizing: border-box; ${nullStyle}">${escapedDisplayValue}</div>`;
-                            }
-                            return `<span title="${escapedTooltip}" style="${nullStyle}">${escapedDisplayValue}</span>`;
-                        },
-                    };
-
-                    // Only add editor if the column is editable
-                    if (colInfo.isEditable) {
-                        column.editor = {
-                            model: Editors.text,
-                        };
-                    }
-
-                    return column;
-                });
-
-                // Add row number column as the first column
-                const allColumns = [rowNumberColumn, ...dataColumns];
-
-                // Only set columns if they're different (to avoid reinitializing grid)
-                if (columns.length === 0 || columns.length !== allColumns.length) {
-                    setColumns(allColumns);
-                }
-
-                // Convert rows to dataset
-                const convertedDataset = resultSet.subset.map((row) => {
-                    const dataRow: any = {
-                        id: row.id,
-                    };
-                    row.cells.forEach((cell, cellIndex) => {
-                        // Display "NULL" for null cells or empty displayValue
-                        // Check both isNull flag and if displayValue is empty/null/undefined
-                        const cellValue =
-                            cell.isNull || !cell.displayValue ? "NULL" : cell.displayValue;
-                        dataRow[`col${cellIndex}`] = cellValue;
-
-                        // Debug logging for first row to understand data structure
-                        if (row.id === 0 || (row.isDirty && row.state === 1)) {
-                            console.log(
-                                `Row ${row.id}, Cell ${cellIndex}: isNull=${cell.isNull}, displayValue="${cell.displayValue}", !cell.displayValue=${!cell.displayValue}, final="${cellValue}", dataRow.col${cellIndex}="${dataRow[`col${cellIndex}`]}"`,
-                            );
-                        }
-                    });
-                    console.log(`Row ${row.id} dataRow:`, dataRow);
-                    return dataRow;
-                });
-                setDataset(convertedDataset);
-
-                // Only set grid options on initial setup (when options is undefined)
-                if (!options) {
-                    setOptions({
-                        enableColumnPicker: false,
-                        enableGridMenu: false,
-                        autoEdit: false,
-                        autoCommitEdit: false,
-                        editable: true,
-                        enableAutoResize: true,
-                        autoResize: {
-                            container: "#grid-container",
-                            calculateAvailableSizeBy: "container",
-                        },
-                        forceFitColumns: true,
-                        enableColumnReorder: false,
-                        enableHeaderMenu: false,
-                        gridHeight: 400,
-                        enableCellNavigation: true,
-                        enableSorting: false,
-                        enableContextMenu: true,
-                        contextMenu: getContextMenuOptions(),
-                        enablePagination: true,
-                        pagination: {
-                            pageSize: pageSize,
-                            pageSizes: [10, 50, 100, 1000],
-                        },
-                        editCommandHandler: (_item, _column, editCommand) => {
-                            // Add to command queue for undo functionality
-                            commandQueue.push(editCommand);
-                            editCommand.execute();
-                        },
-                        darkMode:
-                            themeKind === ColorThemeKind.Dark ||
-                            themeKind === ColorThemeKind.HighContrast,
-                    });
-                }
-            }
-        }, [resultSet, themeKind, commandQueue, pageSize, columns.length, options]);
 
         if (!resultSet || columns.length === 0 || !options) {
             return null;
@@ -518,7 +514,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         margin: 0 !important;
                     }
 
-                    /* Hide default SlickGrid menu styling */
                     .slick-context-menu .slick-menu-item.red {
                         color: var(--vscode-menu-foreground) !important;
                     }
@@ -527,7 +522,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         color: var(--vscode-menu-selectionForeground) !important;
                     }
 
-                    /* Adjust icon colors to match VS Code */
                     .slick-context-menu .slick-menu-item .mdi {
                         color: var(--vscode-menu-foreground) !important;
                         font-size: 16px !important;
@@ -537,13 +531,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         color: var(--vscode-menu-selectionForeground) !important;
                     }
 
-                    /* Remove any bold or special text styling */
                     .slick-context-menu .slick-menu-item.bold,
                     .slick-context-menu .slick-menu-item .bold {
                         font-weight: normal !important;
                     }
 
-                    /* Reposition pagination footer to the left */
                     #pager {
                         width: 100%;
                         max-width: 100%;
