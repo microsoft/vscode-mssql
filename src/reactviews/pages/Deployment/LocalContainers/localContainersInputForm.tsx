@@ -24,6 +24,7 @@ import {
 import { SearchableDropdownOptions } from "../../../common/searchableDropdown.component";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { DeploymentContext } from "../deploymentStateProvider";
+import { ArmSql2025ErrorDialog } from "./armSql2025ErrorDialog";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -135,6 +136,9 @@ export const LocalContainersInputForm: React.FC = () => {
                             saveConnectionGroup={context.createConnectionGroup}
                             closeDialog={() => context.setConnectionGroupDialogState(false)} // shouldOpen is false when closing the dialog
                         />
+                    )}
+                    {deploymentState.dialog?.type === "armSql2025Error" && (
+                        <ArmSql2025ErrorDialog closeDialog={context.closeArmSql2025ErrorDialog} />
                     )}
                     {renderFormFields(false)}
                     <FormField<

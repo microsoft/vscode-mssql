@@ -24,7 +24,7 @@ const useStyles = makeStyles({
 export const ConnectionSection: React.FC = () => {
     const publishCtx = useContext(PublishProjectContext);
     const formStyles = useFormStyles();
-    const classes = useStyles();
+    const styles = useStyles();
     const serverComponent = usePublishDialogSelector((s) => s.formComponents.serverName);
     const databaseComponent = usePublishDialogSelector((s) => s.formComponents.databaseName);
     const serverValue = usePublishDialogSelector((s) => s.formState.serverName);
@@ -53,7 +53,7 @@ export const ConnectionSection: React.FC = () => {
 
     return (
         <div className={formStyles.formComponentDiv}>
-            <div className={classes.root}>
+            <div className={styles.root}>
                 {renderInput(serverComponent, localServer, publishCtx, {
                     readOnly: true,
                     contentAfter: (

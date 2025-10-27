@@ -9,7 +9,7 @@ import * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import ConnectionManager from "../controllers/connectionManager";
+import ConnectionManager, { ConnectionSuccessfulEvent } from "../controllers/connectionManager";
 import { IConnectionProfile } from "../models/interfaces";
 import { PublishProject as Loc } from "../constants/locConstants";
 import {
@@ -28,6 +28,7 @@ import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getSqlServerContainerTagsForTargetVersion } from "../deployment/dockerUtils";
+import { hasAnyMissingRequiredValues, getErrorMessage } from "../utils/utils";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -112,8 +113,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this._connectionManager.onSuccessfulConnection(async (event) => {
                 // Only auto-populate if waiting for a new connection
                 if (this.state.waitingForNewConnection) {
-                    // Auto-populate from the new connection (this will call updateState internally)
-                    await this.autoSelectNewConnection(event.fileUri);
+                    // Auto-populate form fields from the successful connection event
+                    await this.handleSuccessfulConnection(event);
                 }
             }),
         );
@@ -289,7 +290,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 },
             });
 
-            if (fileUris && fileUris.length > 0) {
+            if (fileUris?.length > 0) {
                 const selectedPath = fileUris[0].fsPath;
 
                 try {
@@ -410,12 +411,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
         );
     }
 
-    /** Auto-select a new connection and populate server/database fields */
-    private async autoSelectNewConnection(connectionUri: string): Promise<void> {
+    /**
+     * Handle successful connection event and populate form fields with connection details, such as server name and database list.
+     * @param event The connection successful event containing connection details
+     */
+    private async handleSuccessfulConnection(event: ConnectionSuccessfulEvent): Promise<void> {
         try {
-            // IMPORTANT: Get the connection profile FIRST, before any async calls
-            // The connection URI may be removed from activeConnections during async operations
-            const connection = this._connectionManager.activeConnections[connectionUri];
+            const connection = event.connection;
             if (!connection || !connection.credentials) {
                 return; // Connection not found or no credentials available
             }
@@ -428,29 +430,42 @@ export class PublishProjectWebViewController extends FormWebviewController<
             // Update server name immediately
             this.state.formState.serverName = connectionProfile.server;
 
-            // Get connection string first
-            const connectionString = await this._connectionManager.getConnectionString(
-                connectionUri,
+            // Get connection string using the fileUri from the event
+            this.state.connectionString = await this._connectionManager.getConnectionString(
+                event.fileUri,
                 true, // includePassword
                 true, // includeApplicationName
             );
-            this.state.connectionString = connectionString;
 
             // Get databases
-            const databases = await this._connectionManager.listDatabases(connectionUri);
+            try {
+                const databases = await this._connectionManager.listDatabases(event.fileUri);
 
-            // Update database dropdown options
-            const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
-            if (databaseComponent) {
-                databaseComponent.options = databases.map((db) => ({
-                    displayName: db,
-                    value: db,
-                }));
-            }
+                // Update database dropdown options
+                const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
+                if (databaseComponent) {
+                    databaseComponent.options = databases.map((db) => ({
+                        displayName: db,
+                        value: db,
+                    }));
+                }
 
-            // Optionally select the first database if available
-            if (databases.length > 0 && !this.state.formState.databaseName) {
-                this.state.formState.databaseName = databases[0];
+                // Optionally select the first database if available
+                if (databases.length > 0 && !this.state.formState.databaseName) {
+                    this.state.formState.databaseName = databases[0];
+                }
+            } catch (dbError) {
+                // Show error message to user when database listing fails
+                void vscode.window.showErrorMessage(
+                    `${Loc.FailedToListDatabases}: ${getErrorMessage(dbError)}`,
+                );
+
+                // Log the error for diagnostics
+                sendActionEvent(
+                    TelemetryViews.SqlProjects,
+                    TelemetryActions.PublishProjectConnectionError,
+                    { error: dbError instanceof Error ? dbError.message : String(dbError) },
+                );
             }
 
             // Validate form to update button state after connection
@@ -572,29 +587,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // erroredInputs only contains fields validated with updateValidation=true (on blur)
         // So we also need to check for missing required values (which may not be validated yet on dialog open)
         const hasValidationErrors = updateValidation && erroredInputs.length > 0;
-        const hasMissingRequiredValues = this.hasAnyMissingRequiredValues();
+        const hasMissingRequiredValues = hasAnyMissingRequiredValues(
+            this.state.formComponents,
+            this.state.formState,
+        );
 
         // hasFormErrors state tracks to disable buttons if ANY errors exist
         this.state.hasFormErrors = hasValidationErrors || hasMissingRequiredValues;
 
         return erroredInputs;
-    }
-
-    /**
-     * Checks if any required fields are missing values.
-     * Used to determine if publish/generate script buttons should be disabled.
-     */
-    private hasAnyMissingRequiredValues(): boolean {
-        return Object.values(this.state.formComponents).some((component) => {
-            if (component.hidden || !component.required) return false;
-
-            const value = this.state.formState[component.propertyName as keyof IPublishForm];
-            return (
-                value === undefined ||
-                (typeof value === "string" && value.trim() === "") ||
-                (typeof value === "boolean" && value !== true)
-            );
-        });
     }
 
     /**

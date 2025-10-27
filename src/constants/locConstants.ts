@@ -916,7 +916,6 @@ export class Fabric {
     public static searchWorkspaces = l10n.t("Search Workspaces");
     public static workspaceIsRequired = l10n.t("Workspace is required");
     public static insufficientWorkspacePermissions = l10n.t("Insufficient Workspace Permissions");
-    public static insufficientCapacityPermissions = l10n.t("Insufficient Capacity Permissions");
 
     public static fabricNotSupportedInCloud = (cloudName: string, settingName: string) => {
         return l10n.t({
@@ -1252,6 +1251,12 @@ export class LocalContainers {
     public static containerNamePlaceholder = l10n.t("Enter container name");
     public static portPlaceholder = l10n.t("Enter port");
     public static hostnamePlaceholder = l10n.t("Enter hostname");
+    public static sqlServer2025ArmError = l10n.t(
+        "SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.",
+    );
+    public static sqlServer2025ArmErrorTooltip = l10n.t(
+        "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
+    );
 }
 
 export class UserSurvey {
@@ -1354,6 +1359,7 @@ export class PublishProject {
     };
     public static PublishProfileSaveFailed = l10n.t("Failed to save publish profile");
     public static DacFxServiceNotAvailable = l10n.t("DacFx service is not available");
+    public static FailedToListDatabases = l10n.t("Failed to list databases");
 }
 
 export class SchemaCompare {
