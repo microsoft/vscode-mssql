@@ -51,6 +51,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const reactGridRef = useRef<SlickgridReactInstance | null>(null);
         const [commandQueue] = useState<EditCommand[]>([]);
         const cellChangesRef = useRef<Map<string, any>>(new Map());
+        const lastPageRef = useRef<number>(1); // Track the last known page internally
 
         function reactGridReady(reactGrid: SlickgridReactInstance) {
             reactGridRef.current = reactGrid;
@@ -78,7 +79,34 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }, [pageSize]);
 
+        // Restore the current page after resultSet changes
+        useEffect(() => {
+            if (reactGridRef.current?.paginationService && lastPageRef.current > 1) {
+                const targetPage = lastPageRef.current;
+                const currentGridPage = reactGridRef.current.paginationService.pageNumber;
+                console.log(
+                    `Page restoration check - Grid page: ${currentGridPage}, Target page: ${targetPage}`,
+                );
+                // Only change page if it's different from the target
+                if (currentGridPage !== targetPage) {
+                    // Use setTimeout to ensure the grid is fully rendered before changing page
+                    setTimeout(() => {
+                        if (reactGridRef.current?.paginationService) {
+                            console.log(`Restoring page to: ${targetPage}`);
+                            void reactGridRef.current.paginationService.goToPageNumber(targetPage);
+                        }
+                    }, 100);
+                }
+            }
+        }, [resultSet]);
+
         function handleCellChange(_e: CustomEvent, args: any) {
+            // Capture the current page before making changes
+            if (reactGridRef.current?.paginationService) {
+                lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
+                console.log(`Captured current page before change: ${lastPageRef.current}`);
+            }
+
             const rowIndex = args.row;
             const cellIndex = args.cell; // The actual cell index in the grid
             const columnIndex = cellIndex - 1; // -1 because first column is row number
@@ -312,7 +340,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                 // Add row number column as the first column
                 const allColumns = [rowNumberColumn, ...dataColumns];
-                setColumns(allColumns);
+
+                // Only set columns if they're different (to avoid reinitializing grid)
+                if (columns.length === 0 || columns.length !== allColumns.length) {
+                    setColumns(allColumns);
+                }
 
                 // Convert rows to dataset
                 const convertedDataset = resultSet.subset.map((row) => {
@@ -338,42 +370,44 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 });
                 setDataset(convertedDataset);
 
-                // Set grid options
-                setOptions({
-                    enableColumnPicker: false,
-                    enableGridMenu: false,
-                    autoEdit: false,
-                    autoCommitEdit: false,
-                    editable: true,
-                    enableAutoResize: true,
-                    autoResize: {
-                        container: "#grid-container",
-                        calculateAvailableSizeBy: "container",
-                    },
-                    forceFitColumns: true,
-                    enableColumnReorder: false,
-                    enableHeaderMenu: false,
-                    gridHeight: 400,
-                    enableCellNavigation: true,
-                    enableSorting: false,
-                    enableContextMenu: true,
-                    contextMenu: getContextMenuOptions(),
-                    enablePagination: true,
-                    pagination: {
-                        pageSize: pageSize,
-                        pageSizes: [10, 50, 100, 1000],
-                    },
-                    editCommandHandler: (_item, _column, editCommand) => {
-                        // Add to command queue for undo functionality
-                        commandQueue.push(editCommand);
-                        editCommand.execute();
-                    },
-                    darkMode:
-                        themeKind === ColorThemeKind.Dark ||
-                        themeKind === ColorThemeKind.HighContrast,
-                });
+                // Only set grid options on initial setup (when options is undefined)
+                if (!options) {
+                    setOptions({
+                        enableColumnPicker: false,
+                        enableGridMenu: false,
+                        autoEdit: false,
+                        autoCommitEdit: false,
+                        editable: true,
+                        enableAutoResize: true,
+                        autoResize: {
+                            container: "#grid-container",
+                            calculateAvailableSizeBy: "container",
+                        },
+                        forceFitColumns: true,
+                        enableColumnReorder: false,
+                        enableHeaderMenu: false,
+                        gridHeight: 400,
+                        enableCellNavigation: true,
+                        enableSorting: false,
+                        enableContextMenu: true,
+                        contextMenu: getContextMenuOptions(),
+                        enablePagination: true,
+                        pagination: {
+                            pageSize: pageSize,
+                            pageSizes: [10, 50, 100, 1000],
+                        },
+                        editCommandHandler: (_item, _column, editCommand) => {
+                            // Add to command queue for undo functionality
+                            commandQueue.push(editCommand);
+                            editCommand.execute();
+                        },
+                        darkMode:
+                            themeKind === ColorThemeKind.Dark ||
+                            themeKind === ColorThemeKind.HighContrast,
+                    });
+                }
             }
-        }, [resultSet, themeKind, commandQueue, pageSize]);
+        }, [resultSet, themeKind, commandQueue, pageSize, columns.length, options]);
 
         if (!resultSet || columns.length === 0 || !options) {
             return null;

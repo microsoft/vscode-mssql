@@ -53,6 +53,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 newRows: [], // Track newly created rows
                 updateScript: undefined, // No script initially
                 showScriptPane: false, // Script pane hidden by default
+                currentPage: 1, // Start on page 1
             },
             {
                 title: LocConstants.TableExplorer.title(tableName),
@@ -517,6 +518,13 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             state.showScriptPane = !state.showScriptPane;
             this.logger.info(`Script pane toggled to: ${state.showScriptPane}`);
             this.updateState();
+            return state;
+        });
+
+        this.registerReducer("setCurrentPage", async (state, payload) => {
+            state.currentPage = payload.pageNumber;
+            this.logger.info(`Current page set to: ${payload.pageNumber}`);
+            // Don't call updateState here - this is called FROM the grid, not TO the grid
             return state;
         });
     }

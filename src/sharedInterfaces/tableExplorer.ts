@@ -190,6 +190,7 @@ export interface TableExplorerWebViewState {
     newRows: EditRow[]; // Track newly created rows that haven't been committed yet
     updateScript?: string; // SQL script generated from pending changes
     showScriptPane: boolean; // Whether to show the script pane
+    currentPage?: number; // Track the current page number in the data grid
 }
 
 export interface TableExplorerContextProps {
@@ -206,6 +207,7 @@ export interface TableExplorerContextProps {
     openScriptInEditor: () => void;
     copyScriptToClipboard: () => void;
     toggleScriptPane: () => void;
+    setCurrentPage: (pageNumber: number) => void;
 }
 
 export interface TableExplorerReducers {
@@ -220,4 +222,5 @@ export interface TableExplorerReducers {
     openScriptInEditor: {};
     copyScriptToClipboard: {};
     toggleScriptPane: {};
+    setCurrentPage: { pageNumber: number };
 }

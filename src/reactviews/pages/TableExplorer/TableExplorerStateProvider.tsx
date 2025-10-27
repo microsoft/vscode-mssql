@@ -70,6 +70,10 @@ export const TableExplorerStateProvider: React.FC<{
                 toggleScriptPane: function (): void {
                     webViewState?.extensionRpc.action("toggleScriptPane", {});
                 },
+
+                setCurrentPage: function (pageNumber: number): void {
+                    webViewState?.extensionRpc.action("setCurrentPage", { pageNumber });
+                },
             }}>
             {children}
         </TableExplorerContext.Provider>
