@@ -1065,6 +1065,10 @@
         <source xml:lang="en">Container Name</source>
         <target state="translated">Nom du conteneur</target>
       </trans-unit>
+      <trans-unit id="++CODE++ac2c68de32aa4911b308194e21f3d6754c675df3e7a84a21e90b097451b58572">
+        <source xml:lang="en">Container creation isn't supported on this system. ARM support will be available starting with the SQL Server 2025 CU1 container image.</source>
+        <target state="new">Container creation isn't supported on this system. ARM support will be available starting with the SQL Server 2025 CU1 container image.</target>
+      </trans-unit>
       <trans-unit id="++CODE++06659b52e63599b06c4386ad5423c3dc67b010f0dbbd03cba2f48b68ed1b62f5">
         <source xml:lang="en">Container does not exist. Would you like to remove the connection?</source>
         <target state="translated">Le conteneur n'existe pas. Voulez-vous supprimer la connexion ?</target>
@@ -1233,6 +1237,10 @@
       <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
         <source xml:lang="en">Custom Zoom</source>
         <target state="translated">Zoom personnalisé</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ef695e4c384e9b231d25ba5d0160913f31f4153f460e645129860fa611a52b27">
+        <source xml:lang="en">DacFx service is not available</source>
+        <target state="new">DacFx service is not available</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -1888,6 +1896,10 @@ Erreur :
 {1} is the account name</note>
         <target state="translated">Échec de l’obtention du client « {0} » pour le compte « {1} ».</target>
       </trans-unit>
+      <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
+        <source xml:lang="en">Failed to load publish profile</source>
+        <target state="new">Failed to load publish profile</target>
+      </trans-unit>
       <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
         <note>{0} is the error message returned from the open scmp operation</note>
@@ -1902,6 +1914,10 @@ Erreur :
         <note>{0} is the connection id
 {1} is the uri</note>
         <target state="translated">Échec de l’actualisation de la connexion ${0} avec l’URI {1}, résultat de connexion non valide.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
+        <source xml:lang="en">Failed to save publish profile</source>
+        <target state="new">Failed to save publish profile</target>
       </trans-unit>
       <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
         <source xml:lang="en">Failed to save results. </source>
@@ -2500,6 +2516,10 @@ Erreur :
       <trans-unit id="++CODE++6b590dbe3ca2ba02770a0f91a1d06fddd3d9f474ffc479853d323f0545a6397b">
         <source xml:lang="en">Load from Connection String</source>
         <target state="translated">Charger à partir de la chaîne de connexion</target>
+      </trans-unit>
+      <trans-unit id="++CODE++323ed460497fcfa6d1f92f52778381421eefa8ba36a3e9896b3f05a4a2050ca2">
+        <source xml:lang="en">Load profile...</source>
+        <target state="new">Load profile...</target>
       </trans-unit>
       <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
         <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
@@ -3287,9 +3307,17 @@ Erreur :
         <source xml:lang="en">Publish Project</source>
         <target state="translated">Publier le projet</target>
       </trans-unit>
+      <trans-unit id="++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f">
+        <source xml:lang="en">Publish Settings File</source>
+        <target state="new">Publish Settings File</target>
+      </trans-unit>
       <trans-unit id="++CODE++d5ce61b547d2e5793b2ac208be904ea9f94d5e5594d0c5c02bdda22abf61fcf0">
         <source xml:lang="en">Publish Target</source>
         <target state="translated">Publier la cible</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f9f3a475ce7608957aa4ae746b37117f26d543fb676f2f78eff8e185a3cbb143">
+        <source xml:lang="en">Publish profile saved to: {0}</source>
+        <target state="new">Publish profile saved to: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
         <source xml:lang="en">Publishing Changes</source>
@@ -3513,6 +3541,14 @@ Requête : {1}</target>
         <source xml:lang="en">SQL Plan Files</source>
         <target state="translated">Fichiers de plan SQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++0404cd9b41a2ccda40d68efcab8008a39503e1487a468ad37a26417a02df844f">
+        <source xml:lang="en">SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.</source>
+        <target state="new">SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++31aead661ae4eee1d516f5b824b2d74ec3221ad35899111d62eb58ea7a78aaf6">
+        <source xml:lang="en">SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.</source>
+        <target state="new">SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.</target>
+      </trans-unit>
       <trans-unit id="++CODE++8553f640204422619af23f71ce8e01bb39f23579ff44b08e5da1cd2eb4482c27">
         <source xml:lang="en">SQL Server Container SA Password</source>
         <target state="translated">Mot de passe de l’administrateur(-trice) du conteneur SQL Server</target>
@@ -3705,6 +3741,10 @@ Requête : {1}</target>
         <source xml:lang="en">Search...</source>
         <target state="translated">Recherche en cours...</target>
       </trans-unit>
+      <trans-unit id="++CODE++6863067eb0a2c7499425c6c189b2c88bac55ca754285a6ab1ef37b75b4cfad4d">
+        <source xml:lang="en">See</source>
+        <target state="new">See</target>
+      </trans-unit>
       <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
         <source xml:lang="en">Select</source>
         <target state="translated">Sélectionner</target>
@@ -3792,10 +3832,6 @@ Requête : {1}</target>
         <source xml:lang="en">Select new permission for extension: '{0}'</source>
         <note>{0} is the extension name</note>
         <target state="translated">Sélectionner une nouvelle autorisation pour l’extension : « {0} »</target>
-      </trans-unit>
-      <trans-unit id="++CODE++10484d8ed1877a7e126a17a3a144a55c6bf07784ecc22b01d87ee138fb808cd8">
-        <source xml:lang="en">Select or enter a publish profile</source>
-        <target state="translated">Sélectionner ou entrer un profil de publication</target>
       </trans-unit>
       <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
         <source xml:lang="en">Select profile to remove</source>
@@ -4211,6 +4247,10 @@ Requête : {1}</target>
         <note>{0} is a url to learn more about the new features</note>
         <target state="translated">L’extension MSSQL pour VS Code introduit de nouvelles fonctionnalités de développement de données modernes ! Voulez-vous les activer ? [Learn more]({0})</target>
       </trans-unit>
+      <trans-unit id="++CODE++8284b2207062ceca3245e799f300ae72ab7e751c75b0f7e32f297adcfdf8e19f">
+        <source xml:lang="en">The SQL Server 2025 RTM container image isn't compatible with ARM-based systems (including Windows ARM and Apple Silicon).</source>
+        <target state="new">The SQL Server 2025 RTM container image isn't compatible with ARM-based systems (including Windows ARM and Apple Silicon).</target>
+      </trans-unit>
       <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
         <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
         <target state="translated">Le comportement lorsqu'un utilisateur tente de supprimer une ligne contenant des données impliquées dans une relation de clé étrangère.</target>
@@ -4485,6 +4525,10 @@ Requête : {1}</target>
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
         <target state="translated">Visual Studio Code doit être relancé pour que ce paramètre entre en vigueur.  Veuillez recharger Visual Studio Code.</target>
       </trans-unit>
+      <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
+        <source xml:lang="en">Warning</source>
+        <target state="new">Warning</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
         <target state="translated">Avertissements détectés. Veuillez examiner les modifications.</target>
@@ -4615,6 +4659,10 @@ Requête : {1}</target>
       <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
         <source xml:lang="en">encrypt</source>
         <target state="translated">chiffrer</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4c7148e466d4434d1a1411c15f757ec78ba8f3ef4b6210d4a156bc3aaa6e71e5">
+        <source xml:lang="en">for more details</source>
+        <target state="new">for more details</target>
       </trans-unit>
       <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
         <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
