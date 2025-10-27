@@ -41,6 +41,7 @@ suite("PublishProjectWebViewController Tests", () => {
         mockDacFxService = {};
         mockConnectionManager = {
             onConnectionsChanged: sinon.stub(),
+            onSuccessfulConnection: sinon.stub().returns({ dispose: sinon.stub() }),
             activeConnections: {},
             listDatabases: sinon.stub().resolves([]),
             getConnectionString: sinon.stub().returns(""),
