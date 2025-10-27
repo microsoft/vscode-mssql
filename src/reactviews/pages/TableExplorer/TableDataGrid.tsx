@@ -52,6 +52,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const [commandQueue] = useState<EditCommand[]>([]);
         const cellChangesRef = useRef<Map<string, any>>(new Map());
         const lastPageRef = useRef<number>(1); // Track the last known page internally
+        const lastItemsPerPageRef = useRef<number>(pageSize); // Track items per page
 
         function reactGridReady(reactGrid: SlickgridReactInstance) {
             reactGridRef.current = reactGrid;
@@ -79,32 +80,47 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }, [pageSize]);
 
-        // Restore the current page after resultSet changes
+        // Restore the current page and items per page after resultSet changes
         useEffect(() => {
-            if (reactGridRef.current?.paginationService && lastPageRef.current > 1) {
+            if (reactGridRef.current?.paginationService) {
                 const targetPage = lastPageRef.current;
+                const targetItemsPerPage = lastItemsPerPageRef.current;
                 const currentGridPage = reactGridRef.current.paginationService.pageNumber;
+                const currentItemsPerPage = reactGridRef.current.paginationService.itemsPerPage;
+
                 console.log(
-                    `Page restoration check - Grid page: ${currentGridPage}, Target page: ${targetPage}`,
+                    `Page restoration check - Grid page: ${currentGridPage}/${targetPage}, Items per page: ${currentItemsPerPage}/${targetItemsPerPage}`,
                 );
-                // Only change page if it's different from the target
-                if (currentGridPage !== targetPage) {
-                    // Use setTimeout to ensure the grid is fully rendered before changing page
-                    setTimeout(() => {
-                        if (reactGridRef.current?.paginationService) {
+
+                // Use setTimeout to ensure the grid is fully rendered before changing pagination
+                setTimeout(() => {
+                    if (reactGridRef.current?.paginationService) {
+                        // First restore items per page if it changed
+                        if (currentItemsPerPage !== targetItemsPerPage) {
+                            console.log(`Restoring items per page to: ${targetItemsPerPage}`);
+                            void reactGridRef.current.paginationService.changeItemPerPage(
+                                targetItemsPerPage,
+                            );
+                        }
+
+                        // Then restore page number if needed and page > 1
+                        if (targetPage > 1 && currentGridPage !== targetPage) {
                             console.log(`Restoring page to: ${targetPage}`);
                             void reactGridRef.current.paginationService.goToPageNumber(targetPage);
                         }
-                    }, 100);
-                }
+                    }
+                }, 100);
             }
         }, [resultSet]);
 
         function handleCellChange(_e: CustomEvent, args: any) {
-            // Capture the current page before making changes
+            // Capture the current page and items per page before making changes
             if (reactGridRef.current?.paginationService) {
                 lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
-                console.log(`Captured current page before change: ${lastPageRef.current}`);
+                lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
+                console.log(
+                    `Captured pagination state - Page: ${lastPageRef.current}, Items per page: ${lastItemsPerPageRef.current}`,
+                );
             }
 
             const rowIndex = args.row;
@@ -148,6 +164,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         }
 
         function handleContextMenuCommand(_e: any, args: any) {
+            // Capture the current page and items per page before making changes
+            if (reactGridRef.current?.paginationService) {
+                lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
+                lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
+                console.log(
+                    `Captured pagination state from context menu - Page: ${lastPageRef.current}, Items per page: ${lastItemsPerPageRef.current}`,
+                );
+            }
+
             const command = args.command;
             const dataContext = args.dataContext;
             const rowId = dataContext.id; // Use actual row ID from data
