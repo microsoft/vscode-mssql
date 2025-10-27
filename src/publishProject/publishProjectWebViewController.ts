@@ -28,6 +28,7 @@ import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getSqlServerContainerTagsForTargetVersion } from "../deployment/dockerUtils";
+import { hasAnyMissingRequiredValues } from "../utils/utils";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -233,7 +234,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 },
             });
 
-            if (fileUris && fileUris.length > 0) {
+            if (fileUris?.length > 0) {
                 const selectedPath = fileUris[0].fsPath;
 
                 try {
@@ -516,28 +517,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
         // erroredInputs only contains fields validated with updateValidation=true (on blur)
         // So we also need to check for missing required values (which may not be validated yet on dialog open)
         const hasValidationErrors = updateValidation && erroredInputs.length > 0;
-        const hasMissingRequiredValues = this.hasAnyMissingRequiredValues();
+        const hasMissingRequiredValues = hasAnyMissingRequiredValues(
+            this.state.formComponents,
+            this.state.formState,
+        );
 
         // hasFormErrors state tracks to disable buttons if ANY errors exist
         this.state.hasFormErrors = hasValidationErrors || hasMissingRequiredValues;
 
         return erroredInputs;
-    }
-
-    /**
-     * Checks if any required fields are missing values.
-     * Used to determine if publish/generate script buttons should be disabled.
-     */
-    private hasAnyMissingRequiredValues(): boolean {
-        return Object.values(this.state.formComponents).some((component) => {
-            if (component.hidden || !component.required) return false;
-
-            const value = this.state.formState[component.propertyName as keyof IPublishForm];
-            return (
-                value === undefined ||
-                (typeof value === "string" && value.trim() === "") ||
-                (typeof value === "boolean" && value !== true)
-            );
-        });
     }
 }
