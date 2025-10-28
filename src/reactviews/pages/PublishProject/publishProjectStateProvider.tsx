@@ -13,6 +13,7 @@ import {
     PublishProjectProvider,
 } from "../../../sharedInterfaces/publishDialog";
 import { FormEvent } from "../../../sharedInterfaces/form";
+import * as mssql from "vscode-mssql";
 
 export interface PublishProjectContextProps extends PublishProjectProvider {
     extensionRpc: WebviewRpc<PublishDialogReducers>;
@@ -41,8 +42,8 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
             savePublishProfile: (publishProfileName: string) =>
                 extensionRpc.action("savePublishProfile", { publishProfileName }),
             openConnectionDialog: () => extensionRpc.action("openConnectionDialog"),
-            updateDeploymentOption: (optionName: string, value: boolean) =>
-                extensionRpc.action("updateDeploymentOption", { optionName, value }),
+            updateDeploymentOptions: (deploymentOptions: mssql.DeploymentOptions) =>
+                extensionRpc.action("updateDeploymentOptions", { deploymentOptions }),
             extensionRpc,
         }),
         [extensionRpc],

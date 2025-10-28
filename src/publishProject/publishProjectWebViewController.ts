@@ -69,6 +69,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 lastPublishResult: undefined,
                 hasFormErrors: true,
                 deploymentOptions: deploymentOptions,
+                defaultDeploymentOptions: deploymentOptions
+                    ? structuredClone(deploymentOptions)
+                    : undefined,
                 waitingForNewConnection: false,
             } as PublishDialogState,
             {
@@ -220,47 +223,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
         });
 
         this.registerReducer(
-            "updateDeploymentOption",
-            async (state: PublishDialogState, payload: { optionName: string; value: boolean }) => {
-                // Update a specific deployment option value
-                if (!state.deploymentOptions) {
-                    return state;
-                }
-
-                const updatedOptions = { ...state.deploymentOptions };
-
-                // Check if this is a boolean option
-                if (updatedOptions.booleanOptionsDictionary?.[payload.optionName]) {
-                    updatedOptions.booleanOptionsDictionary[payload.optionName] = {
-                        ...updatedOptions.booleanOptionsDictionary[payload.optionName],
-                        value: payload.value,
-                    };
-                }
-                // Check if this is an exclude object type
-                else if (updatedOptions.objectTypesDictionary?.[payload.optionName]) {
-                    // excludeObjectTypes.value is a string array of excluded types
-                    const currentExcluded = updatedOptions.excludeObjectTypes?.value || [];
-                    let newExcluded: string[];
-
-                    if (payload.value) {
-                        // Add to excluded list if not already there
-                        newExcluded = currentExcluded.includes(payload.optionName)
-                            ? currentExcluded
-                            : [...currentExcluded, payload.optionName];
-                    } else {
-                        // Remove from excluded list
-                        newExcluded = currentExcluded.filter((type) => type !== payload.optionName);
-                    }
-
-                    updatedOptions.excludeObjectTypes = {
-                        ...updatedOptions.excludeObjectTypes,
-                        value: newExcluded,
-                    };
-                }
-
+            "updateDeploymentOptions",
+            async (
+                state: PublishDialogState,
+                payload: { deploymentOptions: mssql.DeploymentOptions },
+            ) => {
+                // Simply replace entire deploymentOptions - much simpler!
                 const newState = {
                     ...state,
-                    deploymentOptions: updatedOptions,
+                    deploymentOptions: payload.deploymentOptions,
                 };
 
                 // Regenerate grouped options after update

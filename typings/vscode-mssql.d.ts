@@ -530,7 +530,6 @@ declare module "vscode-mssql" {
             taskExecutionMode: TaskExecutionMode,
         ): Thenable<GenerateDeployPlanResult>;
         getOptionsFromProfile(profilePath: string): Thenable<DacFxOptionsResult>;
-        getDefaultPublishOptions(): Thenable<DacFxOptionsResult>;
         validateStreamingJob(
             packageFilePath: string,
             createStreamingJobTsql: string,
@@ -1308,8 +1307,6 @@ declare module "vscode-mssql" {
     export interface GetOptionsFromProfileParams {
         profilePath: string;
     }
-
-    export interface GetDefaultPublishOptionsParams {}
 
     export interface ValidateStreamingJobParams {
         packageFilePath: string;

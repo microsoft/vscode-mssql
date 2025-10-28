@@ -72,6 +72,7 @@ export interface PublishDialogState
     projectProperties?: mssql.GetProjectPropertiesResult & { targetVersion?: string };
     hasFormErrors?: boolean;
     deploymentOptions?: mssql.DeploymentOptions;
+    defaultDeploymentOptions?: mssql.DeploymentOptions;
     waitingForNewConnection?: boolean;
     connectionString?: string;
     previousDatabaseList?: { displayName: string; value: string }[];
@@ -117,7 +118,7 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     selectPublishProfile: {};
     savePublishProfile: { publishProfileName: string };
     openConnectionDialog: {};
-    updateDeploymentOption: { optionName: string; value: boolean };
+    updateDeploymentOptions: { deploymentOptions: mssql.DeploymentOptions };
 }
 
 /**
@@ -143,6 +144,6 @@ export interface PublishProjectProvider {
     savePublishProfile(publishProfileName: string): void;
     /** Open connection dialog to select server and database */
     openConnectionDialog(): void;
-    /** Update a specific deployment option */
-    updateDeploymentOption(optionName: string, value: boolean): void;
+    /** Update all deployment options at once */
+    updateDeploymentOptions(deploymentOptions: mssql.DeploymentOptions): void;
 }

@@ -531,4 +531,130 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(controller.state.formState.databaseName).to.equal("SelectedDatabase");
     });
     //#endregion
+
+    //#region Advanced Options Section Tests
+    test("advanced options groups contain expected categories", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        const groupedOptions = controller["groupedAdvancedOptions"];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const groupNames = groupedOptions.map((group: any) => group.name);
+
+        // Verify expected group categories exist
+        expect(groupNames).to.include("General");
+        expect(groupNames).to.include("ObjectTypes");
+        expect(groupNames).to.include("TableStorage");
+    });
+
+    test("deployment options are properly loaded from publish profile", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Mock DacFx service to return specific deployment options
+        mockDacFxService.getOptionsFromProfile = sandbox.stub().resolves({
+            success: true,
+            deploymentOptions: {
+                excludeObjectTypes: {
+                    value: ["Users", "Logins"],
+                    description: "Object types to exclude",
+                    displayName: "Exclude Object Types",
+                },
+                booleanOptionsDictionary: {
+                    ignoreTableOptions: {
+                        value: true,
+                        description: "Ignore table options",
+                        displayName: "Ignore Table Options",
+                    },
+                    allowIncompatiblePlatform: {
+                        value: true,
+                        description: "Allow incompatible platform",
+                        displayName: "Allow Incompatible Platform",
+                    },
+                },
+                objectTypesDictionary: {},
+            },
+        });
+
+        // Mock file system and file picker
+        const profileXml = `<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <TargetDatabaseName>TestDB</TargetDatabaseName>
+  </PropertyGroup>
+</Project>`;
+
+        const fs = await import("fs");
+        sandbox.stub(fs.promises, "readFile").resolves(profileXml);
+        sandbox
+            .stub(vscode.window, "showOpenDialog")
+            .resolves([vscode.Uri.file("test.publish.xml")]);
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const selectPublishProfile = reducerHandlers.get("selectPublishProfile");
+
+        // Load profile
+        const newState = await selectPublishProfile(controller.state, {});
+
+        // Verify deployment options were loaded correctly
+        expect(newState.deploymentOptions.booleanOptionsDictionary.ignoreTableOptions?.value).to.be
+            .true;
+        expect(newState.deploymentOptions.booleanOptionsDictionary.allowIncompatiblePlatform?.value)
+            .to.be.true;
+        expect(newState.deploymentOptions.excludeObjectTypes.value).to.deep.equal([
+            "Users",
+            "Logins",
+        ]);
+    });
+
+    test("advanced options are saved correctly in publish profile", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Set up deployment options using correct interface structure
+        controller.state.deploymentOptions = {
+            excludeObjectTypes: {
+                value: ["Permissions"],
+                description: "Object types to exclude",
+                displayName: "Exclude Object Types",
+            },
+            booleanOptionsDictionary: {
+                ignoreTableOptions: {
+                    value: true,
+                    description: "Ignore table options",
+                    displayName: "Ignore Table Options",
+                },
+                allowIncompatiblePlatform: {
+                    value: false,
+                    description: "Allow incompatible platform",
+                    displayName: "Allow Incompatible Platform",
+                },
+            },
+            objectTypesDictionary: {},
+        };
+
+        controller.state.formState.databaseName = "TestDB";
+        controller.state.connectionString = "Server=localhost;Database=TestDB;";
+
+        // Mock save dialog
+        sandbox.stub(vscode.window, "showSaveDialog").resolves(vscode.Uri.file("test.publish.xml"));
+        mockDacFxService.savePublishProfile = sandbox.stub().resolves({ success: true });
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const savePublishProfile = reducerHandlers.get("savePublishProfile");
+
+        // Save profile
+        await savePublishProfile(controller.state, { publishProfileName: "test.publish.xml" });
+
+        // Verify savePublishProfile was called with deployment options
+        expect(mockDacFxService.savePublishProfile.calledOnce).to.be.true;
+        const saveCall = mockDacFxService.savePublishProfile.getCall(0);
+        const deploymentOptions = saveCall.args[4]; // 5th argument is deployment options
+
+        expect(deploymentOptions.booleanOptionsDictionary.ignoreTableOptions?.value).to.be.true;
+        expect(deploymentOptions.booleanOptionsDictionary.allowIncompatiblePlatform?.value).to.be
+            .false;
+        expect(deploymentOptions.excludeObjectTypes.value).to.deep.equal(["Permissions"]);
+    });
+    //#endregion
 });
