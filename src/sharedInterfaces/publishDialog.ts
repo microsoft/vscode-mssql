@@ -3,8 +3,46 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as constants from "../constants/constants";
+import * as mssql from "vscode-mssql";
 import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
-import { RequestType } from "vscode-jsonrpc/browser";
+
+// Publish target options - defines where the database project will be published
+export enum PublishTarget {
+    ExistingServer = "existingServer",
+    LocalContainer = "localContainer",
+    NewAzureServer = "newAzureServer",
+}
+
+/**
+ * Field names for the Publish form - defines the keys used in IPublishForm interface
+ */
+export const PublishFormFields = {
+    PublishProfilePath: "publishProfilePath",
+    ServerName: "serverName",
+    DatabaseName: "databaseName",
+    PublishTarget: "publishTarget",
+    SqlCmdVariables: "sqlCmdVariables",
+    ContainerPort: "containerPort",
+    ContainerAdminPassword: "containerAdminPassword",
+    ContainerAdminPasswordConfirm: "containerAdminPasswordConfirm",
+    ContainerImageTag: "containerImageTag",
+    AcceptContainerLicense: "acceptContainerLicense",
+} as const;
+
+/**
+ * Container-specific fields that are shown/hidden based on publish target
+ */
+export const PublishFormContainerFields = [
+    PublishFormFields.ContainerPort,
+    PublishFormFields.ContainerAdminPassword,
+    PublishFormFields.ContainerAdminPasswordConfirm,
+    PublishFormFields.ContainerImageTag,
+    PublishFormFields.AcceptContainerLicense,
+] as const;
+
+// Re-export other publish-related constants for use in webview code
+export const DefaultSqlPortNumber = constants.DefaultSqlPortNumber;
 
 /**
  * Data fields shown in the Publish form.
@@ -13,12 +51,17 @@ export interface IPublishForm {
     publishProfilePath?: string;
     serverName?: string;
     databaseName?: string;
-    publishTarget?: "existingServer" | "localContainer";
+    publishTarget?: PublishTarget;
     sqlCmdVariables?: { [key: string]: string };
+    // Container deployment specific fields (only used when publishTarget === 'localContainer')
+    containerPort?: string;
+    containerAdminPassword?: string;
+    containerAdminPasswordConfirm?: string;
+    containerImageTag?: string;
+    acceptContainerLicense?: boolean;
 }
 
 /**
- * Inner state (domain + form) analogous to ExecutionPlanState in executionPlan.ts
  * Extends generic FormState so form system works unchanged.
  */
 export interface PublishDialogState
@@ -26,6 +69,9 @@ export interface PublishDialogState
     projectFilePath: string;
     inProgress: boolean;
     lastPublishResult?: { success: boolean; details?: string };
+    projectProperties?: mssql.GetProjectPropertiesResult & { targetVersion?: string };
+    hasFormErrors?: boolean;
+    deploymentOptions?: mssql.DeploymentOptions;
 }
 
 /**
@@ -70,17 +116,10 @@ export interface PublishProjectProvider {
         sqlCmdVariables?: { [key: string]: string };
         publishProfilePath?: string;
     }): void;
-    /** Generate (but do not execute) a publish script */
+    /** Generate a publish script */
     generatePublishScript(): void;
-    /** Choose a publish profile file and apply (may partially override form state) */
+    /** Choose a publish profile file and apply */
     selectPublishProfile(): void;
-    /** Persist current form state as a named profile */
+    /** Persist current form state as a named publish profile */
     savePublishProfile(publishProfileName: string): void;
-}
-
-/**
- * Example request pattern retained for future preview scenarios.
- */
-export namespace GetPublishPreviewRequest {
-    export const type = new RequestType<void, string, void>("getPublishPreview");
 }

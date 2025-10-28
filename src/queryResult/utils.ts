@@ -8,6 +8,7 @@ import * as Constants from "../constants/constants";
 import * as vscode from "vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import {
+    openExecutionPlanWebview,
     saveExecutionPlan,
     showPlanXml,
     showQuery,
@@ -307,12 +308,33 @@ export function registerCommonRequestHandlers(
     });
     webviewController.registerReducer("openFileThroughLink", async (state, payload) => {
         // TO DO: add formatting? ADS doesn't do this, but it may be nice...
+
+        // If the content is an execution plan XML, open it in the execution plan tab
+        if (
+            payload.type === Constants.xml &&
+            payload.content.startsWith(Constants.queryPlanXmlStart)
+        ) {
+            if (state.isExecutionPlan) {
+                state.tabStates.resultPaneTab = qr.QueryResultPaneTabs.ExecutionPlan;
+                return state;
+            }
+            openExecutionPlanWebview(
+                webviewViewController.getContext(),
+                webviewViewController.getVsCodeWrapper(),
+                webviewViewController.executionPlanService,
+                webviewViewController.sqlDocumentService,
+                payload.content,
+                Constants.queryPlan,
+            );
+            return state;
+        }
+
         const newDoc = await vscode.workspace.openTextDocument({
             content: payload.content,
             language: payload.type,
         });
 
-        if (payload.type === "json") {
+        if (payload.type === Constants.json) {
             const formatter = new JsonFormattingEditProvider();
             const edits = await formatter.provideDocumentFormattingEdits(newDoc);
             const workspaceEdit = new vscode.WorkspaceEdit();

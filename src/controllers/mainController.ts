@@ -53,7 +53,6 @@ import {
     DatabaseObject,
 } from "../services/databaseObjectSearchService";
 import { ExecutionPlanService } from "../services/executionPlanService";
-import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
 import { getErrorMessage, getUriKey, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
@@ -93,6 +92,7 @@ import {
 } from "../deployment/dockerUtils";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { getCloudId } from "../azure/providerSettings";
+import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 
 /**
  * The main controller class that initializes the extension
@@ -2596,11 +2596,15 @@ export default class MainController implements vscode.Disposable {
      * This method launches the Publish Project UI for the specified database project.
      * @param projectFilePath The file path of the database project to publish.
      */
-    public onPublishDatabaseProject(projectFilePath: string): void {
+    public async onPublishDatabaseProject(projectFilePath: string): Promise<void> {
+        const deploymentOptions = await this.schemaCompareService.schemaCompareGetDefaultOptions();
         const publishProjectWebView = new PublishProjectWebViewController(
             this._context,
             this._vscodeWrapper,
             projectFilePath,
+            this.sqlProjectsService,
+            this.dacFxService,
+            deploymentOptions.defaultDeploymentOptions,
         );
 
         publishProjectWebView.revealToForeground();
@@ -2887,7 +2891,7 @@ export default class MainController implements vscode.Disposable {
 
             vscode.commands.executeCommand("workbench.action.closeActiveEditor");
 
-            const executionPlanController = new ExecutionPlanWebviewController(
+            openExecutionPlanWebview(
                 this.context,
                 this.vscodeWrapper,
                 this.executionPlanService,
@@ -2895,10 +2899,6 @@ export default class MainController implements vscode.Disposable {
                 planContents,
                 docName,
             );
-
-            executionPlanController.revealToForeground();
-
-            sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.Open);
         }
     };
 }
