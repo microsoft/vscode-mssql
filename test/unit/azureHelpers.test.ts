@@ -231,4 +231,113 @@ suite("Azure Helpers", () => {
             "Expected URI for Azure Synapse is incorrect",
         );
     });
+
+    suite("getSubscriptionQuickPickItems", () => {
+        test("creates pick items with account-based composite keys", async () => {
+            const mockAuth = {
+                getSubscriptions: sandbox.stub().resolves([
+                    {
+                        name: "Subscription 1",
+                        subscriptionId: "sub-id-1",
+                        tenantId: "tenant-id-1",
+                        account: { label: "user1@example.com" },
+                    },
+                    {
+                        name: "Subscription 2",
+                        subscriptionId: "sub-id-2",
+                        tenantId: "tenant-id-2",
+                        account: { label: "user2@example.com" },
+                    },
+                ]),
+            } as unknown as MssqlVSCodeAzureSubscriptionProvider;
+
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                get: sandbox.stub().returns(undefined),
+            } as any);
+
+            const items = await azureHelpers.getSubscriptionQuickPickItems(mockAuth);
+
+            // Expected: 2 separators (for user1 and user2 groups) + 2 subscriptions = 4 items
+            expect(items).to.have.lengthOf(4);
+
+            // Find the actual subscription items (not separators)
+            const subscriptionItems = items.filter((i) => i.description !== undefined);
+            expect(subscriptionItems).to.have.lengthOf(2);
+
+            expect(subscriptionItems[0].label).to.equal("Subscription 1");
+            expect(subscriptionItems[0].description).to.equal("sub-id-1 (user1@example.com)");
+            expect(subscriptionItems[0].tenantId).to.equal("tenant-id-1");
+            expect(subscriptionItems[0].subscriptionId).to.equal("sub-id-1");
+            expect(subscriptionItems[0].group).to.equal("user1@example.com");
+            expect(subscriptionItems[0].picked).to.be.true; // Default when no filter config exists
+        });
+
+        test("respects previous selection with account-based composite keys", async () => {
+            const mockAuth = {
+                getSubscriptions: sandbox.stub().resolves([
+                    {
+                        name: "Shared Subscription",
+                        subscriptionId: "shared-sub-id",
+                        tenantId: "shared-tenant-id",
+                        account: { label: "user1@example.com" },
+                    },
+                    {
+                        name: "Shared Subscription",
+                        subscriptionId: "shared-sub-id",
+                        tenantId: "shared-tenant-id",
+                        account: { label: "user2@example.com" },
+                    },
+                ]),
+            } as unknown as MssqlVSCodeAzureSubscriptionProvider;
+
+            // Only user1's instance should be selected
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                get: sandbox.stub().returns(["user1@example.com/shared-tenant-id/shared-sub-id"]),
+            } as any);
+
+            const items = await azureHelpers.getSubscriptionQuickPickItems(mockAuth);
+
+            // Expected: 2 separators (for user1 and user2 groups) + 2 subscriptions = 4 items
+            expect(items).to.have.lengthOf(4);
+
+            // Find the actual subscription items (not separators)
+            const subscriptionItems = items.filter((i) => i.description !== undefined);
+
+            // user1@example.com instance should be picked
+            const user1Item = subscriptionItems.find((i) => i.group === "user1@example.com");
+            expect(user1Item?.picked).to.be.true;
+
+            // user2@example.com instance should NOT be picked
+            const user2Item = subscriptionItems.find((i) => i.group === "user2@example.com");
+            expect(user2Item?.picked).to.be.false;
+        });
+
+        test("handles complex email addresses in composite keys", async () => {
+            const mockAuth = {
+                getSubscriptions: sandbox.stub().resolves([
+                    {
+                        name: "Test Subscription",
+                        subscriptionId: "sub-id",
+                        tenantId: "tenant-id",
+                        account: { label: "user+tag@sub.domain.com" },
+                    },
+                ]),
+            } as unknown as MssqlVSCodeAzureSubscriptionProvider;
+
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                get: sandbox.stub().returns(["user+tag@sub.domain.com/tenant-id/sub-id"]),
+            } as any);
+
+            const items = await azureHelpers.getSubscriptionQuickPickItems(mockAuth);
+
+            // Expected: 1 separator (for user+tag@sub.domain.com group) + 1 subscription = 2 items
+            expect(items).to.have.lengthOf(2);
+
+            // Find the actual subscription item (not separator)
+            const subscriptionItems = items.filter((i) => i.description !== undefined);
+            expect(subscriptionItems).to.have.lengthOf(1);
+            expect(subscriptionItems[0].group).to.equal("user+tag@sub.domain.com");
+            expect(subscriptionItems[0].picked).to.be.true;
+        });
+    });
 });

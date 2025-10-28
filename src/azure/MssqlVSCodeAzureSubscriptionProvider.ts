@@ -34,10 +34,12 @@ export class MssqlVSCodeAzureSubscriptionProvider extends VSCodeAzureSubscriptio
     }
 
     protected override async getTenantFilters(): Promise<TenantId[]> {
-        return this.getSelectedSubscriptions().map((id) => id.split("/")[0]);
+        // Format is now "account/tenantId/subscriptionId", extract tenantId (index 1)
+        return this.getSelectedSubscriptions().map((id) => id.split("/")[1]);
     }
 
     protected override async getSubscriptionFilters(): Promise<SubscriptionId[]> {
-        return this.getSelectedSubscriptions().map((id) => id.split("/")[1]);
+        // Format is now "account/tenantId/subscriptionId", extract subscriptionId (index 2)
+        return this.getSelectedSubscriptions().map((id) => id.split("/")[2]);
     }
 }
