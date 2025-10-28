@@ -91,7 +91,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
         requiresConnection: false,
         skipConnectionLabels: true, // Provides its own connection status
         handler: async (stream, controller, _connectionUri) => {
-            const res = await controller.onNewConnection();
+            const res = await controller.onNewQueryWithConnection(undefined, true);
             if (res) {
                 stream.markdown(`${connectedLabelPrefix} ${loc.connectedSuccessfully}\n\n`);
             } else {

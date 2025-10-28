@@ -214,7 +214,10 @@ suite("Chat Commands Tests", () => {
 
             expect(result.handled).to.be.true;
             expect(result.errorMessage).to.be.undefined;
-            mockMainController.verify((x) => x.onNewConnection(), TypeMoq.Times.once());
+            mockMainController.verify(
+                (x) => x.onNewQueryWithConnection(undefined, true),
+                TypeMoq.Times.once(),
+            );
             mockChatStream.verify((x) => x.markdown(TypeMoq.It.isAny()), TypeMoq.Times.once());
         });
 
