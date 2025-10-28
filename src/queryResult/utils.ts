@@ -8,6 +8,7 @@ import * as Constants from "../constants/constants";
 import * as vscode from "vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import {
+    openExecutionPlanWebview,
     saveExecutionPlan,
     showPlanXml,
     showQuery,
@@ -313,7 +314,18 @@ export function registerCommonRequestHandlers(
             payload.type === Constants.xml &&
             payload.content.startsWith(Constants.queryPlanXmlStart)
         ) {
-            state.tabStates.resultPaneTab = qr.QueryResultPaneTabs.ExecutionPlan;
+            if (state.isExecutionPlan) {
+                state.tabStates.resultPaneTab = qr.QueryResultPaneTabs.ExecutionPlan;
+                return state;
+            }
+            openExecutionPlanWebview(
+                webviewViewController.getContext(),
+                webviewViewController.getVsCodeWrapper(),
+                webviewViewController.executionPlanService,
+                webviewViewController.sqlDocumentService,
+                payload.content,
+                Constants.queryPlan,
+            );
             return state;
         }
 
