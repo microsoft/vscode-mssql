@@ -1532,6 +1532,9 @@
     <trans-unit id="++CODE++7a1f2a83aca9a0819f244d5b4a7a0e7f6b779eb709dd4744136b22e724dbb10b">
       <source xml:lang="en">Favorites</source>
     </trans-unit>
+    <trans-unit id="++CODE++4db3d9917ade1a9560b2a46de7b387634aedd4114bec8fb31abfb7e403241c76">
+      <source xml:lang="en">Fetch rows</source>
+    </trans-unit>
     <trans-unit id="++CODE++4d696d1fc30a43745a483d9bf89065718f6abfcdf8241fe4abb09ef13ec1d5e3">
       <source xml:lang="en">Fetching {0} script...</source>
       <note>{0} is the script type</note>
@@ -1597,6 +1600,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3a5a47667104807574cb0875e1ad13546429f3ed63efe6b4bddee62fe1f4cf5b">
       <source xml:lang="en">Firewall rule successfully created.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++50f82f3bd4638f41e11892aa681c016d9f858ac119041d52c52d5fb661c5936f">
+      <source xml:lang="en">First Page</source>
     </trans-unit>
     <trans-unit id="++CODE++9285cedcf26a7cbb5277c70b4651a54679ee9d2c89767bc9dbe532b14f4bb697">
       <source xml:lang="en">Flat</source>
@@ -1850,6 +1856,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
       <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It&apos;s likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with &quot;Microsoft.SqlTools|&quot; in Windows Credential Manager and reload.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
+      <source xml:lang="en">Last Page</source>
     </trans-unit>
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
@@ -2188,6 +2197,9 @@
     <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
       <source xml:lang="en">Next</source>
     </trans-unit>
+    <trans-unit id="++CODE++6ead5dfdc11ef7da26e4c09f348d42a8d6306b7faa54ce0a7dc6c567dab1db6f">
+      <source xml:lang="en">Next Page</source>
+    </trans-unit>
     <trans-unit id="++CODE++1ea442a134b2a184bd5d40104401f2a37fbc09ccf3f4bc9da161c6099be3691d">
       <source xml:lang="en">No</source>
     </trans-unit>
@@ -2501,6 +2513,9 @@
     <trans-unit id="++CODE++a57b08a480b822a0a572b993391c292ede593bf8000b406675b180bbb16260fa">
       <source xml:lang="en">Previous</source>
     </trans-unit>
+    <trans-unit id="++CODE++a163aaa22cf7ce6c4c2a634f98bef10d0fe0a0602ada2aa50d60b262dc70b2d9">
+      <source xml:lang="en">Previous Page</source>
+    </trans-unit>
     <trans-unit id="++CODE++a89f61eb88c67866f6b2666a2e7f19b6fa1c97ca8330b81f848895bcc3594a3f">
       <source xml:lang="en">Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.</source>
       <note>{0} is the uri
@@ -2697,6 +2712,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d25169d1cd9a1ad455e2189423ab2b7341b1274e599218785aee69402ee977fc">
       <source xml:lang="en">Row removed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
+      <source xml:lang="en">Rows per page</source>
     </trans-unit>
     <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
       <source xml:lang="en">Rule name</source>
@@ -3393,6 +3411,9 @@
     <trans-unit id="++CODE++048652e110f74b298095b5a7123e8878dfbd665a9fa34991b269dd31ab9442d0">
       <source xml:lang="en">Total execution time: {0}</source>
       <note>{0} is the elapsed time</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3018218f5b66be1c5027fdc1d75389f30f30ac7cfa00c77c3453790d8830dc9a">
+      <source xml:lang="en">Total rows to fetch:</source>
     </trans-unit>
     <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
       <source xml:lang="en">Type</source>
