@@ -16,8 +16,9 @@ import {
     ChevronRightRegular,
     ChevronDoubleLeftRegular,
     ChevronDoubleRightRegular,
+    ArrowSyncRegular,
 } from "@fluentui/react-icons";
-import { Dropdown, Option } from "@fluentui/react-components";
+import { Dropdown, Option, Combobox, Button } from "@fluentui/react-components";
 
 import "./TableExplorerCustomPager.css";
 
@@ -47,9 +48,7 @@ const TableExplorerCustomPager = React.forwardRef<
     const [isLeftPaginationDisabled, setIsLeftPaginationDisabled] = useState(false);
     const [isRightPaginationDisabled, setIsRightPaginationDisabled] = useState(false);
     const [selectedPageSize, setSelectedPageSize] = useState<string>("100");
-    const [selectedRowCount, setSelectedRowCount] = useState<string>(
-        String(currentRowCount || 100),
-    );
+    const [selectedRowCount, setSelectedRowCount] = useState<string>("100");
 
     const paginationElementRef = useRef<HTMLDivElement | null>(null);
     const gridRef = useRef<SlickGrid | null>(null);
@@ -142,9 +141,22 @@ const TableExplorerCustomPager = React.forwardRef<
     };
 
     const onRowCountChanged = (_event: any, data: any) => {
-        const newRowCount = data.optionValue || data.value;
-        setSelectedRowCount(newRowCount);
-        const rowCountNumber = parseInt(newRowCount, 10);
+        debugger;
+        const newRowCount = data.optionValue || data.value || selectedRowCount;
+        if (newRowCount) {
+            setSelectedRowCount(newRowCount);
+        }
+    };
+
+    const onRowCountInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+        debugger;
+        const newValue = event.target.value;
+        setSelectedRowCount(newValue);
+    };
+
+    const onFetchRowsClick = () => {
+        debugger;
+        const rowCountNumber = parseInt(selectedRowCount || "100", 10);
         if (!isNaN(rowCountNumber) && rowCountNumber > 0 && onLoadSubset) {
             onLoadSubset(rowCountNumber);
         }
@@ -155,6 +167,13 @@ const TableExplorerCustomPager = React.forwardRef<
             dispose();
         };
     }, []);
+
+    useEffect(() => {
+        debugger;
+        if (currentRowCount !== undefined) {
+            setSelectedRowCount(String(currentRowCount));
+        }
+    }, [currentRowCount]);
 
     // Expose methods via ref
     useImperativeHandle(ref, () => ({
@@ -167,17 +186,26 @@ const TableExplorerCustomPager = React.forwardRef<
         <div className="table-explorer-custom-pagination" ref={paginationElementRef}>
             <div className="row-count-selector">
                 <span className="row-count-label">Total rows to fetch:</span>
-                <Dropdown
+                <Combobox
                     value={selectedRowCount}
-                    selectedOptions={[selectedRowCount]}
                     onOptionSelect={onRowCountChanged}
-                    size="small">
+                    onInput={onRowCountInput}
+                    size="small"
+                    freeform>
                     <Option value="10">10</Option>
                     <Option value="50">50</Option>
                     <Option value="100">100</Option>
                     <Option value="500">500</Option>
                     <Option value="1000">1000</Option>
-                </Dropdown>
+                </Combobox>
+                <Button
+                    appearance="primary"
+                    size="small"
+                    icon={<ArrowSyncRegular />}
+                    onClick={onFetchRowsClick}
+                    title="Fetch rows"
+                    aria-label="Fetch rows"
+                />
             </div>
             <div className="page-size-selector">
                 <span className="page-size-label">Rows per page</span>

@@ -15,6 +15,21 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    margin-right: 16px;
+}
+
+.table-explorer-custom-pagination .row-count-selector .fui-Combobox {
+    position: relative;
+    z-index: 10;
+}
+
+.table-explorer-custom-pagination .row-count-selector .fui-Button {
+    min-width: 32px;
+    height: 28px;
+    padding: 0 8px;
+    margin-left: 4px;
+    z-index: 11;
+    position: relative;
 }
 
 .table-explorer-custom-pagination .row-count-selector .row-count-label {
@@ -135,12 +150,19 @@
 }
 
 /* Constrain dropdown widths */
-.table-explorer-custom-pagination .row-count-selector .fui-Dropdown {
-    min-width: 70px;
+.table-explorer-custom-pagination .row-count-selector .fui-Dropdown,
+.table-explorer-custom-pagination .row-count-selector .fui-Combobox {
+    width: 80px;
+    min-width: 80px;
     max-width: 80px;
 }
 
+.table-explorer-custom-pagination .row-count-selector .fui-Combobox > input {
+    width: 100%;
+}
+
 .table-explorer-custom-pagination .page-size-selector .fui-Dropdown {
-    min-width: 60px;
+    width: 70px;
+    min-width: 70px;
     max-width: 70px;
 }
