@@ -59,6 +59,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const [columns, setColumns] = useState<Column[]>([]);
         const [options, setOptions] = useState<GridOption | undefined>(undefined);
         const [dataset, setDataset] = useState<any[]>([]);
+        const [currentTheme, setCurrentTheme] = useState<ColorThemeKind | undefined>(themeKind);
         const reactGridRef = useRef<SlickgridReactInstance | null>(null);
         const cellChangesRef = useRef<Map<string, any>>(new Map());
         const lastPageRef = useRef<number>(1);
@@ -196,6 +197,14 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 void reactGridRef.current.paginationService.changeItemPerPage(pageSize);
             }
         }, [pageSize]);
+
+        // Handle theme changes - just update state to trigger re-render
+        useEffect(() => {
+            if (themeKind !== currentTheme) {
+                console.log("Theme changed - triggering re-render");
+                setCurrentTheme(themeKind);
+            }
+        }, [themeKind, currentTheme]);
 
         // Main effect: Handle resultSet changes
         useEffect(() => {
@@ -461,7 +470,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         }
 
         const isDarkMode =
-            themeKind === ColorThemeKind.Dark || themeKind === ColorThemeKind.HighContrast;
+            currentTheme === ColorThemeKind.Dark || currentTheme === ColorThemeKind.HighContrast;
 
         return (
             <>
@@ -473,13 +482,13 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     }
 
                     #tableExplorerGrid {
-                        --slick-border-color: ${isDarkMode ? "#3e3e3e" : "#d4d4d4"};
-                        --slick-cell-border-right: 1px solid var(--slick-border-color);
-                        --slick-cell-border-top: 1px solid var(--slick-border-color);
+                        --slick-border-color: var(--vscode-editorWidget-border);
+                        --slick-cell-border-right: 1px solid var(--vscode-editorWidget-border);
+                        --slick-cell-border-top: 1px solid var(--vscode-editorWidget-border);
                         --slick-cell-border-bottom: 0;
                         --slick-cell-border-left: 0;
                         --slick-cell-box-shadow: none;
-                        --slick-grid-border-color: var(--slick-border-color);
+                        --slick-grid-border-color: var(--vscode-editorWidget-border);
                         width: 100%;
                         max-width: 100%;
                     }
@@ -491,6 +500,48 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     #tableExplorerGrid .slick-cell {
                         display: flex;
                         align-items: center;
+                    }
+
+                    /* Force theme colors on SlickGrid elements */
+                    #tableExplorerGrid .slick-header,
+                    #tableExplorerGrid .slick-headerrow,
+                    #tableExplorerGrid .slick-footerrow,
+                    #tableExplorerGrid .slick-top-panel {
+                        background-color: var(--vscode-editor-background) !important;
+                        color: var(--vscode-foreground) !important;
+                    }
+
+                    #tableExplorerGrid .slick-header-column {
+                        background-color: var(--vscode-editor-background) !important;
+                        color: var(--vscode-foreground) !important;
+                    }
+
+                    #tableExplorerGrid .slick-cell,
+                    #tableExplorerGrid .slick-row {
+                        background-color: var(--vscode-editor-background) !important;
+                        color: var(--vscode-foreground) !important;
+                    }
+
+                    #tableExplorerGrid .slick-row.odd {
+                        background-color: var(--vscode-editor-background) !important;
+                    }
+
+                    #tableExplorerGrid .slick-row.even {
+                        background-color: var(--vscode-editor-background) !important;
+                    }
+
+                    #tableExplorerGrid .slick-row:hover {
+                        background-color: var(--vscode-list-hoverBackground) !important;
+                    }
+
+                    #tableExplorerGrid .slick-row.selected {
+                        background-color: var(--vscode-list-activeSelectionBackground) !important;
+                        color: var(--vscode-list-activeSelectionForeground) !important;
+                    }
+
+                    /* Fix viewport canvas background */
+                    #tableExplorerGrid > div.slick-pane.slick-pane-top.slick-pane-left > div.slick-viewport.slick-viewport-top.slick-viewport-left > div {
+                        background-color: var(--vscode-editor-background) !important;
                     }
 
                     /* VS Code-style context menu */
