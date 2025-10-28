@@ -2176,6 +2176,17 @@ export default class MainController implements vscode.Disposable {
         const isSqlEditor = activeEditor?.document.languageId === "sql";
         const isConnected = activeUri ? this.connectionManager.isConnected(activeUri) : false;
 
+        sendActionEvent(
+            TelemetryViews.MssqlCopilot,
+            TelemetryActions.CopilotNewQueryWithConnection,
+            {
+                forceNewEditor: forceNewEditor?.toString() ?? "false",
+                forceConnect: forceConnect?.toString() ?? "false",
+                isSqlEditor: isSqlEditor.toString(),
+                isConnected: isConnected.toString(),
+            },
+        );
+
         // Determine if we need to open a new editor
         const shouldOpenNewEditor = forceNewEditor || !isSqlEditor;
 
