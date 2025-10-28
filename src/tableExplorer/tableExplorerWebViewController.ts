@@ -72,6 +72,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         "Table.svg",
                     ),
                 },
+                showRestorePromptAfterClose: false, // Will be set to true when changes are made
             },
         );
 
@@ -186,6 +187,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 // Clear the new rows array since they're now committed to the database
                 state.newRows = [];
+                // Reset the prompt flag since there are no more unsaved changes
+                this.showRestorePromptAfterClose = false;
                 this.logger.info("Cleared new rows after successful commit");
             } catch (error) {
                 this.logger.error(`Error committing changes: ${error}`);
@@ -239,6 +242,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 // Add the new row to the newRows tracking array
                 state.newRows.push(result.row);
 
+                // Mark that we have unsaved changes
+                this.showRestorePromptAfterClose = true;
+
                 // Append the new row to the existing result set
                 if (state.resultSet) {
                     state.resultSet = {
@@ -274,6 +280,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 // Remove from newRows array if it's a newly created row
                 state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
+
+                // Mark that we have unsaved changes
+                this.showRestorePromptAfterClose = true;
 
                 if (state.resultSet) {
                     const updatedSubset = state.resultSet.subset.filter(
@@ -311,6 +320,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     payload.columnId,
                     payload.newValue,
                 );
+
+                // Mark that we have unsaved changes
+                this.showRestorePromptAfterClose = true;
 
                 // Update the cell value in the result set to keep state in sync
                 if (state.resultSet && updateCellResult.cell) {
@@ -530,8 +542,54 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     }
 
     /**
+     * Override the base class's showRestorePrompt to handle unsaved changes.
+     * This is called from the onDidDispose handler in the base class.
+     * Prompts the user to save or discard changes, then allows disposal to continue.
+     * Always returns undefined to allow the close to proceed after handling the user's choice.
+     */
+    protected override async showRestorePrompt(): Promise<{
+        title: string;
+        run: () => Promise<void>;
+    }> {
+        const result = await vscode.window.showWarningMessage(
+            LocConstants.TableExplorer.unsavedChangesPrompt(this.state.tableName),
+            {
+                modal: true,
+            },
+            LocConstants.TableExplorer.Save,
+            LocConstants.TableExplorer.Discard,
+        );
+
+        // Handle the user's choice
+        if (result === LocConstants.TableExplorer.Save) {
+            this.logger.info("User chose to save changes before closing");
+            try {
+                await this._tableExplorerService.commit(this.state.ownerUri);
+                vscode.window.showInformationMessage(
+                    LocConstants.TableExplorer.changesSavedSuccessfully,
+                );
+                this.logger.info("Changes saved successfully before closing");
+            } catch (error) {
+                this.logger.error(`Error saving changes before closing: ${error}`);
+                vscode.window.showErrorMessage(
+                    LocConstants.TableExplorer.failedToSaveChanges(getErrorMessage(error)),
+                );
+            }
+        } else if (result === LocConstants.TableExplorer.Discard) {
+            this.logger.info("User chose to discard changes");
+            // No action needed - just close without saving
+        } else {
+            // User pressed ESC or clicked X - treat as discard
+            this.logger.info("User dismissed the prompt - treating as discard");
+        }
+
+        // Always return undefined to allow disposal to continue
+        return undefined;
+    }
+
+    /**
      * Disposes the Table Explorer webview controller and cleans up resources.
-     * This is called when the webview tab is closed.
+     * This is called when the webview tab is closed (after any prompts are handled).
      */
     public override dispose(): void {
         if (this.state.ownerUri) {

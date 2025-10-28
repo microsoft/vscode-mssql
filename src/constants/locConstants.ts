@@ -2081,4 +2081,16 @@ export class TableExplorer {
             args: [errorMessage],
             comment: ["{0} is the error message"],
         });
+
+    public static unsavedChangesPrompt = (tableName: string) =>
+        l10n.t({
+            message:
+                "Table Explorer for '{0}' has unsaved changes. Do you want to save or discard them?",
+            args: [tableName],
+            comment: ["{0} is the table name"],
+        });
+
+    public static Save = l10n.t("Save");
+    public static Discard = l10n.t("Discard");
+    public static Cancel = l10n.t("Cancel");
 }
