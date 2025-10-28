@@ -21,6 +21,7 @@ import {
 import { Dropdown, Option, Combobox, Button } from "@fluentui/react-components";
 
 import "./TableExplorerCustomPager.css";
+import { locConstants as loc } from "../../common/locConstants";
 
 export interface TableExplorerCustomPagerRef {
     init: (
@@ -185,7 +186,7 @@ const TableExplorerCustomPager = React.forwardRef<
     return (
         <div className="table-explorer-custom-pagination" ref={paginationElementRef}>
             <div className="row-count-selector">
-                <span className="row-count-label">Total rows to fetch:</span>
+                <span className="row-count-label">{loc.tableExplorer.totalRowsToFetch}</span>
                 <Combobox
                     value={selectedRowCount}
                     onOptionSelect={onRowCountChanged}
@@ -203,12 +204,12 @@ const TableExplorerCustomPager = React.forwardRef<
                     size="small"
                     icon={<ArrowSyncRegular />}
                     onClick={onFetchRowsClick}
-                    title="Fetch rows"
-                    aria-label="Fetch rows"
+                    title={loc.tableExplorer.fetchRows}
+                    aria-label={loc.tableExplorer.fetchRows}
                 />
             </div>
             <div className="page-size-selector">
-                <span className="page-size-label">Rows per page</span>
+                <span className="page-size-label">{loc.tableExplorer.rowsPerPage}</span>
                 <Dropdown
                     value={selectedPageSize}
                     selectedOptions={[selectedPageSize]}
@@ -224,16 +225,16 @@ const TableExplorerCustomPager = React.forwardRef<
                 <div className="pagination-nav">
                     <button
                         className={`pagination-button first ${isLeftPaginationDisabled ? "disabled" : ""}`}
-                        aria-label="First Page"
-                        title="First Page"
+                        aria-label={loc.tableExplorer.firstPage}
+                        title={loc.tableExplorer.firstPage}
                         disabled={isLeftPaginationDisabled}
                         onClick={onFirstPageClicked}>
                         <ChevronDoubleLeftRegular />
                     </button>
                     <button
                         className={`pagination-button previous ${isLeftPaginationDisabled ? "disabled" : ""}`}
-                        aria-label="Previous Page"
-                        title="Previous Page"
+                        aria-label={loc.tableExplorer.previousPage}
+                        title={loc.tableExplorer.previousPage}
                         disabled={isLeftPaginationDisabled}
                         onClick={onPreviousPageClicked}>
                         <ChevronLeftRegular />
@@ -255,16 +256,16 @@ const TableExplorerCustomPager = React.forwardRef<
                 <div className="pagination-nav">
                     <button
                         className={`pagination-button next ${isRightPaginationDisabled ? "disabled" : ""}`}
-                        aria-label="Next Page"
-                        title="Next Page"
+                        aria-label={loc.tableExplorer.nextPage}
+                        title={loc.tableExplorer.nextPage}
                         disabled={isRightPaginationDisabled}
                         onClick={onNextPageClicked}>
                         <ChevronRightRegular />
                     </button>
                     <button
                         className={`pagination-button last ${isRightPaginationDisabled ? "disabled" : ""}`}
-                        aria-label="Last Page"
-                        title="Last Page"
+                        aria-label={loc.tableExplorer.lastPage}
+                        title={loc.tableExplorer.lastPage}
                         disabled={isRightPaginationDisabled}
                         onClick={onLastPageClicked}>
                         <ChevronDoubleRightRegular />
