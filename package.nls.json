@@ -205,7 +205,7 @@
     "mssql.defaultQueryResultsViewMode.description": "Default view mode for query results display.",
     "mssql.defaultQueryResultsViewMode.grid.description": "Display results in a tabular grid format (default)",
     "mssql.defaultQueryResultsViewMode.text.description": "Display results in a formatted text format.",
-    "mssql.userFeedback": "Give Feedback",
+    "mssql.userFeedback": "Send Feedback",
     "mssql.selectedAzureSubscriptions": "Selected Azure subscriptions for browsing and managing servers and databases",
     "mssql.schemaDesigner": "Schema Designer",
     "mssql.newDeployment": "New Deployment",

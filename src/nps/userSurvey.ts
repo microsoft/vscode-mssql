@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as constants from "../constants/constants";
-import * as locConstants from "../constants/locConstants";
+import * as Loc from "../constants/locConstants";
 import * as vscode from "vscode";
 import * as os from "os";
 
@@ -22,6 +22,13 @@ const SKIP_VERSION_KEY = "nps/skipVersion";
 const IS_CANDIDATE_KEY = "nps/isCandidate";
 const NEVER_KEY = "nps/never";
 
+enum FunnelSteps {
+    EnterFunnel = "enterFunnel",
+    EligibilityCheck = "eligibilityCheck",
+    Prompt = "prompt",
+    Survey = "survey",
+}
+
 export class UserSurvey {
     private static _instance: UserSurvey;
     private _webviewController: UserSurveyWebviewController;
@@ -29,69 +36,105 @@ export class UserSurvey {
         private _context: vscode.ExtensionContext,
         private vscodeWrapper: VscodeWrapper,
     ) {}
+
     public static createInstance(
         _context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
     ): void {
         UserSurvey._instance = new UserSurvey(_context, vscodeWrapper);
     }
+
     public static getInstance(): UserSurvey {
         return UserSurvey._instance;
     }
 
-    /** checks user eligibility for NPS survey and, if eligible, displays the survey and submits feedback */
-    public promptUserForNPSFeedback(): void {
-        void this.promptUserForNPSFeedbackAsync().catch((err) => {
+    /**
+     * Checks user eligibility for NPS survey and, if eligible, displays the survey and submits feedback.
+     * Does not block the calling function or throw errors.
+     **/
+    public promptUserForNPSFeedback(source?: string): void {
+        void this.promptUserForNPSFeedbackAsync(source).catch((err) => {
             // Handle any errors that occur during the prompt and not throwing them in order to not break the calling function
             console.error("Error prompting for NPS feedback:", err);
         });
     }
 
-    private async promptUserForNPSFeedbackAsync(): Promise<void> {
+    /**
+     * Launch the survey directly and submit feedback; do not check for survey eligibility first
+     */
+    public launchSurvey(surveyId: string, survey: UserSurveyState, source?: string): void {
+        void this.launchSurveyAsync(surveyId, survey, source).catch((err) => {
+            console.error("Error launching survey:", err);
+        });
+    }
+
+    private async promptUserForNPSFeedbackAsync(source?: string): Promise<void> {
         const globalState = this._context.globalState;
         const sessionCount = globalState.get(SESSION_COUNT_KEY, 0) + 1;
         const extensionVersion =
             vscode.extensions.getExtension(constants.extensionId).packageJSON.version || "unknown";
 
-        if (!(await this.shouldPromptForFeedback())) {
+        sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+            step: FunnelSteps.EnterFunnel,
+            source: source,
+        });
+
+        if (!(await this.shouldPromptForFeedback(source))) {
             return;
         }
 
-        const take = {
-            title: locConstants.UserSurvey.takeSurvey,
-            run: async () => {
+        const selection = await vscode.window.showInformationMessage(
+            Loc.UserSurvey.doYouMindTakingAQuickFeedbackSurvey,
+            Loc.UserSurvey.takeSurvey,
+            Loc.Common.remindMeLater,
+            Loc.Common.dontShowAgain,
+        );
+
+        switch (selection) {
+            case Loc.UserSurvey.takeSurvey: {
+                sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+                    step: FunnelSteps.Prompt,
+                    outcome: "takeSurvey",
+                    source: source,
+                });
+
                 const state: UserSurveyState = getStandardNPSQuestions();
-                await this.launchSurvey("nps", state);
+                await this.launchSurveyAsync("nps", state, source);
 
                 await globalState.update(IS_CANDIDATE_KEY, false);
                 await globalState.update(SKIP_VERSION_KEY, extensionVersion);
-            },
-        };
-        const remind = {
-            title: locConstants.Common.remindMeLater,
-            run: async () => {
-                await globalState.update(SESSION_COUNT_KEY, sessionCount - 3);
-            },
-        };
-        const never = {
-            title: locConstants.Common.dontShowAgain,
-            isSecondary: true,
-            run: async () => {
-                await globalState.update(NEVER_KEY, true);
-            },
-        };
+                break;
+            }
+            case Loc.Common.dontShowAgain: {
+                sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+                    step: FunnelSteps.Prompt,
+                    outcome: "dontShowAgain",
+                    source: source,
+                });
 
-        const button = await vscode.window.showInformationMessage(
-            locConstants.UserSurvey.doYouMindTakingAQuickFeedbackSurvey,
-            take,
-            remind,
-            never,
-        );
-        await (button || remind).run();
+                await globalState.update(NEVER_KEY, true);
+                break;
+            }
+            // If the user closed the prompt without making a selection, treat it as "remind me later"
+            case Loc.Common.remindMeLater:
+            default: {
+                sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+                    step: FunnelSteps.Prompt,
+                    outcome: selection ? "remindMeLater" : "closedPrompt",
+                    source: source,
+                });
+
+                await globalState.update(SESSION_COUNT_KEY, sessionCount - 3);
+                break;
+            }
+        }
     }
 
-    /** launches the survey directly and submits feedback; does not check for survey eligibility first */
-    public async launchSurvey(surveyId: string, survey: UserSurveyState): Promise<Answers> {
+    private async launchSurveyAsync(
+        surveyId: string,
+        survey: UserSurveyState,
+        source?: string,
+    ): Promise<Answers> {
         const state: UserSurveyState = survey;
         if (!this._webviewController || this._webviewController.isDisposed) {
             this._webviewController = new UserSurveyWebviewController(
@@ -102,28 +145,44 @@ export class UserSurvey {
         } else {
             this._webviewController.updateState(state);
         }
+
         this._webviewController.revealToForeground();
 
         const answers = await new Promise<Answers>((resolve) => {
             this._webviewController.onSubmit((e) => {
+                sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+                    step: FunnelSteps.Survey,
+                    outcome: "submitted",
+                    source: source,
+                });
                 resolve(e);
             });
 
             this._webviewController.onCancel(() => {
+                sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+                    step: FunnelSteps.Survey,
+                    outcome: "cancelled",
+                    source: source,
+                });
                 resolve({});
             });
         });
 
-        sendSurveyTelemetry(surveyId, answers);
+        sendSurveyTelemetry(surveyId, answers, source);
         return answers;
     }
 
-    private async shouldPromptForFeedback(): Promise<boolean> {
+    private async shouldPromptForFeedback(source: string | undefined): Promise<boolean> {
         const globalState = this._context.globalState;
 
         // If the user has opted out of the survey, don't prompt for feedback
         const isNeverUser = globalState.get(NEVER_KEY, false);
         if (isNeverUser) {
+            sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+                step: FunnelSteps.EligibilityCheck,
+                outcome: "exit_never",
+                source: source,
+            });
             return false;
         }
 
@@ -132,6 +191,11 @@ export class UserSurvey {
             vscode.extensions.getExtension(constants.extensionId).packageJSON.version || "unknown";
         const skipVersion = globalState.get(SKIP_VERSION_KEY, "");
         if (skipVersion === extensionVersion) {
+            sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+                step: FunnelSteps.EligibilityCheck,
+                outcome: "exit_skip",
+                source: source,
+            });
             return false;
         }
 
@@ -139,6 +203,11 @@ export class UserSurvey {
         const lastSessionDate = globalState.get(LAST_SESSION_DATE_KEY, new Date(0).toDateString());
 
         if (date === lastSessionDate) {
+            sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+                step: FunnelSteps.EligibilityCheck,
+                outcome: "exit_alreadyConsidered",
+                source: source,
+            });
             return false;
         }
 
@@ -148,6 +217,11 @@ export class UserSurvey {
 
         // don't prompt for feedback from users until they've had a chance to use the extension a few times
         if (sessionCount < 5) {
+            sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+                step: FunnelSteps.EligibilityCheck,
+                outcome: "exit_notEnoughSessions",
+                source: source,
+            });
             return false;
         }
 
@@ -157,14 +231,24 @@ export class UserSurvey {
 
         if (!isCandidate) {
             await globalState.update(SKIP_VERSION_KEY, extensionVersion);
+            sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+                step: FunnelSteps.EligibilityCheck,
+                outcome: "exit_notSelectedAsCandidate",
+                source: source,
+            });
             return false;
         }
 
+        sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+            step: FunnelSteps.EligibilityCheck,
+            outcome: "prompt",
+            source: source,
+        });
         return true;
     }
 }
 
-export function sendSurveyTelemetry(surveyId: string, answers: Answers): void {
+export function sendSurveyTelemetry(surveyId: string, answers: Answers, source?: string): void {
     // Separate string answers from number answers
     const stringAnswers = Object.keys(answers).reduce((acc, key) => {
         if (typeof answers[key] === "string") {
@@ -187,6 +271,7 @@ export function sendSurveyTelemetry(surveyId: string, answers: Answers): void {
             modernFeaturesEnabled: vscode.workspace
                 .getConfiguration()
                 .get(constants.configEnableRichExperiences),
+            source: source,
             ...stringAnswers,
         },
         numericalAnswers,
@@ -211,7 +296,7 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
         state?: UserSurveyState,
     ) {
         super(context, vscodeWrapper, "userSurvey", "userSurvey", state, {
-            title: locConstants.UserSurvey.mssqlFeedback,
+            title: Loc.UserSurvey.mssqlFeedback,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {
                 dark: vscode.Uri.joinPath(context.extensionUri, "media", "feedback_dark.svg"),
@@ -229,19 +314,17 @@ class UserSurveyWebviewController extends ReactWebviewPanelController<
                 (payload.answers.nsat as number) < 2 /* NSAT dissatisfied */
             ) {
                 const response = await vscode.window.showInformationMessage(
-                    locConstants.UserSurvey.fileAnIssuePrompt,
-                    locConstants.UserSurvey.submitIssue,
-                    locConstants.Common.cancel,
+                    Loc.UserSurvey.fileAnIssuePrompt,
+                    Loc.UserSurvey.submitIssue,
+                    Loc.Common.cancel,
                 );
 
                 sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SubmitGithubIssue, {
                     response:
-                        response === locConstants.UserSurvey.submitIssue
-                            ? "submitted"
-                            : "not submitted",
+                        response === Loc.UserSurvey.submitIssue ? "submitted" : "not submitted",
                 });
 
-                if (response === locConstants.UserSurvey.submitIssue) {
+                if (response === Loc.UserSurvey.submitIssue) {
                     const encodedIssueBody = encodeURIComponent(
                         getGithubIssueText(
                             typeof payload.answers.comments === "string"
@@ -303,16 +386,16 @@ export function getStandardNPSQuestions(featureName?: string): UserSurveyState {
             {
                 id: "nps",
                 label: featureName
-                    ? locConstants.UserSurvey.howLikelyAreYouToRecommendFeature(featureName)
-                    : locConstants.UserSurvey.howlikelyAreYouToRecommendMSSQLExtension,
+                    ? Loc.UserSurvey.howLikelyAreYouToRecommendFeature(featureName)
+                    : Loc.UserSurvey.howlikelyAreYouToRecommendMSSQLExtension,
                 type: "nps",
                 required: true,
             },
             {
                 id: "nsat",
                 label: featureName
-                    ? locConstants.UserSurvey.overallHowStatisfiedAreYouWithFeature(featureName)
-                    : locConstants.UserSurvey.overallHowSatisfiedAreYouWithMSSQLExtension,
+                    ? Loc.UserSurvey.overallHowStatisfiedAreYouWithFeature(featureName)
+                    : Loc.UserSurvey.overallHowSatisfiedAreYouWithMSSQLExtension,
                 type: "nsat",
                 required: true,
             },
@@ -321,10 +404,10 @@ export function getStandardNPSQuestions(featureName?: string): UserSurveyState {
             },
             {
                 id: "comments",
-                label: locConstants.UserSurvey.whatCanWeDoToImprove,
+                label: Loc.UserSurvey.whatCanWeDoToImprove,
                 type: "textarea",
                 required: false,
-                placeholder: locConstants.UserSurvey.privacyDisclaimer,
+                placeholder: Loc.UserSurvey.privacyDisclaimer,
             },
         ],
     };

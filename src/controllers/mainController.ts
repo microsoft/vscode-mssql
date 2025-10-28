@@ -252,8 +252,12 @@ export default class MainController implements vscode.Disposable {
                 void this.runAndLogErrors(this.onChooseLanguageFlavor());
             });
             this.registerCommand(Constants.cmdLaunchUserFeedback);
-            this._event.on(Constants.cmdLaunchUserFeedback, async () => {
-                await UserSurvey.getInstance().launchSurvey("nps", getStandardNPSQuestions());
+            this._event.on(Constants.cmdLaunchUserFeedback, () => {
+                UserSurvey.getInstance().launchSurvey(
+                    "nps",
+                    getStandardNPSQuestions(),
+                    "commandPalette",
+                );
             });
             this.registerCommand(Constants.cmdCancelQuery);
             this._event.on(Constants.cmdCancelQuery, async () => {
