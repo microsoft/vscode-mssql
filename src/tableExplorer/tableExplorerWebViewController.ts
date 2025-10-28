@@ -54,6 +54,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 updateScript: undefined, // No script initially
                 showScriptPane: false, // Script pane hidden by default
                 currentPage: 1, // Start on page 1
+                failedCells: [], // Track cells that failed to update
             },
             {
                 title: LocConstants.TableExplorer.title(tableName),
@@ -187,9 +188,11 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 // Clear the new rows array since they're now committed to the database
                 state.newRows = [];
+                // Clear all failed cells since we're starting fresh
+                state.failedCells = [];
                 // Reset the prompt flag since there are no more unsaved changes
                 this.showRestorePromptAfterClose = false;
-                this.logger.info("Cleared new rows after successful commit");
+                this.logger.info("Cleared new rows and failed cells after successful commit");
             } catch (error) {
                 this.logger.error(`Error committing changes: ${error}`);
                 vscode.window.showErrorMessage(
@@ -281,6 +284,13 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 // Remove from newRows array if it's a newly created row
                 state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
 
+                // Remove all failed cells for this row
+                if (state.failedCells) {
+                    state.failedCells = state.failedCells.filter(
+                        (key) => !key.startsWith(`${payload.rowId}-`),
+                    );
+                }
+
                 // Mark that we have unsaved changes
                 this.showRestorePromptAfterClose = true;
 
@@ -346,6 +356,17 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 await this.regenerateScriptIfVisible(state);
             } catch (error) {
                 this.logger.error(`Error updating cell: ${error}`);
+
+                // Add this cell to the failed cells array
+                if (!state.failedCells) {
+                    state.failedCells = [];
+                }
+                const failedKey = `${payload.rowId}-${payload.columnId}`;
+                if (!state.failedCells.includes(failedKey)) {
+                    state.failedCells.push(failedKey);
+                }
+                this.updateState();
+
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToUpdateCell(getErrorMessage(error)),
                 );
@@ -361,6 +382,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     payload.rowId,
                     payload.columnId,
                 );
+
+                // Remove this cell from failed cells array
+                if (state.failedCells) {
+                    const failedKey = `${payload.rowId}-${payload.columnId}`;
+                    state.failedCells = state.failedCells.filter((key) => key !== failedKey);
+                }
 
                 // Update the cell value in the result set to keep state in sync
                 if (state.resultSet && revertCellResult.cell) {
@@ -413,6 +440,13 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     state.ownerUri,
                     payload.rowId,
                 );
+
+                // Remove all failed cells for this row
+                if (state.failedCells) {
+                    state.failedCells = state.failedCells.filter(
+                        (key) => !key.startsWith(`${payload.rowId}-`),
+                    );
+                }
 
                 // Update the row in the result set with the reverted row data
                 if (state.resultSet && revertRowResult.row) {

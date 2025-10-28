@@ -191,6 +191,7 @@ export interface TableExplorerWebViewState {
     updateScript?: string; // SQL script generated from pending changes
     showScriptPane: boolean; // Whether to show the script pane
     currentPage?: number; // Track the current page number in the data grid
+    failedCells?: string[]; // Track cells that failed to update (format: "rowId-columnId")
 }
 
 export interface TableExplorerContextProps {

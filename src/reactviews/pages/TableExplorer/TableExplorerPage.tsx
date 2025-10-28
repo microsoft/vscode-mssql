@@ -55,6 +55,7 @@ export const TableExplorerPage: React.FC = () => {
                             themeKind={context?.themeKind}
                             pageSize={10}
                             currentRowCount={state.currentRowCount}
+                            failedCells={state.failedCells}
                             onDeleteRow={context?.deleteRow}
                             onUpdateCell={context?.updateCell}
                             onRevertCell={context?.revertCell}

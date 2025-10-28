@@ -30,6 +30,7 @@ interface TableDataGridProps {
     themeKind?: ColorThemeKind;
     pageSize?: number;
     currentRowCount?: number;
+    failedCells?: string[];
     onDeleteRow?: (rowId: number) => void;
     onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
     onRevertCell?: (rowId: number, columnId: number) => void;
@@ -48,6 +49,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             themeKind,
             pageSize = 100,
             currentRowCount,
+            failedCells,
             onDeleteRow,
             onUpdateCell,
             onRevertCell,
@@ -62,6 +64,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const [currentTheme, setCurrentTheme] = useState<ColorThemeKind | undefined>(themeKind);
         const reactGridRef = useRef<SlickgridReactInstance | null>(null);
         const cellChangesRef = useRef<Map<string, any>>(new Map());
+        const failedCellsRef = useRef<Set<string>>(new Set());
         const lastPageRef = useRef<number>(1);
         const lastItemsPerPageRef = useRef<number>(pageSize);
         const previousResultSetRef = useRef<EditSubsetResult | undefined>(undefined);
@@ -89,7 +92,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // Clear all change tracking (called after successful save)
         function clearAllChangeTracking() {
             cellChangesRef.current.clear();
-            // Force grid to re-render to remove all yellow backgrounds
+            failedCellsRef.current.clear();
+            // Force grid to re-render to remove all colored backgrounds
             if (reactGridRef.current?.slickGrid) {
                 reactGridRef.current.slickGrid.invalidate();
             }
@@ -156,6 +160,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         const rowId = dataContext.id;
                         const changeKey = `${rowId}-${cell - 1}`;
                         const isModified = cellChangesRef.current.has(changeKey);
+                        const hasFailed = failedCellsRef.current.has(changeKey);
                         const displayValue = value ?? "";
                         const isNullValue = displayValue === "NULL";
 
@@ -172,6 +177,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                             ? "font-style: italic; color: var(--vscode-editorGhostText-foreground, #888);"
                             : "";
 
+                        // Failed cells get error background color (more visible in dark themes)
+                        if (hasFailed) {
+                            return `<div title="${escapedTooltip}" style="background-color: var(--vscode-inputValidation-errorBackground, #5a1d1d); padding: 2px 4px; height: 100%; width: 100%; box-sizing: border-box; ${nullStyle}">${escapedDisplayValue}</div>`;
+                        }
+                        // Modified cells get yellow background
                         if (isModified) {
                             return `<div title="${escapedTooltip}" style="background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%; width: 100%; box-sizing: border-box; ${nullStyle}">${escapedDisplayValue}</div>`;
                         }
@@ -197,6 +207,17 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 void reactGridRef.current.paginationService.changeItemPerPage(pageSize);
             }
         }, [pageSize]);
+
+        // Sync failed cells from props to ref (convert array to Set for fast lookups)
+        useEffect(() => {
+            if (failedCells) {
+                failedCellsRef.current = new Set(failedCells);
+                // Force grid to re-render to update cell colors
+                if (reactGridRef.current?.slickGrid) {
+                    reactGridRef.current.slickGrid.invalidate();
+                }
+            }
+        }, [failedCells]);
 
         // Handle theme changes - just update state to trigger re-render
         useEffect(() => {
@@ -394,14 +415,17 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         onDeleteRow(rowId);
                     }
 
-                    // Remove tracked changes for this row
+                    // Remove tracked changes and failed cells for this row
                     const keysToDelete: string[] = [];
                     cellChangesRef.current.forEach((_, key) => {
                         if (key.startsWith(`${rowId}-`)) {
                             keysToDelete.push(key);
                         }
                     });
-                    keysToDelete.forEach((key) => cellChangesRef.current.delete(key));
+                    keysToDelete.forEach((key) => {
+                        cellChangesRef.current.delete(key);
+                        failedCellsRef.current.delete(key);
+                    });
                     break;
 
                 case "revert-cell":
@@ -414,6 +438,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     }
 
                     cellChangesRef.current.delete(changeKey);
+                    failedCellsRef.current.delete(changeKey);
                     console.log(`Reverted cell for row ID ${rowId}, column ${columnIndex}`);
                     break;
 
@@ -422,14 +447,17 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         onRevertRow(rowId);
                     }
 
-                    // Remove tracked changes for this row
+                    // Remove tracked changes and failed cells for this row
                     const keysToDeleteForRevert: string[] = [];
                     cellChangesRef.current.forEach((_, key) => {
                         if (key.startsWith(`${rowId}-`)) {
                             keysToDeleteForRevert.push(key);
                         }
                     });
-                    keysToDeleteForRevert.forEach((key) => cellChangesRef.current.delete(key));
+                    keysToDeleteForRevert.forEach((key) => {
+                        cellChangesRef.current.delete(key);
+                        failedCellsRef.current.delete(key);
+                    });
                     console.log(`Reverted row with ID ${rowId}`);
                     break;
             }
