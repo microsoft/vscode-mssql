@@ -1066,6 +1066,9 @@
     <trans-unit id="++CODE++75081b593d15cf6e631971bc6768723f593b88b172477e40ae7d363e4829816d">
       <source xml:lang="en">Disabled</source>
     </trans-unit>
+    <trans-unit id="++CODE++eb1a70e39274bb762b5d7c1adb5debeea2b05e12af28207f21a375b596853273">
+      <source xml:lang="en">Discard</source>
+    </trans-unit>
     <trans-unit id="++CODE++acfc5be785a9bb3da11c9f05adb69bd5633096f09002aa44813a1b3207e912ad">
       <source xml:lang="en">Disconnect</source>
     </trans-unit>
@@ -3221,6 +3224,10 @@
     </trans-unit>
     <trans-unit id="++CODE++ab3e7e5387cdfbb5043748e63a21b5da7a9855b47821b6a4e1bc17391a118e17">
       <source xml:lang="en">Table &apos;{0}&apos; not found</source>
+      <note>{0} is the table name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++73c42403ef2ca9fe32cd59cfbda8110671a5d4791783f5e6687cb7379d2f07f3">
+      <source xml:lang="en">Table Explorer for &apos;{0}&apos; has unsaved changes. Do you want to save or discard them?</source>
       <note>{0} is the table name</note>
     </trans-unit>
     <trans-unit id="++CODE++7d1ab5b5ff98e8604fded16d7ad53dddbb49c37435c485b4546a9a921ea76700">
