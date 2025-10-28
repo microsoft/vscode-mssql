@@ -6,7 +6,11 @@
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 import { expect } from "chai";
-import { createSqlAgentRequestHandler } from "../../src/copilot/chatAgentRequestHandler";
+import {
+    createSqlAgentRequestHandler,
+    provideFollowups,
+    ISqlChatResult,
+} from "../../src/copilot/chatAgentRequestHandler";
 import { CopilotService } from "../../src/services/copilotService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as Utils from "../../src/models/utils";
@@ -116,6 +120,7 @@ suite("Chat Agent Request Handler Tests", () => {
                 () =>
                     ({
                         canSendRequest: () => "allowed",
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     }) as any,
             );
 
@@ -856,6 +861,85 @@ suite("Chat Agent Request Handler Tests", () => {
                     ),
                 TypeMoq.Times.once(),
             );
+        });
+    });
+
+    suite("provideFollowups Tests", () => {
+        let mockMainController: TypeMoq.IMock<MainController>;
+        let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+        let mockConnectionManager: TypeMoq.IMock<ConnectionManager>;
+        let mockResult: ISqlChatResult;
+        let mockConnection: ConnectionInfo;
+
+        setup(() => {
+            mockMainController = TypeMoq.Mock.ofType<MainController>();
+            mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
+            mockConnectionManager = TypeMoq.Mock.ofType<ConnectionManager>();
+
+            mockMainController
+                .setup((x) => x.connectionManager)
+                .returns(() => mockConnectionManager.object);
+
+            mockConnection = TypeMoq.Mock.ofType<ConnectionInfo>().object;
+
+            mockResult = {
+                metadata: {
+                    command: "",
+                },
+            } as ISqlChatResult;
+        });
+
+        test("should return empty array for non-help commands", async () => {
+            mockResult.metadata.command = "query";
+
+            const followups = await provideFollowups(
+                mockResult,
+                {} as vscode.ChatContext,
+                {} as vscode.CancellationToken,
+                mockMainController.object,
+                mockVscodeWrapper.object,
+            );
+
+            expect(followups).to.be.an("array").that.is.empty;
+        });
+
+        test("should return connect follow-up when disconnected", async () => {
+            mockResult.metadata.command = "help";
+            mockVscodeWrapper.setup((x) => x.activeTextEditorUri).returns(() => undefined);
+
+            const followups = await provideFollowups(
+                mockResult,
+                {} as vscode.ChatContext,
+                {} as vscode.CancellationToken,
+                mockMainController.object,
+                mockVscodeWrapper.object,
+            );
+
+            expect(followups).to.have.lengthOf(1);
+            expect(followups[0]).to.have.property("prompt");
+            expect(followups[0]).to.have.property("command", "connect");
+        });
+
+        test("should return database exploration follow-ups when connected", async () => {
+            mockResult.metadata.command = "help";
+            const mockUriString = "file:///test.sql";
+            mockVscodeWrapper.setup((x) => x.activeTextEditorUri).returns(() => mockUriString);
+            mockConnectionManager
+                .setup((x) => x.getConnectionInfo(mockUriString))
+                .returns(() => mockConnection);
+
+            const followups = await provideFollowups(
+                mockResult,
+                {} as vscode.ChatContext,
+                {} as vscode.CancellationToken,
+                mockMainController.object,
+                mockVscodeWrapper.object,
+            );
+
+            expect(followups).to.have.lengthOf(3);
+            expect(followups[0]).to.have.property("prompt");
+            expect(followups[1]).to.have.property("prompt");
+            expect(followups[2]).to.have.property("prompt");
         });
     });
 });

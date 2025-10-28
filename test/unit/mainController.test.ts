@@ -171,4 +171,172 @@ suite("MainController Tests", function () {
             mainController.onPublishDatabaseProject = originalHandler;
         }
     });
+
+    suite("onNewQueryWithConnection Tests", () => {
+        test("does nothing when already connected to SQL editor without force flags", async () => {
+            // Open a SQL document
+            const doc = await vscode.workspace.openTextDocument({
+                language: "sql",
+                content: "",
+            });
+            const editor = await vscode.window.showTextDocument(doc);
+
+            // Mock connection
+            const uri = editor.document.uri.toString();
+            connectionManager.setup((x) => x.isConnected(uri)).returns(() => true);
+
+            // Call method
+            const result = await mainController.onNewQueryWithConnection();
+
+            // Should return true without opening new editor
+            assert.equal(result, true);
+
+            // Close the document
+            await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+        });
+
+        test("opens new editor when no active editor exists", async () => {
+            // Close all editors first
+            await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+
+            // Mock onNewConnection to track if it's called
+            let onNewConnectionCalled = false;
+            const originalOnNewConnection = mainController.onNewConnection.bind(mainController);
+            mainController.onNewConnection = async () => {
+                onNewConnectionCalled = true;
+                return true;
+            };
+
+            try {
+                const result = await mainController.onNewQueryWithConnection();
+
+                assert.equal(result, true);
+                assert.equal(onNewConnectionCalled, true, "Expected onNewConnection to be called");
+
+                // Verify a SQL editor was opened
+                const activeEditor = vscode.window.activeTextEditor;
+                assert.ok(activeEditor, "Expected an active editor");
+                assert.equal(
+                    activeEditor.document.languageId,
+                    "sql",
+                    "Expected SQL language editor",
+                );
+
+                // Clean up
+                await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+            } finally {
+                mainController.onNewConnection = originalOnNewConnection;
+            }
+        });
+
+        test("forces new editor when forceNewEditor is true", async () => {
+            // Open a SQL document
+            const doc = await vscode.workspace.openTextDocument({
+                language: "sql",
+                content: "-- existing editor",
+            });
+            await vscode.window.showTextDocument(doc);
+            const initialDocumentCount = vscode.workspace.textDocuments.length;
+
+            // Mock connection - existing editor is connected
+            connectionManager.setup((x) => x.isConnected(TypeMoq.It.isAny())).returns(() => true);
+
+            try {
+                const result = await mainController.onNewQueryWithConnection(true, false);
+
+                assert.equal(result, true);
+
+                // Verify a new editor was created - document count should increase
+                const finalDocumentCount = vscode.workspace.textDocuments.length;
+                assert.ok(
+                    finalDocumentCount > initialDocumentCount,
+                    "Expected a new document to be created",
+                );
+
+                // Verify the active editor is SQL
+                const activeEditor = vscode.window.activeTextEditor;
+                assert.ok(activeEditor, "Expected an active editor");
+                assert.equal(activeEditor.document.languageId, "sql");
+
+                // Clean up
+                await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+            } finally {
+                // No cleanup needed
+            }
+        });
+
+        test("forces connection when forceConnect is true even when connected", async () => {
+            // Open a SQL document
+            const doc = await vscode.workspace.openTextDocument({
+                language: "sql",
+                content: "",
+            });
+            const editor = await vscode.window.showTextDocument(doc);
+            const uri = editor.document.uri.toString();
+
+            // Mock already connected
+            connectionManager.setup((x) => x.isConnected(uri)).returns(() => true);
+
+            // Mock onNewConnection to verify it's called
+            let onNewConnectionCalled = false;
+            const originalOnNewConnection = mainController.onNewConnection.bind(mainController);
+            mainController.onNewConnection = async () => {
+                onNewConnectionCalled = true;
+                return true;
+            };
+
+            try {
+                const result = await mainController.onNewQueryWithConnection(false, true);
+
+                assert.equal(result, true);
+                assert.equal(
+                    onNewConnectionCalled,
+                    true,
+                    "Expected onNewConnection to be called despite already being connected",
+                );
+
+                // Clean up
+                await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+            } finally {
+                mainController.onNewConnection = originalOnNewConnection;
+            }
+        });
+
+        test("connects to existing SQL editor when not connected", async () => {
+            // Open a SQL document
+            const doc = await vscode.workspace.openTextDocument({
+                language: "sql",
+                content: "",
+            });
+            const editor = await vscode.window.showTextDocument(doc);
+            const uri = editor.document.uri.toString();
+
+            // Mock NOT connected
+            connectionManager.setup((x) => x.isConnected(uri)).returns(() => false);
+
+            // Mock onNewConnection
+            let onNewConnectionCalled = false;
+            const originalOnNewConnection = mainController.onNewConnection.bind(mainController);
+            mainController.onNewConnection = async () => {
+                onNewConnectionCalled = true;
+                return true;
+            };
+
+            try {
+                const result = await mainController.onNewQueryWithConnection();
+
+                assert.equal(result, true);
+                assert.equal(
+                    onNewConnectionCalled,
+                    true,
+                    "Expected onNewConnection to be called for disconnected editor",
+                );
+
+                // Clean up
+                await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+            } finally {
+                mainController.onNewConnection = originalOnNewConnection;
+            }
+        });
+    });
 });
