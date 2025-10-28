@@ -50,6 +50,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
         dacFxService?: mssql.IDacFxService,
         deploymentOptions?: mssql.DeploymentOptions,
     ) {
+        // Clear default excludeObjectTypes for publish dialog, no default exclude options should exist
+        if (deploymentOptions?.excludeObjectTypes !== undefined) {
+            deploymentOptions.excludeObjectTypes.value = [];
+        }
+
         super(
             context,
             _vscodeWrapper,
@@ -96,14 +101,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
         this._connectionManager = connectionManager;
-
-        // Clear default excludeObjectTypes for publish dialog, no default exclude options should exist
-        if (
-            this.state.deploymentOptions &&
-            this.state.deploymentOptions.excludeObjectTypes !== undefined
-        ) {
-            this.state.deploymentOptions.excludeObjectTypes.value = [];
-        }
 
         // Register reducers after initialization
         this.registerRpcHandlers();

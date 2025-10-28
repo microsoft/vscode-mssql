@@ -74,21 +74,8 @@ export const AdvancedDeploymentOptionsDrawer = ({
         state.deploymentOptions ? structuredClone(state.deploymentOptions) : undefined,
     );
 
-    // Debug: Log when component renders with new state
-    console.log("DEBUG: AdvancedDeploymentOptionsDrawer render", {
-        isDrawerOpen: isAdvancedDrawerOpen,
-        hasStateDeploymentOptions: !!state.deploymentOptions,
-        hasLocalChanges: !!localChanges,
-        stateExcludeTypes: state.deploymentOptions?.excludeObjectTypes?.value,
-        localExcludeTypes: localChanges?.excludeObjectTypes?.value,
-    });
-
     // Update localChanges whenever deploymentOptions change (e.g., from profile loading)
     React.useEffect(() => {
-        console.log("DEBUG: deploymentOptions changed in drawer useEffect", {
-            hasDeploymentOptions: !!state.deploymentOptions,
-            excludeObjectTypes: state.deploymentOptions?.excludeObjectTypes?.value,
-        });
         if (state.deploymentOptions) {
             setLocalChanges(structuredClone(state.deploymentOptions));
         }
@@ -151,13 +138,27 @@ export const AdvancedDeploymentOptionsDrawer = ({
         // Exclude Object Types group
         if (localChanges.objectTypesDictionary) {
             const excludedTypes = localChanges.excludeObjectTypes?.value || [];
+            console.log("DEBUG: Creating exclude entries", {
+                excludedTypes,
+                objectTypesDictionaryKeys: Object.keys(localChanges.objectTypesDictionary),
+            });
+
             const excludeEntries = Object.entries(localChanges.objectTypesDictionary)
-                .map(([key, displayName]) => ({
-                    key,
-                    displayName: displayName || key,
-                    description: "",
-                    value: Array.isArray(excludedTypes) && excludedTypes.includes(key),
-                }))
+                .map(([key, displayName]) => {
+                    // Case-insensitive comparison: excludedTypes has Pascal case, keys have camel case
+                    const isExcluded =
+                        Array.isArray(excludedTypes) &&
+                        excludedTypes.some(
+                            (excludedType) => excludedType.toLowerCase() === key.toLowerCase(),
+                        );
+                    console.log(`DEBUG: ${key} -> ${displayName} | excluded: ${isExcluded}`);
+                    return {
+                        key,
+                        displayName: displayName || key,
+                        description: "",
+                        value: isExcluded,
+                    };
+                })
                 .filter((entry) => entry.displayName) // Only include entries with display names
                 .sort((a, b) => a.displayName.localeCompare(b.displayName));
 
@@ -322,7 +323,10 @@ export const AdvancedDeploymentOptionsDrawer = ({
                     </div>
 
                     <div className={classes.stickyFooter}>
-                        <Button appearance="secondary" onClick={handleReset}>
+                        <Button
+                            appearance="secondary"
+                            onClick={handleReset}
+                            disabled={isResetDisabled}>
                             {loc.schemaCompare.reset}
                         </Button>
                         <Button appearance="primary" onClick={handleOk}>

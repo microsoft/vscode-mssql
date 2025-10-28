@@ -108,6 +108,10 @@ suite("PublishProjectWebViewController Tests", () => {
             reducerHandlers.has("savePublishProfile"),
             "savePublishProfile reducer should be registered",
         ).to.be.true;
+        expect(
+            reducerHandlers.has("updateDeploymentOptions"),
+            "updateDeploymentOptions reducer should be registered",
+        ).to.be.true;
     });
 
     test("default publish target is EXISTING_SERVER", async () => {
@@ -310,12 +314,31 @@ suite("PublishProjectWebViewController Tests", () => {
         // Mock file picker
         sandbox.stub(vscode.window, "showOpenDialog").resolves([vscode.Uri.file(profilePath)]);
 
-        // Mock DacFx service to return deployment options
+        // Mock DacFx service to return comprehensive deployment options
         mockDacFxService.getOptionsFromProfile = sandbox.stub().resolves({
             success: true,
             deploymentOptions: {
-                excludeObjectTypes: { value: ["Users", "Logins"] },
-                ignoreTableOptions: { value: true },
+                excludeObjectTypes: {
+                    value: ["Users", "Logins"],
+                    description: "Object types to exclude",
+                    displayName: "Exclude Object Types",
+                },
+                booleanOptionsDictionary: {
+                    ignoreTableOptions: {
+                        value: true,
+                        description: "Ignore table options",
+                        displayName: "Ignore Table Options",
+                    },
+                    allowIncompatiblePlatform: {
+                        value: false,
+                        description: "Allow incompatible platform",
+                        displayName: "Allow Incompatible Platform",
+                    },
+                },
+                objectTypesDictionary: {
+                    users: "Users",
+                    logins: "Logins",
+                },
             },
         });
 
@@ -335,8 +358,16 @@ suite("PublishProjectWebViewController Tests", () => {
             Var2: "Value2",
         });
 
-        // Verify deployment options were loaded from DacFx
+        // Verify deployment options were loaded from DacFx with correct structure
         expect(mockDacFxService.getOptionsFromProfile.calledOnce).to.be.true;
+        expect(newState.deploymentOptions.excludeObjectTypes.value).to.deep.equal([
+            "Users",
+            "Logins",
+        ]);
+        expect(newState.deploymentOptions.booleanOptionsDictionary.ignoreTableOptions?.value).to.be
+            .true;
+        expect(newState.deploymentOptions.booleanOptionsDictionary.allowIncompatiblePlatform?.value)
+            .to.be.false;
     });
 
     test("savePublishProfile reducer is invoked and triggers save file dialog", async () => {
@@ -448,6 +479,31 @@ suite("PublishProjectWebViewController Tests", () => {
             EnvironmentName: "Production",
         };
 
+        // Set up deployment options state
+        controller.state.deploymentOptions = {
+            excludeObjectTypes: {
+                value: ["Users", "Permissions"],
+                description: "Object types to exclude",
+                displayName: "Exclude Object Types",
+            },
+            booleanOptionsDictionary: {
+                ignoreTableOptions: {
+                    value: true,
+                    description: "Ignore table options",
+                    displayName: "Ignore Table Options",
+                },
+                allowIncompatiblePlatform: {
+                    value: false,
+                    description: "Allow incompatible platform",
+                    displayName: "Allow Incompatible Platform",
+                },
+            },
+            objectTypesDictionary: {
+                users: "Users",
+                permissions: "Permissions",
+            },
+        };
+
         // Stub showSaveDialog to simulate user choosing a save location
         const savedProfilePath = "c:/profiles/ProductionProfile.publish.xml";
         sandbox.stub(vscode.window, "showSaveDialog").resolves(vscode.Uri.file(savedProfilePath));
@@ -473,6 +529,14 @@ suite("PublishProjectWebViewController Tests", () => {
         // Connection string is args[2]
         const sqlCmdVariables = saveCall.args[3]; // SQL CMD variables
         expect(sqlCmdVariables.get("EnvironmentName")).to.equal("Production");
+
+        // Verify deployment options are included (args[4])
+        const deploymentOptions = saveCall.args[4];
+        expect(deploymentOptions).to.exist;
+        expect(deploymentOptions.excludeObjectTypes.value).to.deep.equal(["Users", "Permissions"]);
+        expect(deploymentOptions.booleanOptionsDictionary.ignoreTableOptions?.value).to.be.true;
+        expect(deploymentOptions.booleanOptionsDictionary.allowIncompatiblePlatform?.value).to.be
+            .false;
     });
     //#endregion
 
@@ -533,54 +597,87 @@ suite("PublishProjectWebViewController Tests", () => {
     //#endregion
 
     //#region Advanced Options Section Tests
-    test("advanced options groups contain expected categories", async () => {
+    test("updateDeploymentOptions reducer updates deployment options correctly", async () => {
         const controller = createTestController();
         await controller.initialized.promise;
 
-        const groupedOptions = controller["groupedAdvancedOptions"];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const groupNames = groupedOptions.map((group: any) => group.name);
+        const newDeploymentOptions = {
+            excludeObjectTypes: {
+                value: ["Certificates", "ColumnEncryptionKeys"],
+                description: "Object types to exclude",
+                displayName: "Exclude Object Types",
+            },
+            booleanOptionsDictionary: {
+                allowDropBlockingAssemblies: {
+                    value: true,
+                    description: "Allow drop blocking assemblies",
+                    displayName: "Allow Drop Blocking Assemblies",
+                },
+                blockOnPossibleDataLoss: {
+                    value: false,
+                    description: "Block on possible data loss",
+                    displayName: "Block on Possible Data Loss",
+                },
+            },
+            objectTypesDictionary: {
+                certificates: "Certificates",
+                columnEncryptionKeys: "Column Encryption Keys",
+            },
+        };
 
-        // Verify expected group categories exist
-        expect(groupNames).to.include("General");
-        expect(groupNames).to.include("ObjectTypes");
-        expect(groupNames).to.include("TableStorage");
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const updateDeploymentOptions = reducerHandlers.get("updateDeploymentOptions");
+        expect(updateDeploymentOptions, "updateDeploymentOptions reducer should be registered").to
+            .exist;
+
+        // Invoke the reducer
+        const newState = await updateDeploymentOptions(controller.state, {
+            deploymentOptions: newDeploymentOptions,
+        });
+
+        // Verify deployment options were updated
+        expect(newState.deploymentOptions).to.deep.equal(newDeploymentOptions);
+        expect(newState.deploymentOptions.excludeObjectTypes.value).to.deep.equal([
+            "Certificates",
+            "ColumnEncryptionKeys",
+        ]);
+        expect(
+            newState.deploymentOptions.booleanOptionsDictionary.allowDropBlockingAssemblies?.value,
+        ).to.be.true;
+        expect(newState.deploymentOptions.booleanOptionsDictionary.blockOnPossibleDataLoss?.value)
+            .to.be.false;
     });
 
-    test("deployment options are properly loaded from publish profile", async () => {
+    test("exclude object types are handled with case-insensitive matching", async () => {
         const controller = createTestController();
         await controller.initialized.promise;
 
-        // Mock DacFx service to return specific deployment options
+        // Mock DacFx service to return deployment options with Pascal case exclude types
         mockDacFxService.getOptionsFromProfile = sandbox.stub().resolves({
             success: true,
             deploymentOptions: {
                 excludeObjectTypes: {
-                    value: ["Users", "Logins"],
+                    value: ["Certificates", "ColumnEncryptionKeys", "ColumnMasterKeys"], // Pascal case
                     description: "Object types to exclude",
                     displayName: "Exclude Object Types",
                 },
-                booleanOptionsDictionary: {
-                    ignoreTableOptions: {
-                        value: true,
-                        description: "Ignore table options",
-                        displayName: "Ignore Table Options",
-                    },
-                    allowIncompatiblePlatform: {
-                        value: true,
-                        description: "Allow incompatible platform",
-                        displayName: "Allow Incompatible Platform",
-                    },
+                booleanOptionsDictionary: {},
+                objectTypesDictionary: {
+                    certificates: "Certificates", // camel case keys
+                    columnEncryptionKeys: "Column Encryption Keys",
+                    columnMasterKeys: "Column Master Keys",
                 },
-                objectTypesDictionary: {},
             },
         });
 
-        // Mock file system and file picker
+        // Mock profile XML
         const profileXml = `<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TargetDatabaseName>TestDB</TargetDatabaseName>
+    <ExcludeCertificates>True</ExcludeCertificates>
+    <ExcludeColumnEncryptionKeys>True</ExcludeColumnEncryptionKeys>
+    <ExcludeColumnMasterKeys>True</ExcludeColumnMasterKeys>
   </PropertyGroup>
 </Project>`;
 
@@ -596,65 +693,72 @@ suite("PublishProjectWebViewController Tests", () => {
         // Load profile
         const newState = await selectPublishProfile(controller.state, {});
 
-        // Verify deployment options were loaded correctly
-        expect(newState.deploymentOptions.booleanOptionsDictionary.ignoreTableOptions?.value).to.be
-            .true;
-        expect(newState.deploymentOptions.booleanOptionsDictionary.allowIncompatiblePlatform?.value)
-            .to.be.true;
+        // Verify deployment options were loaded with correct exclude types
         expect(newState.deploymentOptions.excludeObjectTypes.value).to.deep.equal([
-            "Users",
-            "Logins",
+            "Certificates",
+            "ColumnEncryptionKeys",
+            "ColumnMasterKeys",
         ]);
+
+        // Verify objectTypesDictionary has the camel case keys
+        expect(newState.deploymentOptions.objectTypesDictionary).to.have.property("certificates");
+        expect(newState.deploymentOptions.objectTypesDictionary).to.have.property(
+            "columnEncryptionKeys",
+        );
+        expect(newState.deploymentOptions.objectTypesDictionary).to.have.property(
+            "columnMasterKeys",
+        );
     });
 
-    test("advanced options are saved correctly in publish profile", async () => {
-        const controller = createTestController();
-        await controller.initialized.promise;
-
-        // Set up deployment options using correct interface structure
-        controller.state.deploymentOptions = {
+    test("defaultDeploymentOptions are cleared of exclude types for proper reset functionality", async () => {
+        // Create deployment options with exclude types set
+        const initialDeploymentOptions = {
             excludeObjectTypes: {
-                value: ["Permissions"],
+                value: ["Users", "Logins", "Permissions"],
                 description: "Object types to exclude",
                 displayName: "Exclude Object Types",
             },
             booleanOptionsDictionary: {
-                ignoreTableOptions: {
-                    value: true,
-                    description: "Ignore table options",
-                    displayName: "Ignore Table Options",
-                },
                 allowIncompatiblePlatform: {
-                    value: false,
+                    value: true,
                     description: "Allow incompatible platform",
                     displayName: "Allow Incompatible Platform",
                 },
             },
-            objectTypesDictionary: {},
+            objectTypesDictionary: {
+                users: "Users",
+                logins: "Logins",
+                permissions: "Permissions",
+            },
         };
 
-        controller.state.formState.databaseName = "TestDB";
-        controller.state.connectionString = "Server=localhost;Database=TestDB;";
+        const controller = new PublishProjectWebViewController(
+            contextStub,
+            vscodeWrapperStub,
+            mockConnectionManager,
+            "test.sqlproj",
+            mockSqlProjectsService,
+            mockDacFxService,
+            initialDeploymentOptions,
+        );
 
-        // Mock save dialog
-        sandbox.stub(vscode.window, "showSaveDialog").resolves(vscode.Uri.file("test.publish.xml"));
-        mockDacFxService.savePublishProfile = sandbox.stub().resolves({ success: true });
+        await controller.initialized.promise;
 
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
-        const savePublishProfile = reducerHandlers.get("savePublishProfile");
+        // Verify that both deploymentOptions and defaultDeploymentOptions have cleared exclude types
+        expect(controller.state.deploymentOptions.excludeObjectTypes.value).to.deep.equal([]);
+        expect(controller.state.defaultDeploymentOptions?.excludeObjectTypes.value).to.deep.equal(
+            [],
+        );
 
-        // Save profile
-        await savePublishProfile(controller.state, { publishProfileName: "test.publish.xml" });
-
-        // Verify savePublishProfile was called with deployment options
-        expect(mockDacFxService.savePublishProfile.calledOnce).to.be.true;
-        const saveCall = mockDacFxService.savePublishProfile.getCall(0);
-        const deploymentOptions = saveCall.args[4]; // 5th argument is deployment options
-
-        expect(deploymentOptions.booleanOptionsDictionary.ignoreTableOptions?.value).to.be.true;
-        expect(deploymentOptions.booleanOptionsDictionary.allowIncompatiblePlatform?.value).to.be
-            .false;
-        expect(deploymentOptions.excludeObjectTypes.value).to.deep.equal(["Permissions"]);
+        // But boolean options should remain unchanged
+        expect(
+            controller.state.deploymentOptions.booleanOptionsDictionary.allowIncompatiblePlatform
+                ?.value,
+        ).to.be.true;
+        expect(
+            controller.state.defaultDeploymentOptions?.booleanOptionsDictionary
+                .allowIncompatiblePlatform?.value,
+        ).to.be.true;
     });
     //#endregion
 });
