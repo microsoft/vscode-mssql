@@ -1346,9 +1346,6 @@
     <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
       <source xml:lang="en">Expand properties pane</source>
     </trans-unit>
-    <trans-unit id="++CODE++8955529905e56ba7f55a26c144077b0eb6a96c8b0eab9f532b4cbdd86ca0676f">
-      <source xml:lang="en">Explain my database schema</source>
-    </trans-unit>
     <trans-unit id="++CODE++19d9050ad395c06d901ad4aef04738a544701223f586a3de6f0d51928c9b3208">
       <source xml:lang="en">Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance.</source>
     </trans-unit>
@@ -1620,9 +1617,6 @@
     <trans-unit id="++CODE++89001491995f7b2ecdb9c3f19ccbcd13a50000b34d5fb735c4aa021f97231b39">
       <source xml:lang="en">Generate mock data and seed scripts to support testing and development environments.</source>
     </trans-unit>
-    <trans-unit id="++CODE++922b525b5a0af5e929b2c842e67e9296ed56a2d6ad994cdc89e7482c7e3b5df9">
-      <source xml:lang="en">Generate mock data for testing</source>
-    </trans-unit>
     <trans-unit id="++CODE++9a4a3cac279fe491c4cbc6a0e945d2e031dc2e925b98ae7f0676646d74547e82">
       <source xml:lang="en">Generate script to deploy changes to target</source>
     </trans-unit>
@@ -1688,9 +1682,6 @@
     <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
       <source xml:lang="en">Help</source>
     </trans-unit>
-    <trans-unit id="++CODE++3c7c1c8cb8909ab6b48ab91ac4eee6066c0128782dd35d6c3cf717411f065d92">
-      <source xml:lang="en">Help me optimize a query</source>
-    </trans-unit>
     <trans-unit id="++CODE++e05cee2e915ff0d693e5f5acff33d2a7cabfc340e7a977e993a6cf92fb686f4e">
       <source xml:lang="en">Hide Confirm Password</source>
     </trans-unit>
@@ -1718,6 +1709,9 @@
     <trans-unit id="++CODE++31a89f9bfc36d6f9ecf0a7e2e82cb5a9a0f1e7b1702f08bd3aced239c4f48a0b">
       <source xml:lang="en">How likely it is that you would recommend {0} to a friend or colleague?</source>
       <note>{0} is the feature name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++42e746a45011321b661459a4a5bff6312360244050814e0813284fb729dfc90d">
+      <source xml:lang="en">How many tables are in this database?</source>
     </trans-unit>
     <trans-unit id="++CODE++4d7056f0e9bef4870b289d7b77634cead0e646a63708a1eb500c6eab11c1328e">
       <source xml:lang="en">Hue</source>
@@ -1872,6 +1866,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b77fb88f6365c7aa62b75d120b96e1859e449166ac52bd58301306032102daf0">
       <source xml:lang="en">List all connections registered with the mssql extension?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++945603ffd7a2928c1725f609938b7a13324684f1e8b7407b8571adeb97a0cdf4">
+      <source xml:lang="en">List all schemas</source>
     </trans-unit>
     <trans-unit id="++CODE++abfc45dd4a240e3758d4d22759dd9fc99cc5e1d16aec7594708638c368bddb3d">
       <source xml:lang="en">List databases for connection &apos;{0}&apos;?</source>
@@ -3013,8 +3010,8 @@
     <trans-unit id="++CODE++2228686dec07e7c9c6c8515f778b90a768e5a9474779610755f751e18e43805f">
       <source xml:lang="en">Show Schema</source>
     </trans-unit>
-    <trans-unit id="++CODE++b889397af9e9ffd8d29828a35daad7c95e7a18955144d30bf9cad7bdac738628">
-      <source xml:lang="en">Show database schema</source>
+    <trans-unit id="++CODE++d5b86c663921b26f8c3dbd292279ef1d0a13da517c5c5bdf53097cfc17aada03">
+      <source xml:lang="en">Show a random table definition</source>
     </trans-unit>
     <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
       <source xml:lang="en">Show full error message</source>

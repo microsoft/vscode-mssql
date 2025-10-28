@@ -1594,10 +1594,9 @@ export class MssqlChatAgent {
     public static openSqlEditorAndConnect = l10n.t("Open SQL editor and connect");
     // Follow-up questions
     public static followUpConnectToDatabase = l10n.t("Connect to a database");
-    public static followUpShowDatabaseSchema = l10n.t("Show database schema");
-    public static followUpExplainSchema = l10n.t("Explain my database schema");
-    public static followUpOptimizeQuery = l10n.t("Help me optimize a query");
-    public static followUpGenerateMockData = l10n.t("Generate mock data for testing");
+    public static followUpListAllSchemas = l10n.t("List all schemas");
+    public static followUpShowRandomTableDefinition = l10n.t("Show a random table definition");
+    public static followUpCountTables = l10n.t("How many tables are in this database?");
     public static listServersToolConfirmationTitle = l10n.t("List Connections");
     public static listServersToolConfirmationMessage = l10n.t(
         "List all connections registered with the mssql extension?",

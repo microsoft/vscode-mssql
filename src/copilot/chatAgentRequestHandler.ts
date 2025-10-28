@@ -1119,23 +1119,18 @@ export const provideFollowups = (
     // If connected, suggest database operations
     return [
         {
-            prompt: loc.followUpShowDatabaseSchema,
-            label: loc.followUpShowDatabaseSchema,
+            prompt: loc.followUpListAllSchemas,
+            label: loc.followUpListAllSchemas,
             command: "",
         } satisfies vscode.ChatFollowup,
         {
-            prompt: loc.followUpExplainSchema,
-            label: loc.followUpExplainSchema,
+            prompt: loc.followUpShowRandomTableDefinition,
+            label: loc.followUpShowRandomTableDefinition,
             command: "",
         } satisfies vscode.ChatFollowup,
         {
-            prompt: loc.followUpOptimizeQuery,
-            label: loc.followUpOptimizeQuery,
-            command: "",
-        } satisfies vscode.ChatFollowup,
-        {
-            prompt: loc.followUpGenerateMockData,
-            label: loc.followUpGenerateMockData,
+            prompt: loc.followUpCountTables,
+            label: loc.followUpCountTables,
             command: "",
         } satisfies vscode.ChatFollowup,
     ];
