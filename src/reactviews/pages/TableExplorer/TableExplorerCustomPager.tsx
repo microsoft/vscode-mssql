@@ -179,25 +179,8 @@ const TableExplorerCustomPager = React.forwardRef<
                     <Option value="1000">1000</Option>
                 </Dropdown>
             </div>
-            <div className="pagination-info">
-                <span className="pagination-count">
-                    <span className="page-from-to">
-                        <span className="item-from" data-test="item-from">
-                            {currentPagination.dataFrom || 0}
-                        </span>
-                        <span className="separator">-</span>
-                        <span className="item-to" data-test="item-to">
-                            {currentPagination.dataTo || 0}
-                        </span>
-                        <span className="separator">of</span>
-                    </span>
-                    <span className="total-items" data-test="total-items">
-                        {currentPagination.totalItems || 0}
-                    </span>
-                    <span className="items-label">rows</span>
-                </span>
-            </div>
             <div className="page-size-selector">
+                <span className="page-size-label">Rows per page</span>
                 <Dropdown
                     value={selectedPageSize}
                     selectedOptions={[selectedPageSize]}
@@ -208,7 +191,6 @@ const TableExplorerCustomPager = React.forwardRef<
                     <Option value="100">100</Option>
                     <Option value="1000">1000</Option>
                 </Dropdown>
-                <span className="page-size-label">items per page</span>
             </div>
             <div className="pagination-controls">
                 <div className="pagination-nav">
@@ -230,13 +212,16 @@ const TableExplorerCustomPager = React.forwardRef<
                     </button>
                 </div>
                 <div className="page-info">
-                    <span className="page-label">Page</span>
-                    <span className="page-number" data-test="page-number-label">
-                        {currentPagination.pageNumber || 1}
+                    <span className="item-from" data-test="item-from">
+                        {currentPagination.dataFrom || 0}
                     </span>
-                    <span className="separator">of</span>
-                    <span className="page-count" data-test="page-count">
-                        {currentPagination.pageCount || 1}
+                    <span className="separator">-</span>
+                    <span className="item-to" data-test="item-to">
+                        {currentPagination.dataTo || 0}
+                    </span>
+                    <span className="separator"> of </span>
+                    <span className="total-items" data-test="total-items">
+                        {currentPagination.totalItems || 0}
                     </span>
                 </div>
                 <div className="pagination-nav">

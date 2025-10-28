@@ -1,6 +1,6 @@
 .table-explorer-custom-pagination {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     gap: 16px;
     padding: 8px 12px;
@@ -41,9 +41,10 @@
     gap: 8px;
 }
 
-.table-explorer-custom-pagination .page-size-selector .page-size-label {
+.table-explorer-custom-pagination .page-size-label {
     color: var(--vscode-descriptionForeground);
     white-space: nowrap;
+    font-size: 12px;
 }
 
 .table-explorer-custom-pagination .page-from-to {
