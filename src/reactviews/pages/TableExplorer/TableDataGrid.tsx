@@ -482,7 +482,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         --slick-grid-border-color: var(--slick-border-color);
                         width: 100%;
                         max-width: 100%;
-                        height: 95vh;
                     }
 
                     #tableExplorerGrid .slick-viewport {
