@@ -645,8 +645,7 @@
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
     "Select Profile": "Select Profile",
     "Save As...": "Save As...",
-    "Advanced...": "Advanced...",
-    "Advanced Deployment Options": "Advanced Deployment Options",
+    "Advanced Publish Options": "Advanced Publish Options",
     "Exclude Object Types": "Exclude Object Types",
     "Create New Connection Group": "Create New Connection Group",
     "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {

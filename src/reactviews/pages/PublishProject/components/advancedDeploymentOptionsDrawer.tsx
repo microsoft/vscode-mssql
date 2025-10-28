@@ -74,29 +74,104 @@ export const AdvancedDeploymentOptionsDrawer = ({
         state.deploymentOptions ? structuredClone(state.deploymentOptions) : undefined,
     );
 
-    // Update localChanges when drawer opens with fresh data
+    // Debug: Log when component renders with new state
+    console.log("DEBUG: AdvancedDeploymentOptionsDrawer render", {
+        isDrawerOpen: isAdvancedDrawerOpen,
+        hasStateDeploymentOptions: !!state.deploymentOptions,
+        hasLocalChanges: !!localChanges,
+        stateExcludeTypes: state.deploymentOptions?.excludeObjectTypes?.value,
+        localExcludeTypes: localChanges?.excludeObjectTypes?.value,
+    });
+
+    // Update localChanges whenever deploymentOptions change (e.g., from profile loading)
     React.useEffect(() => {
-        if (isAdvancedDrawerOpen && state.deploymentOptions) {
+        console.log("DEBUG: deploymentOptions changed in drawer useEffect", {
+            hasDeploymentOptions: !!state.deploymentOptions,
+            excludeObjectTypes: state.deploymentOptions?.excludeObjectTypes?.value,
+        });
+        if (state.deploymentOptions) {
             setLocalChanges(structuredClone(state.deploymentOptions));
         }
-    }, [isAdvancedDrawerOpen, state.deploymentOptions]);
+    }, [state.deploymentOptions]);
 
-    // Get grouped options and update values from localChanges
-    const optionGroups = usePublishDialogSelector((s) => {
-        if (!s.groupedAdvancedOptions || !localChanges) return [];
+    // Create option groups directly from localChanges (no more groupedAdvancedOptions)
+    const optionGroups = React.useMemo(() => {
+        if (!localChanges) return [];
 
-        return s.groupedAdvancedOptions.map((group) => ({
-            ...group,
-            entries: group.entries.map((option) => ({
-                ...option,
-                value:
-                    localChanges.booleanOptionsDictionary?.[option.key]?.value ??
-                    (group.key === "Exclude"
-                        ? (localChanges.excludeObjectTypes?.value?.includes(option.key) ?? false)
-                        : option.value),
-            })),
-        }));
-    });
+        const groups: Array<{
+            key: string;
+            label: string;
+            entries: Array<{
+                key: string;
+                displayName: string;
+                description: string;
+                value: boolean;
+            }>;
+        }> = [];
+
+        // Process boolean options and split into General and Ignore groups
+        if (localChanges.booleanOptionsDictionary) {
+            const allBooleanEntries = Object.entries(localChanges.booleanOptionsDictionary).map(
+                ([key, option]) => ({
+                    key,
+                    displayName: option.displayName,
+                    description: option.description,
+                    value: option.value,
+                }),
+            );
+
+            // Split entries into General and Ignore based on displayName starting with "Ignore"
+            const generalEntries = allBooleanEntries
+                .filter((entry) => !entry.displayName.startsWith("Ignore"))
+                .sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+            const ignoreEntries = allBooleanEntries
+                .filter((entry) => entry.displayName.startsWith("Ignore"))
+                .sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+            // Add General Options group
+            if (generalEntries.length > 0) {
+                groups.push({
+                    key: "General",
+                    label: loc.publishProject.generalOptions,
+                    entries: generalEntries,
+                });
+            }
+
+            // Add Ignore Options group
+            if (ignoreEntries.length > 0) {
+                groups.push({
+                    key: "Ignore",
+                    label: "Ignore Options", // Use string directly since ignoreOptions doesn't exist
+                    entries: ignoreEntries,
+                });
+            }
+        }
+
+        // Exclude Object Types group
+        if (localChanges.objectTypesDictionary) {
+            const excludedTypes = localChanges.excludeObjectTypes?.value || [];
+            const excludeEntries = Object.entries(localChanges.objectTypesDictionary)
+                .map(([key, displayName]) => ({
+                    key,
+                    displayName: displayName || key,
+                    description: "",
+                    value: Array.isArray(excludedTypes) && excludedTypes.includes(key),
+                }))
+                .filter((entry) => entry.displayName) // Only include entries with display names
+                .sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+            if (excludeEntries.length > 0) {
+                groups.push({
+                    key: "Exclude",
+                    label: loc.publishProject.excludeObjectTypes,
+                    entries: excludeEntries,
+                });
+            }
+        }
+
+        return groups;
+    }, [localChanges, loc]);
 
     const handleOptionChange = (optionName: string, checked: boolean) => {
         setLocalChanges((prev) => {

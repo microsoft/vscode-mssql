@@ -105,9 +105,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this.state.deploymentOptions.excludeObjectTypes.value = [];
         }
 
-        // Create grouped advanced options for the UI
-        this.createGroupedAdvancedOptions();
-
         // Register reducers after initialization
         this.registerRpcHandlers();
 
@@ -228,16 +225,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 state: PublishDialogState,
                 payload: { deploymentOptions: mssql.DeploymentOptions },
             ) => {
-                // Simply replace entire deploymentOptions - much simpler!
+                // Update deployment options and regenerate grouped options for UI
                 const newState = {
                     ...state,
                     deploymentOptions: payload.deploymentOptions,
                 };
 
-                // Regenerate grouped options after update
-                this.state = newState;
-                this.createGroupedAdvancedOptions();
-                newState.groupedAdvancedOptions = this.state.groupedAdvancedOptions;
+                // Update UI to reflect the changes
+                this.updateState(newState);
 
                 return newState;
             },
@@ -265,6 +260,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 const selectedPath = fileUris[0].fsPath;
 
                 try {
+                    // Check if DacFx service is available for loading deployment options
+                    if (!this._dacFxService) {
+                        void vscode.window.showWarningMessage(
+                            `${Loc.DacFxServiceNotAvailable}. Profile loaded without deployment options.`,
+                        );
+                    }
+
                     // Parse the profile XML to extract all values, including deployment options from DacFx service
                     const parsedProfile = await parsePublishProfileXml(
                         selectedPath,
@@ -278,7 +280,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     );
 
                     // Update state with all parsed values - UI components will consume when available
-                    return {
+                    const newState = {
                         ...state,
                         formState: {
                             ...state.formState,
@@ -292,6 +294,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         deploymentOptions:
                             parsedProfile.deploymentOptions || state.deploymentOptions,
                     };
+
+                    // Update UI to reflect the changes
+                    this.updateState(newState);
+
+                    return newState;
                 } catch (error) {
                     void vscode.window.showErrorMessage(
                         `${Loc.PublishProfileLoadFailed}: ${error}`,
@@ -567,89 +574,5 @@ export class PublishProjectWebViewController extends FormWebviewController<
         this.state.hasFormErrors = hasValidationErrors || hasMissingRequiredValues;
 
         return erroredInputs;
-    }
-
-    /**
-     * Creates grouped advanced options from deployment options
-     */
-    private createGroupedAdvancedOptions(): void {
-        if (!this.state.deploymentOptions) {
-            this.state.groupedAdvancedOptions = [];
-            return;
-        }
-
-        const groups: {
-            key: string;
-            label: string;
-            entries: { key: string; displayName: string; description: string; value: boolean }[];
-        }[] = [];
-
-        // Process boolean options and split into General and Ignore groups
-        if (this.state.deploymentOptions.booleanOptionsDictionary) {
-            const allBooleanEntries = Object.entries(
-                this.state.deploymentOptions.booleanOptionsDictionary,
-            ).map(([key, option]) => ({
-                key,
-                displayName: option.displayName,
-                description: option.description,
-                value: option.value,
-            }));
-
-            // Split entries into General and Ignore based on displayName starting with "Ignore"
-            const generalEntries = allBooleanEntries
-                .filter((entry) => !entry.displayName.startsWith("Ignore"))
-                .sort((a, b) => a.displayName.localeCompare(b.displayName));
-
-            const ignoreEntries = allBooleanEntries
-                .filter((entry) => entry.displayName.startsWith("Ignore"))
-                .sort((a, b) => a.displayName.localeCompare(b.displayName));
-
-            // Add General Options group
-            if (generalEntries.length > 0) {
-                groups.push({
-                    key: "General",
-                    label: Loc.GeneralOptions,
-                    entries: generalEntries,
-                });
-            }
-
-            // Add Ignore Options group
-            if (ignoreEntries.length > 0) {
-                groups.push({
-                    key: "Ignore",
-                    label: Loc.IgnoreOptions,
-                    entries: ignoreEntries,
-                });
-            }
-        }
-
-        // Exclude Object Types group
-        if (this.state.deploymentOptions.objectTypesDictionary) {
-            // excludeObjectTypes.value is an array of excluded type names
-            // We need to show ALL object types with checkboxes (checked = excluded)
-            const excludedTypes = this.state.deploymentOptions.excludeObjectTypes?.value || [];
-
-            const excludeEntries = Object.entries(
-                this.state.deploymentOptions.objectTypesDictionary,
-            )
-                .map(([key, displayName]) => ({
-                    key,
-                    displayName: displayName || key,
-                    description: "",
-                    value: Array.isArray(excludedTypes) ? excludedTypes.includes(key) : false,
-                }))
-                .filter((entry) => entry.displayName) // Only include entries with display names
-                .sort((a, b) => a.displayName.localeCompare(b.displayName));
-
-            if (excludeEntries.length > 0) {
-                groups.push({
-                    key: "Exclude",
-                    label: Loc.ExcludeObjectTypes,
-                    entries: excludeEntries,
-                });
-            }
-        }
-
-        this.state.groupedAdvancedOptions = groups;
     }
 }
