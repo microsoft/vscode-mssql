@@ -825,6 +825,11 @@
         <source xml:lang="en">Column name cannot be empty</source>
         <target state="translated">列名を空にすることはできません。</target>
       </trans-unit>
+      <trans-unit id="++CODE++79304c2a3f7dd799711c04e0513ca9fce1762fbdbf0e8dbd378987d42e35fee5">
+        <source xml:lang="en">Column width must be at least {0} pixels.</source>
+        <note>{0} is the minimum column width in pixels</note>
+        <target state="new">Column width must be at least {0} pixels.</target>
+      </trans-unit>
       <trans-unit id="++CODE++53aade77cd69a77bbb51bf8ca4e7ea8b282db75edce8883775e47042478d35b5">
         <source xml:lang="en">Columns</source>
         <target state="translated">列</target>
@@ -1544,6 +1549,10 @@
       <trans-unit id="++CODE++91cf329b31a4b1a6c0bdec6de797b6a90ab9309490bd62ec38f98f2d0f6db423">
         <source xml:lang="en">Enter description (optional)</source>
         <target state="translated">説明の入力 (省略可)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++657e6ba252bef59f38c0dbaab7e8e25d55503ba3a41d6ce527f92c88baea3576">
+        <source xml:lang="en">Enter desired column width in pixels</source>
+        <target state="new">Enter desired column width in pixels</target>
       </trans-unit>
       <trans-unit id="++CODE++caaac8aa0d0641aea8406e7f1011aaeab33423fdd4ee9b3354ee88cc1487b0bf">
         <source xml:lang="en">Enter hostname</source>
@@ -3435,6 +3444,15 @@ Error:
       <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
         <source xml:lang="en">Reset</source>
         <target state="translated">リセット</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
+        <source xml:lang="en">Resize</source>
+        <target state="new">Resize</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fc71b6e1d435d817984f9c7394f47e21505efa2a9f81b5f3e17082ced1432cc7">
+        <source xml:lang="en">Resize column '{0}'</source>
+        <note>{0} is the name of the column</note>
+        <target state="new">Resize column '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
         <source xml:lang="en">Resource Group</source>
