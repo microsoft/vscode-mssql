@@ -129,11 +129,13 @@ export function isMac(): boolean {
 }
 
 /**
- * Checks if the meta key is pressed based on the user's OS.
+ * Checks if the meta key on Mac or Ctrl key on Windows/Linux is pressed.
  * @param e The keyboard or mouse event to check.
  * @returns True if the meta key is pressed, false otherwise.
  */
-export function isMetaKeyPressed(e: KeyboardEvent | MouseEvent | React.KeyboardEvent): boolean {
+export function isMetaOrCtrlKeyPressed(
+    e: KeyboardEvent | MouseEvent | React.KeyboardEvent,
+): boolean {
     return isMac() ? e.metaKey : e.ctrlKey;
 }
 
