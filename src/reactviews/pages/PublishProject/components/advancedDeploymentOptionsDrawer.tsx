@@ -67,23 +67,23 @@ export const AdvancedDeploymentOptionsDrawer = ({
     const [searchText, setSearchText] = useState<string>("");
     const [userOpenedSections, setUserOpenedSections] = useState<string[]>(["General"]);
     const loc = LocConstants.getInstance();
-
-    // Local state for temporary changes (only committed on OK), clone the entire deploymentOptions
     const state = usePublishDialogSelector((s) => s);
-    const [localChanges, setLocalChanges] = useState(() =>
-        state.deploymentOptions ? structuredClone(state.deploymentOptions) : undefined,
+    const [localChanges, setLocalChanges] = useState<Array<{ optionName: string; value: boolean }>>(
+        [],
     );
 
-    // Update localChanges whenever deploymentOptions change (e.g., from profile loading)
+    // Clear local changes when deploymentOptions change (e.g., from profile loading)
     React.useEffect(() => {
-        if (state.deploymentOptions) {
-            setLocalChanges(structuredClone(state.deploymentOptions));
-        }
+        setLocalChanges([]);
     }, [state.deploymentOptions]);
+    const getCurrentValue = (optionName: string, baseValue: boolean): boolean => {
+        const localChange = localChanges.find((change) => change.optionName === optionName);
+        return localChange ? localChange.value : baseValue;
+    };
 
-    // Create option groups directly from localChanges (no more groupedAdvancedOptions)
+    // Create option groups from base deployment options, applying local changes
     const optionGroups = React.useMemo(() => {
-        if (!localChanges) return [];
+        if (!state.deploymentOptions) return [];
 
         const groups: Array<{
             key: string;
@@ -97,15 +97,15 @@ export const AdvancedDeploymentOptionsDrawer = ({
         }> = [];
 
         // Process boolean options and split into General and Ignore groups
-        if (localChanges.booleanOptionsDictionary) {
-            const allBooleanEntries = Object.entries(localChanges.booleanOptionsDictionary).map(
-                ([key, option]) => ({
-                    key,
-                    displayName: option.displayName,
-                    description: option.description,
-                    value: option.value,
-                }),
-            );
+        if (state.deploymentOptions.booleanOptionsDictionary) {
+            const allBooleanEntries = Object.entries(
+                state.deploymentOptions.booleanOptionsDictionary,
+            ).map(([key, option]) => ({
+                key,
+                displayName: option.displayName,
+                description: option.description,
+                value: getCurrentValue(key, option.value),
+            }));
 
             // Split entries into General and Ignore based on displayName starting with "Ignore"
             const generalEntries = allBooleanEntries
@@ -129,37 +129,31 @@ export const AdvancedDeploymentOptionsDrawer = ({
             if (ignoreEntries.length > 0) {
                 groups.push({
                     key: "Ignore",
-                    label: "Ignore Options", // Use string directly since ignoreOptions doesn't exist
+                    label: loc.publishProject.ignoreOptions,
                     entries: ignoreEntries,
                 });
             }
         }
 
         // Exclude Object Types group
-        if (localChanges.objectTypesDictionary) {
-            const excludedTypes = localChanges.excludeObjectTypes?.value || [];
-            console.log("DEBUG: Creating exclude entries", {
-                excludedTypes,
-                objectTypesDictionaryKeys: Object.keys(localChanges.objectTypesDictionary),
-            });
+        if (state.deploymentOptions.objectTypesDictionary) {
+            const baseExcludedTypes = state.deploymentOptions.excludeObjectTypes?.value || [];
 
-            const excludeEntries = Object.entries(localChanges.objectTypesDictionary)
+            const excludeEntries = Object.entries(state.deploymentOptions.objectTypesDictionary)
                 .map(([key, displayName]) => {
-                    // Case-insensitive comparison: excludedTypes has Pascal case, keys have camel case
-                    const isExcluded =
-                        Array.isArray(excludedTypes) &&
-                        excludedTypes.some(
-                            (excludedType) => excludedType.toLowerCase() === key.toLowerCase(),
-                        );
-                    console.log(`DEBUG: ${key} -> ${displayName} | excluded: ${isExcluded}`);
+                    // Get base exclusion state
+                    const baseExcluded = baseExcludedTypes.some(
+                        (excludedType) => excludedType.toLowerCase() === key.toLowerCase(),
+                    );
+
                     return {
                         key,
                         displayName: displayName || key,
                         description: "",
-                        value: isExcluded,
+                        value: getCurrentValue(key, baseExcluded),
                     };
                 })
-                .filter((entry) => entry.displayName) // Only include entries with display names
+                .filter((entry) => entry.displayName)
                 .sort((a, b) => a.displayName.localeCompare(b.displayName));
 
             if (excludeEntries.length > 0) {
@@ -172,49 +166,59 @@ export const AdvancedDeploymentOptionsDrawer = ({
         }
 
         return groups;
-    }, [localChanges, loc]);
+    }, [state.deploymentOptions, localChanges, loc, getCurrentValue]);
 
+    // Options change handler, inserts and removed the changed option in localChanges
     const handleOptionChange = (optionName: string, checked: boolean) => {
         setLocalChanges((prev) => {
-            if (!prev) return prev;
-            const updated = structuredClone(prev);
-
-            if (updated.booleanOptionsDictionary?.[optionName]) {
-                updated.booleanOptionsDictionary[optionName].value = checked;
-            } else if (updated.objectTypesDictionary?.[optionName]) {
-                // For exclude object types, checked = excluded
-                const excludedTypes = updated.excludeObjectTypes!.value;
-                if (checked && !excludedTypes.includes(optionName)) {
-                    excludedTypes.push(optionName);
-                } else if (!checked && excludedTypes.includes(optionName)) {
-                    excludedTypes.splice(excludedTypes.indexOf(optionName), 1);
-                }
+            const existingChange = prev.find((change) => change.optionName === optionName);
+            if (existingChange) {
+                // Option exists, user is toggling back to original - remove it
+                return prev.filter((change) => change.optionName !== optionName);
+            } else {
+                // New change, add it
+                return [...prev, { optionName, value: checked }];
             }
-
-            return updated;
         });
     };
 
+    // Simple check: disable reset button if no local changes have been made
+    const isResetDisabled = localChanges.length === 0;
+
+    // Options reset handler, clears all local changes (reset to base deployment options)
     const handleReset = () => {
-        // Reset to default options but keep dialog open
-        if (state.defaultDeploymentOptions) {
-            setLocalChanges(structuredClone(state.defaultDeploymentOptions));
-        }
+        setLocalChanges([]);
     };
 
+    // Options 'OK' button handler, apply local changes to create updated deployment options
     const handleOk = () => {
-        // Just pass localChanges directly - it's already the complete deploymentOptions!
-        if (localChanges) {
-            context?.updateDeploymentOptions(localChanges);
+        if (state.deploymentOptions && localChanges.length > 0) {
+            const updatedOptions = structuredClone(state.deploymentOptions);
+
+            // Apply each local change
+            localChanges.forEach(({ optionName, value }) => {
+                if (updatedOptions.booleanOptionsDictionary?.[optionName]) {
+                    // Handle boolean options types
+                    updatedOptions.booleanOptionsDictionary[optionName].value = value;
+                } else if (updatedOptions.objectTypesDictionary?.[optionName]) {
+                    // Handle exclude object types
+                    const excludedTypes = updatedOptions.excludeObjectTypes!.value;
+                    if (value && !excludedTypes.includes(optionName)) {
+                        excludedTypes.push(optionName);
+                    } else if (!value && excludedTypes.includes(optionName)) {
+                        excludedTypes.splice(excludedTypes.indexOf(optionName), 1);
+                    }
+                }
+            });
+
+            context?.updateDeploymentOptions(updatedOptions);
         }
         setIsAdvancedDrawerOpen(false);
     };
 
+    // Clear local changes and close drawer
     const handleCancel = () => {
-        // Reset to original deploymentOptions and close drawer
-        setLocalChanges(
-            state.deploymentOptions ? structuredClone(state.deploymentOptions) : undefined,
-        );
+        setLocalChanges([]);
         setIsAdvancedDrawerOpen(false);
     };
 
@@ -231,7 +235,7 @@ export const AdvancedDeploymentOptionsDrawer = ({
         return option.displayName.toLowerCase().includes(lowerSearch);
     };
 
-    // Render a single option - much simpler approach
+    // Render a single option
     const renderOption = (option: {
         key: string;
         displayName: string;

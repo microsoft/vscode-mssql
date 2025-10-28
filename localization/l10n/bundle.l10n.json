@@ -646,6 +646,7 @@
     "Select Profile": "Select Profile",
     "Save As...": "Save As...",
     "Advanced Publish Options": "Advanced Publish Options",
+    "Ignore Options": "Ignore Options",
     "Exclude Object Types": "Exclude Object Types",
     "Create New Connection Group": "Create New Connection Group",
     "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
@@ -1463,7 +1464,6 @@
     "Local development container": "Local development container",
     "New SQL Server local development container": "New SQL Server local development container",
     "New Azure SQL logical server (Preview)": "New Azure SQL logical server (Preview)",
-    "Ignore Options": "Ignore Options",
     "SQL Server port number": "SQL Server port number",
     "SQL Server admin password": "SQL Server admin password",
     "Confirm SQL Server admin password": "Confirm SQL Server admin password",
