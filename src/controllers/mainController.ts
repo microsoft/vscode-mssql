@@ -481,6 +481,17 @@ export default class MainController implements vscode.Disposable {
                 },
             );
 
+            // -- NEW QUERY WITH CONNECTION (Copilot) --
+            this.registerCommandWithArgs(Constants.cmdCopilotNewQueryWithConnection);
+            this._event.on(
+                Constants.cmdCopilotNewQueryWithConnection,
+                (args?: { forceNewEditor?: boolean; forceConnect?: boolean }) => {
+                    void this.runAndLogErrors(
+                        this.onNewQueryWithConnection(args?.forceNewEditor, args?.forceConnect),
+                    );
+                },
+            );
+
             // -- PUBLISH PROJECT --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
@@ -2156,6 +2167,59 @@ export default class MainController implements vscode.Disposable {
             }
         }
         return false;
+    }
+
+    /**
+     * Opens a new SQL editor and/or prompts for a connection based on current state and parameters
+     * @param forceNewEditor If true, always creates a new editor. If false, uses current editor if it's a SQL file
+     * @param forceConnect If true, always prompts for connection even if already connected
+     */
+    public async onNewQueryWithConnection(
+        forceNewEditor?: boolean,
+        forceConnect?: boolean,
+    ): Promise<boolean> {
+        const activeEditor = vscode.window.activeTextEditor;
+        const activeUri = activeEditor?.document.uri.toString();
+        const isSqlEditor = activeEditor?.document.languageId === Constants.languageId;
+        const isConnected = activeUri ? this.connectionManager.isConnected(activeUri) : false;
+
+        sendActionEvent(
+            TelemetryViews.MssqlCopilot,
+            TelemetryActions.CopilotNewQueryWithConnection,
+            {
+                forceNewEditor: forceNewEditor?.toString() ?? "false",
+                forceConnect: forceConnect?.toString() ?? "false",
+                isSqlEditor: isSqlEditor.toString(),
+                isConnected: isConnected.toString(),
+            },
+        );
+
+        // Determine if we need to open a new editor
+        const shouldOpenNewEditor = forceNewEditor || !isSqlEditor;
+
+        // Determine if we need to connect
+        const shouldConnect = forceConnect || !isConnected;
+
+        // If already connected to a SQL editor and not forcing changes, do nothing
+        if (isSqlEditor && isConnected && !forceNewEditor && !forceConnect) {
+            return true;
+        }
+
+        // Open new editor if needed
+        if (shouldOpenNewEditor) {
+            const document = await vscode.workspace.openTextDocument({
+                language: "sql",
+                content: "",
+            });
+            await vscode.window.showTextDocument(document);
+        }
+
+        // Connect if needed
+        if (shouldConnect) {
+            return await this.onNewConnection();
+        }
+
+        return true;
     }
 
     public onDeployNewDatabase(initialConnectionGroup?: string): void {

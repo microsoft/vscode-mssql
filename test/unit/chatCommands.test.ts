@@ -15,6 +15,7 @@ import {
     isSimpleCommand,
     isPromptSubstituteCommand,
     getCommandDefinition,
+    getConnectionButtonInfo,
 } from "../../src/copilot/chatCommands";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
@@ -32,6 +33,9 @@ suite("Chat Commands Tests", () => {
     let connectionInfo: ConnectionInfo;
     let chatStream: vscode.ChatResponseStream;
     let chatStreamMarkdownStub: sinon.SinonStub;
+    let chatStreamButtonStub: sinon.SinonStub;
+    let mockTextDocument: { languageId: string };
+    let mockActiveTextEditor: vscode.TextEditor | undefined;
 
     const sampleConnectionUri = "file:///path/to/sample.sql";
 
@@ -64,12 +68,23 @@ suite("Chat Commands Tests", () => {
             .stub(mockMainController, "connectionManager")
             .get(() => mockConnectionManager as unknown as ConnectionManager);
         mockMainController.onNewConnection.resolves(true);
+        mockMainController.onNewQueryWithConnection.resolves(true);
         mockMainController.onChooseDatabase.resolves(true);
 
         chatStreamMarkdownStub = sandbox.stub();
+        chatStreamButtonStub = sandbox.stub();
         chatStream = {
             markdown: chatStreamMarkdownStub,
+            button: chatStreamButtonStub,
         } as unknown as vscode.ChatResponseStream;
+
+        // Mock TextDocument
+        mockTextDocument = { languageId: "sql" };
+
+        // Mock TextEditor
+        mockActiveTextEditor = {
+            document: mockTextDocument,
+        } as vscode.TextEditor;
     });
 
     function createChatRequest(command?: string): vscode.ChatRequest {
@@ -170,7 +185,11 @@ suite("Chat Commands Tests", () => {
             );
 
             expect(result.handled).to.be.true;
-            expect(result.errorMessage).to.contain("No active database connection");
+            expect(result.errorMessage).to.be.undefined;
+            // Should show error messages via stream (warning + connection required message)
+            expect(chatStreamMarkdownStub).to.have.been.calledTwice;
+            // Should show connection button
+            expect(chatStreamButtonStub).to.have.been.calledOnce;
         });
 
         test("connect command executes successfully", async () => {
@@ -185,7 +204,10 @@ suite("Chat Commands Tests", () => {
 
             expect(result.handled).to.be.true;
             expect(result.errorMessage).to.be.undefined;
-            expect(mockMainController.onNewConnection).to.have.been.calledOnce;
+            expect(mockMainController.onNewQueryWithConnection).to.have.been.calledOnceWithExactly(
+                undefined,
+                true,
+            );
             expect(chatStreamMarkdownStub).to.have.been.calledOnce;
         });
 
@@ -236,6 +258,46 @@ suite("Chat Commands Tests", () => {
             expect(result.handled).to.be.true;
             expect(result.errorMessage).to.be.undefined;
             expect(mockMainController.onChooseDatabase).to.have.been.calledOnce;
+        });
+
+        test("help command shows capabilities and button when disconnected", async () => {
+            const chatRequest = createChatRequest("help");
+            mockConnectionManager.getConnectionInfo.returns(undefined as unknown as ConnectionInfo);
+
+            const result = await handleChatCommand(
+                chatRequest,
+                chatStream,
+                mockMainController as unknown as MainController,
+                undefined, // No connection URI
+            );
+
+            expect(result.handled).to.be.true;
+            expect(result.errorMessage).to.be.undefined;
+            // Should show welcome message and all capabilities
+            expect(chatStreamMarkdownStub).to.have.been.called;
+            // Should show connection button since not connected
+            expect(chatStreamButtonStub).to.have.been.calledOnceWith(
+                sinon.match({ command: "mssql.copilot.newQueryWithConnection" }),
+            );
+        });
+
+        test("help command does not show button when connected", async () => {
+            const chatRequest = createChatRequest("help");
+            mockConnectionManager.getConnectionInfo.returns(connectionInfo);
+
+            const result = await handleChatCommand(
+                chatRequest,
+                chatStream,
+                mockMainController as unknown as MainController,
+                sampleConnectionUri, // Has connection
+            );
+
+            expect(result.handled).to.be.true;
+            expect(result.errorMessage).to.be.undefined;
+            // Should show welcome message and all capabilities
+            expect(chatStreamMarkdownStub).to.have.been.called;
+            // Should NOT show connection button since already connected
+            expect(chatStreamButtonStub).to.not.have.been.called;
         });
 
         test("listServers command executes successfully", async () => {
@@ -333,6 +395,44 @@ suite("Chat Commands Tests", () => {
             expect(skipLabelsCommands).to.include("connect");
             expect(skipLabelsCommands).to.include("disconnect");
             expect(skipLabelsCommands).to.include("getConnectionDetails");
+        });
+    });
+
+    suite("getConnectionButtonInfo Tests", () => {
+        test("returns 'Connect' label when SQL editor is active", () => {
+            // Set up active editor with SQL language
+            sandbox.stub(vscode.window, "activeTextEditor").value(mockActiveTextEditor);
+
+            const buttonInfo = getConnectionButtonInfo();
+
+            expect(buttonInfo.label).to.contain("Connect");
+            expect(buttonInfo.args.forceNewEditor).to.be.false;
+            expect(buttonInfo.args.forceConnect).to.be.true;
+        });
+
+        test("returns 'Open SQL editor and connect' label when no SQL editor active", () => {
+            // No active editor
+            sandbox.stub(vscode.window, "activeTextEditor").value(undefined);
+
+            const buttonInfo = getConnectionButtonInfo();
+
+            expect(buttonInfo.label).to.contain("Open SQL editor and connect");
+            expect(buttonInfo.args.forceNewEditor).to.be.true;
+            expect(buttonInfo.args.forceConnect).to.be.true;
+        });
+
+        test("returns 'Open SQL editor and connect' when active editor is not SQL", () => {
+            // Active editor with non-SQL language
+            const nonSqlEditor = {
+                document: { languageId: "typescript" },
+            } as vscode.TextEditor;
+            sandbox.stub(vscode.window, "activeTextEditor").value(nonSqlEditor);
+
+            const buttonInfo = getConnectionButtonInfo();
+
+            expect(buttonInfo.label).to.contain("Open SQL editor and connect");
+            expect(buttonInfo.args.forceNewEditor).to.be.true;
+            expect(buttonInfo.args.forceConnect).to.be.true;
         });
     });
 });
