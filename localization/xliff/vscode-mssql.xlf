@@ -3620,9 +3620,6 @@
     <trans-unit id="++CODE++075b0e112ce5f3585bf21875b678fb678865a30c79d482cd01098957e6497c28">
       <source xml:lang="en">intelliSenseUpdated</source>
     </trans-unit>
-    <trans-unit id="++CODE++75503f1689379ab9bb37f981cdc02494d3988fefc0cd7372446a63b8ff036098">
-      <source xml:lang="en">listSchemas</source>
-    </trans-unit>
     <trans-unit id="++CODE++e6eaea18e885e1078829b56df34896be5ab51439e8f0ba00cb1624b2c572c10e">
       <source xml:lang="en">location</source>
     </trans-unit>

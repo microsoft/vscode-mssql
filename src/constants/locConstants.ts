@@ -1617,7 +1617,6 @@ export class MssqlChatAgent {
     };
     // Follow-up questions
     public static followUpConnectToDatabase = l10n.t("Connect to a database");
-    public static followUpListSchemasCommand = l10n.t("listSchemas");
     public static followUpShowRandomTableDefinition = l10n.t("Show a random table definition");
     public static followUpCountTables = l10n.t("How many tables are in this database?");
     public static listServersToolConfirmationTitle = l10n.t("List Connections");

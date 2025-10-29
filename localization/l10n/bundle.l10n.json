@@ -1586,7 +1586,6 @@
         "comment": ["{0} is the button text (e.g., 'Connect' or 'Open SQL editor and connect')"]
     },
     "Connect to a database": "Connect to a database",
-    "listSchemas": "listSchemas",
     "Show a random table definition": "Show a random table definition",
     "How many tables are in this database?": "How many tables are in this database?",
     "List Connections": "List Connections",
