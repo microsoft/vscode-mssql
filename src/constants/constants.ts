@@ -310,3 +310,4 @@ export const DefaultAdminUsername = "sa";
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
 export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
+export const DefaultMinimumSqlServerYear = 2017;

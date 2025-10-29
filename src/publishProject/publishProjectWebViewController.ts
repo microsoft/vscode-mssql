@@ -114,7 +114,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
             }
         } catch (error) {
             // Log error and send telemetry, but keep dialog resilient
-            console.error("Failed to read project properties:", error);
+            this.logger.error("Failed to read project properties:", error);
             sendErrorEvent(
                 TelemetryViews.SqlProjects,
                 TelemetryActions.PublishProjectChanges,
@@ -138,7 +138,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     this.state.formState.containerImageTag = tagOptions[0].value;
                 }
             } catch (error) {
-                console.error("Failed to fetch Docker container tags:", error);
+                this.logger.error("Failed to fetch Docker container tags:", error);
             }
         }
 

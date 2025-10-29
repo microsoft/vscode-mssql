@@ -178,11 +178,11 @@ export async function getSqlServerContainerTagsForTargetVersion(
         }
 
         // Determine minimum year based on target version
-        let minYear = 2017; // Default to SQL Server 2017
+        let minYear = constants.DefaultMinimumSqlServerYear; // Default to SQL Server 2017
         if (targetVersion) {
             const versionNum = parseInt(targetVersion, 10);
             // Find the corresponding year, or default to 2017 if not found
-            minYear = DSP_VERSION_TO_YEAR.get(versionNum) ?? 2017;
+            minYear = DSP_VERSION_TO_YEAR.get(versionNum) ?? constants.DefaultMinimumSqlServerYear;
         }
 
         // Filter deployment versions based on target version
