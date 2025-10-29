@@ -58,6 +58,7 @@ suite("AddFirewallRuleWebviewController Tests", () => {
                 clientIp: "1.2.3.4",
                 message: errorMessage,
                 addFirewallRuleStatus: ApiStatus.NotStarted,
+                loadingAzureAccountsStatus: ApiStatus.Loaded,
             };
 
             expect(controller.state).to.deep.equal(
@@ -93,6 +94,7 @@ suite("AddFirewallRuleWebviewController Tests", () => {
                 clientIp: "1.2.3.4",
                 message: errorMessage,
                 addFirewallRuleStatus: ApiStatus.NotStarted,
+                loadingAzureAccountsStatus: ApiStatus.Loaded,
             };
 
             expect(controller.state).to.deep.equal(

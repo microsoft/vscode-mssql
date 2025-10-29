@@ -614,10 +614,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
-            await populateAzureAccountInfo(
-                (state.dialog as AddFirewallRuleDialogProps).props,
-                true /* forceSignInPrompt */,
-            );
+            const dialogProps = (state.dialog as AddFirewallRuleDialogProps).props;
+            dialogProps.loadingAzureAccountsStatus = ApiStatus.Loading;
+            this.updateState(state);
+
+            await populateAzureAccountInfo(dialogProps, true /* forceSignInPrompt */);
+
+            dialogProps.loadingAzureAccountsStatus = ApiStatus.Loaded;
 
             return state;
         });
@@ -1181,9 +1184,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 clientIp: handleFirewallErrorResult.ipAddress,
                 accounts: [],
                 tenants: {},
-                isSignedIn: true,
+                isSignedIn: await VsCodeAzureHelper.isSignedIn(),
                 serverName: this.state.connectionProfile.server,
                 addFirewallRuleStatus: ApiStatus.NotStarted,
+                loadingAzureAccountsStatus: ApiStatus.Loading,
             };
 
             if (addFirewallDialogState.isSignedIn) {
@@ -1191,9 +1195,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     addFirewallDialogState,
                     false /* forceSignInPrompt */,
                 );
+                addFirewallDialogState.loadingAzureAccountsStatus = ApiStatus.Loaded;
+            } else {
+                addFirewallDialogState.loadingAzureAccountsStatus = ApiStatus.Loaded;
             }
-
-            addFirewallDialogState.isSignedIn = await VsCodeAzureHelper.isSignedIn();
 
             this.state.dialog = {
                 type: "addFirewallRule",

@@ -47,6 +47,11 @@ const useStyles = makeStyles({
         marginRight: "8px",
         width: "120px",
     },
+    loadingContainer: {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+    },
 });
 
 export const AddFirewallRuleDialog = ({
@@ -165,121 +170,139 @@ export const AddFirewallRuleDialog = ({
                                 {Loc.connectionDialog.readMore}
                             </Link>
                         </div>
-
-                        {!state.isSignedIn && (
+                        {state.loadingAzureAccountsStatus === ApiStatus.Loading ? (
+                            <div className={styles.loadingContainer}>
+                                <Spinner size="tiny" />
+                                <span>{Loc.azure.loadingAzureAccounts}</span>
+                            </div>
+                        ) : (
                             <>
-                                {Loc.firewallRules.signIntoAzureToAddFirewallRule}
-                                {" " /* extra space before the 'Sign in' link*/}
-                                <Link
-                                    onClick={() => {
-                                        signIntoAzure();
-                                    }}>
-                                    {Loc.azure.signIntoAzure}
-                                </Link>
-                            </>
-                        )}
-                        {state.isSignedIn && (
-                            <>
-                                {state.accounts.length > 0 && (
+                                {!state.isSignedIn && (
                                     <>
-                                        <Field
-                                            label={Loc.azure.azureAccount}
-                                            className={formStyles.formComponentDiv}>
-                                            <Dropdown
-                                                value={selectedAccountDisplayText}
-                                                selectedOptions={[selectedAccountId]}
-                                                onOptionSelect={onAccountOptionSelect}>
-                                                <Option
-                                                    text={Loc.azure.addAzureAccount}
-                                                    key={addNewMicrosoftAccount}
-                                                    value={addNewMicrosoftAccount}>
-                                                    {Loc.azure.addAzureAccount}
-                                                </Option>
-                                                {state.accounts.map((account) => {
-                                                    return (
-                                                        <Option
-                                                            text={account.displayName}
-                                                            key={account.accountId}
-                                                            value={account.accountId}>
-                                                            {account.displayName}
-                                                        </Option>
-                                                    );
-                                                })}
-                                            </Dropdown>
-                                        </Field>
-                                        <Field
-                                            label={Loc.azure.tenant}
-                                            className={formStyles.formComponentDiv}>
-                                            <Dropdown
-                                                value={tenantDisplayText}
-                                                selectedOptions={[selectedTenantId]}
-                                                onOptionSelect={onTenantOptionSelect}>
-                                                {state.tenants[selectedAccountId]?.map((tenant) => {
-                                                    return (
-                                                        <Option
-                                                            text={formatTenant(tenant)}
-                                                            key={tenant.tenantId}
-                                                            value={tenant.tenantId}>
-                                                            {formatTenant(tenant)}
-                                                        </Option>
-                                                    );
-                                                })}
-                                            </Dropdown>
-                                        </Field>
+                                        {Loc.firewallRules.signIntoAzureToAddFirewallRule}
+                                        {" " /* extra space before the 'Sign in' link*/}
+                                        <Link
+                                            onClick={() => {
+                                                signIntoAzure();
+                                            }}>
+                                            {Loc.azure.signIntoAzure}
+                                        </Link>
                                     </>
                                 )}
+                                {state.isSignedIn && (
+                                    <>
+                                        {state.accounts.length > 0 && (
+                                            <>
+                                                <Field
+                                                    label={Loc.azure.azureAccount}
+                                                    className={formStyles.formComponentDiv}>
+                                                    <Dropdown
+                                                        value={selectedAccountDisplayText}
+                                                        selectedOptions={[selectedAccountId]}
+                                                        onOptionSelect={onAccountOptionSelect}>
+                                                        <Option
+                                                            text={Loc.azure.addAzureAccount}
+                                                            key={addNewMicrosoftAccount}
+                                                            value={addNewMicrosoftAccount}>
+                                                            {Loc.azure.addAzureAccount}
+                                                        </Option>
+                                                        {state.accounts.map((account) => {
+                                                            return (
+                                                                <Option
+                                                                    text={account.displayName}
+                                                                    key={account.accountId}
+                                                                    value={account.accountId}>
+                                                                    {account.displayName}
+                                                                </Option>
+                                                            );
+                                                        })}
+                                                    </Dropdown>
+                                                </Field>
+                                                <Field
+                                                    label={Loc.azure.tenant}
+                                                    className={formStyles.formComponentDiv}>
+                                                    <Dropdown
+                                                        value={tenantDisplayText}
+                                                        selectedOptions={[selectedTenantId]}
+                                                        onOptionSelect={onTenantOptionSelect}>
+                                                        {state.tenants[selectedAccountId]?.map(
+                                                            (tenant) => {
+                                                                return (
+                                                                    <Option
+                                                                        text={formatTenant(tenant)}
+                                                                        key={tenant.tenantId}
+                                                                        value={tenant.tenantId}>
+                                                                        {formatTenant(tenant)}
+                                                                    </Option>
+                                                                );
+                                                            },
+                                                        )}
+                                                    </Dropdown>
+                                                </Field>
+                                            </>
+                                        )}
 
-                                <Field
-                                    label={Loc.firewallRules.ruleName}
-                                    className={formStyles.formComponentDiv}>
-                                    <Input
-                                        value={ruleName}
-                                        onChange={(_ev, data) => {
-                                            setRuleName(data.value);
-                                        }}
-                                        id="ruleName"
-                                    />
-                                </Field>
-                                <Field className={formStyles.formComponentDiv}>
-                                    <RadioGroup
-                                        value={ipSelectionMode}
-                                        onChange={(_, data) =>
-                                            setIpSelectionMode(data.value as IpSelectionMode)
-                                        }>
-                                        <Radio
-                                            label={Loc.firewallRules.addMyClientIp(state.clientIp)}
-                                            value={IpSelectionMode.SpecificIp}
-                                        />
-                                        <Radio
-                                            label={Loc.firewallRules.addMySubnetRange}
-                                            value={IpSelectionMode.IpRange}
-                                        />
-                                    </RadioGroup>
-                                </Field>
-                                <div
-                                    className={formStyles.formComponentDiv}
-                                    style={{ marginLeft: "40px" }}>
-                                    <Label>From</Label>
-                                    <Input
-                                        value={startIp}
-                                        onChange={(_ev, data) => {
-                                            setStartIp(data.value);
-                                        }}
-                                        id="startIpInput"
-                                        disabled={ipSelectionMode === IpSelectionMode.SpecificIp}
-                                        className={styles.ipInputBox}
-                                    />
-                                    <Label>To</Label>
-                                    <Input
-                                        value={endIp}
-                                        onChange={(_ev, data) => {
-                                            setEndIp(data.value);
-                                        }}
-                                        id="endIpInput"
-                                        disabled={ipSelectionMode === IpSelectionMode.SpecificIp}
-                                        className={styles.ipInputBox}
-                                    />
-                                </div>
+                                        <Field
+                                            label={Loc.firewallRules.ruleName}
+                                            className={formStyles.formComponentDiv}>
+                                            <Input
+                                                value={ruleName}
+                                                onChange={(_ev, data) => {
+                                                    setRuleName(data.value);
+                                                }}
+                                                id="ruleName"
+                                            />
+                                        </Field>
+                                        <Field className={formStyles.formComponentDiv}>
+                                            <RadioGroup
+                                                value={ipSelectionMode}
+                                                onChange={(_, data) =>
+                                                    setIpSelectionMode(
+                                                        data.value as IpSelectionMode,
+                                                    )
+                                                }>
+                                                <Radio
+                                                    label={Loc.firewallRules.addMyClientIp(
+                                                        state.clientIp,
+                                                    )}
+                                                    value={IpSelectionMode.SpecificIp}
+                                                />
+                                                <Radio
+                                                    label={Loc.firewallRules.addMySubnetRange}
+                                                    value={IpSelectionMode.IpRange}
+                                                />
+                                            </RadioGroup>
+                                        </Field>
+                                        <div
+                                            className={`${formStyles.formComponentDiv}`}
+                                            style={{ marginLeft: "40px" }}>
+                                            <Label>From</Label>
+                                            <Input
+                                                value={startIp}
+                                                onChange={(_ev, data) => {
+                                                    setStartIp(data.value);
+                                                }}
+                                                id="startIpInput"
+                                                disabled={
+                                                    ipSelectionMode === IpSelectionMode.SpecificIp
+                                                }
+                                                className={styles.ipInputBox}
+                                            />
+                                            <Label>To</Label>
+                                            <Input
+                                                value={endIp}
+                                                onChange={(_ev, data) => {
+                                                    setEndIp(data.value);
+                                                }}
+                                                id="endIpInput"
+                                                disabled={
+                                                    ipSelectionMode === IpSelectionMode.SpecificIp
+                                                }
+                                                className={styles.ipInputBox}
+                                            />
+                                        </div>
+                                    </>
+                                )}
                             </>
                         )}
                     </DialogContent>
@@ -323,7 +346,6 @@ export const AddFirewallRuleDialog = ({
         </Dialog>
     );
 };
-
 function padTo2Digits(num: number) {
     return num.toString().padStart(2, "0");
 }

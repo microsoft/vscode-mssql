@@ -50,6 +50,7 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
                 accounts: [],
                 tenants: {},
                 addFirewallRuleStatus: ApiStatus.NotStarted,
+                loadingAzureAccountsStatus: ApiStatus.Loading,
             },
             {
                 title: initializationProps.serverName
@@ -87,6 +88,11 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
 
         if (this.state.isSignedIn) {
             await populateAzureAccountInfo(this.state, false /* forceSignInPrompt */);
+            // Mark loading as complete after populating account info
+            this.state.loadingAzureAccountsStatus = ApiStatus.Loaded;
+        } else {
+            // Mark loading as complete when not signed in
+            this.state.loadingAzureAccountsStatus = ApiStatus.Loaded;
         }
 
         // Extract the client IP address from the error message
@@ -157,7 +163,12 @@ export class AddFirewallRuleWebviewController extends ReactWebviewPanelControlle
         });
 
         this.registerReducer("signIntoAzure", async (state) => {
+            state.loadingAzureAccountsStatus = ApiStatus.Loading;
+            this.updateState(state);
+
             await populateAzureAccountInfo(state, true /* forceSignInPrompt */);
+
+            state.loadingAzureAccountsStatus = ApiStatus.Loaded;
 
             return state;
         });

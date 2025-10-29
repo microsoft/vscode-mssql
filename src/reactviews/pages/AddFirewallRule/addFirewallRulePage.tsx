@@ -29,9 +29,9 @@ export const AddFirewallRulePage = () => {
     const classes = useStyles();
     const context = useContext(AddFirewallRuleContext);
 
-    // If context isn't available yet, don't render
+    // If context isn't available yet, show a loading message
     if (!context?.state) {
-        return undefined;
+        return <div>Loading context...</div>;
     }
 
     return (
