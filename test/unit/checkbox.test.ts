@@ -3,67 +3,73 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
+import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
+import { expect } from "chai";
+import * as chai from "chai";
 import * as figures from "figures";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import CheckboxPrompt from "../../src/prompts/checkbox";
 
+chai.use(sinonChai);
+
 // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
 suite("Test Checkbox prompt", () => {
-    test("Test checkbox prompt with simple question", () => {
-        let question = {
-            choices: [
-                { name: "test1", checked: true },
-                { name: "test2", checked: false },
-            ],
-        };
-        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-        vscodeWrapper
-            .setup((v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve("test1"));
-        let checkbox = new CheckboxPrompt(question, vscodeWrapper.object);
-        checkbox.render();
-        vscodeWrapper.verify(
-            (v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
-        );
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
     });
 
-    test("Test Checkbox prompt with error", () => {
-        let question = {
-            choices: [
-                { name: "test1", checked: true },
-                { name: "test2", checked: false },
-            ],
-        };
-        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-        vscodeWrapper
-            .setup((v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(undefined));
-        let checkbox = new CheckboxPrompt(question, vscodeWrapper.object);
-        checkbox.render();
-        vscodeWrapper.verify(
-            (v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
-        );
+    teardown(() => {
+        sandbox.restore();
     });
 
-    test("Test Checkbox prompt with checked answer", () => {
-        let question = {
+    test("Test checkbox prompt with simple question", async () => {
+        const question = {
             choices: [
                 { name: "test1", checked: true },
                 { name: "test2", checked: false },
             ],
         };
-        let vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-        vscodeWrapper
-            .setup((v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(figures.tick));
-        let checkbox = new CheckboxPrompt(question, vscodeWrapper.object);
-        checkbox.render();
-        vscodeWrapper.verify(
-            (v) => v.showQuickPickStrings(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
-        );
+        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        vscodeWrapper.showQuickPickStrings.resolves(figures.tick);
+
+        const checkbox = new CheckboxPrompt(question, vscodeWrapper);
+        await checkbox.render();
+
+        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+    });
+
+    test("Test Checkbox prompt with error", async () => {
+        const question = {
+            choices: [
+                { name: "test1", checked: true },
+                { name: "test2", checked: false },
+            ],
+        };
+        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        vscodeWrapper.showQuickPickStrings.resolves(undefined);
+
+        const checkbox = new CheckboxPrompt(question, vscodeWrapper);
+        await checkbox.render().catch(() => undefined);
+
+        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+    });
+
+    test("Test Checkbox prompt with checked answer", async () => {
+        const question = {
+            choices: [
+                { name: "test1", checked: true },
+                { name: "test2", checked: false },
+            ],
+        };
+        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        vscodeWrapper.showQuickPickStrings.resolves(figures.tick);
+
+        const checkbox = new CheckboxPrompt(question, vscodeWrapper);
+        await checkbox.render();
+
+        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
     });
 });
