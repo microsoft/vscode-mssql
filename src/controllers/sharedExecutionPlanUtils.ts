@@ -19,7 +19,30 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { sqlPlanLanguageId } from "../constants/constants";
 import { executionPlanFileFilter } from "../constants/locConstants";
+import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
+import VscodeWrapper from "./vscodeWrapper";
 
+export function openExecutionPlanWebview(
+    context: vscode.ExtensionContext,
+    vscodeWrapper: VscodeWrapper,
+    executionPlanService: ExecutionPlanService,
+    sqlDocumentService: SqlDocumentService,
+    planContents: string,
+    docName: string,
+) {
+    const executionPlanController = new ExecutionPlanWebviewController(
+        context,
+        vscodeWrapper,
+        executionPlanService,
+        sqlDocumentService,
+        planContents,
+        docName,
+    );
+
+    executionPlanController.revealToForeground();
+
+    sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.Open);
+}
 export async function saveExecutionPlan(
     state: QueryResultWebviewState | ExecutionPlanWebviewState,
     payload: ExecutionPlanReducers["saveExecutionPlan"],
