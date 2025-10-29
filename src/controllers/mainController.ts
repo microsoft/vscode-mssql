@@ -731,7 +731,9 @@ export default class MainController implements vscode.Disposable {
                         nodeUri,
                         connectionCreds,
                     );
-                    if (!isConnected) {
+                    if (isConnected) {
+                        node.updateEntraTokenInfo(connectionCreds); // may be updated Entra token after connect() call
+                    } else {
                         /**
                          * The connection wasn't successful. Stopping scripting operation.
                          * Not throwing an error because the user is already notified of
@@ -754,6 +756,8 @@ export default class MainController implements vscode.Disposable {
                 connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
                 connectionInfo: connectionCreds,
             });
+
+            node.updateEntraTokenInfo(connectionCreds); // newQuery calls connect() internally, so may be updated Entra token
             if (executeScript) {
                 const preventAutoExecute = vscode.workspace
                     .getConfiguration()
@@ -1102,7 +1106,10 @@ export default class MainController implements vscode.Disposable {
                             connectionUri,
                             connectionCreds,
                         );
-                        if (!connectionResult) {
+
+                        if (connectionResult) {
+                            node.updateEntraTokenInfo(connectionCreds);
+                        } else {
                             return;
                         }
                     }
