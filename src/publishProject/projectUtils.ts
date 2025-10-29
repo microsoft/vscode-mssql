@@ -166,6 +166,10 @@ export function validateSqlServerPortNumber(port: number): boolean {
  * Retrieves and filters SQL Server container tags based on project target version.
  * Used by Publish Project dialog to provide granular tag selection.
  *
+ * This follows the same filtering logic as ADS (Azure Data Studio):
+ * - If target version is known: filter to show versions >= target version year
+ * - If target version is unknown: fallback to max available version year (like ADS)
+ *
  * @param targetVersion - The SQL Server version (e.g., "160" for SQL Server 2022)
  * @returns Sorted array of tags filtered by version from deployment UI versions
  */
@@ -179,15 +183,30 @@ export async function getSqlServerContainerTagsForTargetVersion(
             return [];
         }
 
-        // Determine minimum year based on target version
-        let minYear = constants.DefaultMinimumSqlServerYear; // Default to SQL Server 2017
-        if (targetVersion) {
-            const versionNum = parseInt(targetVersion, 10);
-            // Find the corresponding year, or default to 2017 if not found
-            minYear = DSP_VERSION_TO_YEAR.get(versionNum) ?? constants.DefaultMinimumSqlServerYear;
+        // Extract years from all available versions to find the maximum
+        const availableYears = deploymentVersions
+            .map((option) => parseInt(option.displayName.match(/\d{4}/)?.[0] || "0", 10))
+            .filter((year) => year > 0);
+
+        if (availableYears.length === 0) {
+            return deploymentVersions; // No years found, return all
         }
 
-        // Filter deployment versions based on target version
+        const maxYear = Math.max(...availableYears);
+
+        // Determine minimum year based on target version
+        let minYear: number;
+        if (targetVersion) {
+            const versionNum = parseInt(targetVersion, 10);
+            const mappedYear = DSP_VERSION_TO_YEAR.get(versionNum);
+            // If we can map the version to a year, use it; otherwise fallback to max available year
+            minYear = mappedYear ?? maxYear;
+        } else {
+            // No target version provided, fallback to max available year
+            minYear = maxYear;
+        }
+
+        // Filter deployment versions based on minimum year
         const filteredVersions = deploymentVersions.filter((option) => {
             const year = parseInt(option.displayName.match(/\d{4}/)?.[0] || "0", 10);
             return year >= minYear;
