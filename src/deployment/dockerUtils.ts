@@ -590,10 +590,6 @@ export async function getDockerPath(executable: string): Promise<string> {
  */
 export function constructVersionTag(version: string): string {
     let versionYear = version.substring(0, yearStringLength);
-    // Hard Coded until this issue is fixed for mac: https://github.com/microsoft/mssql-docker/issues/940#issue
-    if (platform() === Platform.Mac && arch() !== x64 && versionYear === "2025") {
-        return "2025-CTP2.0-ubuntu-22.04"; // Last working version of SQL Server 2025 for Mac
-    }
     return `${versionYear}-latest`;
 }
 

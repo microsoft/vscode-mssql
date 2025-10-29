@@ -23,6 +23,7 @@ import ColumnMenuPopup, {
     FilterListItem,
     FilterValue,
 } from "./table/plugins/ColumnMenuPopup";
+import { TableColumnResizeDialog } from "./table/TableColumnResizeDialog";
 
 export interface ColumnFilterPopupOptions {
     columnId: string;
@@ -36,7 +37,21 @@ export interface ColumnFilterPopupOptions {
     onSortAscending: () => Promise<void>;
     onSortDescending: () => Promise<void>;
     currentSort: SortProperties;
+    onResize: () => void;
 }
+
+/**
+ * Options for opening the resize column dialog
+ */
+type ResizeColumnDialogState = {
+    open: boolean;
+    columnId: string;
+    columnName: string;
+    initialWidth: number;
+    gridId: string;
+    onSubmit: (width: number) => Promise<void> | void;
+    onDismiss: () => void;
+};
 
 export interface QueryResultReactProvider
     extends Omit<ExecutionPlanProvider, "getExecutionPlan">,
@@ -65,6 +80,12 @@ export interface QueryResultReactProvider
      * @param type the type of file to open
      */
     openFileThroughLink(content: string, type: string): void;
+    /**
+     * Opens the resize column dialog
+     * @param options options for the resize dialog
+     * @returns void
+     */
+    openResizeDialog: (options: Partial<ResizeColumnDialogState>) => void;
 }
 
 export const QueryResultCommandsContext = createContext<QueryResultReactProvider | undefined>(
@@ -88,6 +109,16 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
     const [filterPopupState, setFilterPopupState] = useState<ColumnFilterPopupOptions | undefined>(
         undefined,
     );
+
+    const [resizeDialogState, setResizeDialogState] = useState<ResizeColumnDialogState>({
+        open: false,
+        columnId: "",
+        columnName: "",
+        initialWidth: 0,
+        gridId: "",
+        onDismiss: () => {},
+        onSubmit: () => {},
+    });
 
     const hideFilterPopup = useCallback(() => {
         setFilterPopupState((state) => {
@@ -171,6 +202,13 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             updateTotalCost: (addedCost: number) => {
                 extensionRpc.action("updateTotalCost", { addedCost });
             },
+            openResizeDialog: (options: Partial<ResizeColumnDialogState>) => {
+                setResizeDialogState((state) => ({
+                    ...state,
+                    ...options,
+                    open: true,
+                }));
+            },
         }),
         [extensionRpc, hideFilterPopup],
     );
@@ -227,7 +265,26 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
                     onClearSort={filterPopupState.onClearSort}
                     onSortAscending={filterPopupState.onSortAscending}
                     onSortDescending={filterPopupState.onSortDescending}
+                    onResize={() => {
+                        hideFilterPopup();
+                        filterPopupState.onResize();
+                    }}
                     currentSort={filterPopupState.currentSort}
+                />
+            )}
+            {resizeDialogState.open && (
+                <TableColumnResizeDialog
+                    open={resizeDialogState.open}
+                    columnName={resizeDialogState.columnName}
+                    initialWidth={resizeDialogState.initialWidth}
+                    onSubmit={async (newWidth: number) => {
+                        await resizeDialogState.onSubmit(newWidth);
+                        setResizeDialogState((state) => ({ ...state, open: false }));
+                    }}
+                    onDismiss={() => {
+                        resizeDialogState.onDismiss();
+                        setResizeDialogState((state) => ({ ...state, open: false }));
+                    }}
                 />
             )}
         </QueryResultCommandsContext.Provider>

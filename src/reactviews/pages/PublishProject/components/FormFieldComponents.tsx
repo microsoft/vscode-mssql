@@ -25,6 +25,7 @@ export function renderInput(
         showPassword?: boolean;
         onTogglePassword?: () => void;
         onChange?: (value: string) => void;
+        readOnly?: boolean;
     },
 ) {
     if (!component || component.hidden) return undefined;
@@ -41,7 +42,7 @@ export function renderInput(
                 propertyName: component.propertyName,
                 isAction: false,
                 value: newValue,
-                updateValidation: false,
+                updateValidation: true,
             });
         }
     };
@@ -66,11 +67,12 @@ export function renderInput(
             validationState={getValidationState(component.validation)}
             orientation="horizontal">
             <Input
-                size="medium"
+                size="small"
                 type={isPasswordField ? (options?.showPassword ? "text" : "password") : "text"}
                 value={value}
                 placeholder={component.placeholder ?? ""}
                 required={component.required}
+                readOnly={options?.readOnly}
                 onChange={(_, data) => handleChange(data.value)}
                 onBlur={(e) => handleBlur(e.target.value)}
                 contentAfter={
@@ -130,7 +132,7 @@ export function renderDropdown(
             validationState={getValidationState(component.validation)}
             orientation="horizontal">
             <Dropdown
-                size="medium"
+                size="small"
                 selectedOptions={value ? [value] : []}
                 value={
                     component.options.find(
@@ -142,7 +144,8 @@ export function renderDropdown(
                     if (data.optionValue) {
                         handleChange(data.optionValue);
                     }
-                }}>
+                }}
+                aria-label={component.label}>
                 {component.options.map(
                     (opt: { value: string; displayName: string; color?: string }, i: number) => (
                         <Option key={opt.value + i} value={opt.value} color={opt.color}>

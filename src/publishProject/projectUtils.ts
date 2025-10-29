@@ -7,6 +7,8 @@ import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
 import { SqlProjectsService } from "../services/sqlProjectsService";
+import { promises as fs } from "fs";
+import { DOMParser } from "@xmldom/xmldom";
 import { getSqlServerContainerVersions, dockerLogger } from "../deployment/dockerUtils";
 import { FormItemOptions } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
@@ -195,5 +197,138 @@ export async function getSqlServerContainerTagsForTargetVersion(
     } catch (e) {
         dockerLogger.appendLine(`Error filtering SQL Server container tags: ${getErrorMessage(e)}`);
         return [];
+    }
+}
+
+/**
+ * Read SQLCMD variables from publish profile text
+ * @param profileText Publish profile XML text
+ * @returns Object with SQLCMD variable names as keys and values
+ */
+export function readSqlCmdVariables(profileText: string): { [key: string]: string } {
+    const sqlCmdVariables: { [key: string]: string } = {};
+
+    try {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(profileText, "application/xml");
+
+        // Get all SqlCmdVariable elements
+        const sqlCmdVarElements = xmlDoc.documentElement.getElementsByTagName("SqlCmdVariable");
+
+        for (let i = 0; i < sqlCmdVarElements.length; i++) {
+            const sqlCmdVar = sqlCmdVarElements[i];
+            const varName = sqlCmdVar.getAttribute("Include");
+
+            if (varName) {
+                // Look for Value first (preferred for publish profiles), then DefaultValue
+                let varValue = "";
+                const valueElements = sqlCmdVar.getElementsByTagName("Value");
+                const defaultValueElements = sqlCmdVar.getElementsByTagName("DefaultValue");
+
+                if (valueElements.length > 0 && valueElements[0].firstChild) {
+                    varValue = valueElements[0].firstChild.nodeValue || "";
+                } else if (defaultValueElements.length > 0 && defaultValueElements[0].firstChild) {
+                    varValue = defaultValueElements[0].firstChild.nodeValue || "";
+                }
+
+                sqlCmdVariables[varName] = varValue;
+            }
+        }
+    } catch (error) {
+        console.warn("Failed to parse SQLCMD variables from XML:", error);
+    }
+
+    return sqlCmdVariables;
+}
+
+/**
+ * Read connection string from publish profile text
+ * @param profileText Publish profile XML text
+ * @returns Connection string and server name
+ */
+export function readConnectionString(profileText: string): {
+    connectionString: string;
+    server: string;
+} {
+    // Parse TargetConnectionString
+    const connStrMatch = profileText.match(
+        /<TargetConnectionString>(.*?)<\/TargetConnectionString>/s,
+    );
+    const connectionString = connStrMatch ? connStrMatch[1].trim() : "";
+
+    // Extract server name from connection string
+    const server = extractServerFromConnectionString(connectionString);
+
+    return { connectionString, server };
+}
+
+/**
+ * Extracts the server name from a SQL Server connection string
+ */
+export function extractServerFromConnectionString(connectionString: string): string {
+    if (!connectionString) {
+        return "";
+    }
+
+    // Match "Data Source=serverName" or "Server=serverName" (case-insensitive)
+    // TODO: currently returning the whole connection string, need to revisit with server|database connection task
+    const match = connectionString.match(/(?:Data Source|Server)=([^;]+)/i);
+    return match ? match[1].trim() : "";
+}
+
+/**
+ * Parses a publish profile XML file to extract database name, connection string, SQLCMD variables, and deployment options
+ * Uses regex parsing for XML fields and DacFx service getOptionsFromProfile() for deployment options
+ * @param profilePath Path to the publish profile XML file
+ * @param dacFxService DacFx service instance for getting deployment options from profile
+ */
+export async function parsePublishProfileXml(
+    profilePath: string,
+    dacFxService?: mssql.IDacFxService,
+): Promise<{
+    databaseName: string;
+    serverName: string;
+    connectionString: string;
+    sqlCmdVariables: { [key: string]: string };
+    deploymentOptions?: mssql.DeploymentOptions;
+}> {
+    try {
+        const profileText = await fs.readFile(profilePath, "utf-8");
+
+        // Read target database name
+        // if there is more than one TargetDatabaseName nodes, SSDT uses the name in the last one so we'll do the same here
+        let databaseName = "";
+        const dbNameMatches = profileText.matchAll(
+            /<TargetDatabaseName>(.*?)<\/TargetDatabaseName>/g,
+        );
+        const dbNameArray = Array.from(dbNameMatches);
+        if (dbNameArray.length > 0) {
+            databaseName = dbNameArray[dbNameArray.length - 1][1];
+        }
+
+        // Read connection string using readConnectionString function
+        const connectionInfo = readConnectionString(profileText);
+        const connectionString = connectionInfo.connectionString;
+        const serverName = connectionInfo.server;
+
+        // Get all SQLCMD variables using readSqlCmdVariables function
+        const sqlCmdVariables = readSqlCmdVariables(profileText);
+
+        // Get deployment options from DacFx service using getOptionsFromProfile
+        let deploymentOptions: mssql.DeploymentOptions | undefined = undefined;
+        if (dacFxService) {
+            try {
+                const optionsResult = await dacFxService.getOptionsFromProfile(profilePath);
+                if (optionsResult.success && optionsResult.deploymentOptions) {
+                    deploymentOptions = optionsResult.deploymentOptions;
+                }
+            } catch (error) {
+                console.warn("Failed to load deployment options from profile:", error);
+            }
+        }
+
+        return { databaseName, serverName, connectionString, sqlCmdVariables, deploymentOptions };
+    } catch (error) {
+        throw new Error(`Failed to parse publish profile: ${error}`);
     }
 }
