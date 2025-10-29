@@ -278,7 +278,7 @@ export function sendSurveyTelemetry(surveyId: string, answers: Answers, source?:
     );
 }
 
-class UserSurveyWebviewController extends ReactWebviewPanelController<
+export class UserSurveyWebviewController extends ReactWebviewPanelController<
     UserSurveyState,
     UserSurveyReducers
 > {

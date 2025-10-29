@@ -10,7 +10,7 @@ import * as vscode from "vscode";
 
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
-import { UserSurvey } from "../../src/nps/userSurvey";
+import { UserSurvey, UserSurveyWebviewController } from "../../src/nps/userSurvey";
 import { stubTelemetry, stubVscodeWrapper } from "./utils";
 
 suite("UserSurvey Tests", () => {
@@ -153,9 +153,10 @@ suite("UserSurvey Tests", () => {
             }); // Simulate submitting empty answers
         });
 
-        (userSurvey as any)._webviewController = mockWebviewController;
+        userSurvey["_webviewController"] =
+            mockWebviewController as undefined as UserSurveyWebviewController;
 
-        await (userSurvey as any).promptUserForNPSFeedbackAsync();
+        await userSurvey["promptUserForNPSFeedbackAsync"]("testSource");
 
         assert.strictEqual(
             mockWebviewController.revealToForeground.calledOnce,
@@ -163,7 +164,7 @@ suite("UserSurvey Tests", () => {
             "revealToForeground should have been called",
         );
 
-        assert.strictEqual(sendActionEvent.calledOnce, true, "sendActionEvent should be called");
+        assert.strictEqual(sendActionEvent.called, true, "sendActionEvent should be called");
 
         assert.strictEqual(
             sendActionEvent.calledWith(
@@ -174,6 +175,7 @@ suite("UserSurvey Tests", () => {
                     q1: "answer1",
                     q2: "answer2",
                     modernFeaturesEnabled: true,
+                    source: "testSource",
                 },
                 {
                     q3: 3,
