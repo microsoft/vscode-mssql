@@ -314,18 +314,12 @@ suite("ConnectionManager Tests", () => {
             };
 
             connectionManager["_keyVaultTokenCache"].clear();
-            sandbox
-                .stub(
-                    connectionManager as unknown as { selectAccount: sinon.SinonStub },
-                    "selectAccount",
-                )
+
+            connectionManager["selectAccount"] = sinon
+                .stub()
                 .resolves({ key: { providerId: azureCloudProviderId } });
-            sandbox
-                .stub(
-                    connectionManager as unknown as { selectTenantId: sinon.SinonStub },
-                    "selectTenantId",
-                )
-                .resolves(undefined);
+            connectionManager["selectTenantId"] = sinon.stub();
+
             const stubbedAzureController = sandbox.createStubInstance(AzureController);
             const token: IToken = {
                 key: "new-key",
