@@ -9,6 +9,7 @@ import { TableDataGrid, TableDataGridRef } from "./TableDataGrid";
 import { TableExplorerToolbar } from "./TableExplorerToolbar";
 import { TableExplorerScriptPane } from "./TableExplorerScriptPane";
 import { makeStyles, shorthands } from "@fluentui/react-components";
+import { locConstants as loc } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     root: {
@@ -73,9 +74,9 @@ export const TableExplorerPage: React.FC = () => {
                         />
                     </div>
                 ) : state?.isLoading ? (
-                    <p>Loading table data...</p>
+                    <p>{loc.tableExplorer.loadingTableData}</p>
                 ) : (
-                    <p>No data available</p>
+                    <p>{loc.tableExplorer.noDataAvailable}</p>
                 )}
             </div>
             <TableExplorerScriptPane />

@@ -1078,6 +1078,8 @@ export class LocConstants {
             previousPage: l10n.t("Previous Page"),
             nextPage: l10n.t("Next Page"),
             lastPage: l10n.t("Last Page"),
+            loadingTableData: l10n.t("Loading table data..."),
+            noDataAvailable: l10n.t("No data available"),
         };
     }
 }
