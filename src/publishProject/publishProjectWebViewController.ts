@@ -145,6 +145,19 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     this.state.projectProperties = props;
                     projectTargetVersion = props.targetVersion;
                 }
+
+                // Load SQLCMD variables from the project
+                const sqlCmdVarsResult =
+                    await this._sqlProjectsService.getSqlCmdVariables(projectFilePath);
+                if (sqlCmdVarsResult?.success && sqlCmdVarsResult.sqlCmdVariables) {
+                    // Convert array to object for form state
+                    const sqlCmdVarsObject: { [key: string]: string } = {};
+                    for (const sqlCmdVar of sqlCmdVarsResult.sqlCmdVariables) {
+                        sqlCmdVarsObject[sqlCmdVar.varName] =
+                            sqlCmdVar.value || sqlCmdVar.defaultValue || "";
+                    }
+                    this.state.formState.sqlCmdVariables = sqlCmdVarsObject;
+                }
             }
         } catch (error) {
             // Log error and send telemetry, but keep dialog resilient
@@ -542,6 +555,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
         ) {
             // Existing server or new Azure server: hide container-specific fields
             hidden.push(...PublishFormContainerFields);
+        }
+
+        // Hide SQLCMD variables section if no variables exist
+        const sqlCmdVars = currentState.formState?.sqlCmdVariables;
+        const hasSqlCmdVariables = sqlCmdVars && Object.keys(sqlCmdVars).length > 0;
+        if (!hasSqlCmdVariables) {
+            hidden.push(PublishFormFields.SqlCmdVariables);
         }
 
         for (const component of Object.values(currentState.formComponents)) {

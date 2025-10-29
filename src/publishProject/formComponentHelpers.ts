@@ -182,11 +182,11 @@ export function generatePublishFormComponents(
             },
         },
         sqlCmdVariables: {
-            propertyName: "sqlCmdVariables",
+            propertyName: PublishFormFields.SqlCmdVariables,
             label: Loc.SqlCmdVariablesLabel,
             required: false,
-            type: FormItemType.Input,
-            hidden: true,
+            type: FormItemType.Table,
+            hidden: true, // Will be shown conditionally based on whether variables exist
         },
     };
 

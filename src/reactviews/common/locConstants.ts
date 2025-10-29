@@ -930,6 +930,9 @@ export class LocConstants {
             generalOptions: l10n.t("General Options"),
             ignoreOptions: l10n.t("Ignore Options"),
             excludeObjectTypes: l10n.t("Exclude Object Types"),
+            SqlCmdVariablesLabel: l10n.t("SQLCMD Variables"),
+            SqlCmdVariableNameColumn: l10n.t("Name"),
+            SqlCmdVariableValueColumn: l10n.t("Value"),
         };
     }
 

@@ -658,6 +658,7 @@
     "Advanced Publish Options": "Advanced Publish Options",
     "Ignore Options": "Ignore Options",
     "Exclude Object Types": "Exclude Object Types",
+    "SQLCMD Variables": "SQLCMD Variables",
     "Create New Connection Group": "Create New Connection Group",
     "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
         "message": "Edit Connection Group: {0}",
@@ -1467,7 +1468,6 @@
     "Save As": "Save As",
     "Publish Settings File": "Publish Settings File",
     "Database name is required": "Database name is required",
-    "SQLCMD Variables": "SQLCMD Variables",
     "Publish Target": "Publish Target",
     "Existing SQL server": "Existing SQL server",
     "Existing Azure SQL logical server": "Existing Azure SQL logical server",

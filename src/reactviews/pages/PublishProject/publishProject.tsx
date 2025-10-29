@@ -13,6 +13,7 @@ import { LocConstants } from "../../common/locConstants";
 import { PublishProfileField } from "./components/PublishProfileSection";
 import { PublishTargetSection } from "./components/PublishTargetSection";
 import { ConnectionSection } from "./components/ConnectionSection";
+import { SqlCmdVariablesSection } from "./components/sqlCmdVariablesSection";
 import { AdvancedDeploymentOptionsDrawer } from "./components/advancedDeploymentOptionsDrawer";
 
 const useStyles = makeStyles({
@@ -52,6 +53,7 @@ function PublishProjectDialog() {
                     <PublishTargetSection />
                     <PublishProfileField />
                     <ConnectionSection />
+                    <SqlCmdVariablesSection />
 
                     <div className={formStyles.formNavTray}>
                         <Button
