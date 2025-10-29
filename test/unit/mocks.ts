@@ -8,6 +8,7 @@ import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { ServiceOption } from "vscode-mssql";
 import { CapabilitiesResult, GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 import { AuthenticationType } from "../../src/sharedInterfaces/connectionDialog";
+import sinon from "sinon";
 
 export function mockGetCapabilitiesRequest(
     serviceClientMock: TypeMoq.IMock<SqlToolsServerClient>,
@@ -17,6 +18,17 @@ export function mockGetCapabilitiesRequest(
             s.sendRequest(TypeMoq.It.isValue(GetCapabilitiesRequest.type), TypeMoq.It.isAny()),
         )
         .returns(() => Promise.resolve(buildCapabilitiesResult()));
+}
+
+export function stubGetCapabilitiesRequest(
+    sandbox?: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<SqlToolsServerClient> {
+    const stubber = sandbox || sinon;
+    const serviceClientMock = stubber.createStubInstance(SqlToolsServerClient);
+    serviceClientMock.sendRequest
+        .withArgs(GetCapabilitiesRequest.type, sinon.match.any)
+        .resolves(buildCapabilitiesResult());
+    return serviceClientMock;
 }
 
 export function buildCapabilitiesResult(): CapabilitiesResult {

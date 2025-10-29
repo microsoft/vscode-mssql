@@ -7,7 +7,6 @@ import * as vscode from "vscode";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
-
 import { expect } from "chai";
 
 import {
@@ -35,7 +34,6 @@ import {
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import { IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 import { initializeIconUtils, stubTelemetry, stubUserSurvey, stubVscodeWrapper } from "./utils";
 import {
     stubVscodeAzureSignIn,
@@ -47,7 +45,7 @@ import {
 } from "./azureHelperStubs";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { buildCapabilitiesResult } from "./mocks";
+import { stubGetCapabilitiesRequest } from "./mocks";
 import { AzureController } from "../../src/azure/azureController";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { multiple_matching_tokens_error } from "../../src/azure/constants";
@@ -111,17 +109,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
         connectionStore = sandbox.createStubInstance(ConnectionStore);
         connectionUi = sandbox.createStubInstance(ConnectionUI);
         azureAccountService = sandbox.createStubInstance(AzureAccountService);
-        serviceClientMock = sandbox.createStubInstance(SqlToolsServerClient);
+        serviceClientMock = stubGetCapabilitiesRequest(sandbox);
 
-        sandbox
-            .stub(connectionManager, "connectionStore")
-            .get(() => connectionStore as unknown as ConnectionStore);
-        sandbox
-            .stub(connectionManager, "connectionUI")
-            .get(() => connectionUi as unknown as ConnectionUI);
-        sandbox
-            .stub(connectionManager, "client")
-            .get(() => serviceClientMock as unknown as SqlToolsServerClient);
+        sandbox.stub(connectionManager, "connectionStore").get(() => connectionStore);
+        sandbox.stub(connectionManager, "connectionUI").get(() => connectionUi);
+        sandbox.stub(connectionManager, "client").get(() => serviceClientMock);
 
         connectionStore.readAllConnections.resolves([testMruConnection, testSavedConnection]);
         connectionStore.readAllConnectionGroups.resolves([
@@ -140,29 +132,19 @@ suite("ConnectionDialogWebviewController Tests", () => {
             } as IAccount,
         ]);
 
-        serviceClientMock.sendRequest
-            .withArgs(GetCapabilitiesRequest.type, sinon.match.any)
-            .resolves(buildCapabilitiesResult());
-
-        mainController = new MainController(
-            mockContext,
-            connectionManager as unknown as ConnectionManager,
-            mockVscodeWrapper as unknown as VscodeWrapper,
-        );
+        mainController = new MainController(mockContext, connectionManager, mockVscodeWrapper);
 
         sandbox.stub(vscode.commands, "registerCommand");
         sandbox.stub(vscode.window, "registerWebviewViewProvider");
 
-        mainController.azureAccountService = azureAccountService as unknown as AzureAccountService;
-        await mainController["initializeObjectExplorer"](
-            mockObjectExplorerProvider as unknown as ObjectExplorerProvider,
-        );
+        mainController.azureAccountService = azureAccountService;
+        await mainController["initializeObjectExplorer"](mockObjectExplorerProvider);
 
         controller = new ConnectionDialogWebviewController(
             mockContext,
-            mockVscodeWrapper as unknown as VscodeWrapper,
+            mockVscodeWrapper,
             mainController,
-            mockObjectExplorerProvider as unknown as ObjectExplorerProvider,
+            mockObjectExplorerProvider,
             undefined /* connection to edit */,
         );
 
@@ -265,9 +247,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
             controller = new ConnectionDialogWebviewController(
                 mockContext,
-                mockVscodeWrapper as unknown as VscodeWrapper,
+                mockVscodeWrapper,
                 mainController,
-                mockObjectExplorerProvider as unknown as ObjectExplorerProvider,
+                mockObjectExplorerProvider,
                 editedConnection,
             );
             await controller.initialized;
@@ -295,9 +277,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
             controller = new ConnectionDialogWebviewController(
                 mockContext,
-                mockVscodeWrapper as unknown as VscodeWrapper,
+                mockVscodeWrapper,
                 mainController,
-                mockObjectExplorerProvider as unknown as ObjectExplorerProvider,
+                mockObjectExplorerProvider,
                 editedConnection,
             );
             await controller.initialized;
@@ -599,8 +581,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
                 const azureControllerStub = sandbox.createStubInstance(MsalAzureController);
 
-                connectionManager.azureController =
-                    azureControllerStub as unknown as AzureController;
+                connectionManager.azureController = azureControllerStub;
 
                 await controller["_reducerHandlers"].get("messageButtonClicked")(controller.state, {
                     buttonId: CLEAR_TOKEN_CACHE,
@@ -636,9 +617,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     new Error(errorMessage),
                 );
 
-                sandbox
-                    .stub(connectionManager, "firewallService")
-                    .get(() => mockFirewallService as unknown as FirewallService);
+                sandbox.stub(connectionManager, "firewallService").get(() => mockFirewallService);
 
                 controller.state.dialog = {
                     type: "addFirewallRule",

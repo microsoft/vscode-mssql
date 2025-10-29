@@ -58,17 +58,6 @@ export function stubVscodeWrapper(
     return vscodeWrapper;
 }
 
-export function stubGetCapabilitiesRequest(
-    sandbox?: sinon.SinonSandbox,
-): sinon.SinonStubbedInstance<SqlToolsServerClient> {
-    const stubber = sandbox || sinon;
-    const serviceClientMock = stubber.createStubInstance(SqlToolsServerClient);
-    serviceClientMock.sendRequest
-        .withArgs(GetCapabilitiesRequest.type, sinon.match.any)
-        .resolves(buildCapabilitiesResult());
-    return serviceClientMock;
-}
-
 /**
  * Stubs a vscode.WebviewPanel
  * @param sandbox The sinon sandbox to use
