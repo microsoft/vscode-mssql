@@ -285,7 +285,7 @@ suite("PublishProjectWebViewController Tests", () => {
         const controller = createTestController();
         await controller.initialized.promise;
 
-        // Real-world ADS-generated publish profile XML with deployment options
+        // Real-world ADS-generated publish profile XML with all features
         const adsProfileXml = `<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>

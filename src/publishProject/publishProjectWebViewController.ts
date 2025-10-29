@@ -50,11 +50,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
         dacFxService?: mssql.IDacFxService,
         deploymentOptions?: mssql.DeploymentOptions,
     ) {
-        // Clear default excludeObjectTypes for publish dialog, no default exclude options should exist
-        if (deploymentOptions?.excludeObjectTypes !== undefined) {
-            deploymentOptions.excludeObjectTypes.value = [];
-        }
-
         super(
             context,
             _vscodeWrapper,
@@ -96,6 +91,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 },
             },
         );
+
+        // Clear default excludeObjectTypes for publish dialog, no default exclude options should exist
+        if (deploymentOptions?.excludeObjectTypes !== undefined) {
+            deploymentOptions.excludeObjectTypes.value = [];
+        }
 
         // Store the SQL Projects Service and Connection Manager
         this._sqlProjectsService = sqlProjectsService;

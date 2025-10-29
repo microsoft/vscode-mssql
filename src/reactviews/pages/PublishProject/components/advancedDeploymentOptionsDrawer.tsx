@@ -61,7 +61,7 @@ export const AdvancedDeploymentOptionsDrawer = ({
     isAdvancedDrawerOpen: boolean;
     setIsAdvancedDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-    const classes = useStyles();
+    const styles = useStyles();
     const accordionStyles = useAccordionStyles();
     const context = useContext(PublishProjectContext);
     const [searchText, setSearchText] = useState<string>("");
@@ -283,8 +283,8 @@ export const AdvancedDeploymentOptionsDrawer = ({
             </DrawerHeader>
 
             <DrawerBody>
-                <div className={classes.drawerContent}>
-                    <div className={classes.scrollableContent}>
+                <div className={styles.drawerContent}>
+                    <div className={styles.scrollableContent}>
                         <SearchBox
                             size="medium"
                             style={{ width: "100%", maxWidth: "100%", marginBottom: "16px" }}
@@ -315,7 +315,7 @@ export const AdvancedDeploymentOptionsDrawer = ({
                                         className={accordionStyles.accordionItem}>
                                         <AccordionHeader>{group.label}</AccordionHeader>
                                         <AccordionPanel>
-                                            <div className={classes.optionsList}>
+                                            <div className={styles.optionsList}>
                                                 {group.entries
                                                     .filter((option) => isOptionVisible(option))
                                                     .map((option) => renderOption(option))}
@@ -326,7 +326,7 @@ export const AdvancedDeploymentOptionsDrawer = ({
                         </Accordion>
                     </div>
 
-                    <div className={classes.stickyFooter}>
+                    <div className={styles.stickyFooter}>
                         <Button
                             appearance="secondary"
                             onClick={handleReset}
