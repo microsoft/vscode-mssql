@@ -321,10 +321,11 @@ export const createSqlAgentRequestHandler = (
 
                 // Show not connected message only if not handled by commands and command doesn't skip labels
                 if (!commandSkipsConnectionLabels(request.command)) {
-                    stream.markdown(`${disconnectedLabelPrefix} ${loc.notConnected}\n\n`);
+                    stream.markdown(`${disconnectedLabelPrefix} ${loc.notConnected}\n`);
 
                     // Add button to help user establish connection
                     const buttonInfo = getConnectionButtonInfo();
+                    stream.markdown(`${loc.connectionRequiredMessage(buttonInfo.label)}\n\n`);
                     stream.button({
                         command: Constants.cmdCopilotNewQueryWithConnection,
                         title: buttonInfo.label,
@@ -1109,7 +1110,7 @@ export const provideFollowups = (
     if (!hasConnection) {
         return [
             {
-                prompt: loc.followUpConnectToDatabase,
+                prompt: "",
                 label: loc.followUpConnectToDatabase,
                 command: "connect",
             } satisfies vscode.ChatFollowup,
@@ -1121,17 +1122,14 @@ export const provideFollowups = (
         {
             prompt: loc.followUpListAllSchemas,
             label: loc.followUpListAllSchemas,
-            command: "",
         } satisfies vscode.ChatFollowup,
         {
             prompt: loc.followUpShowRandomTableDefinition,
             label: loc.followUpShowRandomTableDefinition,
-            command: "",
         } satisfies vscode.ChatFollowup,
         {
             prompt: loc.followUpCountTables,
             label: loc.followUpCountTables,
-            command: "",
         } satisfies vscode.ChatFollowup,
     ];
 };

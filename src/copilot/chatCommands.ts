@@ -409,7 +409,8 @@ export async function handleChatCommand(
 
             // Add button to help user establish connection
             const buttonInfo = getConnectionButtonInfo();
-            stream.markdown(`${disconnectedLabelPrefix} ${loc.noActiveDatabaseConnection}\n\n`);
+            stream.markdown(`${disconnectedLabelPrefix} ${loc.noActiveDatabaseConnection}\n`);
+            stream.markdown(`${loc.connectionRequiredMessage(buttonInfo.label)}\n\n`);
             stream.button({
                 command: Constants.cmdCopilotNewQueryWithConnection,
                 title: buttonInfo.label,

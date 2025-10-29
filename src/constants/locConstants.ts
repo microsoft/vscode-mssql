@@ -1592,6 +1592,14 @@ export class MssqlChatAgent {
     public static unknownErrorOccurred = l10n.t("An unknown error occurred. Please try again.");
     public static connect = l10n.t("Connect");
     public static openSqlEditorAndConnect = l10n.t("Open SQL editor and connect");
+    public static connectionRequiredMessage = (buttonText: string) => {
+        return l10n.t({
+            message:
+                'An active connection is required for GitHub Copilot to understand your database schema and proceed.\nSelect "{0}" to establish a connection.',
+            args: [buttonText],
+            comment: ["{0} is the button text (e.g., 'Connect' or 'Open SQL editor and connect')"],
+        });
+    };
     // Follow-up questions
     public static followUpConnectToDatabase = l10n.t("Connect to a database");
     public static followUpListAllSchemas = l10n.t("List all schemas");
@@ -1909,7 +1917,7 @@ export class MssqlChatAgent {
 
     // Help command strings
     public static helpWelcome = l10n.t(
-        "👋 I'm GitHub Copilot for MSSQL, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.",
+        "👋 I'm GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.",
     );
     public static helpWhatICanDo = l10n.t("What I can do for you");
     public static helpCapabilityExploreDesign = l10n.t(

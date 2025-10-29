@@ -1558,6 +1558,10 @@
     },
     "An unknown error occurred. Please try again.": "An unknown error occurred. Please try again.",
     "Open SQL editor and connect": "Open SQL editor and connect",
+    "An active connection is required for GitHub Copilot to understand your database schema and proceed.\nSelect \"{0}\" to establish a connection./{0} is the button text (e.g., 'Connect' or 'Open SQL editor and connect')": {
+        "message": "An active connection is required for GitHub Copilot to understand your database schema and proceed.\nSelect \"{0}\" to establish a connection.",
+        "comment": ["{0} is the button text (e.g., 'Connect' or 'Open SQL editor and connect')"]
+    },
     "Connect to a database": "Connect to a database",
     "List all schemas": "List all schemas",
     "Show a random table definition": "Show a random table definition",
@@ -1737,7 +1741,7 @@
     "Unknown error": "Unknown error",
     "No active database connection in the current editor. Please establish a connection to continue.": "No active database connection in the current editor. Please establish a connection to continue.",
     "Chat command not available in this VS Code version": "Chat command not available in this VS Code version",
-    "👋 I'm GitHub Copilot for MSSQL, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.": "👋 I'm GitHub Copilot for MSSQL, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.",
+    "👋 I'm GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.": "👋 I'm GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.",
     "What I can do for you": "What I can do for you",
     "Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance.": "Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance.",
     "Apply contextual suggestions for SQL syntax, relationships, and constraints.": "Apply contextual suggestions for SQL syntax, relationships, and constraints.",

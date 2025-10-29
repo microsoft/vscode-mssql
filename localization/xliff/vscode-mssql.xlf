@@ -159,6 +159,10 @@
     <trans-unit id="++CODE++1888bd4ce917e9c8cecde43608d69624f56668f86f1bbe4331494db33fb52578">
       <source xml:lang="en">Always show in new tab</source>
     </trans-unit>
+    <trans-unit id="++CODE++df50fadac20ad5c3b190a9af94532fd84c01e0787f15b55212fa2f41de09a091">
+      <source xml:lang="en">An active connection is required for GitHub Copilot to understand your database schema and proceed.&#10;Select &quot;{0}&quot; to establish a connection.</source>
+      <note>{0} is the button text (e.g., &apos;Connect&apos; or &apos;Open SQL editor and connect&apos;)</note>
+    </trans-unit>
     <trans-unit id="++CODE++d4fd4b3da177dfc06dbcde0a7f62d637dbf3d90298fdc9b6aeba4f9230441e1f">
       <source xml:lang="en">An error occurred refreshing nodes. See the MSSQL output channel for more details.</source>
     </trans-unit>
@@ -3702,8 +3706,8 @@
     <trans-unit id="++CODE++4d765d766973242c68c5a2d3b20c7164beb22948ceaf7095ce44f901cc2f4052">
       <source xml:lang="en">❌ Deny Access (Current)</source>
     </trans-unit>
-    <trans-unit id="++CODE++51768279ceb0b823c1718690f2f562e193e2660c5215eafefb9b972220329169">
-      <source xml:lang="en">👋 I&apos;m GitHub Copilot for MSSQL, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.</source>
+    <trans-unit id="++CODE++786e414ca02e9f29012f60d724020a6925dc54275709eb8ac3b2aacbb7262945">
+      <source xml:lang="en">👋 I&apos;m GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.</source>
     </trans-unit>
   </body></file>
   <file original="package" source-language="en" datatype="plaintext"><body>
