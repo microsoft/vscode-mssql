@@ -212,7 +212,7 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
-                void UserSurvey.getInstance().promptUserForNPSFeedback();
+                void UserSurvey.getInstance().promptUserForNPSFeedback("runQuery");
                 void this.onRunQuery();
             });
             this.registerCommand(Constants.cmdManageConnectionProfiles);
@@ -1731,7 +1731,7 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdScriptSelect,
                 async (node: TreeNodeInfo) => {
                     await this.scriptNode(node, ScriptOperation.Select, true);
-                    UserSurvey.getInstance().promptUserForNPSFeedback();
+                    UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
                 },
             ),
         );
@@ -1740,7 +1740,10 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptCreate,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Create),
+                async (node: TreeNodeInfo) => {
+                    await this.scriptNode(node, ScriptOperation.Create);
+                    UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
+                },
             ),
         );
 
@@ -1748,7 +1751,10 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptDelete,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Delete),
+                async (node: TreeNodeInfo) => {
+                    await this.scriptNode(node, ScriptOperation.Delete);
+                    UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
+                },
             ),
         );
 
@@ -1756,7 +1762,10 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptExecute,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Execute),
+                async (node: TreeNodeInfo) => {
+                    await this.scriptNode(node, ScriptOperation.Execute);
+                    UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
+                },
             ),
         );
 
@@ -1764,7 +1773,10 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptAlter,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Alter),
+                async (node: TreeNodeInfo) => {
+                    await this.scriptNode(node, ScriptOperation.Alter);
+                    UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
+                },
             ),
         );
 

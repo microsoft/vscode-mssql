@@ -55,7 +55,7 @@ suite("UserSurvey Tests", () => {
 
         promptUserForNPSFeedbackAsyncStub.resolves();
 
-        userSurvey.promptUserForNPSFeedback();
+        userSurvey.promptUserForNPSFeedback("test");
 
         void (await new Promise((resolve) => setTimeout(resolve, 500))); // Wait for the async call to complete
 

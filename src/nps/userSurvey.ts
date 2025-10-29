@@ -52,7 +52,7 @@ export class UserSurvey {
      * Checks user eligibility for NPS survey and, if eligible, displays the survey and submits feedback.
      * Does not block the calling function or throw errors.
      **/
-    public promptUserForNPSFeedback(source?: string): void {
+    public promptUserForNPSFeedback(source: string): void {
         void this.promptUserForNPSFeedbackAsync(source).catch((err) => {
             // Handle any errors that occur during the prompt and not throwing them in order to not break the calling function
             console.error("Error prompting for NPS feedback:", err);
