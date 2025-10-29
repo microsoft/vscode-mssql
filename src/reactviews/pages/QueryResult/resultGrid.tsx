@@ -13,6 +13,7 @@ import { VirtualizedCollection } from "./table/asyncDataView";
 import { HybridDataProvider } from "./table/hybridDataProvider";
 import { hyperLinkFormatter, textFormatter, DBCellValue, escape } from "./table/formatters";
 import { DbCellValue, ResultSetSummary } from "../../../sharedInterfaces/queryResult";
+import { isJson } from "../../../sharedInterfaces/jsonUtils";
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
@@ -196,7 +197,11 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
                                           columnDef,
                                           dataContext,
                                       );
-                                  } else if (isJsonCell(value) && props.resultSetSummary) {
+                                  } else if (
+                                      value &&
+                                      isJson(value.displayValue) &&
+                                      props.resultSetSummary
+                                  ) {
                                       //TODO use showJsonAsLink config
                                       props.resultSetSummary.columnInfo[i].isJson = true;
                                       return hyperLinkFormatter(
@@ -336,18 +341,6 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
     return <div id="gridContainter" ref={gridContainerRef}></div>;
 });
 
-function isJsonCell(value: DbCellValue): boolean {
-    if (value && !value.isNull && value.displayValue?.match(IsJsonRegex)) {
-        try {
-            JSON.parse(value.displayValue);
-            return true;
-        } catch {
-            return false;
-        }
-    }
-    return false;
-}
-
 function isXmlCell(value: DBCellValue, log?: LogCallback): boolean {
     let isXML = false;
     try {
@@ -365,15 +358,6 @@ function isXmlCell(value: DBCellValue, log?: LogCallback): boolean {
     }
     return isXML;
 }
-
-// The regex to check whether a string is a valid JSON string. It is used to determine:
-// 1. whether the cell should be rendered as a hyperlink.
-// 2. when user clicks a cell, whether the cell content should be displayed in a new text editor as json.
-// Based on the requirements, the solution doesn't need to be very accurate, a simple regex is enough since it is more
-// performant than trying to parse the string to object.
-// Regex explaination: after removing the trailing whitespaces and line breaks, the string must start with '[' (to support arrays)
-// or '{', and there must be a '}' or ']' to close it.
-const IsJsonRegex = /^\s*(\{[\S\s]*\}|\[[\S\s]*\])\s*$/;
 
 // The css class for null cell
 const NULL_CELL_CSS_CLASS = "cell-null";
