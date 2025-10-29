@@ -165,6 +165,14 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
                 },
             ),
         );
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                "mssql.connectionSharing.getConnectionString",
+                (extensionId: string, connectionId: string) =>
+                    this.getConnectionString(extensionId, connectionId),
+            ),
+        );
     }
 
     private async getStoredExtensionPermissions(): Promise<ExtensionPermissionsMap> {
@@ -593,5 +601,41 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             `Updated permission for extension "${extensionDisplayName}" (${extensionId}) to: ${newApproval}`,
         );
         return newApproval;
+    }
+
+    public async getConnectionString(
+        extensionId: string,
+        connectionId: string,
+    ): Promise<string | undefined> {
+        await this.validateExtensionPermission(extensionId);
+
+        const connections =
+            await this._connectionManager.connectionStore.connectionConfig.getConnections(false);
+        const targetConnection = connections.find((conn) => conn.id === connectionId);
+
+        if (!targetConnection) {
+            this._logger.error(
+                `Connection with ID "${connectionId}" not found for extension "${extensionId}".`,
+            );
+            throw new ConnectionSharingError(
+                ConnectionSharingErrorCode.CONNECTION_NOT_FOUND,
+                LocalizedConstants.ConnectionSharing.connectionNotFoundError(connectionId),
+                extensionId,
+                connectionId,
+            );
+        }
+
+        // Use ConnectionManager's getConnectionString method
+        const connectionDetails = this._connectionManager.createConnectionDetails(targetConnection);
+        const connectionString = await this._connectionManager.getConnectionString(
+            connectionDetails,
+            true, // includePassword
+            false, // do not include appName
+        );
+
+        this._logger.info(
+            `Retrieved connection string for connection ID "${connectionId}" for extension "${extensionId}".`,
+        );
+        return connectionString;
     }
 }

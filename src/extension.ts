@@ -122,7 +122,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         getServerInfo: (connectionInfo: IConnectionInfo) => {
             return controller.connectionManager.getServerInfo(connectionInfo);
         },
-        connectionSharing: <vscodeMssql.IConnectionSharingService>{
+        connectionSharing: {
             getActiveEditorConnectionId: (extensionId: string) => {
                 return controller.connectionSharingService.getActiveEditorConnectionId(extensionId);
             },
@@ -166,7 +166,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
                     scriptingObject,
                 );
             },
-        },
+            getConnectionString: (extensionId: string, connectionId: string): Promise<string> => {
+                return controller.connectionSharingService.getConnectionString(
+                    extensionId,
+                    connectionId,
+                );
+            },
+        } as vscodeMssql.IConnectionSharingService,
     };
 }
 

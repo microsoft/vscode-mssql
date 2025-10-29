@@ -387,7 +387,6 @@ export async function reloadFabricComponents(
         state.formState.tenantId = getDefaultTenantId(accountId, tenants);
         state.formComponents.tenantId.options = tenantOptions;
     }
-    state.capacityIds = [];
     state.userGroupIds = [];
     state.workspaces = [];
     state.databaseNamesInWorkspace = [];
@@ -406,18 +405,11 @@ export function getWorkspaceOptions(state: fp.FabricProvisioningState): FormItem
     return orderedWorkspaces.map((workspace) => {
         const hasPermission = workspace.id in state.workspacesWithPermissions;
 
-        let description = "";
-        if (workspace.hasCapacityPermissionsForProvisioning === false) {
-            description = Fabric.insufficientCapacityPermissions;
-        } else if (!hasPermission) {
-            description = Fabric.insufficientWorkspacePermissions;
-        }
-
         return {
             displayName: workspace.displayName,
             value: workspace.id,
             color: hasPermission ? "" : "colorNeutralForegroundDisabled",
-            description: description,
+            description: hasPermission ? "" : Fabric.insufficientWorkspacePermissions,
             icon: hasPermission ? undefined : "Warning20Regular",
         };
     });
@@ -433,9 +425,6 @@ export async function getWorkspaces(
 
     tenantId = tenantId || state.formState.tenantId;
     try {
-        // Set user's capacities in state
-        await getCapacities(deploymentController, tenantId);
-
         const workspaces = await FabricHelper.getFabricWorkspaces(tenantId);
         state.workspaces = await sortWorkspacesByPermission(
             deploymentController,
@@ -466,41 +455,6 @@ export async function getWorkspaces(
             false,
         );
         updateFabricProvisioningState(deploymentController, state);
-    }
-}
-
-export async function getCapacities(
-    deploymentController: DeploymentWebviewController,
-    tenantId?: string,
-): Promise<void> {
-    const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
-    if (state.formState.tenantId === "" && !tenantId) return;
-    if (state.capacityIds.length !== 0) return;
-
-    const startTime = Date.now();
-    try {
-        const capacities = await FabricHelper.getFabricCapacities(
-            tenantId || state.formState.tenantId,
-        );
-        state.capacityIds = capacities.map((capacity) => capacity.id);
-        updateFabricProvisioningState(deploymentController, state);
-        sendActionEvent(
-            TelemetryViews.FabricProvisioning,
-            TelemetryActions.GetWorkspaces,
-            {},
-            {
-                capacitiesLoadTimeInMs: Date.now() - startTime,
-            },
-        );
-    } catch (err) {
-        state.errorMessage = getErrorMessage(err);
-        sendErrorEvent(
-            TelemetryViews.FabricProvisioning,
-            TelemetryActions.LoadCapacities,
-            err,
-            false,
-        );
-        throw err;
     }
 }
 
@@ -565,25 +519,11 @@ export async function sortWorkspacesByPermission(
         state.userGroupIds.push(userId);
     }
 
-    const workspacesWithValidOrUnknownCapacities: Record<string, IWorkspace> = {};
-
-    for (const workspace of workspaces) {
-        // Track all workspaces in the global map
-        state.workspaces[workspace.id] = workspace;
-
-        if (workspace.capacityId && !state.capacityIds.includes(workspace.capacityId)) {
-            workspace.hasCapacityPermissionsForProvisioning = false;
-            state.workspacesWithoutPermissions[workspace.id] = workspace;
-        } else {
-            workspacesWithValidOrUnknownCapacities[workspace.id] = workspace;
-        }
-    }
-
     const startTime = Date.now();
     // Fetch all roles in parallel if it won't hit rate limits
-    if (Object.keys(workspacesWithValidOrUnknownCapacities).length < WORKSPACE_ROLE_REQUEST_LIMIT) {
+    if (workspaces.length < WORKSPACE_ROLE_REQUEST_LIMIT) {
         const workspacesWithRoles = await Promise.all(
-            Object.values(workspacesWithValidOrUnknownCapacities).map(async (workspace) => {
+            workspaces.map(async (workspace) => {
                 return await getRoleForWorkspace(state, workspace, tenantId);
             }),
         );
@@ -594,9 +534,8 @@ export async function sortWorkspacesByPermission(
             } else {
                 state.workspacesWithoutPermissions[workspace.id] = workspace;
             }
-            // Also keep workspace in the global map
-            state.workspaces[workspace.id] = workspace;
         }
+
         sendActionEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.GetPermissionsForWorkspaces,
@@ -606,7 +545,7 @@ export async function sortWorkspacesByPermission(
             },
         );
     } else {
-        state.workspacesWithPermissions = workspacesWithValidOrUnknownCapacities;
+        state.workspacesWithPermissions = Object.fromEntries(workspaces.map((ws) => [ws.id, ws]));
     }
 
     updateFabricProvisioningState(deploymentController, state);

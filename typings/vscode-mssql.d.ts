@@ -2587,5 +2587,12 @@ declare module "vscode-mssql" {
             operation: ScriptOperation,
             scriptingObject: IScriptingObject,
         ): Promise<string | undefined>;
+        /**
+         * Get the connection string for a specific connection ID.
+         * @param extensionId The ID of the extension.
+         * @param connectionId The ID of the connection.
+         * @returns The connection string if the connection is found, or undefined if the connection is not found.
+         */
+        getConnectionString(extensionId: string, connectionId: string): Promise<string | undefined>;
     }
 }

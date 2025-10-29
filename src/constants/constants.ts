@@ -56,7 +56,6 @@ export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
 export const cmdAddObjectExplorer = "mssql.addObjectExplorer";
-export const cmdAddObjectExplorerLegacy = "mssql.addObjectExplorerLegacy";
 export const cmdConnectionGroupCreate = "mssql.connectionGroups.create";
 export const cmdConnectionGroupEdit = "mssql.connectionGroups.edit";
 export const cmdConnectionGroupDelete = "mssql.connectionGroups.delete";
@@ -167,6 +166,11 @@ export const databaseString = "Database";
 export const localizedTexts = "localizedTexts";
 export const ipAddressRegex =
     /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
+export const xml = "xml";
+export const json = "json";
+export const queryPlan = "Query Plan";
+export const queryPlanXmlStart = "<ShowPlanXML";
+
 /**
  * Azure Firewall rule name convention is specified here:
  * https://azure.github.io/PSRule.Rules.Azure/en/rules/Azure.Firewall.Name/
@@ -228,7 +232,6 @@ export const configEnableRichExperiencesDoNotShowPrompt =
     "mssql.enableRichExperiencesDoNotShowPrompt";
 export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
 export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
-export const configUseLegacyConnectionExperience = "mssql.useLegacyConnectionExperience";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
 export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
@@ -292,3 +295,24 @@ export const x64 = "x64";
 export const windowsDockerDesktopExecutable = "Docker Desktop.exe";
 export const docker = "docker";
 export const dockerDeploymentLoggerChannelName = "Docker Deployment";
+
+// SQL Database Projects Constants
+export const DSP_PREFIX = "Microsoft.Data.Tools.Schema.Sql.Sql";
+export const DSP_SUFFIX = "DatabaseSchemaProvider";
+export const sqlServerDockerRegistry = "mcr.microsoft.com";
+export const sqlServerDockerRepository = "mssql/server";
+export const sqlServerEulaLink = "https://aka.ms/mssql-container-license";
+export const licenseAgreementUrl =
+    "https://github.com/microsoft/containerregistry/blob/main/legal/Container-Images-Legal-Notice.md";
+export const dockerImageDefaultTag = "latest";
+export const AzureSqlDbFullDockerImageName = "Azure SQL Database (Edge emulation)";
+export const SqlServerDockerImageName = "SQL Server";
+export const MAX_PORT_NUMBER = 65535;
+export const SqlServerName = "SQL server";
+export const AzureSqlServerName = "Azure SQL server";
+export const DefaultSqlPortNumber = "1433";
+export const DefaultAdminUsername = "sa";
+export const DBProjectConfigurationKey = "sqlDatabaseProjects";
+export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
+export const AzureSqlV12 = "AzureV12";
+export const PublishProfileExtension = "publish.xml";

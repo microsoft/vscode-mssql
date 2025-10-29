@@ -19,7 +19,7 @@ import { MouseEventHandler, useContext, useEffect, useState } from "react";
 import { ConnectionDialogContext } from "./connectionDialogStateProvider";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { locConstants } from "../../common/locConstants";
-import { Keys } from "../../common/keys";
+import { KeyCode } from "../../common/keys";
 
 const buttonContainer = "buttonContainer";
 
@@ -197,7 +197,7 @@ export const ConnectionCard = ({
                 context.loadConnection(connection);
             }}
             onKeyDown={(e) => {
-                if (e.key === Keys.Enter || e.key === Keys.Space) {
+                if (e.code === KeyCode.Enter || e.code === KeyCode.Space) {
                     e.preventDefault();
                     context.loadConnection(connection);
                 }
@@ -219,7 +219,7 @@ export const ConnectionCard = ({
                                     actionButton.onClick(e);
                                 }}
                                 onKeyDown={(e) => {
-                                    if (e.key === Keys.Enter || e.key === Keys.Space) {
+                                    if (e.code === KeyCode.Enter || e.code === KeyCode.Space) {
                                         e.preventDefault();
                                         e.stopPropagation();
                                         actionButton.onClick(e as any);

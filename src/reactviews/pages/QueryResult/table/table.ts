@@ -37,7 +37,8 @@ function getDefaultOptions<T extends Slick.SlickData>(): Slick.GridOptions<T> {
 }
 
 export const MAX_COLUMN_WIDTH_PX = 400;
-export const ACTIONBAR_WIDTH_PX = 36;
+export const MIN_COLUMN_WIDTH_PX = 30;
+export const ACTIONBAR_WIDTH_PX = 30;
 export const TABLE_ALIGN_PX = 7;
 export const SCROLLBAR_PX = 15;
 export const xmlLanguageId = "xml";
@@ -91,6 +92,7 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             context,
             uri,
             resultSetSummary,
+            gridId,
             this.headerFilter,
         );
         if (
