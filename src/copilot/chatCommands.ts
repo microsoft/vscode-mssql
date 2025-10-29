@@ -12,6 +12,7 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
 import { CHAT_COMMAND_PROMPTS } from "./prompts";
 import {
+    CHAT_COMMAND_NAMES,
     disconnectedLabelPrefix,
     connectedLabelPrefix,
     serverDatabaseLabelPrefix,
@@ -29,7 +30,7 @@ export function getConnectionButtonInfo(): {
     args: { forceNewEditor: boolean; forceConnect: boolean };
 } {
     const activeEditor = vscode.window.activeTextEditor;
-    const hasEditor = activeEditor && activeEditor.document.languageId === "sql";
+    const hasEditor = activeEditor && activeEditor.document.languageId === Constants.languageId;
     const buttonLabel = hasEditor ? loc.connect : loc.openSqlEditorAndConnect;
     const buttonArgs = hasEditor
         ? { forceNewEditor: false, forceConnect: true }
@@ -56,13 +57,13 @@ export interface CommandDefinition {
 
 export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
     // Simple command shortcuts - these are handled directly and don't go to language model
-    help: {
+    [CHAT_COMMAND_NAMES.help]: {
         type: CommandType.Simple,
         requiresConnection: false,
         skipConnectionLabels: true, // Provides its own connection status
         handler: async (stream, controller, connectionUri) => {
             stream.markdown(`${loc.helpWelcome}\n\n`);
-            stream.markdown(`**${loc.helpWhatICanDo}**\n\n`);
+            stream.markdown(`**${loc.helpWhatICanDo}**\n`);
             stream.markdown(`• ${loc.helpCapabilityExploreDesign}\n`);
             stream.markdown(`• ${loc.helpCapabilityContextualSuggestions}\n`);
             stream.markdown(`• ${loc.helpCapabilityWriteOptimize}\n`);
@@ -86,7 +87,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
             return true; // Command was handled
         },
     },
-    connect: {
+    [CHAT_COMMAND_NAMES.connect]: {
         type: CommandType.Simple,
         requiresConnection: false,
         skipConnectionLabels: true, // Provides its own connection status
@@ -100,7 +101,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
             return true; // Command was handled
         },
     },
-    disconnect: {
+    [CHAT_COMMAND_NAMES.disconnect]: {
         type: CommandType.Simple,
         requiresConnection: true,
         skipConnectionLabels: true, // Provides its own connection status
@@ -112,7 +113,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
             return true; // Command was handled
         },
     },
-    changeDatabase: {
+    [CHAT_COMMAND_NAMES.changeDatabase]: {
         type: CommandType.Simple,
         requiresConnection: true,
         skipConnectionLabels: true, // Provides its own connection status
@@ -134,7 +135,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
             return true; // Command was handled
         },
     },
-    getConnectionDetails: {
+    [CHAT_COMMAND_NAMES.getConnectionDetails]: {
         type: CommandType.Simple,
         requiresConnection: true,
         skipConnectionLabels: true, // Provides its own connection information
@@ -186,27 +187,27 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
     },
 
     // Prompt substitute commands - these modify the prompt and continue to language model
-    runQuery: {
+    [CHAT_COMMAND_NAMES.runQuery]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.runQuery,
     },
-    explain: {
+    [CHAT_COMMAND_NAMES.explain]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.explain,
     },
-    fix: {
+    [CHAT_COMMAND_NAMES.fix]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.fix,
     },
-    optimize: {
+    [CHAT_COMMAND_NAMES.optimize]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.optimize,
     },
-    showSchema: {
+    [CHAT_COMMAND_NAMES.showSchema]: {
         type: CommandType.Simple,
         requiresConnection: true,
         handler: async (stream, controller, connectionUri) => {
@@ -239,12 +240,12 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
             return true; // Command was handled
         },
     },
-    showDefinition: {
+    [CHAT_COMMAND_NAMES.showDefinition]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.showDefinition,
     },
-    listServers: {
+    [CHAT_COMMAND_NAMES.listServers]: {
         type: CommandType.Simple,
         requiresConnection: false,
         handler: async (stream, controller, _connectionUri) => {
@@ -277,32 +278,32 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
             return true; // Command was handled
         },
     },
-    listDatabases: {
+    [CHAT_COMMAND_NAMES.listDatabases]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.listDatabases,
     },
-    listSchemas: {
+    [CHAT_COMMAND_NAMES.listSchemas]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.listSchemas,
     },
-    listTables: {
+    [CHAT_COMMAND_NAMES.listTables]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.listTables,
     },
-    listViews: {
+    [CHAT_COMMAND_NAMES.listViews]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.listViews,
     },
-    listFunctions: {
+    [CHAT_COMMAND_NAMES.listFunctions]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.listFunctions,
     },
-    listProcedures: {
+    [CHAT_COMMAND_NAMES.listProcedures]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.listProcedures,

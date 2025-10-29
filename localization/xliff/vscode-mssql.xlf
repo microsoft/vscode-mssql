@@ -47,8 +47,8 @@
     <trans-unit id="++CODE++0ead4aa08784fedbf2a89d6c0958d7704ede494d920130913de6de5e42fdca50">
       <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
     </trans-unit>
-    <trans-unit id="++CODE++85b93b67d6d9d59c03e96d26aab25d278f3c76cd95e9c2dcfdcccc1dce4df1b3">
-      <source xml:lang="en">Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts.</source>
+    <trans-unit id="++CODE++9aa3df89bd0844fc7cab254d4e810af6cf12b5d9fa011b7675f45bbae8bcadf7">
+      <source xml:lang="en">Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts</source>
     </trans-unit>
     <trans-unit id="++CODE++89713b9c9c1b8f659c9f49db25e4a47886dd673fee248c3f650391f09a759cef">
       <source xml:lang="en">Accept</source>
@@ -213,8 +213,8 @@
     <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
       <source xml:lang="en">Apply changes to target</source>
     </trans-unit>
-    <trans-unit id="++CODE++9685449a411eafa4538f865a4fea1f69b0b2a3662de63466ce7aae6cc045268e">
-      <source xml:lang="en">Apply contextual suggestions for SQL syntax, relationships, and constraints.</source>
+    <trans-unit id="++CODE++c4a87b18e24f113de61cbf89c652cf2ecc1d73abd2d01baf409c174c8242ef7d">
+      <source xml:lang="en">Apply contextual suggestions for SQL syntax, relationships, and constraints</source>
     </trans-unit>
     <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
       <source xml:lang="en">Approve</source>
@@ -1363,8 +1363,8 @@
     <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
       <source xml:lang="en">Expand properties pane</source>
     </trans-unit>
-    <trans-unit id="++CODE++19d9050ad395c06d901ad4aef04738a544701223f586a3de6f0d51928c9b3208">
-      <source xml:lang="en">Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance.</source>
+    <trans-unit id="++CODE++94138882fa79d94e5c8eb6335f75a2e88f4f1cffbe0ea7b598dd0c9fad748470">
+      <source xml:lang="en">Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance</source>
     </trans-unit>
     <trans-unit id="++CODE++c39d646f10769b078ae82be4da7a0079ca91182b241e749be4276e08c215c654">
       <source xml:lang="en">Explorer</source>
@@ -1637,8 +1637,8 @@
     <trans-unit id="++CODE++e7789e4d6916633a7461743194a10f2bc4d20b06c2e329b35c7a2da87aa8cbae">
       <source xml:lang="en">Generate Script</source>
     </trans-unit>
-    <trans-unit id="++CODE++89001491995f7b2ecdb9c3f19ccbcd13a50000b34d5fb735c4aa021f97231b39">
-      <source xml:lang="en">Generate mock data and seed scripts to support testing and development environments.</source>
+    <trans-unit id="++CODE++733db825a41becaf624d0bcff31bacf744e7bcdb3412fffbb0fb12afdd89a1a8">
+      <source xml:lang="en">Generate mock data and seed scripts to support testing and development environments</source>
     </trans-unit>
     <trans-unit id="++CODE++9a4a3cac279fe491c4cbc6a0e945d2e031dc2e925b98ae7f0676646d74547e82">
       <source xml:lang="en">Generate script to deploy changes to target</source>
@@ -1659,8 +1659,8 @@
       <source xml:lang="en">Get connection details for connection &apos;{0}&apos;?</source>
       <note>{0} is the connection ID</note>
     </trans-unit>
-    <trans-unit id="++CODE++f8c927148e8e64d3f4f26a03d8c7471b45665ac69f6f5cff256a9ed2c7de4048">
-      <source xml:lang="en">Get security-related recommendations, such as avoiding SQL injection or excessive permissions.</source>
+    <trans-unit id="++CODE++a43e5c073e9835ad6459998e88e6ad71d7b49f1a2fb3d0cd076b5bc0e1724fa7">
+      <source xml:lang="en">Get security-related recommendations, such as avoiding SQL injection or excessive permissions</source>
     </trans-unit>
     <trans-unit id="++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc">
       <source xml:lang="en">Getting Docker Ready...</source>
@@ -2604,8 +2604,8 @@
     <trans-unit id="++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f">
       <source xml:lang="en">Readying container for connections...</source>
     </trans-unit>
-    <trans-unit id="++CODE++19ac488fbfb9fa0c920415f3dcb3762e5f0d724b4ac18f69789511fa8fa2b727">
-      <source xml:lang="en">Receive natural language explanations to help developers unfamiliar with T-SQL understand code.</source>
+    <trans-unit id="++CODE++6aafab6eae72092eb7c25ffb6f34dab1a3eb70f1ef79e6e159f0fe540ca6b675">
+      <source xml:lang="en">Receive natural language explanations to help developers unfamiliar with T-SQL understand code</source>
     </trans-unit>
     <trans-unit id="++CODE++690dbe9dc0993c4256683738fc3fd541cfa96f60d299be33343615dd58179d93">
       <source xml:lang="en">Recent</source>
@@ -2700,8 +2700,8 @@
     <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
       <source xml:lang="en">Reverse Alphabetical</source>
     </trans-unit>
-    <trans-unit id="++CODE++a5fa72cdb8f37a88e412c693da99981846d5ae8dc2cf93adda212c7a5d6f4904">
-      <source xml:lang="en">Reverse-engineer existing databases by explaining SQL schemas and relationships.</source>
+    <trans-unit id="++CODE++da37d071c9526cb361ef4fdb39a225e2ec0eefdf323c591b5741adf58295fda8">
+      <source xml:lang="en">Reverse-engineer existing databases by explaining SQL schemas and relationships</source>
     </trans-unit>
     <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
       <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable &quot;Use Rosetta for x86_64/amd64 emulation on Apple Silicon&quot; in Docker Desktop &gt; Settings &gt; General.</source>
@@ -2830,8 +2830,8 @@
     <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
       <source xml:lang="en">Saved Connections</source>
     </trans-unit>
-    <trans-unit id="++CODE++bc7fe5310a6bf292180622cf98d247f05d106e1dcfb82e5cc4871afa29eea160">
-      <source xml:lang="en">Scaffold backend components (e.g., data-access layers) based on your current database context.</source>
+    <trans-unit id="++CODE++28b9471fbcdd3a3ce3799551c1cee3825afe4ea4ce67688c764bd4a364028bd9">
+      <source xml:lang="en">Scaffold backend components (e.g., data-access layers) based on your current database context</source>
     </trans-unit>
     <trans-unit id="++CODE++f102986b39effb31080ae442f61febe7ed58df1515c0711ccfadfe0311ccec81">
       <source xml:lang="en">Scale</source>
@@ -3421,8 +3421,8 @@
     <trans-unit id="++CODE++582be79ed5a63b2569e2b21a28ab0fe1f7acc6307aaaa8e52510a647959d05fa">
       <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
     </trans-unit>
-    <trans-unit id="++CODE++a4a27c519b1167551d87c5bacca1e20022d85eef4af2849fd2cd6096b03d7b6c">
-      <source xml:lang="en">Understand and document business logic embedded in stored procedures, views, and functions.</source>
+    <trans-unit id="++CODE++d7d09d502d5422aa5c2aaffacea9601c1011d9035e27986c8b243078a745b061">
+      <source xml:lang="en">Understand and document business logic embedded in stored procedures, views, and functions</source>
     </trans-unit>
     <trans-unit id="++CODE++a8283ade31856f71220db0e6f60a257c6889dc4dad0f275f66ad44b9ed9bf8d5">
       <source xml:lang="en">Undo</source>
@@ -3514,8 +3514,8 @@
     <trans-unit id="++CODE++f0e54e5d12e2e2f5d8cf453857e0a307a8ecc5e8016b43b3c1c5c93300a40c60">
       <source xml:lang="en">We couldn&apos;t connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
     </trans-unit>
-    <trans-unit id="++CODE++d3512a2bc6a173d36eb60be57d276f7ce37faccc49521183d06dfe33053e749d">
-      <source xml:lang="en">What I can do for you</source>
+    <trans-unit id="++CODE++b88f26dec963b05be1fc4ad815cf0956a2b64c5c7819fc204857815fe8d596ae">
+      <source xml:lang="en">What I can do for you:</source>
     </trans-unit>
     <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
       <source xml:lang="en">What can we do to improve?</source>
@@ -3535,8 +3535,8 @@
     <trans-unit id="++CODE++d53a5854df209c578705bfaec402128f2a44624d1e435ae700ef0f56c958c15e">
       <source xml:lang="en">Workspace is required</source>
     </trans-unit>
-    <trans-unit id="++CODE++1820a3692664d5ad24e50af145eb236bcbddeb6f47ff268d075e27f9fe95d7f0">
-      <source xml:lang="en">Write, optimize, and troubleshoot SQL queries with AI-recommended improvements.</source>
+    <trans-unit id="++CODE++e288577fddfc0fca255b96b887c869892311ba4f7ba0ecab34268b08e08d1ad3">
+      <source xml:lang="en">Write, optimize, and troubleshoot SQL queries with AI-recommended improvements</source>
     </trans-unit>
     <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
       <source xml:lang="en">Yes</source>

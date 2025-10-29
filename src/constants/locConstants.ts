@@ -1933,36 +1933,36 @@ export class MssqlChatAgent {
     public static helpWelcome = l10n.t(
         "👋 I'm GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.",
     );
-    public static helpWhatICanDo = l10n.t("What I can do for you");
+    public static helpWhatICanDo = l10n.t("What I can do for you:");
     public static helpCapabilityExploreDesign = l10n.t(
-        "Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance.",
+        "Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance",
     );
     public static helpCapabilityContextualSuggestions = l10n.t(
-        "Apply contextual suggestions for SQL syntax, relationships, and constraints.",
+        "Apply contextual suggestions for SQL syntax, relationships, and constraints",
     );
     public static helpCapabilityWriteOptimize = l10n.t(
-        "Write, optimize, and troubleshoot SQL queries with AI-recommended improvements.",
+        "Write, optimize, and troubleshoot SQL queries with AI-recommended improvements",
     );
     public static helpCapabilityGenerateMockData = l10n.t(
-        "Generate mock data and seed scripts to support testing and development environments.",
+        "Generate mock data and seed scripts to support testing and development environments",
     );
     public static helpCapabilityAccelerateSchema = l10n.t(
-        "Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts.",
+        "Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts",
     );
     public static helpCapabilityUnderstandDocument = l10n.t(
-        "Understand and document business logic embedded in stored procedures, views, and functions.",
+        "Understand and document business logic embedded in stored procedures, views, and functions",
     );
     public static helpCapabilitySecurityRecommendations = l10n.t(
-        "Get security-related recommendations, such as avoiding SQL injection or excessive permissions.",
+        "Get security-related recommendations, such as avoiding SQL injection or excessive permissions",
     );
     public static helpCapabilityNaturalLanguage = l10n.t(
-        "Receive natural language explanations to help developers unfamiliar with T-SQL understand code.",
+        "Receive natural language explanations to help developers unfamiliar with T-SQL understand code",
     );
     public static helpCapabilityReverseEngineer = l10n.t(
-        "Reverse-engineer existing databases by explaining SQL schemas and relationships.",
+        "Reverse-engineer existing databases by explaining SQL schemas and relationships",
     );
     public static helpCapabilityScaffoldComponents = l10n.t(
-        "Scaffold backend components (e.g., data-access layers) based on your current database context.",
+        "Scaffold backend components (e.g., data-access layers) based on your current database context",
     );
 }
 

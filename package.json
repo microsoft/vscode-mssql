@@ -238,7 +238,7 @@
                 "commands": [
                     {
                         "name": "help",
-                        "description": "Provides a list of available commands and their descriptions."
+                        "description": "Provide a list of available commands and their descriptions."
                     },
                     {
                         "name": "runQuery",
@@ -258,7 +258,7 @@
                     },
                     {
                         "name": "getConnectionDetails",
-                        "description": "Shows a complete breakdown of the active connection: server name, database, version, authentication type."
+                        "description": "Show a complete breakdown of the active connection: server name, database, version, authentication type."
                     },
                     {
                         "name": "changeDatabase",

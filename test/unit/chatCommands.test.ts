@@ -276,9 +276,9 @@ suite("Chat Commands Tests", () => {
             // Should show welcome message and all capabilities
             expect(chatStreamMarkdownStub).to.have.been.called;
             // Should show connection button since not connected
-            expect(chatStreamButtonStub).to.have.been.calledOnce;
-            const buttonCall = chatStreamButtonStub.getCall(0);
-            expect(buttonCall.args[0].command).to.equal("mssql.copilot.newQueryWithConnection");
+            expect(chatStreamButtonStub).to.have.been.calledOnceWith(
+                sinon.match({ command: "mssql.copilot.newQueryWithConnection" }),
+            );
         });
 
         test("help command does not show button when connected", async () => {

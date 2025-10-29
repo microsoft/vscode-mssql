@@ -32,6 +32,7 @@ import {
     getConnectionButtonInfo,
 } from "./chatCommands";
 import {
+    CHAT_COMMAND_NAMES,
     disconnectedLabelPrefix,
     connectedLabelPrefix,
     serverDatabaseLabelPrefix,
@@ -1089,15 +1090,15 @@ export const createSqlAgentRequestHandler = (
     return handler;
 };
 
-export const provideFollowups = (
+export function provideFollowups(
     result: vscode.ChatResult,
     _context: vscode.ChatContext,
     _token: vscode.CancellationToken,
     controller: MainController,
     vscodeWrapper: VscodeWrapper,
-): vscode.ProviderResult<vscode.ChatFollowup[]> => {
+): vscode.ProviderResult<vscode.ChatFollowup[]> {
     // Only show follow-ups for help command
-    if ((result as ISqlChatResult).metadata?.command !== "help") {
+    if ((result as ISqlChatResult).metadata?.command !== CHAT_COMMAND_NAMES.help) {
         return [];
     }
 
@@ -1112,7 +1113,7 @@ export const provideFollowups = (
             {
                 prompt: "",
                 label: loc.followUpConnectToDatabase,
-                command: "connect",
+                command: CHAT_COMMAND_NAMES.connect,
             } satisfies vscode.ChatFollowup,
         ];
     }
@@ -1122,7 +1123,7 @@ export const provideFollowups = (
         {
             prompt: "",
             label: "/listSchemas",
-            command: "listSchemas",
+            command: CHAT_COMMAND_NAMES.listSchemas,
         } satisfies vscode.ChatFollowup,
         {
             prompt: loc.followUpShowRandomTableDefinition,
@@ -1135,4 +1136,4 @@ export const provideFollowups = (
             command: "",
         } satisfies vscode.ChatFollowup,
     ];
-};
+}
