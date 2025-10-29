@@ -324,7 +324,8 @@ export const AddFirewallRuleDialog = ({
                             }}
                             disabled={
                                 !state.isSignedIn ||
-                                state.addFirewallRuleStatus === ApiStatus.Loading
+                                state.addFirewallRuleStatus === ApiStatus.Loading ||
+                                state.loadingAzureAccountsStatus === ApiStatus.Loading
                             }
                             icon={
                                 state.addFirewallRuleStatus === ApiStatus.Loading ? (
