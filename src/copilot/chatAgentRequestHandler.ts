@@ -478,6 +478,7 @@ export const createSqlAgentRequestHandler = (
                 logger.logDebug(`Done processing message for '${conversationUri}'`);
                 // Output reply text if needed
                 if (printTextout) {
+                    // TODO: trigger survey (ask mode)
                     stream.markdown(replyText);
                     printTextout = false;
                 }

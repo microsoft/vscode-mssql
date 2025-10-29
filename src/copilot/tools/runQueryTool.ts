@@ -64,6 +64,8 @@ export class RunQueryTool extends ToolBase<RunQueryToolParams> {
                 },
             );
 
+            // TODO: trigger survey prompt (agent mode)
+
             return JSON.stringify({
                 success: true,
                 rowCount: result.rowCount,

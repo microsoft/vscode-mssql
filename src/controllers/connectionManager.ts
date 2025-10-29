@@ -1133,8 +1133,13 @@ export default class ConnectionManager {
     public async connect(
         fileUri: string,
         credentials: IConnectionInfo,
-        shouldHandleErrors: boolean = true,
+        options: {
+            shouldHandleErrors?: boolean;
+            connectionSource?: string;
+        } = {},
     ): Promise<boolean> {
+        const { shouldHandleErrors = true, connectionSource = "" } = options;
+
         if (!fileUri) {
             fileUri = `${ObjectExplorerUtils.getNodeUriFromProfile(credentials as IConnectionProfile)}_${Utils.generateGuid()}`;
         }
@@ -1193,6 +1198,7 @@ export default class ConnectionManager {
                 {
                     serverTypes: getServerTypes(credentials).join(","),
                     cloudType: getCloudId(),
+                    connectionSource: connectionSource,
                 },
             );
             return false;
@@ -1215,6 +1221,7 @@ export default class ConnectionManager {
                 {
                     serverTypes: getServerTypes(credentials).join(","),
                     cloudType: getCloudId(),
+                    connectionSource: connectionSource,
                 },
             );
             return false;
@@ -1224,6 +1231,7 @@ export default class ConnectionManager {
         sendActionEvent(TelemetryViews.ConnectionManager, TelemetryActions.Connect, {
             serverTypes: getServerTypes(credentials).join(","),
             cloudType: getCloudId(),
+            connectionSource: connectionSource,
         });
 
         const result = await connectionCompletePromise.promise;
