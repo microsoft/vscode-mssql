@@ -11,6 +11,7 @@ import * as Constants from "../../constants/constants";
 import { ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
 import { IConnectionProfile } from "../../models/interfaces";
 import { generateGuid } from "../../models/utils";
+import { removeUndefinedProperties } from "../../utils/utils";
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _nodePath: string;
@@ -243,8 +244,32 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     public set loadingLabel(value: string) {
         this._loadingLabel = value;
     }
+
     public updateConnectionProfile(value: IConnectionProfile): void {
         this._connectionProfile = value;
+    }
+
+    public updateEntraTokenInfo(updatedCredentials: vscodeMssql.IConnectionInfo): void {
+        if (!updatedCredentials) {
+            return;
+        }
+
+        const updatedEntraTokenInfo = removeUndefinedProperties({
+            azureAccountToken: updatedCredentials.azureAccountToken,
+            expiresOn: updatedCredentials.expiresOn,
+        });
+
+        if (Object.keys(updatedEntraTokenInfo).length === 0) {
+            // no refreshed token info to persist
+            return;
+        }
+
+        const updatedProfile: IConnectionProfile = {
+            ...this.connectionProfile,
+            ...updatedEntraTokenInfo,
+        };
+
+        this.updateConnectionProfile(updatedProfile);
     }
 
     protected updateMetadata(value: ObjectMetadata): void {

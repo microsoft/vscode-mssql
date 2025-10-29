@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import React from "react";
 import {
     ColorThemeKind,
     CoreRPCs,
@@ -117,4 +118,158 @@ export function getEOL(): string {
         }
     }
     return "\n";
+}
+
+/**
+ * Checks if the current platform is Mac.
+ * @returns True if the platform is Mac, false otherwise.
+ */
+export function isMac(): boolean {
+    return navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+}
+
+/**
+ * Checks if the meta key on Mac or Ctrl key on Windows/Linux is pressed.
+ * @param e The keyboard or mouse event to check.
+ * @returns True if the meta key is pressed, false otherwise.
+ */
+export function isMetaOrCtrlKeyPressed(
+    e: KeyboardEvent | MouseEvent | React.KeyboardEvent,
+): boolean {
+    return isMac() ? e.metaKey : e.ctrlKey;
+}
+
+/**
+ * Selector string for focusable elements.
+ */
+const FOCUSABLE_SELECTOR = [
+    "a[href]",
+    "button",
+    "textarea",
+    'input:not([type="hidden"])',
+    "select",
+    "[tabindex]",
+    '[contenteditable="true"]',
+]
+    .map((s) => `${s}:not([tabindex="-1"])`)
+    .join(",");
+
+/**
+ * Check if an element is visible.
+ * @param el The element to check.
+ * @returns True if the element is visible, false otherwise.
+ */
+function isElementVisible(el: HTMLElement): boolean {
+    // Covers display:none/visibility:hidden/off-screen containers, etc.
+    const style = window.getComputedStyle(el);
+    if (style.visibility === "hidden" || style.display === "none") return false;
+
+    // offsetParent check misses fixed/absolute in some cases; getClientRects covers that
+    if (el.offsetParent === null && el.getClientRects().length === 0) return false;
+
+    return true;
+}
+
+/**
+ * Get all focusable elements within the given root.
+ * @param root The root element to limit the search within.
+ * @returns An array of focusable elements.
+ */
+function getFocusableElements(root: ParentNode = document): HTMLElement[] {
+    return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
+        (el) => !el.hasAttribute("disabled") && isElementVisible(el),
+    );
+}
+
+/**
+ * Get the adjacent focusable element in the given direction.
+ * @param currentElement The current focused element.
+ * @param step The step direction: 1 for next, -1 for previous.
+ * @param root The root element to limit the search within.
+ * @returns The adjacent focusable element, or null if none found.
+ */
+function getAdjacentFocusableElement(
+    currentElement: HTMLElement,
+    step: 1 | -1,
+    root: ParentNode = document,
+): HTMLElement | null {
+    const focusable = getFocusableElements(root);
+    if (focusable.length === 0) return null;
+
+    const idx = focusable.indexOf(currentElement);
+    if (idx === -1) return null;
+
+    const nextIdx = (idx + step + focusable.length) % focusable.length;
+    return focusable[nextIdx] ?? null;
+}
+
+/**
+ * Get the next focusable element.
+ * @param currentElement The current focused element.
+ * @param root The root element to limit the search within. If not provided, document is used.
+ * @returns The next focusable element, or null if none found.
+ */
+export function getNextFocusableElement(
+    currentElement: HTMLElement,
+    root?: ParentNode,
+): HTMLElement | null {
+    return getAdjacentFocusableElement(currentElement, 1, root ?? document);
+}
+
+/**
+ * Get the previous focusable element.
+ * @param currentElement The current focused element.
+ * @param root The root element to limit the search within. If not provided, document is used.
+ * @returns The previous focusable element, or null if none found.
+ */
+export function getPreviousFocusableElement(
+    currentElement: HTMLElement,
+    root?: ParentNode,
+): HTMLElement | null {
+    return getAdjacentFocusableElement(currentElement, -1, root ?? document);
+}
+
+/**
+ * Get the next focusable element outside the given container.
+ * @param container The container element to check against.
+ * @returns The next focusable element outside the container, or null if none found.
+ */
+export function getNextFocusableElementOutside(container: HTMLElement): HTMLElement | null {
+    const focusables = getFocusableElements();
+    const active = document.activeElement as HTMLElement | null;
+    if (!active) return null;
+
+    const currentIndex = focusables.findIndex((el) => el === active && container.contains(el));
+    if (currentIndex === -1) return null;
+
+    for (let i = currentIndex + 1; i < focusables.length; i++) {
+        const el = focusables[i];
+        if (!container.contains(el)) {
+            el.focus();
+            return el;
+        }
+    }
+    return null; // no next element outside the container
+}
+
+/**
+ * Get the previous focusable element outside the given container.
+ * @param container The container element to check against.
+ * @returns The previous focusable element outside the container, or null if none found.
+ */
+export function getPreviousFocusableElementOutside(container: HTMLElement): HTMLElement | null {
+    const focusables = getFocusableElements();
+    const active = document.activeElement as HTMLElement | null;
+    if (!active) return null;
+
+    const currentIndex = focusables.findIndex((el) => el === active && container.contains(el));
+    if (currentIndex === -1) return null;
+    for (let i = currentIndex - 1; i >= 0; i--) {
+        const el = focusables[i];
+        if (!container.contains(el)) {
+            el.focus();
+            return el;
+        }
+    }
+    return null; // no previous element outside the container
 }

@@ -3,122 +3,218 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Field, Input, Dropdown, Option } from "@fluentui/react-components";
+import { Field, Dropdown, Option, Input, Checkbox, Button } from "@fluentui/react-components";
+import { EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
 import { FormItemType } from "../../../../sharedInterfaces/form";
-import type {
-    IPublishForm,
-    PublishProjectProvider,
-} from "../../../../sharedInterfaces/publishDialog";
+import type { PublishDialogFormItemSpec } from "../../../../sharedInterfaces/publishDialog";
+import { locConstants } from "../../../common/locConstants";
+import type { PublishProjectContextProps } from "../publishProjectStateProvider";
 
-/**
- * Renders a form input field for the Publish Project dialog.
- * This is a shared helper to avoid duplication until the form infrastructure is upgraded.
- */
-export const renderInput = (
-    component:
-        | {
-              propertyName: string;
-              hidden?: boolean;
-              required?: boolean;
-              label: string;
-              placeholder?: string;
-              validation?: { isValid: boolean; validationMessage?: string };
-              type: FormItemType;
-          }
-        | undefined,
+// Helper to get validation state from component
+function getValidationState(validation: PublishDialogFormItemSpec["validation"]): "none" | "error" {
+    return validation ? (validation.isValid ? "none" : "error") : "none";
+}
+
+// Generic Input Field - can be used for text, number, or password fields
+// Automatically handles formAction with updateValidation: false on change, true on blur
+export function renderInput(
+    component: PublishDialogFormItemSpec | undefined,
     value: string,
-    setValue: (v: string) => void,
-    context: PublishProjectProvider,
-) => {
-    if (!component || component.hidden) {
+    context: PublishProjectContextProps | undefined,
+    options?: {
+        showPassword?: boolean;
+        onTogglePassword?: () => void;
+        onChange?: (value: string) => void;
+        readOnly?: boolean;
+    },
+) {
+    if (!component || component.hidden) return undefined;
+    if (component.type !== FormItemType.Input && component.type !== FormItemType.Password) {
         return undefined;
     }
-    if (component.type !== FormItemType.Input) {
-        return undefined;
-    }
+
+    const isPasswordField = component.type === FormItemType.Password;
+
+    const handleChange = (newValue: string) => {
+        options?.onChange?.(newValue);
+        if (context) {
+            context.formAction({
+                propertyName: component.propertyName,
+                isAction: false,
+                value: newValue,
+                updateValidation: true,
+            });
+        }
+    };
+
+    const handleBlur = (currentValue: string) => {
+        if (context) {
+            context.formAction({
+                propertyName: component.propertyName,
+                isAction: false,
+                value: currentValue,
+                updateValidation: true,
+            });
+        }
+    };
+
     return (
         <Field
             key={component.propertyName}
             required={component.required}
-            label={<span dangerouslySetInnerHTML={{ __html: component.label }} />}
+            label={component.label}
             validationMessage={component.validation?.validationMessage}
-            validationState={
-                component.validation ? (component.validation.isValid ? "none" : "error") : "none"
-            }
+            validationState={getValidationState(component.validation)}
             orientation="horizontal">
             <Input
                 size="small"
+                type={isPasswordField ? (options?.showPassword ? "text" : "password") : "text"}
                 value={value}
                 placeholder={component.placeholder ?? ""}
-                onChange={(_, data) => {
-                    setValue(data.value);
-                    context.formAction({
-                        propertyName: component.propertyName as keyof IPublishForm,
-                        isAction: false,
-                        value: data.value,
-                    });
-                }}
+                required={component.required}
+                readOnly={options?.readOnly}
+                onChange={(_, data) => handleChange(data.value)}
+                onBlur={(e) => handleBlur(e.target.value)}
+                contentAfter={
+                    isPasswordField && options?.onTogglePassword ? (
+                        <Button
+                            onClick={options.onTogglePassword}
+                            icon={options.showPassword ? <EyeRegular /> : <EyeOffRegular />}
+                            appearance="transparent"
+                            size="small"
+                            aria-label={
+                                options.showPassword
+                                    ? locConstants.common.hidePassword
+                                    : locConstants.common.showPassword
+                            }
+                            title={
+                                options.showPassword
+                                    ? locConstants.common.hidePassword
+                                    : locConstants.common.showPassword
+                            }
+                        />
+                    ) : undefined
+                }
             />
         </Field>
     );
-};
+}
 
-/**
- * Renders a dropdown field for the Publish Project dialog.
- * This is a shared helper to avoid duplication until the form infrastructure is upgraded.
- */
-export const renderDropdown = (
-    component:
-        | {
-              propertyName: string;
-              hidden?: boolean;
-              required?: boolean;
-              label: string;
-              placeholder?: string;
-              validation?: { isValid: boolean; validationMessage?: string };
-              type: FormItemType;
-              options?: Array<{ value: string; displayName: string; color?: string }>;
-          }
-        | undefined,
+// Generic Dropdown Field - automatically handles formAction
+export function renderDropdown(
+    component: PublishDialogFormItemSpec | undefined,
     value: string | undefined,
-    setValue: (v: string) => void,
-    context: PublishProjectProvider,
-) => {
-    if (!component || component.hidden) {
-        return undefined;
-    }
-    if (component.type !== FormItemType.Dropdown || !component.options) {
-        return undefined;
-    }
+    context: PublishProjectContextProps | undefined,
+    options?: {
+        validateOnChange?: boolean;
+    },
+) {
+    if (!component || component.hidden) return undefined;
+    if (component.type !== FormItemType.Dropdown || !component.options) return undefined;
+
+    const handleChange = (newValue: string) => {
+        if (context) {
+            context.formAction({
+                propertyName: component.propertyName,
+                isAction: false,
+                value: newValue,
+                updateValidation: options?.validateOnChange ?? false,
+            });
+        }
+    };
+
     return (
         <Field
             key={component.propertyName}
             required={component.required}
-            label={<span dangerouslySetInnerHTML={{ __html: component.label }} />}
+            label={component.label}
             validationMessage={component.validation?.validationMessage}
-            validationState={
-                component.validation ? (component.validation.isValid ? "none" : "error") : "none"
-            }
+            validationState={getValidationState(component.validation)}
             orientation="horizontal">
             <Dropdown
                 size="small"
                 selectedOptions={value ? [value] : []}
-                value={component.options.find((o) => o.value === value)?.displayName || ""}
+                value={
+                    component.options.find(
+                        (o: { value: string; displayName: string }) => o.value === value,
+                    )?.displayName || ""
+                }
                 placeholder={component.placeholder ?? ""}
                 onOptionSelect={(_, data) => {
-                    setValue(data.optionValue as string);
-                    context.formAction({
-                        propertyName: component.propertyName as keyof IPublishForm,
-                        isAction: false,
-                        value: data.optionValue as string,
-                    });
-                }}>
-                {component.options.map((opt, i) => (
-                    <Option key={opt.value + i} value={opt.value} color={opt.color}>
-                        {opt.displayName}
-                    </Option>
-                ))}
+                    if (data.optionValue) {
+                        handleChange(data.optionValue);
+                    }
+                }}
+                aria-label={component.label}>
+                {component.options.map(
+                    (opt: { value: string; displayName: string; color?: string }, i: number) => (
+                        <Option key={opt.value + i} value={opt.value} color={opt.color}>
+                            {opt.displayName}
+                        </Option>
+                    ),
+                )}
             </Dropdown>
         </Field>
     );
-};
+}
+
+// Generic Checkbox Field - automatically handles formAction
+export function renderCheckbox(
+    component: PublishDialogFormItemSpec | undefined,
+    checked: boolean,
+    context: PublishProjectContextProps | undefined,
+    options?: {
+        validateOnChange?: boolean;
+        label?: React.ReactNode;
+    },
+) {
+    if (!component || component.hidden) return undefined;
+
+    const handleChange = (newChecked: boolean) => {
+        if (context) {
+            context.formAction({
+                propertyName: component.propertyName,
+                isAction: false,
+                value: newChecked,
+                updateValidation: options?.validateOnChange ?? false,
+            });
+        }
+    };
+
+    // Use provided label, or fall back to component.label
+    // If component.label is a string, render it with dangerouslySetInnerHTML to support HTML
+    const labelContent =
+        options?.label ??
+        (typeof component.label === "string" ? (
+            <span dangerouslySetInnerHTML={{ __html: component.label }} />
+        ) : (
+            component.label
+        ));
+
+    return (
+        <Field
+            key={component.propertyName}
+            required={component.required}
+            validationMessage={component.validation?.validationMessage}
+            validationState={getValidationState(component.validation)}>
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    whiteSpace: "nowrap",
+                }}>
+                <Checkbox
+                    checked={checked}
+                    onChange={(_, data) => handleChange(data.checked === true)}
+                />
+                <span style={{ whiteSpace: "normal" }}>
+                    {labelContent}
+                    {component.required && (
+                        <span style={{ color: "red", marginLeft: "4px" }}>*</span>
+                    )}
+                </span>
+            </div>
+        </Field>
+    );
+}

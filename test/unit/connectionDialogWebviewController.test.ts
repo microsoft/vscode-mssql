@@ -6,19 +6,27 @@
 import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
-import { ConnectionDialogWebviewController } from "../../src/connectionconfig/connectionDialogWebviewController";
+import sinonChai from "sinon-chai";
+import * as chai from "chai";
+
+import { expect } from "chai";
+
+import {
+    CLEAR_TOKEN_CACHE,
+    ConnectionDialogWebviewController,
+} from "../../src/connectionconfig/connectionDialogWebviewController";
 import MainController from "../../src/controllers/mainController";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerProvider";
-import { expect } from "chai";
 import {
+    AddFirewallRuleDialogProps,
     AuthenticationType,
     AzureSqlServerInfo,
     ConnectionInputMode,
     IConnectionDialogProfile,
 } from "../../src/sharedInterfaces/connectionDialog";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import {
@@ -34,12 +42,23 @@ import {
     stubFetchServersFromAzure,
     stubPromptForAzureSubscriptionFilter,
     stubVscodeAzureHelperGetAccounts,
+    mockServerName,
+    mockUserName,
 } from "./azureHelperStubs";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { mockGetCapabilitiesRequest } from "./mocks";
 import { AzureController } from "../../src/azure/azureController";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import { multiple_matching_tokens_error } from "../../src/azure/constants";
+import { Logger } from "../../src/models/logger";
+import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
+import { errorPasswordExpired } from "../../src/constants/constants";
+import { FirewallRuleSpec } from "../../src/sharedInterfaces/firewallRule";
+import { FirewallService } from "../../src/firewall/firewallService";
+import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
+
+chai.use(sinonChai);
 
 suite("ConnectionDialogWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -93,9 +112,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
         mockContext
             .setup((c) => c.globalState)
             .returns(() => {
+                /* eslint-disable @typescript-eslint/no-explicit-any */
                 return {
                     get: (key: string, defaultValue: any) => defaultValue,
                 } as any;
+                /* eslint-enable @typescript-eslint/no-explicit-any */
             });
 
         connectionManager = TypeMoq.Mock.ofType(
@@ -200,8 +221,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 "Initial form state is incorrect",
             );
 
-            expect(controller.state.formError).to.deep.equal(
-                "",
+            expect(controller.state.formMessage).to.deep.equal(
+                undefined,
                 "Should be no error in the initial state",
             );
 
@@ -391,7 +412,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
 
         test("loadConnection", async () => {
-            controller.state.formError = "Sample error";
+            controller.state.formMessage = { message: "Sample error" };
 
             expect(
                 controller["_connectionBeingEdited"],
@@ -424,9 +445,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
             ).to.not.equal(testConnection);
 
             expect(
-                controller.state.formError,
+                controller.state.formMessage,
                 "Error should be cleared after loading the connection",
-            ).to.equal("");
+            ).to.be.undefined;
 
             expect(
                 controller.state.readyToConnect,
@@ -435,35 +456,50 @@ suite("ConnectionDialogWebviewController Tests", () => {
         });
 
         suite("connect", () => {
-            test("connect happy path", async () => {
-                // Set up mocks
+            let mockConnectionNode: TreeNodeInfo;
+            let testFormState: IConnectionDialogProfile;
+
+            setup(() => {
                 stubTelemetry(sandbox);
                 stubUserSurvey(sandbox);
 
+                mockConnectionNode = new TreeNodeInfo(
+                    "testNode",
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    "Database",
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                );
+
+                testFormState = {
+                    server: "localhost",
+                    user: "testUser",
+                    password: "testPassword",
+                    authenticationType: AuthenticationType.SqlLogin,
+                } as IConnectionDialogProfile;
+            });
+
+            test("connect happy path", async () => {
                 mockObjectExplorerProvider
                     .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
                     .returns(() => {
                         return Promise.resolve({
                             sessionId: "testSessionId",
-                            rootNode: new TreeNodeInfo(
-                                "testNode",
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                "Database",
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                            ),
+                            rootNode: mockConnectionNode,
                             success: true,
                         } as CreateSessionResponse);
                     });
 
                 connectionManager
-                    .setup((cm) => cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
+                    .setup((cm) =>
+                        cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                    )
                     .returns(() => Promise.resolve(true));
 
                 let mockObjectExplorerTree = TypeMoq.Mock.ofType<vscode.TreeView<TreeNodeInfo>>(
@@ -480,15 +516,108 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mainController.objectExplorerTree = mockObjectExplorerTree.object;
 
                 // Run test
-
-                controller.state.formState = {
-                    server: "localhost",
-                    user: "testUser",
-                    password: "testPassword",
-                    authenticationType: AuthenticationType.SqlLogin,
-                } as IConnectionDialogProfile;
+                controller.state.formState = testFormState;
 
                 await controller["_reducerHandlers"].get("connect")(controller.state, {});
+            });
+
+            test("displays actionable error message for multiple_matching_tokens_error", async () => {
+                mockObjectExplorerProvider
+                    .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
+                    .returns(() => {
+                        return Promise.resolve({
+                            sessionId: "testSessionId",
+                            rootNode: mockConnectionNode,
+                            success: true,
+                        } as CreateSessionResponse);
+                    });
+
+                const errorMessage = `Error: Connection failed due to ${multiple_matching_tokens_error}`;
+
+                connectionManager
+                    .setup((cm) =>
+                        cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                    )
+                    .throws(new Error(errorMessage));
+
+                // Run test
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("connect")(controller.state, {});
+
+                expect(controller.state.formMessage).to.not.be.undefined;
+                expect(controller.state.formMessage.message).to.equal(errorMessage);
+                expect(controller.state.formMessage.buttons).to.deep.equal([
+                    { id: CLEAR_TOKEN_CACHE, label: "Clear token cache" },
+                ]);
+            });
+
+            test("displays error when attempting to create OE session fails", async () => {
+                const errorMessage = "Test createSession error";
+                mockObjectExplorerProvider
+                    .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
+                    .throws(new Error(errorMessage));
+
+                connectionManager
+                    .setup((cm) =>
+                        cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                    )
+                    .returns(() => Promise.resolve(true));
+
+                // Run test
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("connect")(controller.state, {});
+
+                expect(controller.state.formMessage).to.not.be.undefined;
+                expect(controller.state.connectionStatus).to.equal(ApiStatus.Error);
+                expect(controller.state.formMessage.message).to.equal(errorMessage);
+            });
+
+            test("displays password changed dialog upon password expired error", async () => {
+                mockObjectExplorerProvider
+                    .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
+                    .returns(() => {
+                        return Promise.resolve({
+                            sessionId: "testSessionId",
+                            rootNode: mockConnectionNode,
+                            success: true,
+                        } as CreateSessionResponse);
+                    });
+
+                const errorMessage = "Your password has expired and needs to be changed.";
+
+                connectionManager
+                    .setup((cm) =>
+                        cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
+                    )
+                    .returns(() => {
+                        return Promise.resolve(false);
+                    });
+
+                connectionManager
+                    .setup((cm) => cm.getConnectionInfo(TypeMoq.It.isAny()))
+                    .returns(() => {
+                        return {
+                            errorNumber: errorPasswordExpired,
+                            errorMessage,
+                            messages: errorMessage,
+                            credentials: {
+                                server: mockServerName,
+                                user: mockUserName,
+                            },
+                        } as ConnectionInfo;
+                    });
+
+                // Run test
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("connect")(controller.state, {});
+
+                expect(controller.state.formMessage).to.not.be.undefined;
+                expect(controller.state.formMessage.message)
+                    .to.contain(errorMessage)
+                    .and.to.contain(errorPasswordExpired);
             });
         });
 
@@ -529,6 +658,74 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     controller.state.azureSubscriptions,
                     "changing Azure subscription filter settings should trigger reloading subscriptions",
                 ).to.have.lengthOf(2);
+            });
+        });
+
+        suite("messageButtonClicked", () => {
+            test("clearTokenCache", async () => {
+                controller.state.formMessage = {
+                    message: "You need to clear your token cache",
+                    buttons: [{ id: CLEAR_TOKEN_CACHE, label: "Clear token cache" }],
+                };
+
+                const azureControllerStub = sandbox.createStubInstance(MsalAzureController);
+
+                connectionManager
+                    .setup((cm) => cm.azureController)
+                    .returns(() => azureControllerStub);
+
+                await controller["_reducerHandlers"].get("messageButtonClicked")(controller.state, {
+                    buttonId: CLEAR_TOKEN_CACHE,
+                });
+
+                expect(controller.state.formMessage).to.be.undefined;
+                expect(azureControllerStub.clearTokenCache).to.have.been.calledOnce;
+            });
+
+            test("unknown button", async () => {
+                const unknownButtonId = "unknownButtonId";
+
+                const loggerStub = sandbox.createStubInstance(Logger);
+                controller["logger"] = loggerStub;
+
+                await controller["_reducerHandlers"].get("messageButtonClicked")(controller.state, {
+                    buttonId: unknownButtonId,
+                });
+
+                expect(loggerStub.error).to.have.been.calledOnceWith(
+                    `Unknown message button clicked: ${unknownButtonId}`,
+                );
+            });
+        });
+
+        suite("addFirewallRule", () => {
+            test("displays error upon failure to create firewall rule", async () => {
+                const testFirewallSpec: FirewallRuleSpec = {} as FirewallRuleSpec;
+                const errorMessage = "Test create firewall rule error";
+
+                const mockFirewallService = sandbox.createStubInstance(FirewallService);
+                mockFirewallService.createFirewallRuleWithVscodeAccount.throws(
+                    new Error(errorMessage),
+                );
+
+                connectionManager
+                    .setup((cm) => cm.firewallService)
+                    .returns(() => mockFirewallService);
+
+                controller.state.dialog = {
+                    type: "addFirewallRule",
+                    props: {
+                        addFirewallRuleStatus: { status: ApiStatus.NotStarted },
+                    } as unknown as AddFirewallRuleState,
+                } as AddFirewallRuleDialogProps;
+
+                await controller["_reducerHandlers"].get("addFirewallRule")(controller.state, {
+                    firewallRuleSpec: testFirewallSpec,
+                });
+
+                expect(controller.state.formMessage).to.not.be.undefined;
+                expect(controller.state.formMessage.message).to.equal(errorMessage);
+                expect(controller.state.dialog).to.be.undefined;
             });
         });
     });

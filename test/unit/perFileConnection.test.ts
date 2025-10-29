@@ -110,7 +110,6 @@ function createTestConnectionManager(
         TestExtensionContext.object,
         statusView,
         prompterMock.object,
-        true, // useLegacyConnectionExperience
         undefined, // logger
         serviceClient,
         wrapper,

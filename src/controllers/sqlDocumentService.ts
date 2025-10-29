@@ -9,7 +9,7 @@ import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import StatusView from "../views/statusView";
 import store from "../queryResult/singletonStore";
 import SqlToolsServerClient from "../languageservice/serviceclient";
-import { getUriKey } from "../utils/utils";
+import { removeUndefinedProperties, getUriKey } from "../utils/utils";
 import * as Utils from "../models/utils";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
@@ -104,29 +104,30 @@ export default class SqlDocumentService implements vscode.Disposable {
             return false;
         }
 
-        let connectionCreds: vscodeMssql.IConnectionInfo | undefined;
         let connectionStrategy: ConnectionStrategy;
         let nodeType: string | undefined;
+        let sourceNode: TreeNodeInfo | undefined;
 
         if (node) {
             // Case 1: User right-clicked on an OE node and selected "New Query"
-            connectionCreds = node.connectionProfile;
             nodeType = node.nodeType;
             connectionStrategy = ConnectionStrategy.CopyConnectionFromInfo;
+            sourceNode = node;
         } else if (this._lastActiveConnectionInfo) {
             // Case 2: User triggered "New Query" from command palette and the active document has a connection
-            connectionCreds = undefined;
             nodeType = "previousEditor";
             connectionStrategy = ConnectionStrategy.CopyLastActive;
         } else if (this.objectExplorerTree.selection?.length === 1) {
             // Case 3: User triggered "New Query" from command palette while they have a connected OE node selected
-            connectionCreds = this.objectExplorerTree.selection[0].connectionProfile;
-            nodeType = this.objectExplorerTree.selection[0].nodeType;
+            sourceNode = this.objectExplorerTree.selection[0];
+            nodeType = sourceNode.nodeType;
             connectionStrategy = ConnectionStrategy.CopyConnectionFromInfo;
         } else {
             // Case 4: User triggered "New Query" from command palette and there's no reasonable context
             connectionStrategy = ConnectionStrategy.PromptForConnection;
         }
+
+        const connectionCreds = sourceNode?.connectionProfile;
 
         if (connectionCreds) {
             await this._connectionMgr.handlePasswordBasedCredentials(connectionCreds);
@@ -137,6 +138,11 @@ export default class SqlDocumentService implements vscode.Disposable {
             connectionStrategy: connectionStrategy,
             connectionInfo: connectionCreds,
         });
+
+        if (sourceNode && connectionCreds) {
+            // newQuery may refresh the Entra token, so update the OE node's connection profile
+            sourceNode.updateEntraTokenInfo(connectionCreds);
+        }
 
         const newEditorUri = getUriKey(newEditor.document.uri);
 
@@ -387,6 +393,17 @@ export default class SqlDocumentService implements vscode.Disposable {
                     await this._mainController.createObjectExplorerSession(
                         connectionConfig.connectionInfo,
                     );
+                }
+
+                if (options.connectionInfo && connectionConfig.connectionInfo) {
+                    const tokenUpdates = removeUndefinedProperties({
+                        azureAccountToken: connectionConfig.connectionInfo.azureAccountToken,
+                        expiresOn: connectionConfig.connectionInfo.expiresOn,
+                    });
+
+                    if (Object.keys(tokenUpdates).length > 0) {
+                        Object.assign(options.connectionInfo, tokenUpdates);
+                    }
                 }
             }
         }

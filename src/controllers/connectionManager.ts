@@ -136,7 +136,6 @@ export default class ConnectionManager {
         private context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
-        _useLegacyConnectionExperience: boolean = false,
         private _logger?: Logger,
         private _client?: SqlToolsServerClient,
         private _vscodeWrapper?: VscodeWrapper,
@@ -179,11 +178,9 @@ export default class ConnectionManager {
         if (!this._connectionUI) {
             this._connectionUI = new ConnectionUI(
                 this,
-                context,
                 this._connectionStore,
                 this._accountStore,
                 prompter,
-                _useLegacyConnectionExperience,
                 this.vscodeWrapper,
             );
         }
@@ -1075,6 +1072,13 @@ export default class ConnectionManager {
                     this.accountStore,
                     getCloudProviderSettings(account.key.providerId).settings.sqlResource!,
                 );
+
+                connectionInfo.azureAccountToken = profile.azureAccountToken;
+                connectionInfo.expiresOn = profile.expiresOn;
+                connectionInfo.accountId = profile.accountId;
+                connectionInfo.tenantId = profile.tenantId;
+                connectionInfo.user = profile.user;
+                connectionInfo.email = profile.email;
             } else {
                 throw new Error(LocalizedConstants.cannotConnect);
             }
@@ -1574,9 +1578,9 @@ export default class ConnectionManager {
     /**
      * Called when the 'Manage Connection Profiles' command is issued.
      */
-    public onManageProfiles(): Promise<boolean> {
+    public async onManageProfiles(): Promise<void> {
         // Show quick pick to create, edit, or remove profiles
-        return this.connectionUI.promptToManageProfiles();
+        await this.connectionUI.promptToManageProfiles();
     }
 
     public async onClearPooledConnections(): Promise<void> {
@@ -1584,11 +1588,8 @@ export default class ConnectionManager {
     }
 
     public async onCreateProfile(): Promise<boolean> {
-        let self = this;
-        const profile = await self.connectionUI.createAndSaveProfile(
-            self.vscodeWrapper.isEditingSqlFile,
-        );
-        return profile ? true : false;
+        this.connectionUI.openConnectionDialog();
+        return false;
     }
 
     public onRemoveProfile(): Promise<boolean> {
@@ -1690,9 +1691,11 @@ export default class ConnectionManager {
         }
     }
 
-    public onClearTokenCache(): void {
+    public onClearAzureTokenCache(): void {
         this.azureController.clearTokenCache();
-        this.vscodeWrapper.showInformationMessage(LocalizedConstants.clearedAzureTokenCache);
+        this.vscodeWrapper.showInformationMessage(
+            LocalizedConstants.Accounts.clearedEntraTokenCache,
+        );
     }
 
     private async migrateLegacyConnectionProfiles(): Promise<void> {

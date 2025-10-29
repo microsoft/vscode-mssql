@@ -10,19 +10,14 @@ import * as constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
 import VscodeWrapper from "../controllers/vscodeWrapper";
-import { ConnectionCredentials } from "../models/connectionCredentials";
-import { ConnectionProfile } from "../models/connectionProfile";
 import { ConnectionStore } from "../models/connectionStore";
 import {
     CredentialsQuickPickItemType,
     IConnectionCredentialsQuickPickItem,
     IConnectionProfile,
 } from "../models/interfaces";
-import * as Utils from "../models/utils";
 import { Timer } from "../models/utils";
-import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
-import { CancelError } from "../utils/utils";
 import { CREATE_NEW_GROUP_ID, IConnectionGroup } from "../sharedInterfaces/connectionGroup";
 import { FormItemOptions } from "../sharedInterfaces/form";
 
@@ -43,11 +38,9 @@ export interface ISqlProviderItem extends vscode.QuickPickItem {
 export class ConnectionUI {
     constructor(
         private _connectionManager: ConnectionManager,
-        private _context: vscode.ExtensionContext,
         private _connectionStore: ConnectionStore,
         private _accountStore: AccountStore,
         private _prompter: IPrompter,
-        private _useLegacyConnectionExperience: boolean = false,
         private _vscodeWrapper?: VscodeWrapper,
     ) {
         if (!this._vscodeWrapper) {
@@ -324,65 +317,24 @@ export class ConnectionUI {
         });
     }
 
-    public async createProfileWithDifferentCredentials(
-        connection: IConnectionInfo,
+    private async handleSelectedConnection(
+        selection: IConnectionCredentialsQuickPickItem,
     ): Promise<IConnectionInfo> {
-        const retryResult = await this.promptForRetryConnectWithDifferentCredentials();
-
-        if (!retryResult) {
+        if (selection === undefined) {
             return undefined;
         }
 
-        let connectionWithoutCredentials = Object.assign({}, connection, {
-            user: "",
-            password: "",
-            emptyPasswordInput: false,
-        });
-
-        return await ConnectionCredentials.ensureRequiredPropertiesSet(
-            connectionWithoutCredentials, // connection profile
-            true, // isProfile
-            false, // isPasswordRequired
-            true, // wasPasswordEmptyInConfigFile
-            this._prompter,
-            this._connectionStore,
-            connection,
-            false, // shouldSaveUpdates
-        );
-    }
-
-    private handleSelectedConnection(
-        selection: IConnectionCredentialsQuickPickItem,
-    ): Promise<IConnectionInfo> {
-        return new Promise<IConnectionInfo>((resolve, reject) => {
-            if (selection !== undefined) {
-                let connectFunc: Promise<IConnectionInfo>;
-                if (selection.quickPickItemType === CredentialsQuickPickItemType.NewConnection) {
-                    // call the workflow to create a new connection
-                    connectFunc = this.createAndSaveProfile();
-                } else {
-                    // user chose a connection from picklist. Prompt for mandatory info that's missing (e.g. username and/or password)
-                    connectFunc = this.fillOrPromptForMissingInfo(
-                        selection,
-                        false /* shouldSaveUpdates */,
-                    );
-                }
-
-                connectFunc.then(
-                    (resolvedConnectionCreds) => {
-                        if (!resolvedConnectionCreds) {
-                            resolve(undefined);
-                        }
-                        resolve(resolvedConnectionCreds);
-                    },
-                    (err) =>
-                        // we will send back a cancelled error in order to re-prompt the promptForConnection
-                        reject(err),
-                );
-            } else {
-                resolve(undefined);
-            }
-        });
+        if (selection.quickPickItemType === CredentialsQuickPickItemType.NewConnection) {
+            // Opening the Connection Dialog is considering the end of the flow regardless of whether they create a new connection,
+            // so undefined is returned.
+            // It's considered the end of the flow because opening a complex dialog in the middle of a flow then continuing is disorienting.
+            // If they want to use their new connection, they can execute their query again.
+            this.openConnectionDialog();
+            return undefined;
+        } else {
+            await this._connectionStore.addSavedPassword(selection);
+            return selection.connectionCreds;
+        }
     }
 
     private promptToClearRecentConnectionsList(): Promise<boolean> {
@@ -404,83 +356,71 @@ export class ConnectionUI {
         });
     }
 
-    public promptToManageProfiles(): Promise<boolean> {
+    public promptToManageProfiles(): Promise<void> {
         const self = this;
-        return new Promise<boolean>((resolve, reject) => {
-            // Create profile, clear recent connections, edit profiles, or remove profile?
-            let choices: INameValueChoice[] = [
-                {
-                    name: LocalizedConstants.CreateProfileLabel,
-                    value: ManageProfileTask.Create,
-                },
-                {
-                    name: LocalizedConstants.ClearRecentlyUsedLabel,
-                    value: ManageProfileTask.ClearRecentlyUsed,
-                },
-                {
-                    name: LocalizedConstants.EditProfilesLabel,
-                    value: ManageProfileTask.Edit,
-                },
-                {
-                    name: LocalizedConstants.RemoveProfileLabel,
-                    value: ManageProfileTask.Remove,
-                },
-            ];
+        const choices: INameValueChoice[] = [
+            {
+                name: LocalizedConstants.CreateProfileLabel,
+                value: ManageProfileTask.Create,
+            },
+            {
+                name: LocalizedConstants.ClearRecentlyUsedLabel,
+                value: ManageProfileTask.ClearRecentlyUsed,
+            },
+            {
+                name: LocalizedConstants.EditProfilesLabel,
+                value: ManageProfileTask.Edit,
+            },
+            {
+                name: LocalizedConstants.RemoveProfileLabel,
+                value: ManageProfileTask.Remove,
+            },
+        ];
 
-            let question: IQuestion = {
-                type: QuestionTypes.expand,
-                name: LocalizedConstants.ManageProfilesPrompt,
-                message: LocalizedConstants.ManageProfilesPrompt,
-                choices: choices,
-                onAnswered: async (value) => {
-                    switch (value) {
-                        case ManageProfileTask.Create:
-                            const result = await self.connectionManager.onCreateProfile();
-                            resolve(result);
-                            break;
-                        case ManageProfileTask.ClearRecentlyUsed:
-                            try {
-                                const result = await self.promptToClearRecentConnectionsList();
-                                if (result) {
-                                    const credentialsDeleted =
-                                        await self.connectionManager.clearRecentConnectionsList();
-                                    if (credentialsDeleted) {
-                                        self.vscodeWrapper.showInformationMessage(
-                                            LocalizedConstants.msgClearedRecentConnections,
-                                        );
-                                    } else {
-                                        self.vscodeWrapper.showWarningMessage(
-                                            LocalizedConstants.msgClearedRecentConnectionsWithErrors,
-                                        );
-                                    }
-                                    resolve(true);
-                                } else {
-                                    resolve(false);
-                                }
-                            } catch (error) {
-                                reject(error);
-                            }
-                            break;
-                        case ManageProfileTask.Edit:
-                            self.vscodeWrapper
-                                .executeCommand("workbench.action.openGlobalSettings")
-                                .then(() => {
-                                    resolve(true);
-                                });
-                            break;
-                        case ManageProfileTask.Remove:
-                            const removeProfileResult = self.connectionManager.onRemoveProfile();
-                            resolve(removeProfileResult);
-                            break;
-                        default:
-                            resolve(false);
-                            break;
-                    }
-                },
-            };
+        let question: IQuestion = {
+            type: QuestionTypes.expand,
+            name: LocalizedConstants.ManageProfilesPrompt,
+            message: LocalizedConstants.ManageProfilesPrompt,
+            choices: choices,
+            onAnswered: async (value) => {
+                switch (value) {
+                    case ManageProfileTask.Create:
+                        await self.connectionManager.onCreateProfile();
+                        return;
+                    case ManageProfileTask.ClearRecentlyUsed:
+                        const result = await self.promptToClearRecentConnectionsList();
+                        if (!result) {
+                            return;
+                        }
 
-            void this._prompter.promptSingle(question);
-        });
+                        const credentialsDeleted =
+                            await self.connectionManager.clearRecentConnectionsList();
+                        if (credentialsDeleted) {
+                            self.vscodeWrapper.showInformationMessage(
+                                LocalizedConstants.msgClearedRecentConnections,
+                            );
+                        } else {
+                            self.vscodeWrapper.showWarningMessage(
+                                LocalizedConstants.msgClearedRecentConnectionsWithErrors,
+                            );
+                        }
+
+                        return;
+                    case ManageProfileTask.Edit:
+                        await self.vscodeWrapper.executeCommand(
+                            "workbench.action.openGlobalSettings",
+                        );
+                        return;
+                    case ManageProfileTask.Remove:
+                        await self.connectionManager.onRemoveProfile();
+                        return;
+                    default:
+                        return;
+                }
+            },
+        };
+
+        return this._prompter.promptSingle(question);
     }
 
     /**
@@ -488,57 +428,8 @@ export class ConnectionUI {
      * @param validate whether the profile should be connected to and validated before saving
      * @returns undefined if profile creation failed or was cancelled, or if the Connection Dialog is getting used
      */
-    public async createAndSaveProfile(
-        validate: boolean = true,
-    ): Promise<IConnectionProfile | undefined> {
-        if (!this._useLegacyConnectionExperience) {
-            // Opening the Connection Dialog is considering the end of the flow regardless of whether they create a new connection,
-            // so undefined is returned.
-            // It's considered the end of the flow because opening a complex dialog in the middle of a flow then continuing is disorienting.
-            // If they want to use their new connection, they can execute their query again.
-            vscode.commands.executeCommand(constants.cmdAddObjectExplorer);
-            return undefined;
-        } else {
-            let profile = await this.promptForCreateProfile();
-            if (profile) {
-                let savedProfile = validate
-                    ? await this.validateAndSaveProfile(profile)
-                    : await this.saveProfile(profile);
-                if (savedProfile) {
-                    if (validate) {
-                        this.vscodeWrapper.showInformationMessage(
-                            LocalizedConstants.msgProfileCreatedAndConnected,
-                        );
-                    } else {
-                        this.vscodeWrapper.showInformationMessage(
-                            LocalizedConstants.msgProfileCreated,
-                        );
-                    }
-                }
-                return savedProfile;
-            }
-        }
-    }
-
-    /**
-     * Validate a connection profile by connecting to it, and save it if we are successful.
-     */
-    public async validateAndSaveProfile(
-        profile: IConnectionProfile,
-    ): Promise<IConnectionProfile | undefined> {
-        let uri = this.vscodeWrapper.activeTextEditorUri;
-        if (!uri || !this.vscodeWrapper.isEditingSqlFile) {
-            uri = ObjectExplorerUtils.getNodeUriFromProfile(profile);
-        }
-
-        const success = await this.connectionManager.connect(uri, profile);
-        if (success) {
-            // Success! save it
-            return await this.saveProfile(profile);
-        } else {
-            // Normal connection error! Let the user try again, prefilling values that they already entered
-            return await this.promptToRetryAndSaveProfile(profile);
-        }
+    public openConnectionDialog(): void {
+        vscode.commands.executeCommand(constants.cmdAddObjectExplorer);
     }
 
     /**
@@ -605,102 +496,13 @@ export class ConnectionUI {
         return await this._connectionStore.saveProfile(profile);
     }
 
-    private async promptForCreateProfile(): Promise<IConnectionProfile> {
-        const profile = await ConnectionProfile.createProfile(
-            this._prompter,
-            this._connectionStore,
-            this._context,
-            this.connectionManager.azureController,
-            this._accountStore,
-        );
-
-        return profile;
-    }
-
-    private async promptToRetryAndSaveProfile(
-        profile: IConnectionProfile,
-        isFirewallError: boolean = false,
-    ): Promise<IConnectionProfile> {
-        const updatedProfile = await this.promptForRetryCreateProfile(profile, isFirewallError);
-        if (updatedProfile) {
-            return await this.validateAndSaveProfile(updatedProfile);
-        } else {
-            return undefined;
-        }
-    }
-
-    public async promptForRetryCreateProfile(
-        profile: IConnectionProfile,
-        isFirewallError: boolean = false,
-    ): Promise<IConnectionProfile> {
-        // Ask if the user would like to fix the profile
-        let errorMessage = isFirewallError
-            ? LocalizedConstants.msgPromptRetryFirewallRuleAdded
-            : LocalizedConstants.msgPromptRetryCreateProfile;
-        let result = await this._vscodeWrapper.showErrorMessage(
-            errorMessage,
-            LocalizedConstants.retryLabel,
-        );
-        if (result === LocalizedConstants.retryLabel) {
-            const newProfile = await ConnectionProfile.createProfile(
-                this._prompter,
-                this._connectionStore,
-                this._context,
-                this.connectionManager.azureController,
-                this._accountStore,
-                profile,
-            );
-
-            return newProfile;
-        } else {
-            // user cancelled the prompt - throw error so that we know user cancelled
-            throw new CancelError();
-        }
-    }
-
-    private async promptForRetryConnectWithDifferentCredentials(): Promise<boolean> {
-        // Ask if the user would like to fix the profile
-        const result = await this._vscodeWrapper.showErrorMessage(
-            LocalizedConstants.msgPromptRetryConnectionDifferentCredentials,
-            LocalizedConstants.retryLabel,
-        );
-
-        return result === LocalizedConstants.retryLabel;
-    }
-
-    private fillOrPromptForMissingInfo(
-        selection: IConnectionCredentialsQuickPickItem,
-        shouldSaveUpdates: boolean = true,
-    ): Promise<IConnectionInfo> {
-        // If a connection string is present, don't prompt for any other info
-        if (selection.connectionCreds.connectionString) {
-            return new Promise<IConnectionInfo>((resolve, reject) => {
-                resolve(selection.connectionCreds);
-            });
-        }
-
-        const passwordEmptyInConfigFile: boolean = Utils.isEmpty(
-            selection.connectionCreds.password,
-        );
-        return this._connectionStore.addSavedPassword(selection).then((sel) => {
-            return ConnectionCredentials.ensureRequiredPropertiesSet(
-                sel.connectionCreds,
-                selection.quickPickItemType === CredentialsQuickPickItemType.Profile,
-                false,
-                passwordEmptyInConfigFile,
-                this._prompter,
-                this._connectionStore,
-                undefined, // defaultProfileValues
-                shouldSaveUpdates,
-            );
-        });
-    }
-
     public async addNewAccount(): Promise<IAccount> {
         return await this.connectionManager.azureController.addAccount(this._accountStore);
     }
 
-    // Prompts the user to pick a profile for removal, then removes from the global saved state
+    /**
+     * Prompts the user to pick a profile for removal, then removes from the global saved state
+     */
     public async removeProfile(): Promise<boolean> {
         let self = this;
 

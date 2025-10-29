@@ -12,6 +12,7 @@ import { ConnectionGroupSpec, ConnectionGroupState } from "./connectionGroup";
 import { RequestType } from "vscode-jsonrpc/browser";
 import { FabricSqlDbInfo, FabricWorkspaceInfo } from "./fabric";
 import { ChangePasswordResult, ChangePasswordWebviewState } from "./changePassword";
+import { DialogMessageSpec } from "./dialogMessage";
 
 export class ConnectionDialogWebviewState
     implements
@@ -50,7 +51,7 @@ export class ConnectionDialogWebviewState
     public recentConnections: IConnectionDialogProfile[] = [];
     public connectionStatus: ApiStatus = ApiStatus.NotStarted;
     public readyToConnect: boolean = false;
-    public formError: string = "";
+    public formMessage: DialogMessageSpec | undefined;
     public dialog: IDialogProps | undefined;
 
     public selectedAccountId: string | undefined;
@@ -86,7 +87,8 @@ export interface IDialogProps {
         | "addFirewallRule"
         | "loadFromConnectionString"
         | "createConnectionGroup"
-        | "changePassword";
+        | "changePassword"
+        | "armSql2025Error";
 }
 
 export interface TrustServerCertDialogProps extends IDialogProps {
@@ -223,6 +225,7 @@ export interface ConnectionDialogContextProps
     selectAzureAccount: (accountId: string) => void;
     selectAzureTenant: (tenantId: string) => void;
     selectFabricWorkspace: (workspaceId: string) => void;
+    messageButtonClicked: (buttonId: string) => void;
 
     // Request handlers
     getConnectionDisplayName: (connection: IConnectionDialogProfile) => Promise<string>;
@@ -267,6 +270,7 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     selectAzureAccount: { accountId: string };
     selectAzureTenant: { tenantId: string };
     selectFabricWorkspace: { workspaceId: string };
+    messageButtonClicked: { buttonId: string };
 }
 
 export namespace GetConnectionDisplayNameRequest {

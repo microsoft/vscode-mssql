@@ -122,7 +122,8 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
                 input={{ style: { textOverflow: "ellipsis" } }}
                 listbox={{ style: { minWidth: "fit-content" } }}
                 onOptionSelect={(_, data) => setHighlightMetricSelected(data.optionText ?? "")}
-                ref={inputRef}>
+                ref={inputRef}
+                aria-label={locConstants.executionPlan.metric}>
                 {highlightMetricOptions.map((option) => (
                     <Option key={option}>{option}</Option>
                 ))}

@@ -20,19 +20,8 @@ import {
     CREATE_NEW_GROUP_ID,
     CreateConnectionGroupDialogProps,
 } from "../../../sharedInterfaces/connectionGroup";
-import {
-    Button,
-    Field,
-    Image,
-    Link,
-    makeStyles,
-    MessageBar,
-    MessageBarActions,
-    MessageBarBody,
-    Radio,
-    RadioGroup,
-} from "@fluentui/react-components";
-import { DismissRegular, Form20Regular } from "@fluentui/react-icons";
+import { Field, Link, makeStyles, Radio, RadioGroup } from "@fluentui/react-components";
+import { Form20Regular } from "@fluentui/react-icons";
 import { FormField, useFormStyles } from "../../common/forms/form.component";
 import { ReactNode, useContext } from "react";
 
@@ -43,13 +32,13 @@ import { ConnectionHeader } from "./components/connectionHeader.component";
 import { TrustServerCertificateDialog } from "./components/trustServerCertificateDialog.component";
 import { ConnectionStringDialog } from "./components/connectionStringDialog.component";
 import { locConstants } from "../../common/locConstants";
-import { themeType } from "../../common/utils";
 import { AddFirewallRuleDialog } from "../AddFirewallRule/addFirewallRule.component";
-import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { ConnectionGroupDialog } from "../ConnectionGroup/connectionGroup.component";
 import { SearchableDropdownOptions } from "../../common/searchableDropdown.component";
 import { FabricBrowsePage } from "./fabricBrowsePage";
+import { AzureIcon20, FabricIcon20 } from "../../common/icons/fluentIcons";
 import { ChangePasswordDialog } from "../ChangePassword/changePasswordDialog";
+import { DialogMessage } from "../../common/dialogMessage";
 
 function renderContent(connectionDialogContext: ConnectionDialogContextProps): ReactNode {
     switch (connectionDialogContext?.state.selectedInputMode) {
@@ -79,24 +68,6 @@ export const ConnectionInfoFormContainer = () => {
             ? (context.state.dialog as ChangePasswordDialogProps).props
             : undefined;
 
-    function azureIcon(colorTheme: ColorThemeKind) {
-        const theme = themeType(colorTheme);
-        const saveIcon =
-            theme === "dark"
-                ? require("../../media/azure-inverse.svg")
-                : require("../../media/azure.svg");
-        return saveIcon;
-    }
-
-    function fabricIcon(colorTheme: ColorThemeKind) {
-        const theme = themeType(colorTheme);
-        const saveIcon =
-            theme === "dark"
-                ? require("../../media/fabric-inverse.svg")
-                : require("../../media/fabric.svg");
-        return saveIcon;
-    }
-
     function handleConnect(event: React.FormEvent) {
         event.preventDefault();
         context.connect();
@@ -107,22 +78,12 @@ export const ConnectionInfoFormContainer = () => {
             <ConnectionHeader />
 
             <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
-                {context.state.formError && (
-                    <MessageBar intent="error" style={{ minHeight: "min-content" }}>
-                        <MessageBarBody style={{ padding: "8px 0" }}>
-                            {context.state.formError}
-                        </MessageBarBody>
-                        <MessageBarActions
-                            containerAction={
-                                <Button
-                                    onClick={context.closeMessage}
-                                    aria-label={locConstants.common.dismiss}
-                                    appearance="transparent"
-                                    icon={<DismissRegular />}
-                                />
-                            }
-                        />
-                    </MessageBar>
+                {context.state.formMessage && (
+                    <DialogMessage
+                        message={context.state.formMessage}
+                        onMessageButtonClicked={context.messageButtonClicked}
+                        onCloseMessage={context.closeMessage}
+                    />
                 )}
 
                 {context.state.dialog?.type === "trustServerCert" && (
@@ -228,13 +189,7 @@ export const ConnectionInfoFormContainer = () => {
                                 value={ConnectionInputMode.AzureBrowse}
                                 label={
                                     <div className={styles.inputLink}>
-                                        <Image
-                                            src={azureIcon(context.themeKind)}
-                                            alt="Azure"
-                                            height={20}
-                                            width={20}
-                                            style={{ marginRight: "8px" }}
-                                        />
+                                        <AzureIcon20 style={{ marginRight: "8px" }} />
                                         {locConstants.connectionDialog.browseAzure}
                                     </div>
                                 }
@@ -243,13 +198,7 @@ export const ConnectionInfoFormContainer = () => {
                                 value={ConnectionInputMode.FabricBrowse}
                                 label={
                                     <div className={styles.inputLink}>
-                                        <Image
-                                            src={fabricIcon(context.themeKind)}
-                                            alt={"Fabric"}
-                                            height={20}
-                                            width={20}
-                                            style={{ marginRight: "8px" }}
-                                        />
+                                        <FabricIcon20 style={{ marginRight: "8px" }} />
                                         {locConstants.connectionDialog.browseFabric}
                                     </div>
                                 }
