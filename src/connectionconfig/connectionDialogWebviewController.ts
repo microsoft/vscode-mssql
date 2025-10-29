@@ -71,7 +71,7 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import { configSelectedAzureSubscriptions, defaultPortNumber } from "../constants/constants";
+import { configSelectedAzureSubscriptions } from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
@@ -887,9 +887,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             cleanedConnection.attestationProtocol = undefined;
             cleanedConnection.enclaveAttestationUrl = undefined;
         }
-
-        // If there's no port specified, set it to the default port number
-        cleanedConnection.port = cleanedConnection.port ?? defaultPortNumber;
 
         return cleanedConnection;
     }
