@@ -52,24 +52,22 @@ export const ConnectionSection: React.FC = () => {
     };
 
     return (
-        <div className={formStyles.formComponentDiv}>
-            <div className={styles.root}>
-                {renderInput(serverComponent, localServer, publishCtx, {
-                    readOnly: true,
-                    contentAfter: (
-                        <Button
-                            size="small"
-                            aria-label="Connect to server"
-                            icon={<PlugDisconnectedRegular />}
-                            appearance="transparent"
-                            onClick={() => {
-                                publishCtx.openConnectionDialog();
-                            }}
-                        />
-                    ),
-                })}
-                {renderCombobox(databaseComponent, localDatabase, false, handleDatabaseChange)}
-            </div>
+        <div className={styles.root}>
+            {renderInput(serverComponent, localServer, publishCtx, {
+                readOnly: true,
+                contentAfter: (
+                    <Button
+                        size="small"
+                        aria-label="Connect to server"
+                        icon={<PlugDisconnectedRegular />}
+                        appearance="transparent"
+                        onClick={() => {
+                            publishCtx.openConnectionDialog();
+                        }}
+                    />
+                ),
+            })}
+            {renderCombobox(databaseComponent, localDatabase, false, handleDatabaseChange)}
         </div>
     );
 };
