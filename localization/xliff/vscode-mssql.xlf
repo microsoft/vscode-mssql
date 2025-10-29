@@ -2026,6 +2026,9 @@
       <source xml:lang="en">Loading summary for {0} rows (Click to cancel)</source>
       <note>{0} is the total number of rows</note>
     </trans-unit>
+    <trans-unit id="++CODE++128f2373a3147694ff5bcaab3d428611eba44a540cb348d9d263f855c0ee2a2d">
+      <source xml:lang="en">Loading table data...</source>
+    </trans-unit>
     <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
       <source xml:lang="en">Loading tenants...</source>
     </trans-unit>
@@ -2251,6 +2254,9 @@
     </trans-unit>
     <trans-unit id="++CODE++87a122216f22b55fd29964cf75c886ef5da5cd8369e2a6e24c73ec0ad22227ba">
       <source xml:lang="en">No connection was found. Please connect to a server first.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
+      <source xml:lang="en">No data available</source>
     </trans-unit>
     <trans-unit id="++CODE++3280128c0901d1323dde9a406ee7d2d6e8e1b98fd30971fa6134b302fec41eca">
       <source xml:lang="en">No database objects found matching &apos;{0}&apos;</source>

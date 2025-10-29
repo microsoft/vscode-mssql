@@ -746,6 +746,8 @@
     "Previous Page": "Previous Page",
     "Next Page": "Next Page",
     "Last Page": "Last Page",
+    "Loading table data...": "Loading table data...",
+    "No data available": "No data available",
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
