@@ -9,7 +9,6 @@ import { PlugDisconnectedRegular } from "@fluentui/react-icons";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
 import { renderInput, renderCombobox } from "./FormFieldComponents";
-import { useFormStyles } from "../../../common/forms/form.component";
 
 const useStyles = makeStyles({
     root: {
@@ -23,7 +22,6 @@ const useStyles = makeStyles({
 
 export const ConnectionSection: React.FC = () => {
     const publishCtx = useContext(PublishProjectContext);
-    const formStyles = useFormStyles();
     const styles = useStyles();
     const serverComponent = usePublishDialogSelector((s) => s.formComponents.serverName);
     const databaseComponent = usePublishDialogSelector((s) => s.formComponents.databaseName);
