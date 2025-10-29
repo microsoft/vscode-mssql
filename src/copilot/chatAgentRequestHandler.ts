@@ -1120,16 +1120,19 @@ export const provideFollowups = (
     // If connected, suggest database operations
     return [
         {
-            prompt: loc.followUpListAllSchemas,
-            label: loc.followUpListAllSchemas,
+            prompt: "",
+            label: "/listSchemas",
+            command: "listSchemas",
         } satisfies vscode.ChatFollowup,
         {
             prompt: loc.followUpShowRandomTableDefinition,
             label: loc.followUpShowRandomTableDefinition,
+            command: "",
         } satisfies vscode.ChatFollowup,
         {
             prompt: loc.followUpCountTables,
             label: loc.followUpCountTables,
+            command: "",
         } satisfies vscode.ChatFollowup,
     ];
 };

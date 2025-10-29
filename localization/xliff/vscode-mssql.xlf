@@ -1890,9 +1890,6 @@
     <trans-unit id="++CODE++b77fb88f6365c7aa62b75d120b96e1859e449166ac52bd58301306032102daf0">
       <source xml:lang="en">List all connections registered with the mssql extension?</source>
     </trans-unit>
-    <trans-unit id="++CODE++945603ffd7a2928c1725f609938b7a13324684f1e8b7407b8571adeb97a0cdf4">
-      <source xml:lang="en">List all schemas</source>
-    </trans-unit>
     <trans-unit id="++CODE++abfc45dd4a240e3758d4d22759dd9fc99cc5e1d16aec7594708638c368bddb3d">
       <source xml:lang="en">List databases for connection &apos;{0}&apos;?</source>
       <note>{0} is the connection ID</note>
@@ -3622,6 +3619,9 @@
     </trans-unit>
     <trans-unit id="++CODE++075b0e112ce5f3585bf21875b678fb678865a30c79d482cd01098957e6497c28">
       <source xml:lang="en">intelliSenseUpdated</source>
+    </trans-unit>
+    <trans-unit id="++CODE++75503f1689379ab9bb37f981cdc02494d3988fefc0cd7372446a63b8ff036098">
+      <source xml:lang="en">listSchemas</source>
     </trans-unit>
     <trans-unit id="++CODE++e6eaea18e885e1078829b56df34896be5ab51439e8f0ba00cb1624b2c572c10e">
       <source xml:lang="en">location</source>
