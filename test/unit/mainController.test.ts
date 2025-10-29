@@ -3,8 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
-import * as TypeMoq from "typemoq";
+import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
+import { expect } from "chai";
+import * as chai from "chai";
 import * as vscode from "vscode";
 import * as Extension from "../../src/extension";
 import MainController from "../../src/controllers/mainController";
@@ -15,74 +17,83 @@ import { activateExtension } from "./utils";
 import { SchemaCompareEndpointInfo } from "vscode-mssql";
 import * as Constants from "../../src/constants/constants";
 
+chai.use(sinonChai);
+
 suite("MainController Tests", function () {
+    let sandbox: sinon.SinonSandbox;
     let mainController: MainController;
-    let connectionManager: TypeMoq.IMock<ConnectionManager>;
+    let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
 
     setup(async () => {
+        sandbox = sinon.createSandbox();
         // Need to activate the extension to get the mainController
         await activateExtension();
 
         // Using the mainController that was instantiated with the extension
         mainController = await Extension.getController();
 
-        // Setting up a mocked connectionManager
-        let mockContext: TypeMoq.IMock<vscode.ExtensionContext> =
-            TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        connectionManager = TypeMoq.Mock.ofType(
-            ConnectionManager,
-            TypeMoq.MockBehavior.Loose,
-            mockContext.object,
-        );
-        mainController.connectionManager = connectionManager.object;
-        mainController.sqlDocumentService["_connectionMgr"] = connectionManager.object;
+        // Setting up a stubbed connectionManager
+        connectionManager = sandbox.createStubInstance(ConnectionManager);
+        mainController.connectionManager = connectionManager;
+        (mainController.sqlDocumentService as any)["_connectionMgr"] = connectionManager;
+    });
+
+    teardown(() => {
+        sandbox.restore();
     });
 
     test("validateTextDocumentHasFocus returns false if there is no active text document", () => {
-        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
-        vscodeWrapperMock.setup((x) => x.activeTextEditorUri).returns(() => undefined);
-        let controller: MainController = new MainController(
+        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        let getterCalls = 0;
+        sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => {
+            getterCalls += 1;
+            return undefined;
+        });
+        const controller: MainController = new MainController(
             TestExtensionContext.object,
             undefined, // ConnectionManager
-            vscodeWrapperMock.object,
+            vscodeWrapper,
         );
 
-        let result = (controller as any).validateTextDocumentHasFocus();
-        assert.equal(
+        const result = (controller as any).validateTextDocumentHasFocus();
+
+        expect(
             result,
-            false,
             "Expected validateTextDocumentHasFocus to return false when the active document URI is undefined",
-        );
-        vscodeWrapperMock.verify((x) => x.activeTextEditorUri, TypeMoq.Times.once());
+        ).to.be.false;
+        expect(getterCalls).to.equal(1);
     });
 
     test("validateTextDocumentHasFocus returns true if there is an active text document", () => {
-        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
-        vscodeWrapperMock.setup((x) => x.activeTextEditorUri).returns(() => "test_uri");
-        let controller: MainController = new MainController(
+        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "test_uri");
+        const controller: MainController = new MainController(
             TestExtensionContext.object,
             undefined, // ConnectionManager
-            vscodeWrapperMock.object,
+            vscodeWrapper,
         );
 
-        let result = (controller as any).validateTextDocumentHasFocus();
-        assert.equal(
+        const result = (controller as any).validateTextDocumentHasFocus();
+
+        expect(
             result,
-            true,
             "Expected validateTextDocumentHasFocus to return true when the active document URI is not undefined",
-        );
+        ).to.be.true;
     });
 
     test("onManageProfiles should call the connection manager to manage profiles", async () => {
-        let vscodeWrapperMock: TypeMoq.IMock<VscodeWrapper> = TypeMoq.Mock.ofType(VscodeWrapper);
-        connectionManager.setup((c) => c.onManageProfiles());
-        let controller: MainController = new MainController(
+        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        connectionManager.onManageProfiles.resolves();
+
+        const controller: MainController = new MainController(
             TestExtensionContext.object,
-            connectionManager.object,
-            vscodeWrapperMock.object,
+            connectionManager,
+            vscodeWrapper,
         );
+
         await controller.onManageProfiles();
-        connectionManager.verify((c) => c.onManageProfiles(), TypeMoq.Times.once());
+
+        expect(connectionManager.onManageProfiles).to.have.been.calledOnce;
     });
 
     test("runComparison command should call onSchemaCompare on the controller", async () => {
@@ -121,18 +132,10 @@ suite("MainController Tests", function () {
                 gotRunComparison = wrapped.runComparison ?? false;
             }
 
-            assert.equal(called, true, "Expected onSchemaCompare to be called");
-            assert.deepStrictEqual(
-                gotMaybeSource,
-                src,
-                "Expected source passed through to handler",
-            );
-            assert.deepStrictEqual(
-                gotMaybeTarget,
-                tgt,
-                "Expected target passed through to handler",
-            );
-            assert.equal(gotRunComparison, false, "Expected runComparison to be false");
+            expect(called, "Expected onSchemaCompare to be called").to.be.true;
+            expect(gotMaybeSource, "Expected source passed through to handler").to.deep.equal(src);
+            expect(gotMaybeTarget, "Expected target passed through to handler").to.deep.equal(tgt);
+            expect(gotRunComparison, "Expected runComparison to be false").to.be.false;
         } finally {
             // restore original handler so the test doesn't leak state
             (mainController as any).onSchemaCompare = originalHandler;
@@ -160,12 +163,11 @@ suite("MainController Tests", function () {
                 testProjectPath,
             );
 
-            assert.equal(called, true, "Expected onPublishDatabaseProject to be called");
-            assert.deepStrictEqual(
+            expect(called, "Expected onPublishDatabaseProject to be called").to.be.true;
+            expect(
                 gotProjectFilePath,
-                testProjectPath,
                 "Expected projectFilePath passed through to handler",
-            );
+            ).to.equal(testProjectPath);
         } finally {
             // restore original handler so the test doesn't leak state
             mainController.onPublishDatabaseProject = originalHandler;

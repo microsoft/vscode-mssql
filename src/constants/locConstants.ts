@@ -1251,6 +1251,12 @@ export class LocalContainers {
     public static containerNamePlaceholder = l10n.t("Enter container name");
     public static portPlaceholder = l10n.t("Enter port");
     public static hostnamePlaceholder = l10n.t("Enter hostname");
+    public static sqlServer2025ArmError = l10n.t(
+        "SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.",
+    );
+    public static sqlServer2025ArmErrorTooltip = l10n.t(
+        "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
+    );
 }
 
 export class UserSurvey {
@@ -1307,7 +1313,10 @@ export class TableDesigner {
 export class PublishProject {
     public static Title = l10n.t("Publish Project");
     public static PublishProfileLabel = l10n.t("Publish Profile");
-    public static PublishProfilePlaceholder = l10n.t("Select or enter a publish profile");
+    public static PublishProfilePlaceholder = l10n.t("Load profile...");
+    public static SelectPublishProfile = l10n.t("Select Profile");
+    public static SaveAs = l10n.t("Save As");
+    public static PublishSettingsFile = l10n.t("Publish Settings File");
     public static ServerLabel = l10n.t("Server");
     public static DatabaseLabel = l10n.t("Database");
     public static DatabaseRequiredMessage = l10n.t("Database name is required");
@@ -1338,6 +1347,12 @@ export class PublishProject {
     };
     public static RequiredFieldMessage = l10n.t("Required");
     public static LicenseAcceptanceMessage = l10n.t("You must accept the license");
+    public static PublishProfileLoadFailed = l10n.t("Failed to load publish profile");
+    public static PublishProfileSavedSuccessfully = (path: string) => {
+        return l10n.t("Publish profile saved to: {0}", path);
+    };
+    public static PublishProfileSaveFailed = l10n.t("Failed to save publish profile");
+    public static DacFxServiceNotAvailable = l10n.t("DacFx service is not available");
 }
 
 export class SchemaCompare {

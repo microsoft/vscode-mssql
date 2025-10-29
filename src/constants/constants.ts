@@ -167,6 +167,11 @@ export const databaseString = "Database";
 export const localizedTexts = "localizedTexts";
 export const ipAddressRegex =
     /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
+export const xml = "xml";
+export const json = "json";
+export const queryPlan = "Query Plan";
+export const queryPlanXmlStart = "<ShowPlanXML";
+
 /**
  * Azure Firewall rule name convention is specified here:
  * https://azure.github.io/PSRule.Rules.Azure/en/rules/Azure.Firewall.Name/
@@ -311,3 +316,4 @@ export const DefaultAdminUsername = "sa";
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
 export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
+export const PublishProfileExtension = "publish.xml";

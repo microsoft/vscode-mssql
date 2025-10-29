@@ -97,6 +97,7 @@ export const DesignerDropdown = ({
                 selectedOption={{
                     value: value[0],
                 }}
+                ariaLabel={component.componentProperties.title}
             />
         </Field>
     );
