@@ -1490,12 +1490,12 @@
       <note>{0} is the tenant id
 {1} is the account name</note>
     </trans-unit>
-    <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
-      <source xml:lang="en">Failed to load publish profile</source>
-    </trans-unit>
     <trans-unit id="++CODE++d1167662f9f4ae95339878cfc71934cb03fce7f402dd7648b10e281fad1a6c4e">
       <source xml:lang="en">Failed to load data: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
+      <source xml:lang="en">Failed to load publish profile</source>
     </trans-unit>
     <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
       <source xml:lang="en">Failed to open scmp file: &apos;{0}&apos;</source>
@@ -1513,9 +1513,6 @@
       <note>{0} is the connection id
 {1} is the uri</note>
     </trans-unit>
-    <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
-      <source xml:lang="en">Failed to save publish profile</source>
-    </trans-unit>
     <trans-unit id="++CODE++e63c0b0e63209727946a87b02022f9648e8632a2b450e52618307c2107df5ead">
       <source xml:lang="en">Failed to remove row: {0}</source>
       <note>{0} is the error message</note>
@@ -1531,6 +1528,9 @@
     <trans-unit id="++CODE++07e849b745794c4b9068165d834b1819e8cc4663ec8a733b07337a06d1375fcb">
       <source xml:lang="en">Failed to save changes: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
+      <source xml:lang="en">Failed to save publish profile</source>
     </trans-unit>
     <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
       <source xml:lang="en">Failed to save results. </source>
@@ -4428,9 +4428,6 @@
     </trans-unit>
     <trans-unit id="mssql.chooseDatabase">
       <source xml:lang="en">Use Database</source>
-    </trans-unit>
-    <trans-unit id="mssql.useLegacyConnectionExperience.description">
-      <source xml:lang="en">Use the legacy connection experience instead of the modern experience.</source>
     </trans-unit>
     <trans-unit id="mssql.tableExplorer">
       <source xml:lang="en">View Data (Preview)</source>
