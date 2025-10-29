@@ -19,6 +19,7 @@ import {
 } from "./azureHelperStubs";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
 import { GenericResourceExpanded } from "@azure/arm-resources";
+import { ConnectionDialogWebviewState } from "../../src/sharedInterfaces/connectionDialog";
 
 suite("Azure Helpers", () => {
     let sandbox: sinon.SinonSandbox;
@@ -253,7 +254,7 @@ suite("Azure Helpers", () => {
 
             sandbox.stub(vscode.workspace, "getConfiguration").returns({
                 get: sandbox.stub().returns(undefined),
-            } as any);
+            } as unknown as vscode.WorkspaceConfiguration);
 
             const items = await azureHelpers.getSubscriptionQuickPickItems(mockAuth);
 
@@ -293,7 +294,7 @@ suite("Azure Helpers", () => {
             // Only user1's instance should be selected
             sandbox.stub(vscode.workspace, "getConfiguration").returns({
                 get: sandbox.stub().returns(["user1@example.com/shared-tenant-id/shared-sub-id"]),
-            } as any);
+            } as unknown as vscode.WorkspaceConfiguration);
 
             const items = await azureHelpers.getSubscriptionQuickPickItems(mockAuth);
 
@@ -326,7 +327,7 @@ suite("Azure Helpers", () => {
 
             sandbox.stub(vscode.workspace, "getConfiguration").returns({
                 get: sandbox.stub().returns(["user+tag@sub.domain.com/tenant-id/sub-id"]),
-            } as any);
+            } as unknown as vscode.WorkspaceConfiguration);
 
             const items = await azureHelpers.getSubscriptionQuickPickItems(mockAuth);
 
@@ -338,6 +339,92 @@ suite("Azure Helpers", () => {
             expect(subscriptionItems).to.have.lengthOf(1);
             expect(subscriptionItems[0].group).to.equal("user+tag@sub.domain.com");
             expect(subscriptionItems[0].picked).to.be.true;
+        });
+    });
+
+    suite("promptForAzureSubscriptionFilter", () => {
+        let mockState: Partial<ConnectionDialogWebviewState>;
+        let showQuickPickStub: sinon.SinonStub;
+        let updateConfigStub: sinon.SinonStub;
+
+        setup(() => {
+            mockState = {
+                formMessage: undefined,
+            };
+
+            showQuickPickStub = sandbox.stub(vscode.window, "showQuickPick");
+            updateConfigStub = sandbox.stub();
+
+            sandbox.stub(vscode.workspace, "getConfiguration").returns({
+                get: sandbox.stub().returns([]),
+                update: updateConfigStub,
+            } as unknown as vscode.WorkspaceConfiguration);
+
+            const mockAuth = {
+                getSubscriptions: sandbox.stub().resolves([
+                    {
+                        name: "Test Subscription",
+                        subscriptionId: "sub-id-1",
+                        tenantId: "tenant-id-1",
+                        account: { label: "user@example.com" },
+                    },
+                ]),
+            } as unknown as MssqlVSCodeAzureSubscriptionProvider;
+
+            sandbox.stub(azureHelpers.VsCodeAzureHelper, "signIn").resolves(mockAuth);
+        });
+
+        test("returns false when user cancels selection", async () => {
+            showQuickPickStub.resolves(undefined);
+
+            const result = await azureHelpers.promptForAzureSubscriptionFilter(
+                mockState as ConnectionDialogWebviewState,
+                mockLogger,
+            );
+
+            expect(result).to.be.false;
+            expect(updateConfigStub.called).to.be.false;
+        });
+
+        test("returns true and updates config when user selects subscriptions", async () => {
+            const selectedItems = [
+                {
+                    label: "Test Subscription",
+                    group: "user@example.com",
+                    tenantId: "tenant-id-1",
+                    subscriptionId: "sub-id-1",
+                },
+            ];
+            showQuickPickStub.resolves(selectedItems);
+
+            const result = await azureHelpers.promptForAzureSubscriptionFilter(
+                mockState as ConnectionDialogWebviewState,
+                mockLogger,
+            );
+
+            expect(result).to.be.true;
+            expect(updateConfigStub.calledOnce).to.be.true;
+            expect(
+                updateConfigStub.calledWith(
+                    "mssql.selectedAzureSubscriptions",
+                    ["user@example.com/tenant-id-1/sub-id-1"],
+                    vscode.ConfigurationTarget.Global,
+                ),
+            ).to.be.true;
+        });
+
+        test("returns false and sets error message on exception", async () => {
+            showQuickPickStub.rejects(new Error("Test error"));
+
+            const result = await azureHelpers.promptForAzureSubscriptionFilter(
+                mockState as ConnectionDialogWebviewState,
+                mockLogger,
+            );
+
+            expect(result).to.be.false;
+            expect(mockState.formMessage).to.not.be.undefined;
+            expect(mockState.formMessage!.message).to.contain("Error loading Azure subscriptions");
+            expect((mockLogger.error as sinon.SinonStub).called).to.be.true;
         });
     });
 });

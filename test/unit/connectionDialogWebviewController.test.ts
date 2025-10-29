@@ -44,6 +44,8 @@ import {
     stubVscodeAzureHelperGetAccounts,
     mockServerName,
     mockUserName,
+    mockAccounts,
+    mockTenants,
 } from "./azureHelperStubs";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
@@ -57,6 +59,7 @@ import { errorPasswordExpired } from "../../src/constants/constants";
 import { FirewallRuleSpec } from "../../src/sharedInterfaces/firewallRule";
 import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
+import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
 
 chai.use(sinonChai);
 
@@ -728,6 +731,70 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(controller.state.dialog).to.be.undefined;
             });
         });
+
+        suite("loadAzureServers", () => {
+            test("loads Azure servers for a specific subscription", async () => {
+                const testSubscriptionId = "test-sub-id";
+                const testTenantId = "test-tenant-id";
+
+                // Setup state with subscription
+                controller.state.azureSubscriptions = [
+                    {
+                        id: testSubscriptionId,
+                        name: "Test Subscription",
+                        tenantId: testTenantId,
+                        loaded: false,
+                    },
+                ];
+
+                // Stub the loadAzureServersForSubscription method
+                const loadServersStub = sandbox
+                    .stub(
+                        controller as unknown as { loadAzureServersForSubscription: () => void },
+                        "loadAzureServersForSubscription",
+                    )
+                    .resolves();
+
+                await controller["_reducerHandlers"].get("loadAzureServers")(controller.state, {
+                    subscriptionId: testSubscriptionId,
+                });
+
+                expect(loadServersStub).to.have.been.calledOnceWith(
+                    controller.state,
+                    testTenantId,
+                    testSubscriptionId,
+                );
+            });
+
+            test("does nothing when subscription is not found", async () => {
+                const nonExistentSubscriptionId = "non-existent-sub-id";
+
+                // Setup state with no matching subscription
+                controller.state.azureSubscriptions = [
+                    {
+                        id: "different-sub-id",
+                        name: "Different Subscription",
+                        tenantId: "different-tenant-id",
+                        loaded: false,
+                    },
+                ];
+
+                // Stub the loadAzureServersForSubscription method
+                const loadServersStub = sandbox
+                    .stub(
+                        controller as unknown as { loadAzureServersForSubscription: () => void },
+                        "loadAzureServersForSubscription",
+                    )
+                    .resolves();
+
+                await controller["_reducerHandlers"].get("loadAzureServers")(controller.state, {
+                    subscriptionId: nonExistentSubscriptionId,
+                });
+
+                // Should not call loadAzureServersForSubscription when subscription not found
+                expect(loadServersStub).to.not.have.been.called;
+            });
+        });
     });
 
     test("getAzureActionButtons", async () => {
@@ -757,5 +824,147 @@ suite("ConnectionDialogWebviewController Tests", () => {
         buttons = await controller["getAzureActionButtons"]();
         expect(buttons.length).to.equal(2);
         expect(buttons[1].id).to.equal("refreshToken");
+    });
+
+    suite("refreshAzureTokensForAllAccounts", () => {
+        test("handles account not found gracefully", async () => {
+            const { MssqlVSCodeAzureSubscriptionProvider } = await import(
+                "../../src/azure/MssqlVSCodeAzureSubscriptionProvider"
+            );
+            const mockAuth = sandbox.createStubInstance(MssqlVSCodeAzureSubscriptionProvider);
+
+            const testAccounts = [{ id: "non-existent-id", name: "Non-existent Account" }];
+
+            // Stub VsCodeAzureHelper.getAccountById to return undefined
+            const getAccountByIdStub = sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "getAccountById")
+                .resolves(undefined);
+
+            await controller["refreshAzureTokensForAllAccounts"](mockAuth, testAccounts);
+
+            expect(getAccountByIdStub).to.have.been.calledOnceWith("non-existent-id");
+            // getTenants should not be called if account info is not found
+            expect(mockAuth.getTenants.called).to.be.false;
+        });
+
+        test("handles already signed in tenants", async () => {
+            const { MssqlVSCodeAzureSubscriptionProvider } = await import(
+                "../../src/azure/MssqlVSCodeAzureSubscriptionProvider"
+            );
+            const mockAuth = sandbox.createStubInstance(MssqlVSCodeAzureSubscriptionProvider);
+
+            const testAccounts = [{ id: mockAccounts[0].id, name: "Test Account" }];
+
+            const mockAccountInfo = {
+                id: mockAccounts[0].id,
+                label: mockAccounts[0].label,
+            };
+
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "getAccountById")
+                .resolves(mockAccountInfo);
+
+            mockAuth.getTenants.resolves([mockTenants[0]]);
+            mockAuth.isSignedIn.resolves(true); // Already signed in
+            mockAuth.signIn.resolves();
+
+            await controller["refreshAzureTokensForAllAccounts"](mockAuth, testAccounts);
+
+            expect(mockAuth.getTenants).to.have.been.calledOnce;
+            expect(mockAuth.isSignedIn).to.have.been.calledOnceWith(
+                mockTenants[0].tenantId,
+                mockAccountInfo,
+            );
+            // signIn should not be called if already signed in
+            expect(mockAuth.signIn.called).to.be.false;
+        });
+
+        test("signs in to tenants that are not signed in", async () => {
+            const { MssqlVSCodeAzureSubscriptionProvider } = await import(
+                "../../src/azure/MssqlVSCodeAzureSubscriptionProvider"
+            );
+            const mockAuth = sandbox.createStubInstance(MssqlVSCodeAzureSubscriptionProvider);
+
+            const testAccounts = [{ id: mockAccounts[0].id, name: "Test Account" }];
+
+            const mockAccountInfo = {
+                id: mockAccounts[0].id,
+                label: mockAccounts[0].label,
+            };
+
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "getAccountById")
+                .resolves(mockAccountInfo);
+
+            mockAuth.getTenants.resolves([mockTenants[0]]);
+            mockAuth.isSignedIn.resolves(false); // Not signed in
+            mockAuth.signIn.resolves();
+
+            await controller["refreshAzureTokensForAllAccounts"](mockAuth, testAccounts);
+
+            expect(mockAuth.getTenants).to.have.been.calledOnce;
+            expect(mockAuth.isSignedIn).to.have.been.calledOnceWith(
+                mockTenants[0].tenantId,
+                mockAccountInfo,
+            );
+            // signIn should be called if not already signed in
+            expect(mockAuth.signIn).to.have.been.calledOnceWith(
+                mockTenants[0].tenantId,
+                mockAccountInfo,
+            );
+        });
+
+        test("handles tenant sign-in errors gracefully", async () => {
+            const { MssqlVSCodeAzureSubscriptionProvider } = await import(
+                "../../src/azure/MssqlVSCodeAzureSubscriptionProvider"
+            );
+            const mockAuth = sandbox.createStubInstance(MssqlVSCodeAzureSubscriptionProvider);
+
+            const testAccounts = [{ id: mockAccounts[0].id, name: "Test Account" }];
+
+            const mockAccountInfo = {
+                id: mockAccounts[0].id,
+                label: mockAccounts[0].label,
+            };
+
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "getAccountById")
+                .resolves(mockAccountInfo);
+
+            mockAuth.getTenants.resolves([mockTenants[0]]);
+            mockAuth.isSignedIn.resolves(false);
+            mockAuth.signIn.rejects(new Error("User cancelled sign in"));
+
+            // Should not throw despite error
+            await controller["refreshAzureTokensForAllAccounts"](mockAuth, testAccounts);
+
+            expect(mockAuth.signIn).to.have.been.calledOnce;
+        });
+
+        test("handles account-level errors gracefully", async () => {
+            const { MssqlVSCodeAzureSubscriptionProvider } = await import(
+                "../../src/azure/MssqlVSCodeAzureSubscriptionProvider"
+            );
+            const mockAuth = sandbox.createStubInstance(MssqlVSCodeAzureSubscriptionProvider);
+
+            const testAccounts = [{ id: mockAccounts[0].id, name: "Test Account" }];
+
+            const mockAccountInfo = {
+                id: mockAccounts[0].id,
+                label: mockAccounts[0].label,
+            };
+
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "getAccountById")
+                .resolves(mockAccountInfo);
+
+            // getTenants throws an error
+            mockAuth.getTenants.rejects(new Error("Network error"));
+
+            // Should not throw despite error
+            await controller["refreshAzureTokensForAllAccounts"](mockAuth, testAccounts);
+
+            expect(mockAuth.getTenants).to.have.been.calledOnce;
+        });
     });
 });

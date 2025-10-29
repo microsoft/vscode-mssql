@@ -157,5 +157,51 @@ suite("MssqlVSCodeAzureSubscriptionProvider Tests", () => {
             expect(subscriptionFilters).to.include("subscription-guid-1");
             expect(subscriptionFilters).to.include("subscription-guid-2");
         });
+
+        test("getTenantFilters handles malformed filter strings gracefully", async () => {
+            const mockFilterConfig = [
+                "account1@example.com/tenant1/subscription1",
+                "malformed-string", // No slashes
+                "account2@example.com/tenant2", // Missing subscription ID (only 2 parts)
+            ];
+
+            configStub.get
+                .withArgs("mssql.selectedAzureSubscriptions", sinon.match.any)
+                .returns(mockFilterConfig);
+
+            const provider = MssqlVSCodeAzureSubscriptionProvider.getInstance();
+            const tenantFilters = await (
+                provider as unknown as ITestableProvider
+            ).getTenantFilters();
+
+            // Should still extract what it can, even with malformed entries
+            expect(tenantFilters).to.have.lengthOf(3);
+            expect(tenantFilters[0]).to.equal("tenant1");
+            expect(tenantFilters[1]).to.be.undefined; // malformed-string.split("/")[1]
+            expect(tenantFilters[2]).to.equal("tenant2");
+        });
+
+        test("getSubscriptionFilters handles malformed filter strings gracefully", async () => {
+            const mockFilterConfig = [
+                "account1@example.com/tenant1/subscription1",
+                "malformed-string", // No slashes
+                "account2@example.com/tenant2", // Missing subscription ID (only 2 parts)
+            ];
+
+            configStub.get
+                .withArgs("mssql.selectedAzureSubscriptions", sinon.match.any)
+                .returns(mockFilterConfig);
+
+            const provider = MssqlVSCodeAzureSubscriptionProvider.getInstance();
+            const subscriptionFilters = await (
+                provider as unknown as ITestableProvider
+            ).getSubscriptionFilters();
+
+            // Should still extract what it can, even with malformed entries
+            expect(subscriptionFilters).to.have.lengthOf(3);
+            expect(subscriptionFilters[0]).to.equal("subscription1");
+            expect(subscriptionFilters[1]).to.be.undefined; // malformed-string.split("/")[2]
+            expect(subscriptionFilters[2]).to.be.undefined; // "account2@example.com/tenant2".split("/")[2]
+        });
     });
 });
