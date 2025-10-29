@@ -2180,7 +2180,7 @@ export default class MainController implements vscode.Disposable {
     ): Promise<boolean> {
         const activeEditor = vscode.window.activeTextEditor;
         const activeUri = activeEditor?.document.uri.toString();
-        const isSqlEditor = activeEditor?.document.languageId === "sql";
+        const isSqlEditor = activeEditor?.document.languageId === Constants.languageId;
         const isConnected = activeUri ? this.connectionManager.isConnected(activeUri) : false;
 
         sendActionEvent(
