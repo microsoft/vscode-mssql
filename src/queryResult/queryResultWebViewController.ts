@@ -45,7 +45,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
-        private executionPlanService: ExecutionPlanService,
+        private _executionPlanService: ExecutionPlanService,
         private _sqlOutputContentProvider: SqlOutputContentProvider,
     ) {
         super(context, vscodeWrapper, "queryResult", "queryResult", {
@@ -392,8 +392,16 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         return this._sqlOutputContentProvider;
     }
 
-    public getExecutionPlanService(): ExecutionPlanService {
-        return this.executionPlanService;
+    public getContext(): vscode.ExtensionContext {
+        return this._context;
+    }
+
+    public getVsCodeWrapper(): VscodeWrapper {
+        return this.vscodeWrapper;
+    }
+
+    public get executionPlanService(): ExecutionPlanService {
+        return this._executionPlanService;
     }
 
     public set sqlDocumentService(service: SqlDocumentService) {

@@ -259,6 +259,19 @@ export class HeaderMenu<T extends Slick.SlickData> {
             onClearSort: async () => {
                 await this.handleClearSort(this._columnDef, true);
             },
+            onResize: async () => {
+                await this.queryResultContext.openResizeDialog({
+                    open: true,
+                    columnId: columnId,
+                    columnName: this._columnDef.name ?? "",
+                    initialWidth: this._columnDef.width ?? 0,
+                    gridId: this.gridId,
+                    onDismiss: () => {
+                        this.resizeCancel();
+                    },
+                    onSubmit: (newWidth: number) => this.resizeColumn(columnId, newWidth),
+                });
+            },
             currentSort,
         });
 
@@ -753,6 +766,29 @@ export class HeaderMenu<T extends Slick.SlickData> {
                 }
             }
         }
+    }
+
+    /**
+     * Cancel the resize operation and refocus the grid
+     */
+    public resizeCancel(): void {
+        this._grid.focus();
+    }
+
+    /**
+     * Resize the specified column to the new width
+     * @param columnId resize column id
+     * @param newWidth new width in pixels
+     */
+    public resizeColumn(columnId: string, newWidth: number): void {
+        const columns = this._grid.getColumns();
+        const columnIndex = columns.findIndex((col) => col.id === columnId);
+        if (columnIndex >= 0) {
+            const column = columns[columnIndex];
+            column.width = newWidth;
+            this._grid.setColumns(columns);
+        }
+        this._grid.focus();
     }
 }
 

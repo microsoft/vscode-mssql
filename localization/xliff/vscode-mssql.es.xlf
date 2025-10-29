@@ -825,6 +825,11 @@
         <source xml:lang="en">Column name cannot be empty</source>
         <target state="translated">El nombre de la columna no puede estar vacío.</target>
       </trans-unit>
+      <trans-unit id="++CODE++79304c2a3f7dd799711c04e0513ca9fce1762fbdbf0e8dbd378987d42e35fee5">
+        <source xml:lang="en">Column width must be at least {0} pixels.</source>
+        <note>{0} is the minimum column width in pixels</note>
+        <target state="new">Column width must be at least {0} pixels.</target>
+      </trans-unit>
       <trans-unit id="++CODE++53aade77cd69a77bbb51bf8ca4e7ea8b282db75edce8883775e47042478d35b5">
         <source xml:lang="en">Columns</source>
         <target state="translated">Columnas</target>
@@ -867,7 +872,7 @@
       </trans-unit>
       <trans-unit id="++CODE++73dd96f4085ccfca56f43ca281a29ab8d195fe5fc79b4cb45be11d7830230d63">
         <source xml:lang="en">Confirm SQL Server admin password</source>
-        <target state="new">Confirm SQL Server admin password</target>
+        <target state="translated">Confirmar contraseña de administrador de SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++bf000421aeb39493cf8044ec73846d7da8ca97b7166208c0d1172a17ba23a388">
         <source xml:lang="en">Confirm new password</source>
@@ -1065,6 +1070,10 @@
         <source xml:lang="en">Container Name</source>
         <target state="translated">Nombre del contenedor</target>
       </trans-unit>
+      <trans-unit id="++CODE++ac2c68de32aa4911b308194e21f3d6754c675df3e7a84a21e90b097451b58572">
+        <source xml:lang="en">Container creation isn't supported on this system. ARM support will be available starting with the SQL Server 2025 CU1 container image.</source>
+        <target state="translated">No se admite la creación de contenedores en este sistema. La compatibilidad con ARM estará disponible a partir de la imagen de contenedor de SQL Server 2025 CU1.</target>
+      </trans-unit>
       <trans-unit id="++CODE++06659b52e63599b06c4386ad5423c3dc67b010f0dbbd03cba2f48b68ed1b62f5">
         <source xml:lang="en">Container does not exist. Would you like to remove the connection?</source>
         <target state="translated">El contenedor no existe. ¿Desea quitar la conexión?</target>
@@ -1233,6 +1242,10 @@
       <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
         <source xml:lang="en">Custom Zoom</source>
         <target state="translated">Zoom personalizado</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ef695e4c384e9b231d25ba5d0160913f31f4153f460e645129860fa611a52b27">
+        <source xml:lang="en">DacFx service is not available</source>
+        <target state="new">DacFx service is not available</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -1537,6 +1550,10 @@
         <source xml:lang="en">Enter description (optional)</source>
         <target state="translated">Escriba la descripción (opcional)</target>
       </trans-unit>
+      <trans-unit id="++CODE++657e6ba252bef59f38c0dbaab7e8e25d55503ba3a41d6ce527f92c88baea3576">
+        <source xml:lang="en">Enter desired column width in pixels</source>
+        <target state="new">Enter desired column width in pixels</target>
+      </trans-unit>
       <trans-unit id="++CODE++caaac8aa0d0641aea8406e7f1011aaeab33423fdd4ee9b3354ee88cc1487b0bf">
         <source xml:lang="en">Enter hostname</source>
         <target state="translated">Escriba el nombre de host</target>
@@ -1731,7 +1748,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b5f54c19df1649916f59331f9decf53dc337a2c241a3afb20d58810309ebe30f">
         <source xml:lang="en">Existing Azure SQL logical server</source>
-        <target state="new">Existing Azure SQL logical server</target>
+        <target state="translated">Servidor lógico de Azure SQL existente</target>
       </trans-unit>
       <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
         <source xml:lang="en">Existing SQL server</source>
@@ -1888,6 +1905,10 @@ Error:
 {1} is the account name</note>
         <target state="translated">No se pudo obtener el inquilino '{0}' para la cuenta '{1}'.</target>
       </trans-unit>
+      <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
+        <source xml:lang="en">Failed to load publish profile</source>
+        <target state="new">Failed to load publish profile</target>
+      </trans-unit>
       <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
         <note>{0} is the error message returned from the open scmp operation</note>
@@ -1902,6 +1923,10 @@ Error:
         <note>{0} is the connection id
 {1} is the uri</note>
         <target state="translated">No se pudo actualizar la conexión ${0} con uri {1}, resultado de conexión no válido.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
+        <source xml:lang="en">Failed to save publish profile</source>
+        <target state="new">Failed to save publish profile</target>
       </trans-unit>
       <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
         <source xml:lang="en">Failed to save results. </source>
@@ -2229,7 +2254,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++c4a77afa3d5cd701f32b5f09c195c635b256db8595687828c3ea0785ab5b72f4">
         <source xml:lang="en">Image tag</source>
-        <target state="new">Image tag</target>
+        <target state="translated">Etiqueta de imagen</target>
       </trans-unit>
       <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
         <source xml:lang="en">Importance</source>
@@ -2297,7 +2322,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++0c2f118ad5933157d00e2025f7cc3d3c3da84db32e18ffbb4f1032471cc643ef">
         <source xml:lang="en">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</source>
-        <target state="new">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</target>
+        <target state="translated">Contraseña de SQL Server no válida para {0}. La contraseña debe tener entre 8 y 128 caracteres y cumplir los requisitos de complejidad.  Para obtener más información, consulte https://docs.microsoft.com/sql/relational-databases/security/password-policy</target>
       </trans-unit>
       <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
         <source xml:lang="en">Invalid column width</source>
@@ -2501,6 +2526,10 @@ Error:
         <source xml:lang="en">Load from Connection String</source>
         <target state="translated">Cargar desde cadena de conexión</target>
       </trans-unit>
+      <trans-unit id="++CODE++323ed460497fcfa6d1f92f52778381421eefa8ba36a3e9896b3f05a4a2050ca2">
+        <source xml:lang="en">Load profile...</source>
+        <target state="new">Load profile...</target>
+      </trans-unit>
       <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
         <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
         <target state="translated">Cargue el origen, el destino y las opciones guardadas en un archivo .scmp</target>
@@ -2695,7 +2724,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ede0760e8703fdfcddf4d15e0406c0deeadd91e7907d2a3e7479c6a3d3e309e4">
         <source xml:lang="en">Microsoft SQL Server License Agreement</source>
-        <target state="new">Microsoft SQL Server License Agreement</target>
+        <target state="translated">Contrato de licencia de Microsoft SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++951f4af90cfde827d87f358b3d8d275ee60a3306d9ddb5c4615483cff067697a">
         <source xml:lang="en">Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.</source>
@@ -2748,7 +2777,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++47fcb7ca194ec7de1be8ea7b91df9b1e51e273673b6410255e55f48fe0061598">
         <source xml:lang="en">New Azure SQL logical server (Preview)</source>
-        <target state="new">New Azure SQL logical server (Preview)</target>
+        <target state="translated">Nuevo servidor lógico de Azure SQL (versión preliminar)</target>
       </trans-unit>
       <trans-unit id="++CODE++e7d029a3c1b85e562db8e25ceb52958e3c3da9e6e50b95ebf95f3fae85091a15">
         <source xml:lang="en">New Check Constraint</source>
@@ -2784,7 +2813,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++80e8f069713682d743cceecaad91cb538d199e18712328724d348491bfbb64af">
         <source xml:lang="en">New SQL Server local development container</source>
-        <target state="new">New SQL Server local development container</target>
+        <target state="translated">Nuevo contenedor de desarrollo local de SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -3183,7 +3212,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ed66c5818178010b7908ff51b8195453260bb97629cc433ea0b53795840b8645">
         <source xml:lang="en">Port must be a number between 1 and 65535</source>
-        <target state="new">Port must be a number between 1 and 65535</target>
+        <target state="translated">El puerto debe ser un número entre 1 y 65535.</target>
       </trans-unit>
       <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
         <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
@@ -3287,9 +3316,17 @@ Error:
         <source xml:lang="en">Publish Project</source>
         <target state="translated">Publicación del proyecto</target>
       </trans-unit>
+      <trans-unit id="++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f">
+        <source xml:lang="en">Publish Settings File</source>
+        <target state="new">Publish Settings File</target>
+      </trans-unit>
       <trans-unit id="++CODE++d5ce61b547d2e5793b2ac208be904ea9f94d5e5594d0c5c02bdda22abf61fcf0">
         <source xml:lang="en">Publish Target</source>
         <target state="translated">Publicar destino</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f9f3a475ce7608957aa4ae746b37117f26d543fb676f2f78eff8e185a3cbb143">
+        <source xml:lang="en">Publish profile saved to: {0}</source>
+        <target state="new">Publish profile saved to: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
         <source xml:lang="en">Publishing Changes</source>
@@ -3402,11 +3439,20 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
         <source xml:lang="en">Required</source>
-        <target state="new">Required</target>
+        <target state="translated">Obligatorio</target>
       </trans-unit>
       <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
         <source xml:lang="en">Reset</source>
         <target state="translated">Restablecer</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
+        <source xml:lang="en">Resize</source>
+        <target state="new">Resize</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fc71b6e1d435d817984f9c7394f47e21505efa2a9f81b5f3e17082ced1432cc7">
+        <source xml:lang="en">Resize column '{0}'</source>
+        <note>{0} is the name of the column</note>
+        <target state="new">Resize column '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
         <source xml:lang="en">Resource Group</source>
@@ -3513,13 +3559,21 @@ Consulta: {1}</target>
         <source xml:lang="en">SQL Plan Files</source>
         <target state="translated">Archivos de plan de SQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++0404cd9b41a2ccda40d68efcab8008a39503e1487a468ad37a26417a02df844f">
+        <source xml:lang="en">SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.</source>
+        <target state="translated">SQL Server 2025 no se admite en la arquitectura Arm. Seleccione otra versión de SQL Server.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++31aead661ae4eee1d516f5b824b2d74ec3221ad35899111d62eb58ea7a78aaf6">
+        <source xml:lang="en">SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.</source>
+        <target state="translated">SQL Server 2025 aún no es compatible con la arquitectura Arm. La compatibilidad con ARM estará disponible a partir de la imagen de contenedor de SQL Server 2025 CU1.</target>
+      </trans-unit>
       <trans-unit id="++CODE++8553f640204422619af23f71ce8e01bb39f23579ff44b08e5da1cd2eb4482c27">
         <source xml:lang="en">SQL Server Container SA Password</source>
         <target state="translated">Contraseña de administrador de sistema de contenedor SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++8fb9e52bba9bdebaf10c130eca428ca15b770d0ba41c5f854c47db14a380f8ae">
         <source xml:lang="en">SQL Server admin password</source>
-        <target state="new">SQL Server admin password</target>
+        <target state="translated">Contraseña de administrador de SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
         <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
@@ -3527,7 +3581,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80">
         <source xml:lang="en">SQL Server port number</source>
-        <target state="new">SQL Server port number</target>
+        <target state="translated">Número de puerto de SQL Server</target>
       </trans-unit>
       <trans-unit id="++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8">
         <source xml:lang="en">SQL Server {0} - latest</source>
@@ -3705,6 +3759,10 @@ Consulta: {1}</target>
         <source xml:lang="en">Search...</source>
         <target state="translated">Buscar...</target>
       </trans-unit>
+      <trans-unit id="++CODE++6863067eb0a2c7499425c6c189b2c88bac55ca754285a6ab1ef37b75b4cfad4d">
+        <source xml:lang="en">See</source>
+        <target state="translated">Consulte</target>
+      </trans-unit>
       <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
         <source xml:lang="en">Select</source>
         <target state="translated">Seleccionar</target>
@@ -3792,10 +3850,6 @@ Consulta: {1}</target>
         <source xml:lang="en">Select new permission for extension: '{0}'</source>
         <note>{0} is the extension name</note>
         <target state="translated">Seleccionar nuevo permiso para la extensión: '{0}'</target>
-      </trans-unit>
-      <trans-unit id="++CODE++10484d8ed1877a7e126a17a3a144a55c6bf07784ecc22b01d87ee138fb808cd8">
-        <source xml:lang="en">Select or enter a publish profile</source>
-        <target state="translated">Seleccionar o escribir un perfil de publicación</target>
       </trans-unit>
       <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
         <source xml:lang="en">Select profile to remove</source>
@@ -3893,7 +3947,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++1615831401345ad7af7c55f1b68f51dd051827cf4ab1e7f3864619ce377d6ef1">
         <source xml:lang="en">Show Menu (F3)</source>
-        <target state="new">Show Menu (F3)</target>
+        <target state="translated">Mostrar menú (F3)</target>
       </trans-unit>
       <trans-unit id="++CODE++169b9d739add25522ff9a236b54583826c27bd79c2dcb1a4efcc50143164f78c">
         <source xml:lang="en">Show New Password</source>
@@ -3979,7 +4033,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++bec69036aa27e7fab7d44cad3909477b76631c39ba46fd7841ea71aae7e5a735">
         <source xml:lang="en">Sort</source>
-        <target state="new">Sort</target>
+        <target state="translated">Ordenar</target>
       </trans-unit>
       <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
         <source xml:lang="en">Sort Ascending</source>
@@ -4210,6 +4264,10 @@ Consulta: {1}</target>
         <source xml:lang="en">The MSSQL for VS Code extension is introducing new modern data development features! Would you like to enable them? [Learn more]({0})</source>
         <note>{0} is a url to learn more about the new features</note>
         <target state="translated">La extensión de MSSQL para VS Code presenta nuevas características modernas de desarrollo de datos. ¿Desea habilitarlas? [Más información]({0})</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8284b2207062ceca3245e799f300ae72ab7e751c75b0f7e32f297adcfdf8e19f">
+        <source xml:lang="en">The SQL Server 2025 RTM container image isn't compatible with ARM-based systems (including Windows ARM and Apple Silicon).</source>
+        <target state="translated">La imagen de contenedor de SQL Server 2025 RTM no es compatible con los sistemas basados en ARM (incluyendo Windows ARM y Apple Silicon).</target>
       </trans-unit>
       <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
         <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
@@ -4485,6 +4543,10 @@ Consulta: {1}</target>
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
         <target state="translated">Visual Studio Code debe volver a iniciarse para que esta configuración entre en vigor.  Vuelva a cargar Visual Studio Code.</target>
       </trans-unit>
+      <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
+        <source xml:lang="en">Warning</source>
+        <target state="translated">Advertencia</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
         <target state="translated">advertencias detectadas. Revise los cambios.</target>
@@ -4531,7 +4593,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
-        <target state="new">You must accept the license</target>
+        <target state="translated">Debe aceptar la licencia</target>
       </trans-unit>
       <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
         <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
@@ -4615,6 +4677,10 @@ Consulta: {1}</target>
       <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
         <source xml:lang="en">encrypt</source>
         <target state="translated">cifrar</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4c7148e466d4434d1a1411c15f757ec78ba8f3ef4b6210d4a156bc3aaa6e71e5">
+        <source xml:lang="en">for more details</source>
+        <target state="translated">para obtener más información</target>
       </trans-unit>
       <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
         <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
@@ -4713,7 +4779,7 @@ Consulta: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
         <source xml:lang="en">{0} password doesn't match the confirmation password</source>
-        <target state="new">{0} password doesn't match the confirmation password</target>
+        <target state="translated">La contraseña de {0} no coincide con la contraseña de confirmación.</target>
       </trans-unit>
       <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
         <source xml:lang="en">{0} properties</source>
