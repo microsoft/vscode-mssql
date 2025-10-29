@@ -186,8 +186,8 @@ suite("Chat Commands Tests", () => {
 
             expect(result.handled).to.be.true;
             expect(result.errorMessage).to.be.undefined;
-            // Should show error message via stream
-            expect(chatStreamMarkdownStub).to.have.been.calledOnce;
+            // Should show error messages via stream (warning + connection required message)
+            expect(chatStreamMarkdownStub).to.have.been.calledTwice;
             // Should show connection button
             expect(chatStreamButtonStub).to.have.been.calledOnce;
         });

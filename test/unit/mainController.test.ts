@@ -185,13 +185,13 @@ suite("MainController Tests", function () {
 
             // Mock connection
             const uri = editor.document.uri.toString();
-            connectionManager.setup((x) => x.isConnected(uri)).returns(() => true);
+            connectionManager.isConnected.withArgs(uri).returns(true);
 
             // Call method
             const result = await mainController.onNewQueryWithConnection();
 
             // Should return true without opening new editor
-            assert.equal(result, true);
+            expect(result).to.equal(true);
 
             // Close the document
             await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
@@ -212,17 +212,16 @@ suite("MainController Tests", function () {
             try {
                 const result = await mainController.onNewQueryWithConnection();
 
-                assert.equal(result, true);
-                assert.equal(onNewConnectionCalled, true, "Expected onNewConnection to be called");
+                expect(result).to.equal(true);
+                expect(onNewConnectionCalled).to.equal(
+                    true,
+                    "Expected onNewConnection to be called",
+                );
 
                 // Verify a SQL editor was opened
                 const activeEditor = vscode.window.activeTextEditor;
-                assert.ok(activeEditor, "Expected an active editor");
-                assert.equal(
-                    activeEditor.document.languageId,
-                    "sql",
-                    "Expected SQL language editor",
-                );
+                expect(activeEditor).to.not.be.undefined;
+                expect(activeEditor?.document.languageId).to.equal("sql");
 
                 // Clean up
                 await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
@@ -241,24 +240,24 @@ suite("MainController Tests", function () {
             const initialDocumentCount = vscode.workspace.textDocuments.length;
 
             // Mock connection - existing editor is connected
-            connectionManager.setup((x) => x.isConnected(TypeMoq.It.isAny())).returns(() => true);
+            connectionManager.isConnected.returns(true);
 
             try {
                 const result = await mainController.onNewQueryWithConnection(true, false);
 
-                assert.equal(result, true);
+                expect(result).to.equal(true);
 
                 // Verify a new editor was created - document count should increase
                 const finalDocumentCount = vscode.workspace.textDocuments.length;
-                assert.ok(
-                    finalDocumentCount > initialDocumentCount,
+                expect(finalDocumentCount).to.be.greaterThan(
+                    initialDocumentCount,
                     "Expected a new document to be created",
                 );
 
                 // Verify the active editor is SQL
                 const activeEditor = vscode.window.activeTextEditor;
-                assert.ok(activeEditor, "Expected an active editor");
-                assert.equal(activeEditor.document.languageId, "sql");
+                expect(activeEditor).to.not.be.undefined;
+                expect(activeEditor?.document.languageId).to.equal("sql");
 
                 // Clean up
                 await vscode.commands.executeCommand("workbench.action.closeAllEditors");
@@ -277,7 +276,7 @@ suite("MainController Tests", function () {
             const uri = editor.document.uri.toString();
 
             // Mock already connected
-            connectionManager.setup((x) => x.isConnected(uri)).returns(() => true);
+            connectionManager.isConnected.withArgs(uri).returns(true);
 
             // Mock onNewConnection to verify it's called
             let onNewConnectionCalled = false;
@@ -290,9 +289,8 @@ suite("MainController Tests", function () {
             try {
                 const result = await mainController.onNewQueryWithConnection(false, true);
 
-                assert.equal(result, true);
-                assert.equal(
-                    onNewConnectionCalled,
+                expect(result).to.equal(true);
+                expect(onNewConnectionCalled).to.equal(
                     true,
                     "Expected onNewConnection to be called despite already being connected",
                 );
@@ -314,7 +312,7 @@ suite("MainController Tests", function () {
             const uri = editor.document.uri.toString();
 
             // Mock NOT connected
-            connectionManager.setup((x) => x.isConnected(uri)).returns(() => false);
+            connectionManager.isConnected.withArgs(uri).returns(false);
 
             // Mock onNewConnection
             let onNewConnectionCalled = false;
@@ -327,9 +325,8 @@ suite("MainController Tests", function () {
             try {
                 const result = await mainController.onNewQueryWithConnection();
 
-                assert.equal(result, true);
-                assert.equal(
-                    onNewConnectionCalled,
+                expect(result).to.equal(true);
+                expect(onNewConnectionCalled).to.equal(
                     true,
                     "Expected onNewConnection to be called for disconnected editor",
                 );
