@@ -179,12 +179,14 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     private registerRpcHandlers(): void {
         this.registerReducer("commitChanges", async (state) => {
             this.logger.info(`Committing changes for: ${state.tableName}`);
+
             try {
                 await this._tableExplorerService.commit(state.ownerUri);
                 vscode.window.showInformationMessage(
                     LocConstants.TableExplorer.changesSavedSuccessfully,
                 );
 
+                // Clear tracking state after successful commit
                 state.newRows = [];
                 state.failedCells = [];
                 this.showRestorePromptAfterClose = false;
@@ -202,6 +204,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
         this.registerReducer("loadSubset", async (state, payload) => {
             this.logger.info(`Loading subset with rowCount: ${payload.rowCount}`);
+
             try {
                 const subsetResult = await this._tableExplorerService.subset(
                     state.ownerUri,
@@ -209,6 +212,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     payload.rowCount,
                 );
 
+                // Combine database rows with new uncommitted rows
                 state.resultSet = {
                     ...subsetResult,
                     subset: [...subsetResult.subset, ...state.newRows],
@@ -233,6 +237,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
         this.registerReducer("createRow", async (state) => {
             this.logger.info(`Creating new row for: ${state.tableName}`);
+
             try {
                 const result = await this._tableExplorerService.createRow(state.ownerUri);
                 vscode.window.showInformationMessage(
@@ -240,9 +245,11 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
                 this.logger.info(`Created row with ID: ${result.newRowId}`);
 
+                // Track new row and mark unsaved changes
                 state.newRows.push(result.row);
                 this.showRestorePromptAfterClose = true;
 
+                // Update result set with new row
                 if (state.resultSet) {
                     state.resultSet = {
                         ...state.resultSet,
@@ -272,12 +279,15 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
         this.registerReducer("deleteRow", async (state, payload) => {
             this.logger.info(`Deleting row: ${payload.rowId}`);
+
             try {
                 await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
                 vscode.window.showInformationMessage(LocConstants.TableExplorer.rowRemoved);
 
+                // Remove from newRows tracking if it was a new row
                 state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
 
+                // Remove all failed cells for this row
                 if (state.failedCells) {
                     state.failedCells = state.failedCells.filter(
                         (key) => !key.startsWith(`${payload.rowId}-`),
@@ -286,6 +296,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 this.showRestorePromptAfterClose = true;
 
+                // Update result set
                 if (state.resultSet) {
                     const updatedSubset = state.resultSet.subset.filter(
                         (row) => row.id !== payload.rowId,
@@ -316,6 +327,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
         this.registerReducer("updateCell", async (state, payload) => {
             this.logger.info(`Updating cell: row ${payload.rowId}, column ${payload.columnId}`);
+
             try {
                 const updateCellResult = await this._tableExplorerService.updateCell(
                     state.ownerUri,
@@ -326,10 +338,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 this.showRestorePromptAfterClose = true;
 
+                // Update the cell value in the result set
                 if (state.resultSet && updateCellResult.cell) {
                     const rowIndex = state.resultSet.subset.findIndex(
                         (row) => row.id === payload.rowId,
                     );
+
                     if (rowIndex !== -1) {
                         state.resultSet.subset[rowIndex].cells[payload.columnId] =
                             updateCellResult.cell;
@@ -348,6 +362,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             } catch (error) {
                 this.logger.error(`Error updating cell: ${error}`);
 
+                // Track failed cell for UI highlighting
                 if (!state.failedCells) {
                     state.failedCells = [];
                 }
@@ -355,6 +370,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 if (!state.failedCells.includes(failedKey)) {
                     state.failedCells.push(failedKey);
                 }
+
                 this.updateState();
 
                 vscode.window.showErrorMessage(
@@ -367,6 +383,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
         this.registerReducer("revertCell", async (state, payload) => {
             this.logger.info(`Reverting cell: row ${payload.rowId}, column ${payload.columnId}`);
+
             try {
                 const revertCellResult = await this._tableExplorerService.revertCell(
                     state.ownerUri,
@@ -374,15 +391,18 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     payload.columnId,
                 );
 
+                // Remove from failed cells tracking
                 if (state.failedCells) {
                     const failedKey = `${payload.rowId}-${payload.columnId}`;
                     state.failedCells = state.failedCells.filter((key) => key !== failedKey);
                 }
 
+                // Update the cell value in the result set
                 if (state.resultSet && revertCellResult.cell) {
                     const rowIndex = state.resultSet.subset.findIndex(
                         (row) => row.id === payload.rowId,
                     );
+
                     if (rowIndex !== -1) {
                         state.resultSet = {
                             ...state.resultSet,
@@ -425,22 +445,26 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
         this.registerReducer("revertRow", async (state, payload) => {
             this.logger.info(`Reverting row: ${payload.rowId}`);
+
             try {
                 const revertRowResult = await this._tableExplorerService.revertRow(
                     state.ownerUri,
                     payload.rowId,
                 );
 
+                // Remove all failed cells for this row
                 if (state.failedCells) {
                     state.failedCells = state.failedCells.filter(
                         (key) => !key.startsWith(`${payload.rowId}-`),
                     );
                 }
 
+                // Update the row in the result set
                 if (state.resultSet && revertRowResult.row) {
                     const rowIndex = state.resultSet.subset.findIndex(
                         (row) => row.id === payload.rowId,
                     );
+
                     if (rowIndex !== -1) {
                         state.resultSet = {
                             ...state.resultSet,
@@ -476,15 +500,19 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
         this.registerReducer("generateScript", async (state) => {
             this.logger.info(`Generating update script for: ${state.tableName}`);
+
             try {
                 const scriptResult = await this._tableExplorerService.generateScripts(
                     state.ownerUri,
                 );
 
+                // Combine script array into single string
                 const combinedScript = scriptResult.scripts?.join("\n") || "";
                 this.logger.info(
                     `Script result received: ${scriptResult.scripts?.length} script(s), combined length: ${combinedScript.length}`,
                 );
+
+                // Update state with script and show pane
                 state.updateScript = combinedScript;
                 state.showScriptPane = true;
 
@@ -509,6 +537,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
         this.registerReducer("openScriptInEditor", async (state) => {
             this.logger.info("Opening script in SQL editor");
+
             try {
                 if (state.updateScript) {
                     const doc = await vscode.workspace.openTextDocument({
@@ -516,6 +545,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         language: "sql",
                     });
                     await vscode.window.showTextDocument(doc);
+
                     this.logger.info("Script opened in SQL editor successfully");
                 } else {
                     vscode.window.showWarningMessage(LocConstants.TableExplorer.noScriptToOpen);
@@ -532,12 +562,14 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
         this.registerReducer("copyScriptToClipboard", async (state) => {
             this.logger.info("Copying script to clipboard");
+
             try {
                 if (state.updateScript) {
                     await vscode.env.clipboard.writeText(state.updateScript);
                     await vscode.window.showInformationMessage(
                         LocConstants.TableExplorer.scriptCopiedToClipboard,
                     );
+
                     this.logger.info("Script copied to clipboard successfully");
                 } else {
                     vscode.window.showWarningMessage(LocConstants.TableExplorer.noScriptToCopy);
@@ -554,6 +586,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
         this.registerReducer("toggleScriptPane", async (state) => {
             state.showScriptPane = !state.showScriptPane;
+
             this.logger.info(`Script pane toggled to: ${state.showScriptPane}`);
             this.updateState();
 
@@ -562,6 +595,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
         this.registerReducer("setCurrentPage", async (state, payload) => {
             state.currentPage = payload.pageNumber;
+
             this.logger.info(`Current page set to: ${payload.pageNumber}`);
 
             return state;
@@ -587,6 +621,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             LocConstants.TableExplorer.Discard,
         );
 
+        // Handle the user's choice
         if (result === LocConstants.TableExplorer.Save) {
             this.logger.info("User chose to save changes before closing");
 
@@ -595,6 +630,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 vscode.window.showInformationMessage(
                     LocConstants.TableExplorer.changesSavedSuccessfully,
                 );
+
                 this.logger.info("Changes saved successfully before closing");
             } catch (error) {
                 this.logger.error(`Error saving changes before closing: ${error}`);
@@ -605,7 +641,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         } else if (result === LocConstants.TableExplorer.Discard) {
             this.logger.info("User chose to discard changes");
         } else {
-            // User pressed ESC or clicked X - treat as discard
             this.logger.info("User dismissed the prompt - treating as discard");
         }
 
