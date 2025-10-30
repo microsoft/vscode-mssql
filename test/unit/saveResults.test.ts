@@ -12,7 +12,7 @@ import * as chai from "chai";
 import { expect } from "chai";
 
 import * as Interfaces from "../../src/models/interfaces";
-import ResultsSerializer from "../../src/models/resultsSerializer";
+import ResultsSerializer, { SaveAsRequestParams } from "../../src/models/resultsSerializer";
 import { SaveResultsAsCsvRequestParams } from "../../src/models/contracts";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
@@ -249,7 +249,7 @@ suite("save results tests", () => {
 
     test("Save as INSERT - test if correct request type is used", (done) => {
         (vscodeWrapper.showSaveDialog as sinon.SinonStub).resolves(fileUri);
-        serverClient.sendRequest.callsFake((type, params) => {
+        serverClient.sendRequest.callsFake((type, params: SaveAsRequestParams) => {
             try {
                 assert.equal(type.method, "query/saveInsert", "Should use INSERT request type");
                 assert.equal(params.ownerUri, testFile);
