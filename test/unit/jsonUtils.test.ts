@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from "assert";
-import { isJson, IsJsonRegex } from "../../src/sharedInterfaces/jsonUtils";
+import { isJson, IsJsonRegex } from "../../src/reactviews/common/jsonUtils";
 
 suite("isJsonCell Tests", () => {
     suite("Valid JSON objects", () => {

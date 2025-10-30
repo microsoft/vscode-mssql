@@ -13,7 +13,7 @@ import { VirtualizedCollection } from "./table/asyncDataView";
 import { HybridDataProvider } from "./table/hybridDataProvider";
 import { hyperLinkFormatter, textFormatter, DBCellValue, escape } from "./table/formatters";
 import { DbCellValue, ResultSetSummary } from "../../../sharedInterfaces/queryResult";
-import { isJson } from "../../../sharedInterfaces/jsonUtils";
+import { isJson } from "../../common/jsonUtils";
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
