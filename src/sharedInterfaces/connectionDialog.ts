@@ -87,7 +87,8 @@ export interface IDialogProps {
         | "addFirewallRule"
         | "loadFromConnectionString"
         | "createConnectionGroup"
-        | "changePassword";
+        | "changePassword"
+        | "armSql2025Error";
 }
 
 export interface TrustServerCertDialogProps extends IDialogProps {

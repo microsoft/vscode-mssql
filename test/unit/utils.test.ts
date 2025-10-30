@@ -174,6 +174,40 @@ suite("Utility tests - parseEnum", () => {
     });
 });
 
+type Sample = {
+    token?: string;
+    expiresOn?: number;
+    notes?: string | null;
+};
+
+suite("removeUndefinedProperties", () => {
+    test("removes only undefined properties", () => {
+        /* eslint-disable no-restricted-syntax */
+        const input: Sample = {
+            token: "abc",
+            expiresOn: undefined,
+            notes: null,
+        };
+
+        const result = utilUtils.removeUndefinedProperties(input);
+
+        expect(
+            result,
+            "removeUndefinedValues should remove undefined properties, but leave null",
+        ).to.deep.equal({
+            token: "abc",
+            notes: null,
+        });
+        /* eslint-enable no-restricted-syntax */
+    });
+
+    test("returns empty object when source is undefined", () => {
+        const result = utilUtils.removeUndefinedProperties<Sample>(undefined);
+
+        assert.deepStrictEqual(result, {});
+    });
+});
+
 suite("ConnectionMatcher", () => {
     test("Should match connections correctly", () => {
         const testCases: {

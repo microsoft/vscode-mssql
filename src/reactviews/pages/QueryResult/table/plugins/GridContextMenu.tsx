@@ -7,6 +7,13 @@ import React, { useMemo, useRef } from "react";
 import { Menu, MenuList, MenuItem, MenuPopover, MenuTrigger } from "@fluentui/react-components";
 import { locConstants } from "../../../../common/locConstants";
 import { GridContextMenuAction } from "../../../../../sharedInterfaces/queryResult";
+import { isMac } from "../../../../common/utils";
+import {
+    cmdAKeyboardShortcut,
+    cmdCKeyboardShortcut,
+    ctrlAKeyboardShortcut,
+    ctrlCKeyboardShortcut,
+} from "../../../../common/constants";
 
 export interface GridContextMenuProps {
     x: number;
@@ -58,22 +65,26 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                 }}>
                 <MenuPopover onClick={(e) => e.stopPropagation()} ref={popoverRef}>
                     <MenuList>
-                        <MenuItem onClick={() => onAction(GridContextMenuAction.SelectAll)}>
+                        <MenuItem
+                            secondaryContent={
+                                isMac() ? cmdAKeyboardShortcut : ctrlAKeyboardShortcut
+                            }
+                            onClick={() => onAction(GridContextMenuAction.SelectAll)}>
                             {locConstants.queryResult.selectAll}
                         </MenuItem>
-
-                        <MenuList>
-                            <MenuItem onClick={() => onAction(GridContextMenuAction.CopySelection)}>
-                                {locConstants.queryResult.copy}
-                            </MenuItem>
-                            <MenuItem
-                                onClick={() => onAction(GridContextMenuAction.CopyWithHeaders)}>
-                                {locConstants.queryResult.copyWithHeaders}
-                            </MenuItem>
-                            <MenuItem onClick={() => onAction(GridContextMenuAction.CopyHeaders)}>
-                                {locConstants.queryResult.copyHeaders}
-                            </MenuItem>
-                        </MenuList>
+                        <MenuItem
+                            secondaryContent={
+                                isMac() ? cmdCKeyboardShortcut : ctrlCKeyboardShortcut
+                            }
+                            onClick={() => onAction(GridContextMenuAction.CopySelection)}>
+                            {locConstants.queryResult.copy}
+                        </MenuItem>
+                        <MenuItem onClick={() => onAction(GridContextMenuAction.CopyWithHeaders)}>
+                            {locConstants.queryResult.copyWithHeaders}
+                        </MenuItem>
+                        <MenuItem onClick={() => onAction(GridContextMenuAction.CopyHeaders)}>
+                            {locConstants.queryResult.copyHeaders}
+                        </MenuItem>
                         <Menu>
                             <MenuTrigger disableButtonEnhancement>
                                 <MenuItem>{locConstants.queryResult.copyAs}</MenuItem>

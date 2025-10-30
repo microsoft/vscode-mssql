@@ -19,6 +19,10 @@ suite("PublishProjectWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let contextStub: vscode.ExtensionContext;
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let mockSqlProjectsService: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let mockDacFxService: any;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -31,28 +35,41 @@ suite("PublishProjectWebViewController Tests", () => {
         contextStub = rawContext as vscode.ExtensionContext;
 
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
+        mockSqlProjectsService = {};
+        mockDacFxService = {};
     });
 
     teardown(() => {
         sandbox.restore();
     });
 
-    test("constructor initializes state and derives database name", () => {
-        const projectPath = "c:/work/MySampleProject.sqlproj";
-        const controller = new PublishProjectWebViewController(
+    /**
+     * Helper factory to create PublishProjectWebViewController with default test setup.
+     * @param projectPath Optional project path (defaults to standard test path)
+     */
+    function createTestController(
+        projectPath = "c:/work/TestProject.sqlproj",
+    ): PublishProjectWebViewController {
+        return new PublishProjectWebViewController(
             contextStub,
             vscodeWrapperStub,
             projectPath,
+            mockSqlProjectsService,
+            mockDacFxService,
         );
+    }
+
+    test("constructor initializes state and derives database name", async () => {
+        const controller = createTestController("c:/work/MySampleProject.sqlproj");
+
+        await controller.initialized.promise;
 
         // Verify initial state
-        expect(controller.state.projectFilePath).to.equal(projectPath);
+        expect(controller.state.projectFilePath).to.equal("c:/work/MySampleProject.sqlproj");
         expect(controller.state.formState.databaseName).to.equal("MySampleProject");
 
-        // Form components should be initialized synchronously
+        // Form components should be initialized after initialization completes
         const components = controller.state.formComponents;
-        // Basic fields expected from generatePublishFormComponents()
-        expect(components.publishProfilePath, "publishProfilePath component should exist").to.exist;
         expect(components.serverName, "serverName component should exist").to.exist;
         expect(components.databaseName, "databaseName component should exist").to.exist;
         expect(components.publishTarget, "publishTarget component should exist").to.exist;
@@ -262,14 +279,111 @@ suite("PublishProjectWebViewController Tests", () => {
 
         // Password complexity validation (8-128 chars, 3 of 4: upper, lower, digit, special char)
         // validateSqlServerPassword returns empty string for valid, error message for invalid
-        expect(validateSqlServerPassword("Password123!"), "complex password valid").to.equal("");
-        expect(validateSqlServerPassword("Passw0rd"), "3 categories valid").to.equal("");
-        expect(validateSqlServerPassword("password"), "simple lowercase invalid").to.not.equal("");
-        expect(validateSqlServerPassword("PASSWORD"), "simple uppercase invalid").to.not.equal("");
-        expect(validateSqlServerPassword("Pass1"), "too short invalid").to.not.equal("");
-        expect(
-            validateSqlServerPassword("Password123!".repeat(20)),
-            "too long invalid",
-        ).to.not.equal("");
+        expect(validateSqlServerPassword("Abc123!@#"), "complex password valid").to.equal("");
+        expect(validateSqlServerPassword("MyTest99"), "3 categories valid").to.equal("");
+        expect(validateSqlServerPassword("alllower"), "simple lowercase invalid").to.not.equal("");
+        expect(validateSqlServerPassword("ALLUPPER"), "simple uppercase invalid").to.not.equal("");
+        expect(validateSqlServerPassword("Short1"), "too short invalid").to.not.equal("");
+        expect(validateSqlServerPassword("Abc123!@#".repeat(20)), "too long invalid").to.not.equal(
+            "",
+        );
     });
+
+    //#region Publish Profile Section Tests
+    test("selectPublishProfile reducer parses real-world XML profile correctly", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Real-world ADS-generated publish profile XML with all features
+        const adsProfileXml = `<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <IncludeCompositeObjects>True</IncludeCompositeObjects>
+    <TargetDatabaseName>MyDatabase</TargetDatabaseName>
+    <DeployScriptFileName>MyDatabase.sql</DeployScriptFileName>
+    <TargetConnectionString>Data Source=myserver.database.windows.net;Persist Security Info=False;User ID=admin;Pooling=False;MultipleActiveResultSets=False;</TargetConnectionString>
+    <ProfileVersionNumber>1</ProfileVersionNumber>
+  </PropertyGroup>
+  <ItemGroup>
+    <SqlCmdVariable Include="Var1">
+      <Value>Value1</Value>
+    </SqlCmdVariable>
+    <SqlCmdVariable Include="Var2">
+      <Value>Value2</Value>
+    </SqlCmdVariable>
+  </ItemGroup>
+</Project>`;
+
+        const profilePath = "c:/profiles/TestProfile.publish.xml";
+
+        // Mock file system read
+        const fs = await import("fs");
+        sandbox.stub(fs.promises, "readFile").resolves(adsProfileXml);
+
+        // Mock file picker
+        sandbox.stub(vscode.window, "showOpenDialog").resolves([vscode.Uri.file(profilePath)]);
+
+        // Mock DacFx service to return deployment options
+        mockDacFxService.getOptionsFromProfile = sandbox.stub().resolves({
+            success: true,
+            deploymentOptions: {
+                excludeObjectTypes: { value: ["Users", "Logins"] },
+                ignoreTableOptions: { value: true },
+            },
+        });
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const selectPublishProfile = reducerHandlers.get("selectPublishProfile");
+        expect(selectPublishProfile, "selectPublishProfile reducer should be registered").to.exist;
+
+        // Invoke the reducer
+        const newState = await selectPublishProfile(controller.state, {});
+
+        // Verify parsed values are in the returned state (normalize paths for cross-platform)
+        expect(newState.formState.publishProfilePath.replace(/\\/g, "/")).to.equal(profilePath);
+        expect(newState.formState.databaseName).to.equal("MyDatabase");
+        expect(newState.formState.serverName).to.equal("myserver.database.windows.net");
+        expect(newState.formState.sqlCmdVariables).to.deep.equal({
+            Var1: "Value1",
+            Var2: "Value2",
+        });
+
+        // Verify deployment options were loaded from DacFx
+        expect(mockDacFxService.getOptionsFromProfile.calledOnce).to.be.true;
+    });
+
+    test("savePublishProfile reducer is invoked and triggers save file dialog", async () => {
+        const controller = createTestController();
+
+        await controller.initialized.promise;
+
+        // Set up some form state to save
+        controller.state.formState.serverName = "localhost";
+        controller.state.formState.databaseName = "TestDB";
+
+        // Stub showSaveDialog to simulate user choosing a save location
+        const savedProfilePath = "c:/profiles/NewProfile.publish.xml";
+        sandbox.stub(vscode.window, "showSaveDialog").resolves(vscode.Uri.file(savedProfilePath));
+
+        // Mock DacFx service
+        mockDacFxService.savePublishProfile = sandbox.stub().resolves({ success: true });
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const savePublishProfile = reducerHandlers.get("savePublishProfile");
+        expect(savePublishProfile, "savePublishProfile reducer should be registered").to.exist;
+
+        // Invoke the reducer with an optional default filename
+        const newState = await savePublishProfile(controller.state, {
+            event: "TestProject.publish.xml",
+        });
+
+        // Verify DacFx save was called
+        expect(mockDacFxService.savePublishProfile.calledOnce).to.be.true;
+
+        // Verify the state is returned unchanged (savePublishProfile does NOT update path in state)
+        expect(newState.formState.publishProfilePath).to.equal(
+            controller.state.formState.publishProfilePath,
+        );
+    });
+    //#endregion
 });

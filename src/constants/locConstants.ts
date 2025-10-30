@@ -916,7 +916,6 @@ export class Fabric {
     public static searchWorkspaces = l10n.t("Search Workspaces");
     public static workspaceIsRequired = l10n.t("Workspace is required");
     public static insufficientWorkspacePermissions = l10n.t("Insufficient Workspace Permissions");
-    public static insufficientCapacityPermissions = l10n.t("Insufficient Capacity Permissions");
 
     public static fabricNotSupportedInCloud = (cloudName: string, settingName: string) => {
         return l10n.t({
@@ -1252,6 +1251,12 @@ export class LocalContainers {
     public static containerNamePlaceholder = l10n.t("Enter container name");
     public static portPlaceholder = l10n.t("Enter port");
     public static hostnamePlaceholder = l10n.t("Enter hostname");
+    public static sqlServer2025ArmError = l10n.t(
+        "SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.",
+    );
+    public static sqlServer2025ArmErrorTooltip = l10n.t(
+        "SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.",
+    );
 }
 
 export class UserSurvey {
@@ -1308,7 +1313,10 @@ export class TableDesigner {
 export class PublishProject {
     public static Title = l10n.t("Publish Project");
     public static PublishProfileLabel = l10n.t("Publish Profile");
-    public static PublishProfilePlaceholder = l10n.t("Select or enter a publish profile");
+    public static PublishProfilePlaceholder = l10n.t("Load profile...");
+    public static SelectPublishProfile = l10n.t("Select Profile");
+    public static SaveAs = l10n.t("Save As");
+    public static PublishSettingsFile = l10n.t("Publish Settings File");
     public static ServerLabel = l10n.t("Server");
     public static DatabaseLabel = l10n.t("Database");
     public static DatabaseRequiredMessage = l10n.t("Database name is required");
@@ -1339,6 +1347,12 @@ export class PublishProject {
     };
     public static RequiredFieldMessage = l10n.t("Required");
     public static LicenseAcceptanceMessage = l10n.t("You must accept the license");
+    public static PublishProfileLoadFailed = l10n.t("Failed to load publish profile");
+    public static PublishProfileSavedSuccessfully = (path: string) => {
+        return l10n.t("Publish profile saved to: {0}", path);
+    };
+    public static PublishProfileSaveFailed = l10n.t("Failed to save publish profile");
+    public static DacFxServiceNotAvailable = l10n.t("DacFx service is not available");
 }
 
 export class SchemaCompare {
@@ -1591,6 +1605,20 @@ export class MssqlChatAgent {
         });
     };
     public static unknownErrorOccurred = l10n.t("An unknown error occurred. Please try again.");
+    public static connect = l10n.t("Connect");
+    public static openSqlEditorAndConnect = l10n.t("Open SQL editor and connect");
+    public static connectionRequiredMessage = (buttonText: string) => {
+        return l10n.t({
+            message:
+                'An active connection is required for GitHub Copilot to understand your database schema and proceed.\nSelect "{0}" to establish a connection.',
+            args: [buttonText],
+            comment: ["{0} is the button text (e.g., 'Connect' or 'Open SQL editor and connect')"],
+        });
+    };
+    // Follow-up questions
+    public static followUpConnectToDatabase = l10n.t("Connect to a database");
+    public static followUpShowRandomTableDefinition = l10n.t("Show a random table definition");
+    public static followUpCountTables = l10n.t("How many tables are in this database?");
     public static listServersToolConfirmationTitle = l10n.t("List Connections");
     public static listServersToolConfirmationMessage = l10n.t(
         "List all connections registered with the mssql extension?",
@@ -1899,6 +1927,42 @@ export class MssqlChatAgent {
     );
     public static chatCommandNotAvailable = l10n.t(
         "Chat command not available in this VS Code version",
+    );
+
+    // Help command strings
+    public static helpWelcome = l10n.t(
+        "👋 I'm GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.",
+    );
+    public static helpWhatICanDo = l10n.t("What I can do for you:");
+    public static helpCapabilityExploreDesign = l10n.t(
+        "Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance",
+    );
+    public static helpCapabilityContextualSuggestions = l10n.t(
+        "Apply contextual suggestions for SQL syntax, relationships, and constraints",
+    );
+    public static helpCapabilityWriteOptimize = l10n.t(
+        "Write, optimize, and troubleshoot SQL queries with AI-recommended improvements",
+    );
+    public static helpCapabilityGenerateMockData = l10n.t(
+        "Generate mock data and seed scripts to support testing and development environments",
+    );
+    public static helpCapabilityAccelerateSchema = l10n.t(
+        "Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts",
+    );
+    public static helpCapabilityUnderstandDocument = l10n.t(
+        "Understand and document business logic embedded in stored procedures, views, and functions",
+    );
+    public static helpCapabilitySecurityRecommendations = l10n.t(
+        "Get security-related recommendations, such as avoiding SQL injection or excessive permissions",
+    );
+    public static helpCapabilityNaturalLanguage = l10n.t(
+        "Receive natural language explanations to help developers unfamiliar with T-SQL understand code",
+    );
+    public static helpCapabilityReverseEngineer = l10n.t(
+        "Reverse-engineer existing databases by explaining SQL schemas and relationships",
+    );
+    public static helpCapabilityScaffoldComponents = l10n.t(
+        "Scaffold backend components (e.g., data-access layers) based on your current database context",
     );
 }
 

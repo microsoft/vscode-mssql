@@ -5,6 +5,8 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
+import * as mssql from "vscode-mssql";
+import * as constants from "../constants/constants";
 import { FormWebviewController } from "../forms/formWebviewController";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 import { PublishProject as Loc } from "../constants/locConstants";
@@ -17,13 +19,14 @@ import {
     PublishDialogState,
     PublishTarget,
 } from "../sharedInterfaces/publishDialog";
+import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { generatePublishFormComponents } from "./formComponentHelpers";
-import { readProjectProperties } from "./projectUtils";
+import { parsePublishProfileXml, readProjectProperties } from "./projectUtils";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
-import { sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getSqlServerContainerTagsForTargetVersion } from "../deployment/dockerUtils";
+import { hasAnyMissingRequiredValues } from "../utils/utils";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -33,12 +36,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
 > {
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _sqlProjectsService?: SqlProjectsService;
+    private readonly _dacFxService?: mssql.IDacFxService;
 
     constructor(
         context: vscode.ExtensionContext,
         _vscodeWrapper: VscodeWrapper,
         projectFilePath: string,
         sqlProjectsService?: SqlProjectsService,
+        dacFxService?: mssql.IDacFxService,
+        deploymentOptions?: mssql.DeploymentOptions,
     ) {
         super(
             context,
@@ -57,6 +63,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 projectFilePath,
                 inProgress: false,
                 lastPublishResult: undefined,
+                hasFormErrors: true,
+                deploymentOptions: deploymentOptions,
             } as PublishDialogState,
             {
                 title: Loc.Title,
@@ -78,6 +86,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         // Store the SQL Projects Service
         this._sqlProjectsService = sqlProjectsService;
+        this._dacFxService = dacFxService;
+
+        // Clear default excludeObjectTypes for publish dialog, no default exclude options should exist
+        if (
+            this.state.deploymentOptions &&
+            this.state.deploymentOptions.excludeObjectTypes !== undefined
+        ) {
+            this.state.deploymentOptions.excludeObjectTypes.value = [];
+        }
 
         // Register reducers after initialization
         this.registerRpcHandlers();
@@ -151,14 +168,16 @@ export class PublishProjectWebViewController extends FormWebviewController<
         }
 
         void this.updateItemVisibility();
+
+        // Run initial validation to set hasFormErrors state for button enablement
+        await this.validateForm(this.state.formState, undefined, true);
     }
 
     /** Registers all reducers in pure (immutable) style */
     private registerRpcHandlers(): void {
         this.registerReducer("publishNow", async (state) => {
             // TODO: implement actual publish logic (currently just clears inProgress)
-            state.inProgress = false;
-            return state;
+            return { ...state, inProgress: false };
         });
 
         this.registerReducer("generatePublishScript", async (state) => {
@@ -166,16 +185,139 @@ export class PublishProjectWebViewController extends FormWebviewController<
             return state;
         });
 
-        this.registerReducer("selectPublishProfile", async (state) => {
-            // TODO: implement profile selection logic
+        this.registerReducer("selectPublishProfile", async (state: PublishDialogState) => {
+            // Derive project folder path from the project file path
+            const projectFolderPath = state.projectFilePath
+                ? path.dirname(state.projectFilePath)
+                : undefined;
+
+            // Open browse dialog to select the publish.xml file
+            const fileUris = await vscode.window.showOpenDialog({
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                defaultUri: projectFolderPath ? vscode.Uri.file(projectFolderPath) : undefined,
+                openLabel: Loc.SelectPublishProfile,
+                filters: {
+                    [Loc.PublishSettingsFile]: [constants.PublishProfileExtension],
+                },
+            });
+
+            if (fileUris?.length > 0) {
+                const selectedPath = fileUris[0].fsPath;
+
+                try {
+                    // Parse the profile XML to extract all values, including deployment options from DacFx service
+                    const parsedProfile = await parsePublishProfileXml(
+                        selectedPath,
+                        this._dacFxService,
+                    );
+
+                    // Send telemetry for profile loaded
+                    sendActionEvent(
+                        TelemetryViews.SqlProjects,
+                        TelemetryActions.PublishProfileLoaded,
+                    );
+
+                    // Update state with all parsed values - UI components will consume when available
+                    return {
+                        ...state,
+                        formState: {
+                            ...state.formState,
+                            publishProfilePath: selectedPath,
+                            databaseName:
+                                parsedProfile.databaseName || state.formState.databaseName,
+                            serverName: parsedProfile.serverName || state.formState.serverName,
+                            sqlCmdVariables: parsedProfile.sqlCmdVariables,
+                            // TODO: connectionString stored in parsed profile, will be used when connection UI is ready
+                        },
+                        deploymentOptions:
+                            parsedProfile.deploymentOptions || state.deploymentOptions,
+                    };
+                } catch (error) {
+                    void vscode.window.showErrorMessage(
+                        `${Loc.PublishProfileLoadFailed}: ${error}`,
+                    );
+                }
+            }
+
             return state;
         });
 
-        this.registerReducer("savePublishProfile", async (state, _payload) => {
-            // TODO: implement profile saving logic using _payload.publishProfileName
-            // This should save current form state to a file with the given name
-            return state;
-        });
+        this.registerReducer(
+            "savePublishProfile",
+            async (state: PublishDialogState, _payload: { publishProfileName: string }) => {
+                // Derive project folder path and name from the project file path
+                const projectFolderPath = state.projectFilePath
+                    ? path.dirname(state.projectFilePath)
+                    : ".";
+                const projectName = state.projectFilePath
+                    ? path.basename(state.projectFilePath, path.extname(state.projectFilePath))
+                    : "project";
+
+                // Use selected profile path if available, otherwise save as projectName
+                const defaultPath = state.formState.publishProfilePath
+                    ? vscode.Uri.file(state.formState.publishProfilePath)
+                    : vscode.Uri.file(
+                          path.join(
+                              projectFolderPath,
+                              `${projectName}.${constants.PublishProfileExtension}`,
+                          ),
+                      );
+
+                // Open save dialog with default name
+                const fileUri = await vscode.window.showSaveDialog({
+                    defaultUri: defaultPath,
+                    saveLabel: Loc.SaveAs,
+                    filters: {
+                        [Loc.PublishSettingsFile]: [constants.PublishProfileExtension],
+                    },
+                });
+
+                if (!fileUri) {
+                    return state; // User cancelled
+                }
+
+                // Save the profile using DacFx service
+                if (!this._dacFxService) {
+                    void vscode.window.showErrorMessage(Loc.DacFxServiceNotAvailable);
+                    return state;
+                }
+
+                try {
+                    const databaseName = state.formState.databaseName || projectName;
+                    // TODO: Build connection string from connection details when server/database selection is implemented
+                    const connectionString = "";
+                    const sqlCmdVariables = new Map(
+                        Object.entries(state.formState.sqlCmdVariables || {}),
+                    );
+
+                    await this._dacFxService.savePublishProfile(
+                        fileUri.fsPath,
+                        databaseName,
+                        connectionString,
+                        sqlCmdVariables,
+                        state.deploymentOptions,
+                    );
+
+                    // Send telemetry for profile saved
+                    sendActionEvent(
+                        TelemetryViews.SqlProjects,
+                        TelemetryActions.PublishProfileSaved,
+                    );
+
+                    void vscode.window.showInformationMessage(
+                        Loc.PublishProfileSavedSuccessfully(fileUri.fsPath),
+                    );
+                } catch (error) {
+                    void vscode.window.showErrorMessage(
+                        `${Loc.PublishProfileSaveFailed}: ${error}`,
+                    );
+                }
+
+                return state;
+            },
+        );
     }
 
     protected getActiveFormComponents(state: PublishDialogState): (keyof IPublishForm)[] {
@@ -221,49 +363,34 @@ export class PublishProjectWebViewController extends FormWebviewController<
         propertyName?: keyof IPublishForm,
         updateValidation?: boolean,
     ): Promise<(keyof IPublishForm)[]> {
-        // Call parent validation logic
+        // Call parent validation logic which returns array of fields with errors
         const erroredInputs = await super.validateForm(formTarget, propertyName, updateValidation);
 
-        // Update validation state properties
-        if (updateValidation) {
-            this.updateFormValidationState();
-        }
+        // erroredInputs only contains fields validated with updateValidation=true (on blur)
+        // So we also need to check for missing required values (which may not be validated yet on dialog open)
+        const hasValidationErrors = updateValidation && erroredInputs.length > 0;
+        const hasMissingRequiredValues = hasAnyMissingRequiredValues(
+            this.state.formComponents,
+            this.state.formState,
+        );
+
+        // hasFormErrors state tracks to disable buttons if ANY errors exist
+        this.state.hasFormErrors = hasValidationErrors || hasMissingRequiredValues;
 
         return erroredInputs;
     }
 
-    private updateFormValidationState(): void {
-        // Check if any visible component has validation errors
-        this.state.hasValidationErrors = Object.values(this.state.formComponents).some(
-            (component) =>
-                !component.hidden &&
-                component.validation !== undefined &&
-                component.validation.isValid === false,
-        );
-
-        // Check if any required fields are missing values
-        this.state.hasMissingRequiredValues = Object.values(this.state.formComponents).some(
-            (component) => {
-                if (component.hidden || !component.required) {
-                    return false;
-                }
-                const key = component.propertyName as keyof IPublishForm;
-                const raw = this.state.formState[key];
-                // Missing if undefined/null
-                if (raw === undefined) {
-                    return true;
-                }
-                // For strings, empty/whitespace is missing
-                if (typeof raw === "string") {
-                    return raw.trim().length === 0;
-                }
-                // For booleans (e.g. required checkbox), must be true
-                if (typeof raw === "boolean") {
-                    return raw !== true;
-                }
-                // For numbers, allow 0 (not missing)
-                return false;
-            },
-        );
+    /**
+     * Called after a form property is set and validated.
+     * Revalidates all fields when publish target changes to update button state.
+     * Update visibility first, then validate based on new visibility
+     */
+    public async afterSetFormProperty(propertyName: keyof IPublishForm): Promise<void> {
+        // When publish target changes, fields get hidden/shown, so revalidate everything
+        if (propertyName === PublishFormFields.PublishTarget) {
+            await this.updateItemVisibility();
+            await this.validateForm(this.state.formState, undefined, false);
+            this.updateState();
+        }
     }
 }
