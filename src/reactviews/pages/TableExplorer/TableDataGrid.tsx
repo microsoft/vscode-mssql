@@ -172,12 +172,16 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         const displayValue = value ?? "";
                         const isNullValue = displayValue === "NULL";
 
-                        const escapedDisplayValue = displayValue
-                            .replace(/&/g, "&amp;")
-                            .replace(/</g, "&lt;")
-                            .replace(/>/g, "&gt;")
-                            .replace(/"/g, "&quot;")
-                            .replace(/'/g, "&#039;");
+                        // Safely escape HTML entities (with null/undefined check)
+                        const escapedDisplayValue =
+                            displayValue && typeof displayValue === "string"
+                                ? displayValue
+                                      .replace(/&/g, "&amp;")
+                                      .replace(/</g, "&lt;")
+                                      .replace(/>/g, "&gt;")
+                                      .replace(/"/g, "&quot;")
+                                      .replace(/'/g, "&#039;")
+                                : String(displayValue || "");
 
                         const escapedTooltip = escapedDisplayValue;
 

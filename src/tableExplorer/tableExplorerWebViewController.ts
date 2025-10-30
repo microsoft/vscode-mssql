@@ -246,7 +246,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 this.logger.info(`Created row with ID: ${result.newRowId}`);
 
                 // Track new row and mark unsaved changes
-                state.newRows.push(result.row);
+                state.newRows = [...state.newRows, result.row];
                 this.showRestorePromptAfterClose = true;
 
                 // Update result set with new row
@@ -363,12 +363,11 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 this.logger.error(`Error updating cell: ${error}`);
 
                 // Track failed cell for UI highlighting
-                if (!state.failedCells) {
-                    state.failedCells = [];
-                }
                 const failedKey = `${payload.rowId}-${payload.columnId}`;
-                if (!state.failedCells.includes(failedKey)) {
-                    state.failedCells.push(failedKey);
+                if (!state.failedCells) {
+                    state.failedCells = [failedKey];
+                } else if (!state.failedCells.includes(failedKey)) {
+                    state.failedCells = [...state.failedCells, failedKey];
                 }
 
                 this.updateState();

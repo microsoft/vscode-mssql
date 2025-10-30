@@ -150,7 +150,6 @@ const TableExplorerCustomPager = React.forwardRef<
     };
 
     const onRowCountChanged = (_event: any, data: any) => {
-        debugger;
         const newRowCount = data.optionValue || data.value || selectedRowCount;
         if (newRowCount) {
             setSelectedRowCount(newRowCount);
@@ -158,13 +157,11 @@ const TableExplorerCustomPager = React.forwardRef<
     };
 
     const onRowCountInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-        debugger;
         const newValue = event.target.value;
         setSelectedRowCount(newValue);
     };
 
     const onFetchRowsClick = () => {
-        debugger;
         const rowCountNumber = parseInt(
             selectedRowCount || String(DEFAULT_ROW_COUNT),
             RADIX_DECIMAL,
@@ -182,7 +179,6 @@ const TableExplorerCustomPager = React.forwardRef<
     }, []);
 
     useEffect(() => {
-        debugger;
         if (currentRowCount !== undefined) {
             setSelectedRowCount(String(currentRowCount));
         }
