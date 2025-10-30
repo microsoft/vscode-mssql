@@ -48,18 +48,6 @@ export const TableExplorerPage: React.FC = () => {
 
     const gridRef = useRef<TableDataGridRef>(null);
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
-    const previousRowCountRef = useRef<number>(0);
-
-    // Jump to first page when a new row is added (row count increases)
-    React.useEffect(() => {
-        if (resultSet && resultSet.rowCount > previousRowCountRef.current) {
-            // New row was added, jump to first page where prepended rows appear
-            setTimeout(() => {
-                gridRef.current?.goToFirstPage();
-            }, 100);
-        }
-        previousRowCountRef.current = resultSet?.rowCount || 0;
-    }, [resultSet?.rowCount]);
 
     const handleSaveComplete = () => {
         // Clear the change tracking in the grid after successful save

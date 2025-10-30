@@ -328,11 +328,38 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     });
                 }
             }
-            // Scenario 2: Row count changed (delete/add operations) - full dataset refresh
-            else if (rowCountChanged) {
-                console.log("Row count changed - refreshing dataset");
-                const convertedDataset = resultSet.subset.map(convertRowToDataRow);
-                setDataset(convertedDataset);
+            // Scenario 2: Row count changed (delete/add operations) - incremental add/remove
+            else if (rowCountChanged && reactGridRef.current?.dataView) {
+                console.log("Row count changed - applying incremental updates");
+                const previousCount = previousResultSet?.subset?.length || 0;
+                const currentCount = resultSet.subset.length;
+
+                if (currentCount > previousCount) {
+                    // Rows were added - add new rows incrementally
+                    console.log(`Adding ${currentCount - previousCount} new row(s)`);
+                    for (let i = previousCount; i < currentCount; i++) {
+                        const newRow = resultSet.subset[i];
+                        const dataRow = convertRowToDataRow(newRow);
+                        reactGridRef.current.dataView.addItem(dataRow);
+                    }
+                } else if (currentCount < previousCount) {
+                    // Rows were deleted - remove rows incrementally
+                    console.log(`Removing ${previousCount - currentCount} row(s)`);
+                    const currentIds = new Set(resultSet.subset.map((r: any) => r.id));
+                    const previousIds = previousResultSet!.subset.map((r: any) => r.id);
+
+                    for (const id of previousIds) {
+                        if (!currentIds.has(id)) {
+                            reactGridRef.current.dataView.deleteItem(id);
+                        }
+                    }
+                }
+
+                // Refresh grid display
+                if (reactGridRef.current?.slickGrid) {
+                    reactGridRef.current.slickGrid.invalidate();
+                    reactGridRef.current.slickGrid.render();
+                }
             }
             // Scenario 3: Row count same - incremental updates only
             else if (reactGridRef.current?.dataView) {
@@ -369,34 +396,28 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         // Restore pagination after dataset changes
         useEffect(() => {
-            if (!reactGridRef.current?.paginationService || dataset.length === 0) {
+            if (
+                !reactGridRef.current?.paginationService ||
+                !reactGridRef.current?.dataView ||
+                dataset.length === 0
+            ) {
                 return;
             }
 
             const targetPage = lastPageRef.current;
             const targetItemsPerPage = lastItemsPerPageRef.current;
+            const currentPage = reactGridRef.current.paginationService.pageNumber;
+            const currentItemsPerPage = reactGridRef.current.paginationService.itemsPerPage;
 
-            // Small delay to ensure grid is ready
-            const timeoutId = setTimeout(() => {
-                if (!reactGridRef.current?.paginationService) return;
+            if (currentItemsPerPage !== targetItemsPerPage) {
+                console.log(`Restoring items per page to: ${targetItemsPerPage}`);
+                void reactGridRef.current.paginationService.changeItemPerPage(targetItemsPerPage);
+            }
 
-                const currentPage = reactGridRef.current.paginationService.pageNumber;
-                const currentItemsPerPage = reactGridRef.current.paginationService.itemsPerPage;
-
-                if (currentItemsPerPage !== targetItemsPerPage) {
-                    console.log(`Restoring items per page to: ${targetItemsPerPage}`);
-                    void reactGridRef.current.paginationService.changeItemPerPage(
-                        targetItemsPerPage,
-                    );
-                }
-
-                if (targetPage > 1 && currentPage !== targetPage) {
-                    console.log(`Restoring page to: ${targetPage}`);
-                    void reactGridRef.current.paginationService.goToPageNumber(targetPage);
-                }
-            }, 100);
-
-            return () => clearTimeout(timeoutId);
+            if (targetPage > 1 && currentPage !== targetPage) {
+                console.log(`Restoring page to: ${targetPage}`);
+                void reactGridRef.current.paginationService.goToPageNumber(targetPage);
+            }
         }, [dataset]);
 
         function handleCellChange(_e: CustomEvent, args: any) {
