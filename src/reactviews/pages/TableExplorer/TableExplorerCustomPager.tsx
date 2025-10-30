@@ -23,6 +23,13 @@ import { Dropdown, Option, Combobox, Button } from "@fluentui/react-components";
 import "./TableExplorerCustomPager.css";
 import { locConstants as loc } from "../../common/locConstants";
 
+// Default pagination constants
+const DEFAULT_PAGE_SIZE = 100;
+const DEFAULT_ROW_COUNT = 100;
+const MIN_VALID_NUMBER = 1;
+const FIRST_PAGE_NUMBER = 1;
+const RADIX_DECIMAL = 10;
+
 export interface TableExplorerCustomPagerRef {
     init: (
         grid: SlickGrid,
@@ -48,8 +55,8 @@ const TableExplorerCustomPager = React.forwardRef<
     );
     const [isLeftPaginationDisabled, setIsLeftPaginationDisabled] = useState(false);
     const [isRightPaginationDisabled, setIsRightPaginationDisabled] = useState(false);
-    const [selectedPageSize, setSelectedPageSize] = useState<string>("100");
-    const [selectedRowCount, setSelectedRowCount] = useState<string>("100");
+    const [selectedPageSize, setSelectedPageSize] = useState<string>(String(DEFAULT_PAGE_SIZE));
+    const [selectedRowCount, setSelectedRowCount] = useState<string>(String(DEFAULT_ROW_COUNT));
 
     const paginationElementRef = useRef<HTMLDivElement | null>(null);
     const gridRef = useRef<SlickGrid | null>(null);
@@ -58,7 +65,7 @@ const TableExplorerCustomPager = React.forwardRef<
     const subscriptionsRef = useRef<Subscription[]>([]);
 
     const checkLeftPaginationDisabled = (pagination: PaginationMetadata): boolean => {
-        return pagination.pageNumber === 1 || pagination.totalItems === 0;
+        return pagination.pageNumber === FIRST_PAGE_NUMBER || pagination.totalItems === 0;
     };
 
     const checkRightPaginationDisabled = (pagination: PaginationMetadata): boolean => {
@@ -78,7 +85,7 @@ const TableExplorerCustomPager = React.forwardRef<
         setCurrentPagination(currentPagination);
         setIsLeftPaginationDisabled(checkLeftPaginationDisabled(currentPagination));
         setIsRightPaginationDisabled(checkRightPaginationDisabled(currentPagination));
-        setSelectedPageSize(String(currentPagination.pageSize || 100));
+        setSelectedPageSize(String(currentPagination.pageSize || DEFAULT_PAGE_SIZE));
 
         const subscription = pubSubService.subscribe<PaginationMetadata>(
             "onPaginationRefreshed",
@@ -86,7 +93,7 @@ const TableExplorerCustomPager = React.forwardRef<
                 setCurrentPagination(paginationChanges);
                 setIsLeftPaginationDisabled(checkLeftPaginationDisabled(paginationChanges));
                 setIsRightPaginationDisabled(checkRightPaginationDisabled(paginationChanges));
-                setSelectedPageSize(String(paginationChanges.pageSize || 100));
+                setSelectedPageSize(String(paginationChanges.pageSize || DEFAULT_PAGE_SIZE));
             },
         );
 
@@ -104,7 +111,7 @@ const TableExplorerCustomPager = React.forwardRef<
             setCurrentPagination(currentPagination);
             setIsLeftPaginationDisabled(checkLeftPaginationDisabled(currentPagination));
             setIsRightPaginationDisabled(checkRightPaginationDisabled(currentPagination));
-            setSelectedPageSize(String(currentPagination.pageSize || 100));
+            setSelectedPageSize(String(currentPagination.pageSize || DEFAULT_PAGE_SIZE));
         }
     };
 
@@ -135,8 +142,9 @@ const TableExplorerCustomPager = React.forwardRef<
     const onPageSizeChanged = (_event: any, data: any) => {
         const newPageSize = data.optionValue || data.value;
         setSelectedPageSize(newPageSize);
-        const pageSizeNumber = parseInt(newPageSize, 10);
-        if (!isNaN(pageSizeNumber) && pageSizeNumber > 0) {
+        const pageSizeNumber = parseInt(newPageSize, RADIX_DECIMAL);
+
+        if (!isNaN(pageSizeNumber) && pageSizeNumber >= MIN_VALID_NUMBER) {
             void paginationServiceRef.current?.changeItemPerPage(pageSizeNumber);
         }
     };
@@ -157,8 +165,12 @@ const TableExplorerCustomPager = React.forwardRef<
 
     const onFetchRowsClick = () => {
         debugger;
-        const rowCountNumber = parseInt(selectedRowCount || "100", 10);
-        if (!isNaN(rowCountNumber) && rowCountNumber > 0 && onLoadSubset) {
+        const rowCountNumber = parseInt(
+            selectedRowCount || String(DEFAULT_ROW_COUNT),
+            RADIX_DECIMAL,
+        );
+
+        if (!isNaN(rowCountNumber) && rowCountNumber >= MIN_VALID_NUMBER && onLoadSubset) {
             onLoadSubset(rowCountNumber);
         }
     };
