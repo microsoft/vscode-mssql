@@ -9,7 +9,6 @@ import { SaveRegular, AddRegular, CodeRegular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
-import { EditRow } from "../../../sharedInterfaces/tableExplorer";
 
 interface TableExplorerToolbarProps {
     onSaveComplete?: () => void;
@@ -23,8 +22,6 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     const context = useTableExplorerContext();
 
     // Use selectors to access state
-    const newRows = useTableExplorerSelector((s) => s.newRows);
-    const resultSetSubset = useTableExplorerSelector((s) => s.resultSet?.subset);
     const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
 
     const handleSave = () => {
@@ -39,23 +36,9 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
         context.createRow();
     };
 
-    // Calculate the number of changes
-    const changeCount = React.useMemo(() => {
-        let count = 0;
-
-        // Count new rows
-        count += newRows.length;
-
-        // Count dirty rows in the result set (modified or deleted)
-        if (resultSetSubset) {
-            count += resultSetSubset.filter((row: EditRow) => row.isDirty).length;
-        }
-
-        // Count cell-level changes from the grid
-        count += cellChangeCount;
-
-        return count;
-    }, [newRows.length, resultSetSubset, cellChangeCount]);
+    // Use cell-level change count directly
+    // This provides accurate granularity: each cell edit counts as one change
+    const changeCount = cellChangeCount;
 
     const saveButtonText =
         changeCount > 0
