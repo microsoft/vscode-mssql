@@ -7,16 +7,27 @@ import * as assert from "assert";
 import * as locConstants from "../../src/constants/locConstants";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
+import sinonChai from "sinon-chai";
+import { expect } from "chai";
+import * as chai from "chai";
 
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
-import { UserSurvey, UserSurveyWebviewController } from "../../src/nps/userSurvey";
+import {
+    NEVER_KEY,
+    SKIP_VERSION_KEY,
+    UserSurvey,
+    UserSurveyWebviewController,
+} from "../../src/nps/userSurvey";
 import { stubTelemetry, stubVscodeWrapper } from "./utils";
+import { setTimeout } from "timers/promises";
+
+chai.use(sinonChai);
 
 suite("UserSurvey Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let globalState;
-    let context;
+    let context: vscode.ExtensionContext;
     let showInformationMessageStub: sinon.SinonStub;
 
     setup(() => {
@@ -31,7 +42,7 @@ suite("UserSurvey Tests", () => {
         context = {
             globalState: globalState,
             extensionUri: vscode.Uri.file("test"),
-        };
+        } as vscode.ExtensionContext;
 
         showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
         UserSurvey.createInstance(context, vscodeWrapper);
@@ -57,48 +68,12 @@ suite("UserSurvey Tests", () => {
 
         userSurvey.promptUserForNPSFeedback("test");
 
-        void (await new Promise((resolve) => setTimeout(resolve, 500))); // Wait for the async call to complete
+        await setTimeout(500); // Wait for the async call to complete
 
         assert.strictEqual(
             promptUserForNPSFeedbackAsyncStub.calledOnce,
             true,
             "promptUserForNPSFeedbackAsync should be called once",
-        );
-    });
-
-    test("should not prompt the user if they opted out of the survey", async () => {
-        globalState.get.withArgs("nps/never", false).returns(true);
-        const userSurvey = UserSurvey.getInstance();
-        await (userSurvey as any).promptUserForNPSFeedbackAsync();
-        assert.strictEqual(
-            (globalState.get as sinon.SinonStub).calledWith("nps/never", false),
-            true,
-            "globalState.get should be called with 'nps/never' and false",
-        );
-
-        assert.strictEqual(
-            showInformationMessageStub.called,
-            false,
-            `showInformationMessage should not be called, but was called ${showInformationMessageStub.getCalls().length} times: ${showInformationMessageStub
-                .getCalls()
-                .map((call) => `"${call.args[0]}"`)
-                .join(", ")}`,
-        );
-    });
-
-    test("Should not prompt use if skip version is set", async () => {
-        sinon.stub(vscode.extensions, "getExtension").returns({
-            packageJSON: {
-                version: "someVersion",
-            },
-        } as any);
-        globalState.get.withArgs("nps/skipVersion", "").returns("someVersion");
-        const userSurvey = UserSurvey.getInstance();
-        await (userSurvey as any).promptUserForNPSFeedbackAsync();
-        assert.strictEqual(
-            showInformationMessageStub.called,
-            false,
-            "showInformationMessage should not be called",
         );
     });
 
@@ -222,9 +197,113 @@ suite("UserSurvey Tests", () => {
         await (userSurvey as any).promptUserForNPSFeedbackAsync();
 
         assert.strictEqual(
-            globalState.update.calledWith("nps/never", true),
+            globalState.update.calledWith(NEVER_KEY, true),
             true,
             "should set never key",
         );
+    });
+
+    test("Should open survey directly without checking eligibility with launchSurvey()", async () => {
+        const userSurvey = UserSurvey.getInstance();
+
+        const eligibilitySpy = sandbox.spy(globalState.get);
+        const launchStub = sandbox
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .stub(userSurvey as any, "launchSurveyAsync")
+            .returns(Promise.resolve());
+
+        userSurvey.launchSurvey("nps", { questions: [] }, "testSource");
+
+        await setTimeout(500); // Wait for the async call to complete
+
+        expect(launchStub).to.have.been.calledOnce;
+
+        // Verify that no eligibility checks were performed
+        expect(eligibilitySpy).to.not.have.been.calledWith("nps/never");
+    });
+
+    suite("Eligibility checks", () => {
+        test("should not prompt the user if they opted out of the survey", async () => {
+            globalState.get.withArgs(NEVER_KEY, false).returns(true);
+            const userSurvey = UserSurvey.getInstance();
+            await (userSurvey as any).promptUserForNPSFeedbackAsync();
+            assert.strictEqual(
+                (globalState.get as sinon.SinonStub).calledWith(NEVER_KEY, false),
+                true,
+                `globalState.get should be called with '${NEVER_KEY}' and false`,
+            );
+
+            assert.strictEqual(
+                showInformationMessageStub.called,
+                false,
+                `showInformationMessage should not be called, but was called ${showInformationMessageStub.getCalls().length} times: ${showInformationMessageStub
+                    .getCalls()
+                    .map((call) => `"${call.args[0]}"`)
+                    .join(", ")}`,
+            );
+        });
+
+        test("Should not prompt user if skip version is set", async () => {
+            sinon.stub(vscode.extensions, "getExtension").returns({
+                packageJSON: {
+                    version: "someVersion",
+                },
+            } as any);
+            globalState.get.withArgs(SKIP_VERSION_KEY, "").returns("someVersion");
+            const userSurvey = UserSurvey.getInstance();
+            await (userSurvey as any).promptUserForNPSFeedbackAsync();
+            assert.strictEqual(
+                showInformationMessageStub.called,
+                false,
+                "showInformationMessage should not be called",
+            );
+        });
+
+        test("Should not prompt if user was already considered today", async () => {
+            // Simulate that the user was already considered today
+            globalState.get.withArgs(NEVER_KEY, false).returns(false);
+            globalState.get.withArgs(SKIP_VERSION_KEY, "").returns("");
+            globalState.get.withArgs("nps/lastSessionDate").returns(new Date().toDateString());
+            globalState.get.withArgs("nps/sessionCount").returns(999); // high enough to be eligible
+            globalState.get.withArgs("nps/isCandidate").returns(true);
+
+            const userSurvey = UserSurvey.getInstance();
+            const result = await userSurvey["shouldPromptForFeedback"]("test");
+
+            expect(result, "should not be eligible when user was already considered today").to.be
+                .false;
+        });
+
+        test("Should not prompt if user has not used the extension enough", async () => {
+            // Simulate not enough sessions
+            globalState.get.withArgs(NEVER_KEY, false).returns(false);
+            globalState.get.withArgs(SKIP_VERSION_KEY, "").returns("");
+            globalState.get.withArgs("nps/lastSessionDate").returns("01/01/2023"); // not today
+            globalState.get.withArgs("nps/sessionCount").returns(1); // below threshold
+            globalState.get.withArgs("nps/isCandidate").returns(true);
+
+            const userSurvey = UserSurvey.getInstance();
+            const result = await userSurvey["shouldPromptForFeedback"]("test");
+
+            expect(result, "should not be eligible when sessionCount is below threshold").to.be
+                .false;
+        });
+
+        test("Should not prompt if user is not selected by die roll", async () => {
+            // Simulate failing the random selection (not a candidate)
+            globalState.get.withArgs(NEVER_KEY, false).returns(false);
+            globalState.get.withArgs(SKIP_VERSION_KEY, "").returns("");
+            globalState.get.withArgs("nps/lastSessionDate").returns("01/01/2023"); // not today
+            globalState.get.withArgs("nps/sessionCount").returns(999); // high enough to be eligible
+            globalState.get.withArgs("nps/isCandidate").returns(false); // not selected by die roll
+
+            const userSurvey = UserSurvey.getInstance();
+            const result = await userSurvey["shouldPromptForFeedback"]("test");
+
+            expect(
+                result,
+                "showInformationMessage should not be called when user is not selected by die roll",
+            ).to.be.false;
+        });
     });
 });

@@ -16,11 +16,11 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
 const PROBABILITY = 0.15;
-const SESSION_COUNT_KEY = "nps/sessionCount";
-const LAST_SESSION_DATE_KEY = "nps/lastSessionDate";
-const SKIP_VERSION_KEY = "nps/skipVersion";
-const IS_CANDIDATE_KEY = "nps/isCandidate";
-const NEVER_KEY = "nps/never";
+export const SESSION_COUNT_KEY = "nps/sessionCount";
+export const LAST_SESSION_DATE_KEY = "nps/lastSessionDate";
+export const SKIP_VERSION_KEY = "nps/skipVersion";
+export const IS_CANDIDATE_KEY = "nps/isCandidate";
+export const NEVER_KEY = "nps/never";
 
 enum FunnelSteps {
     EnterFunnel = "enterFunnel",
@@ -175,7 +175,7 @@ export class UserSurvey {
     private async shouldPromptForFeedback(source: string | undefined): Promise<boolean> {
         const globalState = this._context.globalState;
 
-        // If the user has opted out of the survey, don't prompt for feedback
+        // 1. Don't prompt if the user has opted out of the survey completely
         const isNeverUser = globalState.get(NEVER_KEY, false);
         if (isNeverUser) {
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
@@ -186,7 +186,7 @@ export class UserSurvey {
             return false;
         }
 
-        // If the user has already been prompted for feedback in this version, don't prompt again
+        // 2. Don't prompt again if the user has already been prompted for feedback in this version
         const extensionVersion =
             vscode.extensions.getExtension(constants.extensionId).packageJSON.version || "unknown";
         const skipVersion = globalState.get(SKIP_VERSION_KEY, "");
@@ -199,6 +199,7 @@ export class UserSurvey {
             return false;
         }
 
+        // 3. Don't prompt if the user has already been considered for the survey today
         const date = new Date().toDateString();
         const lastSessionDate = globalState.get(LAST_SESSION_DATE_KEY, new Date(0).toDateString());
 
@@ -215,7 +216,7 @@ export class UserSurvey {
         await globalState.update(LAST_SESSION_DATE_KEY, date);
         await globalState.update(SESSION_COUNT_KEY, sessionCount);
 
-        // don't prompt for feedback from users until they've had a chance to use the extension a few times
+        // 4. Don't prompt if the user hasn't used the extension much
         if (sessionCount < 5) {
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                 step: FunnelSteps.EligibilityCheck,
@@ -225,8 +226,8 @@ export class UserSurvey {
             return false;
         }
 
+        // 5. Of the remaining users, randomly select a subset to prompt to ensure we get feedback from a variety of users over time
         const isCandidate = globalState.get(IS_CANDIDATE_KEY, false) || Math.random() < PROBABILITY;
-
         await globalState.update(IS_CANDIDATE_KEY, isCandidate);
 
         if (!isCandidate) {
