@@ -185,7 +185,6 @@ export interface TableExplorerWebViewState {
     isLoading: boolean;
     ownerUri: string;
     resultSet: EditSubsetResult | undefined;
-    tableMetadata?: any; // This would be more specific based on actual metadata structure
     currentRowCount: number; // Track the user's selected row count for data loading
     newRows: EditRow[]; // Track newly created rows that haven't been committed yet
     updateScript?: string; // SQL script generated from pending changes
