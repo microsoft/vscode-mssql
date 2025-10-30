@@ -1832,7 +1832,7 @@
     },
     "Unable to open Table Explorer: No target node provided.": "Unable to open Table Explorer: No target node provided.",
     "Changes saved successfully.": "Changes saved successfully.",
-    "New row created.": "New row created.",
+    "Row created.": "Row created.",
     "Row removed.": "Row removed.",
     "Table Explorer: {0} (Preview)/{0} is the table name": {
         "message": "Table Explorer: {0} (Preview)",

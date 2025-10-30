@@ -2237,9 +2237,6 @@
     <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
       <source xml:lang="en">New column mapping</source>
     </trans-unit>
-    <trans-unit id="++CODE++e22d31e522092be2b4a7c4c4bcb98d17d1a963aa5f4477f8774dcaadb07494fe">
-      <source xml:lang="en">New row created.</source>
-    </trans-unit>
     <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
       <source xml:lang="en">Next</source>
     </trans-unit>
@@ -2777,6 +2774,9 @@
     </trans-unit>
     <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
       <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable &quot;Use Rosetta for x86_64/amd64 emulation on Apple Silicon&quot; in Docker Desktop &gt; Settings &gt; General.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2f34dcbb175e7163055db4c74f8da053a82783ca89ca052d216bc867598b3ef3">
+      <source xml:lang="en">Row created.</source>
     </trans-unit>
     <trans-unit id="++CODE++d25169d1cd9a1ad455e2189423ab2b7341b1274e599218785aee69402ee977fc">
       <source xml:lang="en">Row removed.</source>
