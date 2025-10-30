@@ -8,6 +8,8 @@ import { Toolbar, ToolbarButton } from "@fluentui/react-components";
 import { SaveRegular, AddRegular, CodeRegular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
+import { useTableExplorerSelector } from "./tableExplorerSelector";
+import { EditRow } from "../../../sharedInterfaces/tableExplorer";
 
 interface TableExplorerToolbarProps {
     onSaveComplete?: () => void;
@@ -19,6 +21,11 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     cellChangeCount,
 }) => {
     const context = useTableExplorerContext();
+
+    // Use selectors to access state
+    const newRows = useTableExplorerSelector((s) => s.newRows);
+    const resultSetSubset = useTableExplorerSelector((s) => s.resultSet?.subset);
+    const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
 
     const handleSave = () => {
         context.commitChanges();
@@ -37,18 +44,18 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
         let count = 0;
 
         // Count new rows
-        count += context.state.newRows.length;
+        count += newRows.length;
 
         // Count dirty rows in the result set (modified or deleted)
-        if (context.state.resultSet?.subset) {
-            count += context.state.resultSet.subset.filter((row) => row.isDirty).length;
+        if (resultSetSubset) {
+            count += resultSetSubset.filter((row: EditRow) => row.isDirty).length;
         }
 
         // Count cell-level changes from the grid
         count += cellChangeCount;
 
         return count;
-    }, [context.state.newRows.length, context.state.resultSet?.subset, cellChangeCount]);
+    }, [newRows.length, resultSetSubset, cellChangeCount]);
 
     const saveButtonText =
         changeCount > 0
@@ -73,26 +80,18 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
             </ToolbarButton>
             <ToolbarButton
                 aria-label={
-                    context.state.showScriptPane
-                        ? loc.tableExplorer.hideScript
-                        : loc.tableExplorer.showScript
+                    showScriptPane ? loc.tableExplorer.hideScript : loc.tableExplorer.showScript
                 }
-                title={
-                    context.state.showScriptPane
-                        ? loc.tableExplorer.hideScript
-                        : loc.tableExplorer.showScript
-                }
+                title={showScriptPane ? loc.tableExplorer.hideScript : loc.tableExplorer.showScript}
                 icon={<CodeRegular />}
                 onClick={() => {
-                    if (context.state.showScriptPane) {
+                    if (showScriptPane) {
                         context.toggleScriptPane();
                     } else {
                         context.generateScript();
                     }
                 }}>
-                {context.state.showScriptPane
-                    ? loc.tableExplorer.hideScript
-                    : loc.tableExplorer.showScript}
+                {showScriptPane ? loc.tableExplorer.hideScript : loc.tableExplorer.showScript}
             </ToolbarButton>
         </Toolbar>
     );

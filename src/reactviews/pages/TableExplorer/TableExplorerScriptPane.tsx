@@ -10,6 +10,8 @@ import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { resolveVscodeThemeType } from "../../common/utils";
 import { useState } from "react";
 import { locConstants as loc } from "../../common/locConstants";
+import { useTableExplorerSelector } from "./tableExplorerSelector";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 
 const useStyles = makeStyles({
     root: {
@@ -47,18 +49,23 @@ const useStyles = makeStyles({
 export const TableExplorerScriptPane: React.FC = () => {
     const classes = useStyles();
     const context = useTableExplorerContext();
-    const state = context?.state;
+    const { themeKind } = useVscodeWebview2();
+
+    // Use selectors to access state
+    const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
+    const updateScript = useTableExplorerSelector((s) => s.updateScript);
+
     const [isMaximized, setIsMaximized] = useState(false);
 
-    if (!state?.showScriptPane) {
+    if (!showScriptPane) {
         return null;
     }
 
-    const scriptContent = state.updateScript || `-- ${loc.tableExplorer.noPendingChanges}`;
+    const scriptContent = updateScript || `-- ${loc.tableExplorer.noPendingChanges}`;
 
     // Debug logging
-    console.log("TableExplorerScriptPane - showScriptPane:", state.showScriptPane);
-    console.log("TableExplorerScriptPane - updateScript:", state.updateScript);
+    console.log("TableExplorerScriptPane - showScriptPane:", showScriptPane);
+    console.log("TableExplorerScriptPane - updateScript:", updateScript);
     console.log("TableExplorerScriptPane - scriptContent:", scriptContent);
 
     return (
@@ -103,7 +110,7 @@ export const TableExplorerScriptPane: React.FC = () => {
                     height="100%"
                     width="100%"
                     language="sql"
-                    theme={resolveVscodeThemeType(context?.themeKind)}
+                    theme={resolveVscodeThemeType(themeKind)}
                     value={scriptContent}
                     options={{
                         readOnly: true,

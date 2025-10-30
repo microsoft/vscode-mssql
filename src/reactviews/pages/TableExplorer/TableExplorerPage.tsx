@@ -10,6 +10,8 @@ import { TableExplorerToolbar } from "./TableExplorerToolbar";
 import { TableExplorerScriptPane } from "./TableExplorerScriptPane";
 import { makeStyles, shorthands } from "@fluentui/react-components";
 import { locConstants as loc } from "../../common/locConstants";
+import { useTableExplorerSelector } from "./tableExplorerSelector";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 
 const useStyles = makeStyles({
     root: {
@@ -36,7 +38,14 @@ const useStyles = makeStyles({
 export const TableExplorerPage: React.FC = () => {
     const classes = useStyles();
     const context = useTableExplorerContext();
-    const state = context?.state;
+    const { themeKind } = useVscodeWebview2();
+
+    // Use selectors to access specific state properties
+    const resultSet = useTableExplorerSelector((s) => s.resultSet);
+    const isLoading = useTableExplorerSelector((s) => s.isLoading);
+    const currentRowCount = useTableExplorerSelector((s) => s.currentRowCount);
+    const failedCells = useTableExplorerSelector((s) => s.failedCells);
+
     const gridRef = useRef<TableDataGridRef>(null);
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
 
@@ -56,15 +65,15 @@ export const TableExplorerPage: React.FC = () => {
                     onSaveComplete={handleSaveComplete}
                     cellChangeCount={cellChangeCount}
                 />
-                {state?.resultSet ? (
+                {resultSet ? (
                     <div className={classes.dataGridContainer}>
                         <TableDataGrid
                             ref={gridRef}
-                            resultSet={state.resultSet}
-                            themeKind={context?.themeKind}
+                            resultSet={resultSet}
+                            themeKind={themeKind}
                             pageSize={10}
-                            currentRowCount={state.currentRowCount}
-                            failedCells={state.failedCells}
+                            currentRowCount={currentRowCount}
+                            failedCells={failedCells}
                             onDeleteRow={context?.deleteRow}
                             onUpdateCell={context?.updateCell}
                             onRevertCell={context?.revertCell}
@@ -73,7 +82,7 @@ export const TableExplorerPage: React.FC = () => {
                             onCellChangeCountChanged={handleCellChangeCountChanged}
                         />
                     </div>
-                ) : state?.isLoading ? (
+                ) : isLoading ? (
                     <p>{loc.tableExplorer.loadingTableData}</p>
                 ) : (
                     <p>{loc.tableExplorer.noDataAvailable}</p>

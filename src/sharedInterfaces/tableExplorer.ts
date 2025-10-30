@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ColorThemeKind } from "./webview";
 import { IConnectionProfile } from "../models/interfaces";
 
 export interface IEditSessionOperationParams {
@@ -194,8 +193,6 @@ export interface TableExplorerWebViewState {
 }
 
 export interface TableExplorerContextProps {
-    state: TableExplorerWebViewState;
-    themeKind: ColorThemeKind;
     commitChanges: () => void;
     loadSubset: (rowCount: number) => void;
     createRow: () => void;
