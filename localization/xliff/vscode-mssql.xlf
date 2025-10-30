@@ -3173,11 +3173,11 @@
     <trans-unit id="++CODE++2228686dec07e7c9c6c8515f778b90a768e5a9474779610755f751e18e43805f">
       <source xml:lang="en">Show Schema</source>
     </trans-unit>
-    <trans-unit id="++CODE++d5b86c663921b26f8c3dbd292279ef1d0a13da517c5c5bdf53097cfc17aada03">
-      <source xml:lang="en">Show a random table definition</source>
-    </trans-unit>
     <trans-unit id="++CODE++a069cbd94b3bf5f1823f5bf4b82de717737a0b9c646396ef1a43229edd089b8e">
       <source xml:lang="en">Show Script</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d5b86c663921b26f8c3dbd292279ef1d0a13da517c5c5bdf53097cfc17aada03">
+      <source xml:lang="en">Show a random table definition</source>
     </trans-unit>
     <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
       <source xml:lang="en">Show full error message</source>
