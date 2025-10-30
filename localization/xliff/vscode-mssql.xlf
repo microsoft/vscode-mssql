@@ -2320,6 +2320,9 @@
       <note>{0} is the connection id
 {1} is the uri</note>
     </trans-unit>
+    <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
+      <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
       <source xml:lang="en">No results</source>
     </trans-unit>
