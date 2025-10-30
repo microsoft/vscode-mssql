@@ -14,6 +14,7 @@ import * as chai from "chai";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
 import {
+    FunnelSteps,
     NEVER_KEY,
     SKIP_VERSION_KEY,
     UserSurvey,
@@ -29,6 +30,7 @@ suite("UserSurvey Tests", () => {
     let globalState;
     let context: vscode.ExtensionContext;
     let showInformationMessageStub: sinon.SinonStub;
+    let sendActionEvent: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -41,11 +43,13 @@ suite("UserSurvey Tests", () => {
 
         context = {
             globalState: globalState,
-            extensionUri: vscode.Uri.file("test"),
+            extensionUri: vscode.Uri.file(testSurveySource),
         } as vscode.ExtensionContext;
 
         showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
         UserSurvey.createInstance(context, vscodeWrapper);
+
+        ({ sendActionEvent } = stubTelemetry(sandbox));
     });
 
     teardown(() => {
@@ -66,7 +70,7 @@ suite("UserSurvey Tests", () => {
 
         promptUserForNPSFeedbackAsyncStub.resolves();
 
-        userSurvey.promptUserForNPSFeedback("test");
+        userSurvey.promptUserForNPSFeedback(testSurveySource);
 
         await setTimeout(500); // Wait for the async call to complete
 
@@ -98,8 +102,6 @@ suite("UserSurvey Tests", () => {
     });
 
     test("should update global state and send telemetry after survey submission", async () => {
-        const { sendActionEvent } = stubTelemetry(sandbox);
-
         globalState.get.withArgs("nps/isCandidate").returns(true);
         showInformationMessageStub.callsFake(
             async (_text, takeButton, _laterButton, _neverButton) => {
@@ -225,38 +227,44 @@ suite("UserSurvey Tests", () => {
     suite("Eligibility checks", () => {
         test("should not prompt the user if they opted out of the survey", async () => {
             globalState.get.withArgs(NEVER_KEY, false).returns(true);
-            const userSurvey = UserSurvey.getInstance();
-            await (userSurvey as any).promptUserForNPSFeedbackAsync();
-            assert.strictEqual(
-                (globalState.get as sinon.SinonStub).calledWith(NEVER_KEY, false),
-                true,
-                `globalState.get should be called with '${NEVER_KEY}' and false`,
-            );
 
-            assert.strictEqual(
-                showInformationMessageStub.called,
-                false,
-                `showInformationMessage should not be called, but was called ${showInformationMessageStub.getCalls().length} times: ${showInformationMessageStub
-                    .getCalls()
-                    .map((call) => `"${call.args[0]}"`)
-                    .join(", ")}`,
-            );
+            const userSurvey = UserSurvey.getInstance();
+            const result = await userSurvey["shouldPromptForFeedback"](testSurveySource);
+
+            expect(result, `should not be eligible when '${NEVER_KEY}' is true`).to.be.false;
+            expect(
+                sendActionEvent,
+                "Survey funnel telemetry should be emitted",
+            ).to.have.been.calledWith(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+                step: FunnelSteps.EligibilityCheck,
+                outcome: "exit_optedOut",
+                source: testSurveySource,
+            });
         });
 
         test("Should not prompt user if skip version is set", async () => {
+            const testCurrentVersion = "1.skip.me";
+
             sinon.stub(vscode.extensions, "getExtension").returns({
                 packageJSON: {
-                    version: "someVersion",
+                    version: testCurrentVersion,
                 },
-            } as any);
-            globalState.get.withArgs(SKIP_VERSION_KEY, "").returns("someVersion");
+            } as vscode.Extension<unknown>);
+            globalState.get.withArgs(SKIP_VERSION_KEY, "").returns(testCurrentVersion);
+
             const userSurvey = UserSurvey.getInstance();
-            await (userSurvey as any).promptUserForNPSFeedbackAsync();
-            assert.strictEqual(
-                showInformationMessageStub.called,
-                false,
-                "showInformationMessage should not be called",
-            );
+            const result = await userSurvey["shouldPromptForFeedback"](testSurveySource);
+
+            expect(result, "should not be eligible when skip version matches current version").to.be
+                .false;
+            expect(
+                sendActionEvent,
+                "Survey funnel telemetry should be emitted",
+            ).to.have.been.calledWith(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+                step: FunnelSteps.EligibilityCheck,
+                outcome: "exit_skipVersion",
+                source: testSurveySource,
+            });
         });
 
         test("Should not prompt if user was already considered today", async () => {
@@ -268,14 +276,21 @@ suite("UserSurvey Tests", () => {
             globalState.get.withArgs("nps/isCandidate").returns(true);
 
             const userSurvey = UserSurvey.getInstance();
-            const result = await userSurvey["shouldPromptForFeedback"]("test");
+            const result = await userSurvey["shouldPromptForFeedback"](testSurveySource);
 
             expect(result, "should not be eligible when user was already considered today").to.be
                 .false;
+            expect(
+                sendActionEvent,
+                "Survey funnel telemetry should be emitted",
+            ).to.have.been.calledWith(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+                step: FunnelSteps.EligibilityCheck,
+                outcome: "exit_alreadyConsidered",
+                source: testSurveySource,
+            });
         });
 
         test("Should not prompt if user has not used the extension enough", async () => {
-            // Simulate not enough sessions
             globalState.get.withArgs(NEVER_KEY, false).returns(false);
             globalState.get.withArgs(SKIP_VERSION_KEY, "").returns("");
             globalState.get.withArgs("nps/lastSessionDate").returns("01/01/2023"); // not today
@@ -283,10 +298,18 @@ suite("UserSurvey Tests", () => {
             globalState.get.withArgs("nps/isCandidate").returns(true);
 
             const userSurvey = UserSurvey.getInstance();
-            const result = await userSurvey["shouldPromptForFeedback"]("test");
+            const result = await userSurvey["shouldPromptForFeedback"](testSurveySource);
 
             expect(result, "should not be eligible when sessionCount is below threshold").to.be
                 .false;
+            expect(
+                sendActionEvent,
+                "Survey funnel telemetry should be emitted",
+            ).to.have.been.calledWith(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+                step: FunnelSteps.EligibilityCheck,
+                outcome: "exit_notEnoughSessions",
+                source: testSurveySource,
+            });
         });
 
         test("Should not prompt if user is not selected by die roll", async () => {
@@ -298,12 +321,22 @@ suite("UserSurvey Tests", () => {
             globalState.get.withArgs("nps/isCandidate").returns(false); // not selected by die roll
 
             const userSurvey = UserSurvey.getInstance();
-            const result = await userSurvey["shouldPromptForFeedback"]("test");
+            const result = await userSurvey["shouldPromptForFeedback"](testSurveySource);
 
             expect(
                 result,
                 "showInformationMessage should not be called when user is not selected by die roll",
             ).to.be.false;
+            expect(
+                sendActionEvent,
+                "Survey funnel telemetry should be emitted",
+            ).to.have.been.calledWith(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
+                step: FunnelSteps.EligibilityCheck,
+                outcome: "exit_notSelectedAsCandidate",
+                source: testSurveySource,
+            });
         });
     });
 });
+
+const testSurveySource = "testSurveySource";

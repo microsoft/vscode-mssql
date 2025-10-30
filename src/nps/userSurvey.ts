@@ -22,7 +22,7 @@ export const SKIP_VERSION_KEY = "nps/skipVersion";
 export const IS_CANDIDATE_KEY = "nps/isCandidate";
 export const NEVER_KEY = "nps/never";
 
-enum FunnelSteps {
+export enum FunnelSteps {
     EnterFunnel = "enterFunnel",
     EligibilityCheck = "eligibilityCheck",
     Prompt = "prompt",
@@ -180,7 +180,7 @@ export class UserSurvey {
         if (isNeverUser) {
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                 step: FunnelSteps.EligibilityCheck,
-                outcome: "exit_never",
+                outcome: "exit_optedOut",
                 source: source,
             });
             return false;
@@ -193,7 +193,7 @@ export class UserSurvey {
         if (skipVersion === extensionVersion) {
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                 step: FunnelSteps.EligibilityCheck,
-                outcome: "exit_skip",
+                outcome: "exit_skipVersion",
                 source: source,
             });
             return false;
