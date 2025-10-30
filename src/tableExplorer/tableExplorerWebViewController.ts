@@ -163,7 +163,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             this.logger.info("Script regenerated successfully in real-time");
         } catch (error) {
             this.logger.error(`Error regenerating script: ${error}`);
-            // Don't show error message to user since this is an automatic background update
         }
     }
 
@@ -186,12 +185,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     LocConstants.TableExplorer.changesSavedSuccessfully,
                 );
 
-                // Clear the new rows array since they're now committed to the database
                 state.newRows = [];
-                // Clear all failed cells since we're starting fresh
                 state.failedCells = [];
-                // Reset the prompt flag since there are no more unsaved changes
                 this.showRestorePromptAfterClose = false;
+
                 this.logger.info("Cleared new rows and failed cells after successful commit");
             } catch (error) {
                 this.logger.error(`Error committing changes: ${error}`);
@@ -199,6 +196,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     LocConstants.TableExplorer.failedToSaveChanges(getErrorMessage(error)),
                 );
             }
+
             return state;
         });
 
@@ -211,13 +209,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     payload.rowCount,
                 );
 
-                // Append any newly created rows to the subset
                 state.resultSet = {
                     ...subsetResult,
                     subset: [...subsetResult.subset, ...state.newRows],
                     rowCount: subsetResult.rowCount + state.newRows.length,
                 };
-                state.currentRowCount = payload.rowCount; // Store the user's selection
+                state.currentRowCount = payload.rowCount;
 
                 this.updateState();
 
@@ -230,6 +227,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     LocConstants.TableExplorer.failedToLoadData(getErrorMessage(error)),
                 );
             }
+
             return state;
         });
 
@@ -242,13 +240,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
                 this.logger.info(`Created row with ID: ${result.newRowId}`);
 
-                // Add the new row to the newRows tracking array
                 state.newRows.push(result.row);
-
-                // Mark that we have unsaved changes
                 this.showRestorePromptAfterClose = true;
 
-                // Append the new row to the existing result set
                 if (state.resultSet) {
                     state.resultSet = {
                         ...state.resultSet,
@@ -272,6 +266,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     LocConstants.TableExplorer.failedToCreateNewRow(getErrorMessage(error)),
                 );
             }
+
             return state;
         });
 
@@ -281,17 +276,14 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
                 vscode.window.showInformationMessage(LocConstants.TableExplorer.rowRemoved);
 
-                // Remove from newRows array if it's a newly created row
                 state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
 
-                // Remove all failed cells for this row
                 if (state.failedCells) {
                     state.failedCells = state.failedCells.filter(
                         (key) => !key.startsWith(`${payload.rowId}-`),
                     );
                 }
 
-                // Mark that we have unsaved changes
                 this.showRestorePromptAfterClose = true;
 
                 if (state.resultSet) {
@@ -318,6 +310,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     LocConstants.TableExplorer.failedToRemoveRow(getErrorMessage(error)),
                 );
             }
+
             return state;
         });
 
@@ -331,10 +324,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     payload.newValue,
                 );
 
-                // Mark that we have unsaved changes
                 this.showRestorePromptAfterClose = true;
 
-                // Update the cell value in the result set to keep state in sync
                 if (state.resultSet && updateCellResult.cell) {
                     const rowIndex = state.resultSet.subset.findIndex(
                         (row) => row.id === payload.rowId,
@@ -357,7 +348,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             } catch (error) {
                 this.logger.error(`Error updating cell: ${error}`);
 
-                // Add this cell to the failed cells array
                 if (!state.failedCells) {
                     state.failedCells = [];
                 }
@@ -371,6 +361,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     LocConstants.TableExplorer.failedToUpdateCell(getErrorMessage(error)),
                 );
             }
+
             return state;
         });
 
@@ -383,13 +374,11 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     payload.columnId,
                 );
 
-                // Remove this cell from failed cells array
                 if (state.failedCells) {
                     const failedKey = `${payload.rowId}-${payload.columnId}`;
                     state.failedCells = state.failedCells.filter((key) => key !== failedKey);
                 }
 
-                // Update the cell value in the result set to keep state in sync
                 if (state.resultSet && revertCellResult.cell) {
                     const rowIndex = state.resultSet.subset.findIndex(
                         (row) => row.id === payload.rowId,
@@ -430,6 +419,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     LocConstants.TableExplorer.failedToRevertCell(getErrorMessage(error)),
                 );
             }
+
             return state;
         });
 
@@ -441,26 +431,24 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     payload.rowId,
                 );
 
-                // Remove all failed cells for this row
                 if (state.failedCells) {
                     state.failedCells = state.failedCells.filter(
                         (key) => !key.startsWith(`${payload.rowId}-`),
                     );
                 }
 
-                // Update the row in the result set with the reverted row data
                 if (state.resultSet && revertRowResult.row) {
                     const rowIndex = state.resultSet.subset.findIndex(
                         (row) => row.id === payload.rowId,
                     );
                     if (rowIndex !== -1) {
-                        // Create a new resultSet object to trigger React's change detection
                         state.resultSet = {
                             ...state.resultSet,
                             subset: state.resultSet.subset.map((row, idx) => {
                                 if (idx === rowIndex) {
                                     return revertRowResult.row;
                                 }
+
                                 return row;
                             }),
                         };
@@ -482,6 +470,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     LocConstants.TableExplorer.failedToRevertRow(getErrorMessage(error)),
                 );
             }
+
             return state;
         });
 
@@ -491,13 +480,13 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 const scriptResult = await this._tableExplorerService.generateScripts(
                     state.ownerUri,
                 );
-                // Join the array of scripts into a single string with newlines
+
                 const combinedScript = scriptResult.scripts?.join("\n") || "";
                 this.logger.info(
                     `Script result received: ${scriptResult.scripts?.length} script(s), combined length: ${combinedScript.length}`,
                 );
                 state.updateScript = combinedScript;
-                state.showScriptPane = true; // Automatically show the script pane
+                state.showScriptPane = true;
 
                 this.logger.info(
                     `State before updateState - updateScript length: ${state.updateScript?.length}, showScriptPane: ${state.showScriptPane}`,
@@ -514,6 +503,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     LocConstants.TableExplorer.failedToGenerateScript(getErrorMessage(error)),
                 );
             }
+
             return state;
         });
 
@@ -536,6 +526,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     LocConstants.TableExplorer.failedToOpenScript(getErrorMessage(error)),
                 );
             }
+
             return state;
         });
 
@@ -557,6 +548,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     LocConstants.TableExplorer.failedToCopyScript(getErrorMessage(error)),
                 );
             }
+
             return state;
         });
 
@@ -564,13 +556,14 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             state.showScriptPane = !state.showScriptPane;
             this.logger.info(`Script pane toggled to: ${state.showScriptPane}`);
             this.updateState();
+
             return state;
         });
 
         this.registerReducer("setCurrentPage", async (state, payload) => {
             state.currentPage = payload.pageNumber;
             this.logger.info(`Current page set to: ${payload.pageNumber}`);
-            // Don't call updateState here - this is called FROM the grid, not TO the grid
+
             return state;
         });
     }
@@ -594,9 +587,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             LocConstants.TableExplorer.Discard,
         );
 
-        // Handle the user's choice
         if (result === LocConstants.TableExplorer.Save) {
             this.logger.info("User chose to save changes before closing");
+
             try {
                 await this._tableExplorerService.commit(this.state.ownerUri);
                 vscode.window.showInformationMessage(
@@ -611,7 +604,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             }
         } else if (result === LocConstants.TableExplorer.Discard) {
             this.logger.info("User chose to discard changes");
-            // No action needed - just close without saving
         } else {
             // User pressed ESC or clicked X - treat as discard
             this.logger.info("User dismissed the prompt - treating as discard");
