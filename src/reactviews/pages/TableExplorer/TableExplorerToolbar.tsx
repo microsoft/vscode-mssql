@@ -68,7 +68,8 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 aria-label={saveButtonText}
                 title={saveButtonText}
                 icon={<SaveRegular />}
-                onClick={handleSave}>
+                onClick={handleSave}
+                disabled={changeCount === 0}>
                 {saveButtonText}
             </ToolbarButton>
             <ToolbarButton
