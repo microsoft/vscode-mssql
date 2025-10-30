@@ -16,7 +16,7 @@ export const IsJsonRegex = /^\s*(\{[\S\s]*\}|\[[\S\s]*\])\s*$/;
  * @returns true if the value contains valid JSON, false otherwise
  */
 export function isJson(value: string): boolean {
-    if (value && value.match(IsJsonRegex)) {
+    if (value?.match(IsJsonRegex)) {
         try {
             JSON.parse(value);
             return true;
