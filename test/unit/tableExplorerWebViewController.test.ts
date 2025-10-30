@@ -95,7 +95,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
         // Setup mock webview and panel
         mockWebview = {
             postMessage: sandbox.stub(),
-            asWebviewUri: sandbox.stub().returns(vscode.Uri.parse("https://example.com/")),
+            asWebviewUri: sandbox.stub().returns(vscode.Uri.parse("file:///webview")),
             onDidReceiveMessage: sandbox.stub(),
         } as any;
 
