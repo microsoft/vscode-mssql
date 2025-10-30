@@ -1255,7 +1255,9 @@ export default class ConnectionManager {
                 );
 
                 if (errorHandlingResult.isHandled) {
-                    return await this.connect(fileUri, errorHandlingResult.updatedCredentials);
+                    return await this.connect(fileUri, errorHandlingResult.updatedCredentials, {
+                        connectionSource: connectionSource,
+                    });
                 }
             }
 

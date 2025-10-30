@@ -735,6 +735,9 @@ export default class MainController implements vscode.Disposable {
                     const isConnected = await this.connectionManager.connect(
                         nodeUri,
                         connectionCreds,
+                        {
+                            connectionSource: "scriptNode",
+                        },
                     );
                     if (!isConnected) {
                         /**
@@ -1106,6 +1109,9 @@ export default class MainController implements vscode.Disposable {
                         const connectionResult = await this.connectionManager.connect(
                             connectionUri,
                             connectionCreds,
+                            {
+                                connectionSource: "searchObjects",
+                            },
                         );
                         if (!connectionResult) {
                             return;
@@ -2194,9 +2200,12 @@ export default class MainController implements vscode.Disposable {
         uri: string,
         connectionInfo: IConnectionInfo,
         saveConnection?: boolean,
+        connectionSource?: string,
     ): Promise<boolean> {
         if (this.canRunCommand() && uri && connectionInfo) {
-            const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo);
+            const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo, {
+                connectionSource,
+            });
             if (connectedSuccessfully) {
                 if (saveConnection) {
                     await this.createObjectExplorerSession(connectionInfo);

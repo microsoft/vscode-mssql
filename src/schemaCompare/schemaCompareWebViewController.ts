@@ -2315,7 +2315,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             if (!ownerUri) {
                 ownerUri = utils.generateQueryUri().toString();
 
-                isConnected = await this.connectionMgr.connect(ownerUri, connInfo);
+                isConnected = await this.connectionMgr.connect(ownerUri, connInfo, {
+                    connectionSource: "schemaCompare",
+                });
 
                 if (!isConnected) {
                     // Invoking connect will add an active connection that isn't valid, hence removing it.
