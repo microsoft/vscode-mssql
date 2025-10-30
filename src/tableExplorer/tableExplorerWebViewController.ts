@@ -238,7 +238,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             try {
                 const result = await this._tableExplorerService.createRow(state.ownerUri);
                 vscode.window.showInformationMessage(
-                    LocConstants.TableExplorer.newRowCreatedSuccessfully,
+                    LocConstants.TableExplorer.rowCreatedSuccessfully,
                 );
                 this.logger.info(`Created row with ID: ${result.newRowId}`);
 

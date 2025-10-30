@@ -290,7 +290,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             assert.ok(mockTableExplorerService.createRow.calledOnceWith("test-owner-uri"));
             assert.ok(
                 showInformationMessageStub.calledOnceWith(
-                    LocConstants.TableExplorer.newRowCreatedSuccessfully,
+                    LocConstants.TableExplorer.rowCreatedSuccessfully,
                 ),
             );
             assert.strictEqual(controller.state.newRows.length, 1);

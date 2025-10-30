@@ -2026,7 +2026,7 @@ export class TableExplorer {
         "Unable to open Table Explorer: No target node provided.",
     );
     public static changesSavedSuccessfully = l10n.t("Changes saved successfully.");
-    public static newRowCreatedSuccessfully = l10n.t("New row created.");
+    public static rowCreatedSuccessfully = l10n.t("Row created.");
     public static rowRemoved = l10n.t("Row removed.");
 
     public static title = (tableName: string) =>
