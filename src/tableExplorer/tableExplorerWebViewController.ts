@@ -250,8 +250,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 this.showRestorePromptAfterClose = true;
 
                 // Update result set with new row
-                // Append the new row to the end of the subset so it appears on the last page
-                // This provides better UX as users can immediately see and edit the new row
                 if (state.resultSet) {
                     state.resultSet = {
                         ...state.resultSet,
