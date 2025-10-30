@@ -1107,6 +1107,7 @@ export class LocConstants {
             lastPage: l10n.t("Last Page"),
             loadingTableData: l10n.t("Loading table data..."),
             noDataAvailable: l10n.t("No data available"),
+            noPendingChanges: l10n.t("No pending changes. Make edits to generate a script."),
         };
     }
 }

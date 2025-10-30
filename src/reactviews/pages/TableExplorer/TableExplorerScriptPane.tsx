@@ -54,8 +54,7 @@ export const TableExplorerScriptPane: React.FC = () => {
         return null;
     }
 
-    const scriptContent =
-        state.updateScript || "-- No pending changes. Make edits to generate a script.";
+    const scriptContent = state.updateScript || `-- ${loc.tableExplorer.noPendingChanges}`;
 
     // Debug logging
     console.log("TableExplorerScriptPane - showScriptPane:", state.showScriptPane);
