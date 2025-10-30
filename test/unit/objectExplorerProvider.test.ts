@@ -171,6 +171,57 @@ suite("Object Explorer Provider Tests", function () {
         sandbox.restore();
     });
 
+    // TODO: @aasimkhan30 Fix this test
+    // // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
+    // test.skip("Test Create Session", () => {
+    //     expect(
+    //         objectExplorerService.object.currentNode,
+    //         "Current Node should be undefined",
+    //     ).is.equal(undefined);
+    //     expect(
+    //         objectExplorerProvider.objectExplorerExists,
+    //         "Object Explorer should not exist until started",
+    //     ).is.equal(undefined);
+    //     const promise = new Deferred<TreeNodeInfo>();
+    //     objectExplorerService
+    //         .setup((s) => s.createSession(promise, undefined))
+    //         .returns(() => {
+    //             return new Promise((resolve, reject) => {
+    //                 objectExplorerService
+    //                     .setup((s) => s.currentNode)
+    //                     .returns(() => TypeMoq.It.isAny());
+    //                 objectExplorerProvider.objectExplorerExists = true;
+    //                 promise.resolve(
+    //                     new TreeNodeInfo(
+    //                         undefined,
+    //                         undefined,
+    //                         undefined,
+    //                         undefined,
+    //                         undefined,
+    //                         undefined,
+    //                         undefined,
+    //                         undefined,
+    //                         undefined,
+    //                         undefined,
+    //                         undefined,
+    //                     ),
+    //                 );
+    //             });
+    //         });
+    //     void objectExplorerProvider.createSession(promise, undefined).then(async () => {
+    //         expect(
+    //             objectExplorerService.object.currentNode,
+    //             "Current Node should not be undefined",
+    //         ).is.not.equal(undefined);
+    //         expect(
+    //             objectExplorerProvider.objectExplorerExists,
+    //             "Object Explorer session should exist",
+    //         ).is.equal(true);
+    //         let node = await promise;
+    //         expect(node, "Created session node not be undefined").is.not.equal(undefined);
+    //     });
+    // });
+
     test("Test remove Object Explorer node", async () => {
         objectExplorerServiceStub.removeNode.resolves();
         await objectExplorerProvider.removeNode({} as ConnectionNode);
@@ -361,6 +412,116 @@ suite("Object Explorer Provider Tests", function () {
         const treeItem = objectExplorerProvider.getTreeItem(node);
         assert.equal(treeItem, node);
     });
+
+    // TODO: Readd these test
+    // const mockParentTreeNode = new TreeNodeInfo(
+    //     "Parent Node",
+    //     undefined,
+    //     undefined,
+    //     "parentNodePath",
+    //     undefined,
+    //     undefined,
+    //     undefined,
+    //     undefined,
+    //     undefined,
+    //     undefined,
+    // );
+
+    // test("Test handleExpandSessionNotification returns child nodes upon success", async function () {
+    //     const childNodeInfo: NodeInfo = {
+    //         nodePath: `${mockParentTreeNode.nodePath}/childNodePath`,
+    //         nodeStatus: undefined,
+    //         nodeSubType: undefined,
+    //         nodeType: undefined,
+    //         label: "Child Node",
+    //         isLeaf: true,
+    //         errorMessage: undefined,
+    //         metadata: undefined,
+    //     };
+
+    //     const mockExpandResponse: ExpandResponse = {
+    //         sessionId: "test_session",
+    //         nodePath: mockParentTreeNode.nodePath,
+    //         nodes: [childNodeInfo],
+    //         errorMessage: undefined,
+    //     };
+
+    //     const testOeService = new ObjectExplorerService(
+    //         vscodeWrapper.object,
+    //         connectionManager.object,
+    //         objectExplorerProvider,
+    //     );
+
+    //     let notificationObject = testOeService.handleExpandSessionNotification();
+
+    //     const expandParams: ExpandParams = {
+    //         sessionId: mockExpandResponse.sessionId,
+    //         nodePath: mockExpandResponse.nodePath,
+    //     };
+
+    //     testOeService["_expandParamsToTreeNodeInfoMap"].set(expandParams, mockParentTreeNode);
+
+    //     testOeService["_sessionIdToConnectionProfileMap"].set(
+    //         mockExpandResponse.sessionId,
+    //         undefined,
+    //     );
+
+    //     const outputPromise = new Deferred<TreeNodeInfo[]>();
+
+    //     testOeService["_expandParamsToPromiseMap"].set(expandParams, outputPromise);
+
+    //     notificationObject.call(testOeService, mockExpandResponse);
+
+    //     const childNodes = await outputPromise;
+    //     assert.equal(childNodes.length, 1, "Child nodes length");
+    //     assert.equal(childNodes[0].label, childNodeInfo.label, "Child node label");
+    //     assert.equal(childNodes[0].nodePath, childNodeInfo.nodePath, "Child node path");
+    // });
+
+    // test("Test handleExpandSessionNotification returns message node upon failure", async function () {
+    //     this.timeout(0);
+
+    //     const mockExpandResponse: ExpandResponse = {
+    //         sessionId: "test_session",
+    //         nodePath: mockParentTreeNode.nodePath,
+    //         nodes: [],
+    //         errorMessage: "Error loading node",
+    //     };
+
+    //     const testOeService = new ObjectExplorerService(
+    //         vscodeWrapper.object,
+    //         connectionManager.object,
+    //         objectExplorerProvider,
+    //     );
+
+    //     let notificationObject = testOeService.handleExpandSessionNotification();
+
+    //     const expandParams: ExpandParams = {
+    //         sessionId: mockExpandResponse.sessionId,
+    //         nodePath: mockExpandResponse.nodePath,
+    //     };
+
+    //     testOeService["_expandParamsToTreeNodeInfoMap"].set(expandParams, mockParentTreeNode);
+
+    //     testOeService["_sessionIdToConnectionProfileMap"].set(
+    //         mockExpandResponse.sessionId,
+    //         undefined,
+    //     );
+
+    //     const outputPromise = new Deferred<TreeNodeInfo[]>();
+
+    //     testOeService["_expandParamsToPromiseMap"].set(expandParams, outputPromise);
+
+    //     notificationObject.call(testOeService, mockExpandResponse);
+
+    //     const childNodes = await outputPromise;
+    //     assert.equal(childNodes.length, 1, "Child nodes length");
+    //     assert.equal(
+    //         childNodes[0].label,
+    //         LocalizedConstants.ObjectExplorer.ErrorMessageNodeLabel,
+    //         "Child node label",
+    //     );
+    // });
 
     test("Add connection node returns add connection tree node when profile undefined", () => {
         const node = objectExplorerProvider["objectExplorerService"].getRootNodes;
