@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IConnectionProfile } from "../models/interfaces";
-
 export interface IEditSessionOperationParams {
     ownerUri: string;
 }
@@ -180,7 +178,7 @@ export interface TableExplorerWebViewState {
     databaseName: string;
     serverName: string;
     schemaName?: string;
-    connectionProfile?: IConnectionProfile;
+    connectionProfile?: any;
     isLoading: boolean;
     ownerUri: string;
     resultSet: EditSubsetResult | undefined;
