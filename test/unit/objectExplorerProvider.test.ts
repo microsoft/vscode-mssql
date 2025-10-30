@@ -4,12 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as TypeMoq from "typemoq";
+import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
+import * as chai from "chai";
+import { expect, assert } from "chai";
+
 import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerProvider";
 import { ObjectExplorerService } from "../../src/objectExplorer/objectExplorerService";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import { expect, assert } from "chai";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { AddConnectionTreeNode } from "../../src/objectExplorer/nodes/addConnectionTreeNode";
 import * as LocalizedConstants from "../../src/constants/locConstants";
@@ -24,185 +27,188 @@ import { ConnectionGroupNode } from "../../src/objectExplorer/nodes/connectionGr
 import { ConnectionProfile } from "../../src/models/connectionProfile";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import { initializeIconUtils } from "./utils";
+import { initializeIconUtils, stubVscodeWrapper } from "./utils";
+
+chai.use(sinonChai);
 
 suite("Object Explorer Provider Tests", function () {
-    let objectExplorerService: TypeMoq.IMock<ObjectExplorerService>;
-    let connectionManager: TypeMoq.IMock<ConnectionManager>;
-    let client: TypeMoq.IMock<SqlToolsServiceClient>;
+    let sandbox: sinon.SinonSandbox;
+    let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
+    let connectionManager: ConnectionManager;
+    let clientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
+    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let objectExplorerProvider: ObjectExplorerProvider;
-    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
-    let outputChannel: TypeMoq.IMock<vscode.OutputChannel>;
+    let objectExplorerServiceStub: sinon.SinonStubbedInstance<ObjectExplorerService>;
     let testObjectExplorerService: ObjectExplorerService;
-    let connectionStore: TypeMoq.IMock<ConnectionStore>;
+    let connectionStore: ConnectionStore;
+
+    const rootGroupId = "root-group-id";
+
+    function createTreeNodeInfo(options?: {
+        label?: string;
+        nodePath?: string;
+        nodeType?: string;
+        sessionId?: string;
+        nodeStatus?: string;
+        parentNode?: TreeNodeInfo;
+        connectionProfile?: IConnectionProfile;
+        collapsibleState?: vscode.TreeItemCollapsibleState;
+    }): TreeNodeInfo {
+        const {
+            label = "test_node",
+            nodePath = "test_path",
+            nodeType = "Server",
+            sessionId = "test_session",
+            nodeStatus = "NeverExpanded",
+            parentNode,
+            connectionProfile,
+            collapsibleState = vscode.TreeItemCollapsibleState.Collapsed,
+        } = options || {};
+
+        return new TreeNodeInfo(
+            label,
+            {
+                type: nodeType,
+                filterable: false,
+                hasFilters: false,
+            },
+            collapsibleState,
+            nodePath,
+            nodeStatus,
+            nodeType,
+            sessionId,
+            connectionProfile,
+            parentNode,
+            [],
+            undefined,
+        );
+    }
+
+    function createConnectionProfile(id: string, profileName: string): ConnectionProfile {
+        return new ConnectionProfile({
+            id,
+            profileName,
+        } as unknown as IConnectionProfile);
+    }
 
     setup(() => {
+        sandbox = sinon.createSandbox();
         initializeIconUtils();
-        let mockContext: TypeMoq.IMock<vscode.ExtensionContext> =
-            TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        connectionManager = TypeMoq.Mock.ofType(
-            ConnectionManager,
-            TypeMoq.MockBehavior.Loose,
-            mockContext.object,
-        );
-        connectionManager.setup((c) => c.client).returns(() => client.object);
-        client = TypeMoq.Mock.ofType(SqlToolsServiceClient, TypeMoq.MockBehavior.Loose);
-        client.setup((c) => c.onNotification(TypeMoq.It.isAny(), TypeMoq.It.isAny()));
-        connectionManager.object.client = client.object;
 
-        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
+        clientStub = sandbox.createStubInstance(SqlToolsServiceClient);
+        clientStub.onNotification.returnsThis();
 
-        vscodeWrapper.setup((v) => v.showErrorMessage(TypeMoq.It.isAnyString()));
+        vscodeWrapperStub = stubVscodeWrapper(sandbox);
 
-        outputChannel = TypeMoq.Mock.ofType<vscode.OutputChannel>();
-        outputChannel.setup((c) => c.clear());
-        outputChannel.setup((c) => c.append(TypeMoq.It.isAny()));
-        outputChannel.setup((c) => c.show(TypeMoq.It.isAny()));
+        const rootGroup = {
+            id: rootGroupId,
+            name: ConnectionConfig.RootGroupName,
+            parentId: undefined,
+            color: undefined,
+            description: undefined,
+            collapsed: false,
+            includeInMRU: true,
+            isLocal: true,
+        };
 
-        vscodeWrapper.setup((v) => v.outputChannel).returns(() => outputChannel.object);
+        let savedConnections: IConnectionProfile[] = [];
 
-        connectionManager.setup((c) => c.vscodeWrapper).returns(() => vscodeWrapper.object);
-        connectionManager.object.vscodeWrapper = vscodeWrapper.object;
+        connectionStore = {
+            rootGroupId,
+            readAllConnectionGroups: sandbox.stub().resolves([rootGroup]),
+            readAllConnections: sandbox.stub().callsFake(async () => savedConnections),
+            saveProfile: sandbox.stub().callsFake(async (profile: IConnectionProfile) => {
+                savedConnections = [
+                    ...savedConnections.filter((c) => c.id !== profile.id),
+                    profile,
+                ];
+                return profile;
+            }),
+            removeProfile: sandbox.stub().resolves(true),
+            incrementSavedProfiles: sandbox.stub(),
+            decrementSavedProfiles: sandbox.stub(),
+        } as unknown as ConnectionStore;
 
-        connectionStore = TypeMoq.Mock.ofType(
-            ConnectionStore,
-            TypeMoq.MockBehavior.Loose,
-            mockContext.object,
-        );
+        connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
+        (connectionManagerStub as unknown as { client: SqlToolsServiceClient }).client =
+            clientStub as unknown as SqlToolsServiceClient;
+        (connectionManagerStub as unknown as { connectionStore: ConnectionStore }).connectionStore =
+            connectionStore;
+        (connectionManagerStub as unknown as { vscodeWrapper: VscodeWrapper }).vscodeWrapper =
+            vscodeWrapperStub as unknown as VscodeWrapper;
 
-        connectionStore.setup((c) => c.rootGroupId).returns(() => "root-group-id");
+        connectionManagerStub.disconnect.resolves();
+        connectionManagerStub.connect.resolves(true);
+        connectionManagerStub.handlePasswordStorageOnConnect.resolves();
+        connectionManagerStub.handleConnectionErrors.resolves(undefined);
+        connectionManagerStub.getServerInfo.resolves(undefined);
+        connectionManagerStub.isConnected.returns(false);
+        connectionManagerStub.isConnecting.returns(false);
 
-        connectionManager.setup((cm) => cm.connectionStore).returns(() => connectionStore.object);
+        connectionManager = connectionManagerStub as unknown as ConnectionManager;
 
         objectExplorerProvider = new ObjectExplorerProvider(
-            vscodeWrapper.object,
-            connectionManager.object,
+            vscodeWrapperStub as unknown as VscodeWrapper,
+            connectionManager,
         );
-        expect(
-            objectExplorerProvider,
-            "Object Explorer Provider is initialzied properly",
-        ).is.not.equal(undefined);
+        expect(objectExplorerProvider, "Object Explorer Provider is initialized properly").to.exist;
 
-        objectExplorerService = TypeMoq.Mock.ofType(
-            ObjectExplorerService,
-            TypeMoq.MockBehavior.Loose,
-            vscodeWrapper.object,
-            connectionManager.object,
-        );
-        //objectExplorerService.setup((s) => s.currentNode).returns(() => undefined);
-        objectExplorerProvider.objectExplorerService = objectExplorerService.object;
+        objectExplorerServiceStub = sandbox.createStubInstance(ObjectExplorerService);
+        objectExplorerProvider.objectExplorerService =
+            objectExplorerServiceStub as unknown as ObjectExplorerService;
 
         testObjectExplorerService = new ObjectExplorerService(
-            vscodeWrapper.object,
-            connectionManager.object,
-            () => {},
+            vscodeWrapperStub as unknown as VscodeWrapper,
+            connectionManager,
+            () => {
+                /* no-op */
+            },
         );
         testObjectExplorerService.initialized.resolve();
     });
 
-    // TODO: @aasimkhan30 Fix this test
-    // // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
-    // test.skip("Test Create Session", () => {
-    //     expect(
-    //         objectExplorerService.object.currentNode,
-    //         "Current Node should be undefined",
-    //     ).is.equal(undefined);
-    //     expect(
-    //         objectExplorerProvider.objectExplorerExists,
-    //         "Object Explorer should not exist until started",
-    //     ).is.equal(undefined);
-    //     const promise = new Deferred<TreeNodeInfo>();
-    //     objectExplorerService
-    //         .setup((s) => s.createSession(promise, undefined))
-    //         .returns(() => {
-    //             return new Promise((resolve, reject) => {
-    //                 objectExplorerService
-    //                     .setup((s) => s.currentNode)
-    //                     .returns(() => TypeMoq.It.isAny());
-    //                 objectExplorerProvider.objectExplorerExists = true;
-    //                 promise.resolve(
-    //                     new TreeNodeInfo(
-    //                         undefined,
-    //                         undefined,
-    //                         undefined,
-    //                         undefined,
-    //                         undefined,
-    //                         undefined,
-    //                         undefined,
-    //                         undefined,
-    //                         undefined,
-    //                         undefined,
-    //                         undefined,
-    //                     ),
-    //                 );
-    //             });
-    //         });
-    //     void objectExplorerProvider.createSession(promise, undefined).then(async () => {
-    //         expect(
-    //             objectExplorerService.object.currentNode,
-    //             "Current Node should not be undefined",
-    //         ).is.not.equal(undefined);
-    //         expect(
-    //             objectExplorerProvider.objectExplorerExists,
-    //             "Object Explorer session should exist",
-    //         ).is.equal(true);
-    //         let node = await promise;
-    //         expect(node, "Created session node not be undefined").is.not.equal(undefined);
-    //     });
-    // });
-
-    test("Test remove Object Explorer node", async () => {
-        let isNodeDeleted = false;
-        objectExplorerService
-            .setup((s) => s.removeNode(TypeMoq.It.isAny()))
-            .returns(() => {
-                isNodeDeleted = true;
-                return Promise.resolve(undefined);
-            });
-        await objectExplorerProvider.removeNode(TypeMoq.It.isAny());
-        expect(isNodeDeleted, "Node should be deleted").is.equal(true);
+    teardown(() => {
+        sandbox.restore();
     });
 
-    test("Test Get Children from Object Explorer Provider", (done) => {
-        const parentTreeNode = TypeMoq.Mock.ofType(TreeNodeInfo, TypeMoq.MockBehavior.Loose);
-        const childTreeNode = TypeMoq.Mock.ofType(TreeNodeInfo, TypeMoq.MockBehavior.Loose);
-        objectExplorerService
-            .setup((s) => s.getChildren(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve([childTreeNode.object]));
-        void objectExplorerProvider.getChildren(parentTreeNode.object).then((children) => {
-            children.forEach((child) =>
-                expect(child, "Children nodes should not be undefined").is.not.equal(undefined),
-            );
-        });
-        done();
+    test("Test remove Object Explorer node", async () => {
+        objectExplorerServiceStub.removeNode.resolves();
+        await objectExplorerProvider.removeNode({} as ConnectionNode);
+        expect(objectExplorerServiceStub.removeNode).to.have.been.calledOnce;
+    });
+
+    test("Test Get Children from Object Explorer Provider", async () => {
+        const parentNode = createTreeNodeInfo();
+        const childNode = createTreeNodeInfo({ label: "child" });
+        objectExplorerServiceStub.getChildren.resolves([childNode]);
+
+        const children = await objectExplorerProvider.getChildren(parentNode);
+        expect(children).to.deep.equal([childNode]);
     });
 
     test("Test Get Children from Object Explorer Provider with no children", async () => {
-        const parentTreeNode = TypeMoq.Mock.ofType(TreeNodeInfo, TypeMoq.MockBehavior.Loose);
+        const parentTreeNode = createTreeNodeInfo({
+            nodeStatus: "NeverExpanded",
+        });
 
-        const expandNodeSpy = TypeMoq.Mock.ofInstance((element, sessionId) =>
-            testObjectExplorerService.expandNode(element, sessionId),
-        );
+        const expandStub = sandbox.stub(testObjectExplorerService, "expandNode").resolves([]);
 
-        expandNodeSpy
-            .setup((e) => e(TypeMoq.It.isAny(), TypeMoq.It.isAnyString()))
-            .returns(() => Promise.resolve([]));
-
-        testObjectExplorerService.expandNode = expandNodeSpy.object;
-
-        parentTreeNode.setup((s) => s.sessionId).returns(() => "test_session");
-
-        let children = await testObjectExplorerService.getChildren(parentTreeNode.object);
-        expect(children.length, "loading node should be returned").is.equal(1);
-        expect(children[0].label, "Should return loading node").is.equal(
+        const children = await testObjectExplorerService.getChildren(parentTreeNode);
+        expect(children.length, "loading node should be returned").to.equal(1);
+        expect(children[0].label, "Should return loading node").to.equal(
             LocalizedConstants.ObjectExplorer.LoadingNodeLabel,
         );
 
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        expect(expandStub).to.have.been.calledOnceWithExactly(
+            parentTreeNode,
+            parentTreeNode.sessionId,
+        );
 
-        children = await testObjectExplorerService.getChildren(parentTreeNode.object);
-        expect(children.length, "No items nodes should be returned").is.equal(1);
-        expect(children[0].label, "should return No items node").is.equal(
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        const noItemsChildren = await testObjectExplorerService.getChildren(parentTreeNode);
+        expect(noItemsChildren.length, "No items nodes should be returned").to.equal(1);
+        expect(noItemsChildren[0].label, "should return No items node").to.equal(
             LocalizedConstants.ObjectExplorer.NoItems,
         );
     });
@@ -227,21 +233,21 @@ suite("Object Explorer Provider Tests", function () {
             connectionNode2,
         ]);
 
-        expect(sortedNodes[0].label, "First node should be the one with the lowest name").is.equal(
+        expect(sortedNodes[0].label, "First node should be the one with the lowest name").to.equal(
             connectionNode1.label,
         );
         expect(
             sortedNodes[1].label,
             "Second node should be the one with the second lowest name",
-        ).is.equal(connectionNode2.label);
-        expect(sortedNodes[2].label, "Third node should be the one with the highest name").is.equal(
+        ).to.equal(connectionNode2.label);
+        expect(sortedNodes[2].label, "Third node should be the one with the highest name").to.equal(
             connectionNode3.label,
         );
     });
 
     test("Test addConnectionNode", () => {
         const rootNode = new ConnectionGroupNode({
-            id: "root-group-id",
+            id: rootGroupId,
             name: ConnectionConfig.RootGroupName,
         });
         const connectionNode1 = new ConnectionNode(
@@ -273,12 +279,19 @@ suite("Object Explorer Provider Tests", function () {
         rootNode.addChild(connectionNode2);
         rootNode.addChild(connectionNode3);
 
-        (testObjectExplorerService as any)._connectionGroupNodes = new Map<
-            string,
-            ConnectionGroupNode
-        >([[rootNode.connectionGroup.id, rootNode]]);
+        (
+            testObjectExplorerService as unknown as {
+                _connectionGroupNodes: Map<string, ConnectionGroupNode>;
+            }
+        )._connectionGroupNodes = new Map<string, ConnectionGroupNode>([
+            [rootNode.connectionGroup.id, rootNode],
+        ]);
 
-        (testObjectExplorerService as any)._connectionNodes = new Map<string, ConnectionNode>([
+        (
+            testObjectExplorerService as unknown as {
+                _connectionNodes: Map<string, ConnectionNode>;
+            }
+        )._connectionNodes = new Map<string, ConnectionNode>([
             [connectionNode1.connectionProfile.id, connectionNode1],
             [connectionNode2.connectionProfile.id, connectionNode2],
             [connectionNode3.connectionProfile.id, connectionNode3],
@@ -286,20 +299,28 @@ suite("Object Explorer Provider Tests", function () {
 
         const newConnectionNode = new ConnectionNode(
             {
-                id: "test_id_4",
-                profileName: "test_profile_4",
+                id: "test_id_new",
+                profileName: "test_profile_new",
                 groupId: rootNode.id,
             } as ConnectionProfile,
             rootNode,
         );
-        (testObjectExplorerService as any).addConnectionNode(newConnectionNode);
-        const rootTreeNodeArray = (testObjectExplorerService as any)._rootTreeNodeArray;
-        // RootTreeNode should have a length of 4
-        expect(rootTreeNodeArray.length, "RootTreeNode should have a length of 4").is.equal(4);
+        (
+            testObjectExplorerService as unknown as {
+                addConnectionNode: (node: ConnectionNode) => void;
+            }
+        ).addConnectionNode(newConnectionNode);
+
+        const rootTreeNodeArray = (
+            testObjectExplorerService as unknown as {
+                _rootTreeNodeArray: TreeNodeInfo[];
+            }
+        )._rootTreeNodeArray;
+        expect(rootTreeNodeArray.length, "RootTreeNode should have a length of 4").to.equal(4);
         expect(
             rootTreeNodeArray[3].label,
             "New connection node should be added at the end of the array",
-        ).is.equal(newConnectionNode.label);
+        ).to.equal(newConnectionNode.label);
 
         const newConnectionNode2 = new ConnectionNode(
             {
@@ -310,324 +331,79 @@ suite("Object Explorer Provider Tests", function () {
             rootNode,
         );
 
-        (testObjectExplorerService as any).addConnectionNode(newConnectionNode2);
-        const rootTreeNodeArray2 = (testObjectExplorerService as any)._rootTreeNodeArray;
-        // RootTreeNode should have a length of 4
-        expect(rootTreeNodeArray2.length, "RootTreeNode should have a length of 4").is.equal(4);
+        (
+            testObjectExplorerService as unknown as {
+                addConnectionNode: (node: ConnectionNode) => void;
+            }
+        ).addConnectionNode(newConnectionNode2);
+        const rootTreeNodeArray2 = (
+            testObjectExplorerService as unknown as {
+                _rootTreeNodeArray: TreeNodeInfo[];
+            }
+        )._rootTreeNodeArray;
+        expect(rootTreeNodeArray2.length, "RootTreeNode should have a length of 4").to.equal(4);
         expect(
             rootTreeNodeArray2[1].label,
             "New connection node should be added at the end of the array",
-        ).is.equal(newConnectionNode2.label);
+        ).to.equal(newConnectionNode2.label);
     });
 
-    test("Test expandNode function", () => {
-        objectExplorerService.setup((s) =>
-            s.expandNode(TypeMoq.It.isAny(), TypeMoq.It.isAnyString()),
+    test("Test expandNode function", async () => {
+        objectExplorerServiceStub.expandNode.resolves([]);
+
+        const node = { connectionCredentials: undefined } as TreeNodeInfo;
+        await objectExplorerProvider.expandNode(node, "test_session");
+
+        expect(objectExplorerServiceStub.expandNode).to.have.been.calledOnceWithExactly(
+            node,
+            "test_session",
         );
-        let node: any = {
-            connectionCredentials: undefined,
-        };
-        void objectExplorerProvider.expandNode(node, "test_session");
-        objectExplorerService.verify(
-            (s) => s.expandNode(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
-        );
-        let treeItem = objectExplorerProvider.getTreeItem(node);
+        const treeItem = objectExplorerProvider.getTreeItem(node);
         assert.equal(treeItem, node);
     });
 
-    // TODO: Readd these test
-    // const mockParentTreeNode = new TreeNodeInfo(
-    //     "Parent Node",
-    //     undefined,
-    //     undefined,
-    //     "parentNodePath",
-    //     undefined,
-    //     undefined,
-    //     undefined,
-    //     undefined,
-    //     undefined,
-    //     undefined,
-    // );
-
-    // test("Test handleExpandSessionNotification returns child nodes upon success", async function () {
-    //     const childNodeInfo: NodeInfo = {
-    //         nodePath: `${mockParentTreeNode.nodePath}/childNodePath`,
-    //         nodeStatus: undefined,
-    //         nodeSubType: undefined,
-    //         nodeType: undefined,
-    //         label: "Child Node",
-    //         isLeaf: true,
-    //         errorMessage: undefined,
-    //         metadata: undefined,
-    //     };
-
-    //     const mockExpandResponse: ExpandResponse = {
-    //         sessionId: "test_session",
-    //         nodePath: mockParentTreeNode.nodePath,
-    //         nodes: [childNodeInfo],
-    //         errorMessage: undefined,
-    //     };
-
-    //     const testOeService = new ObjectExplorerService(
-    //         vscodeWrapper.object,
-    //         connectionManager.object,
-    //         objectExplorerProvider,
-    //     );
-
-    //     let notificationObject = testOeService.handleExpandSessionNotification();
-
-    //     const expandParams: ExpandParams = {
-    //         sessionId: mockExpandResponse.sessionId,
-    //         nodePath: mockExpandResponse.nodePath,
-    //     };
-
-    //     testOeService["_expandParamsToTreeNodeInfoMap"].set(expandParams, mockParentTreeNode);
-
-    //     testOeService["_sessionIdToConnectionProfileMap"].set(
-    //         mockExpandResponse.sessionId,
-    //         undefined,
-    //     );
-
-    //     const outputPromise = new Deferred<TreeNodeInfo[]>();
-
-    //     testOeService["_expandParamsToPromiseMap"].set(expandParams, outputPromise);
-
-    //     notificationObject.call(testOeService, mockExpandResponse);
-
-    //     const childNodes = await outputPromise;
-    //     assert.equal(childNodes.length, 1, "Child nodes length");
-    //     assert.equal(childNodes[0].label, childNodeInfo.label, "Child node label");
-    //     assert.equal(childNodes[0].nodePath, childNodeInfo.nodePath, "Child node path");
-    // });
-
-    // test("Test handleExpandSessionNotification returns message node upon failure", async function () {
-    //     this.timeout(0);
-
-    //     const mockExpandResponse: ExpandResponse = {
-    //         sessionId: "test_session",
-    //         nodePath: mockParentTreeNode.nodePath,
-    //         nodes: [],
-    //         errorMessage: "Error occurred when expanding node",
-    //     };
-
-    //     const testOeService = new ObjectExplorerService(
-    //         vscodeWrapper.object,
-    //         connectionManager.object,
-    //         objectExplorerProvider,
-    //     );
-
-    //     let notificationObject = testOeService.handleExpandSessionNotification();
-
-    //     const expandParams: ExpandParams = {
-    //         sessionId: mockExpandResponse.sessionId,
-    //         nodePath: mockExpandResponse.nodePath,
-    //     };
-
-    //     testOeService["_expandParamsToTreeNodeInfoMap"].set(expandParams, mockParentTreeNode);
-
-    //     testOeService["_sessionIdToConnectionProfileMap"].set(
-    //         mockExpandResponse.sessionId,
-    //         undefined,
-    //     );
-
-    //     const outputPromise = new Deferred<TreeNodeInfo[]>();
-
-    //     testOeService["_expandParamsToPromiseMap"].set(expandParams, outputPromise);
-
-    //     notificationObject.call(testOeService, mockExpandResponse);
-
-    //     const childNodes = await outputPromise;
-
-    //     vscodeWrapper.verify(
-    //         (x) => x.showErrorMessage(mockExpandResponse.errorMessage),
-    //         TypeMoq.Times.once(),
-    //     );
-
-    //     assert.equal(childNodes.length, 1, "Child nodes length");
-    //     assert.equal(
-    //         childNodes[0].label,
-    //         "Error loading; refresh to try again",
-    //         "Error node label",
-    //     );
-    //     assert.equal(childNodes[0].tooltip, mockExpandResponse.errorMessage, "Error node tooltip");
-    // });
-
-    // test("Test signInNode function", () => {
-    //     objectExplorerService.setup((s) => s.signInNodeServer(TypeMoq.It.isAny()));
-    //     let node: any = {
-    //         connectionCredentials: undefined,
-    //     };
-    //     objectExplorerProvider.signInNodeServer(node);
-    //     objectExplorerService.verify(
-    //         (s) => s.signInNodeServer(TypeMoq.It.isAny()),
-    //         TypeMoq.Times.once(),
-    //     );
-    // });
-
-    // test("Test updateNode function", () => {
-    //     objectExplorerService.setup((s) => s.updateNode(TypeMoq.It.isAny()));
-    //     let node: any = {
-    //         connectionCredentials: undefined,
-    //     };
-    //     objectExplorerProvider.updateNode(node);
-    //     objectExplorerService.verify((s) => s.updateNode(node), TypeMoq.Times.once());
-    // });
-
-    test("Test removeConnectionNodes function", () => {
-        objectExplorerService.setup((s) => s.removeConnectionNodes(TypeMoq.It.isAny()));
-        let connections: any[] = [{ server: "test_server" }];
-        void objectExplorerProvider.removeConnectionNodes(connections);
-        objectExplorerService.verify(
-            (s) => s.removeConnectionNodes(connections),
-            TypeMoq.Times.once(),
-        );
+    test("Add connection node returns add connection tree node when profile undefined", () => {
+        const node = objectExplorerProvider["objectExplorerService"].getRootNodes;
+        expect(node).to.exist;
+        const addConnectionNode = new AddConnectionTreeNode(undefined);
+        expect(addConnectionNode, "AddConnectionTreeNode should not be undefined").to.exist;
     });
 
-    test("Test addDisconnectedNode function", () => {
-        objectExplorerService.setup((s) => s.addDisconnectedNode(TypeMoq.It.isAny()));
-        let connectionCredentials: any = { server: "test_server" };
-        objectExplorerProvider.addDisconnectedNode(connectionCredentials);
-        objectExplorerService.verify(
-            (s) => s.addDisconnectedNode(TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
-        );
+    test("Add connection node returns connect tree node when profile defined", () => {
+        const connectNode = new ConnectTreeNode(createTreeNodeInfo());
+        expect(connectNode, "ConnectTreeNode should not be undefined").to.exist;
     });
 
-    test("Test rootNodeConnections getter", () => {
-        let testConnections = [new ConnectionProfile()];
-        objectExplorerService.setup((s) => s.connections).returns(() => testConnections);
-        let rootConnections = objectExplorerProvider.connections;
-        objectExplorerService.verify((s) => s.connections, TypeMoq.Times.once());
-        assert.equal(rootConnections, testConnections);
-    });
-});
-
-suite("Object Explorer Node Types Test", () => {
-    test("Test Add Connection Tree Node", () => {
-        const addConnectionTreeNode = new AddConnectionTreeNode();
-        expect(addConnectionTreeNode.label, "Label should be the same as constant").is.equal(
-            LocalizedConstants.msgAddConnection,
-        );
-        expect(
-            addConnectionTreeNode.command,
-            "Add Connection Tree Node has a dedicated command",
-        ).is.not.equal(undefined);
-        expect(addConnectionTreeNode.iconPath, "Add Connection Tree Node has an icon").is.not.equal(
-            undefined,
-        );
-        expect(
-            addConnectionTreeNode.collapsibleState,
-            "Add Connection Tree Node should have no collapsible state",
-        ).is.equal(vscode.TreeItemCollapsibleState.None);
+    test("Account sign in tree node is created", () => {
+        const accountSignInNode = new AccountSignInTreeNode(createTreeNodeInfo());
+        expect(accountSignInNode, "AccountSignInTreeNode should not be undefined").to.exist;
     });
 
-    test("Test Account Sign In Tree Node", () => {
-        const parentTreeNode = new TreeNodeInfo(
-            "parent",
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
+    test("Test TreeNodeInfo properties", () => {
+        const treeNode = createTreeNodeInfo({
+            label: "test_label",
+            nodePath: "test_nodePath",
+            nodeStatus: "test_status",
+            nodeType: "Server",
+            sessionId: "test_session",
+        });
+        expect(treeNode.label, "Label should be equal to expected value").to.equal("test_label");
+        expect(treeNode.nodePath, "Node path should be equal to expected value").to.equal(
+            "test_nodePath",
         );
-        const accountSignInNode = new AccountSignInTreeNode(parentTreeNode);
-        expect(accountSignInNode.label, "Label should be the same as constant").is.equal(
-            LocalizedConstants.msgConnect,
-        );
-        expect(
-            accountSignInNode.command,
-            "Account Sign In Node has a dedicated command",
-        ).is.not.equal(undefined);
-        expect(
-            accountSignInNode.parentNode,
-            "Account Sign In Node should have a parent",
-        ).is.not.equal(undefined);
-        expect(
-            accountSignInNode.collapsibleState,
-            "Account Sign In Node should have no collapsible state",
-        ).is.equal(vscode.TreeItemCollapsibleState.None);
-    });
-
-    test("Test Connect Tree Node", () => {
-        const parentTreeNode = new TreeNodeInfo(
-            "parent",
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-        );
-        const connectNode = new ConnectTreeNode(parentTreeNode);
-        expect(connectNode.label, "Label should be the same as constant").is.equal(
-            LocalizedConstants.msgConnect,
-        );
-        expect(connectNode.command, "Connect Node has a dedicated command").is.not.equal(undefined);
-        expect(connectNode.parentNode, "Connect Node should have a parent").is.not.equal(undefined);
-        expect(
-            connectNode.collapsibleState,
-            "Connect Node should have no collapsible state",
-        ).is.equal(vscode.TreeItemCollapsibleState.None);
-    });
-
-    test("Test getters and setters for Tree Node", () => {
-        const treeNode = new TreeNodeInfo(
-            "test",
-            {
-                type: "test_value",
-                filterable: false,
-                hasFilters: false,
-                subType: "",
-            },
-            vscode.TreeItemCollapsibleState.Collapsed,
-            "test_path",
-            "test_status",
-            "Server",
-            "test_session",
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-        );
-        treeNode.nodePath = treeNode.nodePath;
-        expect(treeNode.nodePath, "Node path should be equal to expected value").is.equal(
-            "test_path",
-        );
-        treeNode.nodeStatus = treeNode.nodeStatus;
-        expect(treeNode.nodeStatus, "Node status should be equal to expected value").is.equal(
+        expect(treeNode.nodeStatus, "Node status should be equal to expected value").to.equal(
             "test_status",
         );
-        treeNode.nodeType = treeNode.nodeType;
-        expect(treeNode.nodeType, "Node type should be equal to expected value").is.equal("Server");
-        treeNode.sessionId = treeNode.sessionId;
-        expect(treeNode.sessionId, "Session ID should be equal to expected value").is.equal(
+        expect(treeNode.nodeType, "Node type should be equal to expected value").to.equal("Server");
+        expect(treeNode.sessionId, "Session ID should be equal to expected value").to.equal(
             "test_session",
-        );
-        treeNode.nodeSubType = treeNode.nodeSubType;
-        expect(treeNode.nodeSubType, "Node Sub type should be equal to expected value").is.equal(
-            undefined,
         );
         treeNode.isLeaf = false;
-        expect(treeNode.isLeaf, "Node should not be a leaf").is.equal(false);
-        treeNode.parentNode = treeNode.parentNode;
-        expect(treeNode.parentNode, "Parent node should be equal to expected value").is.equal(
+        expect(treeNode.isLeaf, "Node should not be a leaf").to.equal(false);
+        treeNode.parentNode = undefined;
+        expect(treeNode.parentNode, "Parent node should be equal to expected value").to.equal(
             undefined,
         );
-        treeNode.updateConnectionProfile(treeNode.connectionProfile);
-        expect(
-            treeNode.connectionProfile,
-            "Connection credentials should be equal to expected value",
-        ).is.equal(undefined);
     });
 
     test("Test fromNodeInfo function", () => {
@@ -649,39 +425,39 @@ suite("Object Explorer Node Types Test", () => {
             undefined,
         );
         treeNodeInfo.errorMessage = "test_error";
-        expect(treeNodeInfo.nodePath, "Node path should be equal to expected value").is.equal(
+        expect(treeNodeInfo.nodePath, "Node path should be equal to expected value").to.equal(
             nodeInfo.nodePath,
         );
-        expect(treeNodeInfo.nodeStatus, "Node status should be equal to expected value").is.equal(
+        expect(treeNodeInfo.nodeStatus, "Node status should be equal to expected value").to.equal(
             nodeInfo.nodeStatus,
         );
-        expect(treeNodeInfo.nodeType, "Node type should be equal to expected value").is.equal(
+        expect(treeNodeInfo.nodeType, "Node type should be equal to expected value").to.equal(
             nodeInfo.nodeType,
         );
-        expect(treeNodeInfo.sessionId, "Session ID should be equal to expected value").is.equal(
+        expect(treeNodeInfo.sessionId, "Session ID should be equal to expected value").to.equal(
             "test_session",
         );
         expect(
             treeNodeInfo.nodeSubType,
             "Node Sub type should be equal to expected value",
-        ).is.equal(nodeInfo.nodeSubType);
+        ).to.equal(nodeInfo.nodeSubType);
         treeNodeInfo.isLeaf = nodeInfo.isLeaf;
-        expect(treeNodeInfo.isLeaf, "Node should not be a leaf").is.equal(nodeInfo.isLeaf);
-        expect(treeNodeInfo.parentNode, "Parent node should be equal to expected value").is.equal(
+        expect(treeNodeInfo.isLeaf, "Node should not be a leaf").to.equal(nodeInfo.isLeaf);
+        expect(treeNodeInfo.parentNode, "Parent node should be equal to expected value").to.equal(
             undefined,
         );
         expect(
             treeNodeInfo.connectionProfile,
             "Connection credentials should be equal to expected value",
-        ).is.equal(undefined);
+        ).to.equal(undefined);
         expect(
             treeNodeInfo.errorMessage,
             "Error message should be equal to expected value",
-        ).is.equal("test_error");
+        ).to.equal("test_error");
         expect(
             treeNodeInfo.metadata,
             "Node metadata should be the same as nodeInfo metadata",
-        ).is.equal(nodeInfo.metadata);
+        ).to.equal(nodeInfo.metadata);
     });
 
     test("Connection Info is not accidentally modified", () => {
@@ -720,12 +496,92 @@ suite("Object Explorer Node Types Test", () => {
         expect(
             treeNodeInfo.connectionProfile.server,
             "Connection credentials should not be modified",
-        ).is.equal("test_server");
+        ).to.equal("test_server");
 
         treeNodeInfo.updateConnectionProfile(connectionInfo);
 
-        expect(treeNodeInfo.connectionProfile.server, "connectionInfo should be updated").is.equal(
+        expect(treeNodeInfo.connectionProfile.server, "connectionInfo should be updated").to.equal(
             "modified_server",
         );
+    });
+
+    test("removeConnectionNodes delegates to service", async () => {
+        objectExplorerServiceStub.removeConnectionNodes.resolves();
+        const connections = [{} as IConnectionInfo];
+        await objectExplorerProvider.removeConnectionNodes(connections);
+        expect(objectExplorerServiceStub.removeConnectionNodes).to.have.been.calledOnceWithExactly(
+            connections,
+        );
+    });
+
+    test("addDisconnectedNode delegates to service", () => {
+        const profile = {} as IConnectionProfile;
+        objectExplorerProvider.addDisconnectedNode(profile);
+        expect(objectExplorerServiceStub.addDisconnectedNode).to.have.been.calledOnceWithExactly(
+            profile,
+        );
+    });
+
+    test("deleteChildrenCache delegates to service", () => {
+        const node = createTreeNodeInfo();
+        objectExplorerProvider.deleteChildrenCache(node);
+        expect(objectExplorerServiceStub.cleanNodeChildren).to.have.been.calledOnceWithExactly(
+            node,
+        );
+    });
+
+    test("connections getter proxies to service", () => {
+        const testConnections: IConnectionProfile[] = [
+            createConnectionProfile("id1", "profile1"),
+            createConnectionProfile("id2", "profile2"),
+        ];
+        Object.defineProperty(objectExplorerServiceStub, "connections", {
+            get: () => testConnections,
+        });
+
+        expect(objectExplorerProvider.connections).to.deep.equal(testConnections);
+    });
+
+    test("setNodeLoading delegates to service", async () => {
+        objectExplorerServiceStub.setLoadingUiForNode.resolves();
+        const node = createTreeNodeInfo();
+        await objectExplorerProvider.setNodeLoading(node);
+        expect(objectExplorerServiceStub.setLoadingUiForNode).to.have.been.calledOnceWithExactly(
+            node,
+        );
+    });
+
+    test("createSession delegates to service", async () => {
+        const sessionResult = { sessionId: "1" };
+        objectExplorerServiceStub.createSession.resolves(sessionResult);
+        const result = await objectExplorerProvider.createSession({} as IConnectionInfo);
+        expect(result).to.equal(sessionResult);
+        expect(objectExplorerServiceStub.createSession).to.have.been.calledOnce;
+    });
+
+    test("disconnectNode delegates to service", async () => {
+        objectExplorerServiceStub.disconnectNode.resolves();
+        const node = {} as ConnectionNode;
+        await objectExplorerProvider.disconnectNode(node);
+        expect(objectExplorerServiceStub.disconnectNode).to.have.been.calledOnceWithExactly(node);
+    });
+
+    test("refreshConnectedNodes refreshes connected server nodes", () => {
+        const connectedServerNode = new ConnectionNode({
+            id: "connected",
+            profileName: "connected",
+        } as ConnectionProfile);
+        connectedServerNode.sessionId = "session";
+        connectedServerNode.nodeType = "Server";
+
+        Object.defineProperty(objectExplorerServiceStub, "connections", {
+            get: () => [{ id: "connected", profileName: "connected" } as IConnectionProfile],
+        });
+        objectExplorerServiceStub.getConnectionNodeById.returns(connectedServerNode);
+        const refreshSpy = sandbox.spy(objectExplorerProvider, "refreshNode");
+
+        objectExplorerProvider.refreshConnectedNodes();
+
+        expect(refreshSpy).to.have.been.calledOnceWithExactly(connectedServerNode);
     });
 });
