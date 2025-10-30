@@ -26,8 +26,13 @@ import { getErrorMessage } from "../utils/utils";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
 import MainController from "../controllers/mainController";
 import { Logger } from "../models/logger";
-import { handleChatCommand, commandSkipsConnectionLabels } from "./chatCommands";
 import {
+    handleChatCommand,
+    commandSkipsConnectionLabels,
+    getConnectionButtonInfo,
+} from "./chatCommands";
+import {
+    CHAT_COMMAND_NAMES,
     disconnectedLabelPrefix,
     connectedLabelPrefix,
     serverDatabaseLabelPrefix,
@@ -264,7 +269,12 @@ export const createSqlAgentRequestHandler = (
                     correlationId: correlationId,
                 });
                 stream.markdown(loc.noModelFound);
-                return { metadata: { command: "", correlationId: correlationId } };
+                return {
+                    metadata: {
+                        command: "",
+                        correlationId: correlationId,
+                    },
+                };
             }
 
             // Tool lookup
@@ -304,13 +314,25 @@ export const createSqlAgentRequestHandler = (
                         stream.markdown(commandResult.errorMessage);
                     }
                     return {
-                        metadata: { command: request.command || "", correlationId: correlationId },
+                        metadata: {
+                            command: request.command || "",
+                            correlationId: correlationId,
+                        },
                     };
                 }
 
                 // Show not connected message only if not handled by commands and command doesn't skip labels
                 if (!commandSkipsConnectionLabels(request.command)) {
-                    stream.markdown(`${disconnectedLabelPrefix} ${loc.notConnected}\n\n`);
+                    stream.markdown(`${disconnectedLabelPrefix} ${loc.notConnected}\n`);
+
+                    // Add button to help user establish connection
+                    const buttonInfo = getConnectionButtonInfo();
+                    stream.markdown(`${loc.connectionRequiredMessage(buttonInfo.label)}\n\n`);
+                    stream.button({
+                        command: Constants.cmdCopilotNewQueryWithConnection,
+                        title: buttonInfo.label,
+                        arguments: [buttonInfo.args],
+                    });
                 }
 
                 // Apply prompt template if this is a prompt substitute command
@@ -327,7 +349,12 @@ export const createSqlAgentRequestHandler = (
                     correlationId,
                     logger,
                 );
-                return { metadata: { command: "", correlationId: correlationId } };
+                return {
+                    metadata: {
+                        command: "",
+                        correlationId: correlationId,
+                    },
+                };
             }
 
             var connectionMessage =
@@ -347,7 +374,10 @@ export const createSqlAgentRequestHandler = (
                     stream.markdown(commandResult.errorMessage);
                 }
                 return {
-                    metadata: { command: request.command || "", correlationId: correlationId },
+                    metadata: {
+                        command: request.command || "",
+                        correlationId: correlationId,
+                    },
                 };
             }
 
@@ -489,7 +519,12 @@ export const createSqlAgentRequestHandler = (
             handleError(err, stream, correlationId, logger);
         }
 
-        return { metadata: { command: "", correlationId: correlationId } };
+        return {
+            metadata: {
+                command: "",
+                correlationId: correlationId,
+            },
+        };
     };
 
     async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
@@ -1057,3 +1092,51 @@ export const createSqlAgentRequestHandler = (
 
     return handler;
 };
+
+export function provideFollowups(
+    result: vscode.ChatResult,
+    _context: vscode.ChatContext,
+    _token: vscode.CancellationToken,
+    controller: MainController,
+    vscodeWrapper: VscodeWrapper,
+): vscode.ProviderResult<vscode.ChatFollowup[]> {
+    // Only show follow-ups for help command
+    if ((result as ISqlChatResult).metadata?.command !== CHAT_COMMAND_NAMES.help) {
+        return [];
+    }
+
+    // Check current active editor connection directly
+    const connectionUri = vscodeWrapper.activeTextEditorUri;
+    const connection = controller.connectionManager.getConnectionInfo(connectionUri);
+    const hasConnection = !!(connectionUri && connection);
+
+    // If no active connection, suggest connecting
+    if (!hasConnection) {
+        return [
+            {
+                prompt: "",
+                label: loc.followUpConnectToDatabase,
+                command: CHAT_COMMAND_NAMES.connect,
+            } satisfies vscode.ChatFollowup,
+        ];
+    }
+
+    // If connected, suggest database operations
+    return [
+        {
+            prompt: "",
+            label: "/listSchemas",
+            command: CHAT_COMMAND_NAMES.listSchemas,
+        } satisfies vscode.ChatFollowup,
+        {
+            prompt: loc.followUpShowRandomTableDefinition,
+            label: loc.followUpShowRandomTableDefinition,
+            command: "",
+        } satisfies vscode.ChatFollowup,
+        {
+            prompt: loc.followUpCountTables,
+            label: loc.followUpCountTables,
+            command: "",
+        } satisfies vscode.ChatFollowup,
+    ];
+}

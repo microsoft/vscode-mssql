@@ -159,6 +159,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         );
 
         await this._connectionManager.confirmEntraTokenValidity(connectionInfo);
+        this._targetNode.updateConnectionProfile(connectionInfo);
         const accessToken = connectionInfo.azureAccountToken
             ? connectionInfo.azureAccountToken
             : undefined;

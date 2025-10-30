@@ -156,6 +156,7 @@ export enum TelemetryActions {
     LoadDatabases = "LoadDatabases",
     GetSqlAnalyticsEndpointUrlFromFabric = "GetSqlAnalyticsEndpointUrlFromFabric",
     SurveyFunnel = "SurveyFunnel",
+    CopilotNewQueryWithConnection = "CopilotNewQueryWithConnection",
 }
 
 /**
