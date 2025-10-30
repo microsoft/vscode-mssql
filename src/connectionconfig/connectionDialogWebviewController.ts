@@ -1002,7 +1002,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 const result = await this._mainController.connectionManager.connect(
                     tempConnectionUri,
                     cleanedConnection,
-                    false, // Connect should not handle errors, as we want to handle them here
+                    {
+                        shouldHandleErrors: false, // Connect should not handle errors, as we want to handle them here
+                        connectionSource: CONNECTION_DIALOG_VIEW_ID,
+                    },
                 );
 
                 const connectionInfo =

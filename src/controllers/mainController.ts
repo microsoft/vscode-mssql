@@ -253,6 +253,7 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdLaunchUserFeedback);
             this._event.on(Constants.cmdLaunchUserFeedback, () => {
+                // Launch directly, bypassing checks/prompt because they explicitly requested to provide feedback
                 UserSurvey.getInstance().launchSurvey(
                     "nps",
                     getStandardNPSQuestions(),

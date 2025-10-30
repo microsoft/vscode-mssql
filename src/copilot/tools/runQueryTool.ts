@@ -12,6 +12,7 @@ import { getErrorMessage } from "../../utils/utils";
 import SqlToolsServiceClient from "../../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
 import { SimpleExecuteResult, IDbColumn, DbCellValue } from "vscode-mssql";
+import { UserSurvey } from "../../nps/userSurvey";
 
 export interface RunQueryToolParams {
     connectionId: string;
@@ -64,7 +65,7 @@ export class RunQueryTool extends ToolBase<RunQueryToolParams> {
                 },
             );
 
-            // TODO: trigger survey prompt (agent mode)
+            UserSurvey.getInstance().promptUserForNPSFeedback("copilot_agentMode");
 
             return JSON.stringify({
                 success: true,

@@ -32,6 +32,7 @@ import {
     connectedLabelPrefix,
     serverDatabaseLabelPrefix,
 } from "./chatConstants";
+import { UserSurvey } from "../nps/userSurvey";
 
 export interface ISqlChatResult extends vscode.ChatResult {
     metadata: {
@@ -478,7 +479,8 @@ export const createSqlAgentRequestHandler = (
                 logger.logDebug(`Done processing message for '${conversationUri}'`);
                 // Output reply text if needed
                 if (printTextout) {
-                    // TODO: trigger survey (ask mode)
+                    UserSurvey.getInstance().promptUserForNPSFeedback("copilot_askMode");
+
                     stream.markdown(replyText);
                     printTextout = false;
                 }
