@@ -250,10 +250,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 this.showRestorePromptAfterClose = true;
 
                 // Update result set with new row
+                // Prepend the new row to the beginning of the subset so it appears on the first page
+                // This provides better UX as users can immediately see and edit the new row
                 if (state.resultSet) {
                     state.resultSet = {
                         ...state.resultSet,
-                        subset: [...state.resultSet.subset, result.row],
+                        subset: [result.row, ...state.resultSet.subset],
                         rowCount: state.resultSet.rowCount + 1,
                     };
 

@@ -43,6 +43,8 @@ interface TableDataGridProps {
 export interface TableDataGridRef {
     clearAllChangeTracking: () => void;
     getCellChangeCount: () => number;
+    goToLastPage: () => void;
+    goToFirstPage: () => void;
 }
 
 export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
@@ -112,6 +114,19 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         useImperativeHandle(ref, () => ({
             clearAllChangeTracking,
             getCellChangeCount: () => cellChangesRef.current.size,
+            goToLastPage: () => {
+                if (reactGridRef.current?.paginationService && reactGridRef.current?.dataView) {
+                    const totalItems = reactGridRef.current.dataView.getLength();
+                    const itemsPerPage = reactGridRef.current.paginationService.itemsPerPage;
+                    const lastPage = Math.ceil(totalItems / itemsPerPage);
+                    void reactGridRef.current.paginationService.goToPageNumber(lastPage);
+                }
+            },
+            goToFirstPage: () => {
+                if (reactGridRef.current?.paginationService) {
+                    void reactGridRef.current.paginationService.goToPageNumber(1);
+                }
+            },
         })); // Convert a single row to grid format
         function convertRowToDataRow(row: any): any {
             const dataRow: any = {
