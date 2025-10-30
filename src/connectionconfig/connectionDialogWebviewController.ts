@@ -123,6 +123,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     private _connectionBeingEdited: IConnectionDialogProfile | undefined;
     private _azureSubscriptions: Map<string, AzureSubscription>;
+    private _savedConnectionsRefreshChain: Promise<void> = Promise.resolve();
+    private _connectionGroupRefreshChain: Promise<void> = Promise.resolve();
 
     //#endregion
 
@@ -159,6 +161,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         );
 
         this.registerRpcHandlers();
+        this.registerConnectionConfigListeners();
         void this.initializeDialog(connectionToEdit, initialConnectionGroup)
             .then(() => {
                 this.updateState();
@@ -179,6 +182,87 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 );
                 this.initialized.reject(getErrorMessage(err));
             });
+    }
+
+    private registerConnectionConfigListeners(): void {
+        const connectionConfig =
+            this._mainController.connectionManager.connectionStore.connectionConfig;
+
+        const handleSavedConnectionChange = () => this.scheduleSavedConnectionsRefresh();
+        this.registerDisposable(connectionConfig.onConnectionCreated(handleSavedConnectionChange));
+        this.registerDisposable(connectionConfig.onConnectionUpdated(handleSavedConnectionChange));
+        this.registerDisposable(connectionConfig.onConnectionRemoved(handleSavedConnectionChange));
+
+        const handleConnectionGroupChange = () => this.scheduleConnectionGroupRefresh();
+        this.registerDisposable(
+            connectionConfig.onConnectionGroupCreated(handleConnectionGroupChange),
+        );
+        this.registerDisposable(
+            connectionConfig.onConnectionGroupUpdated(handleConnectionGroupChange),
+        );
+        this.registerDisposable(
+            connectionConfig.onConnectionGroupRemoved(handleConnectionGroupChange),
+        );
+    }
+
+    private scheduleSavedConnectionsRefresh(): void {
+        this._savedConnectionsRefreshChain = this._savedConnectionsRefreshChain
+            .catch(() => undefined)
+            .then(() => this.refreshSavedConnectionsFromConfig());
+    }
+
+    private async refreshSavedConnectionsFromConfig(): Promise<void> {
+        try {
+            await this.initialized;
+            await this.whenWebviewReady();
+            if (this.isDisposed) {
+                return;
+            }
+
+            await this.updateLoadedConnections(this.state);
+            if (!this.isDisposed) {
+                this.updateState(this.state);
+            }
+        } catch (err) {
+            this.logger.error(`Error refreshing saved connections: ${getErrorMessage(err)}`);
+        }
+    }
+
+    private scheduleConnectionGroupRefresh(): void {
+        this._connectionGroupRefreshChain = this._connectionGroupRefreshChain
+            .catch(() => undefined)
+            .then(() => this.refreshConnectionGroupOptions());
+    }
+
+    private async refreshConnectionGroupOptions(): Promise<void> {
+        try {
+            await this.initialized;
+            await this.whenWebviewReady();
+            if (this.isDisposed) {
+                return;
+            }
+
+            const options =
+                await this._mainController.connectionManager.connectionUI.getConnectionGroupOptions();
+            const groupComponent = this.state.formComponents.groupId;
+            if (groupComponent) {
+                groupComponent.options = options.slice();
+            }
+
+            const availableGroupIds = new Set(options.map((option) => option.value));
+            if (
+                this.state.connectionProfile?.groupId &&
+                !availableGroupIds.has(this.state.connectionProfile.groupId)
+            ) {
+                this.state.connectionProfile.groupId = undefined;
+            }
+
+            if (!this.isDisposed) {
+                this.updateState(this.state);
+            }
+        } catch (err) {
+            this.logger.error(`Error refreshing connection group options: ${getErrorMessage(err)}`);
+        }
     }
 
     private async initializeDialog(
