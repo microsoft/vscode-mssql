@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Utils from "../models/utils";
@@ -16,6 +17,32 @@ import { Logger } from "../models/logger";
 
 export type ConfigTarget = ConfigurationTarget.Global | ConfigurationTarget.Workspace;
 
+export interface ConnectionCreatedEvent {
+    connection: IConnectionProfile;
+}
+
+export interface ConnectionUpdatedEvent {
+    before: IConnectionProfile;
+    after: IConnectionProfile;
+}
+
+export interface ConnectionRemovedEvent {
+    connection: IConnectionProfile;
+}
+
+export interface ConnectionGroupCreatedEvent {
+    group: IConnectionGroup;
+}
+
+export interface ConnectionGroupUpdatedEvent {
+    before: IConnectionGroup;
+    after: IConnectionGroup;
+}
+
+export interface ConnectionGroupRemovedEvent {
+    group: IConnectionGroup;
+}
+
 /**
  * Implements connection profile file storage.
  */
@@ -27,6 +54,36 @@ export class ConnectionConfig implements IConnectionConfig {
     static readonly RootGroupName: string = "ROOT";
     private _hasDisplayedMissingIdError: boolean = false;
 
+    /** Event fired after a connection profile is successfully created. */
+    public readonly onConnectionCreated: vscode.Event<ConnectionCreatedEvent>;
+    private readonly _onConnectionCreatedEmitter =
+        new vscode.EventEmitter<ConnectionCreatedEvent>();
+
+    /** Event fired after a connection profile is successfully updated. */
+    public readonly onConnectionUpdated: vscode.Event<ConnectionUpdatedEvent>;
+    private readonly _onConnectionUpdatedEmitter =
+        new vscode.EventEmitter<ConnectionUpdatedEvent>();
+
+    /** Event fired after a connection profile is successfully removed. */
+    public readonly onConnectionRemoved: vscode.Event<ConnectionRemovedEvent>;
+    private readonly _onConnectionRemovedEmitter =
+        new vscode.EventEmitter<ConnectionRemovedEvent>();
+
+    /** Event fired after a connection group is successfully created. */
+    public readonly onConnectionGroupCreated: vscode.Event<ConnectionGroupCreatedEvent>;
+    private readonly _onConnectionGroupCreatedEmitter =
+        new vscode.EventEmitter<ConnectionGroupCreatedEvent>();
+
+    /** Event fired after a connection group is successfully updated. */
+    public readonly onConnectionGroupUpdated: vscode.Event<ConnectionGroupUpdatedEvent>;
+    private readonly _onConnectionGroupUpdatedEmitter =
+        new vscode.EventEmitter<ConnectionGroupUpdatedEvent>();
+
+    /** Event fired after a connection group is successfully removed. */
+    public readonly onConnectionGroupRemoved: vscode.Event<ConnectionGroupRemovedEvent>;
+    private readonly _onConnectionGroupRemovedEmitter =
+        new vscode.EventEmitter<ConnectionGroupRemovedEvent>();
+
     /**
      * Constructor
      */
@@ -34,6 +91,13 @@ export class ConnectionConfig implements IConnectionConfig {
         if (!this._vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
         }
+
+        this.onConnectionCreated = this._onConnectionCreatedEmitter.event;
+        this.onConnectionUpdated = this._onConnectionUpdatedEmitter.event;
+        this.onConnectionRemoved = this._onConnectionRemovedEmitter.event;
+        this.onConnectionGroupCreated = this._onConnectionGroupCreatedEmitter.event;
+        this.onConnectionGroupUpdated = this._onConnectionGroupUpdatedEmitter.event;
+        this.onConnectionGroupRemoved = this._onConnectionGroupRemovedEmitter.event;
 
         this._logger = Logger.create(this._vscodeWrapper.outputChannel, "ConnectionConfig");
         void this.initialize();
@@ -148,7 +212,10 @@ export class ConnectionConfig implements IConnectionConfig {
         profiles = profiles.filter((value) => !Utils.isSameProfile(value, profile));
         profiles.push(profile);
 
-        return await this.writeConnectionsToSettings(profiles);
+        await this.writeConnectionsToSettings(profiles);
+        this._onConnectionCreatedEmitter.fire({
+            connection: Utils.deepClone(profile),
+        });
     }
 
     /**
@@ -158,11 +225,17 @@ export class ConnectionConfig implements IConnectionConfig {
     public async removeConnection(profile: IConnectionProfile): Promise<boolean> {
         let profiles = await this.getConnections(false /* getWorkspaceConnections */);
 
-        const found = this.removeConnectionHelper(profile, profiles);
-        if (found) {
+        const removedProfiles = this.removeConnectionHelper(profile, profiles);
+        if (removedProfiles.length > 0) {
             await this.writeConnectionsToSettings(profiles);
+            removedProfiles.forEach((removedProfile) => {
+                this._onConnectionRemovedEmitter.fire({
+                    connection: removedProfile,
+                });
+            });
+            return true;
         }
-        return found;
+        return false;
     }
 
     public async updateConnection(updatedProfile: IConnectionProfile): Promise<void> {
@@ -171,8 +244,13 @@ export class ConnectionConfig implements IConnectionConfig {
         if (index === -1) {
             throw new Error(`Connection with ID ${updatedProfile.id} not found`);
         }
+        const previousProfile = Utils.deepClone(profiles[index]);
         profiles[index] = updatedProfile;
         await this.writeConnectionsToSettings(profiles);
+        this._onConnectionUpdatedEmitter.fire({
+            before: previousProfile,
+            after: Utils.deepClone(updatedProfile),
+        });
     }
 
     //#endregion
@@ -214,7 +292,7 @@ export class ConnectionConfig implements IConnectionConfig {
         return connGroups.find((g) => g.id === id);
     }
 
-    public addGroup(group: IConnectionGroup): Promise<void> {
+    public async addGroup(group: IConnectionGroup): Promise<void> {
         if (!group.id) {
             group.id = Utils.generateGuid();
         }
@@ -225,7 +303,10 @@ export class ConnectionConfig implements IConnectionConfig {
 
         const groups = this.getGroupsFromSettings();
         groups.push(group);
-        return this.writeConnectionGroupsToSettings(groups);
+        await this.writeConnectionGroupsToSettings(groups);
+        this._onConnectionGroupCreatedEmitter.fire({
+            group: Utils.deepClone(group),
+        });
     }
 
     /**
@@ -246,6 +327,13 @@ export class ConnectionConfig implements IConnectionConfig {
         if (!rootGroup) {
             throw new Error("Root group not found when removing group");
         }
+
+        const groupToRemove = groups.find((g) => g.id === id);
+        if (!groupToRemove) {
+            this._logger.error(`Connection group with ID '${id}' not found when removing.`);
+            return false;
+        }
+        const removedGroupSnapshot = Utils.deepClone(groupToRemove);
 
         // Find all subgroup IDs recursively for the delete case
         const getAllSubgroupIds = (groupId: string): Set<string> => {
@@ -320,6 +408,9 @@ export class ConnectionConfig implements IConnectionConfig {
         }
 
         await this.writeConnectionGroupsToSettings(remainingGroups);
+        this._onConnectionGroupRemovedEmitter.fire({
+            group: removedGroupSnapshot,
+        });
         return true;
     }
 
@@ -328,11 +419,15 @@ export class ConnectionConfig implements IConnectionConfig {
         const index = groups.findIndex((g) => g.id === updatedGroup.id);
         if (index === -1) {
             throw Error(`Connection group with ID ${updatedGroup.id} not found when updating`);
-        } else {
-            groups[index] = updatedGroup;
         }
+        const previousGroup = Utils.deepClone(groups[index]);
+        groups[index] = updatedGroup;
 
-        return await this.writeConnectionGroupsToSettings(groups);
+        await this.writeConnectionGroupsToSettings(groups);
+        this._onConnectionGroupUpdatedEmitter.fire({
+            before: previousGroup,
+            after: Utils.deepClone(updatedGroup),
+        });
     }
 
     //#endregion
@@ -342,15 +437,16 @@ export class ConnectionConfig implements IConnectionConfig {
     private removeConnectionHelper(
         toRemove: IConnectionProfile,
         profiles: IConnectionProfile[],
-    ): boolean {
-        let found = false;
+    ): IConnectionProfile[] {
+        const removedProfiles: IConnectionProfile[] = [];
         for (let i = profiles.length - 1; i >= 0; i--) {
             if (Utils.isSameProfile(profiles[i], toRemove)) {
+                const removedProfile = Utils.deepClone(profiles[i]);
                 profiles.splice(i, 1);
-                found = true;
+                removedProfiles.push(removedProfile);
             }
         }
-        return found;
+        return removedProfiles;
     }
 
     /** Compare function for sorting by profile name if available, otherwise fall back to server name or connection string */
