@@ -24,6 +24,7 @@ import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
 import TableExplorerCustomPager from "./TableExplorerCustomPager";
 import "@slickgrid-universal/common/dist/styles/css/slickgrid-theme-default.css";
+import "./TableDataGrid.css";
 
 interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
@@ -128,7 +129,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             // Row number column
             const rowNumberColumn: Column = {
                 id: "rowNumber",
-                name: '<span style="padding-left: 8px;">#</span>',
+                name: '<span class="table-row-number">#</span>',
                 field: "id",
                 excludeFromColumnPicker: true,
                 excludeFromGridMenu: true,
@@ -145,7 +146,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     const pageNumber = paginationService?.pageNumber ?? 1;
                     const itemsPerPage = paginationService?.itemsPerPage ?? pageSize;
                     const actualRowNumber = (pageNumber - 1) * itemsPerPage + row + 1;
-                    return `<span style="color: var(--vscode-foreground); padding-left: 8px;">${actualRowNumber}</span>`;
+                    return `<span class="table-row-number">${actualRowNumber}</span>`;
                 },
             };
 
@@ -180,19 +181,31 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                         const escapedTooltip = escapedDisplayValue;
 
-                        const nullStyle = isNullValue
-                            ? "font-style: italic; color: var(--vscode-editorGhostText-foreground, #888);"
-                            : "";
-
-                        // Failed cells get error background color (more visible in dark themes)
+                        // Build CSS classes based on cell state
+                        const cellClasses = [];
                         if (hasFailed) {
-                            return `<div title="${escapedTooltip}" style="background-color: var(--vscode-inputValidation-errorBackground, #5a1d1d); padding: 2px 4px; height: 100%; width: 100%; box-sizing: border-box; ${nullStyle}">${escapedDisplayValue}</div>`;
+                            cellClasses.push("table-cell-error");
+                        } else if (isModified) {
+                            cellClasses.push("table-cell-modified");
                         }
-                        // Modified cells get yellow background
+
+                        if (isNullValue) {
+                            cellClasses.push("table-cell-null");
+                        }
+
+                        const classAttr =
+                            cellClasses.length > 0 ? ` class="${cellClasses.join(" ")}"` : "";
+
+                        // Failed cells get error styling
+                        if (hasFailed) {
+                            return `<div title="${escapedTooltip}"${classAttr}>${escapedDisplayValue}</div>`;
+                        }
+                        // Modified cells get warning styling
                         if (isModified) {
-                            return `<div title="${escapedTooltip}" style="background-color: var(--vscode-inputValidation-warningBackground, #fffbe6); padding: 2px 4px; height: 100%; width: 100%; box-sizing: border-box; ${nullStyle}">${escapedDisplayValue}</div>`;
+                            return `<div title="${escapedTooltip}"${classAttr}>${escapedDisplayValue}</div>`;
                         }
-                        return `<span title="${escapedTooltip}" style="${nullStyle}">${escapedDisplayValue}</span>`;
+                        // Normal cells
+                        return `<span title="${escapedTooltip}"${classAttr}>${escapedDisplayValue}</span>`;
                     },
                 };
 
@@ -528,158 +541,18 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             currentTheme === ColorThemeKind.Dark || currentTheme === ColorThemeKind.HighContrast;
 
         return (
-            <>
-                <style>
-                    {`
-                    .table-explorer-grid-container {
-                        width: 100vw;
-                        max-width: 100%;
-                    }
-
-                    #tableExplorerGrid {
-                        --slick-border-color: var(--vscode-editorWidget-border);
-                        --slick-cell-border-right: 1px solid var(--vscode-editorWidget-border);
-                        --slick-cell-border-top: 1px solid var(--vscode-editorWidget-border);
-                        --slick-cell-border-bottom: 0;
-                        --slick-cell-border-left: 0;
-                        --slick-cell-box-shadow: none;
-                        --slick-grid-border-color: var(--vscode-editorWidget-border);
-                        width: 100%;
-                        max-width: 100%;
-                    }
-
-                    #tableExplorerGrid .slick-viewport {
-                        overflow-x: hidden !important;
-                    }
-
-                    #tableExplorerGrid .slick-cell {
-                        display: flex;
-                        align-items: center;
-                    }
-
-                    /* Force theme colors on SlickGrid elements */
-                    #tableExplorerGrid .slick-header,
-                    #tableExplorerGrid .slick-headerrow,
-                    #tableExplorerGrid .slick-footerrow,
-                    #tableExplorerGrid .slick-top-panel {
-                        background-color: var(--vscode-editor-background) !important;
-                        color: var(--vscode-foreground) !important;
-                    }
-
-                    #tableExplorerGrid .slick-header-column {
-                        background-color: var(--vscode-editor-background) !important;
-                        color: var(--vscode-foreground) !important;
-                    }
-
-                    #tableExplorerGrid .slick-cell,
-                    #tableExplorerGrid .slick-row {
-                        background-color: var(--vscode-editor-background) !important;
-                        color: var(--vscode-foreground) !important;
-                    }
-
-                    #tableExplorerGrid .slick-row.odd {
-                        background-color: var(--vscode-editor-background) !important;
-                    }
-
-                    #tableExplorerGrid .slick-row.even {
-                        background-color: var(--vscode-editor-background) !important;
-                    }
-
-                    #tableExplorerGrid .slick-row:hover {
-                        background-color: var(--vscode-list-hoverBackground) !important;
-                    }
-
-                    #tableExplorerGrid .slick-row.selected {
-                        background-color: var(--vscode-list-activeSelectionBackground) !important;
-                        color: var(--vscode-list-activeSelectionForeground) !important;
-                    }
-
-                    /* Fix viewport canvas background */
-                    #tableExplorerGrid > div.slick-pane.slick-pane-top.slick-pane-left > div.slick-viewport.slick-viewport-top.slick-viewport-left > div {
-                        background-color: var(--vscode-editor-background) !important;
-                    }
-
-                    /* VS Code-style context menu */
-                    .slick-context-menu {
-                        background-color: var(--vscode-menu-background) !important;
-                        border: 1px solid var(--vscode-menu-border) !important;
-                        border-radius: 5px !important;
-                        box-shadow: 0 2px 8px var(--vscode-widget-shadow) !important;
-                        padding: 4px 0 !important;
-                        min-width: 180px !important;
-                    }
-
-                    .slick-context-menu .slick-menu-item {
-                        background-color: transparent !important;
-                        color: var(--vscode-menu-foreground) !important;
-                        padding: 4px 20px 4px 30px !important;
-                        line-height: 22px !important;
-                        font-size: 13px !important;
-                        border: none !important;
-                        cursor: pointer !important;
-                        position: relative !important;
-                        display: flex !important;
-                        align-items: center !important;
-                        white-space: nowrap !important;
-                    }
-
-                    .slick-context-menu .slick-menu-item:hover {
-                        background-color: var(--vscode-menu-selectionBackground) !important;
-                        color: var(--vscode-menu-selectionForeground) !important;
-                    }
-
-                    .slick-context-menu .slick-menu-item .slick-menu-icon {
-                        position: absolute !important;
-                        left: 8px !important;
-                        width: 16px !important;
-                        height: 16px !important;
-                        display: flex !important;
-                        align-items: center !important;
-                        justify-content: center !important;
-                    }
-
-                    .slick-context-menu .slick-menu-item .slick-menu-content {
-                        flex: 1 !important;
-                        padding: 0 !important;
-                        margin: 0 !important;
-                    }
-
-                    .slick-context-menu .slick-menu-item.red {
-                        color: var(--vscode-menu-foreground) !important;
-                    }
-
-                    .slick-context-menu .slick-menu-item.red:hover {
-                        color: var(--vscode-menu-selectionForeground) !important;
-                    }
-
-                    .slick-context-menu .slick-menu-item .mdi {
-                        color: var(--vscode-menu-foreground) !important;
-                        font-size: 16px !important;
-                    }
-
-                    .slick-context-menu .slick-menu-item:hover .mdi {
-                        color: var(--vscode-menu-selectionForeground) !important;
-                    }
-
-                    .slick-context-menu .slick-menu-item.bold,
-                    .slick-context-menu .slick-menu-item .bold {
-                        font-weight: normal !important;
-                    }
-                    `}
-                </style>
-                <div
-                    id="grid-container"
-                    className={`table-explorer-grid-container ${isDarkMode ? "dark-mode" : ""}`}>
-                    <SlickgridReact
-                        gridId="tableExplorerGrid"
-                        columns={columns}
-                        options={options}
-                        dataset={dataset}
-                        onReactGridCreated={($event) => reactGridReady($event.detail)}
-                        onCellChange={($event) => handleCellChange($event, $event.detail.args)}
-                    />
-                </div>
-            </>
+            <div
+                id="grid-container"
+                className={`table-explorer-grid-container ${isDarkMode ? "dark-mode" : ""}`}>
+                <SlickgridReact
+                    gridId="tableExplorerGrid"
+                    columns={columns}
+                    options={options}
+                    dataset={dataset}
+                    onReactGridCreated={($event) => reactGridReady($event.detail)}
+                    onCellChange={($event) => handleCellChange($event, $event.detail.args)}
+                />
+            </div>
         );
     },
 );
