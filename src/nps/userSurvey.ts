@@ -52,8 +52,8 @@ export class UserSurvey {
      * Checks user eligibility for NPS survey and, if eligible, displays the survey and submits feedback.
      * Does not block the calling function or throw errors.
      **/
-    public promptUserForNPSFeedback(source: string): void {
-        void this.promptUserForNPSFeedbackAsync(source).catch((err) => {
+    public promptUserForNPSFeedback(surveySource: string): void {
+        void this.promptUserForNPSFeedbackAsync(surveySource).catch((err) => {
             // Handle any errors that occur during the prompt and not throwing them in order to not break the calling function
             console.error("Error prompting for NPS feedback:", err);
         });
@@ -62,13 +62,13 @@ export class UserSurvey {
     /**
      * Launch the survey directly and submit feedback; do not check for survey eligibility first
      */
-    public launchSurvey(surveyId: string, survey: UserSurveyState, source?: string): void {
-        void this.launchSurveyAsync(surveyId, survey, source).catch((err) => {
+    public launchSurvey(surveyId: string, survey: UserSurveyState, surveySource?: string): void {
+        void this.launchSurveyAsync(surveyId, survey, surveySource).catch((err) => {
             console.error("Error launching survey:", err);
         });
     }
 
-    private async promptUserForNPSFeedbackAsync(source?: string): Promise<void> {
+    private async promptUserForNPSFeedbackAsync(surveySource: string): Promise<void> {
         const globalState = this._context.globalState;
         const sessionCount = globalState.get(SESSION_COUNT_KEY, 0) + 1;
         const extensionVersion =
@@ -76,10 +76,10 @@ export class UserSurvey {
 
         sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
             step: FunnelSteps.EnterFunnel,
-            source: source,
+            surveySource: surveySource,
         });
 
-        if (!(await this.shouldPromptForFeedback(source))) {
+        if (!(await this.shouldPromptForFeedback(surveySource))) {
             return;
         }
 
@@ -95,11 +95,11 @@ export class UserSurvey {
                 sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                     step: FunnelSteps.Prompt,
                     outcome: "takeSurvey",
-                    source: source,
+                    surveySource: surveySource,
                 });
 
                 const state: UserSurveyState = getStandardNPSQuestions();
-                await this.launchSurveyAsync("nps", state, source);
+                await this.launchSurveyAsync("nps", state, surveySource);
 
                 await globalState.update(IS_CANDIDATE_KEY, false);
                 await globalState.update(SKIP_VERSION_KEY, extensionVersion);
@@ -109,7 +109,7 @@ export class UserSurvey {
                 sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                     step: FunnelSteps.Prompt,
                     outcome: "dontShowAgain",
-                    source: source,
+                    surveySource: surveySource,
                 });
 
                 await globalState.update(NEVER_KEY, true);
@@ -121,7 +121,7 @@ export class UserSurvey {
                 sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                     step: FunnelSteps.Prompt,
                     outcome: selection ? "remindMeLater" : "closedPrompt",
-                    source: source,
+                    surveySource: surveySource,
                 });
 
                 await globalState.update(SESSION_COUNT_KEY, sessionCount - 3);
@@ -133,7 +133,7 @@ export class UserSurvey {
     private async launchSurveyAsync(
         surveyId: string,
         survey: UserSurveyState,
-        source?: string,
+        surveySource?: string,
     ): Promise<Answers> {
         const state: UserSurveyState = survey;
         if (!this._webviewController || this._webviewController.isDisposed) {
@@ -153,7 +153,7 @@ export class UserSurvey {
                 sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                     step: FunnelSteps.Survey,
                     outcome: "submitted",
-                    source: source,
+                    surveySource: surveySource,
                 });
                 resolve(e);
             });
@@ -162,17 +162,17 @@ export class UserSurvey {
                 sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                     step: FunnelSteps.Survey,
                     outcome: "cancelled",
-                    source: source,
+                    surveySource: surveySource,
                 });
                 resolve({});
             });
         });
 
-        sendSurveyTelemetry(surveyId, answers, source);
+        sendSurveyTelemetry(surveyId, answers, surveySource);
         return answers;
     }
 
-    private async shouldPromptForFeedback(source: string | undefined): Promise<boolean> {
+    private async shouldPromptForFeedback(surveySource: string | undefined): Promise<boolean> {
         const globalState = this._context.globalState;
 
         // 1. Don't prompt if the user has opted out of the survey completely
@@ -181,7 +181,7 @@ export class UserSurvey {
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                 step: FunnelSteps.EligibilityCheck,
                 outcome: "exit_optedOut",
-                source: source,
+                surveySource: surveySource,
             });
             return false;
         }
@@ -194,7 +194,7 @@ export class UserSurvey {
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                 step: FunnelSteps.EligibilityCheck,
                 outcome: "exit_skipVersion",
-                source: source,
+                surveySource: surveySource,
             });
             return false;
         }
@@ -207,7 +207,7 @@ export class UserSurvey {
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                 step: FunnelSteps.EligibilityCheck,
                 outcome: "exit_alreadyConsidered",
-                source: source,
+                surveySource: surveySource,
             });
             return false;
         }
@@ -221,7 +221,7 @@ export class UserSurvey {
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                 step: FunnelSteps.EligibilityCheck,
                 outcome: "exit_notEnoughSessions",
-                source: source,
+                surveySource: surveySource,
             });
             return false;
         }
@@ -235,7 +235,7 @@ export class UserSurvey {
             sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                 step: FunnelSteps.EligibilityCheck,
                 outcome: "exit_notSelectedAsCandidate",
-                source: source,
+                surveySource: surveySource,
             });
             return false;
         }
@@ -243,13 +243,17 @@ export class UserSurvey {
         sendActionEvent(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
             step: FunnelSteps.EligibilityCheck,
             outcome: "prompt",
-            source: source,
+            surveySource: surveySource,
         });
         return true;
     }
 }
 
-export function sendSurveyTelemetry(surveyId: string, answers: Answers, source?: string): void {
+export function sendSurveyTelemetry(
+    surveyId: string,
+    answers: Answers,
+    surveySource?: string,
+): void {
     // Separate string answers from number answers
     const stringAnswers = Object.keys(answers).reduce((acc, key) => {
         if (typeof answers[key] === "string") {
@@ -272,7 +276,7 @@ export function sendSurveyTelemetry(surveyId: string, answers: Answers, source?:
             modernFeaturesEnabled: vscode.workspace
                 .getConfiguration()
                 .get(constants.configEnableRichExperiences),
-            source: source,
+            surveySource: surveySource,
             ...stringAnswers,
         },
         numericalAnswers,
