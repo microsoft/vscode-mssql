@@ -585,7 +585,7 @@
                 },
                 {
                     "command": "mssql.tableExplorer",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences",
                     "group": "4_MSSQL_object@2"
                 },
                 {

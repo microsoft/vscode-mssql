@@ -72,11 +72,16 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
 
         // Add command for table nodes to handle double-click
         if (this._nodeType === "Table") {
-            this.command = {
-                command: Constants.cmdTableNodeAction,
-                title: "",
-                arguments: [this],
-            };
+            const config = vscode.workspace.getConfiguration("mssql");
+            const enableRichExperiences = config.get<boolean>("enableRichExperiences", true);
+
+            if (enableRichExperiences) {
+                this.command = {
+                    command: Constants.cmdTableNodeAction,
+                    title: "",
+                    arguments: [this],
+                };
+            }
         }
     }
 
