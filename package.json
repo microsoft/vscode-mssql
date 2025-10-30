@@ -2028,7 +2028,7 @@
                 },
                 "mssql.autoRevealResultsPanel": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "%mssql.autoRevealResultsPanel%",
                     "scope": "window"
                 },
