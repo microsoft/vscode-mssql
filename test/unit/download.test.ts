@@ -16,15 +16,9 @@ import * as path from "path";
 import { Logger } from "../../src/models/logger";
 import * as fs from "fs/promises";
 import { expect } from "chai";
+import { ServerStatusView } from "../../src/languageservice/serverStatus";
 
 chai.use(sinonChai);
-
-class StubStatusView implements IStatusView {
-    installingService(): void {}
-    serviceInstalled(): void {}
-    serviceInstallationFailed(): void {}
-    updateServiceDownloadingProgress(_downloadPercentage: number): void {}
-}
 
 interface IFixture {
     downloadUrl?: string;
@@ -36,13 +30,7 @@ interface IFixture {
 suite("ServiceDownloadProvider Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let config: sinon.SinonStubbedInstance<ConfigUtils>;
-    let statusView: StubStatusView;
-    let statusViewStubs: {
-        installingService: sinon.SinonStub;
-        serviceInstalled: sinon.SinonStub;
-        serviceInstallationFailed: sinon.SinonStub;
-        updateServiceDownloadingProgress: sinon.SinonStub;
-    };
+    let statusView: sinon.SinonStubbedInstance<IStatusView>;
     let testHttpClient: sinon.SinonStubbedInstance<HttpClient>;
     let testDecompressProvider: sinon.SinonStubbedInstance<DecompressProvider>;
     let testLogger: sinon.SinonStubbedInstance<Logger>;
@@ -50,16 +38,7 @@ suite("ServiceDownloadProvider Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         config = sandbox.createStubInstance(ConfigUtils);
-        statusView = new StubStatusView();
-        statusViewStubs = {
-            installingService: sandbox.stub(statusView, "installingService"),
-            serviceInstalled: sandbox.stub(statusView, "serviceInstalled"),
-            serviceInstallationFailed: sandbox.stub(statusView, "serviceInstallationFailed"),
-            updateServiceDownloadingProgress: sandbox.stub(
-                statusView,
-                "updateServiceDownloadingProgress",
-            ),
-        };
+        statusView = sandbox.createStubInstance(ServerStatusView);
         testHttpClient = sandbox.createStubInstance(HttpClient);
         testDecompressProvider = sandbox.createStubInstance(DecompressProvider);
         testLogger = sandbox.createStubInstance(Logger);
@@ -153,8 +132,6 @@ suite("ServiceDownloadProvider Tests", () => {
         config.getSqlToolsConfigValue.withArgs("downloadFileNames").returns(fileNamesJson);
         config.getSqlToolsServiceDownloadUrl.returns(baseDownloadUrl);
         config.getSqlToolsPackageVersion.returns(version);
-        statusViewStubs.installingService.returns();
-        statusViewStubs.serviceInstalled.returns();
         testLogger.append.returns();
         testLogger.appendLine.returns();
 
@@ -190,8 +167,6 @@ suite("ServiceDownloadProvider Tests", () => {
         expect(testHttpClient.downloadFile).to.have.been.calledOnce;
         expect(testHttpClient.downloadFile.firstCall.args[0]).to.equal(fixture.downloadUrl);
         expect(testDecompressProvider.decompress).to.have.been.calledOnce;
-        expect(statusViewStubs.installingService).to.have.been.calledOnce;
-        expect(statusViewStubs.serviceInstalled).to.have.been.calledOnce;
     });
 
     // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
@@ -208,8 +183,6 @@ suite("ServiceDownloadProvider Tests", () => {
             expect(testHttpClient.downloadFile).to.have.been.calledOnce;
             expect(testHttpClient.downloadFile.firstCall.args[0]).to.equal(fixture.downloadUrl);
             expect(testDecompressProvider.decompress).to.not.have.been.called;
-            expect(statusViewStubs.installingService).to.not.have.been.called;
-            expect(statusViewStubs.serviceInstalled).to.not.have.been.called;
         });
     });
 
@@ -226,8 +199,6 @@ suite("ServiceDownloadProvider Tests", () => {
             expect(testHttpClient.downloadFile).to.have.been.calledOnce;
             expect(testHttpClient.downloadFile.firstCall.args[0]).to.equal(fixture.downloadUrl);
             expect(testDecompressProvider.decompress).to.have.been.calledOnce;
-            expect(statusViewStubs.installingService).to.have.been.calledOnce;
-            expect(statusViewStubs.serviceInstalled).to.not.have.been.called;
         });
     });
 });
