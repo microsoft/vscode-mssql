@@ -9,6 +9,7 @@ import { PlugDisconnectedRegular } from "@fluentui/react-icons";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
 import { renderInput, renderCombobox } from "./FormFieldComponents";
+import { PublishTarget } from "../../../../sharedInterfaces/publishDialog";
 
 const useStyles = makeStyles({
     root: {
@@ -27,6 +28,7 @@ export const ConnectionSection: React.FC = () => {
     const databaseComponent = usePublishDialogSelector((s) => s.formComponents.databaseName);
     const serverValue = usePublishDialogSelector((s) => s.formState.serverName);
     const databaseValue = usePublishDialogSelector((s) => s.formState.databaseName);
+    const publishTarget = usePublishDialogSelector((s) => s.formState.publishTarget);
 
     const [localServer, setLocalServer] = useState(serverValue || "");
     const [localDatabase, setLocalDatabase] = useState(databaseValue || "");
@@ -65,7 +67,12 @@ export const ConnectionSection: React.FC = () => {
                     />
                 ),
             })}
-            {renderCombobox(databaseComponent, localDatabase, false, handleDatabaseChange)}
+            {renderCombobox(
+                databaseComponent,
+                localDatabase,
+                publishTarget === PublishTarget.LocalContainer,
+                handleDatabaseChange,
+            )}
         </div>
     );
 };

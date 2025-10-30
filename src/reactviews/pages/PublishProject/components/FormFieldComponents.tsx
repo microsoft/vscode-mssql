@@ -179,7 +179,8 @@ export function renderCombobox(
     onChange: (value: string) => void,
 ) {
     if (!component || component.hidden) return undefined;
-    if (component.type !== FormItemType.Dropdown || !component.options) return undefined;
+    if (component.type !== FormItemType.Dropdown) return undefined;
+    if (!freeform && !component.options) return undefined;
 
     return (
         <Field
@@ -203,7 +204,7 @@ export function renderCombobox(
                     // Allow custom text input
                     onChange(event.currentTarget.value);
                 }}>
-                {component.options.map(
+                {component.options?.map(
                     (opt: { value: string; displayName: string; color?: string }, i: number) => (
                         <Option key={opt.value + i} value={opt.value} text={opt.displayName}>
                             {opt.displayName}
