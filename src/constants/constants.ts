@@ -49,6 +49,7 @@ export const cmdStartQueryHistory = "mssql.startQueryHistoryCapture";
 export const cmdPauseQueryHistory = "mssql.pauseQueryHistoryCapture";
 export const cmdCommandPaletteQueryHistory = "mssql.commandPaletteQueryHistory";
 export const cmdNewQuery = "mssql.newQuery";
+export const cmdCopilotNewQueryWithConnection = "mssql.copilot.newQueryWithConnection";
 export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdTableExplorer = "mssql.tableExplorer";
 export const cmdTableNodeAction = "mssql.tableNodeAction";

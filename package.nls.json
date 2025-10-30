@@ -43,6 +43,7 @@
     "mssql.copilot.explainQuery": "Explain Query (Preview)",
     "mssql.copilot.analyzeQueryPerformance": "Analyze Query Performance (Preview)",
     "mssql.copilot.rewriteQuery": "Rewrite Query (Preview)",
+    "mssql.copilot.newQueryWithConnection": "Open New Query and Connect (Preview)",
     "mssql.schemaCompare": "Schema Compare",
     "mssql.tableExplorer": "View Data (Preview)",
     "mssql.toggleSqlCmd": "Toggle SQLCMD Mode",
