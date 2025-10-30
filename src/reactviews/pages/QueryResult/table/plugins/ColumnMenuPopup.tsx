@@ -11,6 +11,7 @@ import {
     Input,
     InputOnChangeData,
     Text,
+    Toolbar,
     makeStyles,
     mergeClasses,
     shorthands,
@@ -20,12 +21,14 @@ import {
     Dismiss16Regular,
     DismissCircle16Regular,
     Search16Regular,
+    TableResizeColumn16Filled,
     TextSortAscending16Regular,
     TextSortDescending16Regular,
 } from "@fluentui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { locConstants } from "../../../../common/locConstants";
 import { SortProperties } from "../../../../../sharedInterfaces/queryResult";
+import { altShiftOKeyboardShortcut, altShiftSKeyboardShortcut } from "../../../../common/constants";
 
 export type FilterValue = string | undefined;
 
@@ -54,6 +57,7 @@ interface ColumnMenuPopupProps {
     onSortAscending: () => Promise<void> | void;
     onSortDescending: () => Promise<void> | void;
     onClearSort: () => Promise<void> | void;
+    onResize: () => void;
     currentSort: SortProperties;
 }
 
@@ -113,10 +117,10 @@ const useStyles = makeStyles({
         columnGap: tokens.spacingHorizontalXS,
     },
     sortButtons: {
-        display: "flex",
-        flexDirection: "column",
-        columnGap: "2px",
-        "& button": {
+        width: "100%",
+        padding: 0,
+        "> button": {
+            width: "100%",
             justifyContent: "flex-start",
         },
     },
@@ -241,6 +245,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
     onSortAscending,
     onSortDescending,
     onClearSort,
+    onResize,
     currentSort = SortProperties.NONE,
 }) => {
     const styles = useStyles();
@@ -530,7 +535,17 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={handleRootKeyDown}>
             <div className={styles.titleBar}>
-                <Text className={styles.sectionHeading}>Sort</Text>
+                <Text className={styles.sectionHeading}>
+                    {locConstants.queryResult.sort}
+                    <span
+                        style={{
+                            fontSize: "8px",
+                            fontWeight: "100",
+                            marginLeft: "6px",
+                        }}>
+                        {altShiftOKeyboardShortcut}
+                    </span>
+                </Text>
                 <Button
                     ref={closeButtonRef}
                     appearance="subtle"
@@ -545,7 +560,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
             <div className={styles.divider} />
             <div className={styles.header}>
                 <div className={styles.section}>
-                    <div className={styles.sortButtons}>
+                    <Toolbar vertical className={styles.sortButtons}>
                         <Button
                             ref={(el) => {
                                 sortAscendingButtonRef.current = el;
@@ -580,12 +595,35 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                             disabled={currentSort === SortProperties.NONE}>
                             {locConstants.queryResult.removeSort}
                         </Button>
-                    </div>
+                    </Toolbar>
                 </div>
-
+                <div className={styles.divider} />
+                <Toolbar vertical className={styles.sortButtons}>
+                    <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<TableResizeColumn16Filled />}
+                        title={locConstants.queryResult.resize}
+                        onClick={() => {
+                            if (onResize) {
+                                onResize();
+                            }
+                        }}
+                        aria-label={locConstants.queryResult.resize}>
+                        {locConstants.queryResult.resize}
+                        <span
+                            style={{
+                                fontWeight: "100",
+                                marginLeft: "auto",
+                                paddingLeft: "6px",
+                            }}>
+                            {altShiftSKeyboardShortcut}
+                        </span>
+                    </Button>
+                </Toolbar>
                 <div className={styles.divider} />
                 <div className={styles.section}>
-                    <Text className={styles.sectionHeading}>Filter</Text>
+                    <Text className={styles.sectionHeading}>{locConstants.queryResult.filter}</Text>
                     <div className={styles.topRow}>
                         <Input
                             ref={(el) => {

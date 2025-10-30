@@ -15,7 +15,7 @@ import {
 } from "../utils";
 import { KeyCode } from "../../../../common/keys";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
-import { isMetaKeyPressed } from "../../../../common/utils";
+import { isMetaOrCtrlKeyPressed } from "../../../../common/utils";
 
 /**
  * Implements the various additional navigation keybindings we want out of slickgrid
@@ -48,7 +48,7 @@ export class CopyKeybind<T extends Slick.SlickData> implements Slick.Plugin<T> {
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
         let handled = false;
-        if (isMetaKeyPressed(e) && e.code === KeyCode.KeyC) {
+        if (isMetaOrCtrlKeyPressed(e) && e.code === KeyCode.KeyC) {
             handled = true;
             await this.handleCopySelection(this.grid, this.uri, this.resultSetSummary);
         }
