@@ -45,7 +45,6 @@ suite("TableExplorerService Tests", () => {
         mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
         mockLogger = sandbox.createStubInstance(Logger);
 
-        // Mock the logger property on the client
         sandbox.stub(mockClient, "logger").get(() => mockLogger);
 
         tableExplorerService = new TableExplorerService(mockClient);
