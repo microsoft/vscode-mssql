@@ -54,32 +54,32 @@ export class ConnectionConfig implements IConnectionConfig {
     static readonly RootGroupName: string = "ROOT";
     private _hasDisplayedMissingIdError: boolean = false;
 
-    /** Event fired after a connection profile is successfully created. */
+    /** Event fired after a connection profile is successfully created. Payload contains a deep copy of the profile. */
     public readonly onConnectionCreated: vscode.Event<ConnectionCreatedEvent>;
     private readonly _onConnectionCreatedEmitter =
         new vscode.EventEmitter<ConnectionCreatedEvent>();
 
-    /** Event fired after a connection profile is successfully updated. */
+    /** Event fired after a connection profile is successfully updated. Payload includes deep copies of the before/after profiles. */
     public readonly onConnectionUpdated: vscode.Event<ConnectionUpdatedEvent>;
     private readonly _onConnectionUpdatedEmitter =
         new vscode.EventEmitter<ConnectionUpdatedEvent>();
 
-    /** Event fired after a connection profile is successfully removed. */
+    /** Event fired after a connection profile is successfully removed. Payload contains deep copies of the removed profile(s). */
     public readonly onConnectionRemoved: vscode.Event<ConnectionRemovedEvent>;
     private readonly _onConnectionRemovedEmitter =
         new vscode.EventEmitter<ConnectionRemovedEvent>();
 
-    /** Event fired after a connection group is successfully created. */
+    /** Event fired after a connection group is successfully created. Payload contains a deep copy of the group. */
     public readonly onConnectionGroupCreated: vscode.Event<ConnectionGroupCreatedEvent>;
     private readonly _onConnectionGroupCreatedEmitter =
         new vscode.EventEmitter<ConnectionGroupCreatedEvent>();
 
-    /** Event fired after a connection group is successfully updated. */
+    /** Event fired after a connection group is successfully updated. Payload includes deep copies of the before/after groups. */
     public readonly onConnectionGroupUpdated: vscode.Event<ConnectionGroupUpdatedEvent>;
     private readonly _onConnectionGroupUpdatedEmitter =
         new vscode.EventEmitter<ConnectionGroupUpdatedEvent>();
 
-    /** Event fired after a connection group is successfully removed. */
+    /** Event fired after a connection group is successfully removed. Payload contains a deep copy of the removed group. */
     public readonly onConnectionGroupRemoved: vscode.Event<ConnectionGroupRemovedEvent>;
     private readonly _onConnectionGroupRemovedEmitter =
         new vscode.EventEmitter<ConnectionGroupRemovedEvent>();
