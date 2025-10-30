@@ -233,7 +233,7 @@
             {
                 "id": "mssql.agent",
                 "name": "mssql",
-                "description": "Azure SQL Copilot agent",
+                "description": "MSSQL extension GitHub Copilot agent",
                 "isSticky": true,
                 "commands": [
                     {
