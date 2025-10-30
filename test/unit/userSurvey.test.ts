@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
 import * as locConstants from "../../src/constants/locConstants";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
@@ -58,12 +57,13 @@ suite("UserSurvey Tests", () => {
 
     test("should create and return the same UserSurvey instance", () => {
         const instance = UserSurvey.getInstance();
-        assert.strictEqual(instance, UserSurvey.getInstance());
+        expect(instance).to.equal(UserSurvey.getInstance());
     });
 
     test("Should call promptUserForNPSFeedbackAsync when promptUserForNpsFeedback is called", async () => {
         const userSurvey = UserSurvey.getInstance();
         const promptUserForNPSFeedbackAsyncStub = sandbox.stub(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             userSurvey as any,
             "promptUserForNPSFeedbackAsync",
         );
@@ -74,11 +74,7 @@ suite("UserSurvey Tests", () => {
 
         await setTimeout(500); // Wait for the async call to complete
 
-        assert.strictEqual(
-            promptUserForNPSFeedbackAsyncStub.calledOnce,
-            true,
-            "promptUserForNPSFeedbackAsync should be called once",
-        );
+        expect(promptUserForNPSFeedbackAsyncStub).to.have.been.calledOnce;
     });
 
     test("should prompt for feedback after session count reaches threshold", async () => {
@@ -93,12 +89,9 @@ suite("UserSurvey Tests", () => {
             run: sandbox.stub(),
         });
         const userSurvey = UserSurvey.getInstance();
-        await (userSurvey as any).promptUserForNPSFeedbackAsync();
-        assert.strictEqual(
-            showInformationMessageStub.calledOnce,
-            true,
-            "showInformationMessage should be called",
-        );
+        await userSurvey["promptUserForNPSFeedbackAsync"](testSurveySource);
+
+        expect(showInformationMessageStub).to.have.been.calledOnce;
     });
 
     test("should update global state and send telemetry after survey submission", async () => {
@@ -135,31 +128,21 @@ suite("UserSurvey Tests", () => {
 
         await userSurvey["promptUserForNPSFeedbackAsync"]("testSource");
 
-        assert.strictEqual(
-            mockWebviewController.revealToForeground.calledOnce,
-            true,
-            "revealToForeground should have been called",
-        );
+        expect(mockWebviewController.revealToForeground).to.have.been.calledOnce;
 
-        assert.strictEqual(sendActionEvent.called, true, "sendActionEvent should be called");
-
-        assert.strictEqual(
-            sendActionEvent.calledWith(
-                TelemetryViews.UserSurvey,
-                TelemetryActions.SurveySubmit,
-                {
-                    surveyId: "nps",
-                    q1: "answer1",
-                    q2: "answer2",
-                    modernFeaturesEnabled: true,
-                    source: "testSource",
-                },
-                {
-                    q3: 3,
-                },
-            ),
-            true,
-            "sendActionEvent should be called with correct arguments",
+        expect(sendActionEvent).to.have.been.calledWith(
+            TelemetryViews.UserSurvey,
+            TelemetryActions.SurveySubmit,
+            {
+                surveyId: "nps",
+                q1: "answer1",
+                q2: "answer2",
+                modernFeaturesEnabled: true,
+                surveySource: "testSource",
+            },
+            {
+                q3: 3,
+            },
         );
     });
 
@@ -176,12 +159,11 @@ suite("UserSurvey Tests", () => {
         const userSurvey = UserSurvey.getInstance();
         sandbox.stub(userSurvey, "launchSurvey").resolves();
 
-        await (userSurvey as any).promptUserForNPSFeedbackAsync();
+        await userSurvey["promptUserForNPSFeedbackAsync"](testSurveySource);
 
-        assert.strictEqual(
-            globalState.update.calledWith("nps/sessionCount", 3),
-            true,
-            "session count should be decremented",
+        expect(globalState.update, "session count should be decremented").to.have.been.calledWith(
+            "nps/sessionCount",
+            3,
         );
     });
 
@@ -196,13 +178,9 @@ suite("UserSurvey Tests", () => {
         const userSurvey = UserSurvey.getInstance();
         sandbox.stub(userSurvey, "launchSurvey").resolves();
 
-        await (userSurvey as any).promptUserForNPSFeedbackAsync();
+        await userSurvey["promptUserForNPSFeedbackAsync"](testSurveySource);
 
-        assert.strictEqual(
-            globalState.update.calledWith(NEVER_KEY, true),
-            true,
-            "should set never key",
-        );
+        expect(globalState.update.calledWith(NEVER_KEY, true), "should set never key").to.be.true;
     });
 
     test("Should open survey directly without checking eligibility with launchSurvey()", async () => {
@@ -238,7 +216,7 @@ suite("UserSurvey Tests", () => {
             ).to.have.been.calledWith(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                 step: FunnelSteps.EligibilityCheck,
                 outcome: "exit_optedOut",
-                source: testSurveySource,
+                surveySource: testSurveySource,
             });
         });
 
@@ -263,7 +241,7 @@ suite("UserSurvey Tests", () => {
             ).to.have.been.calledWith(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                 step: FunnelSteps.EligibilityCheck,
                 outcome: "exit_skipVersion",
-                source: testSurveySource,
+                surveySource: testSurveySource,
             });
         });
 
@@ -286,7 +264,7 @@ suite("UserSurvey Tests", () => {
             ).to.have.been.calledWith(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                 step: FunnelSteps.EligibilityCheck,
                 outcome: "exit_alreadyConsidered",
-                source: testSurveySource,
+                surveySource: testSurveySource,
             });
         });
 
@@ -308,7 +286,7 @@ suite("UserSurvey Tests", () => {
             ).to.have.been.calledWith(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                 step: FunnelSteps.EligibilityCheck,
                 outcome: "exit_notEnoughSessions",
-                source: testSurveySource,
+                surveySource: testSurveySource,
             });
         });
 
@@ -333,7 +311,7 @@ suite("UserSurvey Tests", () => {
             ).to.have.been.calledWith(TelemetryViews.UserSurvey, TelemetryActions.SurveyFunnel, {
                 step: FunnelSteps.EligibilityCheck,
                 outcome: "exit_notSelectedAsCandidate",
-                source: testSurveySource,
+                surveySource: testSurveySource,
             });
         });
     });
