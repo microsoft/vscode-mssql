@@ -77,6 +77,7 @@ export interface PublishDialogState
     connectionString?: string;
     previousDatabaseList?: { displayName: string; value: string }[];
     previousSelectedDatabase?: string;
+    originalSqlCmdVariables?: { [key: string]: string };
 }
 
 /**
@@ -105,6 +106,7 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     savePublishProfile: { publishProfileName: string };
     openConnectionDialog: {};
     updateDeploymentOptions: { deploymentOptions: mssql.DeploymentOptions };
+    revertSqlCmdVariables: {};
 }
 
 /**
@@ -132,4 +134,6 @@ export interface PublishProjectProvider {
     openConnectionDialog(): void;
     /** Update all deployment options at once */
     updateDeploymentOptions(deploymentOptions: mssql.DeploymentOptions): void;
+    /** Revert all SQLCMD variables to their original project values */
+    revertSqlCmdVariables(): void;
 }

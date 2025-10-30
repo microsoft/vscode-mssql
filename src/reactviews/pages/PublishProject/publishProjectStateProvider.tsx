@@ -44,6 +44,7 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
             openConnectionDialog: () => extensionRpc.action("openConnectionDialog"),
             updateDeploymentOptions: (deploymentOptions: mssql.DeploymentOptions) =>
                 extensionRpc.action("updateDeploymentOptions", { deploymentOptions }),
+            revertSqlCmdVariables: () => extensionRpc.action("revertSqlCmdVariables"),
             extensionRpc,
         }),
         [extensionRpc],

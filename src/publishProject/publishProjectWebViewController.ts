@@ -152,11 +152,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 if (sqlCmdVarsResult?.success && sqlCmdVarsResult.sqlCmdVariables) {
                     // Convert array to object for form state
                     const sqlCmdVarsObject: { [key: string]: string } = {};
+                    const originalSqlCmdVarsObject: { [key: string]: string } = {};
                     for (const sqlCmdVar of sqlCmdVarsResult.sqlCmdVariables) {
-                        sqlCmdVarsObject[sqlCmdVar.varName] =
-                            sqlCmdVar.value || sqlCmdVar.defaultValue || "";
+                        // Use the defaultValue which contains the actual values, not variable references like $(SqlCmdVar__1)
+                        const varValue = sqlCmdVar.defaultValue || "";
+                        sqlCmdVarsObject[sqlCmdVar.varName] = varValue;
+                        originalSqlCmdVarsObject[sqlCmdVar.varName] = varValue;
                     }
                     this.state.formState.sqlCmdVariables = sqlCmdVarsObject;
+                    this.state.originalSqlCmdVariables = originalSqlCmdVarsObject;
                 }
             }
         } catch (error) {
@@ -229,6 +233,22 @@ export class PublishProjectWebViewController extends FormWebviewController<
             return state;
         });
 
+        this.registerReducer("revertSqlCmdVariables", async (state: PublishDialogState) => {
+            // Revert all SQLCMD variables to their original values
+            if (state.originalSqlCmdVariables) {
+                // Update form state with original values
+                this.state.formState.sqlCmdVariables = { ...state.originalSqlCmdVariables };
+
+                // Update visibility and validate for button enablement (following same pattern as afterSetFormProperty)
+                await this.updateItemVisibility();
+                await this.validateForm(this.state.formState, undefined, false);
+                this.updateState();
+
+                return this.state;
+            }
+            return state;
+        });
+
         this.registerReducer(
             "updateDeploymentOptions",
             async (
@@ -289,6 +309,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         TelemetryActions.PublishProfileLoaded,
                     );
 
+                    // Merge SQLCMD variables: start with project variables, then overlay profile variables
+                    // This matches ADS behavior where both project and profile variables are shown
+                    const mergedSqlCmdVariables = {
+                        ...state.formState.sqlCmdVariables, // Start with existing project variables
+                        ...parsedProfile.sqlCmdVariables, // Overlay profile variables (profile values take precedence)
+                    };
+
                     // Update state with all parsed values - UI components will consume when available
                     const newState = {
                         ...state,
@@ -298,11 +325,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                             databaseName:
                                 parsedProfile.databaseName || state.formState.databaseName,
                             serverName: parsedProfile.serverName || state.formState.serverName,
-                            sqlCmdVariables: parsedProfile.sqlCmdVariables,
+                            sqlCmdVariables: mergedSqlCmdVariables,
                         },
                         connectionString: parsedProfile.connectionString || state.connectionString,
                         deploymentOptions:
                             parsedProfile.deploymentOptions || state.deploymentOptions,
+                        // Update the original values to include the merged state (project + profile)
+                        // This ensures revert maintains all variables but resets their values
+                        originalSqlCmdVariables: { ...mergedSqlCmdVariables },
                     };
 
                     // Update UI to reflect the changes
@@ -587,9 +617,33 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this.state.formState,
         );
 
+        // Check SQLCMD variables validation
+        const sqlCmdVariablesValid = this.allSqlCmdVariablesFilled();
+
         // hasFormErrors state tracks to disable buttons if ANY errors exist
-        this.state.hasFormErrors = hasValidationErrors || hasMissingRequiredValues;
+        this.state.hasFormErrors =
+            hasValidationErrors || hasMissingRequiredValues || !sqlCmdVariablesValid;
 
         return erroredInputs;
+    }
+
+    /**
+     * Validates that all SQLCMD variables have non-empty values
+     * This follows the same validation logic as the SQL projects extension
+     */
+    private allSqlCmdVariablesFilled(): boolean {
+        const sqlCmdVariables = this.state.formState.sqlCmdVariables;
+        if (!sqlCmdVariables) {
+            return true; // No variables to validate
+        }
+
+        for (const varName in sqlCmdVariables) {
+            const value = sqlCmdVariables[varName];
+            if (value === "" || value === undefined) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

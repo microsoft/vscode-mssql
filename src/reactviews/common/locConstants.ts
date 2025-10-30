@@ -933,6 +933,7 @@ export class LocConstants {
             SqlCmdVariablesLabel: l10n.t("SQLCMD Variables"),
             SqlCmdVariableNameColumn: l10n.t("Name"),
             SqlCmdVariableValueColumn: l10n.t("Value"),
+            RevertSqlCmdVariablesToDefaults: l10n.t("Revert values to project defaults"),
         };
     }
 
