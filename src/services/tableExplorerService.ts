@@ -32,6 +32,7 @@ import {
     EditRevertCellResult,
     EditRevertRowParams,
     EditRevertRowResult,
+    EditScriptParams,
     EditScriptResult,
     EditSubsetParams,
     EditSubsetResult,
@@ -428,7 +429,7 @@ export class TableExplorerService implements ITableExplorerService {
      */
     public async generateScripts(ownerUri: string): Promise<EditScriptResult> {
         try {
-            const params: EditDisposeParams = {
+            const params: EditScriptParams = {
                 ownerUri: ownerUri,
             };
 
