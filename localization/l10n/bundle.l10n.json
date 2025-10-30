@@ -659,6 +659,7 @@
     "Ignore Options": "Ignore Options",
     "Exclude Object Types": "Exclude Object Types",
     "SQLCMD Variables": "SQLCMD Variables",
+    "Revert values to project defaults": "Revert values to project defaults",
     "Create New Connection Group": "Create New Connection Group",
     "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
         "message": "Edit Connection Group: {0}",
