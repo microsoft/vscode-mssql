@@ -20,9 +20,9 @@ import { useTableExplorerSelector } from "./tableExplorerSelector";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { ImperativePanelHandle, Panel } from "react-resizable-panels";
 
-const DEFAULTPANEL_SIZE = 25;
-const MINIMUMPANEL_SIZE = 10;
-const MAXIMUMPANEL_SIZE = 90; // Maximum is 90% since the main panel has minSize={10}
+const DEFAULT_PANEL_SIZE = 25;
+const MINIMUM_PANEL_SIZE = 10;
+const MAXIMUM_PANEL_SIZE = 100;
 
 const useStyles = makeStyles({
     header: {
@@ -74,11 +74,11 @@ export const TableExplorerScriptPane: React.FC = () => {
     return (
         <Panel
             collapsible
-            minSize={MINIMUMPANEL_SIZE}
-            defaultSize={DEFAULTPANEL_SIZE}
+            minSize={MINIMUM_PANEL_SIZE}
+            defaultSize={DEFAULT_PANEL_SIZE}
             ref={panelRef}
             onResize={(size) => {
-                if (size >= MAXIMUMPANEL_SIZE - 1) {
+                if (size >= MAXIMUM_PANEL_SIZE - 1) {
                     setExpandCollapseButtonLabel(loc.tableExplorer.restorePanelSize);
                     setExpandCollapseButtonIcon(<ChevronDown12Filled />);
                 } else {
@@ -110,12 +110,12 @@ export const TableExplorerScriptPane: React.FC = () => {
                         appearance="subtle"
                         onClick={() => {
                             const currentSize = panelRef.current?.getSize();
-                            if (currentSize && currentSize >= MAXIMUMPANEL_SIZE - 1) {
-                                panelRef.current?.resize(DEFAULTPANEL_SIZE);
+                            if (currentSize && currentSize >= MAXIMUM_PANEL_SIZE - 1) {
+                                panelRef.current?.resize(DEFAULT_PANEL_SIZE);
                                 setExpandCollapseButtonLabel(loc.tableExplorer.maximizePanelSize);
                                 setExpandCollapseButtonIcon(<ChevronUp12Filled />);
                             } else {
-                                panelRef.current?.resize(MAXIMUMPANEL_SIZE);
+                                panelRef.current?.resize(MAXIMUM_PANEL_SIZE);
                                 setExpandCollapseButtonLabel(loc.tableExplorer.restorePanelSize);
                                 setExpandCollapseButtonIcon(<ChevronDown12Filled />);
                             }

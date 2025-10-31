@@ -61,11 +61,6 @@ export const TableExplorerPage: React.FC = () => {
     const gridRef = useRef<TableDataGridRef>(null);
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
 
-    // Debug logging
-    console.log("TableExplorerPage render - resultSet:", resultSet);
-    console.log("TableExplorerPage render - isLoading:", isLoading);
-    console.log("TableExplorerPage render - showScriptPane:", showScriptPane);
-
     const handleSaveComplete = () => {
         // Clear the change tracking in the grid after successful save
         gridRef.current?.clearAllChangeTracking();
@@ -78,7 +73,7 @@ export const TableExplorerPage: React.FC = () => {
     return (
         <div className={classes.root}>
             <PanelGroup direction="vertical" className={classes.panelGroup}>
-                <Panel defaultSize={75} minSize={10}>
+                <Panel defaultSize={75}>
                     <div className={classes.contentArea}>
                         <TableExplorerToolbar
                             onSaveComplete={handleSaveComplete}
