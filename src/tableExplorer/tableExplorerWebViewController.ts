@@ -19,11 +19,16 @@ import { EditSessionReadyNotification } from "../models/contracts/tableExplorer"
 import { NotificationHandler } from "vscode-languageclient";
 import * as LocConstants from "../constants/locConstants";
 import { getErrorMessage } from "../utils/utils";
+import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { generateGuid } from "../models/utils";
 
 export class TableExplorerWebViewController extends ReactWebviewPanelController<
     TableExplorerWebViewState,
     TableExplorerReducers
 > {
+    private operationId: string;
+
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
@@ -77,8 +82,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             },
         );
 
+        this.operationId = generateGuid();
         this.logger.info(
-            `TableExplorerWebViewController created for table: ${tableName} in database: ${databaseName}`,
+            `TableExplorerWebViewController created for table: ${tableName} in database: ${databaseName} - OperationId: ${this.operationId}`,
         );
 
         this._tableExplorerService.sqlToolsClient.onNotification(
@@ -94,41 +100,93 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
      * Initializes the table explorer with the given node context.
      */
     private async initialize(): Promise<void> {
+        const startTime = Date.now();
+        const endActivity = startActivity(
+            TelemetryViews.TableExplorer,
+            TelemetryActions.Initialize,
+            generateGuid(),
+            {
+                startTime: startTime.toString(),
+                operationId: this.operationId,
+            },
+        );
+
         if (!this._targetNode) {
+            this.logger.error(`No target node provided - OperationId: ${this.operationId}`);
+            endActivity.endFailed(
+                new Error("No target node provided for table explorer"),
+                true,
+                undefined,
+                undefined,
+                {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                },
+            );
+
             await vscode.window.showErrorMessage(
                 LocConstants.TableExplorer.unableToOpenTableExplorer,
             );
             return;
         }
 
-        const schemaName = this.state.schemaName;
-        const objectName = this.state.tableName;
-        const ownerUri = schemaName
-            ? `untitled:${schemaName}.${objectName}`
-            : `untitled:${objectName}`;
+        try {
+            const schemaName = this.state.schemaName;
+            const objectName = this.state.tableName;
+            const ownerUri = schemaName
+                ? `untitled:${schemaName}.${objectName}`
+                : `untitled:${objectName}`;
 
-        const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
+            const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
 
-        let connectionCreds = Object.assign({}, this._targetNode.connectionProfile);
-        const databaseName = ObjectExplorerUtils.getDatabaseName(this._targetNode);
+            let connectionCreds = Object.assign({}, this._targetNode.connectionProfile);
+            const databaseName = ObjectExplorerUtils.getDatabaseName(this._targetNode);
 
-        if (
-            !this._connectionManager.isConnected(ownerUri) ||
-            connectionCreds.database !== databaseName
-        ) {
-            connectionCreds.database = databaseName;
-            if (!this._connectionManager.isConnecting(ownerUri)) {
-                await this._connectionManager.connect(ownerUri, connectionCreds);
+            this.logger.info(
+                `Initializing table explorer for ${schemaName}.${objectName} - OperationId: ${this.operationId}`,
+            );
+
+            if (
+                !this._connectionManager.isConnected(ownerUri) ||
+                connectionCreds.database !== databaseName
+            ) {
+                connectionCreds.database = databaseName;
+                if (!this._connectionManager.isConnecting(ownerUri)) {
+                    await this._connectionManager.connect(ownerUri, connectionCreds);
+                }
             }
-        }
 
-        await this._tableExplorerService.initialize(
-            ownerUri,
-            objectName,
-            schemaName,
-            objectType,
-            undefined,
-        );
+            await this._tableExplorerService.initialize(
+                ownerUri,
+                objectName,
+                schemaName,
+                objectType,
+                undefined,
+            );
+
+            this.logger.info(
+                `Table explorer initialized successfully - OperationId: ${this.operationId}`,
+            );
+            endActivity.end(ActivityStatus.Succeeded, {
+                elapsedTime: (Date.now() - startTime).toString(),
+                operationId: this.operationId,
+            });
+        } catch (error) {
+            this.logger.error(
+                `Error initializing table explorer: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+            );
+            endActivity.endFailed(
+                new Error(`Failed to initialize table explorer: ${getErrorMessage(error)}`),
+                true,
+                undefined,
+                undefined,
+                {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                },
+            );
+            throw error;
+        }
     }
 
     private handleEditSessionReadyNotification(): NotificationHandler<EditSessionReadyParams> {
@@ -178,7 +236,21 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
     private registerRpcHandlers(): void {
         this.registerReducer("commitChanges", async (state) => {
-            this.logger.info(`Committing changes for: ${state.tableName}`);
+            this.logger.info(
+                `Committing changes for: ${state.tableName} - OperationId: ${this.operationId}`,
+            );
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.CommitChanges,
+                generateGuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                    newRowsCount: state.newRows.length.toString(),
+                },
+            );
 
             try {
                 await this._tableExplorerService.commit(state.ownerUri);
@@ -191,9 +263,30 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 state.failedCells = [];
                 this.showRestorePromptAfterClose = false;
 
-                this.logger.info("Cleared new rows and failed cells after successful commit");
+                this.logger.info(
+                    `Cleared new rows and failed cells after successful commit - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                });
             } catch (error) {
-                this.logger.error(`Error committing changes: ${error}`);
+                this.logger.error(
+                    `Error committing changes: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error(`Failed to commit changes: ${getErrorMessage(error)}`),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToSaveChanges(getErrorMessage(error)),
                 );
@@ -236,14 +329,29 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("createRow", async (state) => {
-            this.logger.info(`Creating new row for: ${state.tableName}`);
+            this.logger.info(
+                `Creating new row for: ${state.tableName} - OperationId: ${this.operationId}`,
+            );
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.CreateRow,
+                generateGuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
+            );
 
             try {
                 const result = await this._tableExplorerService.createRow(state.ownerUri);
                 vscode.window.showInformationMessage(
                     LocConstants.TableExplorer.rowCreatedSuccessfully,
                 );
-                this.logger.info(`Created row with ID: ${result.newRowId}`);
+                this.logger.info(
+                    `Created row with ID: ${result.newRowId} - OperationId: ${this.operationId}`,
+                );
 
                 // Track new row and mark unsaved changes
                 state.newRows = [...state.newRows, result.row];
@@ -267,8 +375,27 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 }
 
                 await this.regenerateScriptIfVisible(state);
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                });
             } catch (error) {
-                this.logger.error(`Error creating row: ${error}`);
+                this.logger.error(
+                    `Error creating row: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error(`Failed to create row: ${getErrorMessage(error)}`),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToCreateNewRow(getErrorMessage(error)),
                 );
@@ -278,7 +405,18 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("deleteRow", async (state, payload) => {
-            this.logger.info(`Deleting row: ${payload.rowId}`);
+            this.logger.info(`Deleting row: ${payload.rowId} - OperationId: ${this.operationId}`);
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.DeleteRow,
+                generateGuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
+            );
 
             try {
                 await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
@@ -315,8 +453,27 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 }
 
                 await this.regenerateScriptIfVisible(state);
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                });
             } catch (error) {
-                this.logger.error(`Error deleting row: ${error}`);
+                this.logger.error(
+                    `Error deleting row: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error(`Failed to delete row: ${getErrorMessage(error)}`),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToRemoveRow(getErrorMessage(error)),
                 );
@@ -326,7 +483,22 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("updateCell", async (state, payload) => {
-            this.logger.info(`Updating cell: row ${payload.rowId}, column ${payload.columnId}`);
+            this.logger.info(
+                `Updating cell: row ${payload.rowId}, column ${payload.columnId} - OperationId: ${this.operationId}`,
+            );
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.UpdateCell,
+                generateGuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                    rowId: payload.rowId.toString(),
+                    columnId: payload.columnId.toString(),
+                },
+            );
 
             try {
                 const updateCellResult = await this._tableExplorerService.updateCell(
@@ -356,11 +528,18 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     }
                 }
 
-                this.logger.info(`Cell updated successfully`);
+                this.logger.info(`Cell updated successfully - OperationId: ${this.operationId}`);
 
                 await this.regenerateScriptIfVisible(state);
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                });
             } catch (error) {
-                this.logger.error(`Error updating cell: ${error}`);
+                this.logger.error(
+                    `Error updating cell: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
 
                 // Track failed cell for UI highlighting
                 const failedKey = `${payload.rowId}-${payload.columnId}`;
@@ -371,6 +550,17 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 }
 
                 this.updateState();
+
+                endActivity.endFailed(
+                    new Error(`Failed to update cell: ${getErrorMessage(error)}`),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
 
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToUpdateCell(getErrorMessage(error)),
@@ -498,7 +688,20 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("generateScript", async (state) => {
-            this.logger.info(`Generating update script for: ${state.tableName}`);
+            this.logger.info(
+                `Generating update script for: ${state.tableName} - OperationId: ${this.operationId}`,
+            );
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.GenerateScript,
+                generateGuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
+            );
 
             try {
                 const scriptResult = await this._tableExplorerService.generateScripts(
@@ -508,7 +711,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 // Combine script array into single string
                 const combinedScript = scriptResult.scripts?.join("\n") || "";
                 this.logger.info(
-                    `Script result received: ${scriptResult.scripts?.length} script(s), combined length: ${combinedScript.length}`,
+                    `Script result received: ${scriptResult.scripts?.length} script(s), combined length: ${combinedScript.length} - OperationId: ${this.operationId}`,
                 );
 
                 // Update state with script and show pane
@@ -520,12 +723,34 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
                 this.updateState();
                 this.logger.info(
-                    `State after updateState - this.state.updateScript length: ${this.state.updateScript?.length}`,
+                    `State after updateState - this.state.updateScript length: ${this.state.updateScript?.length} - OperationId: ${this.operationId}`,
                 );
 
-                this.logger.info("Script generated successfully");
+                this.logger.info(
+                    `Script generated successfully - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                    scriptCount: scriptResult.scripts?.length.toString() || "0",
+                });
             } catch (error) {
-                this.logger.error(`Error generating script: ${error}`);
+                this.logger.error(
+                    `Error generating script: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error(`Failed to generate script: ${getErrorMessage(error)}`),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToGenerateScript(getErrorMessage(error)),
                 );
