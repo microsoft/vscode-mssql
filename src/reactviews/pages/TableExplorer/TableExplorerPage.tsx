@@ -7,7 +7,10 @@ import React, { useRef } from "react";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { TableDataGrid, TableDataGridRef } from "./TableDataGrid";
 import { TableExplorerToolbar } from "./TableExplorerToolbar";
-import { TableExplorerScriptPane } from "./TableExplorerScriptPane";
+import {
+    DesignerDefinitionPane,
+    DesignerDefinitionTabs,
+} from "../../common/designerDefinitionPane";
 import { makeStyles, shorthands } from "@fluentui/react-components";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
@@ -57,6 +60,7 @@ export const TableExplorerPage: React.FC = () => {
     const currentRowCount = useTableExplorerSelector((s) => s.currentRowCount);
     const failedCells = useTableExplorerSelector((s) => s.failedCells);
     const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
+    const updateScript = useTableExplorerSelector((s) => s.updateScript);
 
     const gridRef = useRef<TableDataGridRef>(null);
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
@@ -106,7 +110,13 @@ export const TableExplorerPage: React.FC = () => {
                 {showScriptPane && (
                     <>
                         <PanelResizeHandle className={classes.resizeHandle} />
-                        <TableExplorerScriptPane />
+                        <DesignerDefinitionPane
+                            script={updateScript || `-- ${loc.tableExplorer.noPendingChanges}`}
+                            themeKind={themeKind}
+                            openInEditor={(script) => context.openScriptInEditor()}
+                            copyToClipboard={(script) => context.copyScriptToClipboard()}
+                            activeTab={DesignerDefinitionTabs.Script}
+                        />
                     </>
                 )}
             </PanelGroup>
