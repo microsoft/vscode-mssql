@@ -197,6 +197,7 @@ const TableExplorerCustomPager = React.forwardRef<
                 <span className="row-count-label">{loc.tableExplorer.totalRowsToFetch}</span>
                 <Combobox
                     value={selectedRowCount}
+                    selectedOptions={[selectedRowCount]}
                     onOptionSelect={onRowCountChanged}
                     onInput={onRowCountInput}
                     size="small"
