@@ -71,13 +71,13 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         context.extensionUri,
                         "media",
                         "objectTypes",
-                        "Table.svg",
+                        "EditTableData_Dark.svg",
                     ),
                     light: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
                         "objectTypes",
-                        "Table.svg",
+                        "EditTableData_Light.svg",
                     ),
                 },
                 showRestorePromptAfterClose: false, // Will be set to true when changes are made
