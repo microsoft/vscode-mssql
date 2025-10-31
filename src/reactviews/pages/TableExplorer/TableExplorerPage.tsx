@@ -113,8 +113,8 @@ export const TableExplorerPage: React.FC = () => {
                         <DesignerDefinitionPane
                             script={updateScript || `-- ${loc.tableExplorer.noPendingChanges}`}
                             themeKind={themeKind}
-                            openInEditor={(script) => context.openScriptInEditor()}
-                            copyToClipboard={(script) => context.copyScriptToClipboard()}
+                            openInEditor={() => context.openScriptInEditor()}
+                            copyToClipboard={() => context.copyScriptToClipboard()}
                             activeTab={DesignerDefinitionTabs.Script}
                         />
                     </>
