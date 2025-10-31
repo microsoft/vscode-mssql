@@ -590,6 +590,9 @@
     <trans-unit id="++CODE++4c7dd73e4af7d97c296dc01ab37edd119e5ef22592cb6a302bd9dc9a55264873">
       <source xml:lang="en">Close Find</source>
     </trans-unit>
+    <trans-unit id="++CODE++643a90a6bde33b562cd0de040386daa285bf033a5027344e98ad12c8d2cac56a">
+      <source xml:lang="en">Close Script Pane</source>
+    </trans-unit>
     <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
       <source xml:lang="en">Close properties pane</source>
     </trans-unit>
