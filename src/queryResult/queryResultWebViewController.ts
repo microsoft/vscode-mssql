@@ -269,12 +269,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
         await controller.whenWebviewReady();
     }
 
-    public addQueryResultState(
-        uri: string,
-        title: string,
-        isExecutionPlan?: boolean,
-        actualPlanEnabled?: boolean,
-    ): void {
+    public addQueryResultState(uri: string, title: string, isExecutionPlan?: boolean): void {
         let currentState = {
             resultSetSummaries: {},
             messages: [],
@@ -285,7 +280,6 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             uri: uri,
             title: title,
             isExecutionPlan: isExecutionPlan,
-            actualPlanEnabled: actualPlanEnabled,
             ...(isExecutionPlan && {
                 executionPlanState: {
                     loadState: ApiStatus.Loading,
@@ -300,7 +294,7 @@ export class QueryResultWebviewController extends ReactWebviewViewController<
             },
             autoSizeColumns: this.getAutoSizeColumnsConfig(),
             inMemoryDataProcessingThreshold: getInMemoryGridDataProcessingThreshold(),
-        };
+        } as qr.QueryResultWebviewState;
         this._queryResultStateMap.set(uri, currentState);
     }
 
