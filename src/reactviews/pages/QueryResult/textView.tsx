@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { makeStyles } from "@fluentui/react-components";
 import { Editor } from "@monaco-editor/react";
 import { resolveVscodeThemeType } from "../../common/utils";
@@ -12,6 +12,7 @@ import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { useQueryResultSelector } from "./queryResultSelector";
 
 const useStyles = makeStyles({
     textViewContainer: {
@@ -38,15 +39,16 @@ const useStyles = makeStyles({
     },
 });
 
-export interface TextViewProps {
-    uri?: string;
-    resultSetSummaries?: { [batchId: number]: { [resultId: number]: qr.ResultSetSummary } };
-    fontSettings: qr.FontSettings;
-}
-
-export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fontSettings }) => {
+export const TextView = () => {
     const classes = useStyles();
     const context = useContext(QueryResultCommandsContext);
+
+    const uri = useQueryResultSelector((state) => state.uri);
+    const resultSetSummaries = useQueryResultSelector((state) => state.resultSetSummaries);
+    const fontSettings = useQueryResultSelector((state) => state.fontSettings);
+    const threshold =
+        useQueryResultSelector((state) => state.inMemoryDataProcessingThreshold) ?? 5000;
+
     const [textContent, setTextContent] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(true);
     const { themeKind, EOL } = useVscodeWebview2<
@@ -101,20 +103,35 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
 
                         // Get all rows for this result set first to calculate proper column widths
                         if (resultSetSummary.rowCount > 0) {
-                            const response = await context?.extensionRpc.sendRequest(
-                                qr.GetRowsRequest.type,
-                                {
-                                    uri: uri,
-                                    batchId: batchId,
-                                    resultId: resultId,
-                                    rowStart: 0,
-                                    numberOfRows: resultSetSummary.rowCount,
-                                },
-                            );
+                            const rows: qr.DbCellValue[][] = [];
 
-                            if (response && response.rows) {
+                            // Fetch rows in batches to avoid overwhelming rpc calls since getRows does not parallelize.
+                            for (
+                                let offset = 0;
+                                offset < resultSetSummary.rowCount;
+                                offset += threshold
+                            ) {
+                                const response = await context?.extensionRpc.sendRequest(
+                                    qr.GetRowsRequest.type,
+                                    {
+                                        uri: uri,
+                                        batchId: batchId,
+                                        resultId: resultId,
+                                        rowStart: offset,
+                                        numberOfRows: Math.min(
+                                            threshold,
+                                            resultSetSummary.rowCount - offset,
+                                        ),
+                                    },
+                                );
+                                if (response && response.rows) {
+                                    rows.push(...response.rows);
+                                }
+                            }
+
+                            if (rows) {
                                 // Calculate proper column widths by considering all data values
-                                for (const row of response.rows) {
+                                for (const row of rows) {
                                     row.forEach((cell, index) => {
                                         const displayValue = cell.isNull
                                             ? "NULL"
@@ -133,7 +150,7 @@ export const TextView: React.FC<TextViewProps> = ({ uri, resultSetSummaries, fon
                                 }
 
                                 // Format all data rows with proper column widths
-                                for (const row of response.rows) {
+                                for (const row of rows) {
                                     const formattedRow = row
                                         .map((cell, index) => {
                                             const displayValue = cell.isNull
