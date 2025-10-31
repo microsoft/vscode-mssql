@@ -233,9 +233,13 @@
             {
                 "id": "mssql.agent",
                 "name": "mssql",
-                "description": "Azure SQL Copilot agent",
+                "description": "MSSQL extension GitHub Copilot agent",
                 "isSticky": true,
                 "commands": [
+                    {
+                        "name": "help",
+                        "description": "Provide a list of available commands and their descriptions."
+                    },
                     {
                         "name": "runQuery",
                         "description": "Execute a SQL query in the currently connected database and return results."
@@ -254,7 +258,7 @@
                     },
                     {
                         "name": "getConnectionDetails",
-                        "description": "Shows a complete breakdown of the active connection: server name, database, version, authentication type."
+                        "description": "Show a complete breakdown of the active connection: server name, database, version, authentication type."
                     },
                     {
                         "name": "changeDatabase",
@@ -1131,6 +1135,11 @@
             {
                 "command": "mssql.copilot.rewriteQuery",
                 "title": "%mssql.copilot.rewriteQuery%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.copilot.newQueryWithConnection",
+                "title": "%mssql.copilot.newQueryWithConnection%",
                 "category": "MS SQL"
             },
             {

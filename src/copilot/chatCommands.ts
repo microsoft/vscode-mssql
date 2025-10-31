@@ -12,12 +12,31 @@ import VscodeWrapper from "../controllers/vscodeWrapper";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
 import { CHAT_COMMAND_PROMPTS } from "./prompts";
 import {
+    CHAT_COMMAND_NAMES,
     disconnectedLabelPrefix,
     connectedLabelPrefix,
     serverDatabaseLabelPrefix,
     errorLabelPrefix,
 } from "./chatConstants";
 import { getErrorMessage } from "../utils/utils";
+import * as Constants from "../constants/constants";
+
+/**
+ * Gets the connection button info based on current editor context.
+ * @returns Button label and command arguments for establishing a connection
+ */
+export function getConnectionButtonInfo(): {
+    label: string;
+    args: { forceNewEditor: boolean; forceConnect: boolean };
+} {
+    const activeEditor = vscode.window.activeTextEditor;
+    const hasEditor = activeEditor && activeEditor.document.languageId === Constants.languageId;
+    const buttonLabel = hasEditor ? loc.connect : loc.openSqlEditorAndConnect;
+    const buttonArgs = hasEditor
+        ? { forceNewEditor: false, forceConnect: true }
+        : { forceNewEditor: true, forceConnect: true };
+    return { label: buttonLabel, args: buttonArgs };
+}
 
 export enum CommandType {
     Simple = "simple",
@@ -38,12 +57,42 @@ export interface CommandDefinition {
 
 export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
     // Simple command shortcuts - these are handled directly and don't go to language model
-    connect: {
+    [CHAT_COMMAND_NAMES.help]: {
+        type: CommandType.Simple,
+        requiresConnection: false,
+        skipConnectionLabels: true, // Provides its own connection status
+        handler: async (stream, controller, connectionUri) => {
+            stream.markdown(`${loc.helpWelcome}\n\n`);
+            stream.markdown(`**${loc.helpWhatICanDo}**\n`);
+            stream.markdown(`• ${loc.helpCapabilityExploreDesign}\n`);
+            stream.markdown(`• ${loc.helpCapabilityContextualSuggestions}\n`);
+            stream.markdown(`• ${loc.helpCapabilityWriteOptimize}\n`);
+            stream.markdown(`• ${loc.helpCapabilityGenerateMockData}\n`);
+            stream.markdown(`• ${loc.helpCapabilityAccelerateSchema}\n`);
+            stream.markdown(`• ${loc.helpCapabilityUnderstandDocument}\n`);
+            stream.markdown(`• ${loc.helpCapabilitySecurityRecommendations}\n`);
+            stream.markdown(`• ${loc.helpCapabilityNaturalLanguage}\n`);
+            stream.markdown(`• ${loc.helpCapabilityReverseEngineer}\n`);
+            stream.markdown(`• ${loc.helpCapabilityScaffoldComponents}\n\n`);
+
+            // Only show button if not connected
+            if (!isConnectionActive(controller, connectionUri)) {
+                const buttonInfo = getConnectionButtonInfo();
+                stream.button({
+                    command: Constants.cmdCopilotNewQueryWithConnection,
+                    title: buttonInfo.label,
+                    arguments: [buttonInfo.args],
+                });
+            }
+            return true; // Command was handled
+        },
+    },
+    [CHAT_COMMAND_NAMES.connect]: {
         type: CommandType.Simple,
         requiresConnection: false,
         skipConnectionLabels: true, // Provides its own connection status
         handler: async (stream, controller, _connectionUri) => {
-            const res = await controller.onNewConnection();
+            const res = await controller.onNewQueryWithConnection(undefined, true);
             if (res) {
                 stream.markdown(`${connectedLabelPrefix} ${loc.connectedSuccessfully}\n\n`);
             } else {
@@ -52,7 +101,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
             return true; // Command was handled
         },
     },
-    disconnect: {
+    [CHAT_COMMAND_NAMES.disconnect]: {
         type: CommandType.Simple,
         requiresConnection: true,
         skipConnectionLabels: true, // Provides its own connection status
@@ -64,7 +113,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
             return true; // Command was handled
         },
     },
-    changeDatabase: {
+    [CHAT_COMMAND_NAMES.changeDatabase]: {
         type: CommandType.Simple,
         requiresConnection: true,
         skipConnectionLabels: true, // Provides its own connection status
@@ -86,7 +135,7 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
             return true; // Command was handled
         },
     },
-    getConnectionDetails: {
+    [CHAT_COMMAND_NAMES.getConnectionDetails]: {
         type: CommandType.Simple,
         requiresConnection: true,
         skipConnectionLabels: true, // Provides its own connection information
@@ -138,27 +187,27 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
     },
 
     // Prompt substitute commands - these modify the prompt and continue to language model
-    runQuery: {
+    [CHAT_COMMAND_NAMES.runQuery]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.runQuery,
     },
-    explain: {
+    [CHAT_COMMAND_NAMES.explain]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.explain,
     },
-    fix: {
+    [CHAT_COMMAND_NAMES.fix]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.fix,
     },
-    optimize: {
+    [CHAT_COMMAND_NAMES.optimize]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.optimize,
     },
-    showSchema: {
+    [CHAT_COMMAND_NAMES.showSchema]: {
         type: CommandType.Simple,
         requiresConnection: true,
         handler: async (stream, controller, connectionUri) => {
@@ -191,12 +240,12 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
             return true; // Command was handled
         },
     },
-    showDefinition: {
+    [CHAT_COMMAND_NAMES.showDefinition]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.showDefinition,
     },
-    listServers: {
+    [CHAT_COMMAND_NAMES.listServers]: {
         type: CommandType.Simple,
         requiresConnection: false,
         handler: async (stream, controller, _connectionUri) => {
@@ -229,32 +278,32 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
             return true; // Command was handled
         },
     },
-    listDatabases: {
+    [CHAT_COMMAND_NAMES.listDatabases]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.listDatabases,
     },
-    listSchemas: {
+    [CHAT_COMMAND_NAMES.listSchemas]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.listSchemas,
     },
-    listTables: {
+    [CHAT_COMMAND_NAMES.listTables]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.listTables,
     },
-    listViews: {
+    [CHAT_COMMAND_NAMES.listViews]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.listViews,
     },
-    listFunctions: {
+    [CHAT_COMMAND_NAMES.listFunctions]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.listFunctions,
     },
-    listProcedures: {
+    [CHAT_COMMAND_NAMES.listProcedures]: {
         type: CommandType.PromptSubstitute,
         requiresConnection: true,
         promptTemplate: CHAT_COMMAND_PROMPTS.listProcedures,
@@ -358,9 +407,19 @@ export async function handleChatCommand(
                 success: "false",
                 errorType: "noConnection",
             });
+
+            // Add button to help user establish connection
+            const buttonInfo = getConnectionButtonInfo();
+            stream.markdown(`${disconnectedLabelPrefix} ${loc.noActiveDatabaseConnection}\n`);
+            stream.markdown(`${loc.connectionRequiredMessage(buttonInfo.label)}\n\n`);
+            stream.button({
+                command: Constants.cmdCopilotNewQueryWithConnection,
+                title: buttonInfo.label,
+                arguments: [buttonInfo.args],
+            });
+
             return {
                 handled: true,
-                errorMessage: `${disconnectedLabelPrefix} ${loc.noActiveDatabaseConnection}\n\n`,
             };
         }
 
