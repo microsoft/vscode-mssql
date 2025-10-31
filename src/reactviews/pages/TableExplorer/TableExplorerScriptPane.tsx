@@ -4,7 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, makeStyles, shorthands } from "@fluentui/react-components";
-import { ChevronDownFilled, ChevronUpFilled, CopyFilled, OpenFilled } from "@fluentui/react-icons";
+import {
+    ChevronDownFilled,
+    ChevronUpFilled,
+    CopyFilled,
+    Dismiss12Regular,
+    OpenFilled,
+} from "@fluentui/react-icons";
 import Editor from "@monaco-editor/react";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { resolveVscodeThemeType } from "../../common/utils";
@@ -103,6 +109,13 @@ export const TableExplorerScriptPane: React.FC = () => {
                             : loc.tableExplorer.maximizePanelSize
                     }
                     icon={isMaximized ? <ChevronDownFilled /> : <ChevronUpFilled />}
+                />
+                <Button
+                    size="small"
+                    appearance="subtle"
+                    onClick={() => context.toggleScriptPane()}
+                    title={loc.tableExplorer.closeScriptPane}
+                    icon={<Dismiss12Regular />}
                 />
             </div>
             <div className={classes.editorContainer}>

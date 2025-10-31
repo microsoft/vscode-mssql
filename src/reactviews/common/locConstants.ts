@@ -1108,6 +1108,7 @@ export class LocConstants {
             loadingTableData: l10n.t("Loading table data..."),
             noDataAvailable: l10n.t("No data available"),
             noPendingChanges: l10n.t("No pending changes. Make edits to generate a script."),
+            closeScriptPane: l10n.t("Close Script Pane"),
         };
     }
 }
