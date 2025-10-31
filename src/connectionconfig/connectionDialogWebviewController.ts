@@ -1575,8 +1575,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         "No subscriptions available.  Adjust your subscription filters to try again.",
                     ),
                 };
-                state.loadingAzureServersStatus = ApiStatus.Loaded;
-                state.azureServers = [];
             } else {
                 state.loadingAzureServersStatus = ApiStatus.Loading;
                 state.azureServers = [];
