@@ -892,6 +892,8 @@ export default class MainController implements vscode.Disposable {
                 }
             },
         );
+
+        UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
     }
 
     /**
@@ -1755,8 +1757,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdScriptSelect,
                 async (node: TreeNodeInfo) => {
-                    await this.scriptNode(node, ScriptOperation.Select, true);
-                    UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
+                    await this.scriptNode(node, ScriptOperation.Select, true /* executeScript */);
                 },
             ),
         );
@@ -1767,7 +1768,6 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdScriptCreate,
                 async (node: TreeNodeInfo) => {
                     await this.scriptNode(node, ScriptOperation.Create);
-                    UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
                 },
             ),
         );
@@ -1778,7 +1778,6 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdScriptDelete,
                 async (node: TreeNodeInfo) => {
                     await this.scriptNode(node, ScriptOperation.Delete);
-                    UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
                 },
             ),
         );
@@ -1789,7 +1788,6 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdScriptExecute,
                 async (node: TreeNodeInfo) => {
                     await this.scriptNode(node, ScriptOperation.Execute);
-                    UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
                 },
             ),
         );
@@ -1800,7 +1798,6 @@ export default class MainController implements vscode.Disposable {
                 Constants.cmdScriptAlter,
                 async (node: TreeNodeInfo) => {
                     await this.scriptNode(node, ScriptOperation.Alter);
-                    UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
                 },
             ),
         );

@@ -19,7 +19,7 @@ import {
     UserSurvey,
     UserSurveyWebviewController,
 } from "../../src/nps/userSurvey";
-import { stubTelemetry, stubVscodeWrapper } from "./utils";
+import { stubExtensionContext, stubTelemetry, stubVscodeWrapper } from "./utils";
 import { setTimeout } from "timers/promises";
 
 chai.use(sinonChai);
@@ -33,20 +33,13 @@ suite("UserSurvey Tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        globalState = {
-            get: sandbox.stub(),
-            update: sandbox.stub(),
-        };
 
         const vscodeWrapper = stubVscodeWrapper(sandbox);
+        context = stubExtensionContext(sandbox);
+        globalState = context.globalState;
 
-        context = {
-            globalState: globalState,
-            extensionUri: vscode.Uri.file(testSurveySource),
-        } as vscode.ExtensionContext;
-
-        showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
         UserSurvey.createInstance(context, vscodeWrapper);
+        showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
 
         ({ sendActionEvent } = stubTelemetry(sandbox));
     });
