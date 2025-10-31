@@ -5,8 +5,8 @@
 
 import { Button, makeStyles, shorthands } from "@fluentui/react-components";
 import {
-    ChevronDownFilled,
-    ChevronUpFilled,
+    ChevronDown12Filled,
+    ChevronUp12Filled,
     CopyFilled,
     Dismiss12Regular,
     OpenFilled,
@@ -14,23 +14,20 @@ import {
 import Editor from "@monaco-editor/react";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { resolveVscodeThemeType } from "../../common/utils";
-import { useState } from "react";
+import { useState, useRef, ReactElement } from "react";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { ImperativePanelHandle, Panel } from "react-resizable-panels";
+
+const DEFAULTPANEL_SIZE = 25;
+const MINIMUMPANEL_SIZE = 10;
+const MAXIMUMPANEL_SIZE = 90; // Maximum is 90% since the main panel has minSize={10}
 
 const useStyles = makeStyles({
-    root: {
-        width: "100%",
-        height: "100%",
+    header: {
         display: "flex",
-        flexDirection: "column",
-        borderTop: "1px solid var(--vscode-editorWidget-border)",
-    },
-    toolbar: {
-        width: "99vw",
-        display: "flex",
-        flexDirection: "row",
+        justifyContent: "space-between",
         alignItems: "center",
         padding: "5px 10px",
         gap: "10px",
@@ -42,6 +39,10 @@ const useStyles = makeStyles({
         fontWeight: 600,
         fontSize: "12px",
         color: "var(--vscode-foreground)",
+    },
+    toolbar: {
+        display: "flex",
+        gap: "3px",
     },
     editorContainer: {
         ...shorthands.flex(1),
@@ -58,65 +59,78 @@ export const TableExplorerScriptPane: React.FC = () => {
     const { themeKind } = useVscodeWebview2();
 
     // Use selectors to access state
-    const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
     const updateScript = useTableExplorerSelector((s) => s.updateScript);
 
-    const [isMaximized, setIsMaximized] = useState(false);
-
-    if (!showScriptPane) {
-        return null;
-    }
+    const panelRef = useRef<ImperativePanelHandle>(null);
+    const [expandCollapseButtonLabel, setExpandCollapseButtonLabel] = useState<string>(
+        loc.tableExplorer.maximizePanelSize,
+    );
+    const [expandCollapseButtonIcon, setExpandCollapseButtonIcon] = useState<ReactElement>(
+        <ChevronUp12Filled />,
+    );
 
     const scriptContent = updateScript || `-- ${loc.tableExplorer.noPendingChanges}`;
 
-    // Debug logging
-    console.log("TableExplorerScriptPane - showScriptPane:", showScriptPane);
-    console.log("TableExplorerScriptPane - updateScript:", updateScript);
-    console.log("TableExplorerScriptPane - scriptContent:", scriptContent);
-
     return (
-        <div
-            className={classes.root}
-            style={{
-                height: isMaximized ? "70vh" : "300px",
-                minHeight: isMaximized ? "70vh" : "150px",
+        <Panel
+            collapsible
+            minSize={MINIMUMPANEL_SIZE}
+            defaultSize={DEFAULTPANEL_SIZE}
+            ref={panelRef}
+            onResize={(size) => {
+                if (size >= MAXIMUMPANEL_SIZE - 1) {
+                    setExpandCollapseButtonLabel(loc.tableExplorer.restorePanelSize);
+                    setExpandCollapseButtonIcon(<ChevronDown12Filled />);
+                } else {
+                    setExpandCollapseButtonLabel(loc.tableExplorer.maximizePanelSize);
+                    setExpandCollapseButtonIcon(<ChevronUp12Filled />);
+                }
             }}>
-            <div className={classes.toolbar}>
+            <div className={classes.header}>
                 <span className={classes.title}>{loc.tableExplorer.updateScript}</span>
-                <Button
-                    size="small"
-                    appearance="subtle"
-                    onClick={() => context.openScriptInEditor()}
-                    title={loc.tableExplorer.openInSqlEditor}
-                    icon={<OpenFilled />}>
-                    {loc.tableExplorer.openInEditor}
-                </Button>
-                <Button
-                    size="small"
-                    appearance="subtle"
-                    onClick={() => context.copyScriptToClipboard()}
-                    title={loc.tableExplorer.copyScriptToClipboard}
-                    icon={<CopyFilled />}>
-                    {loc.tableExplorer.copyScript}
-                </Button>
-                <Button
-                    size="small"
-                    appearance="transparent"
-                    onClick={() => setIsMaximized(!isMaximized)}
-                    title={
-                        isMaximized
-                            ? loc.tableExplorer.restorePanelSize
-                            : loc.tableExplorer.maximizePanelSize
-                    }
-                    icon={isMaximized ? <ChevronDownFilled /> : <ChevronUpFilled />}
-                />
-                <Button
-                    size="small"
-                    appearance="subtle"
-                    onClick={() => context.toggleScriptPane()}
-                    title={loc.tableExplorer.closeScriptPane}
-                    icon={<Dismiss12Regular />}
-                />
+                <div className={classes.toolbar}>
+                    <Button
+                        size="small"
+                        appearance="subtle"
+                        onClick={() => context.openScriptInEditor()}
+                        title={loc.tableExplorer.openInSqlEditor}
+                        icon={<OpenFilled />}>
+                        {loc.tableExplorer.openInEditor}
+                    </Button>
+                    <Button
+                        size="small"
+                        appearance="subtle"
+                        onClick={() => context.copyScriptToClipboard()}
+                        title={loc.tableExplorer.copyScriptToClipboard}
+                        icon={<CopyFilled />}>
+                        {loc.tableExplorer.copyScript}
+                    </Button>
+                    <Button
+                        size="small"
+                        appearance="subtle"
+                        onClick={() => {
+                            const currentSize = panelRef.current?.getSize();
+                            if (currentSize && currentSize >= MAXIMUMPANEL_SIZE - 1) {
+                                panelRef.current?.resize(DEFAULTPANEL_SIZE);
+                                setExpandCollapseButtonLabel(loc.tableExplorer.maximizePanelSize);
+                                setExpandCollapseButtonIcon(<ChevronUp12Filled />);
+                            } else {
+                                panelRef.current?.resize(MAXIMUMPANEL_SIZE);
+                                setExpandCollapseButtonLabel(loc.tableExplorer.restorePanelSize);
+                                setExpandCollapseButtonIcon(<ChevronDown12Filled />);
+                            }
+                        }}
+                        title={expandCollapseButtonLabel}
+                        icon={expandCollapseButtonIcon}
+                    />
+                    <Button
+                        size="small"
+                        appearance="subtle"
+                        onClick={() => context.toggleScriptPane()}
+                        title={loc.tableExplorer.closeScriptPane}
+                        icon={<Dismiss12Regular />}
+                    />
+                </div>
             </div>
             <div className={classes.editorContainer}>
                 <Editor
@@ -136,6 +150,6 @@ export const TableExplorerScriptPane: React.FC = () => {
                     }}
                 />
             </div>
-        </div>
+        </Panel>
     );
 };

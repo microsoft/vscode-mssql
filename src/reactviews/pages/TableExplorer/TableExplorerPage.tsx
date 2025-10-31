@@ -12,6 +12,7 @@ import { makeStyles, shorthands } from "@fluentui/react-components";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 const useStyles = makeStyles({
     root: {
@@ -21,17 +22,27 @@ const useStyles = makeStyles({
         width: "100%",
         ...shorthands.overflow("hidden"),
     },
+    panelGroup: {
+        ...shorthands.flex(1),
+        width: "100%",
+        height: "100%",
+    },
     contentArea: {
         ...shorthands.flex(1),
         display: "flex",
         flexDirection: "column",
         ...shorthands.overflow("hidden"),
         padding: "20px",
+        height: "100%",
     },
     dataGridContainer: {
         ...shorthands.flex(1),
         ...shorthands.overflow("auto"),
         minHeight: 0,
+    },
+    resizeHandle: {
+        height: "2px",
+        backgroundColor: "var(--vscode-editorWidget-border)",
     },
 });
 
@@ -45,9 +56,15 @@ export const TableExplorerPage: React.FC = () => {
     const isLoading = useTableExplorerSelector((s) => s.isLoading);
     const currentRowCount = useTableExplorerSelector((s) => s.currentRowCount);
     const failedCells = useTableExplorerSelector((s) => s.failedCells);
+    const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
 
     const gridRef = useRef<TableDataGridRef>(null);
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
+
+    // Debug logging
+    console.log("TableExplorerPage render - resultSet:", resultSet);
+    console.log("TableExplorerPage render - isLoading:", isLoading);
+    console.log("TableExplorerPage render - showScriptPane:", showScriptPane);
 
     const handleSaveComplete = () => {
         // Clear the change tracking in the grid after successful save
@@ -60,35 +77,44 @@ export const TableExplorerPage: React.FC = () => {
 
     return (
         <div className={classes.root}>
-            <div className={classes.contentArea}>
-                <TableExplorerToolbar
-                    onSaveComplete={handleSaveComplete}
-                    cellChangeCount={cellChangeCount}
-                />
-                {resultSet ? (
-                    <div className={classes.dataGridContainer}>
-                        <TableDataGrid
-                            ref={gridRef}
-                            resultSet={resultSet}
-                            themeKind={themeKind}
-                            pageSize={10}
-                            currentRowCount={currentRowCount}
-                            failedCells={failedCells}
-                            onDeleteRow={context?.deleteRow}
-                            onUpdateCell={context?.updateCell}
-                            onRevertCell={context?.revertCell}
-                            onRevertRow={context?.revertRow}
-                            onLoadSubset={context?.loadSubset}
-                            onCellChangeCountChanged={handleCellChangeCountChanged}
+            <PanelGroup direction="vertical" className={classes.panelGroup}>
+                <Panel defaultSize={75} minSize={10}>
+                    <div className={classes.contentArea}>
+                        <TableExplorerToolbar
+                            onSaveComplete={handleSaveComplete}
+                            cellChangeCount={cellChangeCount}
                         />
+                        {resultSet ? (
+                            <div className={classes.dataGridContainer}>
+                                <TableDataGrid
+                                    ref={gridRef}
+                                    resultSet={resultSet}
+                                    themeKind={themeKind}
+                                    pageSize={10}
+                                    currentRowCount={currentRowCount}
+                                    failedCells={failedCells}
+                                    onDeleteRow={context?.deleteRow}
+                                    onUpdateCell={context?.updateCell}
+                                    onRevertCell={context?.revertCell}
+                                    onRevertRow={context?.revertRow}
+                                    onLoadSubset={context?.loadSubset}
+                                    onCellChangeCountChanged={handleCellChangeCountChanged}
+                                />
+                            </div>
+                        ) : isLoading ? (
+                            <p>{loc.tableExplorer.loadingTableData}</p>
+                        ) : (
+                            <p>{loc.tableExplorer.noDataAvailable}</p>
+                        )}
                     </div>
-                ) : isLoading ? (
-                    <p>{loc.tableExplorer.loadingTableData}</p>
-                ) : (
-                    <p>{loc.tableExplorer.noDataAvailable}</p>
+                </Panel>
+                {showScriptPane && (
+                    <>
+                        <PanelResizeHandle className={classes.resizeHandle} />
+                        <TableExplorerScriptPane />
+                    </>
                 )}
-            </div>
-            <TableExplorerScriptPane />
+            </PanelGroup>
         </div>
     );
 };
