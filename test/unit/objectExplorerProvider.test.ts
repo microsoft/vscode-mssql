@@ -69,6 +69,7 @@ suite("Object Explorer Provider Tests", function () {
             label,
             {
                 type: nodeType,
+                subType: undefined,
                 filterable: false,
                 hasFilters: false,
             },
@@ -402,7 +403,7 @@ suite("Object Explorer Provider Tests", function () {
     test("Test expandNode function", async () => {
         objectExplorerServiceStub.expandNode.resolves([]);
 
-        const node = { connectionCredentials: undefined } as TreeNodeInfo;
+        const node = { connectionCredentials: undefined } as unknown as TreeNodeInfo;
         await objectExplorerProvider.expandNode(node, "test_session");
 
         expect(objectExplorerServiceStub.expandNode).to.have.been.calledOnceWithExactly(
@@ -523,8 +524,88 @@ suite("Object Explorer Provider Tests", function () {
     //     );
     // });
 
+    test("Test removeConnectionNodes function", async () => {
+        objectExplorerServiceStub.removeConnectionNodes.resolves();
+        const connections = [{} as IConnectionInfo];
+        await objectExplorerProvider.removeConnectionNodes(connections);
+        expect(objectExplorerServiceStub.removeConnectionNodes).to.have.been.calledOnceWithExactly(
+            connections,
+        );
+    });
+
+    test("Test addDisconnectedNode function", () => {
+        const profile = {} as IConnectionProfile;
+        objectExplorerProvider.addDisconnectedNode(profile);
+        expect(objectExplorerServiceStub.addDisconnectedNode).to.have.been.calledOnceWithExactly(
+            profile,
+        );
+    });
+
+    test("Test deleteChildrenCache function", () => {
+        const node = createTreeNodeInfo();
+        objectExplorerProvider.deleteChildrenCache(node);
+        expect(objectExplorerServiceStub.cleanNodeChildren).to.have.been.calledOnceWithExactly(
+            node,
+        );
+    });
+
+    test("Test connections function", () => {
+        const testConnections: IConnectionProfile[] = [
+            createConnectionProfile("id1", "profile1"),
+            createConnectionProfile("id2", "profile2"),
+        ];
+        Object.defineProperty(objectExplorerServiceStub, "connections", {
+            get: () => testConnections,
+        });
+
+        expect(objectExplorerProvider.connections).to.deep.equal(testConnections);
+    });
+
+    test("Test setNodeLoading function", async () => {
+        objectExplorerServiceStub.setLoadingUiForNode.resolves();
+        const node = createTreeNodeInfo();
+        await objectExplorerProvider.setNodeLoading(node);
+        expect(objectExplorerServiceStub.setLoadingUiForNode).to.have.been.calledOnceWithExactly(
+            node,
+        );
+    });
+
+    test("Test createSession function", async () => {
+        const sessionResult = { sessionId: "1" };
+        objectExplorerServiceStub.createSession.resolves(sessionResult);
+        const result = await objectExplorerProvider.createSession({} as IConnectionInfo);
+        expect(result).to.equal(sessionResult);
+        expect(objectExplorerServiceStub.createSession).to.have.been.calledOnce;
+    });
+
+    test("Test disconnectNode function", async () => {
+        objectExplorerServiceStub.disconnectNode.resolves();
+        const node = {} as ConnectionNode;
+        await objectExplorerProvider.disconnectNode(node);
+        expect(objectExplorerServiceStub.disconnectNode).to.have.been.calledOnceWithExactly(node);
+    });
+
+    test("Test refreshConnectedNodes function", () => {
+        const connectedServerNode = new ConnectionNode({
+            id: "connected",
+            profileName: "connected",
+        } as ConnectionProfile);
+        connectedServerNode.sessionId = "session";
+        connectedServerNode.nodeType = "Server";
+
+        Object.defineProperty(objectExplorerServiceStub, "connections", {
+            get: () => [{ id: "connected", profileName: "connected" } as IConnectionProfile],
+        });
+        objectExplorerServiceStub.getConnectionNodeById.returns(connectedServerNode);
+        const refreshSpy = sandbox.spy(objectExplorerProvider, "refreshNode");
+
+        objectExplorerProvider.refreshConnectedNodes();
+
+        expect(refreshSpy).to.have.been.calledOnceWithExactly(connectedServerNode);
+    });
+
     test("Add connection node returns add connection tree node when profile undefined", () => {
-        const node = objectExplorerProvider["objectExplorerService"].getRootNodes;
+        const node = objectExplorerProvider["objectExplorerService"]["getRootNodes"]();
         expect(node).to.exist;
         const addConnectionNode = new AddConnectionTreeNode(undefined);
         expect(addConnectionNode, "AddConnectionTreeNode should not be undefined").to.exist;
@@ -664,85 +745,5 @@ suite("Object Explorer Provider Tests", function () {
         expect(treeNodeInfo.connectionProfile.server, "connectionInfo should be updated").to.equal(
             "modified_server",
         );
-    });
-
-    test("removeConnectionNodes delegates to service", async () => {
-        objectExplorerServiceStub.removeConnectionNodes.resolves();
-        const connections = [{} as IConnectionInfo];
-        await objectExplorerProvider.removeConnectionNodes(connections);
-        expect(objectExplorerServiceStub.removeConnectionNodes).to.have.been.calledOnceWithExactly(
-            connections,
-        );
-    });
-
-    test("addDisconnectedNode delegates to service", () => {
-        const profile = {} as IConnectionProfile;
-        objectExplorerProvider.addDisconnectedNode(profile);
-        expect(objectExplorerServiceStub.addDisconnectedNode).to.have.been.calledOnceWithExactly(
-            profile,
-        );
-    });
-
-    test("deleteChildrenCache delegates to service", () => {
-        const node = createTreeNodeInfo();
-        objectExplorerProvider.deleteChildrenCache(node);
-        expect(objectExplorerServiceStub.cleanNodeChildren).to.have.been.calledOnceWithExactly(
-            node,
-        );
-    });
-
-    test("connections getter proxies to service", () => {
-        const testConnections: IConnectionProfile[] = [
-            createConnectionProfile("id1", "profile1"),
-            createConnectionProfile("id2", "profile2"),
-        ];
-        Object.defineProperty(objectExplorerServiceStub, "connections", {
-            get: () => testConnections,
-        });
-
-        expect(objectExplorerProvider.connections).to.deep.equal(testConnections);
-    });
-
-    test("setNodeLoading delegates to service", async () => {
-        objectExplorerServiceStub.setLoadingUiForNode.resolves();
-        const node = createTreeNodeInfo();
-        await objectExplorerProvider.setNodeLoading(node);
-        expect(objectExplorerServiceStub.setLoadingUiForNode).to.have.been.calledOnceWithExactly(
-            node,
-        );
-    });
-
-    test("createSession delegates to service", async () => {
-        const sessionResult = { sessionId: "1" };
-        objectExplorerServiceStub.createSession.resolves(sessionResult);
-        const result = await objectExplorerProvider.createSession({} as IConnectionInfo);
-        expect(result).to.equal(sessionResult);
-        expect(objectExplorerServiceStub.createSession).to.have.been.calledOnce;
-    });
-
-    test("disconnectNode delegates to service", async () => {
-        objectExplorerServiceStub.disconnectNode.resolves();
-        const node = {} as ConnectionNode;
-        await objectExplorerProvider.disconnectNode(node);
-        expect(objectExplorerServiceStub.disconnectNode).to.have.been.calledOnceWithExactly(node);
-    });
-
-    test("refreshConnectedNodes refreshes connected server nodes", () => {
-        const connectedServerNode = new ConnectionNode({
-            id: "connected",
-            profileName: "connected",
-        } as ConnectionProfile);
-        connectedServerNode.sessionId = "session";
-        connectedServerNode.nodeType = "Server";
-
-        Object.defineProperty(objectExplorerServiceStub, "connections", {
-            get: () => [{ id: "connected", profileName: "connected" } as IConnectionProfile],
-        });
-        objectExplorerServiceStub.getConnectionNodeById.returns(connectedServerNode);
-        const refreshSpy = sandbox.spy(objectExplorerProvider, "refreshNode");
-
-        objectExplorerProvider.refreshConnectedNodes();
-
-        expect(refreshSpy).to.have.been.calledOnceWithExactly(connectedServerNode);
     });
 });
