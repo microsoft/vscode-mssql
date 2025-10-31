@@ -15,7 +15,9 @@ import { ReactWebviewPanelController } from "../controllers/reactWebviewPanelCon
 import { sendActionEvent } from "../telemetry/telemetry";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
-const PROBABILITY = 0.15;
+/** Likelihood that a user is prompted to take the survey, after they've already passed all other checks */
+export const SELECTION_PROBABILITY = 0.15;
+
 export const SESSION_COUNT_KEY = "nps/sessionCount";
 export const LAST_SESSION_DATE_KEY = "nps/lastSessionDate";
 export const SKIP_VERSION_KEY = "nps/skipVersion";
@@ -227,7 +229,8 @@ export class UserSurvey {
         }
 
         // 5. Of the remaining users, randomly select a subset to prompt to ensure we get feedback from a variety of users over time
-        const isCandidate = globalState.get(IS_CANDIDATE_KEY, false) || Math.random() < PROBABILITY;
+        const isCandidate =
+            globalState.get(IS_CANDIDATE_KEY, false) || Math.random() < SELECTION_PROBABILITY;
         await globalState.update(IS_CANDIDATE_KEY, isCandidate);
 
         if (!isCandidate) {

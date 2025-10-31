@@ -15,6 +15,7 @@ import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/tel
 import {
     FunnelSteps,
     NEVER_KEY,
+    SELECTION_PROBABILITY,
     SKIP_VERSION_KEY,
     UserSurvey,
     UserSurveyWebviewController,
@@ -289,7 +290,9 @@ suite("UserSurvey Tests", () => {
             globalState.get.withArgs(SKIP_VERSION_KEY, "").returns("");
             globalState.get.withArgs("nps/lastSessionDate").returns("01/01/2023"); // not today
             globalState.get.withArgs("nps/sessionCount").returns(999); // high enough to be eligible
-            globalState.get.withArgs("nps/isCandidate").returns(false); // not selected by die roll
+            globalState.get.withArgs("nps/isCandidate").returns(false); // not already determined to be a candidate
+
+            sinon.stub(Math, "random").returns(SELECTION_PROBABILITY + 0.1); // ensure not selected by RNG check
 
             const userSurvey = UserSurvey.getInstance();
             const result = await userSurvey["shouldPromptForFeedback"](testSurveySource);
