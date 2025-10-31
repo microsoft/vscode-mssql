@@ -24,7 +24,7 @@ import { azureCloudProviderId } from "../../src/azure/providerSettings";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { AccountStore } from "../../src/azure/accountStore";
 import { TestPrompter } from "./stubs";
-import { stubVscodeWrapper } from "./utils";
+import { stubExtensionContext, stubVscodeWrapper } from "./utils";
 
 chai.use(sinonChai);
 
@@ -42,10 +42,7 @@ suite("ConnectionManager Tests", () => {
 
     setup(async () => {
         sandbox = sinon.createSandbox();
-
-        mockContext = {
-            subscriptions: [],
-        } as unknown as vscode.ExtensionContext;
+        mockContext = stubExtensionContext(sandbox);
         mockVscodeWrapper = stubVscodeWrapper(sandbox);
         mockLogger = sandbox.createStubInstance(Logger);
         mockConnectionStore = sandbox.createStubInstance(ConnectionStore);

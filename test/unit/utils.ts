@@ -120,11 +120,21 @@ export function stubUserSurvey(
     return userSurvey;
 }
 
-export function getMockContext(): vscode.ExtensionContext {
-    return {
-        extensionUri: vscode.Uri.parse("file://test"),
-        extensionPath: "path",
+export function stubExtensionContext(sandbox?: sinon.SinonSandbox): vscode.ExtensionContext {
+    const stubber = sandbox || sinon;
+
+    let globalState = {
+        get: stubber.stub(),
+        update: stubber.stub(),
+    };
+
+    const context = {
+        globalState: globalState,
+        extensionUri: vscode.Uri.parse("file://testPath"),
+        extensionPath: "testPath",
     } as unknown as vscode.ExtensionContext;
+
+    return context;
 }
 
 export function initializeIconUtils(): void {
