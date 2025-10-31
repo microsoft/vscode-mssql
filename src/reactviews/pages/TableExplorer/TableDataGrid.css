@@ -45,6 +45,7 @@
     background-color: var(--vscode-editor-background) !important;
     color: var(--vscode-foreground) !important;
     border-bottom: 1px solid var(--vscode-panel-border) !important;
+    height: 26px !important; /* Match data row height for uniform appearance */
 }
 
 #tableExplorerGrid .slick-header-column {
@@ -55,8 +56,13 @@
     text-align: center !important;
     font-weight: 600 !important;
     font-size: 12px !important;
-    padding: 2px 8px !important; /* Reduced vertical padding to match compact row style */
-    line-height: 1.3;
+    padding: 4px 8px !important; /* Adjusted padding for 26px height */
+    line-height: 1.2 !important;
+    height: 26px !important; /* Explicit height to match data rows */
+    box-sizing: border-box !important; /* Ensure padding is included in height */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 #tableExplorerGrid .slick-header-column:last-child {
@@ -66,7 +72,11 @@
 #tableExplorerGrid .slick-header-column .slick-column-name {
     text-align: center !important;
     width: 100% !important;
-    display: block !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 100% !important;
+    margin: 0 !important; /* Remove excessive margin that pushes text out of view */
 }
 
 #tableExplorerGrid .slick-cell,
