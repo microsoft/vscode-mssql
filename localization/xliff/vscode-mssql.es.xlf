@@ -1264,7 +1264,7 @@ Select "{0}" to establish a connection.</target>
       </trans-unit>
       <trans-unit id="++CODE++ef695e4c384e9b231d25ba5d0160913f31f4153f460e645129860fa611a52b27">
         <source xml:lang="en">DacFx service is not available</source>
-        <target state="new">DacFx service is not available</target>
+        <target state="translated">Servicio DacFx no disponible</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -1928,9 +1928,13 @@ Error:
 {1} is the account name</note>
         <target state="translated">No se pudo obtener el inquilino '{0}' para la cuenta '{1}'.</target>
       </trans-unit>
+      <trans-unit id="++CODE++11b16df18b896654fb041aa90fd64079d60b741da33d4b5f931d75f8dcc7d1a4">
+        <source xml:lang="en">Failed to list databases</source>
+        <target state="new">Failed to list databases</target>
+      </trans-unit>
       <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
         <source xml:lang="en">Failed to load publish profile</source>
-        <target state="new">Failed to load publish profile</target>
+        <target state="translated">Error al cargar el perfil de publicación</target>
       </trans-unit>
       <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
@@ -1949,7 +1953,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
         <source xml:lang="en">Failed to save publish profile</source>
-        <target state="new">Failed to save publish profile</target>
+        <target state="translated">Error al guardar el perfil de publicación</target>
       </trans-unit>
       <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
         <source xml:lang="en">Failed to save results. </source>
@@ -2563,7 +2567,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++323ed460497fcfa6d1f92f52778381421eefa8ba36a3e9896b3f05a4a2050ca2">
         <source xml:lang="en">Load profile...</source>
-        <target state="new">Load profile...</target>
+        <target state="translated">Perfil de carga...</target>
       </trans-unit>
       <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
         <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
@@ -3357,7 +3361,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f">
         <source xml:lang="en">Publish Settings File</source>
-        <target state="new">Publish Settings File</target>
+        <target state="translated">Archivo de configuración de publicación</target>
       </trans-unit>
       <trans-unit id="++CODE++d5ce61b547d2e5793b2ac208be904ea9f94d5e5594d0c5c02bdda22abf61fcf0">
         <source xml:lang="en">Publish Target</source>
@@ -3365,7 +3369,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++f9f3a475ce7608957aa4ae746b37117f26d543fb676f2f78eff8e185a3cbb143">
         <source xml:lang="en">Publish profile saved to: {0}</source>
-        <target state="new">Publish profile saved to: {0}</target>
+        <target state="translated">Perfil de publicación guardado en: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
         <source xml:lang="en">Publishing Changes</source>
@@ -3825,6 +3829,10 @@ Consulta: {1}</target>
       <trans-unit id="++CODE++3052f090b2dd0312f6564fb52c1f06b0efbe9fd7c77fdf38dcb96b4521b06b24">
         <source xml:lang="en">Select Azure account with Key Vault access for column decryption</source>
         <target state="translated">Seleccionar la cuenta de Azure con acceso a Key Vault para el descifrado de columnas</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fb36706789e855faf92bf6900c060554f0e8513ebb831ffe81ed991b28d07f8c">
+        <source xml:lang="en">Select Connection</source>
+        <target state="new">Select Connection</target>
       </trans-unit>
       <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
         <source xml:lang="en">Select Profile</source>
