@@ -37,8 +37,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         private _targetNode: TreeNodeInfo,
     ) {
         const tableName = _targetNode?.metadata?.name || "Table";
+        const schemaName = _targetNode?.metadata?.schema;
         const databaseName = ObjectExplorerUtils.getDatabaseName(_targetNode);
         const serverName = _targetNode?.connectionProfile?.server || "";
+        const qualifiedTableName = schemaName ? `${schemaName}.${tableName}` : tableName;
 
         super(
             context,
@@ -50,7 +52,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 databaseName: databaseName,
                 serverName: serverName,
                 connectionProfile: _targetNode?.connectionProfile,
-                schemaName: _targetNode?.metadata?.schema || "dbo",
+                schemaName: schemaName,
                 isLoading: false,
                 ownerUri: "",
                 resultSet: undefined,
@@ -62,7 +64,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 failedCells: [], // Track cells that failed to update
             },
             {
-                title: LocConstants.TableExplorer.title(tableName),
+                title: LocConstants.TableExplorer.title(qualifiedTableName),
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
                     dark: vscode.Uri.joinPath(
