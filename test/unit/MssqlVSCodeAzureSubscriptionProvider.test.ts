@@ -8,12 +8,6 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
 
-// Interface to access protected methods for testing
-interface ITestableProvider {
-    getTenantFilters(): Promise<string[]>;
-    getSubscriptionFilters(): Promise<string[]>;
-}
-
 suite("MssqlVSCodeAzureSubscriptionProvider Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let configStub: {
@@ -51,9 +45,7 @@ suite("MssqlVSCodeAzureSubscriptionProvider Tests", () => {
                 .returns(mockFilterConfig);
 
             const provider = MssqlVSCodeAzureSubscriptionProvider.getInstance();
-            const tenantFilters = await (
-                provider as unknown as ITestableProvider
-            ).getTenantFilters();
+            const tenantFilters = await provider["getTenantFilters"]();
 
             expect(tenantFilters).to.have.lengthOf(3);
             expect(tenantFilters).to.include("tenant1");
@@ -72,9 +64,7 @@ suite("MssqlVSCodeAzureSubscriptionProvider Tests", () => {
                 .returns(mockFilterConfig);
 
             const provider = MssqlVSCodeAzureSubscriptionProvider.getInstance();
-            const subscriptionFilters = await (
-                provider as unknown as ITestableProvider
-            ).getSubscriptionFilters();
+            const subscriptionFilters = await provider["getSubscriptionFilters"]();
 
             expect(subscriptionFilters).to.have.lengthOf(3);
             expect(subscriptionFilters).to.include("subscription1");
@@ -88,9 +78,7 @@ suite("MssqlVSCodeAzureSubscriptionProvider Tests", () => {
                 .returns([]);
 
             const provider = MssqlVSCodeAzureSubscriptionProvider.getInstance();
-            const tenantFilters = await (
-                provider as unknown as ITestableProvider
-            ).getTenantFilters();
+            const tenantFilters = await provider["getTenantFilters"]();
 
             expect(tenantFilters).to.be.an("array").that.is.empty;
         });
@@ -101,9 +89,7 @@ suite("MssqlVSCodeAzureSubscriptionProvider Tests", () => {
                 .returns([]);
 
             const provider = MssqlVSCodeAzureSubscriptionProvider.getInstance();
-            const subscriptionFilters = await (
-                provider as unknown as ITestableProvider
-            ).getSubscriptionFilters();
+            const subscriptionFilters = await provider["getSubscriptionFilters"]();
 
             expect(subscriptionFilters).to.be.an("array").that.is.empty;
         });
@@ -120,9 +106,7 @@ suite("MssqlVSCodeAzureSubscriptionProvider Tests", () => {
                 .returns(mockFilterConfig);
 
             const provider = MssqlVSCodeAzureSubscriptionProvider.getInstance();
-            const subscriptionFilters = await (
-                provider as unknown as ITestableProvider
-            ).getSubscriptionFilters();
+            const subscriptionFilters = await provider["getSubscriptionFilters"]();
 
             // Should return both entries (even though subscription ID is the same)
             // because they're from different accounts
@@ -143,16 +127,12 @@ suite("MssqlVSCodeAzureSubscriptionProvider Tests", () => {
 
             const provider = MssqlVSCodeAzureSubscriptionProvider.getInstance();
 
-            const tenantFilters = await (
-                provider as unknown as ITestableProvider
-            ).getTenantFilters();
+            const tenantFilters = await provider["getTenantFilters"]();
             expect(tenantFilters).to.have.lengthOf(2);
             expect(tenantFilters).to.include("tenant-guid-1");
             expect(tenantFilters).to.include("tenant-guid-2");
 
-            const subscriptionFilters = await (
-                provider as unknown as ITestableProvider
-            ).getSubscriptionFilters();
+            const subscriptionFilters = await provider["getSubscriptionFilters"]();
             expect(subscriptionFilters).to.have.lengthOf(2);
             expect(subscriptionFilters).to.include("subscription-guid-1");
             expect(subscriptionFilters).to.include("subscription-guid-2");
@@ -170,9 +150,7 @@ suite("MssqlVSCodeAzureSubscriptionProvider Tests", () => {
                 .returns(mockFilterConfig);
 
             const provider = MssqlVSCodeAzureSubscriptionProvider.getInstance();
-            const tenantFilters = await (
-                provider as unknown as ITestableProvider
-            ).getTenantFilters();
+            const tenantFilters = await provider["getTenantFilters"]();
 
             // Should still extract what it can, even with malformed entries
             expect(tenantFilters).to.have.lengthOf(3);
@@ -193,9 +171,7 @@ suite("MssqlVSCodeAzureSubscriptionProvider Tests", () => {
                 .returns(mockFilterConfig);
 
             const provider = MssqlVSCodeAzureSubscriptionProvider.getInstance();
-            const subscriptionFilters = await (
-                provider as unknown as ITestableProvider
-            ).getSubscriptionFilters();
+            const subscriptionFilters = await provider["getSubscriptionFilters"]();
 
             // Should still extract what it can, even with malformed entries
             expect(subscriptionFilters).to.have.lengthOf(3);
