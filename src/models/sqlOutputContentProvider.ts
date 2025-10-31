@@ -354,7 +354,6 @@ export class SqlOutputContentProvider {
             executionPlanOptions?.includeEstimatedExecutionPlanXml ||
                 this._actualPlanStatuses.includes(uri) ||
                 executionPlanOptions?.includeActualExecutionPlanXml,
-            this._actualPlanStatuses.includes(uri),
         );
         if (isOpenQueryResultsInTabByDefaultEnabled()) {
             await this._queryResultWebviewController.createPanelController(queryRunner.uri);
@@ -453,7 +452,7 @@ export class SqlOutputContentProvider {
                         resultWebviewState.resultSetSummaries[batchId] = {};
                     }
                     resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
-                    this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                    this.scheduleThrottledUpdate(queryRunner.uri);
                 },
             );
 
