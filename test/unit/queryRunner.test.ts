@@ -45,8 +45,6 @@ const standardSelection: ISelectionData = {
 suite("Query Runner tests", () => {
     let sandbox: sinon.SinonSandbox;
     let testSqlToolsServerClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
-    let registerRunnerStub: sinon.SinonStub;
-    let unregisterRunnerStub: sinon.SinonStub;
     let testQueryNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>;
     let testVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let testStatusView: sinon.SinonStubbedInstance<StatusView>;
@@ -69,8 +67,6 @@ suite("Query Runner tests", () => {
         sandbox = sinon.createSandbox();
         testSqlToolsServerClient = sandbox.createStubInstance(SqlToolsServerClient);
         testQueryNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
-        registerRunnerStub = testQueryNotificationHandler.registerRunner;
-        unregisterRunnerStub = testQueryNotificationHandler.unregisterRunner;
         testVscodeWrapper = stubVscodeWrapper(sandbox);
         testStatusView = sandbox.createStubInstance(StatusView);
 
@@ -99,7 +95,7 @@ suite("Query Runner tests", () => {
         setupStandardQueryRequestServiceMock(testSqlToolsServerClient, () => {
             return Promise.resolve(new QueryExecuteContracts.QueryExecuteResult());
         });
-        setupStandardQueryNotificationHandlerMock(registerRunnerStub);
+        setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
 
         // ... Mock up the view and VSCode wrapper to handle requests to update view
         let testDoc: vscode.TextDocument = {
@@ -119,8 +115,8 @@ suite("Query Runner tests", () => {
 
         // Then:
         // ... The query notification handler should have registered the query runner
-        expect(registerRunnerStub).to.have.been.calledOnce;
-        expect(registerRunnerStub.firstCall.args[1]).to.equal(standardUri);
+        expect(testQueryNotificationHandler.registerRunner).to.have.been.calledOnce;
+        expect(testQueryNotificationHandler.registerRunner.firstCall.args[1]).to.equal(standardUri);
 
         // ... The VS Code status should be updated
         expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
@@ -138,7 +134,7 @@ suite("Query Runner tests", () => {
         setupStandardQueryRequestServiceMock(testSqlToolsServerClient, () => {
             return Promise.reject<QueryExecuteContracts.QueryExecuteResult>("failed");
         });
-        setupStandardQueryNotificationHandlerMock(registerRunnerStub);
+        setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
 
         // ... Setup the status view to handle start and stop updates
         testStatusView.executedQuery.resetHistory();
@@ -482,9 +478,6 @@ suite("Query Runner tests", () => {
 
     test("Correctly handles error from subset request", async () => {
         let testuri = "test";
-        let testresult = {
-            message: "failed",
-        };
 
         testSqlToolsServerClient.sendRequest
             .withArgs(QueryExecuteContracts.QueryExecuteSubsetRequest.type, sinon.match.object)
@@ -539,8 +532,10 @@ function setupStandardQueryRequestServiceMock(
         });
 }
 
-function setupStandardQueryNotificationHandlerMock(registerRunnerStub: sinon.SinonStub): void {
-    registerRunnerStub.callsFake((_qr, uri: string) => {
+function setupStandardQueryNotificationHandlerMock(
+    testQueryNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>,
+): void {
+    testQueryNotificationHandler.registerRunner.callsFake((_qr, uri: string) => {
         assert.equal(uri, standardUri);
     });
 }

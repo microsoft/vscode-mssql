@@ -10,9 +10,6 @@ import * as vscode from "vscode";
 import { IExtension } from "vscode-mssql";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as path from "path";
-import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
-import { buildCapabilitiesResult } from "./mocks";
 import * as jsonRpc from "vscode-jsonrpc/node";
 import { UserSurvey } from "../../src/nps/userSurvey";
 
