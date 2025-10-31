@@ -174,48 +174,48 @@
 
 /* Fix dropdown portal styling - target actual Fluent UI classes from DOM */
 .fui-Listbox.fui-Dropdown__listbox {
-    background-color: var(--vscode-dropdown-background) !important;
-    border: 1px solid var(--vscode-dropdown-border) !important;
-    box-shadow: var(--vscode-widget-shadow) !important;
-    z-index: 1000 !important;
-    min-width: 120px !important;
+    background-color: var(--vscode-dropdown-background);
+    border: 1px solid var(--vscode-dropdown-border);
+    box-shadow: var(--vscode-widget-shadow);
+    z-index: 1000;
+    min-width: 120px;
 }
 
 .fui-Option {
-    background-color: var(--vscode-dropdown-background) !important;
-    color: var(--vscode-dropdown-foreground) !important;
+    background-color: var(--vscode-dropdown-background);
+    color: var(--vscode-dropdown-foreground);
 }
 
 .fui-Option:hover {
-    background-color: var(--vscode-list-hoverBackground) !important;
-    color: var(--vscode-list-hoverForeground) !important;
+    background-color: var(--vscode-list-hoverBackground);
+    color: var(--vscode-list-hoverForeground);
 }
 
 .fui-Option[aria-selected="true"] {
-    background-color: var(--vscode-list-activeSelectionBackground) !important;
-    color: var(--vscode-list-activeSelectionForeground) !important;
+    background-color: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
 }
 
 /* Global fallback selectors for dropdown portals (covers both Dropdown and Combobox) */
 div[role="listbox"][id^="fluent-listbox"] {
-    background-color: var(--vscode-dropdown-background) !important;
-    border: 1px solid var(--vscode-dropdown-border) !important;
-    box-shadow: var(--vscode-widget-shadow) !important;
-    z-index: 1000 !important;
-    min-width: 120px !important;
+    background-color: var(--vscode-dropdown-background);
+    border: 1px solid var(--vscode-dropdown-border);
+    box-shadow: var(--vscode-widget-shadow);
+    z-index: 1000;
+    min-width: 120px;
 }
 
 div[role="option"][class*="fui-Option"] {
-    background-color: var(--vscode-dropdown-background) !important;
-    color: var(--vscode-dropdown-foreground) !important;
+    background-color: var(--vscode-dropdown-background);
+    color: var(--vscode-dropdown-foreground);
 }
 
 div[role="option"][class*="fui-Option"]:hover {
-    background-color: var(--vscode-list-hoverBackground) !important;
-    color: var(--vscode-list-hoverForeground) !important;
+    background-color: var(--vscode-list-hoverBackground);
+    color: var(--vscode-list-hoverForeground);
 }
 
 div[role="option"][class*="fui-Option"][aria-selected="true"] {
-    background-color: var(--vscode-list-activeSelectionBackground) !important;
-    color: var(--vscode-list-activeSelectionForeground) !important;
+    background-color: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
 }
