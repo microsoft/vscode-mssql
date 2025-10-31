@@ -8,6 +8,7 @@ import * as vscode from "vscode";
 import type { PagedAsyncIterableIterator } from "@azure/core-paging";
 import { IConnectionInfo } from "vscode-mssql";
 import * as os from "os";
+import { FormItemSpec, FormState } from "../sharedInterfaces/form";
 
 export async function exists(path: string, uri?: vscode.Uri): Promise<boolean> {
     if (uri) {
@@ -140,4 +141,42 @@ export function parseEnum<T extends Record<string, string | number>>(
     }
 
     return undefined;
+}
+
+/**
+ * Removes all properties with undefined values from the given object.  Null values are kept.
+ * @returns a Partial of the original object type with only defined (including null) properties.
+ */
+export function removeUndefinedProperties<T extends object>(source: T): Partial<T> {
+    if (!source) {
+        return {};
+    }
+
+    const entries = Object.entries(source).filter(([_key, value]) => value !== undefined);
+    return Object.fromEntries(entries) as Partial<T>;
+}
+
+/**
+ * Checks if any required fields are missing values in a form.
+ * Used to determine if form submission buttons should be disabled.
+ *
+ * @param formComponents - The form components to check
+ * @param formState - The current form state with values
+ * @returns true if any required fields are missing values, false otherwise
+ */
+export function hasAnyMissingRequiredValues<
+    TForm,
+    TState extends FormState<TForm, TState, TFormItemSpec>,
+    TFormItemSpec extends FormItemSpec<TForm, TState, TFormItemSpec>,
+>(formComponents: Partial<Record<keyof TForm, TFormItemSpec>>, formState: TForm): boolean {
+    return Object.values(formComponents).some((component: TFormItemSpec | undefined) => {
+        if (!component || component.hidden || !component.required) return false;
+
+        const value = formState[component.propertyName as keyof TForm];
+        return (
+            value === undefined ||
+            (typeof value === "string" && value.trim() === "") ||
+            (typeof value === "boolean" && value !== true)
+        );
+    });
 }

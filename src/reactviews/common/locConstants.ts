@@ -520,6 +520,22 @@ export class LocConstants {
                 }),
             sort: l10n.t("Sort"),
             filter: l10n.t("Filter"),
+            resize: l10n.t("Resize"),
+            resizeColumn: (columnName: string) => {
+                return l10n.t({
+                    message: "Resize column '{0}'",
+                    args: [columnName],
+                    comment: ["{0} is the name of the column"],
+                });
+            },
+            enterDesiredColumnWidth: l10n.t("Enter desired column width in pixels"),
+            resizeValidationError: (minWidth: number) => {
+                return l10n.t({
+                    message: "Column width must be at least {0} pixels.",
+                    args: [minWidth],
+                    comment: ["{0} is the minimum column width in pixels"],
+                });
+            },
         };
     }
 
