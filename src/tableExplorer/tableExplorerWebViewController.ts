@@ -296,7 +296,21 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("loadSubset", async (state, payload) => {
-            this.logger.info(`Loading subset with rowCount: ${payload.rowCount}`);
+            this.logger.info(
+                `Loading subset with rowCount: ${payload.rowCount} - OperationId: ${this.operationId}`,
+            );
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.LoadSubset,
+                generateGuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                    rowCount: payload.rowCount.toString(),
+                },
+            );
 
             try {
                 const subsetResult = await this._tableExplorerService.subset(
@@ -316,10 +330,30 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 this.updateState();
 
                 this.logger.info(
-                    `Loaded ${subsetResult.rowCount} rows from database + ${state.newRows.length} new rows`,
+                    `Loaded ${subsetResult.rowCount} rows from database + ${state.newRows.length} new rows - OperationId: ${this.operationId}`,
                 );
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                    rowsLoaded: subsetResult.rowCount.toString(),
+                });
             } catch (error) {
-                this.logger.error(`Error loading subset: ${error}`);
+                this.logger.error(
+                    `Error loading subset: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error(`Failed to load subset: ${getErrorMessage(error)}`),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToLoadData(getErrorMessage(error)),
                 );
@@ -495,8 +529,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 {
                     startTime: startTime.toString(),
                     operationId: this.operationId,
-                    rowId: payload.rowId.toString(),
-                    columnId: payload.columnId.toString(),
                 },
             );
 
@@ -571,7 +603,20 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("revertCell", async (state, payload) => {
-            this.logger.info(`Reverting cell: row ${payload.rowId}, column ${payload.columnId}`);
+            this.logger.info(
+                `Reverting cell: row ${payload.rowId}, column ${payload.columnId} - OperationId: ${this.operationId}`,
+            );
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.RevertCell,
+                generateGuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
+            );
 
             try {
                 const revertCellResult = await this._tableExplorerService.revertCell(
@@ -619,11 +664,30 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     }
                 }
 
-                this.logger.info(`Cell reverted successfully`);
+                this.logger.info(`Cell reverted successfully - OperationId: ${this.operationId}`);
 
                 await this.regenerateScriptIfVisible(state);
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                });
             } catch (error) {
-                this.logger.error(`Error reverting cell: ${error}`);
+                this.logger.error(
+                    `Error reverting cell: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error(`Failed to revert cell: ${getErrorMessage(error)}`),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToRevertCell(getErrorMessage(error)),
                 );
@@ -633,7 +697,18 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("revertRow", async (state, payload) => {
-            this.logger.info(`Reverting row: ${payload.rowId}`);
+            this.logger.info(`Reverting row: ${payload.rowId} - OperationId: ${this.operationId}`);
+
+            const startTime = Date.now();
+            const endActivity = startActivity(
+                TelemetryViews.TableExplorer,
+                TelemetryActions.RevertRow,
+                generateGuid(),
+                {
+                    startTime: startTime.toString(),
+                    operationId: this.operationId,
+                },
+            );
 
             try {
                 const revertRowResult = await this._tableExplorerService.revertRow(
@@ -674,11 +749,30 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     }
                 }
 
-                this.logger.info(`Row reverted successfully`);
+                this.logger.info(`Row reverted successfully - OperationId: ${this.operationId}`);
 
                 await this.regenerateScriptIfVisible(state);
+
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                });
             } catch (error) {
-                this.logger.error(`Error reverting row: ${error}`);
+                this.logger.error(
+                    `Error reverting row: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+
+                endActivity.endFailed(
+                    new Error(`Failed to revert row: ${getErrorMessage(error)}`),
+                    true,
+                    undefined,
+                    undefined,
+                    {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    },
+                );
+
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToRevertRow(getErrorMessage(error)),
                 );
@@ -760,7 +854,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("openScriptInEditor", async (state) => {
-            this.logger.info("Opening script in SQL editor");
+            this.logger.info(`Opening script in SQL editor - OperationId: ${this.operationId}`);
+
+            sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Open, {
+                operationId: this.operationId,
+                context: "scriptEditor",
+            });
 
             try {
                 if (state.updateScript) {
@@ -770,12 +869,16 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     });
                     await vscode.window.showTextDocument(doc);
 
-                    this.logger.info("Script opened in SQL editor successfully");
+                    this.logger.info(
+                        `Script opened in SQL editor successfully - OperationId: ${this.operationId}`,
+                    );
                 } else {
                     vscode.window.showWarningMessage(LocConstants.TableExplorer.noScriptToOpen);
                 }
             } catch (error) {
-                this.logger.error(`Error opening script in editor: ${error}`);
+                this.logger.error(
+                    `Error opening script in editor: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToOpenScript(getErrorMessage(error)),
                 );
@@ -785,7 +888,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("copyScriptToClipboard", async (state) => {
-            this.logger.info("Copying script to clipboard");
+            this.logger.info(`Copying script to clipboard - OperationId: ${this.operationId}`);
+
+            sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.CopyResults, {
+                operationId: this.operationId,
+                context: "script",
+            });
 
             try {
                 if (state.updateScript) {
@@ -794,12 +902,16 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         LocConstants.TableExplorer.scriptCopiedToClipboard,
                     );
 
-                    this.logger.info("Script copied to clipboard successfully");
+                    this.logger.info(
+                        `Script copied to clipboard successfully - OperationId: ${this.operationId}`,
+                    );
                 } else {
                     vscode.window.showWarningMessage(LocConstants.TableExplorer.noScriptToCopy);
                 }
             } catch (error) {
-                this.logger.error(`Error copying script to clipboard: ${error}`);
+                this.logger.error(
+                    `Error copying script to clipboard: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToCopyScript(getErrorMessage(error)),
                 );
@@ -811,7 +923,15 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         this.registerReducer("toggleScriptPane", async (state) => {
             state.showScriptPane = !state.showScriptPane;
 
-            this.logger.info(`Script pane toggled to: ${state.showScriptPane}`);
+            this.logger.info(
+                `Script pane toggled to: ${state.showScriptPane} - OperationId: ${this.operationId}`,
+            );
+
+            sendActionEvent(TelemetryViews.TableExplorer, TelemetryActions.Close, {
+                operationId: this.operationId,
+                context: "scriptPane",
+                action: state.showScriptPane ? "opened" : "closed",
+            });
             this.updateState();
 
             return state;
