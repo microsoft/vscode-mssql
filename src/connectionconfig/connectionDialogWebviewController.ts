@@ -1494,12 +1494,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             state.loadingAzureSubscriptionsStatus = ApiStatus.Loading;
-            this.updateState();
-
-            // Step 3: Ensure we have valid tokens for all tenants in all accounts
-            // This is critical for discovering new subscriptions that were added after initial sign-in
-            this.logger.verbose("Refreshing authentication tokens for all accounts and tenants...");
-            await this.refreshAzureTokensForAllAccounts(auth, state.azureAccounts);
+            this.updateState(state);
 
             // getSubscriptions() below checks this config setting if filtering is specified.  If the user has this set, then we use it; if not, we get all subscriptions.
             // The specific vscode config setting it uses is hardcoded into the VS Code Azure SDK, so we need to use the same value here.
@@ -1562,63 +1557,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
     }
 
-    /**
-     * Refreshes authentication tokens for all accounts and their tenants.
-     * This ensures VS Code has valid tokens to discover subscriptions from all tenants,
-     * including newly added ones.
-     */
-    private async refreshAzureTokensForAllAccounts(
-        auth: MssqlVSCodeAzureSubscriptionProvider,
-        accounts: IAzureAccount[],
-    ): Promise<void> {
-        for (const account of accounts) {
-            try {
-                // Get the full account info
-                const accountInfo = await VsCodeAzureHelper.getAccountById(account.id);
-                if (!accountInfo) {
-                    this.logger.verbose(`Could not find account info for ${account.name}`);
-                    continue;
-                }
-
-                // Get all tenants for this account
-                const tenants = await auth.getTenants(accountInfo);
-                this.logger.verbose(
-                    `Found ${tenants.length} tenant(s) for account ${account.name}`,
-                );
-
-                // Attempt to get a token for each tenant
-                // This ensures VS Code has authentication sessions for all tenants
-                for (const tenant of tenants) {
-                    try {
-                        // Check if already signed in to this tenant
-                        const isSignedIn = await auth.isSignedIn(tenant.tenantId, accountInfo);
-
-                        if (!isSignedIn) {
-                            this.logger.verbose(
-                                `Signing in to tenant ${tenant.displayName} (${tenant.tenantId}) for account ${account.name}`,
-                            );
-                            // This will prompt user if needed, but only for tenants without tokens
-                            await auth.signIn(tenant.tenantId, accountInfo);
-                        } else {
-                            this.logger.verbose(
-                                `Already signed in to tenant ${tenant.displayName} (${tenant.tenantId})`,
-                            );
-                        }
-                    } catch (error) {
-                        // Log but don't fail - some tenants might not be accessible or user might cancel
-                        this.logger.verbose(
-                            `Could not sign in to tenant ${tenant.displayName} (${tenant.tenantId}): ${getErrorMessage(error)}`,
-                        );
-                    }
-                }
-            } catch (error) {
-                this.logger.error(
-                    `Error refreshing tokens for account ${account.name}: ${getErrorMessage(error)}`,
-                );
-            }
-        }
-    }
-
     private async loadAllAzureServers(state: ConnectionDialogWebviewState): Promise<void> {
         const endActivity = startActivity(
             TelemetryViews.ConnectionDialog,
@@ -1637,6 +1575,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         "No subscriptions available.  Adjust your subscription filters to try again.",
                     ),
                 };
+                state.loadingAzureServersStatus = ApiStatus.Loaded;
+                state.azureServers = [];
             } else {
                 state.loadingAzureServersStatus = ApiStatus.Loading;
                 state.azureServers = [];
