@@ -172,7 +172,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     name: colInfo.name,
                     field: `col${index}`,
                     sortable: false,
-                    minWidth: 100,
+                    minWidth: 98, // Reduced by 2px to account for border alignment
                     formatter: (
                         _row: number,
                         cell: number,
@@ -294,6 +294,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                 // Set grid options only on initial load
                 if (!options) {
+                    // Set row height to 26px for optimal display
+                    const ROW_HEIGHT = 26;
+
                     setOptions({
                         enableColumnPicker: false,
                         enableGridMenu: false,
@@ -322,6 +325,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         editCommandHandler: (_item, _column, editCommand) => {
                             editCommand.execute();
                         },
+                        rowHeight: ROW_HEIGHT,
                         darkMode:
                             themeKind === ColorThemeKind.Dark ||
                             themeKind === ColorThemeKind.HighContrast,

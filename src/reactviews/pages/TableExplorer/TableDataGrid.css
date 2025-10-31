@@ -29,6 +29,12 @@
 #tableExplorerGrid .slick-cell {
     display: flex;
     align-items: center;
+    line-height: 1.2; /* Tighter line height for more compact rows */
+    padding: 2px 4px; /* Reduced padding for more compact cells */
+}
+
+#tableExplorerGrid .slick-row {
+    height: 26px; /* Explicit row height to match the rowHeight option */
 }
 
 /* Force theme colors on SlickGrid elements */
@@ -49,7 +55,8 @@
     text-align: center !important;
     font-weight: 600 !important;
     font-size: 12px !important;
-    padding: 4px 8px !important;
+    padding: 2px 8px !important; /* Reduced vertical padding to match compact row style */
+    line-height: 1.3;
 }
 
 #tableExplorerGrid .slick-header-column:last-child {
@@ -163,18 +170,20 @@
 /* Cell state styles */
 .table-cell-error {
     background-color: var(--vscode-inputValidation-errorBackground, #5a1d1d);
-    padding: 2px 4px;
+    padding: 1px 4px; /* Reduced top/bottom padding for compact rows */
     height: 100%;
     width: 100%;
     box-sizing: border-box;
+    line-height: 1.2;
 }
 
 .table-cell-modified {
     background-color: var(--vscode-inputValidation-warningBackground, #fffbe6);
-    padding: 2px 4px;
+    padding: 1px 4px; /* Reduced top/bottom padding for compact rows */
     height: 100%;
     width: 100%;
     box-sizing: border-box;
+    line-height: 1.2;
 }
 
 .table-cell-null {
