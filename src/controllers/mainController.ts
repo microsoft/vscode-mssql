@@ -2665,6 +2665,7 @@ export default class MainController implements vscode.Disposable {
         const publishProjectWebView = new PublishProjectWebViewController(
             this._context,
             this._vscodeWrapper,
+            this.connectionManager,
             projectFilePath,
             this.sqlProjectsService,
             this.dacFxService,
