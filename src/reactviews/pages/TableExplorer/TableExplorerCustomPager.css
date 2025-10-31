@@ -171,3 +171,51 @@
     min-width: 70px;
     max-width: 70px;
 }
+
+/* Fix dropdown portal styling - target actual Fluent UI classes from DOM */
+.fui-Listbox.fui-Dropdown__listbox {
+    background-color: var(--vscode-dropdown-background) !important;
+    border: 1px solid var(--vscode-dropdown-border) !important;
+    box-shadow: var(--vscode-widget-shadow) !important;
+    z-index: 1000 !important;
+    min-width: 120px !important;
+}
+
+.fui-Option {
+    background-color: var(--vscode-dropdown-background) !important;
+    color: var(--vscode-dropdown-foreground) !important;
+}
+
+.fui-Option:hover {
+    background-color: var(--vscode-list-hoverBackground) !important;
+    color: var(--vscode-list-hoverForeground) !important;
+}
+
+.fui-Option[aria-selected="true"] {
+    background-color: var(--vscode-list-activeSelectionBackground) !important;
+    color: var(--vscode-list-activeSelectionForeground) !important;
+}
+
+/* Global fallback selectors for dropdown portals (covers both Dropdown and Combobox) */
+div[role="listbox"][id^="fluent-listbox"] {
+    background-color: var(--vscode-dropdown-background) !important;
+    border: 1px solid var(--vscode-dropdown-border) !important;
+    box-shadow: var(--vscode-widget-shadow) !important;
+    z-index: 1000 !important;
+    min-width: 120px !important;
+}
+
+div[role="option"][class*="fui-Option"] {
+    background-color: var(--vscode-dropdown-background) !important;
+    color: var(--vscode-dropdown-foreground) !important;
+}
+
+div[role="option"][class*="fui-Option"]:hover {
+    background-color: var(--vscode-list-hoverBackground) !important;
+    color: var(--vscode-list-hoverForeground) !important;
+}
+
+div[role="option"][class*="fui-Option"][aria-selected="true"] {
+    background-color: var(--vscode-list-activeSelectionBackground) !important;
+    color: var(--vscode-list-activeSelectionForeground) !important;
+}
