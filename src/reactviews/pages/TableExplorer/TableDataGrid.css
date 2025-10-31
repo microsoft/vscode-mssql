@@ -38,11 +38,28 @@
 #tableExplorerGrid .slick-top-panel {
     background-color: var(--vscode-editor-background) !important;
     color: var(--vscode-foreground) !important;
+    border-bottom: 1px solid var(--vscode-panel-border) !important;
 }
 
 #tableExplorerGrid .slick-header-column {
     background-color: var(--vscode-editor-background) !important;
     color: var(--vscode-foreground) !important;
+    border-right: 1px solid var(--vscode-panel-border) !important;
+    border-bottom: 1px solid var(--vscode-panel-border) !important;
+    text-align: center !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    padding: 4px 8px !important;
+}
+
+#tableExplorerGrid .slick-header-column:last-child {
+    border-right: none !important;
+}
+
+#tableExplorerGrid .slick-header-column .slick-column-name {
+    text-align: center !important;
+    width: 100% !important;
+    display: block !important;
 }
 
 #tableExplorerGrid .slick-cell,
