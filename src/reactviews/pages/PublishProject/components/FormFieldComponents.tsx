@@ -3,7 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Field, Dropdown, Option, Input, Checkbox, Button } from "@fluentui/react-components";
+import {
+    Field,
+    Dropdown,
+    Option,
+    Input,
+    Checkbox,
+    Button,
+    Combobox,
+} from "@fluentui/react-components";
 import { EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
 import { FormItemType } from "../../../../sharedInterfaces/form";
 import type { PublishDialogFormItemSpec } from "../../../../sharedInterfaces/publishDialog";
@@ -26,6 +34,7 @@ export function renderInput(
         onTogglePassword?: () => void;
         onChange?: (value: string) => void;
         readOnly?: boolean;
+        contentAfter?: React.ReactElement;
     },
 ) {
     if (!component || component.hidden) return undefined;
@@ -76,7 +85,9 @@ export function renderInput(
                 onChange={(_, data) => handleChange(data.value)}
                 onBlur={(e) => handleBlur(e.target.value)}
                 contentAfter={
-                    isPasswordField && options?.onTogglePassword ? (
+                    options?.contentAfter ? (
+                        options.contentAfter
+                    ) : isPasswordField && options?.onTogglePassword ? (
                         <Button
                             onClick={options.onTogglePassword}
                             icon={options.showPassword ? <EyeRegular /> : <EyeOffRegular />}
@@ -158,6 +169,53 @@ export function renderDropdown(
     );
 }
 
+/*
+ * Generic Combobox Field - can be used for editable dropdowns (allows custom text input)
+ */
+export function renderCombobox(
+    component: PublishDialogFormItemSpec | undefined,
+    value: string | undefined,
+    freeform: boolean | undefined,
+    onChange: (value: string) => void,
+) {
+    if (!component || component.hidden) return undefined;
+    if (component.type !== FormItemType.Dropdown) return undefined;
+    if (!freeform && !component.options) return undefined;
+
+    return (
+        <Field
+            key={component.propertyName}
+            required={component.required}
+            label={component.label}
+            validationMessage={component.validation?.validationMessage}
+            validationState={getValidationState(component.validation)}
+            orientation="horizontal">
+            <Combobox
+                size="small"
+                freeform={freeform || false}
+                value={value || ""}
+                placeholder={component.placeholder ?? ""}
+                onOptionSelect={(_, data) => {
+                    if (data.optionValue) {
+                        onChange(data.optionValue);
+                    }
+                }}
+                onChange={(event) => {
+                    // Allow custom text input
+                    onChange(event.currentTarget.value);
+                }}>
+                {component.options?.map(
+                    (opt: { value: string; displayName: string; color?: string }, i: number) => (
+                        <Option key={opt.value + i} value={opt.value} text={opt.displayName}>
+                            {opt.displayName}
+                        </Option>
+                    ),
+                )}
+            </Combobox>
+        </Field>
+    );
+}
+
 // Generic Checkbox Field - automatically handles formAction
 export function renderCheckbox(
     component: PublishDialogFormItemSpec | undefined,
@@ -205,6 +263,7 @@ export function renderCheckbox(
                     whiteSpace: "nowrap",
                 }}>
                 <Checkbox
+                    size="medium"
                     checked={checked}
                     onChange={(_, data) => handleChange(data.checked === true)}
                 />

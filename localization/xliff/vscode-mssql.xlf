@@ -1509,6 +1509,9 @@
       <note>{0} is the tenant id
 {1} is the account name</note>
     </trans-unit>
+    <trans-unit id="++CODE++11b16df18b896654fb041aa90fd64079d60b741da33d4b5f931d75f8dcc7d1a4">
+      <source xml:lang="en">Failed to list databases</source>
+    </trans-unit>
     <trans-unit id="++CODE++d1167662f9f4ae95339878cfc71934cb03fce7f402dd7648b10e281fad1a6c4e">
       <source xml:lang="en">Failed to load data: {0}</source>
       <note>{0} is the error message</note>
@@ -3037,6 +3040,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3052f090b2dd0312f6564fb52c1f06b0efbe9fd7c77fdf38dcb96b4521b06b24">
       <source xml:lang="en">Select Azure account with Key Vault access for column decryption</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fb36706789e855faf92bf6900c060554f0e8513ebb831ffe81ed991b28d07f8c">
+      <source xml:lang="en">Select Connection</source>
     </trans-unit>
     <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
       <source xml:lang="en">Select Profile</source>

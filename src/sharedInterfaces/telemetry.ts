@@ -82,6 +82,7 @@ export enum TelemetryActions {
     SurveySubmit = "SurveySubmit",
     PublishProfileLoaded = "PublishProfileLoaded",
     PublishProfileSaved = "PublishProfileSaved",
+    PublishProjectConnectionError = "PublishProjectConnection",
     SaveResults = "SaveResults",
     CopyResults = "CopyResults",
     CopyResultsHeaders = "CopyResultsHeaders",
