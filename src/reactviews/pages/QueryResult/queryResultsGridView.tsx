@@ -35,6 +35,8 @@ const useStyles = makeStyles({
 
 type GridItem = { batchId: number; resultId: number; index: number };
 
+const MIN_GRID_HEIGHT_PX = 200;
+
 export const QueryResultsGridView = () => {
     const classes = useStyles();
     const context = useContext(QueryResultCommandsContext);
@@ -124,11 +126,9 @@ export const QueryResultsGridView = () => {
     // Calculate height for each grid based on total count
     const getGridHeight = () => {
         const totalGrids = gridList.length;
-        if (totalGrids === 1 || maximizedGridKey !== undefined) return "100%";
-
-        // Otherwise, divide height equally with a minimum of 200px
         const percentage = 100 / totalGrids;
-        return `max(200px, ${percentage}%)`;
+        // Ensure a minimum height
+        return `max(${MIN_GRID_HEIGHT_PX}px, ${percentage}%)`;
     };
 
     return (
@@ -156,6 +156,9 @@ export const QueryResultsGridView = () => {
 
                 const isMaximized = maximizedGridKey === gridKey;
                 const shouldHide = maximizedGridKey !== undefined && !isMaximized;
+                if (shouldHide) {
+                    return undefined;
+                }
 
                 return (
                     <div
@@ -167,8 +170,7 @@ export const QueryResultsGridView = () => {
                                 ? fontSettings.fontFamily
                                 : "var(--vscode-font-family)",
                             fontSize: `${fontSettings.fontSize ?? 12}px`,
-                            display: shouldHide ? "none" : undefined,
-                            height: getGridHeight(),
+                            height: isMaximized ? "100%" : getGridHeight(),
                         }}>
                         <div style={{ flex: 1, minWidth: 0, overflow: "auto" }} ref={containerRef}>
                             <ResultGrid
