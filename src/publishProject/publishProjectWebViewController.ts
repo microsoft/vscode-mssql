@@ -251,13 +251,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 const selectedPath = fileUris[0].fsPath;
 
                 try {
-                    // Check if DacFx service is available for loading deployment options
-                    if (!this._dacFxService) {
-                        void vscode.window.showWarningMessage(
-                            `${Loc.DacFxServiceNotAvailable}. Profile loaded without deployment options.`,
-                        );
-                    }
-
                     // Parse the profile XML to extract all values, including deployment options from DacFx service
                     const parsedProfile = await parsePublishProfileXml(
                         selectedPath,
@@ -284,6 +277,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         connectionString: parsedProfile.connectionString || state.connectionString,
                         deploymentOptions:
                             parsedProfile.deploymentOptions || state.deploymentOptions,
+                        formMessage: !this._dacFxService
+                            ? {
+                                  message: `${Loc.DacFxServiceNotAvailable}. Profile loaded without deployment options.`,
+                                  intent: "warning" as const,
+                              }
+                            : undefined,
                     };
 
                     // Update UI to reflect the changes
