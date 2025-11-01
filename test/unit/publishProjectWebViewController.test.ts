@@ -334,7 +334,18 @@ suite("PublishProjectWebViewController Tests", () => {
                     description: "",
                     displayName: "",
                 },
-                booleanOptionsDictionary: {},
+                booleanOptionsDictionary: {
+                    allowIncompatiblePlatform: {
+                        value: true,
+                        description: "Allow incompatible platform",
+                        displayName: "Allow Incompatible Platform",
+                    },
+                    ignoreComments: {
+                        value: true,
+                        description: "Ignore comments",
+                        displayName: "Ignore Comments",
+                    },
+                },
                 objectTypesDictionary: {},
             },
         });

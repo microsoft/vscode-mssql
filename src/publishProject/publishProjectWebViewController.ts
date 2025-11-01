@@ -222,9 +222,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     deploymentOptions: payload.deploymentOptions,
                 };
 
-                // Update UI to reflect the changes
-                this.updateState(newState);
-
                 return newState;
             },
         );
@@ -284,9 +281,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                               }
                             : undefined,
                     };
-
-                    // Update UI to reflect the changes
-                    this.updateState(newState);
 
                     return newState;
                 } catch (error) {
