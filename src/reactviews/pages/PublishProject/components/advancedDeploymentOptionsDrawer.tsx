@@ -19,7 +19,7 @@ import {
     makeStyles,
 } from "@fluentui/react-components";
 import { Dismiss24Regular } from "@fluentui/react-icons";
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useMemo, useEffect, useCallback } from "react";
 import { LocConstants } from "../../../common/locConstants";
 import { PublishProjectContext } from "../publishProjectStateProvider";
 import { usePublishDialogSelector } from "../publishDialogSelector";
@@ -73,16 +73,20 @@ export const AdvancedDeploymentOptionsDrawer = ({
     );
 
     // Clear local changes when deploymentOptions change (e.g., from profile loading)
-    React.useEffect(() => {
+    useEffect(() => {
         setLocalChanges([]);
     }, [state.deploymentOptions]);
-    const getCurrentValue = (optionName: string, baseValue: boolean): boolean => {
-        const localChange = localChanges.find((change) => change.optionName === optionName);
-        return localChange ? localChange.value : baseValue;
-    };
+
+    const getCurrentValue = useCallback(
+        (optionName: string, baseValue: boolean): boolean => {
+            const localChange = localChanges.find((change) => change.optionName === optionName);
+            return localChange ? localChange.value : baseValue;
+        },
+        [localChanges],
+    );
 
     // Create option groups from base deployment options, applying local changes
-    const optionGroups = React.useMemo(() => {
+    const optionGroups = useMemo(() => {
         if (!state.deploymentOptions) return [];
 
         const groups: Array<{
@@ -107,7 +111,6 @@ export const AdvancedDeploymentOptionsDrawer = ({
                 value: getCurrentValue(key, option.value),
             }));
 
-            // Split entries into General and Ignore based on displayName starting with "Ignore"
             const generalEntries = allBooleanEntries
                 .filter((entry) => !entry.displayName.startsWith("Ignore"))
                 .sort((a, b) => a.displayName.localeCompare(b.displayName));
@@ -138,10 +141,8 @@ export const AdvancedDeploymentOptionsDrawer = ({
         // Exclude Object Types group
         if (state.deploymentOptions.objectTypesDictionary) {
             const baseExcludedTypes = state.deploymentOptions.excludeObjectTypes?.value || [];
-
             const excludeEntries = Object.entries(state.deploymentOptions.objectTypesDictionary)
                 .map(([key, displayName]) => {
-                    // Get base exclusion state
                     const baseExcluded = baseExcludedTypes.some(
                         (excludedType) => excludedType.toLowerCase() === key.toLowerCase(),
                     );
@@ -166,23 +167,20 @@ export const AdvancedDeploymentOptionsDrawer = ({
         }
 
         return groups;
-    }, [state.deploymentOptions, localChanges, loc, getCurrentValue]);
+    }, [state.deploymentOptions, getCurrentValue, loc]);
 
-    // Options change handler, inserts and removed the changed option in localChanges
+    // Options change handler, inserts and removes the changed option in localChanges
     const handleOptionChange = (optionName: string, checked: boolean) => {
         setLocalChanges((prev) => {
             const existingChange = prev.find((change) => change.optionName === optionName);
             if (existingChange) {
-                // Option exists, user is toggling back to original - remove it
                 return prev.filter((change) => change.optionName !== optionName);
             } else {
-                // New change, add it
                 return [...prev, { optionName, value: checked }];
             }
         });
     };
 
-    // Simple check: disable reset button if no local changes have been made
     const isResetDisabled = localChanges.length === 0;
 
     // Options reset handler, clears all local changes (reset to base deployment options)
@@ -203,10 +201,16 @@ export const AdvancedDeploymentOptionsDrawer = ({
                 } else if (updatedOptions.objectTypesDictionary?.[optionName]) {
                     // Handle exclude object types
                     const excludedTypes = updatedOptions.excludeObjectTypes!.value;
-                    if (value && !excludedTypes.includes(optionName)) {
+                    if (
+                        value &&
+                        !excludedTypes.some((t) => t.toLowerCase() === optionName.toLowerCase())
+                    ) {
                         excludedTypes.push(optionName);
-                    } else if (!value && excludedTypes.includes(optionName)) {
-                        excludedTypes.splice(excludedTypes.indexOf(optionName), 1);
+                    } else if (!value) {
+                        const index = excludedTypes.findIndex(
+                            (t) => t.toLowerCase() === optionName.toLowerCase(),
+                        );
+                        if (index !== -1) excludedTypes.splice(index, 1);
                     }
                 }
             });
@@ -222,7 +226,6 @@ export const AdvancedDeploymentOptionsDrawer = ({
         setIsAdvancedDrawerOpen(false);
     };
 
-    // Helper to check if option matches search
     const isOptionVisible = (option: {
         key: string;
         displayName: string;

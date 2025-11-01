@@ -36,6 +36,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
     PublishDialogFormItemSpec,
     PublishDialogReducers
 > {
+    private _cachedDatabaseList?: { displayName: string; value: string }[];
+    private _cachedSelectedDatabase?: string;
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _sqlProjectsService?: SqlProjectsService;
     private readonly _dacFxService?: mssql.IDacFxService;
@@ -97,12 +99,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
             deploymentOptions.excludeObjectTypes.value = [];
         }
 
-        // Store the SQL Projects Service and Connection Manager
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
         this._connectionManager = connectionManager;
 
-        // Register reducers after initialization
         this.registerRpcHandlers();
 
         // Listen for successful connections
@@ -116,7 +116,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
             }),
         );
 
-        // Initialize async to allow for future extensibility and proper error handling
         void this.initializeDialog(projectFilePath)
             .then(() => {
                 this.updateState();
@@ -128,7 +127,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
     }
 
     private async initializeDialog(projectFilePath: string) {
-        // keep initial project path and computed database name
         if (projectFilePath) {
             this.state.projectFilePath = projectFilePath;
         }
@@ -170,7 +168,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 TelemetryViews.SqlProjects,
                 TelemetryActions.PublishProjectChanges,
                 error instanceof Error ? error : new Error(String(error)),
-                false, // don't include error message in telemetry for privacy
+                false,
             );
         }
 
@@ -180,11 +178,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this.state.formState.databaseName,
         );
 
-        // Update state to notify UI of the project properties and form components
         this.updateState();
 
         // Fetch Docker tags for the container image dropdown
-        // Use the deployment UI function with target version filtering
         const tagComponent = this.state.formComponents[PublishFormFields.ContainerImageTag];
         if (tagComponent) {
             try {
@@ -200,7 +196,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 }
             } catch (error) {
                 console.error("Failed to fetch Docker container tags:", error);
-                // Keep dialog resilient - don't block if Docker tags fail to load
             }
         }
 
@@ -210,14 +205,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
         await this.validateForm(this.state.formState, undefined, true);
     }
 
-    /** Registers all reducers in pure (immutable) style */
     private registerRpcHandlers(): void {
         this.registerReducer("openConnectionDialog", async (state: PublishDialogState) => {
             // Set waiting state to detect new connections
             state.waitingForNewConnection = true;
             this.updateState(state);
 
-            // Execute the command to open the connection dialog (same as "+" button in servers panel)
+            // Execute the command to open the connection dialog
             void vscode.commands.executeCommand(constants.cmdAddObjectExplorer);
 
             return state;
@@ -290,13 +284,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 const selectedPath = fileUris[0].fsPath;
 
                 try {
-                    // Check if DacFx service is available for loading deployment options
-                    if (!this._dacFxService) {
-                        void vscode.window.showWarningMessage(
-                            `${Loc.DacFxServiceNotAvailable}. Profile loaded without deployment options.`,
-                        );
-                    }
-
                     // Parse the profile XML to extract all values, including deployment options from DacFx service
                     const parsedProfile = await parsePublishProfileXml(
                         selectedPath,
@@ -333,6 +320,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         // Update the original values to include the merged state (project + profile)
                         // This ensures revert maintains all variables but resets their values
                         originalSqlCmdVariables: { ...mergedSqlCmdVariables },
+                        formMessage: !this._dacFxService
+                            ? {
+                                  message: `${Loc.DacFxServiceNotAvailable}. Profile loaded without deployment options.`,
+                                  intent: "warning" as const,
+                              }
+                            : undefined,
                     };
 
                     // Update UI to reflect the changes
@@ -340,13 +333,21 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
                     return newState;
                 } catch (error) {
-                    void vscode.window.showErrorMessage(
-                        `${Loc.PublishProfileLoadFailed}: ${error}`,
-                    );
+                    return {
+                        ...state,
+                        formMessage: {
+                            message: `${Loc.PublishProfileLoadFailed}: ${error}`,
+                            intent: "error",
+                        },
+                    };
                 }
             }
 
             return state;
+        });
+
+        this.registerReducer("closeMessage", async (state: PublishDialogState) => {
+            return { ...state, formMessage: undefined };
         });
 
         this.registerReducer(
@@ -385,14 +386,22 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
                 // Save the profile using DacFx service
                 if (!this._dacFxService) {
-                    void vscode.window.showErrorMessage(Loc.DacFxServiceNotAvailable);
-                    return state;
+                    return {
+                        ...state,
+                        formMessage: {
+                            message: Loc.DacFxServiceNotAvailable,
+                            intent: "error",
+                        },
+                    };
                 }
 
                 try {
                     const databaseName = state.formState.databaseName || projectName;
                     // Connection string depends on publish target:
-                    // - For container targets: empty string (no server connection)
+                    // - For container targets: empty string because we're provisioning a new container
+                    //   and don't have an existing connection. The actual connection would be established
+                    //   after the container is created and SQL Server is running inside it.
+                    // - For existing servers: use the current connection string from the established connection
                     const connectionString =
                         state.formState.publishTarget === PublishTarget.LocalContainer
                             ? ""
@@ -409,19 +418,26 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         state.deploymentOptions,
                     );
 
-                    // Send telemetry for profile saved
                     sendActionEvent(
                         TelemetryViews.SqlProjects,
                         TelemetryActions.PublishProfileSaved,
                     );
 
-                    void vscode.window.showInformationMessage(
-                        Loc.PublishProfileSavedSuccessfully(fileUri.fsPath),
-                    );
+                    return {
+                        ...state,
+                        formMessage: {
+                            message: Loc.PublishProfileSavedSuccessfully(fileUri.fsPath),
+                            intent: "success",
+                        },
+                    };
                 } catch (error) {
-                    void vscode.window.showErrorMessage(
-                        `${Loc.PublishProfileSaveFailed}: ${error}`,
-                    );
+                    return {
+                        ...state,
+                        formMessage: {
+                            message: `${Loc.PublishProfileSaveFailed}: ${error}`,
+                            intent: "error",
+                        },
+                    };
                 }
 
                 return state;
@@ -437,18 +453,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
         try {
             const connection = event.connection;
             if (!connection || !connection.credentials) {
-                return; // Connection not found or no credentials available
+                return;
             }
 
             const connectionProfile = connection.credentials as IConnectionProfile;
             if (!connectionProfile || !connectionProfile.server) {
-                return; // Connection profile invalid or no server specified
+                return;
             }
 
-            // Update server name immediately
             this.state.formState.serverName = connectionProfile.server;
-
-            // Get connection string using the fileUri from the event
             this.state.connectionString = await this._connectionManager.getConnectionString(
                 event.fileUri,
                 true, // includePassword
@@ -474,9 +487,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 }
             } catch (dbError) {
                 // Show error message to user when database listing fails
-                void vscode.window.showErrorMessage(
-                    `${Loc.FailedToListDatabases}: ${getErrorMessage(dbError)}`,
-                );
+                this.state.formMessage = {
+                    message: `${Loc.FailedToListDatabases}: ${getErrorMessage(dbError)}`,
+                    intent: "error",
+                };
 
                 // Log the error for diagnostics
                 sendActionEvent(
@@ -488,9 +502,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             // Validate form to update button state after connection
             await this.validateForm(this.state.formState, undefined, false);
-
-            // Update UI immediately to reflect the new connection
-            this.updateState();
         } catch (err) {
             // Log the error for diagnostics
             sendActionEvent(
@@ -501,6 +512,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
         } finally {
             // Reset the waiting state
             this.state.waitingForNewConnection = false;
+
+            // Update UI to reflect all state changes (connection success, errors, and waiting state reset)
+            this.updateState();
         }
     }
 
@@ -526,45 +540,30 @@ export class PublishProjectWebViewController extends FormWebviewController<
     public async afterSetFormProperty(propertyName: keyof IPublishForm): Promise<void> {
         if (propertyName === PublishFormFields.PublishTarget) {
             const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
+            if (!databaseComponent) return;
 
-            if (databaseComponent) {
-                // When switching TO LOCAL_CONTAINER
-                if (this.state.formState.publishTarget === PublishTarget.LocalContainer) {
-                    // Store current database list and selected value to restore later
-                    if (databaseComponent.options && databaseComponent.options.length > 0) {
-                        this.state.previousDatabaseList = [...databaseComponent.options];
-                        this.state.previousSelectedDatabase = this.state.formState.databaseName;
-                    }
-                    // Clear database dropdown options for container (freeform only)
-                    databaseComponent.options = [];
-
-                    // Reset to project name for container mode
-                    this.state.formState.databaseName = path.basename(
-                        this.state.projectFilePath,
-                        path.extname(this.state.projectFilePath),
-                    );
-
-                    // Clear connection string when switching to container target
-                    this.state.connectionString = undefined;
+            if (this.state.formState.publishTarget === PublishTarget.LocalContainer) {
+                // Cache and clear for container mode
+                if (databaseComponent.options?.length) {
+                    this._cachedDatabaseList = databaseComponent.options;
+                    this._cachedSelectedDatabase = this.state.formState.databaseName;
                 }
-                // When switching TO EXISTING_SERVER
-                else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
-                    // Restore previous database list if it was stored (preserve the list from when user connected)
-                    if (
-                        this.state.previousDatabaseList &&
-                        this.state.previousDatabaseList.length > 0
-                    ) {
-                        databaseComponent.options = [...this.state.previousDatabaseList];
-
-                        // Restore previously selected database
-                        if (this.state.previousSelectedDatabase) {
-                            this.state.formState.databaseName = this.state.previousSelectedDatabase;
-                        }
+                databaseComponent.options = [];
+                this.state.formState.databaseName = path.basename(
+                    this.state.projectFilePath,
+                    path.extname(this.state.projectFilePath),
+                );
+                this.state.connectionString = undefined;
+            } else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
+                // Restore for server mode
+                if (this._cachedDatabaseList?.length) {
+                    databaseComponent.options = this._cachedDatabaseList;
+                    if (this._cachedSelectedDatabase) {
+                        this.state.formState.databaseName = this._cachedSelectedDatabase;
                     }
                 }
             }
 
-            // Update visibility and validate for button enablement (without showing validation messages)
             await this.updateItemVisibility();
             await this.validateForm(this.state.formState, undefined, false);
             this.updateState();

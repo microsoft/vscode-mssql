@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as TypeMoq from "typemoq";
-import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import {
     handleChatCommand,
@@ -15,78 +15,81 @@ import {
     isSimpleCommand,
     isPromptSubstituteCommand,
     getCommandDefinition,
+    getConnectionButtonInfo,
 } from "../../src/copilot/chatCommands";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import * as telemetry from "../../src/telemetry/telemetry";
+import { IServerInfo } from "vscode-mssql";
+
+const { expect } = chai;
+
+chai.use(sinonChai);
 
 suite("Chat Commands Tests", () => {
-    let mockMainController: TypeMoq.IMock<MainController>;
-    let mockConnectionManager: TypeMoq.IMock<ConnectionManager>;
-    let mockConnectionInfo: TypeMoq.IMock<ConnectionInfo>;
-    let mockChatStream: TypeMoq.IMock<vscode.ChatResponseStream>;
-    let mockChatRequest: TypeMoq.IMock<vscode.ChatRequest>;
     let sandbox: sinon.SinonSandbox;
+    let mockMainController: sinon.SinonStubbedInstance<MainController>;
+    let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let connectionInfo: ConnectionInfo;
+    let chatStream: vscode.ChatResponseStream;
+    let chatStreamMarkdownStub: sinon.SinonStub;
+    let chatStreamButtonStub: sinon.SinonStub;
+    let mockTextDocument: { languageId: string };
+    let mockActiveTextEditor: vscode.TextEditor | undefined;
 
     const sampleConnectionUri = "file:///path/to/sample.sql";
 
     setup(() => {
         sandbox = sinon.createSandbox();
 
-        // Stub telemetry functions
         sandbox.stub(telemetry, "sendActionEvent");
         sandbox.stub(telemetry, "sendErrorEvent");
 
-        // Mock ConnectionInfo with minimal required properties
-        mockConnectionInfo = TypeMoq.Mock.ofType<ConnectionInfo>();
-        mockConnectionInfo
-            .setup((x) => x.credentials)
-            .returns(
-                () =>
-                    ({
-                        server: "localhost",
-                        database: "testdb",
-                        authenticationType: "Integrated",
-                        user: "testuser",
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    }) as any,
-            );
+        connectionInfo = {
+            credentials: {
+                server: "localhost",
+                database: "testdb",
+                authenticationType: "Integrated",
+                user: "testuser",
+            },
+        } as ConnectionInfo;
 
-        // Mock ConnectionManager
-        mockConnectionManager = TypeMoq.Mock.ofType<ConnectionManager>();
-        mockConnectionManager
-            .setup((x) => x.getConnectionInfo(TypeMoq.It.isAny()))
-            .returns(() => mockConnectionInfo.object);
-        mockConnectionManager
-            .setup((x) => x.getServerInfo(TypeMoq.It.isAny()))
-            .returns(
-                () =>
-                    ({
-                        serverVersion: "15.0.2000.5",
-                        serverEdition: "Standard Edition",
-                        isCloud: false,
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    }) as any,
-            );
-        mockConnectionManager
-            .setup((x) => x.disconnect(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(true));
+        mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+        mockConnectionManager.getConnectionInfo.returns(connectionInfo);
+        mockConnectionManager.getServerInfo.returns({
+            serverVersion: "15.0.2000.5",
+            serverEdition: "Standard Edition",
+            isCloud: false,
+        } as IServerInfo);
+        mockConnectionManager.disconnect.resolves(true);
 
-        // Mock MainController
-        mockMainController = TypeMoq.Mock.ofType<MainController>();
-        mockMainController
-            .setup((x) => x.connectionManager)
-            .returns(() => mockConnectionManager.object);
-        mockMainController.setup((x) => x.onNewConnection()).returns(() => Promise.resolve(true));
-        mockMainController.setup((x) => x.onChooseDatabase()).returns(() => Promise.resolve(true));
+        mockMainController = sandbox.createStubInstance(MainController);
+        sandbox
+            .stub(mockMainController, "connectionManager")
+            .get(() => mockConnectionManager as unknown as ConnectionManager);
+        mockMainController.onNewConnection.resolves(true);
+        mockMainController.onNewQueryWithConnection.resolves(true);
+        mockMainController.onChooseDatabase.resolves(true);
 
-        // Mock ChatResponseStream
-        mockChatStream = TypeMoq.Mock.ofType<vscode.ChatResponseStream>();
-        mockChatStream.setup((x) => x.markdown(TypeMoq.It.isAny())).returns(() => undefined);
+        chatStreamMarkdownStub = sandbox.stub();
+        chatStreamButtonStub = sandbox.stub();
+        chatStream = {
+            markdown: chatStreamMarkdownStub,
+            button: chatStreamButtonStub,
+        } as unknown as vscode.ChatResponseStream;
 
-        // Mock ChatRequest
-        mockChatRequest = TypeMoq.Mock.ofType<vscode.ChatRequest>();
+        // Mock TextDocument
+        mockTextDocument = { languageId: "sql" };
+
+        // Mock TextEditor
+        mockActiveTextEditor = {
+            document: mockTextDocument,
+        } as vscode.TextEditor;
     });
+
+    function createChatRequest(command?: string): vscode.ChatRequest {
+        return { command } as vscode.ChatRequest;
+    }
 
     teardown(() => {
         sandbox.restore();
@@ -144,12 +147,12 @@ suite("Chat Commands Tests", () => {
 
     suite("Command Handler Tests", () => {
         test("handleChatCommand returns handled=false for unknown command", async () => {
-            mockChatRequest.setup((x) => x.command).returns(() => "unknownCommand");
+            const chatRequest = createChatRequest("unknownCommand");
 
             const result = await handleChatCommand(
-                mockChatRequest.object,
-                mockChatStream.object,
-                mockMainController.object,
+                chatRequest,
+                chatStream,
+                mockMainController as unknown as MainController,
                 sampleConnectionUri,
             );
 
@@ -158,12 +161,12 @@ suite("Chat Commands Tests", () => {
         });
 
         test("handleChatCommand returns handled=false for undefined command", async () => {
-            mockChatRequest.setup((x) => x.command).returns(() => undefined);
+            const chatRequest = createChatRequest(undefined);
 
             const result = await handleChatCommand(
-                mockChatRequest.object,
-                mockChatStream.object,
-                mockMainController.object,
+                chatRequest,
+                chatStream,
+                mockMainController as unknown as MainController,
                 sampleConnectionUri,
             );
 
@@ -171,164 +174,195 @@ suite("Chat Commands Tests", () => {
         });
 
         test("handleChatCommand returns error for connection-required command without connection", async () => {
-            mockChatRequest.setup((x) => x.command).returns(() => "disconnect");
-            mockConnectionManager
-                .setup((x) => x.getConnectionInfo(TypeMoq.It.isAny()))
-                .returns(() => undefined); // No connection
+            const chatRequest = createChatRequest("disconnect");
+            mockConnectionManager.getConnectionInfo.returns(undefined as unknown as ConnectionInfo);
 
             const result = await handleChatCommand(
-                mockChatRequest.object,
-                mockChatStream.object,
-                mockMainController.object,
+                chatRequest,
+                chatStream,
+                mockMainController as unknown as MainController,
                 undefined,
             );
 
             expect(result.handled).to.be.true;
-            expect(result.errorMessage).to.contain("No active database connection");
+            expect(result.errorMessage).to.be.undefined;
+            // Should show error messages via stream (warning + connection required message)
+            expect(chatStreamMarkdownStub).to.have.been.calledTwice;
+            // Should show connection button
+            expect(chatStreamButtonStub).to.have.been.calledOnce;
         });
 
         test("connect command executes successfully", async () => {
-            mockChatRequest.setup((x) => x.command).returns(() => "connect");
+            const chatRequest = createChatRequest("connect");
 
             const result = await handleChatCommand(
-                mockChatRequest.object,
-                mockChatStream.object,
-                mockMainController.object,
-                undefined, // Connect doesn't need existing connection
+                chatRequest,
+                chatStream,
+                mockMainController as unknown as MainController,
+                undefined,
             );
 
             expect(result.handled).to.be.true;
             expect(result.errorMessage).to.be.undefined;
-            mockMainController.verify((x) => x.onNewConnection(), TypeMoq.Times.once());
-            mockChatStream.verify((x) => x.markdown(TypeMoq.It.isAny()), TypeMoq.Times.once());
+            expect(mockMainController.onNewQueryWithConnection).to.have.been.calledOnceWithExactly(
+                undefined,
+                true,
+            );
+            expect(chatStreamMarkdownStub).to.have.been.calledOnce;
         });
 
         test("disconnect command executes successfully with connection", async () => {
-            mockChatRequest.setup((x) => x.command).returns(() => "disconnect");
+            const chatRequest = createChatRequest("disconnect");
 
             const result = await handleChatCommand(
-                mockChatRequest.object,
-                mockChatStream.object,
-                mockMainController.object,
+                chatRequest,
+                chatStream,
+                mockMainController as unknown as MainController,
                 sampleConnectionUri,
             );
 
             expect(result.handled).to.be.true;
             expect(result.errorMessage).to.be.undefined;
-            mockConnectionManager.verify(
-                (x) => x.disconnect(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
+            expect(mockConnectionManager.disconnect).to.have.been.calledOnceWithExactly(
+                sampleConnectionUri,
             );
         });
 
         test("getConnectionDetails command shows connection information", async () => {
-            mockChatRequest.setup((x) => x.command).returns(() => "getConnectionDetails");
+            const chatRequest = createChatRequest("getConnectionDetails");
 
             const result = await handleChatCommand(
-                mockChatRequest.object,
-                mockChatStream.object,
-                mockMainController.object,
+                chatRequest,
+                chatStream,
+                mockMainController as unknown as MainController,
                 sampleConnectionUri,
             );
 
             expect(result.handled).to.be.true;
             expect(result.errorMessage).to.be.undefined;
-            // isConnectionActive calls getConnectionInfo once, handler calls it again
-            mockConnectionManager.verify(
-                (x) => x.getConnectionInfo(TypeMoq.It.isAny()),
-                TypeMoq.Times.atLeastOnce(),
-            );
-            mockConnectionManager.verify(
-                (x) => x.getServerInfo(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
-            mockChatStream.verify((x) => x.markdown(TypeMoq.It.isAny()), TypeMoq.Times.once());
+            expect(mockConnectionManager.getConnectionInfo).to.have.been.called;
+            expect(mockConnectionManager.getServerInfo).to.have.been.calledOnce;
+            expect(chatStreamMarkdownStub).to.have.been.calledOnce;
         });
 
         test("changeDatabase command executes successfully", async () => {
-            mockChatRequest.setup((x) => x.command).returns(() => "changeDatabase");
+            const chatRequest = createChatRequest("changeDatabase");
 
             const result = await handleChatCommand(
-                mockChatRequest.object,
-                mockChatStream.object,
-                mockMainController.object,
+                chatRequest,
+                chatStream,
+                mockMainController as unknown as MainController,
                 sampleConnectionUri,
             );
 
             expect(result.handled).to.be.true;
             expect(result.errorMessage).to.be.undefined;
-            mockMainController.verify((x) => x.onChooseDatabase(), TypeMoq.Times.once());
+            expect(mockMainController.onChooseDatabase).to.have.been.calledOnce;
+        });
+
+        test("help command shows capabilities and button when disconnected", async () => {
+            const chatRequest = createChatRequest("help");
+            mockConnectionManager.getConnectionInfo.returns(undefined as unknown as ConnectionInfo);
+
+            const result = await handleChatCommand(
+                chatRequest,
+                chatStream,
+                mockMainController as unknown as MainController,
+                undefined, // No connection URI
+            );
+
+            expect(result.handled).to.be.true;
+            expect(result.errorMessage).to.be.undefined;
+            // Should show welcome message and all capabilities
+            expect(chatStreamMarkdownStub).to.have.been.called;
+            // Should show connection button since not connected
+            expect(chatStreamButtonStub).to.have.been.calledOnceWith(
+                sinon.match({ command: "mssql.copilot.newQueryWithConnection" }),
+            );
+        });
+
+        test("help command does not show button when connected", async () => {
+            const chatRequest = createChatRequest("help");
+            mockConnectionManager.getConnectionInfo.returns(connectionInfo);
+
+            const result = await handleChatCommand(
+                chatRequest,
+                chatStream,
+                mockMainController as unknown as MainController,
+                sampleConnectionUri, // Has connection
+            );
+
+            expect(result.handled).to.be.true;
+            expect(result.errorMessage).to.be.undefined;
+            // Should show welcome message and all capabilities
+            expect(chatStreamMarkdownStub).to.have.been.called;
+            // Should NOT show connection button since already connected
+            expect(chatStreamButtonStub).to.not.have.been.called;
         });
 
         test("listServers command executes successfully", async () => {
-            mockChatRequest.setup((x) => x.command).returns(() => "listServers");
+            const chatRequest = createChatRequest("listServers");
             const mockConnectionStore = {
-                readAllConnections: () =>
-                    Promise.resolve([
-                        {
-                            profileName: "Test Profile",
-                            server: "localhost",
-                            database: "testdb",
-                            authenticationType: "Integrated",
-                        },
-                    ]),
+                readAllConnections: async () => [
+                    {
+                        profileName: "Test Profile",
+                        server: "localhost",
+                        database: "testdb",
+                        authenticationType: "Integrated",
+                    },
+                ],
             };
-            mockConnectionManager
-                .setup((x) => x.connectionStore)
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .returns(() => mockConnectionStore as any);
+            sandbox
+                .stub(mockConnectionManager, "connectionStore")
+                .get(() => mockConnectionStore as unknown as ConnectionManager["connectionStore"]);
 
             const result = await handleChatCommand(
-                mockChatRequest.object,
-                mockChatStream.object,
-                mockMainController.object,
-                undefined, // listServers doesn't need connection
+                chatRequest,
+                chatStream,
+                mockMainController as unknown as MainController,
+                undefined,
             );
 
             expect(result.handled).to.be.true;
             expect(result.errorMessage).to.be.undefined;
-            mockChatStream.verify(
-                (x) => x.markdown(TypeMoq.It.isAny()),
-                TypeMoq.Times.atLeastOnce(),
-            );
+            expect(chatStreamMarkdownStub).to.have.been.called;
         });
 
         test("prompt substitute command returns promptToAdd", async () => {
-            mockChatRequest.setup((x) => x.command).returns(() => "runQuery");
+            const chatRequest = createChatRequest("runQuery");
 
             const result = await handleChatCommand(
-                mockChatRequest.object,
-                mockChatStream.object,
-                mockMainController.object,
+                chatRequest,
+                chatStream,
+                mockMainController as unknown as MainController,
                 sampleConnectionUri,
             );
 
-            expect(result.handled).to.be.false; // Prompt substitute commands don't handle completely
+            expect(result.handled).to.be.false;
             expect(result.promptToAdd).to.not.be.undefined;
-            expect(result.promptToAdd).to.contain("query"); // Should contain template text
+            expect(result.promptToAdd).to.contain("query");
         });
 
         test("command with exception returns error message", async () => {
-            mockChatRequest.setup((x) => x.command).returns(() => "listServers");
-            // Mock the connection store to throw an error
+            const chatRequest = createChatRequest("listServers");
             const mockConnectionStore = {
-                readAllConnections: () => Promise.reject(new Error("Database error")),
+                readAllConnections: async () => {
+                    throw new Error("Database error");
+                },
             };
-            mockConnectionManager
-                .setup((x) => x.connectionStore)
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .returns(() => mockConnectionStore as any);
+            sandbox
+                .stub(mockConnectionManager, "connectionStore")
+                .get(() => mockConnectionStore as unknown as ConnectionManager["connectionStore"]);
 
             const result = await handleChatCommand(
-                mockChatRequest.object,
-                mockChatStream.object,
-                mockMainController.object,
+                chatRequest,
+                chatStream,
+                mockMainController as unknown as MainController,
                 undefined,
             );
 
             expect(result.handled).to.be.true;
             expect(result.errorMessage).to.not.be.undefined;
-            // Just check that an error message exists
         });
     });
 
@@ -361,6 +395,44 @@ suite("Chat Commands Tests", () => {
             expect(skipLabelsCommands).to.include("connect");
             expect(skipLabelsCommands).to.include("disconnect");
             expect(skipLabelsCommands).to.include("getConnectionDetails");
+        });
+    });
+
+    suite("getConnectionButtonInfo Tests", () => {
+        test("returns 'Connect' label when SQL editor is active", () => {
+            // Set up active editor with SQL language
+            sandbox.stub(vscode.window, "activeTextEditor").value(mockActiveTextEditor);
+
+            const buttonInfo = getConnectionButtonInfo();
+
+            expect(buttonInfo.label).to.contain("Connect");
+            expect(buttonInfo.args.forceNewEditor).to.be.false;
+            expect(buttonInfo.args.forceConnect).to.be.true;
+        });
+
+        test("returns 'Open SQL editor and connect' label when no SQL editor active", () => {
+            // No active editor
+            sandbox.stub(vscode.window, "activeTextEditor").value(undefined);
+
+            const buttonInfo = getConnectionButtonInfo();
+
+            expect(buttonInfo.label).to.contain("Open SQL editor and connect");
+            expect(buttonInfo.args.forceNewEditor).to.be.true;
+            expect(buttonInfo.args.forceConnect).to.be.true;
+        });
+
+        test("returns 'Open SQL editor and connect' when active editor is not SQL", () => {
+            // Active editor with non-SQL language
+            const nonSqlEditor = {
+                document: { languageId: "typescript" },
+            } as vscode.TextEditor;
+            sandbox.stub(vscode.window, "activeTextEditor").value(nonSqlEditor);
+
+            const buttonInfo = getConnectionButtonInfo();
+
+            expect(buttonInfo.label).to.contain("Open SQL editor and connect");
+            expect(buttonInfo.args.forceNewEditor).to.be.true;
+            expect(buttonInfo.args.forceConnect).to.be.true;
         });
     });
 });
