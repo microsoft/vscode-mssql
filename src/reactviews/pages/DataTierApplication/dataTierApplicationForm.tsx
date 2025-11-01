@@ -28,6 +28,7 @@ import {
     ExtractDacpacWebviewRequest,
     ImportBacpacWebviewRequest,
     ExportBacpacWebviewRequest,
+    GetSuggestedDatabaseNameWebviewRequest,
     GetSuggestedOutputPathWebviewRequest,
     InitializeConnectionWebviewRequest,
     ValidateFilePathWebviewRequest,
@@ -685,6 +686,29 @@ export const DataTierApplicationForm = () => {
             setValidationMessages(newMessages);
             // Validate the selected file path
             await validateFilePath(result.filePath, requiresInputFile);
+
+            // For Deploy/Import operations, suggest database name from the selected file
+            if (
+                requiresInputFile &&
+                context?.extensionRpc &&
+                (operationType === DataTierOperationType.Deploy ||
+                    operationType === DataTierOperationType.Import)
+            ) {
+                const nameResult = await context.extensionRpc.sendRequest(
+                    GetSuggestedDatabaseNameWebviewRequest.type,
+                    {
+                        filePath: result.filePath,
+                    },
+                );
+
+                if (nameResult?.databaseName) {
+                    setDatabaseName(nameResult.databaseName);
+                    // Clear any existing database name validation errors
+                    const updatedMessages = { ...validationMessages };
+                    delete updatedMessages.databaseName;
+                    setValidationMessages(updatedMessages);
+                }
+            }
         }
     };
 
@@ -740,6 +764,10 @@ export const DataTierApplicationForm = () => {
                             onChange={(_, data) => {
                                 setOperationType(data.value as DataTierOperationType);
                                 setValidationMessages({});
+                                // Reset file path when switching operation types
+                                // Import/Deploy need empty (browse for existing file)
+                                // Export/Extract will be set when database name changes
+                                setFilePath("");
                             }}
                             disabled={isOperationInProgress}
                             aria-label={locConstants.dataTierApplication.operationLabel}>

@@ -323,6 +323,16 @@ export namespace GetSuggestedOutputPathWebviewRequest {
 }
 
 /**
+ * Request to get the suggested database name from a file path
+ * Extracts database name from the filename without extension or timestamps
+ */
+export namespace GetSuggestedDatabaseNameWebviewRequest {
+    export const type = new RequestType<{ filePath: string }, { databaseName: string }, void>(
+        "dataTierApplication/getSuggestedDatabaseName",
+    );
+}
+
+/**
  * Request to show a confirmation dialog for deploying to an existing database
  */
 export namespace ConfirmDeployToExistingWebviewRequest {

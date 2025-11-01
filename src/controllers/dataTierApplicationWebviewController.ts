@@ -32,6 +32,7 @@ import {
     ExportBacpacWebviewRequest,
     ExtractDacpacParams,
     ExtractDacpacWebviewRequest,
+    GetSuggestedDatabaseNameWebviewRequest,
     GetSuggestedOutputPathWebviewRequest,
     ImportBacpacParams,
     ImportBacpacWebviewRequest,
@@ -226,22 +227,14 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
                 const fileExtension =
                     params.operationType === DataTierOperationType.Extract ? "dacpac" : "bacpac";
 
-                // Format timestamp as yyyy-MM-dd-HH-mm using Intl.DateTimeFormat
+                // Format timestamp as yyyy-MM-dd-HH-mm
                 const now = new Date();
-                const dateFormatter = new Intl.DateTimeFormat("en-US", {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                });
-                const timeFormatter = new Intl.DateTimeFormat("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                });
-
-                const datePart = dateFormatter.format(now); // yyyy-MM-dd
-                const timePart = timeFormatter.format(now).replace(/:/g, "-"); // HH-mm
-                const timestamp = `${datePart}-${timePart}`;
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, "0");
+                const day = String(now.getDate()).padStart(2, "0");
+                const hours = String(now.getHours()).padStart(2, "0");
+                const minutes = String(now.getMinutes()).padStart(2, "0");
+                const timestamp = `${year}-${month}-${day}-${hours}-${minutes}`;
 
                 const suggestedFileName = `${params.databaseName}-${timestamp}.${fileExtension}`;
 
@@ -252,6 +245,21 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
                     : vscode.Uri.file(path.join(require("os").homedir(), suggestedFileName));
 
                 return { fullPath: defaultUri.fsPath };
+            },
+        );
+
+        // Get suggested database name from file path
+        this.onRequest(
+            GetSuggestedDatabaseNameWebviewRequest.type,
+            async (params: { filePath: string }) => {
+                // Extract filename without directory path
+                const fileName = path.basename(params.filePath);
+
+                // Remove file extension (.dacpac or .bacpac) to get the database name
+                // Keep the full filename including any timestamps that may be present
+                const databaseName = fileName.replace(/\.(dacpac|bacpac)$/i, "");
+
+                return { databaseName };
             },
         );
 

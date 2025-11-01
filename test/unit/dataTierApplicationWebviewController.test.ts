@@ -21,6 +21,7 @@ import {
     DeployDacpacWebviewRequest,
     ExportBacpacWebviewRequest,
     ExtractDacpacWebviewRequest,
+    GetSuggestedDatabaseNameWebviewRequest,
     GetSuggestedOutputPathWebviewRequest,
     ImportBacpacWebviewRequest,
     InitializeConnectionWebviewRequest,
@@ -627,6 +628,73 @@ suite("DataTierApplicationWebviewController", () => {
 
             expect(result.fullPath).to.include(".bacpac");
             expect(result.fullPath).to.not.include(".dacpac");
+        });
+
+        test("get suggested database name removes extension from simple filename", async () => {
+            createController();
+
+            const requestHandler = requestHandlers.get(
+                GetSuggestedDatabaseNameWebviewRequest.type.method,
+            );
+            const result = await requestHandler!({
+                filePath: "C:\\files\\AdventureWorks.dacpac",
+            });
+
+            expect(result.databaseName).to.equal("AdventureWorks");
+        });
+
+        test("get suggested database name keeps timestamp in filename", async () => {
+            createController();
+
+            const requestHandler = requestHandlers.get(
+                GetSuggestedDatabaseNameWebviewRequest.type.method,
+            );
+            const result = await requestHandler!({
+                filePath: "C:\\files\\AdventureWorks-2025-10-31-14-30.dacpac",
+            });
+
+            expect(result.databaseName).to.equal("AdventureWorks-2025-10-31-14-30");
+        });
+
+        test("get suggested database name works with .bacpac extension", async () => {
+            createController();
+
+            const requestHandler = requestHandlers.get(
+                GetSuggestedDatabaseNameWebviewRequest.type.method,
+            );
+            const result = await requestHandler!({
+                filePath: "/home/user/MyDatabase.bacpac",
+            });
+
+            expect(result.databaseName).to.equal("MyDatabase");
+        });
+
+        test("get suggested database name handles complex filename with multiple hyphens", async () => {
+            createController();
+
+            const requestHandler = requestHandlers.get(
+                GetSuggestedDatabaseNameWebviewRequest.type.method,
+            );
+            const result = await requestHandler!({
+                filePath: "C:\\exports\\My-Complex-Database-Name-2025-01-15-10-30.bacpac",
+            });
+
+            expect(result.databaseName).to.equal("My-Complex-Database-Name-2025-01-15-10-30");
+        });
+
+        test("get suggested database name extracts only filename from full path", async () => {
+            createController();
+
+            const requestHandler = requestHandlers.get(
+                GetSuggestedDatabaseNameWebviewRequest.type.method,
+            );
+            const result = await requestHandler!({
+                filePath: "C:\\very\\long\\path\\to\\files\\TestDB.dacpac",
+            });
+
+            expect(result.databaseName).to.equal("TestDB");
+            expect(result.databaseName).to.not.include("path");
+            expect(result.databaseName).to.not.include("files");
         });
     });
 

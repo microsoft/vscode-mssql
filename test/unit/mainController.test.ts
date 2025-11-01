@@ -5,7 +5,7 @@
 
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
-import { expect } from "chai";
+import { expect, assert } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
 import * as Extension from "../../src/extension";
