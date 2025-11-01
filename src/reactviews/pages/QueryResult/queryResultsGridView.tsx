@@ -156,6 +156,11 @@ export const QueryResultsGridView = () => {
 
                 const isMaximized = maximizedGridKey === gridKey;
                 const shouldHide = maximizedGridKey !== undefined && !isMaximized;
+                /**
+                 * When a grid is minimized, we unmount it to allow it to re-measure its dimensions
+                 * when it is restored. This ensures that the grid layout is correct based on the
+                 * available space and restores its column dimensions properly.
+                 */
                 if (shouldHide) {
                     return undefined;
                 }
