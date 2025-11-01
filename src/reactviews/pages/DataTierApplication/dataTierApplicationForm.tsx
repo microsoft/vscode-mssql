@@ -28,6 +28,7 @@ import {
     ExtractDacpacWebviewRequest,
     ImportBacpacWebviewRequest,
     ExportBacpacWebviewRequest,
+    GetSuggestedOutputPathWebviewRequest,
     InitializeConnectionWebviewRequest,
     ValidateFilePathWebviewRequest,
     ListDatabasesWebviewRequest,
@@ -178,6 +179,33 @@ export const DataTierApplicationForm = () => {
             void loadDatabases();
         }
     }, [operationType, ownerUri]);
+
+    // Update file path suggestion when database or operation type changes for Export/Extract
+    useEffect(() => {
+        const updateSuggestedPath = async () => {
+            if (
+                databaseName &&
+                (operationType === DataTierOperationType.Extract ||
+                    operationType === DataTierOperationType.Export) &&
+                context?.extensionRpc
+            ) {
+                // Get the suggested full path from the controller
+                const result = await context.extensionRpc.sendRequest(
+                    GetSuggestedOutputPathWebviewRequest.type,
+                    {
+                        databaseName,
+                        operationType,
+                    },
+                );
+
+                if (result?.fullPath) {
+                    setFilePath(result.fullPath);
+                }
+            }
+        };
+
+        void updateSuggestedPath();
+    }, [databaseName, operationType, context]);
 
     const loadConnections = async () => {
         try {
@@ -619,7 +647,30 @@ export const DataTierApplicationForm = () => {
             });
         } else {
             // Browse for output file (Extract or Export)
-            const defaultFileName = `${initialDatabaseName || "database"}.${fileExtension}`;
+            // Use the suggested filename from state, or fallback to a default
+            let defaultFileName = filePath;
+
+            if (!defaultFileName) {
+                // Generate default filename with timestamp using Intl.DateTimeFormat
+                const now = new Date();
+                const dateFormatter = new Intl.DateTimeFormat("en-US", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                });
+                const timeFormatter = new Intl.DateTimeFormat("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                });
+
+                const datePart = dateFormatter.format(now); // yyyy-MM-dd
+                const timePart = timeFormatter.format(now).replace(/:/g, "-"); // HH-mm
+                const timestamp = `${datePart}-${timePart}`;
+
+                defaultFileName = `${databaseName || "database"}-${timestamp}.${fileExtension}`;
+            }
+
             result = await context?.extensionRpc?.sendRequest(BrowseOutputFileWebviewRequest.type, {
                 fileExtension,
                 defaultFileName,

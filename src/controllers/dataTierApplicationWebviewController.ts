@@ -32,6 +32,7 @@ import {
     ExportBacpacWebviewRequest,
     ExtractDacpacParams,
     ExtractDacpacWebviewRequest,
+    GetSuggestedOutputPathWebviewRequest,
     ImportBacpacParams,
     ImportBacpacWebviewRequest,
     InitializeConnectionWebviewRequest,
@@ -215,6 +216,42 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
                 }
 
                 return { filePath: fileUri.fsPath };
+            },
+        );
+
+        // Get default output path without showing dialog
+        this.onRequest(
+            GetSuggestedOutputPathWebviewRequest.type,
+            async (params: { databaseName: string; operationType: DataTierOperationType }) => {
+                const fileExtension =
+                    params.operationType === DataTierOperationType.Extract ? "dacpac" : "bacpac";
+
+                // Format timestamp as yyyy-MM-dd-HH-mm using Intl.DateTimeFormat
+                const now = new Date();
+                const dateFormatter = new Intl.DateTimeFormat("en-US", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                });
+                const timeFormatter = new Intl.DateTimeFormat("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                });
+
+                const datePart = dateFormatter.format(now); // yyyy-MM-dd
+                const timePart = timeFormatter.format(now).replace(/:/g, "-"); // HH-mm
+                const timestamp = `${datePart}-${timePart}`;
+
+                const suggestedFileName = `${params.databaseName}-${timestamp}.${fileExtension}`;
+
+                // Get workspace folder or home directory
+                const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
+                const defaultUri = workspaceFolder
+                    ? vscode.Uri.joinPath(workspaceFolder, suggestedFileName)
+                    : vscode.Uri.file(path.join(require("os").homedir(), suggestedFileName));
+
+                return { fullPath: defaultUri.fsPath };
             },
         );
 

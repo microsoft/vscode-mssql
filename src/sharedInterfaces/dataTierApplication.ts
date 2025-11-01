@@ -311,6 +311,18 @@ export namespace BrowseOutputFileWebviewRequest {
 }
 
 /**
+ * Request to get the suggested full path for an output file without showing dialog
+ * Generates path with timestamp based on database name and operation type
+ */
+export namespace GetSuggestedOutputPathWebviewRequest {
+    export const type = new RequestType<
+        { databaseName: string; operationType: DataTierOperationType },
+        { fullPath: string },
+        void
+    >("dataTierApplication/getSuggestedOutputPath");
+}
+
+/**
  * Request to show a confirmation dialog for deploying to an existing database
  */
 export namespace ConfirmDeployToExistingWebviewRequest {

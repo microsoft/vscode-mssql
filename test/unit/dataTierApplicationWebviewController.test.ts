@@ -21,6 +21,7 @@ import {
     DeployDacpacWebviewRequest,
     ExportBacpacWebviewRequest,
     ExtractDacpacWebviewRequest,
+    GetSuggestedOutputPathWebviewRequest,
     ImportBacpacWebviewRequest,
     InitializeConnectionWebviewRequest,
     ListConnectionsWebviewRequest,
@@ -501,6 +502,131 @@ suite("DataTierApplicationWebviewController", () => {
 
             expect(showSaveDialogStub).to.have.been.calledOnce;
             expect(response.filePath).to.be.undefined;
+        });
+
+        test("browse output file uses workspace folder as default location when available", async () => {
+            const workspaceFolder = vscode.Uri.file("/workspace/myproject");
+            sandbox
+                .stub(vscode.workspace, "workspaceFolders")
+                .get(() => [{ uri: workspaceFolder, name: "myproject", index: 0 }]);
+
+            const mockUri = vscode.Uri.file("/workspace/myproject/database.dacpac");
+            showSaveDialogStub.resolves(mockUri);
+            createController();
+
+            const requestHandler = requestHandlers.get(BrowseOutputFileWebviewRequest.type.method);
+            await requestHandler!({
+                fileExtension: "dacpac",
+                defaultFileName: "database.dacpac",
+            });
+
+            expect(showSaveDialogStub).to.have.been.calledOnce;
+            const options = showSaveDialogStub.firstCall.args[0];
+            expect(options.defaultUri.fsPath).to.include("myproject");
+            expect(options.defaultUri.fsPath).to.include("database.dacpac");
+        });
+
+        test("browse output file falls back to home directory when no workspace folder available", async () => {
+            sandbox.stub(vscode.workspace, "workspaceFolders").get(() => undefined);
+
+            const mockUri = vscode.Uri.file("/home/user/database.bacpac");
+            showSaveDialogStub.resolves(mockUri);
+            createController();
+
+            const requestHandler = requestHandlers.get(BrowseOutputFileWebviewRequest.type.method);
+            await requestHandler!({
+                fileExtension: "bacpac",
+                defaultFileName: "database.bacpac",
+            });
+
+            expect(showSaveDialogStub).to.have.been.calledOnce;
+            const options = showSaveDialogStub.firstCall.args[0];
+            // Should use home directory - verify it doesn't contain workspace path
+            expect(options.defaultUri.fsPath).to.not.include("workspace");
+            expect(options.defaultUri.fsPath).to.include("database.bacpac");
+        });
+
+        test("get suggested output path generates full path with workspace folder", async () => {
+            const workspaceFolder = vscode.Uri.file("/workspace/myproject");
+            sandbox
+                .stub(vscode.workspace, "workspaceFolders")
+                .get(() => [{ uri: workspaceFolder, name: "myproject", index: 0 }]);
+
+            createController();
+
+            const requestHandler = requestHandlers.get(
+                GetSuggestedOutputPathWebviewRequest.type.method,
+            );
+            const result = await requestHandler!({
+                databaseName: "AdventureWorks",
+                operationType: DataTierOperationType.Extract,
+            });
+
+            expect(result.fullPath).to.include("myproject");
+            expect(result.fullPath).to.include("AdventureWorks");
+            expect(result.fullPath).to.include(".dacpac");
+            // Should include timestamp in format yyyy-MM-dd-HH-mm
+            expect(result.fullPath).to.match(/\d{4}-\d{2}-\d{2}-\d{2}-\d{2}/);
+        });
+
+        test("get suggested output path falls back to home directory when no workspace", async () => {
+            sandbox.stub(vscode.workspace, "workspaceFolders").get(() => undefined);
+
+            createController();
+
+            const requestHandler = requestHandlers.get(
+                GetSuggestedOutputPathWebviewRequest.type.method,
+            );
+            const result = await requestHandler!({
+                databaseName: "TestDB",
+                operationType: DataTierOperationType.Export,
+            });
+
+            expect(result.fullPath).to.not.include("workspace");
+            expect(result.fullPath).to.include("TestDB");
+            expect(result.fullPath).to.include(".bacpac");
+            // Should include timestamp in format yyyy-MM-dd-HH-mm
+            expect(result.fullPath).to.match(/\d{4}-\d{2}-\d{2}-\d{2}-\d{2}/);
+        });
+
+        test("get suggested output path uses correct extension for Extract", async () => {
+            const workspaceFolder = vscode.Uri.file("/workspace/test");
+            sandbox
+                .stub(vscode.workspace, "workspaceFolders")
+                .get(() => [{ uri: workspaceFolder, name: "test", index: 0 }]);
+
+            createController();
+
+            const requestHandler = requestHandlers.get(
+                GetSuggestedOutputPathWebviewRequest.type.method,
+            );
+            const result = await requestHandler!({
+                databaseName: "MyDB",
+                operationType: DataTierOperationType.Extract,
+            });
+
+            expect(result.fullPath).to.include(".dacpac");
+            expect(result.fullPath).to.not.include(".bacpac");
+        });
+
+        test("get suggested output path uses correct extension for Export", async () => {
+            const workspaceFolder = vscode.Uri.file("/workspace/test");
+            sandbox
+                .stub(vscode.workspace, "workspaceFolders")
+                .get(() => [{ uri: workspaceFolder, name: "test", index: 0 }]);
+
+            createController();
+
+            const requestHandler = requestHandlers.get(
+                GetSuggestedOutputPathWebviewRequest.type.method,
+            );
+            const result = await requestHandler!({
+                databaseName: "MyDB",
+                operationType: DataTierOperationType.Export,
+            });
+
+            expect(result.fullPath).to.include(".bacpac");
+            expect(result.fullPath).to.not.include(".dacpac");
         });
     });
 
