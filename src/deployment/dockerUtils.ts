@@ -374,8 +374,11 @@ interface DockerCommand {
  * Safe command execution helper that uses spawn
  */
 async function execDockerCommand(cmd: DockerCommand): Promise<string> {
-    // Ensure PATH is fixed for macOS/Linux environments; sometimes when launched from VS Code, PATH can be incomplete
+    // Ensure PATH is fixed for macOS/Linux environments; sometimes when launched from VS Code,
+    // PATH can inherited incorrectly ie. GUI apps on macOS
+    // and Linux do not inherit the $PATH defined in your dotfiles
     fixPath();
+
     return new Promise((resolve, reject) => {
         const process = spawn(cmd.command, cmd.args, {
             stdio: ["ignore", "pipe", "pipe"],
