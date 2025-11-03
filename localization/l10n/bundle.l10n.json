@@ -1585,6 +1585,7 @@
         "comment": ["{0} is the error message"]
     },
     "An unknown error occurred. Please try again.": "An unknown error occurred. Please try again.",
+    "This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.": "This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.",
     "Open SQL editor and connect": "Open SQL editor and connect",
     "An active connection is required for GitHub Copilot to understand your database schema and proceed.\nSelect \"{0}\" to establish a connection./{0} is the button text (e.g., 'Connect' or 'Open SQL editor and connect')": {
         "message": "An active connection is required for GitHub Copilot to understand your database schema and proceed.\nSelect \"{0}\" to establish a connection.",

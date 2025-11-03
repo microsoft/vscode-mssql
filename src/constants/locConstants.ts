@@ -1607,6 +1607,9 @@ export class MssqlChatAgent {
         });
     };
     public static unknownErrorOccurred = l10n.t("An unknown error occurred. Please try again.");
+    public static messageCouldNotBeProcessed = l10n.t(
+        "This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.",
+    );
     public static connect = l10n.t("Connect");
     public static openSqlEditorAndConnect = l10n.t("Open SQL editor and connect");
     public static connectionRequiredMessage = (buttonText: string) => {
