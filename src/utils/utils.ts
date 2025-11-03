@@ -124,9 +124,9 @@ export function getEditorInstanceKey(editor?: vscode.TextEditor): string | undef
 /**
  * Extracts the document URI from an editor instance key.
  * @param editorInstanceKey The editor instance key to extract the URI from
- * @returns The document URI portion of the key
+ * @returns The document URI portion of the key, or undefined if the key is invalid
  */
-export function getDocumentUriFromEditorKey(editorInstanceKey: string): string {
+export function getDocumentUriFromEditorKey(editorInstanceKey: string): string | undefined {
     if (!editorInstanceKey) {
         return undefined;
     }
