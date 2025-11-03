@@ -3,7 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Field, Dropdown, Option, Input, Checkbox, Button } from "@fluentui/react-components";
+import {
+    Field,
+    Dropdown,
+    Option,
+    Input,
+    Checkbox,
+    Button,
+    Combobox,
+} from "@fluentui/react-components";
 import { EyeOffRegular, EyeRegular } from "@fluentui/react-icons";
 import { FormItemType } from "../../../../sharedInterfaces/form";
 import type { PublishDialogFormItemSpec } from "../../../../sharedInterfaces/publishDialog";
@@ -25,6 +33,8 @@ export function renderInput(
         showPassword?: boolean;
         onTogglePassword?: () => void;
         onChange?: (value: string) => void;
+        readOnly?: boolean;
+        contentAfter?: React.ReactElement;
     },
 ) {
     if (!component || component.hidden) return undefined;
@@ -41,7 +51,7 @@ export function renderInput(
                 propertyName: component.propertyName,
                 isAction: false,
                 value: newValue,
-                updateValidation: false,
+                updateValidation: true,
             });
         }
     };
@@ -66,15 +76,18 @@ export function renderInput(
             validationState={getValidationState(component.validation)}
             orientation="horizontal">
             <Input
-                size="medium"
+                size="small"
                 type={isPasswordField ? (options?.showPassword ? "text" : "password") : "text"}
                 value={value}
                 placeholder={component.placeholder ?? ""}
                 required={component.required}
+                readOnly={options?.readOnly}
                 onChange={(_, data) => handleChange(data.value)}
                 onBlur={(e) => handleBlur(e.target.value)}
                 contentAfter={
-                    isPasswordField && options?.onTogglePassword ? (
+                    options?.contentAfter ? (
+                        options.contentAfter
+                    ) : isPasswordField && options?.onTogglePassword ? (
                         <Button
                             onClick={options.onTogglePassword}
                             icon={options.showPassword ? <EyeRegular /> : <EyeOffRegular />}
@@ -130,7 +143,7 @@ export function renderDropdown(
             validationState={getValidationState(component.validation)}
             orientation="horizontal">
             <Dropdown
-                size="medium"
+                size="small"
                 selectedOptions={value ? [value] : []}
                 value={
                     component.options.find(
@@ -142,7 +155,8 @@ export function renderDropdown(
                     if (data.optionValue) {
                         handleChange(data.optionValue);
                     }
-                }}>
+                }}
+                aria-label={component.label}>
                 {component.options.map(
                     (opt: { value: string; displayName: string; color?: string }, i: number) => (
                         <Option key={opt.value + i} value={opt.value} color={opt.color}>
@@ -151,6 +165,53 @@ export function renderDropdown(
                     ),
                 )}
             </Dropdown>
+        </Field>
+    );
+}
+
+/*
+ * Generic Combobox Field - can be used for editable dropdowns (allows custom text input)
+ */
+export function renderCombobox(
+    component: PublishDialogFormItemSpec | undefined,
+    value: string | undefined,
+    freeform: boolean | undefined,
+    onChange: (value: string) => void,
+) {
+    if (!component || component.hidden) return undefined;
+    if (component.type !== FormItemType.Dropdown) return undefined;
+    if (!freeform && !component.options) return undefined;
+
+    return (
+        <Field
+            key={component.propertyName}
+            required={component.required}
+            label={component.label}
+            validationMessage={component.validation?.validationMessage}
+            validationState={getValidationState(component.validation)}
+            orientation="horizontal">
+            <Combobox
+                size="small"
+                freeform={freeform || false}
+                value={value || ""}
+                placeholder={component.placeholder ?? ""}
+                onOptionSelect={(_, data) => {
+                    if (data.optionValue) {
+                        onChange(data.optionValue);
+                    }
+                }}
+                onChange={(event) => {
+                    // Allow custom text input
+                    onChange(event.currentTarget.value);
+                }}>
+                {component.options?.map(
+                    (opt: { value: string; displayName: string; color?: string }, i: number) => (
+                        <Option key={opt.value + i} value={opt.value} text={opt.displayName}>
+                            {opt.displayName}
+                        </Option>
+                    ),
+                )}
+            </Combobox>
         </Field>
     );
 }
@@ -202,6 +263,7 @@ export function renderCheckbox(
                     whiteSpace: "nowrap",
                 }}>
                 <Checkbox
+                    size="medium"
                     checked={checked}
                     onChange={(_, data) => handleChange(data.checked === true)}
                 />

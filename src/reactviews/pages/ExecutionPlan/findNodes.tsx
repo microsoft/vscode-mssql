@@ -147,7 +147,8 @@ export const FindNode: React.FC<FindNodeProps> = ({
                     setFindNodeResultsIndex(-1);
                     setFindNodeResults([]);
                 }}
-                ref={inputRef}>
+                ref={inputRef}
+                aria-label={locConstants.executionPlan.findNode}>
                 {findNodeOptions.map((option) => (
                     <Option key={option} className={classes.option}>
                         {option}
@@ -169,7 +170,8 @@ export const FindNode: React.FC<FindNodeProps> = ({
                     setFindNodeComparisonSelection(data.optionText ?? findNodeComparisonOptions[0]);
                     setFindNodeResultsIndex(-1);
                     setFindNodeResults([]);
-                }}>
+                }}
+                aria-label={locConstants.executionPlan.findNode}>
                 {findNodeComparisonOptions.map((option) => (
                     <Option key={option} className={classes.option}>
                         {option}

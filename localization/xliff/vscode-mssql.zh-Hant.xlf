@@ -63,6 +63,10 @@
         <source xml:lang="en">A query is already running for this editor session. Please cancel this query or wait for its completion.</source>
         <target state="translated">此編輯器工作階段已經在執行查詢。請取消這項查詢，或等待查詢完成。</target>
       </trans-unit>
+      <trans-unit id="++CODE++9aa3df89bd0844fc7cab254d4e810af6cf12b5d9fa011b7675f45bbae8bcadf7">
+        <source xml:lang="en">Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts</source>
+        <target state="new">Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts</target>
+      </trans-unit>
       <trans-unit id="++CODE++89713b9c9c1b8f659c9f49db25e4a47886dd673fee248c3f650391f09a759cef">
         <source xml:lang="en">Accept</source>
         <target state="translated">接受</target>
@@ -207,6 +211,13 @@
         <source xml:lang="en">Always show in new tab</source>
         <target state="translated">一律在新索引標籤中顯示</target>
       </trans-unit>
+      <trans-unit id="++CODE++df50fadac20ad5c3b190a9af94532fd84c01e0787f15b55212fa2f41de09a091">
+        <source xml:lang="en">An active connection is required for GitHub Copilot to understand your database schema and proceed.
+Select "{0}" to establish a connection.</source>
+        <note>{0} is the button text (e.g., 'Connect' or 'Open SQL editor and connect')</note>
+        <target state="new">An active connection is required for GitHub Copilot to understand your database schema and proceed.
+Select "{0}" to establish a connection.</target>
+      </trans-unit>
       <trans-unit id="++CODE++d4fd4b3da177dfc06dbcde0a7f62d637dbf3d90298fdc9b6aeba4f9230441e1f">
         <source xml:lang="en">An error occurred refreshing nodes. See the MSSQL output channel for more details.</source>
         <target state="translated">重新整理節點時發生錯誤。如需詳細資料，請參閱 MSSQL 輸出通道。</target>
@@ -271,6 +282,10 @@
       <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
         <source xml:lang="en">Apply changes to target</source>
         <target state="translated">將變更套用至目標</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c4a87b18e24f113de61cbf89c652cf2ecc1d73abd2d01baf409c174c8242ef7d">
+        <source xml:lang="en">Apply contextual suggestions for SQL syntax, relationships, and constraints</source>
+        <target state="new">Apply contextual suggestions for SQL syntax, relationships, and constraints</target>
       </trans-unit>
       <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
         <source xml:lang="en">Approve</source>
@@ -825,6 +840,11 @@
         <source xml:lang="en">Column name cannot be empty</source>
         <target state="translated">資料行名稱不可以是空的</target>
       </trans-unit>
+      <trans-unit id="++CODE++79304c2a3f7dd799711c04e0513ca9fce1762fbdbf0e8dbd378987d42e35fee5">
+        <source xml:lang="en">Column width must be at least {0} pixels.</source>
+        <note>{0} is the minimum column width in pixels</note>
+        <target state="translated">資料行寬度必須至少為 {0} 像素。</target>
+      </trans-unit>
       <trans-unit id="++CODE++53aade77cd69a77bbb51bf8ca4e7ea8b282db75edce8883775e47042478d35b5">
         <source xml:lang="en">Columns</source>
         <target state="translated">資料行</target>
@@ -867,7 +887,7 @@
       </trans-unit>
       <trans-unit id="++CODE++73dd96f4085ccfca56f43ca281a29ab8d195fe5fc79b4cb45be11d7830230d63">
         <source xml:lang="en">Confirm SQL Server admin password</source>
-        <target state="new">Confirm SQL Server admin password</target>
+        <target state="translated">確認 SQL Server 管理員密碼</target>
       </trans-unit>
       <trans-unit id="++CODE++bf000421aeb39493cf8044ec73846d7da8ca97b7166208c0d1172a17ba23a388">
         <source xml:lang="en">Confirm new password</source>
@@ -896,6 +916,10 @@
       <trans-unit id="++CODE++62de0ed6dbc2218844092662823ae95ac4a9b3cfa6568aeb9913bd4c96512c54">
         <source xml:lang="en">Connect to Server</source>
         <target state="translated">連接至伺服器</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b34d1cdc1ec3705ae1fac0b6b10b411a0d5f271dfc967f647c99784ba9a323bb">
+        <source xml:lang="en">Connect to a database</source>
+        <target state="new">Connect to a database</target>
       </trans-unit>
       <trans-unit id="++CODE++b2c490a777ddf796ff31f0e2a230e002b1329f808ec37cf885ad1bfcd7696ca3">
         <source xml:lang="en">Connect to server {0} and database {1}?</source>
@@ -1065,6 +1089,10 @@
         <source xml:lang="en">Container Name</source>
         <target state="translated">容器名稱</target>
       </trans-unit>
+      <trans-unit id="++CODE++ac2c68de32aa4911b308194e21f3d6754c675df3e7a84a21e90b097451b58572">
+        <source xml:lang="en">Container creation isn't supported on this system. ARM support will be available starting with the SQL Server 2025 CU1 container image.</source>
+        <target state="translated">此系統上不支援建立容器。ARM 支援將隨著 SQL Server 2025 CU1 容器映像開始提供。</target>
+      </trans-unit>
       <trans-unit id="++CODE++06659b52e63599b06c4386ad5423c3dc67b010f0dbbd03cba2f48b68ed1b62f5">
         <source xml:lang="en">Container does not exist. Would you like to remove the connection?</source>
         <target state="translated">容器不存在。要移除連線嗎?</target>
@@ -1233,6 +1261,10 @@
       <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
         <source xml:lang="en">Custom Zoom</source>
         <target state="translated">自訂縮放</target>
+      </trans-unit>
+      <trans-unit id="++CODE++ef695e4c384e9b231d25ba5d0160913f31f4153f460e645129860fa611a52b27">
+        <source xml:lang="en">DacFx service is not available</source>
+        <target state="translated">DacFx 服務無法使用</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -1537,6 +1569,10 @@
         <source xml:lang="en">Enter description (optional)</source>
         <target state="translated">輸入描述 (選用)</target>
       </trans-unit>
+      <trans-unit id="++CODE++657e6ba252bef59f38c0dbaab7e8e25d55503ba3a41d6ce527f92c88baea3576">
+        <source xml:lang="en">Enter desired column width in pixels</source>
+        <target state="translated">輸入所需的資料行寬度 (以像素為單位)</target>
+      </trans-unit>
       <trans-unit id="++CODE++caaac8aa0d0641aea8406e7f1011aaeab33423fdd4ee9b3354ee88cc1487b0bf">
         <source xml:lang="en">Enter hostname</source>
         <target state="translated">輸入主機名稱</target>
@@ -1731,7 +1767,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b5f54c19df1649916f59331f9decf53dc337a2c241a3afb20d58810309ebe30f">
         <source xml:lang="en">Existing Azure SQL logical server</source>
-        <target state="new">Existing Azure SQL logical server</target>
+        <target state="translated">現有的 Azure SQL 邏輯伺服器</target>
       </trans-unit>
       <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
         <source xml:lang="en">Existing SQL server</source>
@@ -1752,6 +1788,10 @@ Error:
       <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
         <source xml:lang="en">Expand properties pane</source>
         <target state="translated">展開屬性窗格</target>
+      </trans-unit>
+      <trans-unit id="++CODE++94138882fa79d94e5c8eb6335f75a2e88f4f1cffbe0ea7b598dd0c9fad748470">
+        <source xml:lang="en">Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance</source>
+        <target state="new">Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance</target>
       </trans-unit>
       <trans-unit id="++CODE++c39d646f10769b078ae82be4da7a0079ca91182b241e749be4276e08c215c654">
         <source xml:lang="en">Explorer</source>
@@ -1888,6 +1928,14 @@ Error:
 {1} is the account name</note>
         <target state="translated">無法取得帳戶 '{1}' 的租用戶 '{0}'。</target>
       </trans-unit>
+      <trans-unit id="++CODE++11b16df18b896654fb041aa90fd64079d60b741da33d4b5f931d75f8dcc7d1a4">
+        <source xml:lang="en">Failed to list databases</source>
+        <target state="new">Failed to list databases</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
+        <source xml:lang="en">Failed to load publish profile</source>
+        <target state="translated">無法載入發佈設定檔</target>
+      </trans-unit>
       <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
         <note>{0} is the error message returned from the open scmp operation</note>
@@ -1902,6 +1950,10 @@ Error:
         <note>{0} is the connection id
 {1} is the uri</note>
         <target state="translated">無法重新整理 URI 為 {0} 的連線 ${1}，連線結果無效。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
+        <source xml:lang="en">Failed to save publish profile</source>
+        <target state="translated">無法儲存發佈設定檔</target>
       </trans-unit>
       <trans-unit id="++CODE++283dc9bd4f27ff0efed1b3ac27910746f64f860e2e0c2240f9723ff02c1dc29c">
         <source xml:lang="en">Failed to save results. </source>
@@ -2094,6 +2146,10 @@ Error:
         <source xml:lang="en">Generate Script</source>
         <target state="translated">產生指令碼</target>
       </trans-unit>
+      <trans-unit id="++CODE++733db825a41becaf624d0bcff31bacf744e7bcdb3412fffbb0fb12afdd89a1a8">
+        <source xml:lang="en">Generate mock data and seed scripts to support testing and development environments</source>
+        <target state="new">Generate mock data and seed scripts to support testing and development environments</target>
+      </trans-unit>
       <trans-unit id="++CODE++9a4a3cac279fe491c4cbc6a0e945d2e031dc2e925b98ae7f0676646d74547e82">
         <source xml:lang="en">Generate script to deploy changes to target</source>
         <target state="translated">產生指令碼以將變更部署至目標</target>
@@ -2118,6 +2174,10 @@ Error:
         <source xml:lang="en">Get connection details for connection '{0}'?</source>
         <note>{0} is the connection ID</note>
         <target state="translated">取得連線 '{0}' 的連線詳細資料？</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a43e5c073e9835ad6459998e88e6ad71d7b49f1a2fb3d0cd076b5bc0e1724fa7">
+        <source xml:lang="en">Get security-related recommendations, such as avoiding SQL injection or excessive permissions</source>
+        <target state="new">Get security-related recommendations, such as avoiding SQL injection or excessive permissions</target>
       </trans-unit>
       <trans-unit id="++CODE++455754ccf3a6df55b0fe352903062c9adb22d5ce025f6c0b0b8b2a59c6e3a7fc">
         <source xml:lang="en">Getting Docker Ready...</source>
@@ -2211,6 +2271,10 @@ Error:
         <note>{0} is the feature name</note>
         <target state="translated">您願意向朋友或同事推薦 {0} 的意願有多高?</target>
       </trans-unit>
+      <trans-unit id="++CODE++42e746a45011321b661459a4a5bff6312360244050814e0813284fb729dfc90d">
+        <source xml:lang="en">How many tables are in this database?</source>
+        <target state="new">How many tables are in this database?</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d7056f0e9bef4870b289d7b77634cead0e646a63708a1eb500c6eab11c1328e">
         <source xml:lang="en">Hue</source>
         <target state="translated">色調</target>
@@ -2229,7 +2293,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++c4a77afa3d5cd701f32b5f09c195c635b256db8595687828c3ea0785ab5b72f4">
         <source xml:lang="en">Image tag</source>
-        <target state="new">Image tag</target>
+        <target state="translated">映像標籤</target>
       </trans-unit>
       <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
         <source xml:lang="en">Importance</source>
@@ -2297,7 +2361,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++0c2f118ad5933157d00e2025f7cc3d3c3da84db32e18ffbb4f1032471cc643ef">
         <source xml:lang="en">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</source>
-        <target state="new">Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy</target>
+        <target state="translated">{0} 無效的 SQL Server 密碼。密碼長度必須介於 8 至 128 個字元，且符合複雜度要求。 如需詳細資訊，請參閱 https://docs.microsoft.com/sql/relational-databases/security/password-policy</target>
       </trans-unit>
       <trans-unit id="++CODE++b6b50087a99bf4427265eff9dd813914f1ceb8c55260fa6e7075f9c89fcd45d7">
         <source xml:lang="en">Invalid column width</source>
@@ -2501,6 +2565,10 @@ Error:
         <source xml:lang="en">Load from Connection String</source>
         <target state="translated">從連接字串載入</target>
       </trans-unit>
+      <trans-unit id="++CODE++323ed460497fcfa6d1f92f52778381421eefa8ba36a3e9896b3f05a4a2050ca2">
+        <source xml:lang="en">Load profile...</source>
+        <target state="translated">載入設定檔...</target>
+      </trans-unit>
       <trans-unit id="++CODE++81b2b539fca979a0122cec8429386032584500cf44116d93ce90258970ee8289">
         <source xml:lang="en">Load source, target, and options saved in an .scmp file</source>
         <target state="translated">載入儲存在 .scmp 檔案中的來源、目標和選項</target>
@@ -2695,7 +2763,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ede0760e8703fdfcddf4d15e0406c0deeadd91e7907d2a3e7479c6a3d3e309e4">
         <source xml:lang="en">Microsoft SQL Server License Agreement</source>
-        <target state="new">Microsoft SQL Server License Agreement</target>
+        <target state="translated">Microsoft SQL Server 授權合約</target>
       </trans-unit>
       <trans-unit id="++CODE++951f4af90cfde827d87f358b3d8d275ee60a3306d9ddb5c4615483cff067697a">
         <source xml:lang="en">Microsoft reviews your feedback to improve our products, so don't share any personal data or confidential/proprietary content.</source>
@@ -2748,7 +2816,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++47fcb7ca194ec7de1be8ea7b91df9b1e51e273673b6410255e55f48fe0061598">
         <source xml:lang="en">New Azure SQL logical server (Preview)</source>
-        <target state="new">New Azure SQL logical server (Preview)</target>
+        <target state="translated">新的 Azure SQL 邏輯伺服器 (預覽)</target>
       </trans-unit>
       <trans-unit id="++CODE++e7d029a3c1b85e562db8e25ceb52958e3c3da9e6e50b95ebf95f3fae85091a15">
         <source xml:lang="en">New Check Constraint</source>
@@ -2784,7 +2852,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++80e8f069713682d743cceecaad91cb538d199e18712328724d348491bfbb64af">
         <source xml:lang="en">New SQL Server local development container</source>
-        <target state="new">New SQL Server local development container</target>
+        <target state="translated">新的 SQL Server 本機開發容器</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -3044,6 +3112,10 @@ Error:
         <source xml:lang="en">Open Query History</source>
         <target state="translated">開啟查詢歷史記錄</target>
       </trans-unit>
+      <trans-unit id="++CODE++2c1ff609e9acedfcd56ba1c75b3cc704ce0c59afafb9f280e75d37376028e9cd">
+        <source xml:lang="en">Open SQL editor and connect</source>
+        <target state="new">Open SQL editor and connect</target>
+      </trans-unit>
       <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
         <source xml:lang="en">Open XML</source>
         <target state="translated">開啟 XML</target>
@@ -3183,7 +3255,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ed66c5818178010b7908ff51b8195453260bb97629cc433ea0b53795840b8645">
         <source xml:lang="en">Port must be a number between 1 and 65535</source>
-        <target state="new">Port must be a number between 1 and 65535</target>
+        <target state="translated">連接埠必須是介於 1 到 65535 之間的數字</target>
       </trans-unit>
       <trans-unit id="++CODE++c56a86c298eb5a88289af29ba70d8dfdfbf42f6a0c6cf7fe8317a824db4eb767">
         <source xml:lang="en">Possible Data Loss detected. Please review the changes.</source>
@@ -3287,9 +3359,17 @@ Error:
         <source xml:lang="en">Publish Project</source>
         <target state="translated">發佈專案</target>
       </trans-unit>
+      <trans-unit id="++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f">
+        <source xml:lang="en">Publish Settings File</source>
+        <target state="translated">發佈設定檔案</target>
+      </trans-unit>
       <trans-unit id="++CODE++d5ce61b547d2e5793b2ac208be904ea9f94d5e5594d0c5c02bdda22abf61fcf0">
         <source xml:lang="en">Publish Target</source>
         <target state="translated">發佈目標</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f9f3a475ce7608957aa4ae746b37117f26d543fb676f2f78eff8e185a3cbb143">
+        <source xml:lang="en">Publish profile saved to: {0}</source>
+        <target state="translated">發佈設定檔已儲存至: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++10209ed1750a4b5c09b80ea470ed45083d8d1ad3d1da877d160d9ab61a5031fc">
         <source xml:lang="en">Publishing Changes</source>
@@ -3303,9 +3383,10 @@ Error:
         <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
         <target state="translated">正在提取 SQL Server 容器映像。取決於您的網路連線，這可能需要幾分鐘的時間。</target>
       </trans-unit>
-      <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
-        <source xml:lang="en">Query Plan</source>
-        <target state="translated">查詢計劃</target>
+      <trans-unit id="++CODE++bebc9b760db9e5ba55f2632c57871653521c9094223eeb46476e3d7d49218b89">
+        <source xml:lang="en">Query Plan ({0})</source>
+        <note>{0} is the number of query plans</note>
+        <target state="new">Query Plan ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -3336,6 +3417,10 @@ Error:
       <trans-unit id="++CODE++3c311675a5c2bf9cd3b95e78f5c957399730d791fae923def53395a43f131d1f">
         <source xml:lang="en">Readying container for connections...</source>
         <target state="translated">正在準備用於連線的容器...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6aafab6eae72092eb7c25ffb6f34dab1a3eb70f1ef79e6e159f0fe540ca6b675">
+        <source xml:lang="en">Receive natural language explanations to help developers unfamiliar with T-SQL understand code</source>
+        <target state="new">Receive natural language explanations to help developers unfamiliar with T-SQL understand code</target>
       </trans-unit>
       <trans-unit id="++CODE++690dbe9dc0993c4256683738fc3fd541cfa96f60d299be33343615dd58179d93">
         <source xml:lang="en">Recent</source>
@@ -3402,11 +3487,20 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
         <source xml:lang="en">Required</source>
-        <target state="new">Required</target>
+        <target state="translated">必要</target>
       </trans-unit>
       <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
         <source xml:lang="en">Reset</source>
         <target state="translated">重設</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
+        <source xml:lang="en">Resize</source>
+        <target state="translated">調整大小</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fc71b6e1d435d817984f9c7394f47e21505efa2a9f81b5f3e17082ced1432cc7">
+        <source xml:lang="en">Resize column '{0}'</source>
+        <note>{0} is the name of the column</note>
+        <target state="translated">調整資料行大小 '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
         <source xml:lang="en">Resource Group</source>
@@ -3449,6 +3543,10 @@ Error:
       <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
         <source xml:lang="en">Reverse Alphabetical</source>
         <target state="translated">反向字母順序</target>
+      </trans-unit>
+      <trans-unit id="++CODE++da37d071c9526cb361ef4fdb39a225e2ec0eefdf323c591b5741adf58295fda8">
+        <source xml:lang="en">Reverse-engineer existing databases by explaining SQL schemas and relationships</source>
+        <target state="new">Reverse-engineer existing databases by explaining SQL schemas and relationships</target>
       </trans-unit>
       <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
         <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</source>
@@ -3513,13 +3611,21 @@ Query: {1}</source>
         <source xml:lang="en">SQL Plan Files</source>
         <target state="translated">SQL 方案檔案</target>
       </trans-unit>
+      <trans-unit id="++CODE++0404cd9b41a2ccda40d68efcab8008a39503e1487a468ad37a26417a02df844f">
+        <source xml:lang="en">SQL Server 2025 is not supported on ARM architecture. Please select a different SQL Server version.</source>
+        <target state="translated">ARM 架構上不支援 SQL Server 2025。請選取不同的 SQL Server 版本。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++31aead661ae4eee1d516f5b824b2d74ec3221ad35899111d62eb58ea7a78aaf6">
+        <source xml:lang="en">SQL Server 2025 is not yet supported on ARM architecture. ARM support will be available starting with the SQL Server 2025 CU1 container image.</source>
+        <target state="translated">ARM 架構上尚不支援 SQL Server 2025。ARM 支援將隨著 SQL Server 2025 CU1 容器映像開始提供。</target>
+      </trans-unit>
       <trans-unit id="++CODE++8553f640204422619af23f71ce8e01bb39f23579ff44b08e5da1cd2eb4482c27">
         <source xml:lang="en">SQL Server Container SA Password</source>
         <target state="translated">SQL Server 容器 SA 密碼</target>
       </trans-unit>
       <trans-unit id="++CODE++8fb9e52bba9bdebaf10c130eca428ca15b770d0ba41c5f854c47db14a380f8ae">
         <source xml:lang="en">SQL Server admin password</source>
-        <target state="new">SQL Server admin password</target>
+        <target state="translated">SQL Server 系統管理員密碼</target>
       </trans-unit>
       <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
         <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
@@ -3527,7 +3633,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80">
         <source xml:lang="en">SQL Server port number</source>
-        <target state="new">SQL Server port number</target>
+        <target state="translated">SQL Server 連接埠號碼</target>
       </trans-unit>
       <trans-unit id="++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8">
         <source xml:lang="en">SQL Server {0} - latest</source>
@@ -3613,6 +3719,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++5a2df8a2745d54fa2197753e1c2c22a8dea9676916677120da5c44550647180d">
         <source xml:lang="en">Saved Connections</source>
         <target state="translated">已儲存的連線</target>
+      </trans-unit>
+      <trans-unit id="++CODE++28b9471fbcdd3a3ce3799551c1cee3825afe4ea4ce67688c764bd4a364028bd9">
+        <source xml:lang="en">Scaffold backend components (e.g., data-access layers) based on your current database context</source>
+        <target state="new">Scaffold backend components (e.g., data-access layers) based on your current database context</target>
       </trans-unit>
       <trans-unit id="++CODE++f102986b39effb31080ae442f61febe7ed58df1515c0711ccfadfe0311ccec81">
         <source xml:lang="en">Scale</source>
@@ -3705,6 +3815,10 @@ Query: {1}</source>
         <source xml:lang="en">Search...</source>
         <target state="translated">搜尋...</target>
       </trans-unit>
+      <trans-unit id="++CODE++6863067eb0a2c7499425c6c189b2c88bac55ca754285a6ab1ef37b75b4cfad4d">
+        <source xml:lang="en">See</source>
+        <target state="translated">請參閱</target>
+      </trans-unit>
       <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
         <source xml:lang="en">Select</source>
         <target state="translated">選取</target>
@@ -3716,6 +3830,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++3052f090b2dd0312f6564fb52c1f06b0efbe9fd7c77fdf38dcb96b4521b06b24">
         <source xml:lang="en">Select Azure account with Key Vault access for column decryption</source>
         <target state="translated">選取具有金鑰保管庫存取權的 Azure 帳戶以進行資料行解密</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fb36706789e855faf92bf6900c060554f0e8513ebb831ffe81ed991b28d07f8c">
+        <source xml:lang="en">Select Connection</source>
+        <target state="new">Select Connection</target>
       </trans-unit>
       <trans-unit id="++CODE++a1103f928cc721a44f7c8cdbc11bab66f8a7e44d66485112edccc40525787cfb">
         <source xml:lang="en">Select Profile</source>
@@ -3792,10 +3910,6 @@ Query: {1}</source>
         <source xml:lang="en">Select new permission for extension: '{0}'</source>
         <note>{0} is the extension name</note>
         <target state="translated">選取延伸模組的新權限: '{0}'</target>
-      </trans-unit>
-      <trans-unit id="++CODE++10484d8ed1877a7e126a17a3a144a55c6bf07784ecc22b01d87ee138fb808cd8">
-        <source xml:lang="en">Select or enter a publish profile</source>
-        <target state="translated">選取或輸入發佈設定檔</target>
       </trans-unit>
       <trans-unit id="++CODE++e286357ecd532997834edbf13478a2b3ca334a9dda1c8e895c0bd8b26f6097b5">
         <source xml:lang="en">Select profile to remove</source>
@@ -3893,7 +4007,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++1615831401345ad7af7c55f1b68f51dd051827cf4ab1e7f3864619ce377d6ef1">
         <source xml:lang="en">Show Menu (F3)</source>
-        <target state="new">Show Menu (F3)</target>
+        <target state="translated">顯示功能表 (F3)</target>
       </trans-unit>
       <trans-unit id="++CODE++169b9d739add25522ff9a236b54583826c27bd79c2dcb1a4efcc50143164f78c">
         <source xml:lang="en">Show New Password</source>
@@ -3902,6 +4016,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++2228686dec07e7c9c6c8515f778b90a768e5a9474779610755f751e18e43805f">
         <source xml:lang="en">Show Schema</source>
         <target state="translated">顯示結構描述</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d5b86c663921b26f8c3dbd292279ef1d0a13da517c5c5bdf53097cfc17aada03">
+        <source xml:lang="en">Show a random table definition</source>
+        <target state="new">Show a random table definition</target>
       </trans-unit>
       <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
         <source xml:lang="en">Show full error message</source>
@@ -3979,7 +4097,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++bec69036aa27e7fab7d44cad3909477b76631c39ba46fd7841ea71aae7e5a735">
         <source xml:lang="en">Sort</source>
-        <target state="new">Sort</target>
+        <target state="translated">排序</target>
       </trans-unit>
       <trans-unit id="++CODE++f09318d75d62b0f316bf6aa9aec677f5ee481f619c46c57d72dc9505e73fe48f">
         <source xml:lang="en">Sort Ascending</source>
@@ -4211,6 +4329,10 @@ Query: {1}</source>
         <note>{0} is a url to learn more about the new features</note>
         <target state="translated">適用於 VS Code 的 MSSQL 延伸模組新增了新式資料開發功能!要啟用這些功能嗎? [深入了解]({0})</target>
       </trans-unit>
+      <trans-unit id="++CODE++8284b2207062ceca3245e799f300ae72ab7e751c75b0f7e32f297adcfdf8e19f">
+        <source xml:lang="en">The SQL Server 2025 RTM container image isn't compatible with ARM-based systems (including Windows ARM and Apple Silicon).</source>
+        <target state="translated">SQL Server 2025 RTM 容器映像與 ARM 型系統 (包括 Windows ARM 和 Apple Silicon) 不相容。</target>
+      </trans-unit>
       <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
         <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
         <target state="translated">使用者嘗試刪除資料列時的行為，此資料列內含外部索引鍵關聯性中涉及的資料。</target>
@@ -4383,6 +4505,10 @@ Query: {1}</source>
         <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
         <target state="translated">無法讀取 Proxy 代理程式選項以取得租使用者。</target>
       </trans-unit>
+      <trans-unit id="++CODE++d7d09d502d5422aa5c2aaffacea9601c1011d9035e27986c8b243078a745b061">
+        <source xml:lang="en">Understand and document business logic embedded in stored procedures, views, and functions</source>
+        <target state="new">Understand and document business logic embedded in stored procedures, views, and functions</target>
+      </trans-unit>
       <trans-unit id="++CODE++a8283ade31856f71220db0e6f60a257c6889dc4dad0f275f66ad44b9ed9bf8d5">
         <source xml:lang="en">Undo</source>
         <target state="translated">復原</target>
@@ -4485,6 +4611,10 @@ Query: {1}</source>
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
         <target state="translated">必須重新啟動 Visual Studio Code，此設定才會生效。請重新載入 Visual Studio Code。</target>
       </trans-unit>
+      <trans-unit id="++CODE++e981ddae45d8f4ca53f1ccbe613ad254a041dacf65a06026099a6302d332113b">
+        <source xml:lang="en">Warning</source>
+        <target state="translated">警告</target>
+      </trans-unit>
       <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
         <target state="translated">偵測到警告。請檢閱變更。</target>
@@ -4496,6 +4626,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++f0e54e5d12e2e2f5d8cf453857e0a307a8ecc5e8016b43b3c1c5c93300a40c60">
         <source xml:lang="en">We couldn't connect using the current connection information. Would you like to retry the connection or edit the connection profile?</source>
         <target state="translated">無法使用目前的連線資訊進行連接。您想要重試連線或編輯連線設定檔？</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b88f26dec963b05be1fc4ad815cf0956a2b64c5c7819fc204857815fe8d596ae">
+        <source xml:lang="en">What I can do for you:</source>
+        <target state="new">What I can do for you:</target>
       </trans-unit>
       <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
         <source xml:lang="en">What can we do to improve?</source>
@@ -4521,6 +4655,10 @@ Query: {1}</source>
         <source xml:lang="en">Workspace is required</source>
         <target state="translated">需要工作區</target>
       </trans-unit>
+      <trans-unit id="++CODE++e288577fddfc0fca255b96b887c869892311ba4f7ba0ecab34268b08e08d1ad3">
+        <source xml:lang="en">Write, optimize, and troubleshoot SQL queries with AI-recommended improvements</source>
+        <target state="new">Write, optimize, and troubleshoot SQL queries with AI-recommended improvements</target>
+      </trans-unit>
       <trans-unit id="++CODE++85a39ab345d672ff8ca9b9c6876f3adcacf45ee7c1e2dbd2408fd338bd55e07e">
         <source xml:lang="en">Yes</source>
         <target state="translated">是</target>
@@ -4531,7 +4669,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
-        <target state="new">You must accept the license</target>
+        <target state="translated">您必須接受授權</target>
       </trans-unit>
       <trans-unit id="++CODE++437f6eb2a46a074059cbbd924d82e7b72146b3bbb13c028906a45bbffdf69e3f">
         <source xml:lang="en">You must be signed into Azure in order to browse SQL databases.</source>
@@ -4615,6 +4753,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
         <source xml:lang="en">encrypt</source>
         <target state="translated">加密</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4c7148e466d4434d1a1411c15f757ec78ba8f3ef4b6210d4a156bc3aaa6e71e5">
+        <source xml:lang="en">for more details</source>
+        <target state="translated">以取得其他詳細資料</target>
       </trans-unit>
       <trans-unit id="++CODE++20e10f43f47b1e36c004e81cbec22591b794b0154ca893825d723624a57be8ae">
         <source xml:lang="en">hostname\instance or &lt;server&gt;.database.windows.net or ADO.NET connection string</source>
@@ -4713,7 +4855,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
         <source xml:lang="en">{0} password doesn't match the confirmation password</source>
-        <target state="new">{0} password doesn't match the confirmation password</target>
+        <target state="translated">{0} 密碼與確認密碼不相符</target>
       </trans-unit>
       <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
         <source xml:lang="en">{0} properties</source>
@@ -4795,6 +4937,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++4d765d766973242c68c5a2d3b20c7164beb22948ceaf7095ce44f901cc2f4052">
         <source xml:lang="en">❌ Deny Access (Current)</source>
         <target state="translated">❌ 拒絕存取 (目前)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++786e414ca02e9f29012f60d724020a6925dc54275709eb8ac3b2aacbb7262945">
+        <source xml:lang="en">👋 I'm GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.</source>
+        <target state="new">👋 I'm GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.</target>
       </trans-unit>
     </body>
   </file>
@@ -5265,6 +5411,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.openExecutionPlanFile">
         <source xml:lang="en">Open Execution Plan File</source>
         <target state="translated">開啟執行計畫檔案</target>
+      </trans-unit>
+      <trans-unit id="mssql.copilot.newQueryWithConnection">
+        <source xml:lang="en">Open New Query and Connect (Preview)</source>
+        <target state="new">Open New Query and Connect (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryHistory">
         <source xml:lang="en">Open Query</source>

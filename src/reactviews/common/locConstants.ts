@@ -456,7 +456,13 @@ export class LocConstants {
             saveAsExcel: l10n.t("Save as Excel"),
             saveAsJson: l10n.t("Save as JSON"),
             clickHereToHideThisPanel: l10n.t("Hide this panel"),
-            queryPlan: l10n.t("Query Plan"),
+            queryPlan: (count: number) => {
+                return l10n.t({
+                    message: "Query Plan ({0})",
+                    args: [count],
+                    comment: ["{0} is the number of query plans"],
+                });
+            },
             selectAll: l10n.t("Select All"),
             copy: l10n.t("Copy"),
             copyWithHeaders: l10n.t("Copy with Headers"),
@@ -520,6 +526,22 @@ export class LocConstants {
                 }),
             sort: l10n.t("Sort"),
             filter: l10n.t("Filter"),
+            resize: l10n.t("Resize"),
+            resizeColumn: (columnName: string) => {
+                return l10n.t({
+                    message: "Resize column '{0}'",
+                    args: [columnName],
+                    comment: ["{0} is the name of the column"],
+                });
+            },
+            enterDesiredColumnWidth: l10n.t("Enter desired column width in pixels"),
+            resizeValidationError: (minWidth: number) => {
+                return l10n.t({
+                    message: "Column width must be at least {0} pixels.",
+                    args: [minWidth],
+                    comment: ["{0} is the minimum column width in pixels"],
+                });
+            },
         };
     }
 

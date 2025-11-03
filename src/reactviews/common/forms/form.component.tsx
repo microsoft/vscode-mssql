@@ -341,6 +341,7 @@ export function generateFormComponent<
                     }}
                     size="small"
                     clearable={true}
+                    ariaLabel={component.label}
                     {...props}
                 />
             );

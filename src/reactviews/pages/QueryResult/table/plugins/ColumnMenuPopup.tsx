@@ -21,13 +21,14 @@ import {
     Dismiss16Regular,
     DismissCircle16Regular,
     Search16Regular,
+    TableResizeColumn16Filled,
     TextSortAscending16Regular,
     TextSortDescending16Regular,
 } from "@fluentui/react-icons";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { locConstants } from "../../../../common/locConstants";
 import { SortProperties } from "../../../../../sharedInterfaces/queryResult";
-import { altShiftOKeyboardShortcut } from "../../../../common/constants";
+import { altShiftOKeyboardShortcut, altShiftSKeyboardShortcut } from "../../../../common/constants";
 
 export type FilterValue = string | undefined;
 
@@ -56,6 +57,7 @@ interface ColumnMenuPopupProps {
     onSortAscending: () => Promise<void> | void;
     onSortDescending: () => Promise<void> | void;
     onClearSort: () => Promise<void> | void;
+    onResize: () => void;
     currentSort: SortProperties;
 }
 
@@ -243,6 +245,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
     onSortAscending,
     onSortDescending,
     onClearSort,
+    onResize,
     currentSort = SortProperties.NONE,
 }) => {
     const styles = useStyles();
@@ -258,6 +261,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
         () => new Set(initialSelected),
     );
     const [focusedIndex, setFocusedIndex] = useState<number>(-1);
+    const [popupHeight, setPopupHeight] = useState<number>(0);
 
     const filteredItems = useMemo(() => {
         const trimmed = search.trim().toLowerCase();
@@ -347,6 +351,21 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
         setSearch("");
     }, [initialSelected, items]);
 
+    // Measure popup height on mount and when filtered items change
+    useEffect(() => {
+        if (rootRef.current) {
+            // Use requestAnimationFrame to ensure DOM has been laid out
+            requestAnimationFrame(() => {
+                if (rootRef.current) {
+                    const height = rootRef.current.offsetHeight;
+                    if (height > 0 && height !== popupHeight) {
+                        setPopupHeight(height);
+                    }
+                }
+            });
+        }
+    }, [filteredItems.length, popupHeight]);
+
     // Auto-focus sort button when opened
     useEffect(() => {
         if (sortAscendingButtonRef.current) {
@@ -398,9 +417,9 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
     const position = useMemo(() => {
         const horizontalMargin = 8;
         const verticalMargin = 8;
-        const estimatedHeight = LIST_HEIGHT + 120;
+        const gap = 4; // Gap between anchor and popup
 
-        // Calculate available space and position
+        // Calculate horizontal position
         let left = anchorRect.left;
         const spaceOnRight = window.innerWidth - anchorRect.left;
 
@@ -409,20 +428,35 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
             left = Math.max(horizontalMargin, anchorRect.right - POPUP_WIDTH);
         }
 
-        // Ensure popup doesn't overflow the viewport
+        // Ensure popup doesn't overflow the viewport horizontally
         left = Math.max(
             horizontalMargin,
             Math.min(left, window.innerWidth - POPUP_WIDTH - horizontalMargin),
         );
 
-        const maxTop = Math.max(
-            verticalMargin,
-            window.innerHeight - estimatedHeight - verticalMargin,
-        );
-        const top = Math.min(anchorRect.bottom + 4, Math.max(maxTop, verticalMargin));
+        // Calculate vertical position
+        const spaceBelow = window.innerHeight - anchorRect.bottom;
+        const spaceAbove = anchorRect.top;
+        let top: number;
+
+        // Prefer positioning below the anchor
+        if (spaceBelow >= popupHeight + gap) {
+            // Enough space below
+            top = anchorRect.bottom + gap;
+        } else if (spaceAbove >= popupHeight + gap) {
+            // Not enough space below, but enough above
+            top = anchorRect.top - popupHeight - gap;
+        } else {
+            // Not enough space above or below - position below and constrain
+            top = anchorRect.bottom + gap;
+            // Ensure it doesn't overflow bottom
+            top = Math.min(top, window.innerHeight - popupHeight - verticalMargin);
+            // Ensure it doesn't overflow top
+            top = Math.max(top, verticalMargin);
+        }
 
         return { left, top };
-    }, [anchorRect]);
+    }, [anchorRect, popupHeight]);
 
     const onToggleSelectAll = useCallback(
         (_e: React.ChangeEvent<HTMLInputElement>, data: CheckboxOnChangeData) => {
@@ -557,7 +591,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
             <div className={styles.divider} />
             <div className={styles.header}>
                 <div className={styles.section}>
-                    <Toolbar vertical className={styles.sortButtons}>
+                    <Toolbar className={styles.sortButtons}>
                         <Button
                             ref={(el) => {
                                 sortAscendingButtonRef.current = el;
@@ -568,9 +602,8 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                             icon={<TextSortAscending16Regular />}
                             onClick={handleSortAscending}
                             title={locConstants.queryResult.sortAscending}
-                            aria-label={locConstants.queryResult.sortAscending}>
-                            {locConstants.queryResult.sortAscending}
-                        </Button>
+                            aria-label={locConstants.queryResult.sortAscending}
+                        />
 
                         <Button
                             appearance={currentSort === SortProperties.DESC ? "primary" : "subtle"}
@@ -578,10 +611,8 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                             icon={<TextSortDescending16Regular />}
                             onClick={handleSortDescending}
                             title={locConstants.queryResult.sortDescending}
-                            aria-label={locConstants.queryResult.sortDescending}>
-                            {locConstants.queryResult.sortDescending}
-                        </Button>
-
+                            aria-label={locConstants.queryResult.sortDescending}
+                        />
                         <Button
                             appearance="subtle"
                             size="small"
@@ -589,12 +620,34 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                             title={locConstants.queryResult.clearSort}
                             onClick={handleClearSort}
                             aria-label={locConstants.queryResult.clearSort}
-                            disabled={currentSort === SortProperties.NONE}>
-                            {locConstants.queryResult.removeSort}
-                        </Button>
+                            disabled={currentSort === SortProperties.NONE}
+                        />
                     </Toolbar>
                 </div>
-
+                <div className={styles.divider} />
+                <Toolbar vertical className={styles.sortButtons}>
+                    <Button
+                        appearance="subtle"
+                        size="small"
+                        icon={<TableResizeColumn16Filled />}
+                        title={locConstants.queryResult.resize}
+                        onClick={() => {
+                            if (onResize) {
+                                onResize();
+                            }
+                        }}
+                        aria-label={locConstants.queryResult.resize}>
+                        {locConstants.queryResult.resize}
+                        <span
+                            style={{
+                                fontWeight: "100",
+                                marginLeft: "auto",
+                                paddingLeft: "6px",
+                            }}>
+                            {altShiftSKeyboardShortcut}
+                        </span>
+                    </Button>
+                </Toolbar>
                 <div className={styles.divider} />
                 <div className={styles.section}>
                     <Text className={styles.sectionHeading}>{locConstants.queryResult.filter}</Text>

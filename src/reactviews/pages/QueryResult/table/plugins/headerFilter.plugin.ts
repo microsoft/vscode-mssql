@@ -15,9 +15,10 @@ import { EventManager } from "../../../../common/eventManager";
 import type { ColumnMenuPopupAnchorRect, FilterListItem, FilterValue } from "./ColumnMenuPopup";
 
 import {
+    ColumnFilterMap,
     ColumnFilterState,
     GetFiltersRequest,
-    GridColumnMap,
+    SetColumnWidthsRequest,
     SetFiltersRequest,
     ShowFilterDisabledMessageRequest,
     SortProperties,
@@ -174,13 +175,18 @@ export class HeaderMenu<T extends Slick.SlickData> {
         $menuButton.appendTo(args.node);
 
         this._columnFilterButtonMapping.set(column.id!, buttonEl);
-        if (this._columnSortStateMapping.get(column.id!) === undefined) {
-            this._columnSortStateMapping.set(column.id!, SortProperties.NONE);
-        }
 
-        // Update sort indicator if column is sorted
-        if (column.sorted && column.sorted !== SortProperties.NONE) {
-            this.updateSortIndicator(args.node, column.sorted);
+        let existingSort = this._columnSortStateMapping.get(column.id!);
+        if (existingSort === undefined) {
+            existingSort = column.sorted ?? SortProperties.NONE;
+            this._columnSortStateMapping.set(column.id!, existingSort);
+        } else if (column.sorted && existingSort !== column.sorted) {
+            existingSort = column.sorted;
+            this._columnSortStateMapping.set(column.id!, existingSort);
+        }
+        if (existingSort && existingSort !== SortProperties.NONE) {
+            this._currentSortColumn = column.id!;
+            this.updateSortIndicator(args.node, existingSort);
         }
     }
 
@@ -258,6 +264,19 @@ export class HeaderMenu<T extends Slick.SlickData> {
             },
             onClearSort: async () => {
                 await this.handleClearSort(this._columnDef, true);
+            },
+            onResize: async () => {
+                await this.queryResultContext.openResizeDialog({
+                    open: true,
+                    columnId: columnId,
+                    columnName: this._columnDef.name ?? "",
+                    initialWidth: this._columnDef.width ?? 0,
+                    gridId: this.gridId,
+                    onDismiss: () => {
+                        this.resizeCancel();
+                    },
+                    onSubmit: (newWidth: number) => this.resizeColumn(columnId, newWidth),
+                });
             },
             currentSort,
         });
@@ -404,6 +423,57 @@ export class HeaderMenu<T extends Slick.SlickData> {
         await this.applySort(column, nextSort, true);
     }
 
+    public updateSortStateFromExternal(columnId: string, sort: SortProperties): void {
+        if (!this._grid) {
+            return;
+        }
+
+        const previousSortColumn = this._currentSortColumn;
+        const updatingCurrentColumn = previousSortColumn === columnId;
+        const columns = this._grid.getColumns() as FilterableColumn<T>[];
+
+        if (previousSortColumn && previousSortColumn !== columnId) {
+            this._columnSortStateMapping.set(previousSortColumn, SortProperties.NONE);
+            const previousHeader = this.getHeaderNode(previousSortColumn);
+            if (previousHeader) {
+                this.updateSortIndicator(previousHeader, SortProperties.NONE);
+            }
+            const previousColumn = columns.find((col) => col.id === previousSortColumn);
+            if (previousColumn) {
+                previousColumn.sorted = undefined;
+            }
+        }
+
+        const targetColumn = columns.find((col) => col.id === columnId);
+        if (targetColumn) {
+            targetColumn.sorted = sort === SortProperties.NONE ? undefined : sort;
+        }
+
+        this._columnSortStateMapping.set(columnId, sort);
+
+        if (sort === SortProperties.NONE) {
+            if (updatingCurrentColumn) {
+                this._currentSortColumn = "";
+                this._grid.setSortColumn("", false);
+            }
+        } else {
+            this._currentSortColumn = columnId;
+            this._grid.setSortColumn(columnId, sort === SortProperties.ASC);
+        }
+
+        const headerNode = this.getHeaderNode(columnId);
+        if (headerNode) {
+            this.updateSortIndicator(headerNode, sort);
+        }
+    }
+
+    public clearSortState(): void {
+        if (!this._currentSortColumn) {
+            return;
+        }
+        this.updateSortStateFromExternal(this._currentSortColumn, SortProperties.NONE);
+    }
+
     private async buildFilterItems(): Promise<FilterListItem[]> {
         this._columnDef.filterValues = this._columnDef.filterValues || [];
         let filterItems: FilterValue[];
@@ -531,15 +601,17 @@ export class HeaderMenu<T extends Slick.SlickData> {
                     GetFiltersRequest.type,
                     {
                         uri: this.uri,
+                        gridId: this.gridId,
                     },
                 );
                 if (!gridColumnMapArray) {
-                    gridColumnMapArray = [];
+                    return;
                 }
                 // Drill down into the grid column map array and clear the filter values for the specified column
                 gridColumnMapArray = this.clearFilterValues(gridColumnMapArray, columnDef.id!);
                 await this.queryResultContext.extensionRpc.sendRequest(SetFiltersRequest.type, {
                     uri: this.uri,
+                    gridId: this.gridId,
                     filters: gridColumnMapArray,
                 });
             }
@@ -561,25 +633,16 @@ export class HeaderMenu<T extends Slick.SlickData> {
      * @returns
      */
     private async updateState(newState: ColumnFilterState, columnId: string): Promise<void> {
-        let newStateArray: GridColumnMap[];
-        // Check if there is any existing filter state
-        if (!this.uri) {
-            this.queryResultContext.log("no uri set for query result state");
-            return;
-        }
-        let currentFiltersArray = await this.queryResultContext.extensionRpc.sendRequest(
-            GetFiltersRequest.type,
-            {
+        let currentFiltersArray =
+            (await this.queryResultContext.extensionRpc.sendRequest(GetFiltersRequest.type, {
                 uri: this.uri,
-            },
-        );
-        if (!currentFiltersArray) {
-            currentFiltersArray = [];
-        }
-        newStateArray = this.combineFilters(currentFiltersArray, newState, columnId);
+                gridId: this.gridId,
+            })) ?? [];
+        currentFiltersArray[columnId] = newState;
         await this.queryResultContext.extensionRpc.sendRequest(SetFiltersRequest.type, {
             uri: this.uri,
-            filters: newStateArray,
+            gridId: this.gridId,
+            filters: currentFiltersArray,
         });
     }
 
@@ -589,69 +652,12 @@ export class HeaderMenu<T extends Slick.SlickData> {
      * @param columnId
      * @returns
      */
-    private clearFilterValues(gridFiltersArray: GridColumnMap[], columnId: string) {
-        const targetGridFilters = gridFiltersArray.find((gridFilters) => gridFilters[this.gridId]);
-
-        if (!targetGridFilters) {
-            return gridFiltersArray;
-        }
-
-        for (const columnFilterMap of targetGridFilters[this.gridId]) {
-            if (columnFilterMap[columnId]) {
-                columnFilterMap[columnId] = columnFilterMap[columnId].map((filterState) => ({
-                    ...filterState,
-                    filterValues: [],
-                }));
-            }
-        }
-
+    private clearFilterValues(gridFiltersArray: ColumnFilterMap, columnId: string) {
+        gridFiltersArray[columnId] = {
+            ...gridFiltersArray[columnId],
+            filterValues: [],
+        };
         return gridFiltersArray;
-    }
-
-    /**
-     * Combines two GridColumnMaps into one, keeping filters separate for different gridIds and removing any duplicate filterValues within the same column id
-     * @param currentFiltersArray filters array for all grids
-     * @param newFilters
-     * @param columnId
-     * @returns
-     */
-    private combineFilters(
-        gridFiltersArray: GridColumnMap[],
-        newFilterState: ColumnFilterState,
-        columnId: string,
-    ): GridColumnMap[] {
-        // Find the appropriate GridColumnFilterMap for the gridId
-        let targetGridFilters = gridFiltersArray.find((gridFilters) => gridFilters[this.gridId]);
-
-        if (!targetGridFilters) {
-            // If no GridColumnFilterMap found for the gridId, create a new one
-            targetGridFilters = { [this.gridId]: [] };
-            gridFiltersArray.push(targetGridFilters);
-        }
-
-        let columnFilterMap = targetGridFilters[this.gridId].find((map) => map[columnId]);
-
-        if (!columnFilterMap) {
-            // If no existing ColumnFilterMap for this column, create a new one
-            columnFilterMap = { [columnId]: [newFilterState] };
-            targetGridFilters[this.gridId].push(columnFilterMap);
-        } else {
-            // Update the existing column filter state
-            const filterStates = columnFilterMap[columnId];
-            const existingIndex = filterStates.findIndex(
-                (filter) => filter.columnDef === newFilterState.columnDef,
-            );
-
-            if (existingIndex !== -1) {
-                // Replace existing filter state for the column
-                filterStates[existingIndex] = newFilterState;
-            } else {
-                // Add new filter state for this column
-                filterStates.push(newFilterState);
-            }
-        }
-
-        return [...gridFiltersArray];
     }
 
     private async handleMenuItemClick(
@@ -753,6 +759,34 @@ export class HeaderMenu<T extends Slick.SlickData> {
                 }
             }
         }
+    }
+
+    /**
+     * Cancel the resize operation and refocus the grid
+     */
+    public resizeCancel(): void {
+        this._grid.focus();
+    }
+
+    /**
+     * Resize the specified column to the new width
+     * @param columnId resize column id
+     * @param newWidth new width in pixels
+     */
+    public resizeColumn(columnId: string, newWidth: number): void {
+        const columns = this._grid.getColumns();
+        const columnIndex = columns.findIndex((col) => col.id === columnId);
+        if (columnIndex >= 0) {
+            const column = columns[columnIndex];
+            column.width = newWidth;
+            this._grid.setColumns(columns);
+        }
+        void this.queryResultContext.extensionRpc.sendRequest(SetColumnWidthsRequest.type, {
+            uri: this.uri,
+            gridId: this.gridId,
+            columnWidths: columns.slice(1).map((v) => v.width),
+        });
+        this._grid.focus();
     }
 }
 
