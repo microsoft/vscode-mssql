@@ -991,14 +991,14 @@
     <trans-unit id="++CODE++3cc30692596cf10ca4319a818741998997632cce895dbf138cb3299b1314d37f">
       <source xml:lang="en">Custom Zoom</source>
     </trans-unit>
-    <trans-unit id="++CODE++ef695e4c384e9b231d25ba5d0160913f31f4153f460e645129860fa611a52b27">
-      <source xml:lang="en">DacFx service is not available</source>
-    </trans-unit>
     <trans-unit id="++CODE++8f56b52b4f497c14810f52351db46c7f638c38f1a321f5bdfb38a3fb817f0ad9">
       <source xml:lang="en">DACPAC deployed successfully</source>
     </trans-unit>
     <trans-unit id="++CODE++fec6ccad8071c66a146f4f9bab40620ba0279984c3c35763ac115ac3825fa6fd">
       <source xml:lang="en">DACPAC extracted successfully</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ef695e4c384e9b231d25ba5d0160913f31f4153f460e645129860fa611a52b27">
+      <source xml:lang="en">DacFx service is not available</source>
     </trans-unit>
     <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
       <source xml:lang="en">Data Type</source>
@@ -1574,6 +1574,9 @@
     </trans-unit>
     <trans-unit id="++CODE++11b16df18b896654fb041aa90fd64079d60b741da33d4b5f931d75f8dcc7d1a4">
       <source xml:lang="en">Failed to list databases</source>
+    </trans-unit>
+    <trans-unit id="++CODE++10b8baec7e7c3be69a945e7d6efbe3672d2a7a1b19642cd0867e8ea353335579">
+      <source xml:lang="en">Failed to load databases</source>
     </trans-unit>
     <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
       <source xml:lang="en">Failed to load publish profile</source>

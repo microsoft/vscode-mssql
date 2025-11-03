@@ -743,6 +743,7 @@
     "Passwords do not match": "Passwords do not match",
     "Data-tier Application": "Data-tier Application",
     "Deploy, extract, import, or export data-tier applications on the selected database": "Deploy, extract, import, or export data-tier applications on the selected database",
+    "Loading...": "Loading...",
     "Operation": "Operation",
     "Select an operation": "Select an operation",
     "Select a server": "Select a server",
@@ -1168,7 +1169,6 @@
         "message": "Are you sure you want to remove {0}?",
         "comment": ["{0} is the node label"]
     },
-    "Loading...": "Loading...",
     "Fetching {0} script.../{0} is the script type": {
         "message": "Fetching {0} script...",
         "comment": ["{0} is the script type"]

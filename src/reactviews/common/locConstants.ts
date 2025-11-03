@@ -1087,6 +1087,7 @@ export class LocConstants {
             subtitle: l10n.t(
                 "Deploy, extract, import, or export data-tier applications on the selected database",
             ),
+            loading: l10n.t("Loading..."),
             operationLabel: l10n.t("Operation"),
             selectOperation: l10n.t("Select an operation"),
             serverLabel: l10n.t("Server"),
