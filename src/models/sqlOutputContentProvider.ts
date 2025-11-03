@@ -675,46 +675,63 @@ export class SqlOutputContentProvider {
     /**
      * Executed from the MainController when an untitled text document was saved to the disk. If
      * any queries were executed from the untitled document, the queryrunner will be remapped to
-     * a new resuls uri based on the uri of the newly saved file.
+     * a new results uri based on the uri of the newly saved file.
      * @param untitledUri   The URI of the untitled file
      * @param savedUri  The URI of the file after it was saved
      */
     public onUntitledFileSaved(untitledUri: string, savedUri: string): void {
-        // If we don't have any query runners mapped to this uri, don't do anything
-        let untitledResultsUri = decodeURIComponent(untitledUri);
-        if (!this._queryResultsMap.has(untitledResultsUri)) {
-            return;
+        const untitledResultsUri = decodeURIComponent(untitledUri);
+        const savedResultUri = decodeURIComponent(savedUri);
+
+        // Remap all editor instances of this document
+        for (const [key, runner] of this._queryResultsMap.entries()) {
+            // Check if this is the untitled document or an editor instance of it
+            if (key === untitledResultsUri || key.startsWith(`${untitledResultsUri}::`)) {
+                // Extract the view column suffix if present
+                const viewColumnSuffix = key.includes("::") ? key.substring(key.indexOf("::")) : "";
+                const newKey = `${savedResultUri}${viewColumnSuffix}`;
+
+                // NOTE: We don't need to remap the query in the service because the queryrunner still has
+                // the old uri. As long as we make requests to the service against that uri, we'll be good.
+
+                // Remap the query runner in the map
+                this._queryResultsMap.set(newKey, runner);
+                this._queryResultsMap.delete(key);
+            }
         }
-
-        // NOTE: We don't need to remap the query in the service because the queryrunner still has
-        // the old uri. As long as we make requests to the service against that uri, we'll be good.
-
-        // Remap the query runner in the map
-        let savedResultUri = decodeURIComponent(savedUri);
-        this._queryResultsMap.set(savedResultUri, this._queryResultsMap.get(untitledResultsUri));
-        this._queryResultsMap.delete(untitledResultsUri);
     }
 
     public async updateQueryRunnerUri(oldUri: string, newUri: string): Promise<void> {
-        let queryRunner = this.getQueryRunner(oldUri);
-        if (queryRunner) {
-            queryRunner.updateQueryRunnerUri(oldUri, newUri);
-        }
+        // Update all editor instances of this document
+        for (const [key, _value] of this._queryResultsMap.entries()) {
+            if (key === oldUri || key.startsWith(`${oldUri}::`)) {
+                const queryRunner = this._queryResultsMap.get(key).queryRunner;
+                if (queryRunner) {
+                    queryRunner.updateQueryRunnerUri(oldUri, newUri);
+                }
 
-        let state = this._queryResultWebviewController.getQueryResultState(oldUri);
-        if (state) {
-            state.uri = newUri;
-            /**
-             * TODO: aaskhan
-             * Remove adhoc state updates.
-             */
-            await this._queryResultWebviewController.sendNotification(
-                StateChangeNotification.type<qr.QueryResultWebviewState>(),
-                state,
-            );
-            //Update the URI in the query result webview state
-            this._queryResultWebviewController.setQueryResultState(newUri, state);
-            this._queryResultWebviewController.deleteQueryResultState(oldUri);
+                const state = this._queryResultWebviewController.getQueryResultState(key);
+                if (state) {
+                    // Extract the view column suffix if present
+                    const viewColumnSuffix = key.includes("::")
+                        ? key.substring(key.indexOf("::"))
+                        : "";
+                    const newKey = `${newUri}${viewColumnSuffix}`;
+
+                    state.uri = newKey;
+                    /**
+                     * TODO: aaskhan
+                     * Remove adhoc state updates.
+                     */
+                    await this._queryResultWebviewController.sendNotification(
+                        StateChangeNotification.type<qr.QueryResultWebviewState>(),
+                        state,
+                    );
+                    //Update the URI in the query result webview state
+                    this._queryResultWebviewController.setQueryResultState(newKey, state);
+                    this._queryResultWebviewController.deleteQueryResultState(key);
+                }
+            }
         }
     }
 
@@ -727,8 +744,10 @@ export class SqlOutputContentProvider {
     public async onDidCloseTextDocument(doc: vscode.TextDocument): Promise<void> {
         const closedDocumentUri = doc.uri.toString(true);
 
+        // Clean up all query runners for all editor instances of this document
         for (let [key, _value] of this._queryResultsMap.entries()) {
-            if (closedDocumentUri === key) {
+            // Check if this key is for this document (either exact match or starts with documentUri::)
+            if (key === closedDocumentUri || key.startsWith(`${closedDocumentUri}::`)) {
                 /**
                  * If the result is in a webview view, immediately dispose the runner
                  * For panel results, we wait until the panel is closed to dispose the runner
@@ -737,12 +756,18 @@ export class SqlOutputContentProvider {
             }
         }
 
+        // Clean up actual plan statuses for this document
         if (this._actualPlanStatuses.includes(closedDocumentUri)) {
             this._actualPlanStatuses = this._actualPlanStatuses.filter(
                 (uri) => uri !== closedDocumentUri,
             );
             this.updateActualPlanContext();
         }
+        // Also clean up actual plan statuses for editor instances
+        this._actualPlanStatuses = this._actualPlanStatuses.filter(
+            (uri) => !uri.startsWith(`${closedDocumentUri}::`),
+        );
+        this.updateActualPlanContext();
     }
 
     /**
