@@ -239,8 +239,8 @@ export default class StatusView implements vscode.Disposable {
             ConnInfo.generateDatabaseDisplayName(connCreds, true),
             statusBarConnectionInfoMaxLength,
         );
-        bar.statusChangeDatabase.tooltip =
-            LocalizedConstants.MssqlChatAgent.changeDatabaseToolConfirmationTitle;
+        const databaseName = connCreds.database || LocalizedConstants.defaultDatabaseLabel;
+        bar.statusChangeDatabase.tooltip = `${LocalizedConstants.MssqlChatAgent.changeDatabaseToolConfirmationTitle} (Current: ${databaseName})`;
         bar.connectionId = (connCreds as IConnectionProfile).id || undefined;
         bar.statusConnection.command = Constants.cmdConnect;
         bar.statusChangeDatabase.command = Constants.cmdChangeDatabase;
