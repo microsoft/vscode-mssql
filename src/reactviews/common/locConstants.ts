@@ -456,7 +456,13 @@ export class LocConstants {
             saveAsExcel: l10n.t("Save as Excel"),
             saveAsJson: l10n.t("Save as JSON"),
             clickHereToHideThisPanel: l10n.t("Hide this panel"),
-            queryPlan: l10n.t("Query Plan"),
+            queryPlan: (count: number) => {
+                return l10n.t({
+                    message: "Query Plan ({0})",
+                    args: [count],
+                    comment: ["{0} is the number of query plans"],
+                });
+            },
             selectAll: l10n.t("Select All"),
             copy: l10n.t("Copy"),
             copyWithHeaders: l10n.t("Copy with Headers"),

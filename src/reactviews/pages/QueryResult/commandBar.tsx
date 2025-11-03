@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Button, makeStyles, Toolbar, Tooltip } from "@fluentui/react-components";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { useQueryResultSelector } from "./queryResultSelector";
@@ -38,14 +38,13 @@ const useStyles = makeStyles({
 export interface CommandBarProps {
     uri?: string;
     resultSetSummary?: qr.ResultSetSummary;
-    maximizeResults?: () => void;
-    restoreResults?: () => void;
     viewMode?: qr.QueryResultViewMode;
+    onToggleMaximize?: () => void;
+    isMaximized?: boolean;
 }
 
 const CommandBar = (props: CommandBarProps) => {
     const classes = useStyles();
-    const [maxView, setMaxView] = useState(false);
     const { themeKind } = useVscodeWebview2<qr.QueryResultWebviewState, qr.QueryResultReducers>();
     const context = useContext(QueryResultCommandsContext);
     const resultSetSummaries = useQueryResultSelector<
@@ -140,18 +139,17 @@ const CommandBar = (props: CommandBarProps) => {
                     <Button
                         appearance="subtle"
                         onClick={() => {
-                            maxView ? props.restoreResults?.() : props.maximizeResults?.();
-                            setMaxView((prev) => !prev); // Toggle maxView state
+                            props.onToggleMaximize?.();
                         }}
                         icon={
-                            maxView ? (
+                            props.isMaximized ? (
                                 <ArrowMinimize16Filled className={classes.buttonImg} />
                             ) : (
                                 <ArrowMaximize16Filled className={classes.buttonImg} />
                             )
                         }
                         title={
-                            maxView
+                            props.isMaximized
                                 ? locConstants.queryResult.restore
                                 : locConstants.queryResult.maximize
                         }></Button>
