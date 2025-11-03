@@ -3383,9 +3383,10 @@ Error:
         <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
         <target state="translated">Extrayendo la imagen de contenedor de SQL Server. Esto puede tardar unos minutos dependiendo de la conexión a Internet.</target>
       </trans-unit>
-      <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
-        <source xml:lang="en">Query Plan</source>
-        <target state="translated">Plan de consulta</target>
+      <trans-unit id="++CODE++bebc9b760db9e5ba55f2632c57871653521c9094223eeb46476e3d7d49218b89">
+        <source xml:lang="en">Query Plan ({0})</source>
+        <note>{0} is the number of query plans</note>
+        <target state="new">Query Plan ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
