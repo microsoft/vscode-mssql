@@ -636,8 +636,12 @@ suite("DataTierApplicationWebviewController", () => {
             const requestHandler = requestHandlers.get(
                 GetSuggestedDatabaseNameWebviewRequest.type.method,
             );
+            const testPath = path.join(
+                path.sep === "\\" ? "C:\\files" : "/files",
+                "AdventureWorks.dacpac",
+            );
             const result = await requestHandler!({
-                filePath: "C:\\files\\AdventureWorks.dacpac",
+                filePath: testPath,
             });
 
             expect(result.databaseName).to.equal("AdventureWorks");
@@ -649,8 +653,12 @@ suite("DataTierApplicationWebviewController", () => {
             const requestHandler = requestHandlers.get(
                 GetSuggestedDatabaseNameWebviewRequest.type.method,
             );
+            const testPath = path.join(
+                path.sep === "\\" ? "C:\\files" : "/files",
+                "AdventureWorks-2025-10-31-14-30.dacpac",
+            );
             const result = await requestHandler!({
-                filePath: "C:\\files\\AdventureWorks-2025-10-31-14-30.dacpac",
+                filePath: testPath,
             });
 
             expect(result.databaseName).to.equal("AdventureWorks-2025-10-31-14-30");
@@ -662,8 +670,12 @@ suite("DataTierApplicationWebviewController", () => {
             const requestHandler = requestHandlers.get(
                 GetSuggestedDatabaseNameWebviewRequest.type.method,
             );
+            const testPath = path.join(
+                path.sep === "\\" ? "C:\\user" : "/home/user",
+                "MyDatabase.bacpac",
+            );
             const result = await requestHandler!({
-                filePath: "/home/user/MyDatabase.bacpac",
+                filePath: testPath,
             });
 
             expect(result.databaseName).to.equal("MyDatabase");
@@ -675,8 +687,12 @@ suite("DataTierApplicationWebviewController", () => {
             const requestHandler = requestHandlers.get(
                 GetSuggestedDatabaseNameWebviewRequest.type.method,
             );
+            const testPath = path.join(
+                path.sep === "\\" ? "C:\\exports" : "/exports",
+                "My-Complex-Database-Name-2025-01-15-10-30.bacpac",
+            );
             const result = await requestHandler!({
-                filePath: "C:\\exports\\My-Complex-Database-Name-2025-01-15-10-30.bacpac",
+                filePath: testPath,
             });
 
             expect(result.databaseName).to.equal("My-Complex-Database-Name-2025-01-15-10-30");
@@ -688,8 +704,12 @@ suite("DataTierApplicationWebviewController", () => {
             const requestHandler = requestHandlers.get(
                 GetSuggestedDatabaseNameWebviewRequest.type.method,
             );
+            const testPath = path.join(
+                path.sep === "\\" ? "C:\\very\\long\\path\\to\\files" : "/very/long/path/to/files",
+                "TestDB.dacpac",
+            );
             const result = await requestHandler!({
-                filePath: "C:\\very\\long\\path\\to\\files\\TestDB.dacpac",
+                filePath: testPath,
             });
 
             expect(result.databaseName).to.equal("TestDB");
