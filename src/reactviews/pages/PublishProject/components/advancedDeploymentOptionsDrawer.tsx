@@ -198,9 +198,12 @@ export const AdvancedDeploymentOptionsDrawer = ({
                 if (updatedOptions.booleanOptionsDictionary?.[optionName]) {
                     // Handle boolean options types
                     updatedOptions.booleanOptionsDictionary[optionName].value = value;
-                } else if (updatedOptions.objectTypesDictionary?.[optionName]) {
+                } else if (
+                    updatedOptions.objectTypesDictionary?.[optionName] &&
+                    updatedOptions.excludeObjectTypes
+                ) {
                     // Handle exclude object types
-                    const excludedTypes = updatedOptions.excludeObjectTypes!.value;
+                    const excludedTypes = updatedOptions.excludeObjectTypes.value;
                     if (
                         value &&
                         !excludedTypes.some((t) => t.toLowerCase() === optionName.toLowerCase())

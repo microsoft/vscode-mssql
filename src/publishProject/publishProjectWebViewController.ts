@@ -276,7 +276,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                             parsedProfile.deploymentOptions || state.deploymentOptions,
                         formMessage: !this._dacFxService
                             ? {
-                                  message: `${Loc.DacFxServiceNotAvailable}. Profile loaded without deployment options.`,
+                                  message: Loc.DacFxServiceNotAvailableProfileLoaded,
                                   intent: "warning" as const,
                               }
                             : undefined,

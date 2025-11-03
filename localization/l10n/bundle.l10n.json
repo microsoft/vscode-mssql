@@ -1492,6 +1492,7 @@
     "Publish profile saved to: {0}": "Publish profile saved to: {0}",
     "Failed to save publish profile": "Failed to save publish profile",
     "DacFx service is not available": "DacFx service is not available",
+    "DacFx service is not available. Profile loaded without deployment options.": "DacFx service is not available. Profile loaded without deployment options.",
     "Failed to list databases": "Failed to list databases",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",

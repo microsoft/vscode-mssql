@@ -970,6 +970,9 @@
     <trans-unit id="++CODE++ef695e4c384e9b231d25ba5d0160913f31f4153f460e645129860fa611a52b27">
       <source xml:lang="en">DacFx service is not available</source>
     </trans-unit>
+    <trans-unit id="++CODE++b71e4fef69f396ef921feda2c66cbfe00983a3cdb9e6eea1871fd787a6cddd64">
+      <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options.</source>
+    </trans-unit>
     <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
       <source xml:lang="en">Data Type</source>
     </trans-unit>
