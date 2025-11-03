@@ -28,6 +28,7 @@ export function isPreviewFeaturesEnabled(): boolean {
 /**
  * Target platforms for a SQL project - these are user-facing display names shown in the VS Code UI.
  * The corresponding internal version numbers used by DacFx are defined in targetPlatformToVersion map.
+ * Maps Dacfx Microsoft.Data.Tools.Schema.SchemaModel.SqlPlatformNames to vscode display names.
  */
 export const enum SqlTargetPlatform {
     sqlServer2012 = "SQL Server 2012",
