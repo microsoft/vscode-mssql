@@ -368,7 +368,10 @@
     "Save as Excel": "Save as Excel",
     "Save as JSON": "Save as JSON",
     "Hide this panel": "Hide this panel",
-    "Query Plan": "Query Plan",
+    "Query Plan ({0})/{0} is the number of query plans": {
+        "message": "Query Plan ({0})",
+        "comment": ["{0} is the number of query plans"]
+    },
     "Select All": "Select All",
     "Copy with Headers": "Copy with Headers",
     "Copy Headers": "Copy Headers",

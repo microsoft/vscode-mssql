@@ -2591,7 +2591,7 @@ export default class MainController implements vscode.Disposable {
             await this._connectionMgr.refreshAzureAccountToken(uri);
 
             // Delete stored filters and dimension states for result grid when a new query is executed
-            store.deleteMainKey(uri);
+            store.deleteUriState(uri);
 
             await this._outputContentProvider.runQuery(
                 this._statusview,

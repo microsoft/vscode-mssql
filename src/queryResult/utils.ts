@@ -18,7 +18,7 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import * as qr from "../sharedInterfaces/queryResult";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
-import store, { SubKeys } from "./singletonStore";
+import store, { QueryResultSingletonStore } from "./singletonStore";
 import { JsonFormattingEditProvider } from "../utils/jsonFormatter";
 import * as LocalizedConstants from "../constants/locConstants";
 
@@ -207,76 +207,85 @@ export function registerCommonRequestHandlers(
 
     // Register request handlers for query result filters
     webviewController.onRequest(qr.GetFiltersRequest.type, async (message) => {
-        return store.get(message.uri, SubKeys.Filter);
+        return store.gridState.gridColumnFilters.get(
+            QueryResultSingletonStore.generateGridKey(message.uri, message.gridId),
+        );
     });
 
     webviewController.onRequest(qr.SetFiltersRequest.type, async (message) => {
-        store.set(message.uri, SubKeys.Filter, message.filters);
+        store.gridState.gridColumnFilters.set(
+            QueryResultSingletonStore.generateGridKey(message.uri, message.gridId),
+            message.filters,
+        );
+        // Clear scroll position when filters change
+        store.gridState.gridScrollPositions.delete(
+            QueryResultSingletonStore.generateGridKey(message.uri, message.gridId),
+        );
     });
 
     webviewController.onRequest(qr.SetColumnWidthsRequest.type, async (message) => {
-        store.set(message.uri, SubKeys.ColumnWidth, message.columnWidths);
+        store.gridState.gridColumnWidths.set(
+            QueryResultSingletonStore.generateGridKey(message.uri, message.gridId),
+            message.columnWidths,
+        );
     });
 
     webviewController.onRequest(qr.GetColumnWidthsRequest.type, async (message) => {
-        return store.get(message.uri, SubKeys.ColumnWidth);
+        return store.gridState.gridColumnWidths.get(
+            QueryResultSingletonStore.generateGridKey(message.uri, message.gridId),
+        );
     });
 
     webviewController.onNotification(qr.SetGridScrollPositionNotification.type, async (message) => {
-        if (message.scrollLeft === 0 && message.scrollTop === 0) {
-            // If both scrollLeft and scrollTop are 0, we don't need to store this position
-            return;
-        }
-        let scrollPositions: Map<string, { scrollTop: number; scrollLeft: number }> = store.get(
-            message.uri,
-            SubKeys.GridScrollPosition,
+        store.gridState.gridScrollPositions.set(
+            QueryResultSingletonStore.generateGridKey(message.uri, message.gridId),
+            {
+                scrollLeft: message.scrollLeft,
+                scrollTop: message.scrollTop,
+            },
         );
-        if (!scrollPositions) {
-            scrollPositions = new Map<
-                string,
-                {
-                    scrollTop: number;
-                    scrollLeft: number;
-                }
-            >();
-        }
-
-        scrollPositions.set(message.gridId, {
-            scrollTop: message.scrollTop,
-            scrollLeft: message.scrollLeft,
-        });
-        // Update the scroll positions in the store
-        store.set(message.uri, SubKeys.GridScrollPosition, scrollPositions);
     });
 
     webviewController.onRequest(qr.GetGridScrollPositionRequest.type, async (message) => {
-        const scrollPositions = store.get(message.uri, SubKeys.GridScrollPosition) as Map<
-            string,
-            { scrollTop: number; scrollLeft: number }
-        >;
-        if (scrollPositions && scrollPositions.has(message.gridId)) {
-            return scrollPositions.get(message.gridId);
-        } else {
-            // If no scroll position is found, return default values
-            return undefined;
-        }
+        return store.gridState.gridScrollPositions.get(
+            QueryResultSingletonStore.generateGridKey(message.uri, message.gridId),
+        );
     });
 
     webviewController.onNotification(
         qr.SetGridPaneScrollPositionNotification.type,
         async (message) => {
-            if (message.scrollTop === 0) {
-                // If scrollTop is 0, we don't need to store this position
-                return;
-            }
-            store.set(message.uri, SubKeys.PaneScrollPosition, {
-                scrollTop: message.scrollTop,
-            });
+            store.gridState.resultsTabYOffsets.set(message.uri, message.scrollTop);
         },
     );
 
     webviewController.onRequest(qr.GetGridPaneScrollPositionRequest.type, async (message) => {
-        return store.get(message.uri, SubKeys.PaneScrollPosition) ?? { scrollTop: 0 };
+        return {
+            scrollTop: store.gridState.resultsTabYOffsets.get(message.uri) || 0,
+        };
+    });
+
+    webviewController.onNotification(
+        qr.SetMessagesTabScrollPositionNotification.type,
+        async (message) => {
+            store.gridState.messagesTabYOffsets.set(message.uri, message.scrollTop);
+        },
+    );
+
+    webviewController.onRequest(qr.GetMessagesTabScrollPositionRequest.type, async (message) => {
+        return {
+            scrollTop: store.gridState.messagesTabYOffsets.get(message.uri) || 0,
+        };
+    });
+
+    webviewController.onNotification(qr.SetMaximizedGridNotification.type, async (message) => {
+        store.gridState.maximizedGridIds.set(message.uri, message.gridId);
+    });
+
+    webviewController.onRequest(qr.GetMaximizedGridRequest.type, (message) => {
+        return {
+            gridId: store.gridState.maximizedGridIds.get(message.uri) || undefined,
+        };
     });
 
     webviewController.onNotification(qr.SetSelectionSummaryRequest.type, async (message) => {
