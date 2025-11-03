@@ -22,7 +22,7 @@ import * as qr from "../sharedInterfaces/queryResult";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../queryResult/utils";
 import { ApiStatus, StateChangeNotification } from "../sharedInterfaces/webview";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage, getDocumentUriFromEditorKey } from "../utils/utils";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 
@@ -263,7 +263,7 @@ export class SqlOutputContentProvider {
     /**
      * Runs a query against the database.
      * @param statusView The status view to use for showing query progress
-     * @param uri The URI of the editor to run the query for
+     * @param editorInstanceKey The editor instance key (URI::viewColumn) for the editor running the query
      * @param selection The selection in the editor to run the query for
      * @param title The title of the editor to run the query for
      * @param executionPlanOptions Options for including execution plans
@@ -271,7 +271,7 @@ export class SqlOutputContentProvider {
      */
     public async runQuery(
         statusView: StatusView,
-        uri: string,
+        editorInstanceKey: string,
         selection: ISelectionData,
         title: string,
         executionPlanOptions?: ExecutionPlanOptions,
@@ -279,7 +279,7 @@ export class SqlOutputContentProvider {
     ): Promise<void> {
         const runner = await this.initializeRunnerAndWebviewState(
             statusView ? statusView : this._statusView,
-            uri,
+            editorInstanceKey,
             title,
             executionPlanOptions,
         );
@@ -293,7 +293,7 @@ export class SqlOutputContentProvider {
 
         const includeExecutionPlanXml =
             executionPlanOptions?.includeActualExecutionPlanXml ??
-            this._actualPlanStatuses.includes(uri);
+            this._actualPlanStatuses.includes(editorInstanceKey);
         const includeEstimatedExecutionPlanXml =
             executionPlanOptions?.includeEstimatedExecutionPlanXml ?? false;
 
@@ -311,19 +311,19 @@ export class SqlOutputContentProvider {
      * Runs a query against the database for the current statement based on the cursor position.
      * If there is a selection, it will run the selection else it will run the current statement.
      * @param statusView The status view to use for showing query progress
-     * @param uri The URI of the editor to run the query for
+     * @param editorInstanceKey The editor instance key (URI::viewColumn) for the editor running the query
      * @param selection The selection in the editor to run the query for
      * @param title The title of the editor to run the query for
      */
     public async runCurrentStatement(
         statusView: StatusView,
-        uri: string,
+        editorInstanceKey: string,
         selection: ISelectionData,
         title: string,
     ): Promise<void> {
         const runner = await this.initializeRunnerAndWebviewState(
             statusView ? statusView : this._statusView,
-            uri,
+            editorInstanceKey,
             title,
         );
 
@@ -336,50 +336,54 @@ export class SqlOutputContentProvider {
 
     private async initializeRunnerAndWebviewState(
         statusView: StatusView,
-        uri: string,
+        editorInstanceKey: string,
         title: string,
         executionPlanOptions?: ExecutionPlanOptions,
     ): Promise<QueryRunner | undefined> {
         let queryRunner = await this.createQueryRunner(
             statusView ? statusView : this._statusView,
-            uri,
+            editorInstanceKey,
             title,
         );
         if (!queryRunner) {
             return;
         }
         this._queryResultWebviewController.addQueryResultState(
-            uri,
+            editorInstanceKey,
             title,
             executionPlanOptions?.includeEstimatedExecutionPlanXml ||
-                this._actualPlanStatuses.includes(uri) ||
+                this._actualPlanStatuses.includes(editorInstanceKey) ||
                 executionPlanOptions?.includeActualExecutionPlanXml,
         );
         if (isOpenQueryResultsInTabByDefaultEnabled()) {
-            await this._queryResultWebviewController.createPanelController(queryRunner.uri);
+            await this._queryResultWebviewController.createPanelController(editorInstanceKey);
         }
         return queryRunner;
     }
 
     /**
-     * Creates a new query runner for the given URI if one does not already exist.
+     * Creates a new query runner for the given editor instance key if one does not already exist.
      * If one already exists and is not currently executing a query, it will be reused.
      * If one already exists and is currently executing a query, undefined will be returned.
      * @param statusView The status view to use for showing query progress
-     * @param uri  The URI of the editor to run the query for
+     * @param editorInstanceKey  The editor instance key (URI::viewColumn) to run the query for
      * @param title The title of the editor to run the query for
      * @returns A promise that resolves to the query runner or undefined if a query is already in progress
      */
     public async createQueryRunner(
         statusView: StatusView,
-        uri: string,
+        editorInstanceKey: string,
         title: string,
     ): Promise<QueryRunner | undefined> {
-        // Reuse existing query runner if it exists
+        // Extract document URI from editor instance key
+        const documentUri = getDocumentUriFromEditorKey(editorInstanceKey);
+
+        // Reuse existing query runner if it exists for this editor instance
         let queryRunner: QueryRunner;
 
-        if (this._queryResultsMap.has(uri)) {
-            let existingRunner: QueryRunner = this._queryResultsMap.get(uri).queryRunner;
+        if (this._queryResultsMap.has(editorInstanceKey)) {
+            let existingRunner: QueryRunner =
+                this._queryResultsMap.get(editorInstanceKey).queryRunner;
 
             // If the query is already in progress, don't attempt to send it
             if (existingRunner.isExecutingQuery) {
@@ -396,12 +400,22 @@ export class SqlOutputContentProvider {
             queryRunner = existingRunner;
             queryRunner.resetHasCompleted();
         } else {
-            // We do not have a query runner for this editor, so create a new one
-            // and map it to the results uri
-            queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
+            // We do not have a query runner for this editor instance, so create a new one
+            // NOTE: QueryRunner uses documentUri for SQL Tools Service calls (connection lookup)
+            // but we key it in our map by editorInstanceKey for per-editor execution state
+            // Pass editorInstanceKey to QueryRunner so it can update StatusView per editor instance
+            queryRunner = new QueryRunner(
+                documentUri,
+                title,
+                statusView ? statusView : this._statusView,
+                undefined, // client
+                undefined, // notificationHandler
+                undefined, // vscodeWrapper
+                editorInstanceKey,
+            );
 
             const startFailedListener = queryRunner.onStartFailed(async (error) => {
-                this.updateWebviewState(queryRunner.uri, {
+                this.updateWebviewState(editorInstanceKey, {
                     initializationError: getErrorMessage(error),
                     resultSetSummaries: {},
                     executionPlanState: {},
@@ -411,14 +425,13 @@ export class SqlOutputContentProvider {
             });
 
             const startListener = queryRunner.onStart(async (_panelUri) => {
-                const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
-                    queryRunner.uri,
-                );
+                const resultWebviewState =
+                    this._queryResultWebviewController.getQueryResultState(editorInstanceKey);
                 resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                 resultWebviewState.isExecutionPlan = false;
                 resultWebviewState.initializationError = undefined;
-                this.updateWebviewState(queryRunner.uri, resultWebviewState);
-                this.revealQueryResult(queryRunner.uri);
+                this.updateWebviewState(editorInstanceKey, resultWebviewState);
+                this.revealQueryResult(editorInstanceKey);
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
                     defaultLocation: isOpenQueryResultsInTabByDefaultEnabled() ? "tab" : "pane",
                 });
@@ -427,7 +440,7 @@ export class SqlOutputContentProvider {
             const resultSetAvailableListener = queryRunner.onResultSetAvailable(
                 async (resultSet: ResultSetSummary) => {
                     const resultWebviewState =
-                        this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                        this._queryResultWebviewController.getQueryResultState(editorInstanceKey);
                     const batchId = resultSet.batchId;
                     const resultId = resultSet.id;
                     if (!resultWebviewState.resultSetSummaries[batchId]) {
@@ -438,14 +451,14 @@ export class SqlOutputContentProvider {
                     if (countResultSets(resultWebviewState.resultSetSummaries) === 1) {
                         resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Results;
                     }
-                    this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                    this.updateWebviewState(editorInstanceKey, resultWebviewState);
                 },
             );
 
             const resultSetUpdatedListener = queryRunner.onResultSetUpdated(
                 async (resultSet: ResultSetSummary) => {
                     const resultWebviewState =
-                        this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                        this._queryResultWebviewController.getQueryResultState(editorInstanceKey);
                     const batchId = resultSet.batchId;
                     const resultId = resultSet.id;
                     if (!resultWebviewState.resultSetSummaries[batchId]) {
@@ -459,7 +472,7 @@ export class SqlOutputContentProvider {
             const resultSetCompleteListener = queryRunner.onResultSetComplete(
                 async (resultSet: ResultSetSummary) => {
                     const resultWebviewState =
-                        this._queryResultWebviewController.getQueryResultState(queryRunner.uri);
+                        this._queryResultWebviewController.getQueryResultState(editorInstanceKey);
                     const batchId = resultSet.batchId;
                     const resultId = resultSet.id;
                     if (!resultWebviewState.resultSetSummaries[batchId]) {
@@ -467,7 +480,7 @@ export class SqlOutputContentProvider {
                     }
                     resultWebviewState.resultSetSummaries[batchId][resultId] = resultSet;
 
-                    this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                    this.updateWebviewState(editorInstanceKey, resultWebviewState);
                 },
             );
 
@@ -488,25 +501,23 @@ export class SqlOutputContentProvider {
                         text: LocalizedConstants.runQueryBatchStartLine(
                             batch.selection.startLine + 1,
                         ),
-                        uri: queryRunner.uri,
+                        uri: editorInstanceKey,
                     },
                 };
 
-                const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
-                    queryRunner.uri,
-                );
+                const resultWebviewState =
+                    this._queryResultWebviewController.getQueryResultState(editorInstanceKey);
                 resultWebviewState.messages.push(message);
-                this.scheduleThrottledUpdate(queryRunner.uri);
+                this.scheduleThrottledUpdate(editorInstanceKey);
             });
 
             const onMessageListener = queryRunner.onMessage(async (message) => {
-                const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
-                    queryRunner.uri,
-                );
+                const resultWebviewState =
+                    this._queryResultWebviewController.getQueryResultState(editorInstanceKey);
 
                 resultWebviewState.messages.push(message);
 
-                this.scheduleThrottledUpdate(queryRunner.uri);
+                this.scheduleThrottledUpdate(editorInstanceKey);
             });
 
             const onCompleteListener = queryRunner.onComplete(async (e) => {
@@ -515,14 +526,13 @@ export class SqlOutputContentProvider {
                     // only update query history with new queries
                     this._vscodeWrapper.executeCommand(
                         Constants.cmdRefreshQueryHistory,
-                        queryRunner.uri,
+                        editorInstanceKey,
                         hasError,
                     );
                 }
 
-                const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
-                    queryRunner.uri,
-                );
+                const resultWebviewState =
+                    this._queryResultWebviewController.getQueryResultState(editorInstanceKey);
                 resultWebviewState.messages.push({
                     message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
                     isError: false, // Elapsed time messages are never displayed as errors
@@ -543,7 +553,7 @@ export class SqlOutputContentProvider {
                     }
                 }
                 resultWebviewState.tabStates.resultPaneTab = tabState;
-                this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                this.updateWebviewState(editorInstanceKey, resultWebviewState);
             });
 
             const onExecutionPlanListener = queryRunner.onExecutionPlan(async (e) => {
@@ -552,9 +562,8 @@ export class SqlOutputContentProvider {
                     graphFileType: "xml",
                 });
 
-                const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
-                    e.uri,
-                );
+                const resultWebviewState =
+                    this._queryResultWebviewController.getQueryResultState(editorInstanceKey);
 
                 const existingGraphs = resultWebviewState.executionPlanState.executionPlanGraphs;
                 existingGraphs.push(...planGraphs.graphs);
@@ -574,7 +583,7 @@ export class SqlOutputContentProvider {
                     xmlPlans: xmlPlans,
                 };
 
-                this.updateWebviewState(queryRunner.uri, resultWebviewState);
+                this.updateWebviewState(editorInstanceKey, resultWebviewState);
             });
 
             const onSelectionSummaryListener = queryRunner.onSummaryChanged(async (e) => {
@@ -605,7 +614,8 @@ export class SqlOutputContentProvider {
                 onSelectionSummaryListener,
             );
 
-            this._queryResultsMap.set(uri, queryRunnerState);
+            // Store the query runner keyed by editor instance key
+            this._queryResultsMap.set(editorInstanceKey, queryRunnerState);
         }
 
         return queryRunner;

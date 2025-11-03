@@ -106,6 +106,35 @@ export function getUriKey(uri: vscode.Uri): string {
 }
 
 /**
+ * Gets a unique key for an editor instance by combining the document URI with the editor's view column.
+ * This allows multiple editors viewing the same document to have separate execution contexts.
+ * @param editor The text editor to get the unique key for, or undefined to get the active editor's key
+ * @returns A unique string key for the editor instance, or undefined if no editor is provided/active
+ */
+export function getEditorInstanceKey(editor?: vscode.TextEditor): string | undefined {
+    const targetEditor = editor || vscode.window.activeTextEditor;
+    if (!targetEditor?.document?.uri) {
+        return undefined;
+    }
+    const uriKey = getUriKey(targetEditor.document.uri);
+    const viewColumn = targetEditor.viewColumn ?? vscode.ViewColumn.One;
+    return `${uriKey}::${viewColumn}`;
+}
+
+/**
+ * Extracts the document URI from an editor instance key.
+ * @param editorInstanceKey The editor instance key to extract the URI from
+ * @returns The document URI portion of the key
+ */
+export function getDocumentUriFromEditorKey(editorInstanceKey: string): string {
+    if (!editorInstanceKey) {
+        return undefined;
+    }
+    const parts = editorInstanceKey.split("::");
+    return parts[0];
+}
+
+/**
  * Gets the end-of-line character sequence configured in the editor.
  * @returns The end-of-line character sequence.
  */

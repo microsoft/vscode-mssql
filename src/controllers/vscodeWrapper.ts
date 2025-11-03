@@ -8,6 +8,7 @@ import * as vscode from "vscode";
 import { TextDocumentShowOptions } from "vscode";
 import { AzureLoginStatus } from "../models/interfaces";
 import * as Constants from "./../constants/constants";
+import { getEditorInstanceKey } from "../utils/utils";
 
 export import TextEditor = vscode.TextEditor;
 export import ConfigurationTarget = vscode.ConfigurationTarget;
@@ -68,6 +69,15 @@ export default class VscodeWrapper {
             return vscode.window.activeTextEditor.document.uri.toString(true);
         }
         return undefined;
+    }
+
+    /**
+     * Get the unique editor instance key for the current active text editor.
+     * This key includes the document URI and the view column, allowing multiple
+     * editors of the same document to have independent execution contexts.
+     */
+    public get activeTextEditorInstanceKey(): string | undefined {
+        return getEditorInstanceKey(vscode.window.activeTextEditor);
     }
 
     /**
