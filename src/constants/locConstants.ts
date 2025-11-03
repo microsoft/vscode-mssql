@@ -1334,6 +1334,7 @@ export class PublishProject {
     public static SqlServerAdminPasswordConfirm = l10n.t("Confirm SQL Server admin password");
     public static SqlServerImageTag = l10n.t("Image tag");
     public static SqlServerLicenseAgreement = l10n.t("Microsoft SQL Server License Agreement");
+    public static ServerConnectionPlaceholder = l10n.t("Select Connection");
     // Validation messages
     public static InvalidPortMessage = l10n.t("Port must be a number between 1 and 65535");
     public static InvalidSQLPasswordMessage(name: string) {
@@ -1353,6 +1354,7 @@ export class PublishProject {
     };
     public static PublishProfileSaveFailed = l10n.t("Failed to save publish profile");
     public static DacFxServiceNotAvailable = l10n.t("DacFx service is not available");
+    public static FailedToListDatabases = l10n.t("Failed to list databases");
 }
 
 export class SchemaCompare {
@@ -1605,6 +1607,20 @@ export class MssqlChatAgent {
         });
     };
     public static unknownErrorOccurred = l10n.t("An unknown error occurred. Please try again.");
+    public static connect = l10n.t("Connect");
+    public static openSqlEditorAndConnect = l10n.t("Open SQL editor and connect");
+    public static connectionRequiredMessage = (buttonText: string) => {
+        return l10n.t({
+            message:
+                'An active connection is required for GitHub Copilot to understand your database schema and proceed.\nSelect "{0}" to establish a connection.',
+            args: [buttonText],
+            comment: ["{0} is the button text (e.g., 'Connect' or 'Open SQL editor and connect')"],
+        });
+    };
+    // Follow-up questions
+    public static followUpConnectToDatabase = l10n.t("Connect to a database");
+    public static followUpShowRandomTableDefinition = l10n.t("Show a random table definition");
+    public static followUpCountTables = l10n.t("How many tables are in this database?");
     public static listServersToolConfirmationTitle = l10n.t("List Connections");
     public static listServersToolConfirmationMessage = l10n.t(
         "List all connections registered with the mssql extension?",
@@ -1913,6 +1929,42 @@ export class MssqlChatAgent {
     );
     public static chatCommandNotAvailable = l10n.t(
         "Chat command not available in this VS Code version",
+    );
+
+    // Help command strings
+    public static helpWelcome = l10n.t(
+        "👋 I'm GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.",
+    );
+    public static helpWhatICanDo = l10n.t("What I can do for you:");
+    public static helpCapabilityExploreDesign = l10n.t(
+        "Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance",
+    );
+    public static helpCapabilityContextualSuggestions = l10n.t(
+        "Apply contextual suggestions for SQL syntax, relationships, and constraints",
+    );
+    public static helpCapabilityWriteOptimize = l10n.t(
+        "Write, optimize, and troubleshoot SQL queries with AI-recommended improvements",
+    );
+    public static helpCapabilityGenerateMockData = l10n.t(
+        "Generate mock data and seed scripts to support testing and development environments",
+    );
+    public static helpCapabilityAccelerateSchema = l10n.t(
+        "Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts",
+    );
+    public static helpCapabilityUnderstandDocument = l10n.t(
+        "Understand and document business logic embedded in stored procedures, views, and functions",
+    );
+    public static helpCapabilitySecurityRecommendations = l10n.t(
+        "Get security-related recommendations, such as avoiding SQL injection or excessive permissions",
+    );
+    public static helpCapabilityNaturalLanguage = l10n.t(
+        "Receive natural language explanations to help developers unfamiliar with T-SQL understand code",
+    );
+    public static helpCapabilityReverseEngineer = l10n.t(
+        "Reverse-engineer existing databases by explaining SQL schemas and relationships",
+    );
+    public static helpCapabilityScaffoldComponents = l10n.t(
+        "Scaffold backend components (e.g., data-access layers) based on your current database context",
     );
 }
 

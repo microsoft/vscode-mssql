@@ -13,6 +13,7 @@ import { LocConstants } from "../../common/locConstants";
 import { PublishProfileField } from "./components/PublishProfileSection";
 import { PublishTargetSection } from "./components/PublishTargetSection";
 import { ConnectionSection } from "./components/ConnectionSection";
+import { DialogMessage } from "../../common/dialogMessage";
 
 const useStyles = makeStyles({
     root: { padding: "12px" },
@@ -39,6 +40,7 @@ function PublishProjectDialog() {
     const formState = usePublishDialogSelector((s) => s.formState);
     const inProgress = usePublishDialogSelector((s) => s.inProgress);
     const hasFormErrors = usePublishDialogSelector((s) => s.hasFormErrors);
+    const formMessage = usePublishDialogSelector((s) => s.formMessage);
 
     // Check if component is properly initialized and ready for user interaction
     const isComponentReady = !!context && !!formState;
@@ -53,6 +55,13 @@ function PublishProjectDialog() {
         <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
             <div className={classes.root}>
                 <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
+                    {formMessage && (
+                        <DialogMessage
+                            message={formMessage}
+                            onMessageButtonClicked={() => {}}
+                            onCloseMessage={context.closeMessage}
+                        />
+                    )}
                     <PublishTargetSection />
                     <PublishProfileField />
                     <ConnectionSection />

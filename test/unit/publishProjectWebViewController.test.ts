@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as mssql from "vscode-mssql";
 import { expect } from "chai";
 import * as sinon from "sinon";
 
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import ConnectionManager from "../../src/controllers/connectionManager";
 import { PublishProjectWebViewController } from "../../src/publishProject/publishProjectWebViewController";
 import { validateSqlServerPortNumber } from "../../src/publishProject/projectUtils";
 import { validateSqlServerPassword } from "../../src/deployment/dockerUtils";
@@ -21,10 +23,9 @@ suite("PublishProjectWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let contextStub: vscode.ExtensionContext;
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let mockSqlProjectsService: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let mockDacFxService: any;
+    let mockSqlProjectsService: sinon.SinonStubbedInstance<SqlProjectsService>;
+    let mockDacFxService: sinon.SinonStubbedInstance<mssql.IDacFxService>;
+    let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -37,8 +38,24 @@ suite("PublishProjectWebViewController Tests", () => {
         contextStub = rawContext as vscode.ExtensionContext;
 
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
-        mockSqlProjectsService = {};
-        mockDacFxService = {};
+
+        // Create properly typed stubbed instances
+        mockSqlProjectsService = sandbox.createStubInstance(SqlProjectsService);
+
+        // Create ConnectionManager mock manually (createStubInstance doesn't handle event emitters well)
+        mockConnectionManager = {
+            listDatabases: sandbox.stub().resolves([]),
+            getConnectionString: sandbox.stub().resolves(""),
+            onSuccessfulConnection: sandbox.stub().returns({
+                dispose: sandbox.stub(),
+            } as vscode.Disposable),
+        } as sinon.SinonStubbedInstance<ConnectionManager>;
+
+        // Create mock for interface (IDacFxService) - only stub methods we actually use in tests
+        mockDacFxService = {
+            getOptionsFromProfile: sandbox.stub(),
+            savePublishProfile: sandbox.stub(),
+        } as sinon.SinonStubbedInstance<mssql.IDacFxService>;
     });
 
     teardown(() => {
@@ -55,6 +72,7 @@ suite("PublishProjectWebViewController Tests", () => {
         return new PublishProjectWebViewController(
             contextStub,
             vscodeWrapperStub,
+            mockConnectionManager,
             projectPath,
             mockSqlProjectsService,
             mockDacFxService,
@@ -78,12 +96,7 @@ suite("PublishProjectWebViewController Tests", () => {
     });
 
     test("reducer handlers are registered on construction", async () => {
-        const projectPath = "c:/work/TestProject.sqlproj";
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            projectPath,
-        );
+        const controller = createTestController();
 
         await controller.initialized.promise;
 
@@ -108,12 +121,7 @@ suite("PublishProjectWebViewController Tests", () => {
     });
 
     test("default publish target is EXISTING_SERVER", async () => {
-        const projectPath = "c:/work/TestProject.sqlproj";
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            projectPath,
-        );
+        const controller = createTestController();
 
         await controller.initialized.promise;
 
@@ -121,12 +129,7 @@ suite("PublishProjectWebViewController Tests", () => {
     });
 
     test("getActiveFormComponents returns correct fields for EXISTING_SERVER target", async () => {
-        const projectPath = "c:/work/TestProject.sqlproj";
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            projectPath,
-        );
+        const controller = createTestController();
 
         await controller.initialized.promise;
 
@@ -147,12 +150,7 @@ suite("PublishProjectWebViewController Tests", () => {
     });
 
     test("getActiveFormComponents returns correct fields for LOCAL_CONTAINER target", async () => {
-        const projectPath = "c:/work/TestProject.sqlproj";
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            projectPath,
-        );
+        const controller = createTestController();
 
         await controller.initialized.promise;
 
@@ -175,12 +173,7 @@ suite("PublishProjectWebViewController Tests", () => {
     });
 
     test("formAction reducer saves values to formState and updates visibility", async () => {
-        const projectPath = "c:/work/ContainerProject.sqlproj";
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            projectPath,
-        );
+        const controller = createTestController("c:/work/ContainerProject.sqlproj");
 
         await controller.initialized.promise;
 
@@ -216,6 +209,7 @@ suite("PublishProjectWebViewController Tests", () => {
         const controller = new PublishProjectWebViewController(
             contextStub,
             vscodeWrapperStub,
+            mockConnectionManager,
             "test.sqlproj",
             mockSqlProjectsService as SqlProjectsService,
         );
@@ -254,6 +248,7 @@ suite("PublishProjectWebViewController Tests", () => {
         const controller = new PublishProjectWebViewController(
             contextStub,
             vscodeWrapperStub,
+            mockConnectionManager,
             "c:/work/AzureProject.sqlproj",
             mockSqlProjectsService as SqlProjectsService,
         );
@@ -291,13 +286,28 @@ suite("PublishProjectWebViewController Tests", () => {
         );
     });
 
-    //#region Publish Profile Section Tests
-    test("selectPublishProfile reducer parses real-world XML profile correctly", async () => {
-        const controller = createTestController();
-        await controller.initialized.promise;
+    test("getSqlServerContainerTagsForTargetVersion filters versions correctly for SQL Server 2022", async () => {
+        // Mock deployment versions that would be returned from getSqlServerContainerVersions()
+        const mockDeploymentVersions = [
+            { displayName: "SQL Server 2025 image (latest)", value: "2025-latest" },
+            { displayName: "SQL Server 2022 image", value: "2022" },
+            { displayName: "SQL Server 2019 image", value: "2019" },
+            { displayName: "SQL Server 2017 image", value: "2017" },
+        ];
 
-        // Real-world ADS-generated publish profile XML with all features
-        const adsProfileXml = `<?xml version="1.0" encoding="utf-8"?>
+        sandbox.stub(dockerUtils, "getSqlServerContainerVersions").resolves(mockDeploymentVersions);
+
+        const result = await projectUtils.getSqlServerContainerTagsForTargetVersion("160");
+
+        // Should return only versions >= 2022 (2025 and 2022, filtered out 2019 and 2017)
+        expect(result).to.have.lengthOf(2);
+        expect(result[0].displayName).to.equal("SQL Server 2025 image (latest)");
+        expect(result[1].displayName).to.equal("SQL Server 2022 image");
+    });
+
+    //#region Publish Profile Section Tests
+    // Shared test data
+    const SAMPLE_PUBLISH_PROFILE_XML = `<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
@@ -316,21 +326,31 @@ suite("PublishProjectWebViewController Tests", () => {
   </ItemGroup>
 </Project>`;
 
+    test("selectPublishProfile reducer parses XML profile correctly", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
         const profilePath = "c:/profiles/TestProfile.publish.xml";
 
         // Mock file system read
         const fs = await import("fs");
-        sandbox.stub(fs.promises, "readFile").resolves(adsProfileXml);
+        sandbox.stub(fs.promises, "readFile").resolves(SAMPLE_PUBLISH_PROFILE_XML);
 
         // Mock file picker
         sandbox.stub(vscode.window, "showOpenDialog").resolves([vscode.Uri.file(profilePath)]);
 
-        // Mock DacFx service to return deployment options
-        mockDacFxService.getOptionsFromProfile = sandbox.stub().resolves({
+        // Mock DacFx service
+        mockDacFxService.getOptionsFromProfile.resolves({
             success: true,
+            errorMessage: "",
             deploymentOptions: {
-                excludeObjectTypes: { value: ["Users", "Logins"] },
-                ignoreTableOptions: { value: true },
+                excludeObjectTypes: {
+                    value: ["Users", "Logins"],
+                    description: "",
+                    displayName: "",
+                },
+                booleanOptionsDictionary: {},
+                objectTypesDictionary: {},
             },
         });
 
@@ -341,7 +361,7 @@ suite("PublishProjectWebViewController Tests", () => {
         // Invoke the reducer
         const newState = await selectPublishProfile(controller.state, {});
 
-        // Verify parsed values are in the returned state (normalize paths for cross-platform)
+        // Verify parsed values
         expect(newState.formState.publishProfilePath.replace(/\\/g, "/")).to.equal(profilePath);
         expect(newState.formState.databaseName).to.equal("MyDatabase");
         expect(newState.formState.serverName).to.equal("myserver.database.windows.net");
@@ -368,7 +388,7 @@ suite("PublishProjectWebViewController Tests", () => {
         sandbox.stub(vscode.window, "showSaveDialog").resolves(vscode.Uri.file(savedProfilePath));
 
         // Mock DacFx service
-        mockDacFxService.savePublishProfile = sandbox.stub().resolves({ success: true });
+        mockDacFxService.savePublishProfile.resolves({ success: true, errorMessage: "" });
 
         const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
         const savePublishProfile = reducerHandlers.get("savePublishProfile");
@@ -388,23 +408,99 @@ suite("PublishProjectWebViewController Tests", () => {
         );
     });
 
-    test("getSqlServerContainerTagsForTargetVersion filters versions correctly for SQL Server 2022", async () => {
-        // Mock deployment versions that would be returned from getSqlServerContainerVersions()
-        const mockDeploymentVersions = [
-            { displayName: "SQL Server 2025 image (latest)", value: "2025-latest" },
-            { displayName: "SQL Server 2022 image", value: "2022" },
-            { displayName: "SQL Server 2019 image", value: "2019" },
-            { displayName: "SQL Server 2017 image", value: "2017" },
-        ];
+    test("savePublishProfile reducer saves server and database names to file", async () => {
+        const controller = createTestController();
 
-        sandbox.stub(dockerUtils, "getSqlServerContainerVersions").resolves(mockDeploymentVersions);
+        await controller.initialized.promise;
 
-        const result = await projectUtils.getSqlServerContainerTagsForTargetVersion("160");
+        // Set up server and database state
+        controller.state.formState.serverName = "myserver.database.windows.net";
+        controller.state.formState.databaseName = "ProductionDB";
+        controller.state.formState.sqlCmdVariables = {
+            EnvironmentName: "Production",
+        };
 
-        // Should return only versions >= 2022 (2025 and 2022, filtered out 2019 and 2017)
-        expect(result).to.have.lengthOf(2);
-        expect(result[0].displayName).to.equal("SQL Server 2025 image (latest)");
-        expect(result[1].displayName).to.equal("SQL Server 2022 image");
+        // Stub showSaveDialog to simulate user choosing a save location
+        const savedProfilePath = "c:/profiles/ProductionProfile.publish.xml";
+        sandbox.stub(vscode.window, "showSaveDialog").resolves(vscode.Uri.file(savedProfilePath));
+
+        // Mock DacFx service
+        mockDacFxService.savePublishProfile.resolves({ success: true, errorMessage: "" });
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const savePublishProfile = reducerHandlers.get("savePublishProfile");
+        expect(savePublishProfile, "savePublishProfile reducer should be registered").to.exist;
+
+        // Invoke the reducer
+        await savePublishProfile(controller.state, {
+            publishProfileName: "ProductionProfile.publish.xml",
+        });
+
+        // Verify DacFx save was called with correct parameters
+        expect(mockDacFxService.savePublishProfile.calledOnce).to.be.true;
+
+        const saveCall = mockDacFxService.savePublishProfile.getCall(0);
+        expect(saveCall.args[0].replace(/\\/g, "/")).to.equal(savedProfilePath); // File path (normalize for cross-platform)
+        expect(saveCall.args[1]).to.equal("ProductionDB"); // Database name
+        // Connection string is args[2]
+        const sqlCmdVariables = saveCall.args[3]; // SQL CMD variables
+        expect(sqlCmdVariables.get("EnvironmentName")).to.equal("Production");
+    });
+    //#endregion
+
+    //#region Server and Database Connection Section Tests
+    test("server and database fields are initialized with correct default values", async () => {
+        const controller = createTestController("c:/work/MyTestProject.sqlproj");
+
+        await controller.initialized.promise;
+
+        // Verify server component and default value
+        const serverComponent = controller.state.formComponents.serverName;
+        expect(serverComponent).to.exist;
+        expect(serverComponent.label).to.exist;
+        expect(serverComponent.required).to.be.true;
+        expect(controller.state.formState.serverName).to.equal("");
+
+        // Verify database component and default value (project name)
+        const databaseComponent = controller.state.formComponents.databaseName;
+        expect(databaseComponent).to.exist;
+        expect(databaseComponent.label).to.exist;
+        expect(databaseComponent.required).to.be.true;
+        expect(controller.state.formState.databaseName).to.equal("MyTestProject");
+    });
+
+    test("formAction updates server and database names via user interaction", async () => {
+        const controller = createTestController();
+
+        await controller.initialized.promise;
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const formAction = reducerHandlers.get("formAction");
+        expect(formAction, "formAction reducer should be registered").to.exist;
+
+        // Simulate connection dialog setting server name
+        await formAction(controller.state, {
+            event: {
+                propertyName: "serverName",
+                value: "localhost,1433",
+                isAction: false,
+            },
+        });
+
+        // Verify server name is updated
+        expect(controller.state.formState.serverName).to.equal("localhost,1433");
+
+        // Simulate user selecting a database from dropdown
+        await formAction(controller.state, {
+            event: {
+                propertyName: "databaseName",
+                value: "SelectedDatabase",
+                isAction: false,
+            },
+        });
+
+        // Verify database name is updated
+        expect(controller.state.formState.databaseName).to.equal("SelectedDatabase");
     });
     //#endregion
 });
