@@ -597,7 +597,7 @@ export const createSqlAgentRequestHandler = (
 
                 // Gracefully warn the user in markdown
                 stream.markdown(
-                    "⚠️ This message couldn't be processed. If this issue persists, please check the logs and [open an issue](https://aka.ms/vscode-mssql-copilot-feedback) on GitHub for this Preview release.",
+                    "⚠️ This message couldn't be processed. If this issue persists, please check the logs and [open an issue](https://aka.ms/vscode-mssql-copilot-feedback) on GitHub.",
                 );
 
                 result = undefined;
