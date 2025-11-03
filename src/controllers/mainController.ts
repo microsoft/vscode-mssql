@@ -1808,7 +1808,7 @@ export default class MainController implements vscode.Disposable {
                         serverName,
                         databaseName,
                         selectedProfileId: profileId,
-                        operationType: undefined,
+                        operationType: DataTierOperationType.Deploy,
                     };
 
                     const controller = new DataTierApplicationWebviewController(
