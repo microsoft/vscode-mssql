@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as TypeMoq from "typemoq";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IPrompter } from "../../src/prompts/question";
@@ -17,246 +16,228 @@ import {
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { AccountStore } from "../../src/azure/accountStore";
 import * as sinon from "sinon";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
+import { stubVscodeWrapper } from "./utils";
+
+const expect = chai.expect;
+
+chai.use(sinonChai);
 
 suite("Connection UI tests", () => {
-    // Class being tested
+    let sandbox: sinon.SinonSandbox;
     let connectionUI: ConnectionUI;
 
-    // Mocks
-    let outputChannel: TypeMoq.IMock<vscode.OutputChannel>;
-    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
-    let prompter: TypeMoq.IMock<IPrompter>;
-    let connectionStore: TypeMoq.IMock<ConnectionStore>;
-    let connectionManager: TypeMoq.IMock<ConnectionManager>;
-    let mockAccountStore: AccountStore;
-    let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
-    let globalstate: TypeMoq.IMock<
-        vscode.Memento & { setKeysForSync(keys: readonly string[]): void }
-    >;
-    let quickPickMock: TypeMoq.IMock<vscode.QuickPick<IConnectionCredentialsQuickPickItem>>;
+    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
+    let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
+    let accountStoreStub: sinon.SinonStubbedInstance<AccountStore>;
+
+    let promptStub: sinon.SinonStub;
+    let promptSingleStub: sinon.SinonStub;
+    let prompter: IPrompter;
+
+    let quickPick: vscode.QuickPick<IConnectionCredentialsQuickPickItem>;
+    let quickPickShowStub: sinon.SinonStub;
+    let quickPickHideStub: sinon.SinonStub;
+    let quickPickDisposeStub: sinon.SinonStub;
+    let onDidChangeSelectionEmitter: vscode.EventEmitter<IConnectionCredentialsQuickPickItem[]>;
+    let onDidHideEmitter: vscode.EventEmitter<void>;
 
     setup(() => {
-        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-        outputChannel = TypeMoq.Mock.ofType<vscode.OutputChannel>();
-        outputChannel.setup((c) => c.clear());
-        outputChannel.setup((c) => c.append(TypeMoq.It.isAny()));
-        outputChannel.setup((c) => c.show(TypeMoq.It.isAny()));
-        quickPickMock =
-            TypeMoq.Mock.ofType<vscode.QuickPick<IConnectionCredentialsQuickPickItem>>();
-        quickPickMock.setup((q) => q.items);
-        quickPickMock.setup((q) => q.show());
-        vscodeWrapper
-            .setup((v) => v.createOutputChannel(TypeMoq.It.isAny()))
-            .returns(() => outputChannel.object);
-        vscodeWrapper.setup((v) => v.showErrorMessage(TypeMoq.It.isAny()));
-        vscodeWrapper.setup((v) => v.executeCommand(TypeMoq.It.isAnyString()));
-        vscodeWrapper.setup((v) => v.createQuickPick()).returns(() => quickPickMock.object);
-        prompter = TypeMoq.Mock.ofType<IPrompter>();
-        mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockContext.setup((c) => c.globalState).returns(() => globalstate.object);
-        connectionStore = TypeMoq.Mock.ofType(
-            ConnectionStore,
-            TypeMoq.MockBehavior.Loose,
-            mockContext.object,
-        );
-        connectionManager = TypeMoq.Mock.ofType(
-            ConnectionManager,
-            TypeMoq.MockBehavior.Loose,
-            mockContext.object,
-        );
-        globalstate = TypeMoq.Mock.ofType<
-            vscode.Memento & { setKeysForSync(keys: readonly string[]): void }
+        sandbox = sinon.createSandbox();
+
+        vscodeWrapperStub = stubVscodeWrapper(sandbox);
+        const outputChannel = vscodeWrapperStub.outputChannel;
+
+        quickPickShowStub = sandbox.stub();
+        quickPickHideStub = sandbox.stub();
+        quickPickDisposeStub = sandbox.stub();
+        onDidChangeSelectionEmitter = new vscode.EventEmitter<
+            IConnectionCredentialsQuickPickItem[]
         >();
-        mockAccountStore = new AccountStore(mockContext.object, vscodeWrapper.object);
+        onDidHideEmitter = new vscode.EventEmitter<void>();
+
+        quickPick = {
+            items: [],
+            placeholder: undefined,
+            matchOnDescription: false,
+            ignoreFocusOut: false,
+            canSelectMany: false,
+            busy: false,
+            show: quickPickShowStub,
+            hide: quickPickHideStub,
+            dispose: quickPickDisposeStub,
+            onDidChangeSelection: onDidChangeSelectionEmitter.event,
+            onDidHide: onDidHideEmitter.event,
+        } as unknown as vscode.QuickPick<IConnectionCredentialsQuickPickItem>;
+
+        vscodeWrapperStub.createOutputChannel.returns(outputChannel);
+        vscodeWrapperStub.createQuickPick.returns(quickPick);
+        vscodeWrapperStub.showErrorMessage.resolves(undefined);
+        vscodeWrapperStub.executeCommand.resolves(undefined);
+
+        connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
+        connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
+        accountStoreStub = sandbox.createStubInstance(AccountStore);
+
+        promptStub = sandbox.stub();
+        promptSingleStub = sandbox.stub();
+        prompter = {
+            prompt: promptStub,
+            promptSingle: promptSingleStub,
+            promptCallback: sandbox.stub(),
+        } as unknown as IPrompter;
+
         connectionUI = new ConnectionUI(
-            connectionManager.object,
-            connectionStore.object,
-            mockAccountStore,
-            prompter.object,
-            vscodeWrapper.object,
+            connectionManagerStub,
+            connectionStoreStub,
+            accountStoreStub,
+            prompter,
+            vscodeWrapperStub,
         );
     });
 
+    teardown(() => {
+        onDidChangeSelectionEmitter.dispose();
+        onDidHideEmitter.dispose();
+        sandbox.restore();
+    });
+
     test("showConnections with recent and new connection", async () => {
-        let item: IConnectionCredentialsQuickPickItem = {
+        const item: IConnectionCredentialsQuickPickItem = {
             connectionCreds: undefined,
             quickPickItemType: CredentialsQuickPickItemType.NewConnection,
             label: undefined,
         };
-        let mockConnection = { connectionString: "test" };
-        // setup stubbed event for us to trigger later
-        const onDidChangeSelectionEventEmitter = new vscode.EventEmitter<
-            IConnectionCredentialsQuickPickItem[]
-        >();
-        quickPickMock
-            .setup((q) => q.onDidChangeSelection)
-            .returns(() => onDidChangeSelectionEventEmitter.event);
+        const mockConnection = { connectionString: "test" };
 
-        // createProfile prompter stub
-        prompter
-            .setup((p) => p.prompt(TypeMoq.It.isAny(), true))
-            .returns(() => Promise.resolve(mockConnection));
+        promptStub.resolves(mockConnection);
 
         const promptPromise = connectionUI.promptForConnection(undefined);
-        // Trigger onDidChangeSelection event to simulate user selecting new connection option
-        onDidChangeSelectionEventEmitter.fire([item]);
+        onDidChangeSelectionEmitter.fire([item]);
         await promptPromise;
 
-        quickPickMock.verify((q) => q.show(), TypeMoq.Times.once());
+        expect(quickPickShowStub).to.have.been.calledOnce;
     });
 
     test("showConnections with recent and edit connection", async () => {
-        let testCreds = new ConnectionCredentials();
+        const testCreds = new ConnectionCredentials();
         testCreds.connectionString = "test";
-        let item: IConnectionCredentialsQuickPickItem = {
+        const item: IConnectionCredentialsQuickPickItem = {
             connectionCreds: testCreds,
             quickPickItemType: CredentialsQuickPickItemType.Mru,
             label: undefined,
         };
-        // setup stubbed event for us to trigger later
-        const onDidChangeSelectionEventEmitter = new vscode.EventEmitter<
-            IConnectionCredentialsQuickPickItem[]
-        >();
-        quickPickMock
-            .setup((q) => q.onDidChangeSelection)
-            .returns(() => onDidChangeSelectionEventEmitter.event);
 
         const promptPromise = connectionUI.promptForConnection(undefined);
-        // Trigger onDidChangeSelection event to simulate user selecting edit connection option
-        onDidChangeSelectionEventEmitter.fire([item]);
+        onDidChangeSelectionEmitter.fire([item]);
         await promptPromise;
 
-        quickPickMock.verify((q) => q.show(), TypeMoq.Times.once());
+        expect(quickPickShowStub).to.have.been.calledOnce;
     });
 
     test("showConnections with recent but no selection", async () => {
-        // setup stubbed event for us to trigger later
-        const onDidHideEventEmitter = new vscode.EventEmitter<void>();
-        quickPickMock.setup((q) => q.onDidHide).returns(() => onDidHideEventEmitter.event);
         const promptForConnectionPromise = connectionUI.promptForConnection(undefined);
-        // Trigger onDidHide event to simulate user exiting the dialog without choosing anything
-        onDidHideEventEmitter.fire();
+        onDidHideEmitter.fire();
         await promptForConnectionPromise;
 
-        quickPickMock.verify((q) => q.show(), TypeMoq.Times.once());
+        expect(quickPickShowStub).to.have.been.calledOnce;
     });
 
-    test("promptLanguageFlavor should prompt for a language flavor", () => {
-        let mockProvider = { providerId: "test" };
-        prompter
-            .setup((p) => p.promptSingle(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(mockProvider));
-        return connectionUI.promptLanguageFlavor().then(() => {
-            prompter.verify(
-                (p) => p.promptSingle(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
-        });
+    test("promptLanguageFlavor should prompt for a language flavor", async () => {
+        const mockProvider = { providerId: "test" };
+        promptSingleStub.resolves(mockProvider);
+
+        await connectionUI.promptLanguageFlavor();
+
+        expect(promptSingleStub).to.have.been.calledOnce;
     });
 
-    test("promptToCancelConnection should prompt for cancellation", () => {
-        prompter
-            .setup((p) => p.promptSingle(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(TypeMoq.It.isAny()));
-        return connectionUI.promptToCancelConnection().then(() => {
-            prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
-        });
+    test("promptToCancelConnection should prompt for cancellation", async () => {
+        promptSingleStub.resolves(true);
+
+        await connectionUI.promptToCancelConnection();
+
+        expect(promptSingleStub).to.have.been.calledOnce;
     });
 
-    test("promptForPassword should prompt for password", () => {
-        prompter
-            .setup((p) => p.promptSingle(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(TypeMoq.It.isAnyString()));
-        return connectionUI.promptToCancelConnection().then(() => {
-            prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
-        });
+    test("promptForPassword should prompt for password", async () => {
+        promptSingleStub.resolves("password");
+
+        await connectionUI.promptToCancelConnection();
+
+        expect(promptSingleStub).to.have.been.calledOnce;
     });
 
     test("promptToChangeLanguageMode should prompt for language mode - selection", async () => {
-        prompter
-            .setup((p) => p.promptSingle(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(TypeMoq.It.isAny()));
+        promptSingleStub.resolves(true);
 
-        const isLanguageModeSqlStub = sinon.stub();
-        //should return true to simulate the language mode being SQL
-        isLanguageModeSqlStub.returns(Promise.resolve(true));
+        const isLanguageModeSqlStub = sandbox.stub();
+        // should return true to simulate the language mode being SQL
+        isLanguageModeSqlStub.resolves(true);
         connectionUI["waitForLanguageModeToBeSql"] = isLanguageModeSqlStub;
 
         await connectionUI.promptToChangeLanguageMode();
 
-        prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
-        vscodeWrapper.verify(
-            (v) => v.executeCommand(TypeMoq.It.isAnyString()),
-            TypeMoq.Times.once(),
+        expect(promptSingleStub).to.have.been.calledOnce;
+        expect(vscodeWrapperStub.executeCommand).to.have.been.calledOnceWithExactly(
+            "workbench.action.editor.changeLanguageMode",
         );
     });
 
     test("promptToChangeLanguageMode should prompt for language mode - no selection", async () => {
-        prompter
-            .setup((p) => p.promptSingle(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(undefined));
+        promptSingleStub.resolves(undefined);
 
         await connectionUI.promptToChangeLanguageMode();
 
-        prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
-        vscodeWrapper.verify(
-            (v) => v.executeCommand(TypeMoq.It.isAnyString()),
-            TypeMoq.Times.never(),
-        );
+        expect(promptSingleStub).to.have.been.calledOnce;
+        expect(vscodeWrapperStub.executeCommand).to.not.have.been.called;
     });
 
-    test("removeProfile should prompt for a profile and remove it", () => {
-        connectionStore
-            .setup((c) => c.getProfilePickListItems(TypeMoq.It.isAny()))
-            .returns(() =>
-                Promise.resolve([
-                    {
-                        connectionCreds: undefined,
-                        quickPickItemType: undefined,
-                        label: "test",
-                    },
-                ]),
-            );
-        connectionStore.setup(async (c) => await c.removeProfile(TypeMoq.It.isAny()));
-        let mockItem = {
+    test("removeProfile should prompt for a profile and remove it", async () => {
+        connectionStoreStub.getProfilePickListItems.resolves([
+            {
+                connectionCreds: undefined,
+                quickPickItemType: undefined,
+                label: "test",
+            },
+        ]);
+        connectionStoreStub.removeProfile.resolves(true);
+        const mockItem = {
             ConfirmRemoval: true,
             ChooseProfile: {
                 connectionCreds: {},
             },
         };
-        prompter
-            .setup((p) => p.prompt(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(mockItem));
-        return connectionUI.removeProfile().then(() => {
-            connectionStore.verify((c) => c.getProfilePickListItems(false), TypeMoq.Times.once());
-            prompter.verify((p) => p.prompt(TypeMoq.It.isAny()), TypeMoq.Times.once());
-            connectionStore.verify(
-                async (c) => await c.removeProfile(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
-        });
+        promptStub.resolves(mockItem);
+
+        await connectionUI.removeProfile();
+
+        expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnceWithExactly(
+            false,
+        );
+        expect(promptStub).to.have.been.calledOnce;
+        expect(connectionStoreStub.removeProfile).to.have.been.calledOnce;
     });
 
     test("removeProfile should show error if there are no profiles to remove", async () => {
-        connectionStore
-            .setup((c) => c.getProfilePickListItems(TypeMoq.It.isAny()))
-            .returns(() => undefined);
-        return await connectionUI.removeProfile().then(() => {
-            connectionStore.verify((c) => c.getProfilePickListItems(false), TypeMoq.Times.once());
-            prompter.verify((p) => p.prompt(TypeMoq.It.isAny()), TypeMoq.Times.never());
-            vscodeWrapper.verify(
-                (v) => v.showErrorMessage(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
-        });
+        connectionStoreStub.getProfilePickListItems.resolves(undefined);
+
+        await connectionUI.removeProfile();
+
+        expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnceWithExactly(
+            false,
+        );
+        expect(promptStub).to.not.have.been.called;
+        expect(vscodeWrapperStub.showErrorMessage).to.have.been.calledOnce;
     });
 
-    test("promptToManageProfiles should prompt to manage profile", () => {
-        prompter
-            .setup((p) => p.promptSingle(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(true));
-        void connectionUI.promptToManageProfiles();
-        prompter.verify((p) => p.promptSingle(TypeMoq.It.isAny()), TypeMoq.Times.once());
+    test("promptToManageProfiles should prompt to manage profile", async () => {
+        promptSingleStub.resolves(true);
+
+        await connectionUI.promptToManageProfiles();
+
+        expect(promptSingleStub).to.have.been.calledOnce;
     });
 });
