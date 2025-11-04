@@ -261,6 +261,7 @@ const TableDesignerStateProvider: React.FC<TableDesignerProviderProps> = ({ chil
                 },
                 state: webviewState?.state as designer.TableDesignerWebviewState,
                 themeKind: webviewState?.themeKind,
+                keyBindings: webviewState?.keyBindings,
                 resultPaneResizeInfo: {
                     originalHeight: originalHeight,
                     setOriginalHeight: setOriginalHeight,

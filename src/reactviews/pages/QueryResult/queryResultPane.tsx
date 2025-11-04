@@ -20,12 +20,14 @@ import { locConstants } from "../../common/locConstants";
 import { hasResultsOrMessages } from "./queryResultUtils";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
-import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
+import { ExecuteCommandRequest, WebviewAction } from "../../../sharedInterfaces/webview";
 import { ExecutionPlanGraph } from "../../../sharedInterfaces/executionPlan";
 import { getGridCount } from "./table/utils";
 import { QueryMessageTab } from "./queryMessageTab";
 import { QueryExecutionPlanTab } from "./queryExecutionPlanTab";
 import { QueryResultsTab } from "./queryResultsTab";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { eventMatchesShortcut } from "../../common/keyboardUtils";
 
 const useStyles = makeStyles({
     root: {
@@ -133,6 +135,52 @@ export const QueryResultPane = () => {
     const resultPaneParentRef = useRef<HTMLDivElement>(null);
     const ribbonRef = useRef<HTMLDivElement>(null);
 
+    const { keyBindings } = useVscodeWebview2();
+
+    useEffect(() => {
+        const handler = (event: KeyboardEvent) => {
+            let handled = false;
+            if (
+                eventMatchesShortcut(
+                    event,
+                    keyBindings[WebviewAction.QueryResultSwitchToResultsTab]?.keyCombination,
+                )
+            ) {
+                if (Object.keys(resultSetSummaries ?? {}).length > 0) {
+                    context.setResultTab(qr.QueryResultPaneTabs.Results);
+                    handled = true;
+                }
+            } else if (
+                eventMatchesShortcut(
+                    event,
+                    keyBindings[WebviewAction.QueryResultSwitchToMessagesTab]?.keyCombination,
+                )
+            ) {
+                context.setResultTab(qr.QueryResultPaneTabs.Messages);
+                handled = true;
+            } else if (
+                eventMatchesShortcut(
+                    event,
+                    keyBindings[WebviewAction.QueryResultSwitchToQueryPlanTab]?.keyCombination,
+                )
+            ) {
+                if (isExecutionPlan) {
+                    context.setResultTab(qr.QueryResultPaneTabs.ExecutionPlan);
+                    handled = true;
+                }
+            }
+            if (handled) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        };
+
+        document.addEventListener("keydown", handler, true);
+        return () => {
+            document.removeEventListener("keydown", handler, true);
+        };
+    }, [tabStates?.resultPaneTab, getGridCount, context, resultSetSummaries]);
+
     const getWebviewLocation = async () => {
         const res = await context.extensionRpc.sendRequest(qr.GetWebviewLocationRequest.type, {
             uri: uri,
@@ -214,18 +262,27 @@ export const QueryResultPane = () => {
                     {Object.keys(resultSetSummaries).length > 0 && (
                         <Tab
                             value={qr.QueryResultPaneTabs.Results}
+                            title={locConstants.queryResult.resultTabTooltip(
+                                keyBindings[WebviewAction.QueryResultSwitchToResultsTab].label,
+                            )}
                             key={qr.QueryResultPaneTabs.Results}>
                             {locConstants.queryResult.results(getGridCount(resultSetSummaries))}
                         </Tab>
                     )}
                     <Tab
                         value={qr.QueryResultPaneTabs.Messages}
+                        title={locConstants.queryResult.messagesTabTooltip(
+                            keyBindings[WebviewAction.QueryResultSwitchToMessagesTab].label,
+                        )}
                         key={qr.QueryResultPaneTabs.Messages}>
                         {locConstants.queryResult.messages}
                     </Tab>
                     {Object.keys(resultSetSummaries).length > 0 && isExecutionPlan && (
                         <Tab
                             value={qr.QueryResultPaneTabs.ExecutionPlan}
+                            title={locConstants.queryResult.queryPlanTooltip(
+                                keyBindings[WebviewAction.QueryResultSwitchToQueryPlanTab].label,
+                            )}
                             key={qr.QueryResultPaneTabs.ExecutionPlan}>
                             {`${locConstants.queryResult.queryPlan(executionPlanGraphs?.length || 0)}`}
                         </Tab>

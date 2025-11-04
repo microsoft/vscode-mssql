@@ -437,24 +437,90 @@ export class LocConstants {
 
     public get queryResult() {
         return {
+            resultTabTooltip: (shortcut?: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Results ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for the results tab"],
+                    });
+                }
+                return l10n.t("Results");
+            },
             results: (count: number) =>
                 l10n.t({
                     message: "Results ({0})",
                     args: [count],
                     comment: ["{0} is the number of results"],
                 }),
+            messagesTabTooltip: (shortcut?: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Messages ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for the messages tab"],
+                    });
+                }
+                return l10n.t("Messages");
+            },
             messages: l10n.t("Messages"),
             timestamp: l10n.t("Timestamp"),
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
             showplanXML: l10n.t("Showplan XML"),
-            showMenu: l10n.t("Show Menu (F3)"),
+            showMenu: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Show Menu ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for showing the menu"],
+                    });
+                }
+                return l10n.t("Show Menu");
+            },
             sortAscending: l10n.t("Sort Ascending"),
             sortDescending: l10n.t("Sort Descending"),
             clearSort: l10n.t("Clear Sort"),
-            saveAsCsv: l10n.t("Save as CSV"),
-            saveAsExcel: l10n.t("Save as Excel"),
-            saveAsJson: l10n.t("Save as JSON"),
+            saveAsCsv: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Save as CSV ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for saving as CSV"],
+                    });
+                }
+                return l10n.t("Save as CSV");
+            },
+            saveAsExcel: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Save as Excel ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for saving as Excel"],
+                    });
+                }
+                return l10n.t("Save as Excel");
+            },
+            saveAsJson: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Save as JSON ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for saving as JSON"],
+                    });
+                }
+                return l10n.t("Save as JSON");
+            },
+            saveAsInsert: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Save as INSERT INTO ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for saving as INSERT INTO"],
+                    });
+                }
+                return l10n.t("Save as INSERT INTO");
+            },
             clickHereToHideThisPanel: l10n.t("Hide this panel"),
             queryPlan: (count: number) => {
                 return l10n.t({
@@ -462,6 +528,16 @@ export class LocConstants {
                     args: [count],
                     comment: ["{0} is the number of query plans"],
                 });
+            },
+            queryPlanTooltip: (shortcut?: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Query Plan ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for the query plan tab"],
+                    });
+                }
+                return l10n.t("Query Plan");
             },
             selectAll: l10n.t("Select All"),
             copy: l10n.t("Copy"),
@@ -472,19 +548,54 @@ export class LocConstants {
             copyAsJson: l10n.t("Copy as JSON"),
             copyAsInClause: l10n.t("Copy as IN clause"),
             copyAsInsertInto: l10n.t("Copy as INSERT INTO"),
-            saveAsInsert: l10n.t("Save as INSERT"),
             null: l10n.t("NULL"),
             blankString: l10n.t("Blanks"),
             apply: l10n.t("Apply"),
             clear: l10n.t("Clear"),
             search: l10n.t("Search..."),
             close: l10n.t("Close"),
-            maximize: l10n.t("Maximize"),
-            restore: l10n.t("Restore"),
+            maximize: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Maximize ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for maximizing the grid"],
+                    });
+                }
+                return l10n.t("Maximize");
+            },
+            restore: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Restore ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for restoring the grid"],
+                    });
+                }
+                return l10n.t("Restore");
+            },
+            toggleToGridView: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Switch to Grid View ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for switching to grid view"],
+                    });
+                }
+                return l10n.t("Switch to Grid View");
+            },
+            toggleToTextView: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Switch to Text View ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for switching to text view"],
+                    });
+                }
+                return l10n.t("Switch to Text View");
+            },
             gridView: l10n.t("Grid View"),
             textView: l10n.t("Text View"),
-            toggleToGridView: l10n.t("Switch to Grid View"),
-            toggleToTextView: l10n.t("Switch to Text View"),
             noResultsToDisplay: l10n.t("No results to display"),
             errorGeneratingTextView: l10n.t(
                 "Error generating text view. Please try switching back to grid view.",

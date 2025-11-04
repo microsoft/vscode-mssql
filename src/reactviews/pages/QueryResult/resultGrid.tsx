@@ -57,7 +57,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         return undefined;
     }
 
-    const { themeKind } = useVscodeWebview2();
+    const { themeKind, keyBindings } = useVscodeWebview2();
 
     const uri = useQueryResultSelector((state) => state.uri);
     if (!uri) {
@@ -239,6 +239,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
                 context.openFileThroughLink,
                 props.gridId,
                 { dataProvider: dataProvider, columns: columns },
+                keyBindings,
                 tableOptions,
                 props.gridParentRef,
                 autoSizeColumns,
@@ -302,6 +303,16 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             void createTable();
         }
     }, [resultSetSummary]);
+
+    // Update key bindings on slickgrid when key bindings change
+    useEffect(() => {
+        function updateTableKeyBindings() {
+            if (tableRef.current) {
+                tableRef.current.updateKeyBindings(keyBindings);
+            }
+        }
+        updateTableKeyBindings();
+    }, [keyBindings]);
 
     return <div id="gridContainter" ref={gridContainerRef}></div>;
 });

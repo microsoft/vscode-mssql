@@ -192,16 +192,36 @@ The following Visual Studio Code settings are available for the mssql extension.
 // Shortcuts
 {
   "mssql.shortcuts": {
-    "event.toggleResultPane": "ctrl+alt+r",
-    "event.toggleMessagePane": "ctrl+alt+y",
-    "event.prevGrid": "ctrl+up",
-    "event.nextGrid": "ctrl+down",
-    "event.copySelection": "ctrl+c",
-    "event.maximizeGrid": "",
-    "event.selectAll": "",
-    "event.saveAsJSON": "",
-    "event.saveAsCSV": "",
-    "event.saveAsExcel": ""
+    "event.queryResults.switchToResultsTab": "ctrl+alt+R",
+    "event.queryResults.switchToMessagesTab": "ctrl+alt+Y",
+    "event.queryResults.switchToQueryPlanTab": "ctrl+alt+E",
+    "event.queryResults.prevGrid": "ctrlcmd+up",
+    "event.queryResults.nextGrid": "ctrlcmd+down",
+    "event.queryResults.switchToTextView": "",
+    "event.queryResults.maximizeGrid": "",
+    "event.queryResults.saveAsJSON": "",
+    "event.queryResults.saveAsCSV": "",
+    "event.queryResults.saveAsExcel": "",
+    "event.queryResults.saveAsInsert": "",
+    "event.resultGrid.copySelection": "ctrlcmd+c",
+    "event.resultGrid.copyWithHeaders": "",
+    "event.resultGrid.copyAllHeaders": "",
+    "event.resultGrid.selectAll": "ctrlcmd+a",
+    "event.resultGrid.copyAsCSV": "",
+    "event.resultGrid.copyAsJSON": "",
+    "event.resultGrid.copyAsInsert": "",
+    "event.resultGrid.copyAsInClause": "",
+    "event.resultGrid.changeColumnWidth": "alt+shift+s",
+    "event.resultGrid.expandSelectionLeft": "shift+left",
+    "event.resultGrid.expandSelectionRight": "shift+right",
+    "event.resultGrid.expandSelectionUp": "shift+up",
+    "event.resultGrid.expandSelectionDown": "shift+down",
+    "event.resultGrid.openColumnMenu": "f3",
+    "event.resultGrid.moveToRowStart": "ctrlcmd+left",
+    "event.resultGrid.moveToRowEnd": "ctrlcmd+right",
+    "event.resultGrid.selectColumn": "ctrl+space",
+    "event.resultGrid.selectRow": "shift+space",
+    "event.resultGrid.toggleSort": "alt+shift+o"
   }
 }
 
