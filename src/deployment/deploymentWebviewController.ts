@@ -28,10 +28,13 @@ import * as fabricProvisioning from "./fabricProvisioningHelpers";
 import { newDeployment } from "../constants/locConstants";
 import { FabricProvisioningState } from "../sharedInterfaces/fabricProvisioning";
 
-/*
- Since there's one overarching controller for all deployment types, but each deployment type has differently typed form states + webview states,
- there are two form states- one with the overall controller (required because it extends FormWebviewController), and one with each specific deployment state
-*/
+export const DEPLOYMENT_VIEW_ID = "deployment";
+
+/**
+ * Overarching controller for the deployment webview.
+ * Since there's one overarching controller for all deployment types, but each deployment type has differently typed form states + webview states, there are two form states:
+ * one with the overall controller (required because it extends FormWebviewController), and one with each specific deployment state.
+ */
 export class DeploymentWebviewController extends FormWebviewController<
     DeploymentFormState,
     DeploymentWebviewState,
@@ -46,22 +49,29 @@ export class DeploymentWebviewController extends FormWebviewController<
         public mainController: MainController,
         initialConnectionGroup?: string,
     ) {
-        super(context, vscodeWrapper, "deployment", "deployment", new DeploymentWebviewState(), {
-            title: newDeployment,
-            viewColumn: vscode.ViewColumn.Active,
-            iconPath: {
-                dark: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "connectionDialogEditor_dark.svg",
-                ),
-                light: vscode.Uri.joinPath(
-                    context.extensionUri,
-                    "media",
-                    "connectionDialogEditor_light.svg",
-                ),
+        super(
+            context,
+            vscodeWrapper,
+            DEPLOYMENT_VIEW_ID,
+            DEPLOYMENT_VIEW_ID,
+            new DeploymentWebviewState(),
+            {
+                title: newDeployment,
+                viewColumn: vscode.ViewColumn.Active,
+                iconPath: {
+                    dark: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "connectionDialogEditor_dark.svg",
+                    ),
+                    light: vscode.Uri.joinPath(
+                        context.extensionUri,
+                        "media",
+                        "connectionDialogEditor_light.svg",
+                    ),
+                },
             },
-        });
+        );
         void this.initialize(initialConnectionGroup);
     }
 

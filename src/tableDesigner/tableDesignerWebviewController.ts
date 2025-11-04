@@ -19,6 +19,8 @@ import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider
 import { getErrorMessage } from "../utils/utils";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
+const TABLE_DESIGNER_VIEW_ID = "tableDesigner";
+
 export class TableDesignerWebviewController extends ReactWebviewPanelController<
     designer.TableDesignerWebviewState,
     designer.TableDesignerReducers
@@ -39,8 +41,8 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
         super(
             context,
             vscodeWrapper,
-            "tableDesigner",
-            "tableDesigner",
+            TABLE_DESIGNER_VIEW_ID,
+            TABLE_DESIGNER_VIEW_ID,
             {
                 apiState: {
                     editState: designer.LoadState.NotStarted,
@@ -317,7 +319,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 };
                 this.panel.title = state.tableInfo.title;
                 this.showRestorePromptAfterClose = false;
-                UserSurvey.getInstance().promptUserForNPSFeedback();
+                UserSurvey.getInstance().promptUserForNPSFeedback(TABLE_DESIGNER_VIEW_ID);
             } catch (e) {
                 state = {
                     ...state,
@@ -369,7 +371,7 @@ export class TableDesignerWebviewController extends ReactWebviewPanelController<
                 connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
                 connectionInfo: payload.table.connectionInfo,
             });
-            UserSurvey.getInstance().promptUserForNPSFeedback();
+            UserSurvey.getInstance().promptUserForNPSFeedback(TABLE_DESIGNER_VIEW_ID);
             return state;
         });
 
