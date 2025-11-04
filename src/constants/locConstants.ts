@@ -1329,11 +1329,6 @@ export class PublishProject {
     public static PublishTargetNewAzureServer = l10n.t("New Azure SQL logical server (Preview)");
     public static GenerateScript = l10n.t("Generate Script");
     public static Publish = l10n.t("Publish");
-    public static AdvancedOptions = l10n.t("Advanced");
-    public static AdvancedPublishSettings = l10n.t("Advanced Publish Options");
-    public static GeneralOptions = l10n.t("General Options");
-    public static IgnoreOptions = l10n.t("Ignore Options");
-    public static ExcludeObjectTypes = l10n.t("Exclude Object Types");
     public static SqlServerPortNumber = l10n.t("SQL Server port number");
     public static SqlServerAdminPassword = l10n.t("SQL Server admin password");
     public static SqlServerAdminPasswordConfirm = l10n.t("Confirm SQL Server admin password");
@@ -1358,9 +1353,11 @@ export class PublishProject {
         return l10n.t("Publish profile saved to: {0}", path);
     };
     public static PublishProfileSaveFailed = l10n.t("Failed to save publish profile");
-    public static DacFxServiceNotAvailable = l10n.t("DacFx service is not available");
+    public static DacFxServiceNotAvailable = l10n.t(
+        "DacFx service is not available. Publish and generate script operations cannot be performed.",
+    );
     public static DacFxServiceNotAvailableProfileLoaded = l10n.t(
-        "DacFx service is not available. Profile loaded without deployment options.",
+        "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     );
     public static FailedToListDatabases = l10n.t("Failed to list databases");
 }

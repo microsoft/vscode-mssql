@@ -260,8 +260,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         TelemetryActions.PublishProfileLoaded,
                     );
 
-                    // Update state with all parsed values - UI components will consume when available
-                    const newState = {
+                    return {
                         ...state,
                         formState: {
                             ...state.formState,
@@ -277,12 +276,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         formMessage: !this._dacFxService
                             ? {
                                   message: Loc.DacFxServiceNotAvailableProfileLoaded,
-                                  intent: "warning" as const,
+                                  intent: "error" as const,
                               }
                             : undefined,
                     };
-
-                    return newState;
                 } catch (error) {
                     return {
                         ...state,
