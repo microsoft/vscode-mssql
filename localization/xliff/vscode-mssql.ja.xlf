@@ -5326,10 +5326,6 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Getting Started Guide</source>
         <target state="translated">はじめにガイド</target>
       </trans-unit>
-      <trans-unit id="mssql.userFeedback">
-        <source xml:lang="en">Give Feedback</source>
-        <target state="translated">フィードバックを送信します</target>
-      </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot (Preview)</source>
         <target state="translated">MSSQL Copilot (プレビュー)</target>
@@ -5535,6 +5531,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.selectedAzureSubscriptions">
         <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
         <target state="translated">サーバーとデータベースを参照および管理するために選択された Azure サブスクリプション</target>
+      </trans-unit>
+      <trans-unit id="mssql.userFeedback">
+        <source xml:lang="en">Send Feedback</source>
+        <target state="new">Send Feedback</target>
       </trans-unit>
       <trans-unit id="mssql.resultsFontFamily">
         <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
