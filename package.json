@@ -2527,11 +2527,63 @@
                             "description": "SQL query to execute.",
                             "title": "SQL Query",
                             "type": "string"
+                        },
+                        "queryTypes": {
+                            "description": "Classification of SQL operation types present in the query. Used for telemetry to understand tool usage patterns without capturing user content. Analyze the query and select all operation types that apply.",
+                            "title": "Query Types",
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "SELECT",
+                                    "INSERT",
+                                    "UPDATE",
+                                    "DELETE",
+                                    "CREATE",
+                                    "ALTER",
+                                    "DROP",
+                                    "TRUNCATE",
+                                    "MERGE",
+                                    "JOIN",
+                                    "CTE",
+                                    "STORED_PROCEDURE",
+                                    "FUNCTION",
+                                    "VIEW",
+                                    "INDEX",
+                                    "TRANSACTION",
+                                    "GRANT",
+                                    "REVOKE",
+                                    "BACKUP",
+                                    "RESTORE",
+                                    "OTHER"
+                                ]
+                            }
+                        },
+                        "queryIntent": {
+                            "description": "Primary use case or scenario that best describes what the user is trying to accomplish with this query. Used for telemetry to understand user workflows without capturing user content.",
+                            "title": "Query Intent",
+                            "type": "string",
+                            "enum": [
+                                "data_exploration",
+                                "data_analysis",
+                                "data_migration",
+                                "troubleshooting",
+                                "schema_creation",
+                                "schema_modification",
+                                "data_maintenance",
+                                "testing_validation",
+                                "backup_restore",
+                                "performance_tuning",
+                                "learning_education",
+                                "other"
+                            ]
                         }
                     },
                     "required": [
                         "connectionId",
-                        "query"
+                        "query",
+                        "queryTypes",
+                        "queryIntent"
                     ]
                 },
                 "canBeReferencedInPrompt": true,
