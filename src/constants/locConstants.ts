@@ -2075,3 +2075,111 @@ export class ConnectionGroup {
         });
     };
 }
+
+export class TableExplorer {
+    public static unableToOpenTableExplorer = l10n.t(
+        "Unable to open Table Explorer: No target node provided.",
+    );
+    public static changesSavedSuccessfully = l10n.t("Changes saved successfully.");
+    public static rowCreatedSuccessfully = l10n.t("Row created.");
+    public static rowRemoved = l10n.t("Row removed.");
+
+    public static title = (tableName: string) =>
+        l10n.t({
+            message: "Table Explorer: {0} (Preview)",
+            args: [tableName],
+            comment: ["{0} is the table name"],
+        });
+
+    public static failedToSaveChanges = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to save changes: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToLoadData = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to load data: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToCreateNewRow = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to create a new row: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRemoveRow = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to remove row: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToUpdateCell = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to update cell: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRevertCell = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to revert cell: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRevertRow = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to revert row: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToGenerateScript = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to generate script: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static noScriptToOpen = l10n.t(
+        "No script available. Make changes to the table data and generate a script first.",
+    );
+
+    public static failedToOpenScript = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open script: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static scriptCopiedToClipboard = l10n.t("Script copied to clipboard.");
+
+    public static noScriptToCopy = l10n.t(
+        "No script available. Make changes to the table data and generate a script first.",
+    );
+
+    public static failedToCopyScript = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to copy script: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static unsavedChangesPrompt = (tableName: string) =>
+        l10n.t({
+            message:
+                "Table Explorer for '{0}' has unsaved changes. Do you want to save or discard them?",
+            args: [tableName],
+            comment: ["{0} is the table name"],
+        });
+
+    public static Save = l10n.t("Save");
+    public static Discard = l10n.t("Discard");
+    public static Cancel = l10n.t("Cancel");
+}

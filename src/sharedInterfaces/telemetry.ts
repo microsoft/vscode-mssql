@@ -32,6 +32,7 @@ export enum TelemetryViews {
     Connection = "Connection",
     Credential = "Credential",
     ConnectionManager = "ConnectionManager",
+    TableExplorer = "TableExplorer",
 }
 
 export enum TelemetryActions {
@@ -158,6 +159,13 @@ export enum TelemetryActions {
     GetSqlAnalyticsEndpointUrlFromFabric = "GetSqlAnalyticsEndpointUrlFromFabric",
     SurveyFunnel = "SurveyFunnel",
     CopilotNewQueryWithConnection = "CopilotNewQueryWithConnection",
+    CommitChanges = "CommitChanges",
+    CreateRow = "CreateRow",
+    DeleteRow = "DeleteRow",
+    UpdateCell = "UpdateCell",
+    RevertCell = "RevertCell",
+    RevertRow = "RevertRow",
+    LoadSubset = "LoadSubset",
 }
 
 /**
