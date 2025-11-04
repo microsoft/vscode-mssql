@@ -306,12 +306,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         enableAutoResize: true,
                         autoResize: {
                             container: "#grid-container",
-                            calculateAvailableSizeBy: "container",
+                            bottomPadding: 50, // Reserve space for custom pagination
                         },
                         forceFitColumns: true,
                         enableColumnReorder: false,
                         enableHeaderMenu: false,
-                        gridHeight: window.innerHeight - 150,
                         enableCellNavigation: true,
                         enableSorting: false,
                         enableContextMenu: true,
