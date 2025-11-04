@@ -34,6 +34,7 @@ import { getErrorMessage } from "../utils/utils";
 import { Logger } from "../models/logger";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
+import fixPath from "fix-path";
 
 /**
  * The maximum port number that can be used for Docker containers.
@@ -373,6 +374,11 @@ interface DockerCommand {
  * Safe command execution helper that uses spawn
  */
 async function execDockerCommand(cmd: DockerCommand): Promise<string> {
+    // Ensure PATH is fixed for macOS/Linux environments; sometimes when launched from VS Code,
+    // PATH can inherited incorrectly ie. GUI apps on macOS
+    // and Linux do not inherit the $PATH defined in your dotfiles
+    fixPath();
+
     return new Promise((resolve, reject) => {
         const process = spawn(cmd.command, cmd.args, {
             stdio: ["ignore", "pipe", "pipe"],

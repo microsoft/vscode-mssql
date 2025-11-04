@@ -3383,9 +3383,10 @@ Error:
         <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
         <target state="translated">Extrayendo la imagen de contenedor de SQL Server. Esto puede tardar unos minutos dependiendo de la conexión a Internet.</target>
       </trans-unit>
-      <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
-        <source xml:lang="en">Query Plan</source>
-        <target state="translated">Plan de consulta</target>
+      <trans-unit id="++CODE++bebc9b760db9e5ba55f2632c57871653521c9094223eeb46476e3d7d49218b89">
+        <source xml:lang="en">Query Plan ({0})</source>
+        <note>{0} is the number of query plans</note>
+        <target state="new">Query Plan ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
         <source xml:lang="en">Query executed</source>
@@ -4457,6 +4458,10 @@ Consulta: {1}</target>
         <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
         <target state="translated">El nombre de esta base de datos ya está en uso. Elija otro nombre.</target>
       </trans-unit>
+      <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
+        <source xml:lang="en">This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
+        <target state="new">This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.</target>
+      </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
         <target state="translated">Marca de tiempo</target>
@@ -4970,8 +4975,8 @@ Consulta: {1}</target>
         <target state="translated">Un tiempo de espera de ejecución de 0 indica una espera ilimitada (sin tiempo de espera)</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.analyzeQueryPerformance">
-        <source xml:lang="en">Analyze Query Performance (Preview)</source>
-        <target state="translated">Analizar el rendimiento de las consultas (Versión preliminar)</target>
+        <source xml:lang="en">Analyze Query Performance</source>
+        <target state="new">Analyze Query Performance</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.applicationIntentLabel">
         <source xml:lang="en">Application Intent</source>
@@ -5302,8 +5307,8 @@ Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar'
         <target state="translated">Ejecutar la consulta</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.explainQuery">
-        <source xml:lang="en">Explain Query (Preview)</source>
-        <target state="translated">Explicación de la consulta (Versión preliminar)</target>
+        <source xml:lang="en">Explain Query</source>
+        <target state="new">Explain Query</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.description">
         <source xml:lang="en">Familiarize yourself with more features of the MSSQL extension that can help you be more productive.</source>
@@ -5325,13 +5330,9 @@ Cuando haya terminado de realizar los cambios, haga clic en el botón 'Publicar'
         <source xml:lang="en">Getting Started Guide</source>
         <target state="translated">Guía de introducción</target>
       </trans-unit>
-      <trans-unit id="mssql.userFeedback">
-        <source xml:lang="en">Give Feedback</source>
-        <target state="translated">Enviar comentarios</target>
-      </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
-        <source xml:lang="en">MSSQL Copilot (Preview)</source>
-        <target state="translated">Copilot de MSSQL (Versión preliminar)</target>
+        <source xml:lang="en">MSSQL Copilot</source>
+        <target state="new">MSSQL Copilot</target>
       </trans-unit>
       <trans-unit id="mssql.Configuration">
         <source xml:lang="en">MSSQL configuration</source>
@@ -5412,8 +5413,8 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
         <target state="translated">Abrir archivo de plan de ejecución</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.newQueryWithConnection">
-        <source xml:lang="en">Open New Query and Connect (Preview)</source>
-        <target state="new">Open New Query and Connect (Preview)</target>
+        <source xml:lang="en">Open New Query and Connect</source>
+        <target state="new">Open New Query and Connect</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryHistory">
         <source xml:lang="en">Open Query</source>
@@ -5424,12 +5425,12 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
         <target state="translated">Abrir Historial de consultas en la paleta de comandos</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
-        <source xml:lang="en">Open in Copilot Agent mode (Preview)</source>
-        <target state="translated">Abrir en modo de agente de Copilot (versión preliminar)</target>
+        <source xml:lang="en">Open in Copilot Agent mode</source>
+        <target state="new">Open in Copilot Agent mode</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabase">
-        <source xml:lang="en">Open in Copilot Ask mode (Preview)</source>
-        <target state="translated">Abrir en modo Pregúntale a Copilot (versión preliminar)</target>
+        <source xml:lang="en">Open in Copilot Ask mode</source>
+        <target state="new">Open in Copilot Ask mode</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
@@ -5484,8 +5485,8 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
         <target state="translated">Mostrar resultado de consulta</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.rewriteQuery">
-        <source xml:lang="en">Rewrite Query (Preview)</source>
-        <target state="translated">Consulta de reescritura (Versión preliminar)</target>
+        <source xml:lang="en">Rewrite Query</source>
+        <target state="new">Rewrite Query</target>
       </trans-unit>
       <trans-unit id="mssql.runQueryHistory">
         <source xml:lang="en">Run Query</source>
@@ -5534,6 +5535,10 @@ Empiece haciendo clic en el botón de filtro situado junto a la mayoría de las 
       <trans-unit id="mssql.selectedAzureSubscriptions">
         <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
         <target state="translated">Suscripciones de Azure seleccionadas para examinar y administrar servidores y bases de datos</target>
+      </trans-unit>
+      <trans-unit id="mssql.userFeedback">
+        <source xml:lang="en">Send Feedback</source>
+        <target state="new">Send Feedback</target>
       </trans-unit>
       <trans-unit id="mssql.resultsFontFamily">
         <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>

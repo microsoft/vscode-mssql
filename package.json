@@ -168,6 +168,7 @@
         "error-ex": "^1.3.0",
         "figures": "^1.4.0",
         "find-remove": "5.1.1",
+        "fix-path": "^5.0.0",
         "has-proto": "^1.2.0",
         "jquery": "^3.4.1",
         "lockfile": "1.0.4",
@@ -177,6 +178,7 @@
         "pretty-data": "^0.40.0",
         "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
         "shallow-equal": "^3.1.0",
+        "slickgrid-react": "^9.8.0",
         "tar": "^7.4.3",
         "tmp": "^0.2.4",
         "tunnel": "0.0.6",
@@ -583,6 +585,11 @@
                     "group": "4_MSSQL_object@1"
                 },
                 {
+                    "command": "mssql.tableExplorer",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences",
+                    "group": "4_MSSQL_object@2"
+                },
+                {
                     "command": "mssql.filterNode",
                     "when": "view == objectExplorer && viewItem =~ /\\bfilterable=true\\b.*\\bhasFilters=false\\b/",
                     "group": "5_MSSQL_tree@1"
@@ -902,6 +909,11 @@
             {
                 "command": "mssql.schemaCompareOpenFromCommandPalette",
                 "title": "%mssql.schemaCompare%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.tableExplorer",
+                "title": "%mssql.tableExplorer%",
                 "category": "MS SQL"
             },
             {
