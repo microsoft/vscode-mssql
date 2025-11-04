@@ -657,9 +657,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         // Test error handling when getAccountSecurityToken throws
         isTokenValidStub.restore();
-        sandbox
-            .stub(mainController.azureAccountService, "getAccountSecurityToken")
-            .throws(new Error("Test error"));
+        azureAccountService.getAccountSecurityToken.throws(new Error("Test error"));
 
         buttons = await controller["getAzureActionButtons"]();
         expect(buttons.length).to.equal(2);

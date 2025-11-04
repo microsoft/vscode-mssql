@@ -25,6 +25,8 @@ import { ConnectionUI } from "../../src/views/connectionUI";
 import { AccountStore } from "../../src/azure/accountStore";
 import { TestPrompter } from "./stubs";
 import { stubExtensionContext, stubVscodeWrapper } from "./utils";
+import { Deferred } from "../../src/protocol";
+import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 
 chai.use(sinonChai);
 
@@ -49,6 +51,12 @@ suite("ConnectionManager Tests", () => {
         mockCredentialStore = sandbox.createStubInstance(CredentialStore);
         mockServiceClient = sandbox.createStubInstance(SqlToolsServerClient);
         mockStatusView = sandbox.createStubInstance(StatusView);
+
+        const initializedDeferred = new Deferred<void>();
+        initializedDeferred.resolve();
+        Object.defineProperty(mockConnectionStore, "initialized", {
+            get: () => initializedDeferred,
+        });
 
         mockConnectionStore.readAllConnections.resolves([]);
     });
@@ -312,12 +320,12 @@ suite("ConnectionManager Tests", () => {
 
             connectionManager["_keyVaultTokenCache"].clear();
 
-            connectionManager["selectAccount"] = sinon
+            connectionManager["selectAccount"] = sandbox
                 .stub()
                 .resolves({ key: { providerId: azureCloudProviderId } });
-            connectionManager["selectTenantId"] = sinon.stub();
+            connectionManager["selectTenantId"] = sandbox.stub();
 
-            const stubbedAzureController = sandbox.createStubInstance(AzureController);
+            const stubbedAzureController = sandbox.createStubInstance(MsalAzureController);
             const token: IToken = {
                 key: "new-key",
                 token: "new-token",

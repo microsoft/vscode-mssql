@@ -26,7 +26,7 @@ export function stubGetCapabilitiesRequest(
     const stubber = sandbox || sinon;
     const serviceClientMock = stubber.createStubInstance(SqlToolsServerClient);
     serviceClientMock.sendRequest
-        .withArgs(GetCapabilitiesRequest.type, sinon.match.any)
+        .withArgs(GetCapabilitiesRequest.type)
         .resolves(buildCapabilitiesResult());
     return serviceClientMock;
 }
