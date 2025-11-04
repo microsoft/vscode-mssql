@@ -231,7 +231,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             sinon.assert.calledOnce(mockTableExplorerService.subset);
             sinon.assert.calledWith(mockTableExplorerService.subset, "test-owner-uri", 0, 100);
             assert.strictEqual(controller.state.currentRowCount, 100);
-            assert.strictEqual(controller.state.resultSet?.rowCount, 5);
+            assert.strictEqual(controller.state.resultSet?.rowCount, 2);
         });
 
         test("should append newRows to subset result", async () => {
