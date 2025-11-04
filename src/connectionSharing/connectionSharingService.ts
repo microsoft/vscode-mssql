@@ -514,7 +514,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         );
         this.validateConnection(connectionUri);
         const serverInfo = this.getServerInfo(connectionUri); // Ensure connection is valid
-        const scriptingParams = this._scriptingService.createScriptingParams(
+        const scriptingParams = this._scriptingService.createScriptingRequestParams(
             serverInfo,
             scriptingObject,
             connectionUri,

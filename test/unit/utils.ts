@@ -138,6 +138,7 @@ export function getMockContext(): vscode.ExtensionContext {
     return {
         extensionUri: vscode.Uri.parse("file://test"),
         extensionPath: "path",
+        subscriptions: [],
     } as unknown as vscode.ExtensionContext;
 }
 

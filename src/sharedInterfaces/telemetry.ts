@@ -32,6 +32,7 @@ export enum TelemetryViews {
     Connection = "Connection",
     Credential = "Credential",
     ConnectionManager = "ConnectionManager",
+    ScriptingService = "ScriptingService",
 }
 
 export enum TelemetryActions {
@@ -157,6 +158,7 @@ export enum TelemetryActions {
     LoadDatabases = "LoadDatabases",
     GetSqlAnalyticsEndpointUrlFromFabric = "GetSqlAnalyticsEndpointUrlFromFabric",
     CopilotNewQueryWithConnection = "CopilotNewQueryWithConnection",
+    Script = "Script",
 }
 
 /**

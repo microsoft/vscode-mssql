@@ -27,7 +27,6 @@ import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import CodeAdapter from "../prompts/adapter";
 import { IPrompter } from "../prompts/question";
-import { Deferred } from "../protocol";
 import { QueryHistoryNode } from "../queryHistory/queryHistoryNode";
 import { QueryHistoryProvider } from "../queryHistory/queryHistoryProvider";
 import { ScriptingService } from "../scripting/scriptingService";
@@ -42,8 +41,8 @@ import { IConnectionGroup, IConnectionProfile, ISelectionData } from "./../model
 import ConnectionManager from "./connectionManager";
 import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import VscodeWrapper from "./vscodeWrapper";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
-import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import { sendActionEvent } from "../telemetry/telemetry";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
@@ -54,7 +53,7 @@ import {
 } from "../services/databaseObjectSearchService";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
-import { getErrorMessage, getUriKey, isIConnectionInfo } from "../utils/utils";
+import { getErrorMessage, isIConnectionInfo } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
@@ -719,174 +718,6 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
-     * Helper to script a node based on the script operation
-     */
-    public async scriptNode(
-        node: TreeNodeInfo,
-        operation: ScriptOperation,
-        executeScript: boolean = false,
-    ): Promise<void> {
-        const scriptNodeOperation = async () => {
-            const nodeUri = ObjectExplorerUtils.getNodeUri(node);
-            let connectionCreds = node.connectionProfile;
-            const databaseName = ObjectExplorerUtils.getDatabaseName(node);
-            // if not connected or different database
-            if (
-                !this.connectionManager.isConnected(nodeUri) ||
-                connectionCreds.database !== databaseName
-            ) {
-                // make a new connection
-                connectionCreds.database = databaseName;
-                if (!this.connectionManager.isConnecting(nodeUri)) {
-                    const isConnected = await this.connectionManager.connect(
-                        nodeUri,
-                        connectionCreds,
-                    );
-                    if (isConnected) {
-                        node.updateEntraTokenInfo(connectionCreds); // may be updated Entra token after connect() call
-                    } else {
-                        /**
-                         * The connection wasn't successful. Stopping scripting operation.
-                         * Not throwing an error because the user is already notified of
-                         * the connection failure in the connection manager.
-                         */
-                        return;
-                    }
-                }
-            }
-
-            const selectStatement = await this._scriptingService.scriptTreeNode(
-                node,
-                nodeUri,
-                operation,
-            );
-            let scriptingObject = this._scriptingService.getObjectFromNode(node);
-            let title = `${scriptingObject.schema}.${scriptingObject.name}`;
-            const editor = await this._sqlDocumentService.newQuery({
-                content: selectStatement,
-                connectionStrategy: ConnectionStrategy.CopyConnectionFromInfo,
-                connectionInfo: connectionCreds,
-            });
-
-            node.updateEntraTokenInfo(connectionCreds); // newQuery calls connect() internally, so may be updated Entra token
-            if (executeScript) {
-                const preventAutoExecute = vscode.workspace
-                    .getConfiguration()
-                    .get<boolean>(Constants.configPreventAutoExecuteScript);
-
-                if (!preventAutoExecute) {
-                    const uri = getUriKey(editor.document.uri);
-                    const queryPromise = new Deferred<boolean>();
-                    await this._outputContentProvider.runQuery(
-                        this._statusview,
-                        uri,
-                        undefined,
-                        title,
-                        undefined,
-                        queryPromise,
-                    );
-                    await queryPromise;
-                    await this.connectionManager.connectionStore.removeRecentlyUsed(
-                        <IConnectionProfile>connectionCreds,
-                    );
-                }
-            }
-
-            let scriptType;
-            switch (operation) {
-                case ScriptOperation.Select:
-                    scriptType = "Select";
-                    break;
-                case ScriptOperation.Create:
-                    scriptType = "Create";
-                    break;
-                case ScriptOperation.Insert:
-                    scriptType = "Insert";
-                    break;
-                case ScriptOperation.Update:
-                    scriptType = "Update";
-                    break;
-                case ScriptOperation.Delete:
-                    scriptType = "Delete";
-                    break;
-                case ScriptOperation.Execute:
-                    scriptType = "Execute";
-                    break;
-                case ScriptOperation.Alter:
-                    scriptType = "Alter";
-                    break;
-                default:
-                    scriptType = "Unknown";
-                    break;
-            }
-            sendActionEvent(
-                TelemetryViews.QueryEditor,
-                TelemetryActions.RunQuery,
-                {
-                    isScriptExecuted: executeScript.toString(),
-                    objectType: node.nodeType,
-                    operation: scriptType,
-                },
-                undefined,
-                connectionCreds as IConnectionProfile,
-                this.connectionManager.getServerInfo(connectionCreds),
-            );
-        };
-
-        let operationType = "";
-        switch (operation) {
-            case ScriptOperation.Select:
-                operationType = LocalizedConstants.ObjectExplorer.ScriptSelectLabel;
-                break;
-            case ScriptOperation.Create:
-                operationType = LocalizedConstants.ObjectExplorer.ScriptCreateLabel;
-                break;
-            case ScriptOperation.Insert:
-                operationType = LocalizedConstants.ObjectExplorer.ScriptInsertLabel;
-                break;
-            case ScriptOperation.Update:
-                operationType = LocalizedConstants.ObjectExplorer.ScriptUpdateLabel;
-                break;
-            case ScriptOperation.Delete:
-                operationType = LocalizedConstants.ObjectExplorer.ScriptDeleteLabel;
-                break;
-            case ScriptOperation.Execute:
-                operationType = LocalizedConstants.ObjectExplorer.ScriptExecuteLabel;
-                break;
-            case ScriptOperation.Alter:
-                operationType = LocalizedConstants.ObjectExplorer.ScriptAlterLabel;
-                break;
-            default:
-                operationType = LocalizedConstants.ObjectExplorer.ScriptSelectLabel;
-        }
-
-        await vscode.window.withProgress(
-            {
-                location: vscode.ProgressLocation.Notification,
-                title: LocalizedConstants.ObjectExplorer.FetchingScriptLabel(operationType),
-            },
-            async () => {
-                const scriptTelemetryActivity = startActivity(
-                    TelemetryViews.ObjectExplorer,
-                    TelemetryActions.ScriptNode,
-                    undefined,
-                    {
-                        operation: operationType,
-                        nodeType: node.nodeType,
-                        subType: node.nodeSubType,
-                    },
-                );
-                try {
-                    await scriptNodeOperation();
-                    scriptTelemetryActivity.end(ActivityStatus.Succeeded);
-                } catch (error) {
-                    scriptTelemetryActivity.endFailed(error, false);
-                }
-            },
-        );
-    }
-
-    /**
      * Returns a flag indicating if the extension is initialized
      */
     public isInitialized(): boolean {
@@ -1326,7 +1157,7 @@ export default class MainController implements vscode.Disposable {
                 name: selectedItem.object.name,
             };
 
-            const scriptingParams = this._scriptingService.createScriptingParams(
+            const scriptingParams = this._scriptingService.createScriptingRequestParams(
                 serverInfo,
                 scriptingObject,
                 connectionUri,
@@ -1737,49 +1568,14 @@ export default class MainController implements vscode.Disposable {
         }
 
         // Initiate the scripting service
-        this._scriptingService = new ScriptingService(this._connectionMgr);
-
-        // Script as Select
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdScriptSelect,
-                async (node: TreeNodeInfo) => {
-                    await this.scriptNode(node, ScriptOperation.Select, true);
-                    UserSurvey.getInstance().promptUserForNPSFeedback();
-                },
-            ),
-        );
-
-        // Script as Create
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdScriptCreate,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Create),
-            ),
-        );
-
-        // Script as Drop
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdScriptDelete,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Delete),
-            ),
-        );
-
-        // Script as Execute
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdScriptExecute,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Execute),
-            ),
-        );
-
-        // Script as Alter
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdScriptAlter,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Alter),
-            ),
+        this._scriptingService = new ScriptingService(
+            this._context,
+            this._vscodeWrapper,
+            this._connectionMgr,
+            this._sqlDocumentService,
+            this._outputContentProvider,
+            this._statusview,
+            this.objectExplorerTree,
         );
 
         // Copy object name command
