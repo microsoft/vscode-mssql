@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext, useMemo } from "react";
+import { useContext, useMemo, useCallback, useState, useEffect } from "react";
 import {
     Table,
     TableBody,
@@ -87,6 +87,14 @@ export const SqlCmdVariablesSection: React.FC = () => {
     const sqlCmdComponent = usePublishDialogSelector((s) => s.formComponents.sqlCmdVariables);
     const originalSqlCmdVariables = usePublishDialogSelector((s) => s.originalSqlCmdVariables);
 
+    // Local state to track current input values (prevents cursor jumping)
+    const [localValues, setLocalValues] = useState<{ [key: string]: string }>({});
+
+    // Initialize local values from sqlCmdVariables
+    useEffect(() => {
+        setLocalValues(sqlCmdVariables || {});
+    }, [sqlCmdVariables]);
+
     if (!publishCtx || !sqlCmdVariables || !sqlCmdComponent || sqlCmdComponent.hidden) {
         return undefined;
     }
@@ -98,30 +106,61 @@ export const SqlCmdVariablesSection: React.FC = () => {
     }
 
     // Check if any values have been modified from their original values
+    // Use localValues for immediate revert button update
     const hasModifiedValues = useMemo(() => {
-        if (!originalSqlCmdVariables || !sqlCmdVariables) {
+        if (!originalSqlCmdVariables) {
             return false;
         }
 
-        return Object.keys(sqlCmdVariables).some((varName) => {
-            const currentValue = sqlCmdVariables[varName] || "";
+        const allVarNames = new Set([
+            ...Object.keys(localValues),
+            ...Object.keys(originalSqlCmdVariables),
+        ]);
+
+        return Array.from(allVarNames).some((varName) => {
+            const currentValue = localValues[varName] || "";
             const originalValue = originalSqlCmdVariables[varName] || "";
             return currentValue !== originalValue;
         });
-    }, [sqlCmdVariables, originalSqlCmdVariables]);
+    }, [localValues, originalSqlCmdVariables]);
 
-    const handleValueChange = (varName: string, newValue: string) => {
-        const updatedVariables = {
-            ...sqlCmdVariables,
-            [varName]: newValue,
-        };
-        publishCtx.formAction({
-            propertyName: sqlCmdComponent.propertyName,
-            isAction: false,
-            value: updatedVariables as unknown as string | boolean, // FormEvent expects string | boolean, but controller handles complex objects
-            updateValidation: false,
-        });
-    };
+    const handleValueChange = useCallback(
+        (varName: string, newValue: string) => {
+            setLocalValues((prev) => ({
+                ...prev,
+                [varName]: newValue,
+            }));
+
+            const updatedVariables = {
+                ...sqlCmdVariables,
+                [varName]: newValue,
+            };
+            publishCtx.formAction({
+                propertyName: sqlCmdComponent.propertyName,
+                isAction: false,
+                value: updatedVariables as unknown as string | boolean,
+                updateValidation: false,
+            });
+        },
+        [sqlCmdVariables, sqlCmdComponent.propertyName, publishCtx],
+    );
+
+    const handleValueBlur = useCallback(
+        (varName: string, newValue: string) => {
+            // Update backend state when user finishes editing
+            const updatedVariables = {
+                ...sqlCmdVariables,
+                [varName]: newValue,
+            };
+            publishCtx.formAction({
+                propertyName: sqlCmdComponent.propertyName,
+                isAction: false,
+                value: updatedVariables as unknown as string | boolean,
+                updateValidation: true,
+            });
+        },
+        [sqlCmdVariables, sqlCmdComponent.propertyName, publishCtx],
+    );
 
     const handleRevertValues = () => {
         if (publishCtx && hasModifiedValues) {
@@ -164,7 +203,7 @@ export const SqlCmdVariablesSection: React.FC = () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {variableEntries.map(([varName, varValue]) => (
+                        {variableEntries.map(([varName]) => (
                             <TableRow key={varName}>
                                 <TableCell className={`${styles.tableCell} ${styles.nameCell}`}>
                                     <TableCellLayout>{varName}</TableCellLayout>
@@ -172,9 +211,12 @@ export const SqlCmdVariablesSection: React.FC = () => {
                                 <TableCell className={`${styles.tableCell} ${styles.valueCell}`}>
                                     <Input
                                         size="small"
-                                        value={varValue || ""}
+                                        value={localValues[varName] || ""}
                                         onChange={(_, data) =>
                                             handleValueChange(varName, data.value)
+                                        }
+                                        onBlur={(e) =>
+                                            handleValueBlur(varName, e.currentTarget.value)
                                         }
                                         aria-label={`Value for ${varName}`}
                                     />

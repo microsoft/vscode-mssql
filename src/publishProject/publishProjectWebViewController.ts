@@ -38,6 +38,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 > {
     private _cachedDatabaseList?: { displayName: string; value: string }[];
     private _cachedSelectedDatabase?: string;
+    private _defaultSqlCmdVariables?: { [key: string]: string };
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _sqlProjectsService?: SqlProjectsService;
     private readonly _dacFxService?: mssql.IDacFxService;
@@ -150,15 +151,18 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 if (sqlCmdVarsResult?.success && sqlCmdVarsResult.sqlCmdVariables) {
                     // Convert array to object for form state
                     const sqlCmdVarsObject: { [key: string]: string } = {};
-                    const originalSqlCmdVarsObject: { [key: string]: string } = {};
                     for (const sqlCmdVar of sqlCmdVarsResult.sqlCmdVariables) {
                         // Use the defaultValue which contains the actual values, not variable references like $(SqlCmdVar__1)
                         const varValue = sqlCmdVar.defaultValue || "";
                         sqlCmdVarsObject[sqlCmdVar.varName] = varValue;
-                        originalSqlCmdVarsObject[sqlCmdVar.varName] = varValue;
                     }
                     this.state.formState.sqlCmdVariables = sqlCmdVarsObject;
-                    this.state.originalSqlCmdVariables = originalSqlCmdVarsObject;
+
+                    // Store immutable default values (project defaults initially)
+                    this._defaultSqlCmdVariables = { ...sqlCmdVarsObject };
+
+                    // Also set in state for UI to read
+                    this.state.originalSqlCmdVariables = { ...sqlCmdVarsObject };
                 }
             }
         } catch (error) {
@@ -228,17 +232,19 @@ export class PublishProjectWebViewController extends FormWebviewController<
         });
 
         this.registerReducer("revertSqlCmdVariables", async (state: PublishDialogState) => {
-            // Revert all SQLCMD variables to their original values
-            if (state.originalSqlCmdVariables) {
-                // Update form state with original values
-                this.state.formState.sqlCmdVariables = { ...state.originalSqlCmdVariables };
+            // Revert to immutable default values stored in local variable
+            if (this._defaultSqlCmdVariables) {
+                const newState = {
+                    ...state,
+                    formState: {
+                        ...state.formState,
+                        sqlCmdVariables: { ...this._defaultSqlCmdVariables },
+                    },
+                };
 
-                // Update visibility and validate for button enablement (following same pattern as afterSetFormProperty)
-                await this.updateItemVisibility();
-                await this.validateForm(this.state.formState, undefined, false);
-                this.updateState();
-
-                return this.state;
+                await this.updateItemVisibility(newState);
+                await this.validateForm(newState.formState, undefined, false);
+                return newState;
             }
             return state;
         });
@@ -293,11 +299,16 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         TelemetryActions.PublishProfileLoaded,
                     );
 
-                    // Merge SQLCMD variables: start with project variables, then overlay profile variables
-                    // This matches ADS behavior where both project and profile variables are shown
+                    // Merge SQLCMD variables: start with current values, then overlay profile variables
                     const mergedSqlCmdVariables = {
-                        ...state.formState.sqlCmdVariables, // Start with existing project variables
-                        ...parsedProfile.sqlCmdVariables, // Overlay profile variables (profile values take precedence)
+                        ...state.formState.sqlCmdVariables,
+                        ...parsedProfile.sqlCmdVariables,
+                    };
+
+                    // Update immutable default values: project defaults + profile overrides
+                    this._defaultSqlCmdVariables = {
+                        ...this._defaultSqlCmdVariables,
+                        ...parsedProfile.sqlCmdVariables,
                     };
 
                     // Update state with all parsed values - UI components will consume when available
@@ -314,8 +325,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         connectionString: parsedProfile.connectionString || state.connectionString,
                         deploymentOptions:
                             parsedProfile.deploymentOptions || state.deploymentOptions,
-                        // Update the original values to include the merged state (project + profile)
-                        // This ensures revert maintains all variables but resets their values
                         originalSqlCmdVariables: { ...mergedSqlCmdVariables },
                         formMessage: !this._dacFxService
                             ? {
