@@ -321,19 +321,25 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     payload.rowCount,
                 );
 
-                // Combine database rows with new uncommitted rows
+                // Filter out any new uncommitted rows from backend result to avoid duplicates
+                // We'll always append them explicitly at the end
+                const newRowIds = new Set(state.newRows.map((row) => row.id));
+                const backendRowsOnly = subsetResult.subset.filter((row) => !newRowIds.has(row.id));
+
+                // Always append new rows at the end
                 state.resultSet = {
                     ...subsetResult,
-                    subset: [...subsetResult.subset, ...state.newRows],
-                    rowCount: subsetResult.rowCount + state.newRows.length,
+                    subset: [...backendRowsOnly, ...state.newRows],
+                    rowCount: backendRowsOnly.length + state.newRows.length,
                 };
+
+                this.logger.info(
+                    `Loaded ${backendRowsOnly.length} committed rows from database, appended ${state.newRows.length} new uncommitted rows - OperationId: ${this.operationId}`,
+                );
+
                 state.currentRowCount = payload.rowCount;
 
                 this.updateState();
-
-                this.logger.info(
-                    `Loaded ${subsetResult.rowCount} rows from database + ${state.newRows.length} new rows - OperationId: ${this.operationId}`,
-                );
 
                 endActivity.end(ActivityStatus.Succeeded, {
                     elapsedTime: (Date.now() - startTime).toString(),

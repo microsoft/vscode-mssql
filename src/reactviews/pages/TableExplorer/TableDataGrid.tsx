@@ -335,28 +335,26 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             // Scenario 2: Row count changed (delete/add operations) - incremental add/remove
             else if (rowCountChanged && reactGridRef.current?.dataView) {
                 console.log("Row count changed - applying incremental updates");
-                const previousCount = previousResultSet?.subset?.length || 0;
-                const currentCount = resultSet.subset.length;
 
-                if (currentCount > previousCount) {
-                    // Rows were added - add new rows incrementally
-                    console.log(`Adding ${currentCount - previousCount} new row(s)`);
-                    for (let i = previousCount; i < currentCount; i++) {
-                        const newRow = resultSet.subset[i];
-                        const dataRow = convertRowToDataRow(newRow);
-                        reactGridRef.current.dataView.addItem(dataRow);
-                    }
-                } else if (currentCount < previousCount) {
-                    // Rows were deleted - remove rows incrementally
-                    console.log(`Removing ${previousCount - currentCount} row(s)`);
-                    const currentIds = new Set(resultSet.subset.map((r: any) => r.id));
-                    const previousIds = previousResultSet!.subset.map((r: any) => r.id);
+                // Use ID-based comparison instead of position-based
+                const previousIds = new Set(previousResultSet?.subset?.map((r: any) => r.id) || []);
+                const currentIds = new Set(resultSet.subset.map((r: any) => r.id));
 
-                    for (const id of previousIds) {
-                        if (!currentIds.has(id)) {
-                            reactGridRef.current.dataView.deleteItem(id);
-                        }
-                    }
+                // Add new rows (rows in current but not in previous)
+                const rowsToAdd = resultSet.subset.filter((row: any) => !previousIds.has(row.id));
+                console.log(`Adding ${rowsToAdd.length} new row(s) by ID`);
+                for (const newRow of rowsToAdd) {
+                    const dataRow = convertRowToDataRow(newRow);
+                    reactGridRef.current.dataView.addItem(dataRow);
+                }
+
+                // Remove deleted rows (rows in previous but not in current)
+                const rowsToRemove = (previousResultSet?.subset || []).filter(
+                    (row: any) => !currentIds.has(row.id),
+                );
+                console.log(`Removing ${rowsToRemove.length} deleted row(s) by ID`);
+                for (const removedRow of rowsToRemove) {
+                    reactGridRef.current.dataView.deleteItem(removedRow.id);
                 }
 
                 // Refresh grid display
