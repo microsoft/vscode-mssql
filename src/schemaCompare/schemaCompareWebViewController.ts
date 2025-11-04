@@ -50,6 +50,9 @@ import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { cmdAddObjectExplorer } from "../constants/constants";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
+import { UserSurvey } from "../nps/userSurvey";
+
+const SCHEMA_COMPARE_VIEW_ID = "schemaCompare";
 
 export class SchemaCompareWebViewController extends ReactWebviewPanelController<
     SchemaCompareWebViewState,
@@ -83,8 +86,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
         super(
             context,
             vscodeWrapper,
-            "schemaCompare",
-            "schemaCompare",
+            SCHEMA_COMPARE_VIEW_ID,
+            SCHEMA_COMPARE_VIEW_ID,
             {
                 isSqlProjectExtensionInstalled: false,
                 isComparisonInProgress: false,
@@ -1261,6 +1264,8 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
                 return state;
             }
 
+            void UserSurvey.getInstance().promptUserForNPSFeedback(SCHEMA_COMPARE_VIEW_ID);
+
             endActivity.end(ActivityStatus.Succeeded, {
                 endTime: Date.now().toString(),
                 operationId: this.operationId,
@@ -2310,7 +2315,9 @@ export class SchemaCompareWebViewController extends ReactWebviewPanelController<
             if (!ownerUri) {
                 ownerUri = utils.generateQueryUri().toString();
 
-                isConnected = await this.connectionMgr.connect(ownerUri, connInfo);
+                isConnected = await this.connectionMgr.connect(ownerUri, connInfo, {
+                    connectionSource: "schemaCompare",
+                });
 
                 if (!isConnected) {
                     // Invoking connect will add an active connection that isn't valid, hence removing it.

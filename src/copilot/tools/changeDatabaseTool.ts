@@ -59,6 +59,9 @@ export class ChangeDatabaseTool extends ToolBase<ChangeDatabaseToolParams> {
             const connectResult = await this._connectionManager.connect(
                 connectionId,
                 newConnectionCreds,
+                {
+                    connectionSource: "copilot_changeDatabaseTool",
+                },
             );
 
             if (connectResult) {
