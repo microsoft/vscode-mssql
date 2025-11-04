@@ -23,7 +23,7 @@ import {
 } from "../sharedInterfaces/form";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
-import { DeploymentWebviewController } from "./deploymentWebviewController";
+import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import { fetchUserGroups } from "../azure/utils";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { ConnectionCredentials } from "../models/connectionCredentials";
@@ -31,6 +31,7 @@ import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { AzureTenant } from "@microsoft/vscode-azext-azureauth";
+import { UserSurvey } from "../nps/userSurvey";
 
 export const WORKSPACE_ROLE_REQUEST_LIMIT = 20;
 
@@ -718,6 +719,8 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
                 connectToDatabaseLoadTimeInMs: Date.now() - startTime,
             },
         );
+
+        UserSurvey.getInstance().promptUserForNPSFeedback(`${DEPLOYMENT_VIEW_ID}_fabric`);
     } catch (err) {
         state.connectionLoadState = ApiStatus.Error;
         state.errorMessage = getErrorMessage(err);

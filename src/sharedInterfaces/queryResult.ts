@@ -204,23 +204,20 @@ export interface ColumnFilterState {
 /**
  * Maps the column filter state for a specific column
  */
-export type ColumnFilterMap = Record<string, ColumnFilterState[]>;
-
-/**
- * Maps all the column filters for a specific grid ID
- */
-export type GridColumnMap = Record<string, ColumnFilterMap[]>;
+export type ColumnFilterMap = Record<string, ColumnFilterState>;
 
 export interface GetFiltersParams {
     uri: string;
+    gridId: string;
 }
 export namespace GetFiltersRequest {
-    export const type = new RequestType<GetFiltersParams, GridColumnMap[], void>("getFilters");
+    export const type = new RequestType<GetFiltersParams, ColumnFilterMap, void>("getFilters");
 }
 
 export interface SetFiltersParams {
     uri: string;
-    filters: GridColumnMap[];
+    gridId: string;
+    filters: ColumnFilterMap;
 }
 
 export namespace SetFiltersRequest {
@@ -229,6 +226,7 @@ export namespace SetFiltersRequest {
 
 export interface GetColumnWidthsParams {
     uri: string;
+    gridId: string;
 }
 
 export namespace GetColumnWidthsRequest {
@@ -237,6 +235,7 @@ export namespace GetColumnWidthsRequest {
 
 export interface SetColumnWidthsParams {
     uri: string;
+    gridId: string;
     columnWidths: number[];
 }
 
@@ -433,6 +432,28 @@ export namespace GetGridPaneScrollPositionRequest {
         GetGridPaneScrollPositionResponse,
         void
     >("getGridPaneScrollPosition");
+}
+
+export namespace SetMessagesTabScrollPositionNotification {
+    export const type = new NotificationType<{ uri: string; scrollTop: number }>(
+        "setMessagesTabScrollPosition",
+    );
+}
+
+export namespace GetMessagesTabScrollPositionRequest {
+    export const type = new RequestType<{ uri: string }, { scrollTop: number }, void>(
+        "getMessagesTabScrollPosition",
+    );
+}
+
+export namespace SetMaximizedGridNotification {
+    export const type = new NotificationType<{ uri: string; gridId: string }>("setMaximizedGrid");
+}
+
+export namespace GetMaximizedGridRequest {
+    export const type = new RequestType<{ uri: string }, { gridId: string | null }, void>(
+        "getMaximizedGrid",
+    );
 }
 
 export enum GridContextMenuAction {

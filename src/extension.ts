@@ -84,7 +84,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         connect: async (connectionInfo: IConnectionInfo, saveConnection?: boolean) => {
             const uri = utils.generateQueryUri().toString();
             // First wait for initial connection request to succeed
-            const requestSucceeded = await controller.connect(uri, connectionInfo, saveConnection);
+            const requestSucceeded = await controller.connect(
+                uri,
+                connectionInfo,
+                saveConnection,
+                "extensionApi",
+            );
             if (!requestSucceeded) {
                 throw new Error(`Connection request for ${JSON.stringify(connectionInfo)} failed`);
             }
