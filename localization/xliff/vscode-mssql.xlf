@@ -970,6 +970,9 @@
     <trans-unit id="++CODE++ef695e4c384e9b231d25ba5d0160913f31f4153f460e645129860fa611a52b27">
       <source xml:lang="en">DacFx service is not available</source>
     </trans-unit>
+    <trans-unit id="++CODE++b71e4fef69f396ef921feda2c66cbfe00983a3cdb9e6eea1871fd787a6cddd64">
+      <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options.</source>
+    </trans-unit>
     <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
       <source xml:lang="en">Data Type</source>
     </trans-unit>
@@ -2590,8 +2593,9 @@
     <trans-unit id="++CODE++0e1d9858f1e51bd313981a0d8da504fb12e0405fc869634ad52babe02eff9e3d">
       <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
     </trans-unit>
-    <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
-      <source xml:lang="en">Query Plan</source>
+    <trans-unit id="++CODE++bebc9b760db9e5ba55f2632c57871653521c9094223eeb46476e3d7d49218b89">
+      <source xml:lang="en">Query Plan ({0})</source>
+      <note>{0} is the number of query plans</note>
     </trans-unit>
     <trans-unit id="++CODE++9e83dc6d2db272ac27cc875b994f834b62b7202a49b69e885f8f4e8f9c29a452">
       <source xml:lang="en">Query executed</source>
@@ -4061,9 +4065,6 @@
     <trans-unit id="mssql.showGettingStarted">
       <source xml:lang="en">Getting Started Guide</source>
     </trans-unit>
-    <trans-unit id="mssql.userFeedback">
-      <source xml:lang="en">Give Feedback</source>
-    </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">
       <source xml:lang="en">MSSQL Copilot (Preview)</source>
     </trans-unit>
@@ -4213,6 +4214,9 @@
     </trans-unit>
     <trans-unit id="mssql.selectedAzureSubscriptions">
       <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
+    </trans-unit>
+    <trans-unit id="mssql.userFeedback">
+      <source xml:lang="en">Send Feedback</source>
     </trans-unit>
     <trans-unit id="mssql.resultsFontFamily">
       <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>

@@ -255,9 +255,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     deploymentOptions: payload.deploymentOptions,
                 };
 
-                // Update UI to reflect the changes
-                this.updateState(newState);
-
                 return newState;
             },
         );
@@ -322,14 +319,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         originalSqlCmdVariables: { ...mergedSqlCmdVariables },
                         formMessage: !this._dacFxService
                             ? {
-                                  message: `${Loc.DacFxServiceNotAvailable}. Profile loaded without deployment options.`,
+                                  message: Loc.DacFxServiceNotAvailableProfileLoaded,
                                   intent: "warning" as const,
                               }
                             : undefined,
                     };
-
-                    // Update UI to reflect the changes
-                    this.updateState(newState);
 
                     return newState;
                 } catch (error) {

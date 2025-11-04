@@ -212,7 +212,7 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
-                void UserSurvey.getInstance().promptUserForNPSFeedback();
+                void UserSurvey.getInstance().promptUserForNPSFeedback("runQuery");
                 void this.onRunQuery();
             });
             this.registerCommand(Constants.cmdManageConnectionProfiles);
@@ -252,8 +252,13 @@ export default class MainController implements vscode.Disposable {
                 void this.runAndLogErrors(this.onChooseLanguageFlavor());
             });
             this.registerCommand(Constants.cmdLaunchUserFeedback);
-            this._event.on(Constants.cmdLaunchUserFeedback, async () => {
-                await UserSurvey.getInstance().launchSurvey("nps", getStandardNPSQuestions());
+            this._event.on(Constants.cmdLaunchUserFeedback, () => {
+                // Launch directly, bypassing checks/prompt because they explicitly requested to provide feedback
+                UserSurvey.getInstance().launchSurvey(
+                    "nps",
+                    getStandardNPSQuestions(),
+                    "commandPalette",
+                );
             });
             this.registerCommand(Constants.cmdCancelQuery);
             this._event.on(Constants.cmdCancelQuery, async () => {
@@ -741,6 +746,9 @@ export default class MainController implements vscode.Disposable {
                     const isConnected = await this.connectionManager.connect(
                         nodeUri,
                         connectionCreds,
+                        {
+                            connectionSource: "scriptNode",
+                        },
                     );
                     if (isConnected) {
                         node.updateEntraTokenInfo(connectionCreds); // may be updated Entra token after connect() call
@@ -884,6 +892,8 @@ export default class MainController implements vscode.Disposable {
                 }
             },
         );
+
+        UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
     }
 
     /**
@@ -1116,6 +1126,9 @@ export default class MainController implements vscode.Disposable {
                         const connectionResult = await this.connectionManager.connect(
                             connectionUri,
                             connectionCreds,
+                            {
+                                connectionSource: "searchObjects",
+                            },
                         );
 
                         if (connectionResult) {
@@ -1744,8 +1757,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdScriptSelect,
                 async (node: TreeNodeInfo) => {
-                    await this.scriptNode(node, ScriptOperation.Select, true);
-                    UserSurvey.getInstance().promptUserForNPSFeedback();
+                    await this.scriptNode(node, ScriptOperation.Select, true /* executeScript */);
                 },
             ),
         );
@@ -1754,7 +1766,9 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptCreate,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Create),
+                async (node: TreeNodeInfo) => {
+                    await this.scriptNode(node, ScriptOperation.Create);
+                },
             ),
         );
 
@@ -1762,7 +1776,9 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptDelete,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Delete),
+                async (node: TreeNodeInfo) => {
+                    await this.scriptNode(node, ScriptOperation.Delete);
+                },
             ),
         );
 
@@ -1770,7 +1786,9 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptExecute,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Execute),
+                async (node: TreeNodeInfo) => {
+                    await this.scriptNode(node, ScriptOperation.Execute);
+                },
             ),
         );
 
@@ -1778,7 +1796,9 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptAlter,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Alter),
+                async (node: TreeNodeInfo) => {
+                    await this.scriptNode(node, ScriptOperation.Alter);
+                },
             ),
         );
 
@@ -2248,9 +2268,12 @@ export default class MainController implements vscode.Disposable {
         uri: string,
         connectionInfo: IConnectionInfo,
         saveConnection?: boolean,
+        connectionSource?: string,
     ): Promise<boolean> {
         if (this.canRunCommand() && uri && connectionInfo) {
-            const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo);
+            const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo, {
+                connectionSource,
+            });
             if (connectedSuccessfully) {
                 if (saveConnection) {
                     await this.createObjectExplorerSession(connectionInfo);
@@ -2401,7 +2424,7 @@ export default class MainController implements vscode.Disposable {
             await this._connectionMgr.refreshAzureAccountToken(uri);
 
             // Delete stored filters and dimension states for result grid when a new query is executed
-            store.deleteMainKey(uri);
+            store.deleteUriState(uri);
 
             await this._outputContentProvider.runQuery(
                 this._statusview,

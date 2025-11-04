@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ISlickRange } from "../../../../sharedInterfaces/queryResult";
+import { ISlickRange, ResultSetSummary } from "../../../../sharedInterfaces/queryResult";
 import { FilterableColumn } from "./interfaces";
 
 export const SLICKGRID_ROW_ID_PROP = "_mssqlRowId";
@@ -177,4 +177,21 @@ export function selectEntireGrid<T extends Slick.SlickData>(grid: Slick.Grid<T>)
             toCell: totalColumns - 2, // Subtract 2 to account for row number column and 0-based indexing
         },
     ];
+}
+
+/**
+ * Gets the total count of grid result sets from the result set summaries.
+ * @param summaries The result set summaries.
+ * @returns The total count of grid result sets.
+ */
+export function getGridCount(summaries: Record<number, Record<number, ResultSetSummary>>): number {
+    let count = 0;
+    const batchIds = Object.keys(summaries ?? {});
+    for (const batchId of batchIds) {
+        const summary = summaries[parseInt(batchId)];
+        if (summary) {
+            count += Object.keys(summary).length;
+        }
+    }
+    return count;
 }

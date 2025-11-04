@@ -368,7 +368,10 @@
     "Save as Excel": "Save as Excel",
     "Save as JSON": "Save as JSON",
     "Hide this panel": "Hide this panel",
-    "Query Plan": "Query Plan",
+    "Query Plan ({0})/{0} is the number of query plans": {
+        "message": "Query Plan ({0})",
+        "comment": ["{0} is the number of query plans"]
+    },
     "Select All": "Select All",
     "Copy with Headers": "Copy with Headers",
     "Copy Headers": "Copy Headers",
@@ -1490,6 +1493,7 @@
     "Publish profile saved to: {0}": "Publish profile saved to: {0}",
     "Failed to save publish profile": "Failed to save publish profile",
     "DacFx service is not available": "DacFx service is not available",
+    "DacFx service is not available. Profile loaded without deployment options.": "DacFx service is not available. Profile loaded without deployment options.",
     "Failed to list databases": "Failed to list databases",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
