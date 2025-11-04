@@ -1355,6 +1355,9 @@ export class PublishProject {
     public static PublishProfileSaveFailed = l10n.t("Failed to save publish profile");
     public static DacFxServiceNotAvailable = l10n.t("DacFx service is not available");
     public static FailedToListDatabases = l10n.t("Failed to list databases");
+    public static FailedToFetchContainerTags = (errorMessage: string) => {
+        return l10n.t("Failed to fetch Docker container tags: {0}", errorMessage);
+    };
 }
 
 export class SchemaCompare {

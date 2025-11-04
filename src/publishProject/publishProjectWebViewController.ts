@@ -174,7 +174,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     this.state.formState.containerImageTag = tagOptions[0].value;
                 }
             } catch (error) {
-                console.error("Failed to fetch Docker container tags:", error);
+                this.state.formMessage = {
+                    message: Loc.FailedToFetchContainerTags(getErrorMessage(error)),
+                    intent: "error",
+                };
             }
         }
 
