@@ -211,7 +211,7 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
-                void UserSurvey.getInstance().promptUserForNPSFeedback();
+                void UserSurvey.getInstance().promptUserForNPSFeedback("runQuery");
                 void this.onRunQuery();
             });
             this.registerCommand(Constants.cmdManageConnectionProfiles);
@@ -251,8 +251,13 @@ export default class MainController implements vscode.Disposable {
                 void this.runAndLogErrors(this.onChooseLanguageFlavor());
             });
             this.registerCommand(Constants.cmdLaunchUserFeedback);
-            this._event.on(Constants.cmdLaunchUserFeedback, async () => {
-                await UserSurvey.getInstance().launchSurvey("nps", getStandardNPSQuestions());
+            this._event.on(Constants.cmdLaunchUserFeedback, () => {
+                // Launch directly, bypassing checks/prompt because they explicitly requested to provide feedback
+                UserSurvey.getInstance().launchSurvey(
+                    "nps",
+                    getStandardNPSQuestions(),
+                    "commandPalette",
+                );
             });
             this.registerCommand(Constants.cmdCancelQuery);
             this._event.on(Constants.cmdCancelQuery, async () => {
@@ -947,6 +952,9 @@ export default class MainController implements vscode.Disposable {
                         const connectionResult = await this.connectionManager.connect(
                             connectionUri,
                             connectionCreds,
+                            {
+                                connectionSource: "searchObjects",
+                            },
                         );
 
                         if (connectionResult) {
@@ -2044,9 +2052,12 @@ export default class MainController implements vscode.Disposable {
         uri: string,
         connectionInfo: IConnectionInfo,
         saveConnection?: boolean,
+        connectionSource?: string,
     ): Promise<boolean> {
         if (this.canRunCommand() && uri && connectionInfo) {
-            const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo);
+            const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo, {
+                connectionSource,
+            });
             if (connectedSuccessfully) {
                 if (saveConnection) {
                     await this.createObjectExplorerSession(connectionInfo);

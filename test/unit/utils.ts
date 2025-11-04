@@ -58,6 +58,23 @@ export function stubVscodeWrapper(
     return vscodeWrapper;
 }
 
+export function stubExtensionContext(sandbox?: sinon.SinonSandbox): vscode.ExtensionContext {
+    const stubber = sandbox || sinon;
+
+    let globalState = {
+        get: stubber.stub(),
+        update: stubber.stub(),
+    };
+
+    const context = {
+        globalState: globalState,
+        extensionUri: vscode.Uri.parse("file://fakePath"),
+        extensionPath: "fakePath",
+    } as unknown as vscode.ExtensionContext;
+
+    return context;
+}
+
 export function stubGetCapabilitiesRequest(
     sandbox?: sinon.SinonSandbox,
 ): sinon.SinonStubbedInstance<SqlToolsServerClient> {

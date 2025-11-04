@@ -147,26 +147,26 @@ suite.skip("Utility tests - Timer Class", () => {
 });
 
 suite("Utility tests - parseEnum", () => {
-    test("should return the correct enum value", () => {
-        enum TestEnum {
+    test("should return the correct enum value for string enums", () => {
+        enum TestStringEnum {
             Value1 = "ValueOne",
             Value2 = "ValueTwo",
             Value3 = "ValueThree",
         }
 
         const testCases = [
-            { input: "ValueOne", expected: TestEnum.Value1 },
-            { input: "ValueTwo", expected: TestEnum.Value2 },
-            { input: "ValueThree", expected: TestEnum.Value3 },
-            { input: "Value1", expected: TestEnum.Value1 },
-            { input: "Value2", expected: TestEnum.Value2 },
-            { input: "Value3", expected: TestEnum.Value3 },
+            { input: "ValueOne", expected: TestStringEnum.Value1 },
+            { input: "ValueTwo", expected: TestStringEnum.Value2 },
+            { input: "ValueThree", expected: TestStringEnum.Value3 },
+            { input: "Value1", expected: TestStringEnum.Value1 },
+            { input: "Value2", expected: TestStringEnum.Value2 },
+            { input: "Value3", expected: TestStringEnum.Value3 },
             { input: "somethingElse", expected: undefined },
             { input: undefined, expected: undefined },
         ];
 
         for (const { input, expected } of testCases) {
-            const result = utilUtils.parseEnum(TestEnum, input);
+            const result = utilUtils.parseEnum(TestStringEnum, input);
             expect(result, `'${input}' should return ${expected}, but was ${result}`).to.equal(
                 expected,
             );

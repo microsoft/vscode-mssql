@@ -30,6 +30,7 @@ import { IConnectionProfile } from "../models/interfaces";
 import StatusView from "../views/statusView";
 import { Logger } from "../models/logger";
 import VscodeWrapper from "../controllers/vscodeWrapper";
+import { UserSurvey } from "../nps/userSurvey";
 
 export const SCRIPT_OPERATION_CANCELED_ERROR = "Scripting operation cancelled by user.";
 
@@ -213,6 +214,9 @@ export class ScriptingService {
                     const isConnected = await this._connectionManager.connect(
                         nodeUri,
                         connectionCreds,
+                        {
+                            connectionSource: "scriptNode",
+                        },
                     );
                     if (isConnected) {
                         node.updateEntraTokenInfo(connectionCreds); // may be updated Entra token after connect() call
@@ -278,6 +282,8 @@ export class ScriptingService {
             this._logger.error("Scripting failed: ", error);
             scriptTelemetryActivity.endFailed(error, false);
         }
+
+        UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
     }
 
     public static getScriptCompatibility(serverMajorVersion: number, serverMinorVersion: number) {

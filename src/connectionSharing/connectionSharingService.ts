@@ -421,6 +421,9 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         const connectionResult = await this._connectionManager.connect(
             connectionUri,
             targetConnection,
+            {
+                connectionSource: "connectionSharingService",
+            },
         );
 
         if (!connectionResult) {

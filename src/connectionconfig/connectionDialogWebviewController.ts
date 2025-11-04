@@ -97,6 +97,7 @@ import { getCloudId } from "../azure/providerSettings";
 
 const FABRIC_WORKSPACE_AUTOLOAD_LIMIT = 10;
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
+const CONNECTION_DIALOG_VIEW_ID = "connectionDialog";
 
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
@@ -137,8 +138,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         super(
             context,
             vscodeWrapper,
-            "connectionDialog",
-            "connectionDialog",
+            CONNECTION_DIALOG_VIEW_ID,
+            CONNECTION_DIALOG_VIEW_ID,
             new ConnectionDialogWebviewState(),
             {
                 title: Loc.connectionDialog,
@@ -1001,7 +1002,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 const result = await this._mainController.connectionManager.connect(
                     tempConnectionUri,
                     cleanedConnection,
-                    false, // Connect should not handle errors, as we want to handle them here
+                    {
+                        shouldHandleErrors: false, // Connect should not handle errors, as we want to handle them here
+                        connectionSource: CONNECTION_DIALOG_VIEW_ID,
+                    },
                 );
 
                 const connectionInfo =
@@ -1106,7 +1110,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             await this.panel.dispose();
             this.dispose();
-            UserSurvey.getInstance().promptUserForNPSFeedback();
+            UserSurvey.getInstance().promptUserForNPSFeedback(CONNECTION_DIALOG_VIEW_ID);
         } catch (error) {
             this.state.connectionStatus = ApiStatus.Error;
             this.state.formMessage = { message: getErrorMessage(error) };
