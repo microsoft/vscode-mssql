@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import * as vscode from "vscode";
 import * as TypeMoq from "typemoq";
 import { expect } from "chai";
@@ -22,7 +24,6 @@ suite("RunQueryTool Tests", () => {
     let mockCredentials: TypeMoq.IMock<IConnectionProfile>;
     let mockToken: TypeMoq.IMock<vscode.CancellationToken>;
     let sendActionEventStub: sinon.SinonStub;
-    let userSurveyStub: sinon.SinonStub;
     let sandbox: sinon.SinonSandbox;
     let runQueryTool: RunQueryTool;
 
@@ -41,7 +42,7 @@ suite("RunQueryTool Tests", () => {
         const mockUserSurvey = {
             promptUserForNPSFeedback: sinon.stub(),
         };
-        userSurveyStub = sandbox.stub(UserSurvey, "getInstance").returns(mockUserSurvey as any);
+        sandbox.stub(UserSurvey, "getInstance").returns(mockUserSurvey as any);
 
         // Mock credentials
         mockCredentials = TypeMoq.Mock.ofType<IConnectionProfile>();
@@ -143,11 +144,11 @@ suite("RunQueryTool Tests", () => {
         });
 
         test("should return error when connection is not found", async () => {
-            // Create a new mock that returns null for this specific test
+            // Create a new mock that returns undefined for this specific test
             const noConnectionMock = TypeMoq.Mock.ofType<ConnectionManager>();
             noConnectionMock
                 .setup((x) => x.getConnectionInfo(sampleConnectionId))
-                .returns(() => null as any);
+                .returns(() => undefined as any);
 
             const toolWithNoConnection = new RunQueryTool(
                 noConnectionMock.object,
