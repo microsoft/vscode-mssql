@@ -29,6 +29,7 @@ suite("MainController Tests", function () {
     let sandbox: sinon.SinonSandbox;
     let mainController: MainController;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
@@ -43,7 +44,7 @@ suite("MainController Tests", function () {
         mainController.connectionManager = connectionManager;
         (mainController.sqlDocumentService as any)["_connectionMgr"] = connectionManager;
 
-        const vscodeWrapper = stubVscodeWrapper(sandbox);
+        vscodeWrapper = stubVscodeWrapper(sandbox);
         const context = stubExtensionContext(sandbox);
 
         UserSurvey.createInstance(context, vscodeWrapper);
@@ -354,7 +355,7 @@ suite("MainController Tests", function () {
         const controller = new MainController(
             TestExtensionContext.object,
             connectionManager,
-            stubVscodeWrapper(sandbox),
+            vscodeWrapper,
         );
 
         const testNode: TreeNodeInfo = {

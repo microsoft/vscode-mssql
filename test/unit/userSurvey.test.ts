@@ -292,7 +292,7 @@ suite("UserSurvey Tests", () => {
             globalState.get.withArgs("nps/sessionCount").returns(999); // high enough to be eligible
             globalState.get.withArgs("nps/isCandidate").returns(false); // not already determined to be a candidate
 
-            sinon.stub(Math, "random").returns(SELECTION_PROBABILITY + 0.1); // ensure not selected by RNG check
+            sandbox.stub(Math, "random").returns(SELECTION_PROBABILITY + 0.1); // ensure not selected by RNG check
 
             const userSurvey = UserSurvey.getInstance();
             const result = await userSurvey["shouldPromptForFeedback"](testSurveySource);
