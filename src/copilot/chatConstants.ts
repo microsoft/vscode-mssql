@@ -19,6 +19,9 @@ export const errorLabelPrefix = "> ❌";
 /** Prefix for server/database information display */
 export const serverDatabaseLabelPrefix = "> ➖";
 
+/** URL for GitHub Copilot feedback */
+export const copilotFeedbackUrl = "https://aka.ms/vscode-mssql-copilot-feedback";
+
 /**
  * Chat command names
  */

@@ -17,12 +17,15 @@ import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInter
 import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
 import { IConnectionInfo } from "vscode-mssql";
 import { ConnectionStrategy } from "../controllers/sqlDocumentService";
+import { UserSurvey } from "../nps/userSurvey";
 
 function isExpandCollapseButtonsEnabled(): boolean {
     return vscode.workspace
         .getConfiguration()
         .get<boolean>(configSchemaDesignerEnableExpandCollapseButtons) as boolean;
 }
+
+const SCHEMA_DESIGNER_VIEW_ID = "schemaDesigner";
 
 export class SchemaDesignerWebviewController extends ReactWebviewPanelController<
     SchemaDesigner.SchemaDesignerWebviewState,
@@ -47,8 +50,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
         super(
             context,
             vscodeWrapper,
-            "schemaDesigner",
-            "schemaDesigner",
+            SCHEMA_DESIGNER_VIEW_ID,
+            SCHEMA_DESIGNER_VIEW_ID,
             {
                 enableExpandCollapseButtons: isExpandCollapseButtonsEnabled(),
             },
@@ -200,6 +203,8 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                     tableCount: payload.schema?.tables?.length,
                 });
                 this.updateCacheItem(undefined, false);
+
+                void UserSurvey.getInstance().promptUserForNPSFeedback(SCHEMA_DESIGNER_VIEW_ID);
                 return {
                     success: true,
                 };
@@ -228,13 +233,18 @@ export class SchemaDesignerWebviewController extends ReactWebviewPanelController
                 saveLabel: LocConstants.SchemaDesigner.Save,
                 title: LocConstants.SchemaDesigner.SaveAs,
             });
+
             if (!outputPath) {
                 // User cancelled the save dialog
                 return;
             }
+
             sendActionEvent(TelemetryViews.SchemaDesigner, TelemetryActions.ExportToImage, {
                 format: payload?.format,
             });
+
+            void UserSurvey.getInstance().promptUserForNPSFeedback(SCHEMA_DESIGNER_VIEW_ID);
+
             if (payload.format === "svg") {
                 let fileContents = new Uint8Array(
                     Buffer.from(decodeURIComponent(payload.fileContents.split(",")[1]), "utf8"),

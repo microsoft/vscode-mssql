@@ -75,21 +75,21 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
     -   Apply changes directly or generate a deployment script for later use
     -   Save comparisons to rerun or audit schema changes
 -   **Customizable Extension Options**: Configure command shortcuts, appearance, and other settings to personalize your development experience.
-
-## Public Preview Features
-
--   **GitHub Copilot Integration (`Preview`)**: Boost your productivity with AI‑assisted SQL development
+-   **GitHub Copilot Integration**: Boost your productivity with AI‑assisted SQL development
     -   Intelligent T‑SQL completions and natural‑language prompts
     -   Explain objects and generate schema or test data
     -   Identify risky patterns and improve SQL security practices
--   **GitHub Copilot Agent Mode (`Preview`)** Let Copilot perform database tasks on your behalf
+-   **GitHub Copilot Agent Mode** Let Copilot perform database tasks on your behalf
     -   Securely executes actions like connecting, switching databases, or running queries directly from chat
     -   Surfaces schema details and connection info without manual navigation
     -   Provides a confirmable, AI-driven assistant for common database workflows
     -   Access all approved Agent tools from the Tools panel
--   **GitHub Copilot Slash Commands (`Preview`)**: Quick, discoverable shortcuts in chat
+-   **GitHub Copilot Slash Commands**: Quick, discoverable shortcuts in chat
     -   Type `/` to see commands like `/connect`, `/changeDatabase`, `/runQuery`, `/explain`, `/fix`, `/optimize`
     -   Connection commands open the MSSQL connection panel; query commands accept input and return results in chat
+
+## Public Preview Features
+
 -   **Fabric Integration (`Preview`)**: Browse workspaces and provision SQL databases in Fabric directly from VS Code
     -   Sign in with Microsoft Entra ID, browse workspaces, search, and connect to SQL databases or SQL analytics endpoints from the Connection dialog (includes **Open in MSSQL** from the Fabric extension)
     -   Create a SQL database from the Deployments page; capacity‑aware and **auto‑connects** when complete
