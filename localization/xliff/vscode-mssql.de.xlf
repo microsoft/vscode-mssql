@@ -5326,10 +5326,6 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
         <source xml:lang="en">Getting Started Guide</source>
         <target state="translated">Leitfaden für erste Schritte</target>
       </trans-unit>
-      <trans-unit id="mssql.userFeedback">
-        <source xml:lang="en">Give Feedback</source>
-        <target state="translated">Feedback geben</target>
-      </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot (Preview)</source>
         <target state="translated">MSSQL Copilot (Vorschau)</target>
@@ -5535,6 +5531,10 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       <trans-unit id="mssql.selectedAzureSubscriptions">
         <source xml:lang="en">Selected Azure subscriptions for browsing and managing servers and databases</source>
         <target state="translated">Ausgewählte Azure-Abonnements zum Durchsuchen und Verwalten von Servern und Datenbanken</target>
+      </trans-unit>
+      <trans-unit id="mssql.userFeedback">
+        <source xml:lang="en">Send Feedback</source>
+        <target state="new">Send Feedback</target>
       </trans-unit>
       <trans-unit id="mssql.resultsFontFamily">
         <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
