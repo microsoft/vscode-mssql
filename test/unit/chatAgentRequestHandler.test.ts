@@ -32,27 +32,27 @@ const expect = chai.expect;
 
 suite("Chat Agent Request Handler Tests", () => {
     let sandbox: sinon.SinonSandbox;
-    let copilotService: sinon.SinonStubbedInstance<CopilotService>;
-    let mainController: sinon.SinonStubbedInstance<MainController>;
-    let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
-    let activityObject: ActivityObject & {
+    let mockCopilotService: sinon.SinonStubbedInstance<CopilotService>;
+    let mockMainController: sinon.SinonStubbedInstance<MainController>;
+    let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let connectionInfo: ConnectionInfo;
+    let mockContext: vscode.ExtensionContext;
+    let mockLmChat: vscode.LanguageModelChat;
+    let languageModelChatSendRequest: sinon.SinonStub;
+    let mockChatStream: vscode.ChatResponseStream;
+    let chatStreamMarkdown: sinon.SinonStub;
+    let chatStreamProgress: sinon.SinonStub;
+    let mockChatRequest: vscode.ChatRequest;
+    let mockChatContext: vscode.ChatContext;
+    let mockToken: vscode.CancellationToken;
+    let mockTextDocument: vscode.TextDocument;
+    let mockConfiguration: vscode.WorkspaceConfiguration;
+    let mockActivityObject: ActivityObject & {
         end: sinon.SinonStub;
         endFailed: sinon.SinonStub;
         update: sinon.SinonStub;
     };
-    let connectionInfo: ConnectionInfo;
-    let extensionContext: vscode.ExtensionContext;
-    let languageModelChat: vscode.LanguageModelChat;
-    let languageModelChatSendRequest: sinon.SinonStub;
-    let chatStream: vscode.ChatResponseStream;
-    let chatStreamMarkdown: sinon.SinonStub;
-    let chatStreamProgress: sinon.SinonStub;
-    let chatRequest: vscode.ChatRequest;
-    let chatContext: vscode.ChatContext;
-    let cancellationToken: vscode.CancellationToken;
-    let textDocument: vscode.TextDocument;
-    let configuration: vscode.WorkspaceConfiguration;
     let configurationGet: sinon.SinonStub;
     let startActivityStub: sinon.SinonStub;
 
@@ -67,7 +67,7 @@ suite("Chat Agent Request Handler Tests", () => {
         sandbox = sinon.createSandbox();
 
         // Create the mock activity object for startActivity to return
-        activityObject = {
+        mockActivityObject = {
             end: sandbox.stub(),
             endFailed: sandbox.stub(),
             update: sandbox.stub(),
@@ -78,18 +78,18 @@ suite("Chat Agent Request Handler Tests", () => {
         };
 
         // Stub telemetry functions
-        startActivityStub = sandbox.stub(telemetry, "startActivity").returns(activityObject);
+        startActivityStub = sandbox.stub(telemetry, "startActivity").returns(mockActivityObject);
         sandbox.stub(telemetry, "sendActionEvent");
         // Stub the generateGuid function using sinon
         sandbox.stub(Utils, "generateGuid").returns(sampleCorrelationId);
 
         // Mock CopilotService
-        copilotService = sandbox.createStubInstance(CopilotService);
+        mockCopilotService = sandbox.createStubInstance(CopilotService);
         // Mock MainController
-        mainController = sandbox.createStubInstance(MainController);
+        mockMainController = sandbox.createStubInstance(MainController);
         // Mock connectionManager
-        connectionManager = sandbox.createStubInstance(ConnectionManager);
-        sandbox.stub(mainController, "connectionManager").get(() => connectionManager);
+        mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+        sandbox.stub(mockMainController, "connectionManager").get(() => mockConnectionManager);
 
         // Mock ConnectionInfo
         connectionInfo = new ConnectionInfo();
@@ -99,58 +99,26 @@ suite("Chat Agent Request Handler Tests", () => {
         } as IConnectionInfo;
 
         // Mock VscodeWrapper
-        vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => sampleConnectionUri);
+        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        sandbox.stub(mockVscodeWrapper, "activeTextEditorUri").get(() => sampleConnectionUri);
 
         // Mock configuration
         configurationGet = sandbox.stub().returns(false);
-        configuration = {
+        mockConfiguration = {
             get: configurationGet,
         } as unknown as vscode.WorkspaceConfiguration;
-        vscodeWrapper.getConfiguration.returns(configuration);
+        mockVscodeWrapper.getConfiguration.returns(mockConfiguration);
 
         // Mock ExtensionContext
         const canSendRequestStub = sandbox.stub().returns("allowed");
-        extensionContext = {
+        mockContext = {
             languageModelAccessInformation: {
                 canSendRequest: canSendRequestStub,
             },
             subscriptions: [],
         } as unknown as vscode.ExtensionContext;
 
-        // // CODEX: mockChatStream became chatStream
-        // // Mock ChatResponseStream
-        // mockChatStream = TypeMoq.Mock.ofType<vscode.ChatResponseStream>();
-        // mockChatStream.setup((x) => x.progress(TypeMoq.It.isAnyString())).returns(() => undefined);
-        // mockChatStream.setup((x) => x.markdown(TypeMoq.It.isAnyString())).returns(() => undefined);
-
-        // // CODEX: mockChatRequest became chatRequest
-        // // Mock Chat Request
-        // mockChatRequest = TypeMoq.Mock.ofType<vscode.ChatRequest>();
-        // mockChatRequest.setup((x) => x.prompt).returns(() => samplePrompt);
-        // mockChatRequest.setup((x) => x.references).returns(() => []);
-        // mockChatRequest.setup((x) => x.model).returns(() => mockLmChat.object);
-
-        // // Mock Chat Context
-        // mockChatContext = TypeMoq.Mock.ofType<vscode.ChatContext>();
-        // mockChatContext.setup((x) => x.history).returns(() => []);
-
-        // // CODEX: mockToken became cancellationToken
-        // // Mock CancellationToken
-        // mockToken = TypeMoq.Mock.ofType<vscode.CancellationToken>();
-
-        // // CODEX: mockLanguageModelChatResponse is new, and has not yet been converted
-        // // Mock LanguageModelChatResponse
-        // mockLanguageModelChatResponse = TypeMoq.Mock.ofType<vscode.LanguageModelChatResponse>();
-        // mockLanguageModelChatResponse
-        //     .setup((x) => x.stream)
-        //     .returns(() =>
-        //         (async function* () {
-        //             yield new vscode.LanguageModelTextPart(sampleReplyText);
-        //         })(),
-        //     );
-
-        // Had to create a real object instead of using TypeMoq for the response object
+        // Had to create a real object instead of using mock for the response object
         const defaultResponse = {
             stream: (async function* () {
                 yield new vscode.LanguageModelTextPart(sampleReplyText);
@@ -162,45 +130,45 @@ suite("Chat Agent Request Handler Tests", () => {
 
         // Create a mock LanguageModelChat
         languageModelChatSendRequest = sandbox.stub().resolves(defaultResponse);
-        languageModelChat = {
+        mockLmChat = {
             sendRequest: languageModelChatSendRequest,
         } as unknown as vscode.LanguageModelChat;
 
         // Mock ChatResponseStream
         chatStreamMarkdown = sandbox.stub().returns(undefined);
         chatStreamProgress = sandbox.stub().returns(undefined);
-        chatStream = {
+        mockChatStream = {
             markdown: chatStreamMarkdown,
             progress: chatStreamProgress,
         } as unknown as vscode.ChatResponseStream;
 
         // Mock Chat Request
-        chatRequest = {
+        mockChatRequest = {
             prompt: samplePrompt,
             references: [],
-            model: languageModelChat,
+            model: mockLmChat,
         } as unknown as vscode.ChatRequest;
 
         // Mock Chat Context
-        chatContext = {
+        mockChatContext = {
             history: [],
         } as vscode.ChatContext;
 
         // Mock CancellationToken
         const disposeStub = sandbox.stub();
-        cancellationToken = {
+        mockToken = {
             isCancellationRequested: false,
             onCancellationRequested: sandbox.stub().returns({ dispose: disposeStub }),
         } as vscode.CancellationToken;
 
         // Mock TextDocument for reference handling
-        textDocument = {
+        mockTextDocument = {
             getText: sandbox.stub().returns("SELECT * FROM users"),
             languageId: "sql",
         } as unknown as vscode.TextDocument;
 
         // Stub the workspace.openTextDocument method instead of replacing the entire workspace object
-        sandbox.stub(vscode.workspace, "openTextDocument").resolves(textDocument);
+        sandbox.stub(vscode.workspace, "openTextDocument").resolves(mockTextDocument);
     });
 
     teardown(() => {
@@ -209,10 +177,10 @@ suite("Chat Agent Request Handler Tests", () => {
 
     function createHandler(): ReturnType<typeof createSqlAgentRequestHandler> {
         return createSqlAgentRequestHandler(
-            copilotService,
-            vscodeWrapper,
-            extensionContext,
-            mainController,
+            mockCopilotService,
+            mockVscodeWrapper,
+            mockContext,
+            mockMainController,
         );
     }
 
@@ -245,9 +213,9 @@ suite("Chat Agent Request Handler Tests", () => {
 
         const result = await handler(
             requestWithoutModel,
-            chatContext,
-            chatStream,
-            cancellationToken,
+            mockChatContext,
+            mockChatStream,
+            mockToken,
         );
 
         expect(markdownMatchCount((msg) => msg === "No model found.")).to.equal(1);
@@ -258,9 +226,9 @@ suite("Chat Agent Request Handler Tests", () => {
 
     test("Handles successful conversation flow with complete message type", async () => {
         // Setup mocks for startConversation
-        copilotService.startConversation.resolves(true);
+        mockCopilotService.startConversation.resolves(true);
         // Mock the getConnectionInfo method to return a valid connection
-        connectionManager.getConnectionInfo.callsFake(() => connectionInfo);
+        mockConnectionManager.getConnectionInfo.callsFake(() => connectionInfo);
 
         const completeResponse: GetNextMessageResponse = {
             conversationUri: sampleConversationUri,
@@ -271,22 +239,22 @@ suite("Chat Agent Request Handler Tests", () => {
         };
 
         // Mock the getNextMessage to return a Complete message type
-        copilotService.getNextMessage.resolves(completeResponse);
+        mockCopilotService.getNextMessage.resolves(completeResponse);
 
         const handler = createHandler();
 
-        const result = await handler(chatRequest, chatContext, chatStream, cancellationToken);
+        const result = await handler(mockChatRequest, mockChatContext, mockChatStream, mockToken);
 
         // Verify startActivity was called
-        expect(copilotService.startConversation).to.have.been.calledOnceWith(
+        expect(mockCopilotService.startConversation).to.have.been.calledOnceWith(
             sinon.match.string,
             sampleConnectionUri,
             samplePrompt,
         );
-        expect(copilotService.getNextMessage).to.have.been.calledOnce;
+        expect(mockCopilotService.getNextMessage).to.have.been.calledOnce;
         expect(startActivityStub).to.have.been.called;
         // Verify end was called on the activity object
-        expect(activityObject.end).to.have.been.calledOnceWith(
+        expect(mockActivityObject.end).to.have.been.calledOnceWith(
             ActivityStatus.Succeeded,
             sinon.match.any,
         );
@@ -300,11 +268,11 @@ suite("Chat Agent Request Handler Tests", () => {
 
     test("Handles conversation with disconnected editor", async () => {
         // Mock the getConnectionInfo method to return an invalid connection
-        connectionManager.getConnectionInfo.callsFake(() => undefined);
+        mockConnectionManager.getConnectionInfo.callsFake(() => undefined);
 
         const handler = createHandler();
 
-        const result = await handler(chatRequest, chatContext, chatStream, cancellationToken);
+        const result = await handler(mockChatRequest, mockChatContext, mockChatStream, mockToken);
 
         const markdownMessages = getMarkdownMessages();
         const matches = markdownMessages.filter((msg) => msg.startsWith(disconnectedLabelPrefix));
@@ -316,9 +284,9 @@ suite("Chat Agent Request Handler Tests", () => {
 
     test("Handles conversation with Fragment message type", async () => {
         // Setup mocks for startConversation
-        copilotService.startConversation.resolves(true);
+        mockCopilotService.startConversation.resolves(true);
         // Mock the getConnectionInfo method to return a valid connection
-        connectionManager.getConnectionInfo.callsFake(() => connectionInfo);
+        mockConnectionManager.getConnectionInfo.callsFake(() => connectionInfo);
 
         // First return a Fragment message type
         const fragmentResponse: GetNextMessageResponse = {
@@ -341,24 +309,24 @@ suite("Chat Agent Request Handler Tests", () => {
         let callCount = 0;
         const responses = [fragmentResponse, completeResponse];
 
-        copilotService.getNextMessage.callsFake(async () => responses[callCount++]);
+        mockCopilotService.getNextMessage.callsFake(async () => responses[callCount++]);
 
         const handler = createHandler();
 
-        await handler(chatRequest, chatContext, chatStream, cancellationToken);
+        await handler(mockChatRequest, mockChatContext, mockChatStream, mockToken);
 
-        expect(copilotService.getNextMessage).to.have.been.calledTwice;
+        expect(mockCopilotService.getNextMessage).to.have.been.calledTwice;
     });
 
     test("Handles errors during conversation gracefully", async () => {
         // Setup mocks for startConversation to throw
-        copilotService.startConversation.throws(new Error("Connection failed"));
+        mockCopilotService.startConversation.throws(new Error("Connection failed"));
         // Mock the getConnectionInfo method to return a valid connection
-        connectionManager.getConnectionInfo.callsFake(() => connectionInfo);
+        mockConnectionManager.getConnectionInfo.callsFake(() => connectionInfo);
 
         const handler = createHandler();
 
-        await handler(chatRequest, chatContext, chatStream, cancellationToken);
+        await handler(mockChatRequest, mockChatContext, mockChatStream, mockToken);
 
         // Should show error message
         const markdownMessages = getMarkdownMessages();
@@ -368,8 +336,8 @@ suite("Chat Agent Request Handler Tests", () => {
 
     suite("Tool Mapping Tests", () => {
         function setUpSuccessfulConversation(): void {
-            copilotService.startConversation.resolves(true);
-            connectionManager.getConnectionInfo.callsFake(() => connectionInfo);
+            mockCopilotService.startConversation.resolves(true);
+            mockConnectionManager.getConnectionInfo.callsFake(() => connectionInfo);
         }
 
         test("Handles tools with valid JSON parameters in RequestLLM message", async () => {
@@ -407,11 +375,16 @@ suite("Chat Agent Request Handler Tests", () => {
             let callCount = 0;
             const responses = [requestLLMResponse, completeResponse];
 
-            copilotService.getNextMessage.callsFake(async () => responses[callCount++]);
+            mockCopilotService.getNextMessage.callsFake(async () => responses[callCount++]);
 
             const handler = createHandler();
 
-            const result = await handler(chatRequest, chatContext, chatStream, cancellationToken);
+            const result = await handler(
+                mockChatRequest,
+                mockChatContext,
+                mockChatStream,
+                mockToken,
+            );
 
             // Verify that the handler completed successfully
             expect(result).to.deep.equal({
@@ -458,11 +431,16 @@ suite("Chat Agent Request Handler Tests", () => {
             let callCount = 0;
             const responses = [requestLLMResponse, completeResponse];
 
-            copilotService.getNextMessage.callsFake(async () => responses[callCount++]);
+            mockCopilotService.getNextMessage.callsFake(async () => responses[callCount++]);
 
             const handler = createHandler();
 
-            const result = await handler(chatRequest, chatContext, chatStream, cancellationToken);
+            const result = await handler(
+                mockChatRequest,
+                mockChatContext,
+                mockChatStream,
+                mockToken,
+            );
 
             // Should not throw, but handle gracefully with fallback schema
             expect(result).to.deep.equal({
@@ -507,11 +485,16 @@ suite("Chat Agent Request Handler Tests", () => {
             let callCount = 0;
             const responses = [requestLLMResponse, completeResponse];
 
-            copilotService.getNextMessage.callsFake(async () => responses[callCount++]);
+            mockCopilotService.getNextMessage.callsFake(async () => responses[callCount++]);
 
             const handler = createHandler();
 
-            const result = await handler(chatRequest, chatContext, chatStream, cancellationToken);
+            const result = await handler(
+                mockChatRequest,
+                mockChatContext,
+                mockChatStream,
+                mockToken,
+            );
 
             // Verify that the handler completed successfully
             expect(result).to.deep.equal({
@@ -553,11 +536,16 @@ suite("Chat Agent Request Handler Tests", () => {
             let callCount = 0;
             const responses = [requestLLMResponse, completeResponse];
 
-            copilotService.getNextMessage.callsFake(async () => responses[callCount++]);
+            mockCopilotService.getNextMessage.callsFake(async () => responses[callCount++]);
 
             const handler = createHandler();
 
-            const result = await handler(chatRequest, chatContext, chatStream, cancellationToken);
+            const result = await handler(
+                mockChatRequest,
+                mockChatContext,
+                mockChatStream,
+                mockToken,
+            );
 
             // Verify that the handler completed successfully with fallback empty schema
             expect(result).to.deep.equal({
@@ -588,11 +576,11 @@ suite("Chat Agent Request Handler Tests", () => {
                 ],
             };
 
-            copilotService.getNextMessage.resolves(requestLLMResponse);
+            mockCopilotService.getNextMessage.resolves(requestLLMResponse);
 
             const handler = createHandler();
 
-            await handler(chatRequest, chatContext, chatStream, cancellationToken);
+            await handler(mockChatRequest, mockChatContext, mockChatStream, mockToken);
 
             // Should handle the error and show error message
             const markdownMessages = getMarkdownMessages();

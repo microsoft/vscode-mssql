@@ -8,26 +8,18 @@ import * as vscode from "vscode";
 
 // Dummy implementation to simplify mocking
 class TestPrompter implements IPrompter {
-    public promptSingle<T>(question: IQuestion): Promise<T> {
+    public promptSingle<T>(_question: IQuestion): Promise<T> {
         return Promise.resolve(undefined);
     }
-    public prompt<T>(questions: IQuestion[]): Promise<{ [key: string]: T }> {
+    public prompt<T>(_questions: IQuestion[]): Promise<{ [key: string]: T }> {
         return Promise.resolve(undefined);
     }
-    public promptCallback(questions: IQuestion[], callback: IPromptCallback): void {
+    public promptCallback(_questions: IQuestion[], callback: IPromptCallback): void {
         callback({});
     }
 }
 
-// Bare mock of the extension context for vscode
-// const testExtensionContext = sinon.createStubInstance(vscode.ExtensionContext);
-
-// // Bare mock of a TextEditor for vscode
-// const testTextEditor = sinon.createStubInstance(vscode.TextEditor);
-
-// // Bare mock of a memento object for vscode
-// const testMemento = sinon.createStubInstance(vscode.Memento);
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 function createWorkspaceConfiguration(
     items: { [key: string]: any },
     workspaceItems?: { [key: string]: any },
@@ -89,11 +81,11 @@ class ExpressResult {
         // do nothing
     }
 
-    public render(path: any, vars: any): any {
+    public render(_path: any, _vars: any): any {
         // do nothing
     }
 
-    public send(json?: any): any {
+    public send(_json?: any): any {
         // do nothing
     }
 
@@ -127,13 +119,6 @@ class ExpressRequest {
 
     public body: any;
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
-export {
-    TestPrompter,
-    // testExtensionContext as TestExtensionContext,
-    // testTextEditor as TestTextEditor,
-    // testMemento as TestMemento,
-    createWorkspaceConfiguration,
-    ExpressRequest,
-    ExpressResult,
-};
+export { TestPrompter, createWorkspaceConfiguration, ExpressRequest, ExpressResult };
