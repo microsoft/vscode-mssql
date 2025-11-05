@@ -3,22 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { ServiceOption } from "vscode-mssql";
-import { CapabilitiesResult, GetCapabilitiesRequest } from "../../src/models/contracts/connection";
+import { CapabilitiesResult } from "../../src/models/contracts/connection";
 import { AuthenticationType } from "../../src/sharedInterfaces/connectionDialog";
-import sinon from "sinon";
-
-export function stubGetCapabilitiesRequest(
-    sandbox?: sinon.SinonSandbox,
-): sinon.SinonStubbedInstance<SqlToolsServerClient> {
-    const stubber = sandbox || sinon;
-    const serviceClientMock = stubber.createStubInstance(SqlToolsServerClient);
-    serviceClientMock.sendRequest
-        .withArgs(GetCapabilitiesRequest.type)
-        .resolves(buildCapabilitiesResult());
-    return serviceClientMock;
-}
 
 export function buildCapabilitiesResult(): CapabilitiesResult {
     return {
