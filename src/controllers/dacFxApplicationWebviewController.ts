@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 import { existsSync } from "fs";
+import { homedir } from "os";
 import ConnectionManager from "./connectionManager";
 import { DacFxService } from "../services/dacFxService";
 import { IConnectionProfile } from "../models/interfaces";
@@ -192,7 +193,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
                 const defaultUri = workspaceFolder
                     ? vscode.Uri.joinPath(workspaceFolder, defaultFileName)
-                    : vscode.Uri.file(path.join(require("os").homedir(), defaultFileName));
+                    : vscode.Uri.file(path.join(homedir(), defaultFileName));
 
                 const fileUri = await vscode.window.showSaveDialog({
                     defaultUri: defaultUri,
@@ -237,7 +238,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
                 const defaultUri = workspaceFolder
                     ? vscode.Uri.joinPath(workspaceFolder, suggestedFileName)
-                    : vscode.Uri.file(path.join(require("os").homedir(), suggestedFileName));
+                    : vscode.Uri.file(path.join(homedir(), suggestedFileName));
 
                 return { fullPath: defaultUri.fsPath };
             },
