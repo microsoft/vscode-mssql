@@ -33,6 +33,7 @@ import {
 } from "./chatCommands";
 import {
     CHAT_COMMAND_NAMES,
+    copilotFeedbackUrl,
     disconnectedLabelPrefix,
     connectedLabelPrefix,
     serverDatabaseLabelPrefix,
@@ -599,9 +600,7 @@ export const createSqlAgentRequestHandler = (
                 );
 
                 // Gracefully warn the user in markdown
-                stream.markdown(
-                    "⚠️ This message couldn't be processed. If this issue persists, please check the logs and [open an issue](https://aka.ms/vscode-mssql-copilot-feedback) on GitHub for this Preview release.",
-                );
+                stream.markdown(`⚠️ ${loc.messageCouldNotBeProcessed}\n${copilotFeedbackUrl}`);
 
                 result = undefined;
 

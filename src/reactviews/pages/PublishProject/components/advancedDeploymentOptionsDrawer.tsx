@@ -188,39 +188,63 @@ export const AdvancedDeploymentOptionsDrawer = ({
         setLocalChanges([]);
     };
 
-    // Options 'OK' button handler, apply local changes to create updated deployment options
+    // Handle ok button click, Apply local changes and close drawer
     const handleOk = () => {
-        if (state.deploymentOptions && localChanges.length > 0) {
-            const updatedOptions = structuredClone(state.deploymentOptions);
-
-            // Apply each local change
-            localChanges.forEach(({ optionName, value }) => {
-                if (updatedOptions.booleanOptionsDictionary?.[optionName]) {
-                    // Handle boolean options types
-                    updatedOptions.booleanOptionsDictionary[optionName].value = value;
-                } else if (
-                    updatedOptions.objectTypesDictionary?.[optionName] &&
-                    updatedOptions.excludeObjectTypes
-                ) {
-                    // Handle exclude object types
-                    const excludedTypes = updatedOptions.excludeObjectTypes.value;
-                    if (
-                        value &&
-                        !excludedTypes.some((t) => t.toLowerCase() === optionName.toLowerCase())
-                    ) {
-                        excludedTypes.push(optionName);
-                    } else if (!value) {
-                        const index = excludedTypes.findIndex(
-                            (t) => t.toLowerCase() === optionName.toLowerCase(),
-                        );
-                        if (index !== -1) excludedTypes.splice(index, 1);
-                    }
-                }
-            });
-
-            context?.updateDeploymentOptions(updatedOptions);
+        if (!state.deploymentOptions || localChanges.length === 0) {
+            setIsAdvancedDrawerOpen(false);
+            return;
         }
+
+        const updatedOptions = structuredClone(state.deploymentOptions);
+
+        // Apply each local change to the deployment options
+        localChanges.forEach(({ optionName, value }) => {
+            // Case 1: Boolean deployment option
+            if (updatedOptions.booleanOptionsDictionary?.[optionName]) {
+                updatedOptions.booleanOptionsDictionary[optionName].value = value;
+                return;
+            }
+
+            // Case 2: Exclude object type
+            if (
+                updatedOptions.objectTypesDictionary?.[optionName] &&
+                updatedOptions.excludeObjectTypes
+            ) {
+                updateExcludedObjectTypes(
+                    updatedOptions.excludeObjectTypes.value,
+                    optionName,
+                    value,
+                );
+            }
+        });
+
+        // Send updated options back to parent component
+        context?.updateDeploymentOptions(updatedOptions);
         setIsAdvancedDrawerOpen(false);
+    };
+
+    // Add or remove object type from exclude objects exclusion list
+    const updateExcludedObjectTypes = (
+        excludedTypes: string[],
+        optionName: string,
+        shouldExclude: boolean,
+    ) => {
+        const isCurrentlyExcluded = excludedTypes.some(
+            (type) => type.toLowerCase() === optionName.toLowerCase(),
+        );
+
+        if (shouldExclude && !isCurrentlyExcluded) {
+            // Add to exclusion list
+            excludedTypes.push(optionName);
+        } else if (!shouldExclude && isCurrentlyExcluded) {
+            // Remove from exclusion list
+            const index = excludedTypes.findIndex(
+                (type) => type.toLowerCase() === optionName.toLowerCase(),
+            );
+            if (index !== -1) {
+                excludedTypes.splice(index, 1);
+            }
+        }
     };
 
     // Clear local changes and close drawer

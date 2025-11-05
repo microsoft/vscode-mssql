@@ -93,6 +93,8 @@ import {
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { getCloudId } from "../azure/providerSettings";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
+import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
+import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
 
 /**
  * The main controller class that initializes the extension
@@ -115,6 +117,7 @@ export default class MainController implements vscode.Disposable {
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
+    public tableExplorerService: ITableExplorerService;
     public sqlProjectsService: SqlProjectsService;
     public azureAccountService: AzureAccountService;
     public azureResourceService: AzureResourceService;
@@ -552,6 +555,7 @@ export default class MainController implements vscode.Disposable {
             this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
             this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
+            this.tableExplorerService = new TableExplorerService(SqlToolsServerClient.instance);
             const azureResourceController = new AzureResourceController();
             this.azureAccountService = new AzureAccountService(
                 this._connectionMgr.azureController,
@@ -1386,6 +1390,33 @@ export default class MainController implements vscode.Disposable {
         });
         this._context.subscriptions.push(this.objectExplorerTree);
 
+        // Register command for table node double-click action
+        let lastTableClickTime = 0;
+        let lastTableNode: TreeNodeInfo | undefined;
+        const doubleClickThreshold = 500; // milliseconds
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdTableNodeAction, (node: TreeNodeInfo) => {
+                const currentTime = Date.now();
+
+                // Check if this is a double-click on the same node
+                if (
+                    lastTableNode === node &&
+                    currentTime - lastTableClickTime < doubleClickThreshold
+                ) {
+                    // Double-click detected - open Table Explorer
+                    void this.onTableExplorer(node);
+                    // Reset to prevent triple-click
+                    lastTableNode = undefined;
+                    lastTableClickTime = 0;
+                } else {
+                    // Single click - just track it
+                    lastTableNode = node;
+                    lastTableClickTime = currentTime;
+                }
+            }),
+        );
+
         // Old style Add connection when experimental features are not enabled
 
         // Add Object Explorer Node
@@ -1609,6 +1640,12 @@ export default class MainController implements vscode.Disposable {
 
                         await this.onSchemaCompare(sourceNode, targetNode, runComparison);
                     },
+                ),
+            );
+
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(Constants.cmdTableExplorer, async (node: any) =>
+                    this.onTableExplorer(node),
                 ),
             );
 
@@ -2675,6 +2712,18 @@ export default class MainController implements vscode.Disposable {
         );
 
         schemaCompareWebView.revealToForeground();
+    }
+
+    public async onTableExplorer(node?: any): Promise<void> {
+        const tableExplorerWebView = new TableExplorerWebViewController(
+            this._context,
+            this._vscodeWrapper,
+            this.tableExplorerService,
+            this._connectionMgr,
+            node,
+        );
+
+        tableExplorerWebView.revealToForeground();
     }
 
     /**
