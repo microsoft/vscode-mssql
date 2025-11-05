@@ -285,14 +285,15 @@ suite("Scripting Service", () => {
     });
 
     test("registers scripting commands", () => {
-        expect(registerCommandStub.callCount).to.equal(5);
-        expect(registeredCommands).to.have.keys([
+        const commandArrays = [
             Constants.cmdScriptSelect,
             Constants.cmdScriptCreate,
             Constants.cmdScriptDelete,
             Constants.cmdScriptExecute,
             Constants.cmdScriptAlter,
-        ]);
+        ];
+        expect(registerCommandStub).to.have.callCount(commandArrays.length);
+        expect(registeredCommands).to.have.keys(commandArrays);
     });
 
     test("scriptNode connects and auto executes select scripts when allowed", async () => {
