@@ -11,12 +11,11 @@ import { sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 /**
- * Controller for SQL Project operations like building
+ * Controller for SQL Project operations
  */
 export class ProjectController {
     /**
      * Builds a SQL project and returns the path to the generated DACPAC
-     * Based on the ADS SQL Projects extension implementation
      * @param projectProperties Project properties from SQL Projects service (includes projectFilePath and dacpacOutputPath)
      * @returns Path to the generated DACPAC file
      */
@@ -63,10 +62,10 @@ export class ProjectController {
             // Execute the task and wait for completion
             await this.executeBuildTask(buildTask, projectName);
 
-            // Return the DACPAC output path (matches ADS pattern using project.dacpacOutputPath)
+            // Return the DACPAC output path
             return projectProperties.dacpacOutputPath;
         } catch (error) {
-            // Send error telemetry (matches ADS pattern)
+            // Send error telemetry
             sendErrorEvent(
                 TelemetryViews.SqlProjects,
                 TelemetryActions.BuildProject,

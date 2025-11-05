@@ -147,9 +147,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         try {
             // Build the project
-            if (!state.projectProperties) {
-                throw new Error("Project properties not loaded");
-            }
             const dacpacPath = await this._projectController.buildProject(state.projectProperties);
             if (!dacpacPath) {
                 return;
@@ -188,7 +185,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 },
             );
 
-            // Execute the operation (DacFx shows its own progress notification)
+            // Execute the operation
             let result: mssql.DacFxResult;
             if (isPublish) {
                 result = await this._dacFxService!.deployDacpac(
