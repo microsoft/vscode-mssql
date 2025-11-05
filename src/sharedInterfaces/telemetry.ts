@@ -33,6 +33,7 @@ export enum TelemetryViews {
     Credential = "Credential",
     ConnectionManager = "ConnectionManager",
     ScriptingService = "ScriptingService",
+    TableExplorer = "TableExplorer",
 }
 
 export enum TelemetryActions {
@@ -160,6 +161,13 @@ export enum TelemetryActions {
     SurveyFunnel = "SurveyFunnel",
     CopilotNewQueryWithConnection = "CopilotNewQueryWithConnection",
     Script = "Script",
+    CommitChanges = "CommitChanges",
+    CreateRow = "CreateRow",
+    DeleteRow = "DeleteRow",
+    UpdateCell = "UpdateCell",
+    RevertCell = "RevertCell",
+    RevertRow = "RevertRow",
+    LoadSubset = "LoadSubset",
 }
 
 /**
