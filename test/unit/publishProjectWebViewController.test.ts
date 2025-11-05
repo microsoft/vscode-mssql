@@ -211,6 +211,7 @@ suite("PublishProjectWebViewController Tests", () => {
                 success: true,
                 databaseSchemaProvider:
                     "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
+                outputPath: "bin/Debug",
             }),
         };
 
@@ -250,6 +251,7 @@ suite("PublishProjectWebViewController Tests", () => {
                 projectGuid: "test-guid",
                 databaseSchemaProvider:
                     "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
+                outputPath: "bin/Debug",
             }),
         };
 
