@@ -184,34 +184,36 @@ export async function getSqlServerContainerTagsForTargetVersion(
             return [];
         }
 
-        // Extract years from all available versions to find the maximum
-        const availableYears = deploymentVersions
-            .map((option) => parseInt(option.displayName.match(/\d{4}/)?.[0] || "0", 10))
-            .filter((year) => year > 0);
-
-        if (availableYears.length === 0) {
-            return deploymentVersions; // No years found, return all
+        const yearToOptionMap = new Map<number, FormItemOptions>();
+        for (const option of deploymentVersions) {
+            const year = parseInt(option.value, 10);
+            if (!isNaN(year)) {
+                yearToOptionMap.set(year, option);
+            }
         }
 
+        if (yearToOptionMap.size === 0) {
+            return deploymentVersions;
+        }
+
+        const availableYears = Array.from(yearToOptionMap.keys());
         const maxYear = Math.max(...availableYears);
 
         // Determine minimum year based on target version
-        let minYear: number;
+        let minYear: number = maxYear;
         if (targetVersion) {
             const versionNum = parseInt(targetVersion, 10);
             const mappedYear = DSP_VERSION_TO_YEAR.get(versionNum);
-            // If we can map the version to a year, use it; otherwise fallback to max available year
             minYear = mappedYear ?? maxYear;
-        } else {
-            // No target version provided, fallback to max available year
-            minYear = maxYear;
         }
 
-        // Filter deployment versions based on minimum year
-        const filteredVersions = deploymentVersions.filter((option) => {
-            const year = parseInt(option.displayName.match(/\d{4}/)?.[0] || "0", 10);
-            return year >= minYear;
-        });
+        // Filter the image tags that are >= minYear
+        const filteredVersions: FormItemOptions[] = [];
+        for (const [year, option] of yearToOptionMap.entries()) {
+            if (year >= minYear) {
+                filteredVersions.push(option);
+            }
+        }
 
         return filteredVersions;
     } catch (e) {
