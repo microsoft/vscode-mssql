@@ -16,32 +16,7 @@ import VscodeWrapper from "./vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 import { startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
-import {
-    BrowseInputFileWebviewRequest,
-    BrowseOutputFileWebviewRequest,
-    CancelDacFxApplicationWebviewNotification,
-    ConfirmDeployToExistingWebviewRequest,
-    ConnectionProfile,
-    ConnectToServerWebviewRequest,
-    DacFxApplicationResult,
-    DacFxApplicationWebviewState,
-    DacFxOperationType,
-    DeployDacpacParams,
-    DeployDacpacWebviewRequest,
-    ExportBacpacParams,
-    ExportBacpacWebviewRequest,
-    ExtractDacpacParams,
-    ExtractDacpacWebviewRequest,
-    GetSuggestedDatabaseNameWebviewRequest,
-    GetSuggestedOutputPathWebviewRequest,
-    ImportBacpacParams,
-    ImportBacpacWebviewRequest,
-    InitializeConnectionWebviewRequest,
-    ListConnectionsWebviewRequest,
-    ListDatabasesWebviewRequest,
-    ValidateDatabaseNameWebviewRequest,
-    ValidateFilePathWebviewRequest,
-} from "../sharedInterfaces/dacFxApplication";
+import * as dacFxApplication from "../sharedInterfaces/dacFxApplication";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { ListDatabasesRequest } from "../models/contracts/connection";
 
@@ -50,9 +25,9 @@ import { ListDatabasesRequest } from "../models/contracts/connection";
  * Manages DACPAC and BACPAC operations (Deploy, Extract, Import, Export) using the Data-tier Application Framework (DacFx).
  */
 export class DacFxApplicationWebviewController extends ReactWebviewPanelController<
-    DacFxApplicationWebviewState,
+    dacFxApplication.DacFxApplicationWebviewState,
     void,
-    DacFxApplicationResult
+    dacFxApplication.DacFxApplicationResult
 > {
     private _ownerUri: string;
 
@@ -61,7 +36,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
         vscodeWrapper: VscodeWrapper,
         private connectionManager: ConnectionManager,
         private dacFxService: DacFxService,
-        initialState: DacFxApplicationWebviewState,
+        initialState: dacFxApplication.DacFxApplicationWebviewState,
         ownerUri: string,
     ) {
         super(context, vscodeWrapper, "dacFxApplication", "dacFxApplication", initialState, {
@@ -83,50 +58,65 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
      */
     private registerRpcHandlers(): void {
         // Deploy DACPAC request handler
-        this.onRequest(DeployDacpacWebviewRequest.type, async (params: DeployDacpacParams) => {
-            return await this.handleDeployDacpac(params);
-        });
+        this.onRequest(
+            dacFxApplication.DeployDacpacWebviewRequest.type,
+            async (params: dacFxApplication.DeployDacpacParams) => {
+                return await this.handleDeployDacpac(params);
+            },
+        );
 
         // Extract DACPAC request handler
-        this.onRequest(ExtractDacpacWebviewRequest.type, async (params: ExtractDacpacParams) => {
-            return await this.handleExtractDacpac(params);
-        });
+        this.onRequest(
+            dacFxApplication.ExtractDacpacWebviewRequest.type,
+            async (params: dacFxApplication.ExtractDacpacParams) => {
+                return await this.handleExtractDacpac(params);
+            },
+        );
 
         // Import BACPAC request handler
-        this.onRequest(ImportBacpacWebviewRequest.type, async (params: ImportBacpacParams) => {
-            return await this.handleImportBacpac(params);
-        });
+        this.onRequest(
+            dacFxApplication.ImportBacpacWebviewRequest.type,
+            async (params: dacFxApplication.ImportBacpacParams) => {
+                return await this.handleImportBacpac(params);
+            },
+        );
 
         // Export BACPAC request handler
-        this.onRequest(ExportBacpacWebviewRequest.type, async (params: ExportBacpacParams) => {
-            return await this.handleExportBacpac(params);
-        });
+        this.onRequest(
+            dacFxApplication.ExportBacpacWebviewRequest.type,
+            async (params: dacFxApplication.ExportBacpacParams) => {
+                return await this.handleExportBacpac(params);
+            },
+        );
 
         // Validate file path request handler
         this.onRequest(
-            ValidateFilePathWebviewRequest.type,
+            dacFxApplication.ValidateFilePathWebviewRequest.type,
             async (params: { filePath: string; shouldExist: boolean }) => {
                 return this.validateFilePath(params.filePath, params.shouldExist);
             },
         );
 
         // List databases request handler
-        this.onRequest(ListDatabasesWebviewRequest.type, async (params: { ownerUri: string }) => {
-            if (!params.ownerUri || params.ownerUri.trim() === "") {
-                this.logger.error("Cannot list databases: ownerUri is empty");
-                return { databases: [] };
-            }
-            return await this.listDatabases(params.ownerUri);
-        });
+        this.onRequest(
+            dacFxApplication.ListDatabasesWebviewRequest.type,
+            async (params: { ownerUri: string }) => {
+                if (!params.ownerUri || params.ownerUri.trim() === "") {
+                    this.logger.error("Cannot list databases: ownerUri is empty");
+                    return { databases: [] };
+                }
+                return await this.listDatabases(params.ownerUri);
+            },
+        );
 
         // Validate database name request handler
         this.onRequest(
-            ValidateDatabaseNameWebviewRequest.type,
+            dacFxApplication.ValidateDatabaseNameWebviewRequest.type,
             async (params: {
                 databaseName: string;
                 ownerUri: string;
                 shouldNotExist: boolean;
-                operationType?: DacFxOperationType;
+                operationType?: dacFxApplication.DacFxOperationType;
             }) => {
                 if (!params.ownerUri || params.ownerUri.trim() === "") {
                     this.logger.error("Cannot validate database name: ownerUri is empty");
@@ -146,13 +136,13 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
         );
 
         // List connections request handler
-        this.onRequest(ListConnectionsWebviewRequest.type, async () => {
+        this.onRequest(dacFxApplication.ListConnectionsWebviewRequest.type, async () => {
             return await this.listConnections();
         });
 
         // Initialize connection request handler
         this.onRequest(
-            InitializeConnectionWebviewRequest.type,
+            dacFxApplication.InitializeConnectionWebviewRequest.type,
             async (params: {
                 initialServerName?: string;
                 initialDatabaseName?: string;
@@ -165,7 +155,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
 
         // Connect to server request handler
         this.onRequest(
-            ConnectToServerWebviewRequest.type,
+            dacFxApplication.ConnectToServerWebviewRequest.type,
             async (params: { profileId: string }) => {
                 return await this.connectToServer(params.profileId);
             },
@@ -173,7 +163,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
 
         // Browse for input file (DACPAC or BACPAC) request handler
         this.onRequest(
-            BrowseInputFileWebviewRequest.type,
+            dacFxApplication.BrowseInputFileWebviewRequest.type,
             async (params: { fileExtension: string }) => {
                 const fileUri = await vscode.window.showOpenDialog({
                     canSelectFiles: true,
@@ -195,7 +185,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
 
         // Browse for output file (DACPAC or BACPAC) request handler
         this.onRequest(
-            BrowseOutputFileWebviewRequest.type,
+            dacFxApplication.BrowseOutputFileWebviewRequest.type,
             async (params: { fileExtension: string; defaultFileName?: string }) => {
                 const defaultFileName =
                     params.defaultFileName || `database.${params.fileExtension}`;
@@ -222,10 +212,15 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
 
         // Get default output path without showing dialog
         this.onRequest(
-            GetSuggestedOutputPathWebviewRequest.type,
-            async (params: { databaseName: string; operationType: DacFxOperationType }) => {
+            dacFxApplication.GetSuggestedOutputPathWebviewRequest.type,
+            async (params: {
+                databaseName: string;
+                operationType: dacFxApplication.DacFxOperationType;
+            }) => {
                 const fileExtension =
-                    params.operationType === DacFxOperationType.Extract ? "dacpac" : "bacpac";
+                    params.operationType === dacFxApplication.DacFxOperationType.Extract
+                        ? "dacpac"
+                        : "bacpac";
 
                 // Format timestamp as yyyy-MM-dd-HH-mm
                 const now = new Date();
@@ -250,7 +245,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
 
         // Get suggested database name from file path
         this.onRequest(
-            GetSuggestedDatabaseNameWebviewRequest.type,
+            dacFxApplication.GetSuggestedDatabaseNameWebviewRequest.type,
             async (params: { filePath: string }) => {
                 // Extract filename without directory path
                 const fileName = path.basename(params.filePath);
@@ -264,7 +259,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
         );
 
         // Confirm deploy to existing database request handler
-        this.onRequest(ConfirmDeployToExistingWebviewRequest.type, async () => {
+        this.onRequest(dacFxApplication.ConfirmDeployToExistingWebviewRequest.type, async () => {
             const result = await this.vscodeWrapper.showWarningMessageAdvanced(
                 LocConstants.DacFxApplication.DeployToExistingMessage,
                 { modal: true },
@@ -277,7 +272,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
         });
 
         // Cancel operation notification handler
-        this.onNotification(CancelDacFxApplicationWebviewNotification.type, () => {
+        this.onNotification(dacFxApplication.CancelDacFxApplicationWebviewNotification.type, () => {
             this.dialogResult.resolve(undefined);
             this.panel.dispose();
         });
@@ -286,7 +281,9 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
     /**
      * Handles deploying a DACPAC file to a database
      */
-    private async handleDeployDacpac(params: DeployDacpacParams): Promise<DacFxApplicationResult> {
+    private async handleDeployDacpac(
+        params: dacFxApplication.DeployDacpacParams,
+    ): Promise<dacFxApplication.DacFxApplicationResult> {
         const activity = startActivity(
             TelemetryViews.DacFxApplication,
             TelemetryActions.DacFxDeployDacpac,
@@ -305,7 +302,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
                 TaskExecutionMode.execute,
             );
 
-            const appResult: DacFxApplicationResult = {
+            const appResult: dacFxApplication.DacFxApplicationResult = {
                 success: result.success,
                 errorMessage: result.errorMessage,
                 operationId: result.operationId,
@@ -337,8 +334,8 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
      * Handles extracting a DACPAC file from a database
      */
     private async handleExtractDacpac(
-        params: ExtractDacpacParams,
-    ): Promise<DacFxApplicationResult> {
+        params: dacFxApplication.ExtractDacpacParams,
+    ): Promise<dacFxApplication.DacFxApplicationResult> {
         const activity = startActivity(
             TelemetryViews.DacFxApplication,
             TelemetryActions.DacFxExtractDacpac,
@@ -354,7 +351,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
                 TaskExecutionMode.execute,
             );
 
-            const appResult: DacFxApplicationResult = {
+            const appResult: dacFxApplication.DacFxApplicationResult = {
                 success: result.success,
                 errorMessage: result.errorMessage,
                 operationId: result.operationId,
@@ -385,7 +382,9 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
     /**
      * Handles importing a BACPAC file to create a new database
      */
-    private async handleImportBacpac(params: ImportBacpacParams): Promise<DacFxApplicationResult> {
+    private async handleImportBacpac(
+        params: dacFxApplication.ImportBacpacParams,
+    ): Promise<dacFxApplication.DacFxApplicationResult> {
         const activity = startActivity(
             TelemetryViews.DacFxApplication,
             TelemetryActions.DacFxImportBacpac,
@@ -399,7 +398,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
                 TaskExecutionMode.execute,
             );
 
-            const appResult: DacFxApplicationResult = {
+            const appResult: dacFxApplication.DacFxApplicationResult = {
                 success: result.success,
                 errorMessage: result.errorMessage,
                 operationId: result.operationId,
@@ -430,7 +429,9 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
     /**
      * Handles exporting a database to a BACPAC file
      */
-    private async handleExportBacpac(params: ExportBacpacParams): Promise<DacFxApplicationResult> {
+    private async handleExportBacpac(
+        params: dacFxApplication.ExportBacpacParams,
+    ): Promise<dacFxApplication.DacFxApplicationResult> {
         const activity = startActivity(
             TelemetryViews.DacFxApplication,
             TelemetryActions.DacFxExportBacpac,
@@ -444,7 +445,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
                 TaskExecutionMode.execute,
             );
 
-            const appResult: DacFxApplicationResult = {
+            const appResult: dacFxApplication.DacFxApplicationResult = {
                 success: result.success,
                 errorMessage: result.errorMessage,
                 operationId: result.operationId,
@@ -546,9 +547,11 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
     /**
      * Lists all available connections (recent and active)
      */
-    private async listConnections(): Promise<{ connections: ConnectionProfile[] }> {
+    private async listConnections(): Promise<{
+        connections: dacFxApplication.ConnectionProfile[];
+    }> {
         try {
-            const connections: ConnectionProfile[] = [];
+            const connections: dacFxApplication.ConnectionProfile[] = [];
 
             // Get recently used connections from connection store
             const recentConnections =
@@ -633,8 +636,8 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
         initialOwnerUri?: string;
         initialProfileId?: string;
     }): Promise<{
-        connections: ConnectionProfile[];
-        selectedConnection?: ConnectionProfile;
+        connections: dacFxApplication.ConnectionProfile[];
+        selectedConnection?: dacFxApplication.ConnectionProfile;
         ownerUri?: string;
         autoConnected: boolean;
         errorMessage?: string;
@@ -644,7 +647,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
             const { connections } = await this.listConnections();
 
             // Helper to find matching connection
-            const findMatchingConnection = (): ConnectionProfile | undefined => {
+            const findMatchingConnection = (): dacFxApplication.ConnectionProfile | undefined => {
                 // Priority 1: Match by profile ID if provided
                 if (params.initialProfileId) {
                     const byProfileId = connections.find(
@@ -900,7 +903,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
         databaseName: string,
         ownerUri: string,
         shouldNotExist: boolean,
-        operationType?: DacFxOperationType,
+        operationType?: dacFxApplication.DacFxOperationType,
     ): Promise<{ isValid: boolean; errorMessage?: string }> {
         if (!databaseName || databaseName.trim() === "") {
             return {
@@ -940,7 +943,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
             // This ensures confirmation dialog is shown in both cases:
             // 1. User selected "New Database" but database already exists (shouldNotExist=true)
             // 2. User selected "Existing Database" and selected existing database (shouldNotExist=false)
-            if (operationType === DacFxOperationType.Deploy && exists) {
+            if (operationType === dacFxApplication.DacFxOperationType.Deploy && exists) {
                 return {
                     isValid: true, // Allow the operation but with a warning
                     errorMessage: LocConstants.DacFxApplication.DatabaseAlreadyExists,
