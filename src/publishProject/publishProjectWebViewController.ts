@@ -42,6 +42,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
 > {
     private _cachedDatabaseList?: { displayName: string; value: string }[];
     private _cachedSelectedDatabase?: string;
+    private _connectionUri?: string;
+    private _connectionString?: string;
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _sqlProjectsService?: SqlProjectsService;
     private readonly _dacFxService?: mssql.IDacFxService;
@@ -107,7 +109,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
         this._connectionManager = connectionManager;
-        this._projectController = new ProjectController(_vscodeWrapper.outputChannel);
+        this._projectController = new ProjectController();
 
         this.registerRpcHandlers();
 
@@ -133,31 +135,36 @@ export class PublishProjectWebViewController extends FormWebviewController<
     }
 
     /**
-     * Executes publish or generate script operation with notifications
+     * Executes publish and generate script operations
      * @param state Current dialog state
      * @param isPublish If true, publishes to database; if false, generates script
      */
-    private async executePublishWithNotifications(
+    private async executePublishAndGenerateScript(
         state: PublishDialogState,
         isPublish: boolean,
     ): Promise<void> {
         const databaseName = state.formState.databaseName;
 
         try {
-            // Build the project first (shows its own progress notification)
-            const dacpacPath = await this._projectController.buildProject(state.projectFilePath!);
+            // Build the project
+            if (!state.projectProperties) {
+                throw new Error("Project properties not loaded");
+            }
+            const dacpacPath = await this._projectController.buildProject(state.projectProperties);
             if (!dacpacPath) {
-                // Build failed - error already shown by buildProject
                 return;
             }
 
             // Get settings from form state
-            const connectionUri = state.connectionUri || "";
+            const connectionUri = this._connectionUri || "";
             const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
 
             // Determine if database already exists
             let upgradeExisting = true;
-            if (state.formState.publishTarget === PublishTarget.ExistingServer && connectionUri) {
+            if (
+                state.formState.publishTarget === PublishTarget.ExistingServer &&
+                this._connectionUri
+            ) {
                 const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
                 if (databaseComponent?.options) {
                     upgradeExisting = databaseComponent.options.some(
@@ -316,21 +323,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
         });
 
         this.registerReducer("publishNow", async (state: PublishDialogState) => {
-            // Close the dialog before starting the publish operation (like ADS does)
             this.panel?.dispose();
-
-            // Execute publish in background with notifications
-            void this.executePublishWithNotifications(state, true);
+            void this.executePublishAndGenerateScript(state, true);
 
             return state;
         });
 
         this.registerReducer("generatePublishScript", async (state) => {
-            // Close the dialog before starting the script generation (like ADS does)
             this.panel?.dispose();
-
-            // Execute script generation in background with notifications
-            void this.executePublishWithNotifications(state, false);
+            void this.executePublishAndGenerateScript(state, false);
 
             return state;
         });
@@ -396,7 +397,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                             serverName: parsedProfile.serverName || state.formState.serverName,
                             sqlCmdVariables: parsedProfile.sqlCmdVariables,
                         },
-                        connectionString: parsedProfile.connectionString || state.connectionString,
                         deploymentOptions:
                             parsedProfile.deploymentOptions || state.deploymentOptions,
                         formMessage: !this._dacFxService
@@ -417,9 +417,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     if (parsedProfile.connectionString) {
                         void this.connectAndPopulateDatabases(parsedProfile.connectionString).then(
                             (connectionResult) => {
-                                // Update state with connection result after background connection completes
-                                this.state.connectionUri =
-                                    connectionResult.connectionUri || this.state.connectionUri;
+                                // Update connection fields after background connection completes
+                                this._connectionUri =
+                                    connectionResult.connectionUri || this._connectionUri;
                                 if (connectionResult.errorMessage) {
                                     this.state.formMessage = {
                                         message: Loc.ProfileLoadedConnectionFailed,
@@ -505,7 +505,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     const connectionString =
                         state.formState.publishTarget === PublishTarget.LocalContainer
                             ? ""
-                            : state.connectionString || "";
+                            : this._connectionString || "";
                     const sqlCmdVariables = new Map(
                         Object.entries(state.formState.sqlCmdVariables || {}),
                     );
@@ -601,9 +601,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             this.state.formState.serverName = connectionProfile.server;
 
-            // Store the connectionUri and connection string for saving to publish profile and for dacfx operations
-            this.state.connectionUri = event.fileUri;
-            this.state.connectionString = await this._connectionManager.getConnectionString(
+            // Store the connectionUri and connection string for dacfx operations and saving to publish profile
+            this._connectionUri = event.fileUri;
+            this._connectionString = await this._connectionManager.getConnectionString(
                 event.fileUri,
                 true, // includePassword
                 true, // includeApplicationName
@@ -694,8 +694,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     this.state.projectFilePath,
                     path.extname(this.state.projectFilePath),
                 );
-                this.state.connectionUri = undefined;
-                this.state.connectionString = undefined;
+                this._connectionUri = undefined;
+                this._connectionString = undefined;
             } else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
                 // Restore for server mode
                 if (this._cachedDatabaseList?.length) {

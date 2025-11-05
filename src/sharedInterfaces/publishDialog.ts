@@ -69,12 +69,14 @@ export interface PublishDialogState
     projectFilePath: string;
     inProgress: boolean;
     lastPublishResult?: { success: boolean; details?: string };
-    projectProperties?: mssql.GetProjectPropertiesResult & { targetVersion?: string };
+    projectProperties?: mssql.GetProjectPropertiesResult & {
+        targetVersion?: string;
+        projectFilePath: string;
+        dacpacOutputPath: string;
+    };
     hasFormErrors?: boolean;
     deploymentOptions?: mssql.DeploymentOptions;
     waitingForNewConnection?: boolean;
-    connectionUri?: string; // Owner URI for DacFx operations (e.g., file:///path/to/connection)
-    connectionString?: string; // Connection string for saving to publish profile
     formMessage?: DialogMessageSpec;
     defaultDeploymentOptions?: mssql.DeploymentOptions;
     previousDatabaseList?: { displayName: string; value: string }[];

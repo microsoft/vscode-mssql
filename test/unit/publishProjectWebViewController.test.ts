@@ -668,21 +668,23 @@ suite("PublishProjectWebViewController Tests", () => {
         // Set up state with all required fields for script generation
         controller.state.formState.serverName = "localhost";
         controller.state.formState.databaseName = "TestDatabase";
-        controller.state.connectionUri = "mssql://test-connection-uri";
+        controller["_connectionUri"] = "mssql://test-connection-uri";
         controller.state.projectFilePath = "c:/work/TestProject.sqlproj";
 
         // Mock the panel dispose method using sandbox stub
         const panelDisposeSpy = sandbox.stub();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (controller as any).panel = {
-            dispose: panelDisposeSpy,
-        };
+        Object.defineProperty(controller, "panel", {
+            value: { dispose: panelDisposeSpy },
+            writable: true,
+            configurable: true,
+        });
 
-        // Spy on executePublishWithNotifications to verify it's called
+        // Spy on executePublishAndGenerateScript to verify it's called
         const executePublishSpy = sandbox.stub(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            controller as any,
-            "executePublishWithNotifications",
+            controller as typeof controller & {
+                executePublishAndGenerateScript: (state: unknown, isPublish: boolean) => void;
+            },
+            "executePublishAndGenerateScript",
         );
 
         const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
@@ -699,10 +701,10 @@ suite("PublishProjectWebViewController Tests", () => {
             "Panel dispose should be called once when generating script",
         ).to.be.true;
 
-        // Verify executePublishWithNotifications was called with isPublish=false
+        // Verify executePublishAndGenerateScript was called with isPublish=false
         expect(
             executePublishSpy.calledOnce,
-            "executePublishWithNotifications should be called once when generating script",
+            "executePublishAndGenerateScript should be called once when generating script",
         ).to.be.true;
         expect(
             executePublishSpy.firstCall.args[1],
@@ -719,21 +721,23 @@ suite("PublishProjectWebViewController Tests", () => {
         // Set up state with all required fields for publish
         controller.state.formState.serverName = "localhost";
         controller.state.formState.databaseName = "TestDatabase";
-        controller.state.connectionUri = "mssql://test-connection-uri";
+        controller["_connectionUri"] = "mssql://test-connection-uri";
         controller.state.projectFilePath = "c:/work/TestProject.sqlproj";
 
         // Mock the panel dispose method using sandbox stub
         const panelDisposeSpy = sandbox.stub();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (controller as any).panel = {
-            dispose: panelDisposeSpy,
-        };
+        Object.defineProperty(controller, "panel", {
+            value: { dispose: panelDisposeSpy },
+            writable: true,
+            configurable: true,
+        });
 
-        // Spy on executePublishWithNotifications to verify it's called
+        // Spy on executePublishAndGenerateScript to verify it's called
         const executePublishSpy = sandbox.stub(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            controller as any,
-            "executePublishWithNotifications",
+            controller as typeof controller & {
+                executePublishAndGenerateScript: (state: unknown, isPublish: boolean) => void;
+            },
+            "executePublishAndGenerateScript",
         );
 
         const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
@@ -747,10 +751,10 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(panelDisposeSpy.calledOnce, "Panel dispose should be called once when publishing").to
             .be.true;
 
-        // Verify executePublishWithNotifications was called with isPublish=true
+        // Verify executePublishAndGenerateScript was called with isPublish=true
         expect(
             executePublishSpy.calledOnce,
-            "executePublishWithNotifications should be called once when publishing",
+            "executePublishAndGenerateScript should be called once when publishing",
         ).to.be.true;
         expect(
             executePublishSpy.firstCall.args[1],

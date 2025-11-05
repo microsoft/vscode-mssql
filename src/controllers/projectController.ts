@@ -5,40 +5,49 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
-import { getErrorMessage } from "../utils/utils";
+import * as mssql from "vscode-mssql";
+import * as constants from "../constants/constants";
+import { sendErrorEvent } from "../telemetry/telemetry";
+import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 /**
  * Controller for SQL Project operations like building
  */
 export class ProjectController {
-    constructor(private _outputChannel: vscode.OutputChannel) {}
-
     /**
      * Builds a SQL project and returns the path to the generated DACPAC
      * Based on the ADS SQL Projects extension implementation
-     * @param projectFilePath Path to the .sqlproj file
-     * @returns Path to the generated DACPAC file, or undefined if build failed
+     * @param projectProperties Project properties from SQL Projects service (includes projectFilePath and dacpacOutputPath)
+     * @returns Path to the generated DACPAC file
      */
-    public async buildProject(projectFilePath: string): Promise<string | undefined> {
+    public async buildProject(
+        projectProperties: mssql.GetProjectPropertiesResult & {
+            projectFilePath: string;
+            dacpacOutputPath: string;
+        },
+    ): Promise<string | undefined> {
         try {
+            const projectFilePath = projectProperties.projectFilePath;
             const projectDir = path.dirname(projectFilePath);
             const projectName = path.basename(projectFilePath, path.extname(projectFilePath));
 
-            // Create a VS Code task for building like ADS does
-            const buildArgs: string[] = [
-                "/p:NetCoreBuild=true",
-                // Add verbose flag for better diagnostics
-                "/verbosity:normal",
-            ];
+            // Construct build arguments based on project type
+            const buildDirPath = this.getBuildDirPath();
+            const buildArgs = this.constructBuildArguments(
+                buildDirPath,
+                projectProperties.projectStyle,
+            );
 
-            const args: string[] = ["build", projectFilePath, ...buildArgs];
+            // Create task arguments
+            const args: string[] = [constants.build, projectFilePath, ...buildArgs];
 
             // Create task definition
             const taskDefinition: vscode.TaskDefinition = {
-                type: "mssql-build",
+                type: constants.sqlProjBuildTaskType,
                 label: `Build ${projectName}`,
-                command: "dotnet",
+                command: constants.dotnet,
                 args: args,
+                problemMatcher: constants.msBuildProblemMatcher,
             };
 
             // Create the build task
@@ -47,45 +56,57 @@ export class ProjectController {
                 vscode.TaskScope.Workspace,
                 taskDefinition.label,
                 taskDefinition.type,
-                new vscode.ShellExecution("dotnet", args, { cwd: projectDir }),
-                ["$msCompile"], // Use MS Build problem matcher
+                new vscode.ShellExecution(taskDefinition.command, args, { cwd: projectDir }),
+                taskDefinition.problemMatcher,
             );
 
             // Execute the task and wait for completion
             await this.executeBuildTask(buildTask, projectName);
 
-            // Calculate the expected DACPAC path
-            const dacpacPath = path.join(projectDir, "bin", "Debug", `${projectName}.dacpac`);
-
-            // Check if DACPAC was created
-            try {
-                await vscode.workspace.fs.stat(vscode.Uri.file(dacpacPath));
-                return dacpacPath;
-            } catch {
-                // Try alternative paths
-                const alternativePaths = [
-                    path.join(projectDir, "bin", "Release", `${projectName}.dacpac`),
-                    path.join(projectDir, "bin", `${projectName}.dacpac`),
-                    path.join(projectDir, `${projectName}.dacpac`),
-                ];
-
-                for (const altPath of alternativePaths) {
-                    try {
-                        await vscode.workspace.fs.stat(vscode.Uri.file(altPath));
-                        return altPath;
-                    } catch {
-                        continue;
-                    }
-                }
-            }
-
-            return undefined;
+            // Return the DACPAC output path (matches ADS pattern using project.dacpacOutputPath)
+            return projectProperties.dacpacOutputPath;
         } catch (error) {
-            this._outputChannel.appendLine(`Build project failed: ${getErrorMessage(error)}`);
-            console.error("Build project failed:", error);
-            void vscode.window.showErrorMessage(`Build failed: ${getErrorMessage(error)}`);
-            return undefined;
+            // Send error telemetry (matches ADS pattern)
+            sendErrorEvent(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.BuildProject,
+                error instanceof Error ? error : new Error(String(error)),
+                false,
+            );
+            throw error;
         }
+    }
+
+    /**
+     * Gets the build directory path
+     * @returns The path to the directory containing build dependencies
+     */
+    private getBuildDirPath(): string {
+        const extensionDir =
+            vscode.extensions.getExtension(mssql.extension.name)?.extensionPath ?? "";
+        return path.join(extensionDir, constants.buildDirectory);
+    }
+
+    /**
+     * Constructs the build arguments for building a sqlproj file
+     * @param buildDirPath Path to the SQL Tools Service directory containing build dependencies
+     * @param projectStyle The project style (SDK-style or Legacy-style)
+     * @returns An array of arguments to be used for building the sqlproj file
+     */
+    private constructBuildArguments(
+        buildDirPath: string,
+        projectStyle: mssql.ProjectType,
+    ): string[] {
+        const args: string[] = ["/p:NetCoreBuild=true", `/p:SystemDacpacsLocation=${buildDirPath}`];
+
+        // Adding NETCoreTargetsPath only for non-SDK style projects
+        const isSdkStyle = projectStyle === mssql.ProjectType.SdkStyle;
+
+        if (!isSdkStyle) {
+            args.push(`/p:NETCoreTargetsPath=${buildDirPath}`);
+        }
+
+        return args;
     }
 
     /**
@@ -94,42 +115,31 @@ export class ProjectController {
      * @param projectName Name of the project being built
      */
     private async executeBuildTask(buildTask: vscode.Task, projectName: string): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            void vscode.window.withProgress(
-                {
-                    location: vscode.ProgressLocation.Notification,
-                    title: `Building ${projectName}...`,
-                    cancellable: false,
-                },
-                async () => {
-                    try {
-                        // Execute the task
-                        const execution = await vscode.tasks.executeTask(buildTask);
+        return vscode.window.withProgress(
+            {
+                location: vscode.ProgressLocation.Notification,
+                title: `Building ${projectName}...`,
+                cancellable: false,
+            },
+            async () => {
+                // Execute the task
+                const execution = await vscode.tasks.executeTask(buildTask);
 
-                        // Wait for task completion
-                        const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
-                            if (e.execution === execution) {
-                                disposable.dispose();
-                                if (e.exitCode === 0) {
-                                    this._outputChannel.appendLine(
-                                        `Build completed successfully for ${projectName}`,
-                                    );
-                                    resolve();
-                                } else {
-                                    const errorMsg = `Build failed with exit code ${e.exitCode}`;
-                                    this._outputChannel.appendLine(errorMsg);
-                                    reject(new Error(errorMsg));
-                                }
+                // Wait for task completion
+                return new Promise<void>((resolve, reject) => {
+                    const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
+                        if (e.execution === execution) {
+                            disposable.dispose();
+                            if (e.exitCode === 0) {
+                                resolve();
+                            } else {
+                                const errorMsg = `Build failed with exit code ${e.exitCode}`;
+                                reject(new Error(errorMsg));
                             }
-                        });
-                    } catch (error) {
-                        this._outputChannel.appendLine(
-                            `Build execution failed: ${getErrorMessage(error)}`,
-                        );
-                        reject(error);
-                    }
-                },
-            );
-        });
+                        }
+                    });
+                });
+            },
+        );
     }
 }
