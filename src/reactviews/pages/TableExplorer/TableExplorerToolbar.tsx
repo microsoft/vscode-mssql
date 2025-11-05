@@ -23,6 +23,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
 
     // Use selectors to access state
     const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
+    const isLoading = useTableExplorerSelector((s) => s.isLoading);
 
     const handleSave = () => {
         context.commitChanges();
@@ -52,14 +53,15 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 title={saveButtonText}
                 icon={<SaveRegular />}
                 onClick={handleSave}
-                disabled={changeCount === 0}>
+                disabled={changeCount === 0 || isLoading}>
                 {saveButtonText}
             </ToolbarButton>
             <ToolbarButton
                 aria-label={loc.tableExplorer.addRow}
                 title={loc.tableExplorer.addRow}
                 icon={<AddRegular />}
-                onClick={handleAddRow}>
+                onClick={handleAddRow}
+                disabled={isLoading}>
                 {loc.tableExplorer.addRow}
             </ToolbarButton>
             <ToolbarButton
@@ -74,7 +76,8 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                     } else {
                         context.generateScript();
                     }
-                }}>
+                }}
+                disabled={isLoading}>
                 {showScriptPane ? loc.tableExplorer.hideScript : loc.tableExplorer.showScript}
             </ToolbarButton>
         </Toolbar>
