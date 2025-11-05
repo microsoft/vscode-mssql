@@ -183,6 +183,10 @@
         <source xml:lang="en">Advanced Options</source>
         <target state="translated">Opções Avançadas</target>
       </trans-unit>
+      <trans-unit id="++CODE++fe80d12c71bbc300158260094cf676c1a9f3546b792f027c84e7a91d9fc75b20">
+        <source xml:lang="en">Advanced Publish Options</source>
+        <target state="new">Advanced Publish Options</target>
+      </trans-unit>
       <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
         <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
         <target state="translated">Todas as permissões para extensões acessarem suas conexões foram limpas.</target>
@@ -1286,9 +1290,13 @@ Select "{0}" to establish a connection.</target>
         <source xml:lang="en">Custom Zoom</source>
         <target state="translated">Zoom Personalizado</target>
       </trans-unit>
-      <trans-unit id="++CODE++ef695e4c384e9b231d25ba5d0160913f31f4153f460e645129860fa611a52b27">
-        <source xml:lang="en">DacFx service is not available</source>
-        <target state="translated">O serviço DacFx não está disponível</target>
+      <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
+        <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
+        <target state="new">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7ca6d6b94c100c4f405187f90cd8ed2b66402f6b47804856b75931feccf9b9f4">
+        <source xml:lang="en">DacFx service is not available. Publish and generate script operations cannot be performed.</source>
+        <target state="new">DacFx service is not available. Publish and generate script operations cannot be performed.</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -1784,6 +1792,10 @@ Erro:
       <trans-unit id="++CODE++48d53635551c8fd4564251d49f4e6eba58c2774469144e4346310955fbadbf4c">
         <source xml:lang="en">Excel</source>
         <target state="translated">Excel</target>
+      </trans-unit>
+      <trans-unit id="++CODE++01ae099f23b8fe85d27a9e26613eb2624bd76e11505385e3493f316afde824c2">
+        <source xml:lang="en">Exclude Object Types</source>
+        <target state="new">Exclude Object Types</target>
       </trans-unit>
       <trans-unit id="++CODE++e3a67d9540e9a204f7dc4aa9d44a0ec652856cfa932a21196bf9df23aa0e4cd1">
         <source xml:lang="en">Execute</source>
@@ -2380,6 +2392,10 @@ Erro:
       <trans-unit id="++CODE++d8d462ddc91939459ae107d47fee7a34b3601b20fcd01615f98e1941674f14ea">
         <source xml:lang="en">I'm sorry, I can only assist with SQL-related questions.</source>
         <target state="translated">Desculpe, só posso ajudar com perguntas relacionadas ao SQL.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b37cea142b959c4f6c75754d7b3d56bc41d1a2d6667600c748d7a168f10c8818">
+        <source xml:lang="en">Ignore Options</source>
+        <target state="new">Ignore Options</target>
       </trans-unit>
       <trans-unit id="++CODE++1d59e3e131d04ce9ba04c0f297dbd4eddb83c0bfe977b2a6bf19bdeb73f2d5c3">
         <source xml:lang="en">Ignore Tenant</source>
@@ -5344,10 +5360,6 @@ Quando terminar de fazer suas alterações, clique no botão "Publicar" para env
         <source xml:lang="en">Edit Connection Sharing Permissions</source>
         <target state="translated">Editar Permissões de Compartilhamento de Conexão</target>
       </trans-unit>
-      <trans-unit id="mssql.editTable">
-        <source xml:lang="en">Edit Table</source>
-        <target state="translated">Editar Tabela</target>
-      </trans-unit>
       <trans-unit id="mssql.enableActualPlan">
         <source xml:lang="en">Enable Actual Plan</source>
         <target state="translated">Habilitar Plano Real</target>
@@ -5558,6 +5570,10 @@ Você pode se conectar a um banco de dados inserindo suas informações de conex
         <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
         <target state="translated">O tamanho máximo de dados text e ntext retornados de uma instrução SELECT</target>
       </trans-unit>
+      <trans-unit id="mssql.editTable">
+        <source xml:lang="en">Modify Table Structure</source>
+        <target state="new">Modify Table Structure</target>
+      </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
         <target state="translated">Nova Implantação</target>
@@ -5691,6 +5707,10 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       <trans-unit id="mssql.objectExplorer.Tooltip.containerVersionLabel">
         <source xml:lang="en">SQL Container Version</source>
         <target state="translated">Versão do Contêiner do SQL</target>
+      </trans-unit>
+      <trans-unit id="mssql.sqlScriptsSubmenu">
+        <source xml:lang="en">SQL Scripts</source>
+        <target state="new">SQL Scripts</target>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Schema Compare</source>
