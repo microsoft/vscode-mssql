@@ -1365,6 +1365,9 @@ export class PublishProject {
         "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     );
     public static FailedToListDatabases = l10n.t("Failed to list databases");
+    public static ProfileLoadedConnectionFailed = l10n.t(
+        "Profile loaded but connection failed. Please connect to the server manually.",
+    );
 }
 
 export class SchemaCompare {

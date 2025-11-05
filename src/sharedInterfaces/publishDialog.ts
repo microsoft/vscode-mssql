@@ -73,7 +73,8 @@ export interface PublishDialogState
     hasFormErrors?: boolean;
     deploymentOptions?: mssql.DeploymentOptions;
     waitingForNewConnection?: boolean;
-    connectionString?: string;
+    connectionUri?: string; // Owner URI for DacFx operations (e.g., file:///path/to/connection)
+    connectionString?: string; // Connection string for saving to publish profile
     formMessage?: DialogMessageSpec;
     defaultDeploymentOptions?: mssql.DeploymentOptions;
     previousDatabaseList?: { displayName: string; value: string }[];

@@ -1519,6 +1519,7 @@
     "DacFx service is not available. Publish and generate script operations cannot be performed.": "DacFx service is not available. Publish and generate script operations cannot be performed.",
     "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.": "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     "Failed to list databases": "Failed to list databases",
+    "Profile loaded but connection failed. Please connect to the server manually.": "Profile loaded but connection failed. Please connect to the server manually.",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
