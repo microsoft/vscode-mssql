@@ -71,6 +71,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 lastPublishResult: undefined,
                 hasFormErrors: true,
                 deploymentOptions: deploymentOptions,
+                defaultDeploymentOptions: deploymentOptions
+                    ? structuredClone(deploymentOptions)
+                    : undefined,
                 waitingForNewConnection: false,
             } as PublishDialogState,
             {
@@ -91,17 +94,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
             },
         );
 
+        // Clear default excludeObjectTypes for publish dialog, no default exclude options should exist
+        if (deploymentOptions?.excludeObjectTypes !== undefined) {
+            deploymentOptions.excludeObjectTypes.value = [];
+        }
+
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
         this._connectionManager = connectionManager;
-
-        // Clear default excludeObjectTypes for publish dialog, no default exclude options should exist
-        if (
-            this.state.deploymentOptions &&
-            this.state.deploymentOptions.excludeObjectTypes !== undefined
-        ) {
-            this.state.deploymentOptions.excludeObjectTypes.value = [];
-        }
 
         this.registerRpcHandlers();
 
@@ -209,6 +209,22 @@ export class PublishProjectWebViewController extends FormWebviewController<
             return state;
         });
 
+        this.registerReducer(
+            "updateDeploymentOptions",
+            async (
+                state: PublishDialogState,
+                payload: { deploymentOptions: mssql.DeploymentOptions },
+            ) => {
+                // Update deployment options and regenerate grouped options for UI
+                const newState = {
+                    ...state,
+                    deploymentOptions: payload.deploymentOptions,
+                };
+
+                return newState;
+            },
+        );
+
         this.registerReducer("selectPublishProfile", async (state: PublishDialogState) => {
             // Derive project folder path from the project file path
             const projectFolderPath = state.projectFilePath
@@ -243,7 +259,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         TelemetryActions.PublishProfileLoaded,
                     );
 
-                    // Update state with all parsed values - UI components will consume when available
                     return {
                         ...state,
                         formState: {
@@ -257,6 +272,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         connectionString: parsedProfile.connectionString || state.connectionString,
                         deploymentOptions:
                             parsedProfile.deploymentOptions || state.deploymentOptions,
+                        formMessage: !this._dacFxService
+                            ? {
+                                  message: Loc.DacFxServiceNotAvailableProfileLoaded,
+                                  intent: "error" as const,
+                              }
+                            : undefined,
                     };
                 } catch (error) {
                     return {
