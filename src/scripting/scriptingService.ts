@@ -37,7 +37,7 @@ export const SCRIPT_OPERATION_CANCELED_ERROR = "Scripting operation cancelled by
 export class ScriptingService {
     private _client: SqlToolsServiceClient;
     private _onGoingScriptingOperations: Map<
-        string,
+        string, // Key is operationId returned from STS for each scripting request
         Deferred<{
             script: string;
             errorMessage: string;
