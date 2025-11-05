@@ -26,7 +26,7 @@ import { AuthenticationTypes } from "../../src/models/interfaces";
 import * as Utils from "../../src/models/utils";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import StatusView from "../../src/views/statusView";
-import { stubExtensionContext, stubVscodeWrapper } from "./utils";
+import { stubExtensionContext, stubPrompter, stubVscodeWrapper } from "./utils";
 
 const expect = chai.expect;
 
@@ -36,9 +36,13 @@ let sandbox: sinon.SinonSandbox;
 let extensionContext: vscode.ExtensionContext;
 
 suite("Per File Connection Tests", () => {
+    let manager: ConnectionManager;
+    let prompterStub: sinon.SinonStubbedInstance<IPrompter>;
+
     setup(() => {
         sandbox = sinon.createSandbox();
         extensionContext = stubExtensionContext(sandbox);
+        manager = createTestConnectionManager();
     });
 
     teardown(() => {
@@ -48,8 +52,6 @@ suite("Per File Connection Tests", () => {
     test("Can create two separate connections for two files", async () => {
         const testFile1 = "file:///my/test/file.sql";
         const testFile2 = "file:///my/test/file2.sql";
-
-        let manager: ConnectionManager = createTestConnectionManager();
 
         const serviceClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         serviceClientStub.sendRequest.callsFake(
@@ -82,8 +84,6 @@ suite("Per File Connection Tests", () => {
     test("Can disconnect one file while another file stays connected", async () => {
         const testFile1 = "file:///my/test/file.sql";
         const testFile2 = "file:///my/test/file2.sql";
-
-        let manager: ConnectionManager = createTestConnectionManager();
 
         const serviceClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         serviceClientStub.sendRequest
@@ -124,8 +124,6 @@ suite("Per File Connection Tests", () => {
     test("Can disconnect and reconnect one file while another file stays connected", async () => {
         const testFile1 = "file:///my/test/file.sql";
         const testFile2 = "file:///my/test/file2.sql";
-
-        let manager: ConnectionManager = createTestConnectionManager();
 
         const serviceClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         serviceClientStub.sendRequest
@@ -172,8 +170,6 @@ suite("Per File Connection Tests", () => {
 
     test("Can list databases on server used by current connection and switch databases", async () => {
         const testFile = "file:///my/test/file.sql";
-
-        let manager: ConnectionManager = createTestConnectionManager();
 
         const serviceClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         serviceClientStub.sendRequest
@@ -237,8 +233,6 @@ suite("Per File Connection Tests", () => {
     test("Can disconnect instead of switching databases", async () => {
         const testFile = "file:///my/test/file.sql";
 
-        let manager: ConnectionManager = createTestConnectionManager();
-
         const serviceClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         serviceClientStub.sendRequest
             .withArgs(ConnectionContracts.ConnectionRequest.type, sinon.match.any)
@@ -269,12 +263,7 @@ suite("Per File Connection Tests", () => {
         manager.vscodeWrapper = vscodeWrapperStub;
         manager.connectionUI.vscodeWrapper = vscodeWrapperStub;
 
-        const prompterStub = (
-            manager.connectionUI as {
-                _prompter: { promptSingle: sinon.SinonStub };
-            }
-        )._prompter.promptSingle;
-        prompterStub.resolves(true);
+        prompterStub.promptSingle.resolves(true);
 
         const connectionCreds = createTestCredentials();
 
@@ -364,8 +353,6 @@ suite("Per File Connection Tests", () => {
         const testFile = "file:///my/test/file.sql";
         const expectedDbName = "master";
 
-        let manager: ConnectionManager = createTestConnectionManager();
-
         // Given a connection to default database
         let connectionCreds = createTestCredentials();
         connectionCreds.database = "";
@@ -435,8 +422,6 @@ suite("Per File Connection Tests", () => {
         const testFile = "file:///my/test/file.sql";
         const expectedDbName = "master";
 
-        let manager: ConnectionManager = createTestConnectionManager();
-
         // Given a connection to default database
         let connectionCreds = createTestCredentials();
         connectionCreds.database = "";
@@ -485,7 +470,6 @@ suite("Per File Connection Tests", () => {
     test("Status view shows updating intellisense after connecting and disappears after intellisense is updated", async () => {
         const testFile = "file:///my/test/file.sql";
 
-        let manager: ConnectionManager = createTestConnectionManager();
         const statusViewStub = sandbox.createStubInstance(StatusView);
         const languageStatusStub = statusViewStub.languageServiceStatusChanged;
         const serviceClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
@@ -521,6 +505,39 @@ suite("Per File Connection Tests", () => {
             .filter((call) => call.args[1] === LocalizedConstants.intelliSenseUpdatedStatus);
         expect(updatedAfterNotification).to.have.lengthOf(1);
     });
+
+    function createTestConnectionManager(
+        serviceClient?: SqlToolsServiceClient,
+        wrapper?: VscodeWrapper,
+        statusView?: StatusView,
+        connectionStore?: ConnectionStore,
+        connectionUI?: ConnectionUI,
+    ): ConnectionManager {
+        prompterStub = stubPrompter(sandbox);
+        const statusViewInstance = statusView ?? sandbox.createStubInstance(StatusView);
+
+        let connectionStoreInstance;
+
+        if (connectionStore) {
+            connectionStoreInstance = connectionStore;
+        } else {
+            const stubConnectionStore = sandbox.createStubInstance(ConnectionStore);
+            stubConnectionStore.addRecentlyUsed.resolves();
+            connectionStoreInstance = stubConnectionStore;
+        }
+
+        return new ConnectionManager(
+            extensionContext,
+            statusViewInstance,
+            prompterStub,
+            undefined, // logger
+            serviceClient,
+            wrapper,
+            connectionStoreInstance,
+            undefined, // credentialStore
+            connectionUI,
+        );
+    }
 });
 
 function createTestConnectionResult(
@@ -577,39 +594,6 @@ function createTestCredentials(): IConnectionInfo {
         containerName: "",
     };
     return creds;
-}
-
-function createTestConnectionManager(
-    serviceClient?: SqlToolsServiceClient,
-    wrapper?: VscodeWrapper,
-    statusView?: StatusView,
-    connectionStore?: ConnectionStore,
-    connectionUI?: ConnectionUI,
-): ConnectionManager {
-    const prompterStub: IPrompter = {
-        prompt: sandbox.stub().resolves(undefined),
-        promptSingle: sandbox.stub().resolves(undefined),
-        promptCallback: sandbox.stub(),
-    };
-    const statusViewInstance = statusView ?? sandbox.createStubInstance(StatusView);
-
-    const connectionStoreInstance = connectionStore ?? sandbox.createStubInstance(ConnectionStore);
-
-    if (!connectionStore) {
-        connectionStoreInstance.addRecentlyUsed.resolves();
-    }
-
-    return new ConnectionManager(
-        extensionContext,
-        statusViewInstance,
-        prompterStub,
-        undefined, // logger
-        serviceClient,
-        wrapper,
-        connectionStoreInstance,
-        undefined, // credentialStore
-        connectionUI,
-    );
 }
 
 function createTestListDatabasesResult(): ConnectionContracts.ListDatabasesResult {
