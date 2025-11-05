@@ -2171,6 +2171,9 @@
       <source xml:lang="en">Maximize ({0})</source>
       <note>{0} is the keyboard shortcut for maximizing the grid</note>
     </trans-unit>
+    <trans-unit id="++CODE++bfb44e231009293c2b2333bb7d0e9e5c0c79294bbb1c6a42c3471892ef016229">
+      <source xml:lang="en">Maximize Panel Size</source>
+    </trans-unit>
     <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
       <source xml:lang="en">Maximize panel size</source>
     </trans-unit>
@@ -2805,6 +2808,9 @@
     <trans-unit id="++CODE++aa23cbfa14a31ad474e4c88dbaf83494d1f988d659568633b40d2e93cc39b61d">
       <source xml:lang="en">Restore ({0})</source>
       <note>{0} is the keyboard shortcut for restoring the grid</note>
+    </trans-unit>
+    <trans-unit id="++CODE++08a1e27d6e3c46f5a5b553a82a39ac2d0e89f6b37a9f57269532ed172d6d2de8">
+      <source xml:lang="en">Restore Panel Size</source>
     </trans-unit>
     <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
       <source xml:lang="en">Restore panel size</source>
