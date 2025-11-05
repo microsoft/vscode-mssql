@@ -12,6 +12,8 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as path from "path";
 import * as jsonRpc from "vscode-jsonrpc/node";
 import { UserSurvey } from "../../src/nps/userSurvey";
+import { IPrompter } from "../../src/prompts/question";
+import CodeAdapter from "../../src/prompts/adapter";
 
 // Launches and activates the extension
 export async function activateExtension(): Promise<IExtension> {
@@ -132,9 +134,18 @@ export function stubExtensionContext(sandbox?: sinon.SinonSandbox): vscode.Exten
         globalState: globalState,
         extensionUri: vscode.Uri.parse("file://testPath"),
         extensionPath: "testPath",
+        subscriptions: [],
     } as unknown as vscode.ExtensionContext;
 
     return context;
+}
+
+export function stubPrompter(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<IPrompter> {
+    const stubber = sandbox || sinon;
+
+    const prompter = stubber.createStubInstance(CodeAdapter); // CodeAdapter is an implementation of IPrompter
+
+    return prompter;
 }
 
 export function initializeIconUtils(): void {

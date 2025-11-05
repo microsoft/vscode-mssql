@@ -39,7 +39,6 @@ suite("Per File Connection Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         extensionContext = stubExtensionContext(sandbox);
-        (extensionContext as unknown as { subscriptions: vscode.Disposable[] }).subscriptions = [];
     });
 
     teardown(() => {
@@ -62,7 +61,7 @@ suite("Per File Connection Tests", () => {
             },
         );
 
-        manager.client = serviceClientStub as unknown as SqlToolsServiceClient;
+        manager.client = serviceClientStub;
 
         // Create two different connections using the connection manager
         let connectionCreds = createTestCredentials();
@@ -99,7 +98,7 @@ suite("Per File Connection Tests", () => {
             .withArgs(ConnectionContracts.DisconnectRequest.type, sinon.match.any)
             .resolves(true);
 
-        manager.client = serviceClientStub as unknown as SqlToolsServiceClient;
+        manager.client = serviceClientStub;
 
         const connectionCreds = createTestCredentials();
         const connectionCreds2 = createTestCredentials();
@@ -141,7 +140,7 @@ suite("Per File Connection Tests", () => {
             .withArgs(ConnectionContracts.DisconnectRequest.type, sinon.match.any)
             .resolves(true);
 
-        manager.client = serviceClientStub as unknown as SqlToolsServiceClient;
+        manager.client = serviceClientStub;
 
         const connectionCreds = createTestCredentials();
         const connectionCreds2 = createTestCredentials();
@@ -204,12 +203,12 @@ suite("Per File Connection Tests", () => {
         };
 
         const vscodeWrapperStub = stubVscodeWrapper(sandbox);
-        vscodeWrapperStub.showQuickPick.resolves(newDatabaseChoice as vscode.QuickPickItem);
+        vscodeWrapperStub.showQuickPick.resolves(newDatabaseChoice);
         sandbox.stub(vscodeWrapperStub, "activeTextEditorUri").get(() => testFile);
 
-        manager.client = serviceClientStub as unknown as SqlToolsServiceClient;
-        manager.vscodeWrapper = vscodeWrapperStub as unknown as VscodeWrapper;
-        manager.connectionUI.vscodeWrapper = vscodeWrapperStub as unknown as VscodeWrapper;
+        manager.client = serviceClientStub;
+        manager.vscodeWrapper = vscodeWrapperStub;
+        manager.connectionUI.vscodeWrapper = vscodeWrapperStub;
 
         const connectionCreds = createTestCredentials();
 
@@ -266,12 +265,12 @@ suite("Per File Connection Tests", () => {
             },
         );
 
-        manager.client = serviceClientStub as unknown as SqlToolsServiceClient;
-        manager.vscodeWrapper = vscodeWrapperStub as unknown as VscodeWrapper;
-        manager.connectionUI.vscodeWrapper = vscodeWrapperStub as unknown as VscodeWrapper;
+        manager.client = serviceClientStub;
+        manager.vscodeWrapper = vscodeWrapperStub;
+        manager.connectionUI.vscodeWrapper = vscodeWrapperStub;
 
         const prompterStub = (
-            manager.connectionUI as unknown as {
+            manager.connectionUI as {
                 _prompter: { promptSingle: sinon.SinonStub };
             }
         )._prompter.promptSingle;
@@ -309,8 +308,8 @@ suite("Per File Connection Tests", () => {
 
         const controller = new MainController(
             extensionContext,
-            connectionManagerStub as unknown as ConnectionManager,
-            vscodeWrapperStub as unknown as VscodeWrapper,
+            connectionManagerStub,
+            vscodeWrapperStub,
         );
 
         await controller.onRunQuery();
@@ -333,7 +332,7 @@ suite("Per File Connection Tests", () => {
                 return Promise.resolve(true);
             });
 
-        connectionManager.client = serviceClientStub as unknown as SqlToolsServiceClient;
+        connectionManager.client = serviceClientStub;
 
         const connectionCreds = createTestCredentials();
 
@@ -392,8 +391,8 @@ suite("Per File Connection Tests", () => {
             },
         );
 
-        manager.client = serviceClientStub as unknown as SqlToolsServiceClient;
-        manager.statusView = statusViewStub as unknown as StatusView;
+        manager.client = serviceClientStub;
+        manager.statusView = statusViewStub;
 
         const result = await manager.connect(testFile, connectionCreds);
         assert.equal(result, true);
@@ -459,16 +458,14 @@ suite("Per File Connection Tests", () => {
 
         let savedConnection: IConnectionInfo | undefined;
         const connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
-        (connectionStoreStub.addRecentlyUsed as sinon.SinonStub).callsFake(
-            async (conn: IConnectionInfo) => {
-                savedConnection = conn;
-                return;
-            },
-        );
+        connectionStoreStub.addRecentlyUsed.callsFake(async (conn: IConnectionInfo) => {
+            savedConnection = conn;
+            return;
+        });
 
-        manager.client = serviceClientStub as unknown as SqlToolsServiceClient;
-        manager.statusView = statusViewStub as unknown as StatusView;
-        manager.connectionStore = connectionStoreStub as unknown as ConnectionStore;
+        manager.client = serviceClientStub;
+        manager.statusView = statusViewStub;
+        manager.connectionStore = connectionStoreStub;
 
         const result = await manager.connect(testFile, connectionCreds);
         assert.equal(result, true);
@@ -490,8 +487,7 @@ suite("Per File Connection Tests", () => {
 
         let manager: ConnectionManager = createTestConnectionManager();
         const statusViewStub = sandbox.createStubInstance(StatusView);
-        const languageStatusStub =
-            statusViewStub.languageServiceStatusChanged as unknown as sinon.SinonStub;
+        const languageStatusStub = statusViewStub.languageServiceStatusChanged;
         const serviceClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         serviceClientStub.sendRequest.callsFake(
             (_type: unknown, params: ConnectionContracts.ConnectParams) => {
@@ -502,8 +498,8 @@ suite("Per File Connection Tests", () => {
             },
         );
 
-        manager.statusView = statusViewStub as unknown as StatusView;
-        manager.client = serviceClientStub as unknown as SqlToolsServiceClient;
+        manager.statusView = statusViewStub;
+        manager.client = serviceClientStub;
 
         const result = await manager.connect(testFile, createTestCredentials());
         assert.equal(result, true);
@@ -597,16 +593,10 @@ function createTestConnectionManager(
     };
     const statusViewInstance = statusView ?? sandbox.createStubInstance(StatusView);
 
-    let connectionStoreInstance: ConnectionStore = connectionStore;
-
-    if (!connectionStoreInstance) {
-        const stubbedConnectionStore = sandbox.createStubInstance(ConnectionStore);
-        stubbedConnectionStore.addRecentlyUsed.resolves();
-        connectionStoreInstance = stubbedConnectionStore;
-    }
+    const connectionStoreInstance = connectionStore ?? sandbox.createStubInstance(ConnectionStore);
 
     if (!connectionStore) {
-        (connectionStoreInstance.addRecentlyUsed as unknown as sinon.SinonStub).resolves();
+        connectionStoreInstance.addRecentlyUsed.resolves();
     }
 
     return new ConnectionManager(
