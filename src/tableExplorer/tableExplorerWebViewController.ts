@@ -413,6 +413,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     );
 
                     this.updateState();
+                } else {
+                    this.logger.warn("Cannot add row: result set is undefined");
                 }
 
                 await this.regenerateScriptIfVisible(state);
