@@ -134,6 +134,10 @@
         <note>{0} is the server name</note>
         <target state="translated">将防火墙规则添加到 {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++02a16a835f1e9c9cbe76a8cb9042d2f3861fc237036221e1f0c60383600f45f6">
+        <source xml:lang="en">Add Row</source>
+        <target state="new">Add Row</target>
+      </trans-unit>
       <trans-unit id="++CODE++937a7b0b3cc8c58a787de5a63bfc07573789ee22a22918957f92651c0edb31f9">
         <source xml:lang="en">Add Server Connection</source>
         <target state="translated">添加服务器连接</target>
@@ -595,6 +599,10 @@ Select "{0}" to establish a connection.</target>
         <source xml:lang="en">Changes published successfully</source>
         <target state="translated">已成功发布更改</target>
       </trans-unit>
+      <trans-unit id="++CODE++35c09389e41adb1bb2bf8991c39e3927981a271ab80a41ec216995e909344c23">
+        <source xml:lang="en">Changes saved successfully.</source>
+        <target state="new">Changes saved successfully.</target>
+      </trans-unit>
       <trans-unit id="++CODE++37b6d72a119e5ec53d1dc71ba94cbed9566519488230f6a4e40ae82bfc8bc79f">
         <source xml:lang="en">Changing database context to "{0}" on server "{1}" on document "{2}".</source>
         <note>{0} is the database name
@@ -766,6 +774,10 @@ Select "{0}" to establish a connection.</target>
         <source xml:lang="en">Close Find</source>
         <target state="translated">关闭查找</target>
       </trans-unit>
+      <trans-unit id="++CODE++643a90a6bde33b562cd0de040386daa285bf033a5027344e98ad12c8d2cac56a">
+        <source xml:lang="en">Close Script Pane</source>
+        <target state="new">Close Script Pane</target>
+      </trans-unit>
       <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
         <source xml:lang="en">Close properties pane</source>
         <target state="translated">关闭属性窗格</target>
@@ -856,6 +868,10 @@ Select "{0}" to establish a connection.</target>
       <trans-unit id="++CODE++e665046133e22f0d3599a6c5de916445ed88c82a997a625a04af1827c42d790b">
         <source xml:lang="en">Command Timeout</source>
         <target state="translated">命令超时</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b269dc4e81a528a4d42e9e74101923514a626f55f8dd76b1461e0690e72d041a">
+        <source xml:lang="en">Commands</source>
+        <target state="new">Commands</target>
       </trans-unit>
       <trans-unit id="++CODE++e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9">
         <source xml:lang="en">Compare</source>
@@ -1125,6 +1141,14 @@ Select "{0}" to establish a connection.</target>
         <source xml:lang="en">Copy Headers</source>
         <target state="translated">复制标头</target>
       </trans-unit>
+      <trans-unit id="++CODE++970a1f3493ca367ca4e95e0f203ef44c08040fa0563dd8b2cc2c9c69cf125da4">
+        <source xml:lang="en">Copy Script</source>
+        <target state="new">Copy Script</target>
+      </trans-unit>
+      <trans-unit id="++CODE++84f5172141bab484104cf73fd00dc9d1d9426606ec2f0a3785ede261956f1ed2">
+        <source xml:lang="en">Copy Script to Clipboard</source>
+        <target state="new">Copy Script to Clipboard</target>
+      </trans-unit>
       <trans-unit id="++CODE++ac030299960c4d5cba2b13fa5f358cb7f1b1531ce5f2e5315eff17b7c93a97bf">
         <source xml:lang="en">Copy as CSV</source>
         <target state="translated">复制为 csv</target>
@@ -1359,6 +1383,10 @@ Select "{0}" to establish a connection.</target>
         <source xml:lang="en">Delete Contents</source>
         <target state="translated">删除内容</target>
       </trans-unit>
+      <trans-unit id="++CODE++43654c6556c7d0fca93516d81791b323c7746bb3becdcb8800aa9f31300fe30c">
+        <source xml:lang="en">Delete Row</source>
+        <target state="new">Delete Row</target>
+      </trans-unit>
       <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
         <source xml:lang="en">Delete saved connection</source>
         <target state="translated">删除保存的连接</target>
@@ -1406,6 +1434,10 @@ Select "{0}" to establish a connection.</target>
       <trans-unit id="++CODE++75081b593d15cf6e631971bc6768723f593b88b172477e40ae7d363e4829816d">
         <source xml:lang="en">Disabled</source>
         <target state="translated">已禁用</target>
+      </trans-unit>
+      <trans-unit id="++CODE++eb1a70e39274bb762b5d7c1adb5debeea2b05e12af28207f21a375b596853273">
+        <source xml:lang="en">Discard</source>
+        <target state="new">Discard</target>
       </trans-unit>
       <trans-unit id="++CODE++acfc5be785a9bb3da11c9f05adb69bd5633096f09002aa44813a1b3207e912ad">
         <source xml:lang="en">Disconnect</source>
@@ -1875,6 +1907,16 @@ Error:
         <note>{0} is the error message</note>
         <target state="translated">连接失败: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++c813934a8ac886dc843cc3dd41282656501a8c9f7da085c104e96d4d50d6fc93">
+        <source xml:lang="en">Failed to copy script: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to copy script: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++707f0ef201b7dca62aa44100faafcd54168f7614d4966e200f9188b638abdd52">
+        <source xml:lang="en">Failed to create a new row: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to create a new row: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++62498a2ba93779ef3c23a936f530e6a9286a241a90243dcf1eb13bf44c3f0aa0">
         <source xml:lang="en">Failed to delete credential with id: {0}. {1}</source>
         <note>{0} is the id
@@ -1905,6 +1947,11 @@ Error:
         <note>{0} is the error message returned from the generate script operation</note>
         <target state="translated">无法生成脚本:“{0}”</target>
       </trans-unit>
+      <trans-unit id="++CODE++8d5f2e14eff0aed3f2ac97085dfd89e385dab998301ffa54088ed3f52b37babb">
+        <source xml:lang="en">Failed to generate script: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to generate script: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++90971b4f986b2a5d6c3d6f32b711a0bbb3f93d8453a9f0006c0a30d1350cdaff">
         <source xml:lang="en">Failed to get Fabric workspaces for tenant '{0} ({1})'.</source>
         <note>{0} is the tenant name
@@ -1932,6 +1979,11 @@ Error:
         <source xml:lang="en">Failed to list databases</source>
         <target state="new">Failed to list databases</target>
       </trans-unit>
+      <trans-unit id="++CODE++d1167662f9f4ae95339878cfc71934cb03fce7f402dd7648b10e281fad1a6c4e">
+        <source xml:lang="en">Failed to load data: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to load data: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
         <source xml:lang="en">Failed to load publish profile</source>
         <target state="translated">未能加载发布配置文件</target>
@@ -1940,6 +1992,11 @@ Error:
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
         <note>{0} is the error message returned from the open scmp operation</note>
         <target state="translated">无法打开 scmp 文件:“{0}”</target>
+      </trans-unit>
+      <trans-unit id="++CODE++00e34162fb43e373f12b352ea75d1e2241f480dbda87ec290aaa6f020232edaa">
+        <source xml:lang="en">Failed to open script: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to open script: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
         <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
@@ -1950,6 +2007,26 @@ Error:
         <note>{0} is the connection id
 {1} is the uri</note>
         <target state="translated">无法刷新 URI {1} 的连接 ${0}，无效的连接结果。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e63c0b0e63209727946a87b02022f9648e8632a2b450e52618307c2107df5ead">
+        <source xml:lang="en">Failed to remove row: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to remove row: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c5dfa95897b89c1d17492b4591948b4a1c45ddde07a7e6aeebaaecca6dbdd888">
+        <source xml:lang="en">Failed to revert cell: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to revert cell: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++55b0c5ea36504fe873a64ee13ff67759e1652595433ef2f29f23c4672281a0fc">
+        <source xml:lang="en">Failed to revert row: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to revert row: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++07e849b745794c4b9068165d834b1819e8cc4663ec8a733b07337a06d1375fcb">
+        <source xml:lang="en">Failed to save changes: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to save changes: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
         <source xml:lang="en">Failed to save publish profile</source>
@@ -1982,9 +2059,18 @@ Error:
         <note>Failed to stop {0}.</note>
         <target state="translated">未能停止 {0}。</target>
       </trans-unit>
+      <trans-unit id="++CODE++3f91e357af9abc12f947a78cc2b4b0aa8cdd513fb4bec19a10cbee4d133445af">
+        <source xml:lang="en">Failed to update cell: {0}</source>
+        <note>{0} is the error message</note>
+        <target state="new">Failed to update cell: {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++7a1f2a83aca9a0819f244d5b4a7a0e7f6b779eb709dd4744136b22e724dbb10b">
         <source xml:lang="en">Favorites</source>
         <target state="translated">收藏夹</target>
+      </trans-unit>
+      <trans-unit id="++CODE++4db3d9917ade1a9560b2a46de7b387634aedd4114bec8fb31abfb7e403241c76">
+        <source xml:lang="en">Fetch rows</source>
+        <target state="new">Fetch rows</target>
       </trans-unit>
       <trans-unit id="++CODE++4d696d1fc30a43745a483d9bf89065718f6abfcdf8241fe4abb09ef13ec1d5e3">
         <source xml:lang="en">Fetching {0} script...</source>
@@ -2072,6 +2158,10 @@ Error:
       <trans-unit id="++CODE++3a5a47667104807574cb0875e1ad13546429f3ed63efe6b4bddee62fe1f4cf5b">
         <source xml:lang="en">Firewall rule successfully created.</source>
         <target state="translated">已成功创建防火墙规则。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++50f82f3bd4638f41e11892aa681c016d9f858ac119041d52c52d5fb661c5936f">
+        <source xml:lang="en">First Page</source>
+        <target state="new">First Page</target>
       </trans-unit>
       <trans-unit id="++CODE++9285cedcf26a7cbb5277c70b4651a54679ee9d2c89767bc9dbe532b14f4bb697">
         <source xml:lang="en">Flat</source>
@@ -2241,6 +2331,10 @@ Error:
       <trans-unit id="++CODE++44900cb30578cbda86187326c4e7acfddc7828094583ff5d097f6080464aa6fc">
         <source xml:lang="en">Hide New Password</source>
         <target state="translated">隐藏新密码</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f499a7a9c57676d65af8383d5a0f6c5d6b649bb599235e6e20900f73a55968bd">
+        <source xml:lang="en">Hide Script</source>
+        <target state="new">Hide Script</target>
       </trans-unit>
       <trans-unit id="++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6">
         <source xml:lang="en">Hide full error message</source>
@@ -2416,6 +2510,10 @@ Error:
       <trans-unit id="++CODE++a3c13b491573b0d54bf743caf0f5d59d5a791c42ae1072f16bb941be925fae18">
         <source xml:lang="en">Keys for token cache could not be saved in credential store, this may cause Microsoft Entra Id access token persistence issues and connection instabilities. It's likely that SqlTools has reached credential storage limit on Windows, please clear at least 2 credentials that start with "Microsoft.SqlTools|" in Windows Credential Manager and reload.</source>
         <target state="translated">无法在凭据存储中保存令牌缓存的密钥，这可能会导致 Microsoft Entra ID 访问令牌持久性问题和连接不稳定。SqlTools 可能已达到 Windows 上的凭据存储限制，请清除至少 2 个以 Windows 凭据管理器中的“Microsoft.SqlTools|”开头的凭据，然后重新加载。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
+        <source xml:lang="en">Last Page</source>
+        <target state="new">Last Page</target>
       </trans-unit>
       <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
         <source xml:lang="en">Learn More</source>
@@ -2635,6 +2733,10 @@ Error:
         <note>{0} is the total number of rows</note>
         <target state="translated">正在加载 {0} 行的摘要(单击可取消)</target>
       </trans-unit>
+      <trans-unit id="++CODE++128f2373a3147694ff5bcaab3d428611eba44a540cb348d9d263f855c0ee2a2d">
+        <source xml:lang="en">Loading table data...</source>
+        <target state="new">Loading table data...</target>
+      </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
         <target state="translated">正在加载租户…</target>
@@ -2715,6 +2817,10 @@ Error:
       <trans-unit id="++CODE++fba6c2c5d9468e741725c7dfa1ac14fb59523c74fa86744027ec0a175e6cae3f">
         <source xml:lang="en">Maximize</source>
         <target state="translated">最大化</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bfb44e231009293c2b2333bb7d0e9e5c0c79294bbb1c6a42c3471892ef016229">
+        <source xml:lang="en">Maximize Panel Size</source>
+        <target state="new">Maximize Panel Size</target>
       </trans-unit>
       <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
         <source xml:lang="en">Maximize panel size</source>
@@ -2866,6 +2972,10 @@ Error:
         <source xml:lang="en">Next</source>
         <target state="translated">下一步</target>
       </trans-unit>
+      <trans-unit id="++CODE++6ead5dfdc11ef7da26e4c09f348d42a8d6306b7faa54ce0a7dc6c567dab1db6f">
+        <source xml:lang="en">Next Page</source>
+        <target state="new">Next Page</target>
+      </trans-unit>
       <trans-unit id="++CODE++1ea442a134b2a184bd5d40104401f2a37fbc09ccf3f4bc9da161c6099be3691d">
         <source xml:lang="en">No</source>
         <target state="translated">否</target>
@@ -2935,6 +3045,10 @@ Error:
         <source xml:lang="en">No connection was found. Please connect to a server first.</source>
         <target state="translated">找不到任何连接。请先连接到服务器。</target>
       </trans-unit>
+      <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
+        <source xml:lang="en">No data available</source>
+        <target state="new">No data available</target>
+      </trans-unit>
       <trans-unit id="++CODE++3280128c0901d1323dde9a406ee7d2d6e8e1b98fd30971fa6134b302fec41eca">
         <source xml:lang="en">No database objects found matching '{0}'</source>
         <note>{0} is the search term</note>
@@ -2963,6 +3077,10 @@ Error:
 {1} is the uri</note>
         <target state="translated">无需刷新 URI {1} 的连接 {0} 的 Microsoft Entra 帐户令牌</target>
       </trans-unit>
+      <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
+        <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
+        <target state="new">No pending changes. Make edits to generate a script.</target>
+      </trans-unit>
       <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
         <source xml:lang="en">No results</source>
         <target state="translated">无结果</target>
@@ -2982,6 +3100,10 @@ Error:
       <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
         <source xml:lang="en">No schema differences were found.</source>
         <target state="translated">未找到架构差异。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9d7ed36dee03c4fbfff36e19d91ab5b6a57f9a5b401819b5bbc23c8afca66936">
+        <source xml:lang="en">No script available. Make changes to the table data and generate a script first.</source>
+        <target state="new">No script available. Make changes to the table data and generate a script first.</target>
       </trans-unit>
       <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
@@ -3127,6 +3249,10 @@ Error:
       <trans-unit id="++CODE++35e74c3a943dcaf90a91c99a242ea7dbfb3ead16a012ba5a7d6a747a96e01d64">
         <source xml:lang="en">Open in New Tab</source>
         <target state="translated">在新选项卡中打开</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f0ee00f28c5dbe68c0c0dd2a5ebab46d19dda4d81627953d3f8e32be33904842">
+        <source xml:lang="en">Open in SQL Editor</source>
+        <target state="new">Open in SQL Editor</target>
       </trans-unit>
       <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
         <source xml:lang="en">Open in editor</source>
@@ -3278,6 +3404,10 @@ Error:
       <trans-unit id="++CODE++a57b08a480b822a0a572b993391c292ede593bf8000b406675b180bbb16260fa">
         <source xml:lang="en">Previous</source>
         <target state="translated">上一步</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a163aaa22cf7ce6c4c2a634f98bef10d0fe0a0602ada2aa50d60b262dc70b2d9">
+        <source xml:lang="en">Previous Page</source>
+        <target state="new">Previous Page</target>
       </trans-unit>
       <trans-unit id="++CODE++a89f61eb88c67866f6b2666a2e7f19b6fa1c97ca8330b81f848895bcc3594a3f">
         <source xml:lang="en">Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.</source>
@@ -3510,6 +3640,10 @@ Error:
         <source xml:lang="en">Restore</source>
         <target state="translated">还原</target>
       </trans-unit>
+      <trans-unit id="++CODE++08a1e27d6e3c46f5a5b553a82a39ac2d0e89f6b37a9f57269532ed172d6d2de8">
+        <source xml:lang="en">Restore Panel Size</source>
+        <target state="new">Restore Panel Size</target>
+      </trans-unit>
       <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
         <source xml:lang="en">Restore panel size</source>
         <target state="translated">恢复面板大小</target>
@@ -3548,9 +3682,29 @@ Error:
         <source xml:lang="en">Reverse-engineer existing databases by explaining SQL schemas and relationships</source>
         <target state="new">Reverse-engineer existing databases by explaining SQL schemas and relationships</target>
       </trans-unit>
+      <trans-unit id="++CODE++289de1729d4ea9f6d9ab040fb6f260a4bb860bac27ecd4e88b968575cfc726f0">
+        <source xml:lang="en">Revert Cell</source>
+        <target state="new">Revert Cell</target>
+      </trans-unit>
+      <trans-unit id="++CODE++196561ed1b886dfa24402369be0ac725998191df58790075d4c74ff0378851b5">
+        <source xml:lang="en">Revert Row</source>
+        <target state="new">Revert Row</target>
+      </trans-unit>
       <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
         <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</source>
         <target state="translated">需要 Rosetta 才能在 Apple Silicon 上运行 SQL Server 容器映像。在“Docker Desktop”&gt;“设置”&gt;“常规”中启用“在 Apple Silicon 上使用 Rosetta 进行x86_64/amd64 仿真”。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2f34dcbb175e7163055db4c74f8da053a82783ca89ca052d216bc867598b3ef3">
+        <source xml:lang="en">Row created.</source>
+        <target state="new">Row created.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d25169d1cd9a1ad455e2189423ab2b7341b1274e599218785aee69402ee977fc">
+        <source xml:lang="en">Row removed.</source>
+        <target state="new">Row removed.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
+        <source xml:lang="en">Rows per page</source>
+        <target state="new">Rows per page</target>
       </trans-unit>
       <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
         <source xml:lang="en">Rule name</source>
@@ -3676,6 +3830,10 @@ Query: {1}</source>
         <source xml:lang="en">Save As...</source>
         <target state="translated">另存为...</target>
       </trans-unit>
+      <trans-unit id="++CODE++35322b5bb5a218a15401cfa54d23b16459e9e1c616977526a4b37b6c87d30c50">
+        <source xml:lang="en">Save Changes</source>
+        <target state="new">Save Changes</target>
+      </trans-unit>
       <trans-unit id="++CODE++df2839447956141d6503caf44145db003e70b17dc128d5c4fefec188b28d6966">
         <source xml:lang="en">Save Connection Group</source>
         <target state="translated">保存连接组</target>
@@ -3778,6 +3936,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
         <source xml:lang="en">Script copied to clipboard</source>
         <target state="translated">复制到剪贴板的脚本</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0fa2fcc906f37ba513ba034858611a8ca8efb5bada90e29e0c66b5679dea5b92">
+        <source xml:lang="en">Script copied to clipboard.</source>
+        <target state="new">Script copied to clipboard.</target>
       </trans-unit>
       <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
         <source xml:lang="en">Search Workspaces</source>
@@ -4016,6 +4178,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++2228686dec07e7c9c6c8515f778b90a768e5a9474779610755f751e18e43805f">
         <source xml:lang="en">Show Schema</source>
         <target state="translated">显示架构</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a069cbd94b3bf5f1823f5bf4b82de717737a0b9c646396ef1a43229edd089b8e">
+        <source xml:lang="en">Show Script</source>
+        <target state="new">Show Script</target>
       </trans-unit>
       <trans-unit id="++CODE++d5b86c663921b26f8c3dbd292279ef1d0a13da517c5c5bdf53097cfc17aada03">
         <source xml:lang="en">Show a random table definition</source>
@@ -4272,6 +4438,16 @@ Query: {1}</source>
         <note>{0} is the table name</note>
         <target state="translated">找不到表“{0}”</target>
       </trans-unit>
+      <trans-unit id="++CODE++73c42403ef2ca9fe32cd59cfbda8110671a5d4791783f5e6687cb7379d2f07f3">
+        <source xml:lang="en">Table Explorer for '{0}' has unsaved changes. Do you want to save or discard them?</source>
+        <note>{0} is the table name</note>
+        <target state="new">Table Explorer for '{0}' has unsaved changes. Do you want to save or discard them?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7d1ab5b5ff98e8604fded16d7ad53dddbb49c37435c485b4546a9a921ea76700">
+        <source xml:lang="en">Table Explorer: {0} (Preview)</source>
+        <note>{0} is the table name</note>
+        <target state="new">Table Explorer: {0} (Preview)</target>
+      </trans-unit>
       <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
         <source xml:lang="en">Table name</source>
         <target state="translated">表单名称</target>
@@ -4493,6 +4669,10 @@ Query: {1}</source>
         <note>{0} is the elapsed time</note>
         <target state="translated">总执行时间: {0}</target>
       </trans-unit>
+      <trans-unit id="++CODE++3018218f5b66be1c5027fdc1d75389f30f30ac7cfa00c77c3453790d8830dc9a">
+        <source xml:lang="en">Total rows to fetch:</source>
+        <target state="new">Total rows to fetch:</target>
+      </trans-unit>
       <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
         <source xml:lang="en">Type</source>
         <target state="translated">类型</target>
@@ -4504,6 +4684,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++30f9be31de0326b58d28b9578bd91145abf4047074018ac47bc845f960328167">
         <source xml:lang="en">Unable to expand. Please check logs for more information.</source>
         <target state="translated">无法展开。有关详细信息，请查看日志。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
+        <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
+        <target state="new">Unable to open Table Explorer: No target node provided.</target>
       </trans-unit>
       <trans-unit id="++CODE++582be79ed5a63b2569e2b21a28ab0fe1f7acc6307aaaa8e52510a647959d05fa">
         <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
@@ -4542,6 +4726,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++6f32c6efd3fd051f5df8f5a6926828722e2734a8b2138751abf9363a674550bd">
         <source xml:lang="en">Update Database</source>
         <target state="translated">更新数据库</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e3f20e8be1b97880a4ce91df2a3a32d86e26db6188d0b1891376e1c076af2906">
+        <source xml:lang="en">Update Script</source>
+        <target state="new">Update Script</target>
       </trans-unit>
       <trans-unit id="++CODE++92294188e79b2a13584eb3e6120f971c94ada2a387f3199a4cd3cb17039f9d37">
         <source xml:lang="en">Updating IntelliSense...</source>
@@ -5741,6 +5929,10 @@ See the estimated plan without running the query, or view the actual query plan 
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">使用数据库</target>
+      </trans-unit>
+      <trans-unit id="mssql.tableExplorer">
+        <source xml:lang="en">View &amp; Edit Data (Preview)</source>
+        <target state="new">View &amp; Edit Data (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>

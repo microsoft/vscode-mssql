@@ -3924,9 +3924,6 @@
     <trans-unit id="mssql.connectionSharing.editConnectionSharingPermissions">
       <source xml:lang="en">Edit Connection Sharing Permissions</source>
     </trans-unit>
-    <trans-unit id="mssql.editTable">
-      <source xml:lang="en">Edit Table</source>
-    </trans-unit>
     <trans-unit id="mssql.enableActualPlan">
       <source xml:lang="en">Enable Actual Plan</source>
     </trans-unit>
@@ -4083,6 +4080,9 @@
     <trans-unit id="mssql.query.textSize">
       <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
     </trans-unit>
+    <trans-unit id="mssql.editTable">
+      <source xml:lang="en">Modify Table Structure</source>
+    </trans-unit>
     <trans-unit id="mssql.newDeployment">
       <source xml:lang="en">New Deployment</source>
     </trans-unit>
@@ -4181,6 +4181,9 @@
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.Tooltip.containerVersionLabel">
       <source xml:lang="en">SQL Container Version</source>
+    </trans-unit>
+    <trans-unit id="mssql.sqlScriptsSubmenu">
+      <source xml:lang="en">SQL Scripts</source>
     </trans-unit>
     <trans-unit id="mssql.schemaCompare">
       <source xml:lang="en">Schema Compare</source>
