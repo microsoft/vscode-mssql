@@ -64,6 +64,7 @@ export const TableExplorerPage: React.FC = () => {
 
     const gridRef = useRef<TableDataGridRef>(null);
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
+    const [deletionCount, setDeletionCount] = React.useState(0);
 
     const handleSaveComplete = () => {
         // Clear the change tracking in the grid after successful save
@@ -74,6 +75,10 @@ export const TableExplorerPage: React.FC = () => {
         setCellChangeCount(count);
     };
 
+    const handleDeletionCountChanged = (count: number) => {
+        setDeletionCount(count);
+    };
+
     return (
         <div className={classes.root}>
             <PanelGroup direction="vertical" className={classes.panelGroup}>
@@ -82,6 +87,7 @@ export const TableExplorerPage: React.FC = () => {
                         <TableExplorerToolbar
                             onSaveComplete={handleSaveComplete}
                             cellChangeCount={cellChangeCount}
+                            deletionCount={deletionCount}
                         />
                         {resultSet ? (
                             <div className={classes.dataGridContainer}>
@@ -98,6 +104,7 @@ export const TableExplorerPage: React.FC = () => {
                                     onRevertRow={context?.revertRow}
                                     onLoadSubset={context?.loadSubset}
                                     onCellChangeCountChanged={handleCellChangeCountChanged}
+                                    onDeletionCountChanged={handleDeletionCountChanged}
                                 />
                             </div>
                         ) : isLoading ? (

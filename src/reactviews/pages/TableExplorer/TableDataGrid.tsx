@@ -38,6 +38,7 @@ interface TableDataGridProps {
     onRevertRow?: (rowId: number) => void;
     onLoadSubset?: (rowCount: number) => void;
     onCellChangeCountChanged?: (count: number) => void;
+    onDeletionCountChanged?: (count: number) => void;
 }
 
 export interface TableDataGridRef {
@@ -61,6 +62,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             onRevertRow,
             onLoadSubset,
             onCellChangeCountChanged,
+            onDeletionCountChanged,
         },
         ref,
     ) => {
@@ -70,6 +72,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const [currentTheme, setCurrentTheme] = useState<ColorThemeKind | undefined>(themeKind);
         const reactGridRef = useRef<SlickgridReactInstance | null>(null);
         const cellChangesRef = useRef<Map<string, any>>(new Map());
+        const deletedRowsRef = useRef<Set<number>>(new Set());
         const failedCellsRef = useRef<Set<string>>(new Set());
         const lastPageRef = useRef<number>(1);
         const lastItemsPerPageRef = useRef<number>(pageSize);
@@ -98,6 +101,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // Clear all change tracking (called after successful save)
         function clearAllChangeTracking() {
             cellChangesRef.current.clear();
+            deletedRowsRef.current.clear();
             failedCellsRef.current.clear();
             // Force grid to re-render to remove all colored backgrounds
             if (reactGridRef.current?.slickGrid) {
@@ -107,6 +111,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             // Notify parent of change count update
             if (onCellChangeCountChanged) {
                 onCellChangeCountChanged(0);
+            }
+            if (onDeletionCountChanged) {
+                onDeletionCountChanged(0);
             }
         }
 
@@ -481,6 +488,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         onDeleteRow(rowId);
                     }
 
+                    // Track the deletion
+                    deletedRowsRef.current.add(rowId);
+
                     // Remove tracked changes and failed cells for this row
                     const keysToDelete: string[] = [];
                     cellChangesRef.current.forEach((_, key) => {
@@ -496,6 +506,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     // Notify parent of change count update
                     if (onCellChangeCountChanged) {
                         onCellChangeCountChanged(cellChangesRef.current.size);
+                    }
+                    if (onDeletionCountChanged) {
+                        onDeletionCountChanged(deletedRowsRef.current.size);
                     }
                     break;
 
