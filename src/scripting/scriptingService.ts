@@ -280,7 +280,7 @@ export class ScriptingService {
             scriptTelemetryActivity.end(ActivityStatus.Succeeded);
         } catch (error) {
             this._logger.error("Scripting failed: ", error);
-            scriptTelemetryActivity.endFailed(error, false);
+            scriptTelemetryActivity.endFailed(error, false /* do not include error message */);
         }
 
         UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
@@ -531,8 +531,7 @@ export class ScriptingService {
 
                 if (!operationId) {
                     const error = new Error("Missing operation id from scripting response");
-                    scriptTelemetryActivity.endFailed(error, false);
-                    scriptTelemetryActivity.endFailed(error, true);
+                    scriptTelemetryActivity.endFailed(error, true /* include error message */);
                     return undefined;
                 }
 
@@ -541,7 +540,10 @@ export class ScriptingService {
                 const scriptResult = await scriptPromise.promise;
 
                 if (scriptResult.errorMessage) {
-                    scriptTelemetryActivity.endFailed(new Error(scriptResult.errorMessage), false);
+                    scriptTelemetryActivity.endFailed(
+                        new Error(scriptResult.errorMessage),
+                        false /* do not include error message */,
+                    );
                     if (scriptResult.errorMessage === SCRIPT_OPERATION_CANCELED_ERROR) {
                         scriptTelemetryActivity.end(ActivityStatus.Canceled);
                         return;
