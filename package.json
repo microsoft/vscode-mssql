@@ -147,6 +147,7 @@
         "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.49",
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
+        "typemoq": "^1.7.0",
         "typescript": "^5.8.3",
         "typescript-eslint": "^8.34.0",
         "xliff": "^6.2.1",
