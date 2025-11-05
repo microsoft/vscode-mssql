@@ -104,7 +104,7 @@ export class ReactWebviewPanelController<
         this._panel.reveal(viewColumn, true);
     }
 
-    private async showRestorePrompt(): Promise<{
+    protected async showRestorePrompt(): Promise<{
         title: string;
         run: () => Promise<void>;
     }> {
