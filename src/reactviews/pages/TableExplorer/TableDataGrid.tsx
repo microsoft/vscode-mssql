@@ -356,6 +356,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     reactGridRef.current.dataView.deleteItem(removedRow.id);
                 }
 
+                // Update the dataset state to match the new resultSet
+                const newDataset = resultSet.subset.map(convertRowToDataRow);
+                setDataset(newDataset);
+                console.log(`Updated dataset state, new length: ${newDataset.length}`);
+
                 // Refresh grid display
                 if (reactGridRef.current?.slickGrid) {
                     reactGridRef.current.slickGrid.invalidate();
