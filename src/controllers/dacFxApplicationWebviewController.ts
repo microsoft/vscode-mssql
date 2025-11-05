@@ -242,12 +242,9 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
         this.onRequest(
             dacFxApplication.GetSuggestedDatabaseNameWebviewRequest.type,
             async (params: { filePath: string }) => {
-                // Extract filename without directory path
-                const fileName = path.basename(params.filePath);
-
                 // Remove file extension (.dacpac or .bacpac) to get the database name
                 // Keep the full filename including any timestamps that may be present
-                const databaseName = fileName.replace(/\.(dacpac|bacpac)$/i, "");
+                const databaseName = path.basename(params.filePath, path.extname(params.filePath));
 
                 return { databaseName };
             },
