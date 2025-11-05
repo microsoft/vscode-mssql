@@ -56,9 +56,12 @@ export class ScriptingService {
         private _objectExplorerTree: vscode.TreeView<TreeNodeInfo>,
     ) {
         this._client = this._connectionManager.client;
-
         this._logger = Logger.create(this._vscodeWrapper.outputChannel, "ObjectExplorerService");
 
+        this.initialize();
+    }
+
+    private initialize() {
         const pushDisposable = (disposable: vscode.Disposable): void => {
             if (this._context?.subscriptions) {
                 this._context.subscriptions.push(disposable);
@@ -127,6 +130,12 @@ export class ScriptingService {
             }
             this._onGoingScriptingOperations.delete(params.operationId);
 
+            /**
+             * Sometimes a progress notification reports an error, but the final completion
+             * event still returns an empty or partial script without any error.
+             * To ensure correctness, we treat any progress error as fatal and stop the operation,
+             * since it's better to show an error than an invalid script.
+             */
             defferedOperation.resolve({
                 script: undefined,
                 errorMessage: params.errorMessage,
