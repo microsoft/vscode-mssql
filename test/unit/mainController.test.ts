@@ -12,7 +12,6 @@ import * as Extension from "../../src/extension";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { TestExtensionContext } from "./stubs";
 import { activateExtension, stubExtensionContext, stubVscodeWrapper } from "./utils";
 import { IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
 import * as Constants from "../../src/constants/constants";
@@ -30,6 +29,7 @@ suite("MainController Tests", function () {
     let mainController: MainController;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let context: vscode.ExtensionContext;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
@@ -45,7 +45,7 @@ suite("MainController Tests", function () {
         (mainController.sqlDocumentService as any)["_connectionMgr"] = connectionManager;
 
         vscodeWrapper = stubVscodeWrapper(sandbox);
-        const context = stubExtensionContext(sandbox);
+        context = stubExtensionContext(sandbox);
 
         UserSurvey.createInstance(context, vscodeWrapper);
     });
@@ -62,7 +62,7 @@ suite("MainController Tests", function () {
             return undefined;
         });
         const controller: MainController = new MainController(
-            TestExtensionContext.object,
+            context,
             undefined, // ConnectionManager
             vscodeWrapper,
         );
@@ -80,7 +80,7 @@ suite("MainController Tests", function () {
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "test_uri");
         const controller: MainController = new MainController(
-            TestExtensionContext.object,
+            context,
             undefined, // ConnectionManager
             vscodeWrapper,
         );
@@ -98,7 +98,7 @@ suite("MainController Tests", function () {
         connectionManager.onManageProfiles.resolves();
 
         const controller: MainController = new MainController(
-            TestExtensionContext.object,
+            context,
             connectionManager,
             vscodeWrapper,
         );
@@ -352,11 +352,7 @@ suite("MainController Tests", function () {
     });
 
     test("ScriptNode", async () => {
-        const controller = new MainController(
-            TestExtensionContext.object,
-            connectionManager,
-            vscodeWrapper,
-        );
+        const controller = new MainController(context, connectionManager, vscodeWrapper);
 
         const testNode: TreeNodeInfo = {
             nodePath: "test/path",

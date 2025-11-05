@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
 import { IQuestion, IPrompter, IPromptCallback } from "../../src/prompts/question";
 import * as vscode from "vscode";
 
@@ -21,13 +20,13 @@ class TestPrompter implements IPrompter {
 }
 
 // Bare mock of the extension context for vscode
-const testExtensionContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
+// const testExtensionContext = sinon.createStubInstance(vscode.ExtensionContext);
 
-// Bare mock of a TextEditor for vscode
-const testTextEditor = TypeMoq.Mock.ofType<vscode.TextEditor>();
+// // Bare mock of a TextEditor for vscode
+// const testTextEditor = sinon.createStubInstance(vscode.TextEditor);
 
-// Bare mock of a memento object for vscode
-const testMemento = TypeMoq.Mock.ofType<vscode.Memento>();
+// // Bare mock of a memento object for vscode
+// const testMemento = sinon.createStubInstance(vscode.Memento);
 
 function createWorkspaceConfiguration(
     items: { [key: string]: any },
@@ -131,9 +130,9 @@ class ExpressRequest {
 
 export {
     TestPrompter,
-    testExtensionContext as TestExtensionContext,
-    testTextEditor as TestTextEditor,
-    testMemento as TestMemento,
+    // testExtensionContext as TestExtensionContext,
+    // testTextEditor as TestTextEditor,
+    // testMemento as TestMemento,
     createWorkspaceConfiguration,
     ExpressRequest,
     ExpressResult,
