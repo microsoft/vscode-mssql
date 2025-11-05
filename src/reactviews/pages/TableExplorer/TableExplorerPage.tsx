@@ -11,7 +11,7 @@ import {
     DesignerDefinitionPane,
     DesignerDefinitionTabs,
 } from "../../common/designerDefinitionPane";
-import { makeStyles, shorthands } from "@fluentui/react-components";
+import { makeStyles, shorthands, Spinner } from "@fluentui/react-components";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
@@ -42,10 +42,33 @@ const useStyles = makeStyles({
         ...shorthands.flex(1),
         ...shorthands.overflow("auto"),
         minHeight: 0,
+        position: "relative",
     },
     resizeHandle: {
         height: "2px",
         backgroundColor: "var(--vscode-editorWidget-border)",
+    },
+    loadingContainer: {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100%",
+        width: "100%",
+        flexDirection: "column",
+    },
+    loadingOverlay: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "var(--vscode-editor-background)",
+        opacity: 0.9,
+        zIndex: 1000,
+        flexDirection: "column",
     },
 });
 
@@ -76,50 +99,62 @@ export const TableExplorerPage: React.FC = () => {
 
     return (
         <div className={classes.root}>
-            <PanelGroup direction="vertical" className={classes.panelGroup}>
-                <Panel defaultSize={75}>
-                    <div className={classes.contentArea}>
-                        <TableExplorerToolbar
-                            onSaveComplete={handleSaveComplete}
-                            cellChangeCount={cellChangeCount}
-                        />
-                        {resultSet ? (
-                            <div className={classes.dataGridContainer}>
-                                <TableDataGrid
-                                    ref={gridRef}
-                                    resultSet={resultSet}
-                                    themeKind={themeKind}
-                                    pageSize={10}
-                                    currentRowCount={currentRowCount}
-                                    failedCells={failedCells}
-                                    onDeleteRow={context?.deleteRow}
-                                    onUpdateCell={context?.updateCell}
-                                    onRevertCell={context?.revertCell}
-                                    onRevertRow={context?.revertRow}
-                                    onLoadSubset={context?.loadSubset}
-                                    onCellChangeCountChanged={handleCellChangeCountChanged}
-                                />
-                            </div>
-                        ) : isLoading ? (
-                            <p>{loc.tableExplorer.loadingTableData}</p>
-                        ) : (
-                            <p>{loc.tableExplorer.noDataAvailable}</p>
-                        )}
-                    </div>
-                </Panel>
-                {showScriptPane && (
-                    <>
-                        <PanelResizeHandle className={classes.resizeHandle} />
-                        <DesignerDefinitionPane
-                            script={updateScript || `-- ${loc.tableExplorer.noPendingChanges}`}
-                            themeKind={themeKind}
-                            openInEditor={() => context.openScriptInEditor()}
-                            copyToClipboard={() => context.copyScriptToClipboard()}
-                            activeTab={DesignerDefinitionTabs.Script}
-                        />
-                    </>
-                )}
-            </PanelGroup>
+            {isLoading && !resultSet ? (
+                <div className={classes.loadingContainer}>
+                    <Spinner label={loc.tableExplorer.loadingTableData} labelPosition="below" />
+                </div>
+            ) : (
+                <PanelGroup direction="vertical" className={classes.panelGroup}>
+                    <Panel defaultSize={75}>
+                        <div className={classes.contentArea}>
+                            <TableExplorerToolbar
+                                onSaveComplete={handleSaveComplete}
+                                cellChangeCount={cellChangeCount}
+                            />
+                            {resultSet ? (
+                                <div className={classes.dataGridContainer}>
+                                    {isLoading && (
+                                        <div className={classes.loadingOverlay}>
+                                            <Spinner
+                                                label={loc.tableExplorer.loadingTableData}
+                                                labelPosition="below"
+                                            />
+                                        </div>
+                                    )}
+                                    <TableDataGrid
+                                        ref={gridRef}
+                                        resultSet={resultSet}
+                                        themeKind={themeKind}
+                                        pageSize={10}
+                                        currentRowCount={currentRowCount}
+                                        failedCells={failedCells}
+                                        onDeleteRow={context?.deleteRow}
+                                        onUpdateCell={context?.updateCell}
+                                        onRevertCell={context?.revertCell}
+                                        onRevertRow={context?.revertRow}
+                                        onLoadSubset={context?.loadSubset}
+                                        onCellChangeCountChanged={handleCellChangeCountChanged}
+                                    />
+                                </div>
+                            ) : (
+                                <p>{loc.tableExplorer.noDataAvailable}</p>
+                            )}
+                        </div>
+                    </Panel>
+                    {showScriptPane && (
+                        <>
+                            <PanelResizeHandle className={classes.resizeHandle} />
+                            <DesignerDefinitionPane
+                                script={updateScript || `-- ${loc.tableExplorer.noPendingChanges}`}
+                                themeKind={themeKind}
+                                openInEditor={() => context.openScriptInEditor()}
+                                copyToClipboard={() => context.copyScriptToClipboard()}
+                                activeTab={DesignerDefinitionTabs.Script}
+                            />
+                        </>
+                    )}
+                </PanelGroup>
+            )}
         </div>
     );
 };

@@ -53,7 +53,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 serverName: serverName,
                 connectionProfile: _targetNode?.connectionProfile,
                 schemaName: schemaName,
-                isLoading: false,
+                isLoading: true,
                 ownerUri: "",
                 resultSet: undefined,
                 currentRowCount: 100, // Default row count for data loading
@@ -135,9 +135,11 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         try {
             const schemaName = this.state.schemaName;
             const objectName = this.state.tableName;
+            // Use operationId to make ownerUri unique for each Table Explorer instance
+            // This allows multiple instances to be opened for the same table
             const ownerUri = schemaName
-                ? `untitled:${schemaName}.${objectName}`
-                : `untitled:${objectName}`;
+                ? `untitled:${schemaName}.${objectName}_${this.operationId}`
+                : `untitled:${objectName}_${this.operationId}`;
 
             const objectType = this._targetNode.metadata.metadataTypeName.toUpperCase();
 
@@ -177,6 +179,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             this.logger.error(
                 `Error initializing table explorer: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
             );
+            this.state.isLoading = false;
+            this.updateState();
+
             endActivity.endFailed(
                 new Error(`Failed to initialize table explorer: ${getErrorMessage(error)}`),
                 true,
@@ -196,6 +201,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         return (result: EditSessionReadyParams): void => {
             if (result.success) {
                 self.state.ownerUri = result.ownerUri;
+                self.state.isLoading = true;
                 self.updateState();
 
                 void self.loadResultSet();
@@ -206,6 +212,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     private async loadResultSet(): Promise<void> {
         const subsetResult = await this._tableExplorerService.subset(this.state.ownerUri, 0, 100);
         this.state.resultSet = subsetResult;
+        this.state.isLoading = false;
 
         this.updateState();
     }
@@ -314,6 +321,10 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 },
             );
 
+            // Set loading state before fetching data
+            state.isLoading = true;
+            this.updateState();
+
             try {
                 const subsetResult = await this._tableExplorerService.subset(
                     state.ownerUri,
@@ -338,6 +349,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 state.currentRowCount = payload.rowCount;
+                state.isLoading = false;
 
                 this.updateState();
 
@@ -347,6 +359,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     rowsLoaded: subsetResult.rowCount.toString(),
                 });
             } catch (error) {
+                state.isLoading = false;
+
                 this.logger.error(
                     `Error loading subset: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );

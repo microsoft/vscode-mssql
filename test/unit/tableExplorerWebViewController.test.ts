@@ -218,6 +218,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
             controller.state.newRows = [];
+            controller.state.isLoading = false;
             const mockResult = createMockSubsetResult(5);
             mockTableExplorerService.subset.resolves(mockResult);
             mockTableExplorerService.subset.resetHistory(); // Reset call history from initialization
@@ -232,6 +233,38 @@ suite("TableExplorerWebViewController - Reducers", () => {
             sinon.assert.calledWith(mockTableExplorerService.subset, "test-owner-uri", 0, 100);
             assert.strictEqual(controller.state.currentRowCount, 100);
             assert.strictEqual(controller.state.resultSet?.rowCount, 2);
+            assert.strictEqual(
+                controller.state.isLoading,
+                false,
+                "isLoading should be false after successful load",
+            );
+        });
+
+        test("should set isLoading to true before loading and false after", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [];
+            controller.state.isLoading = false;
+            const mockResult = createMockSubsetResult(2);
+
+            let isLoadingDuringFetch = false;
+            mockTableExplorerService.subset.callsFake(async () => {
+                isLoadingDuringFetch = controller.state.isLoading;
+                return mockResult;
+            });
+
+            // Act
+            await controller["_reducerHandlers"].get("loadSubset")(controller.state, {
+                rowCount: 50,
+            });
+
+            // Assert
+            assert.strictEqual(isLoadingDuringFetch, true, "isLoading should be true during fetch");
+            assert.strictEqual(
+                controller.state.isLoading,
+                false,
+                "isLoading should be false after fetch completes",
+            );
         });
 
         test("should append newRows to subset result", async () => {
@@ -256,6 +289,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
         test("should show error message when loadSubset fails", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
+            controller.state.isLoading = false;
             const error = new Error("Load failed");
             mockTableExplorerService.subset.rejects(error);
 
@@ -267,6 +301,11 @@ suite("TableExplorerWebViewController - Reducers", () => {
             // Assert
             assert.ok(showErrorMessageStub.calledOnce);
             assert.ok(showErrorMessageStub.firstCall.args[0].includes("Failed to load data"));
+            assert.strictEqual(
+                controller.state.isLoading,
+                false,
+                "isLoading should be false after error",
+            );
         });
     });
 
