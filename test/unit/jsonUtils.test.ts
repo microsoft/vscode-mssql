@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { isJson, IsJsonRegex } from "../../src/reactviews/common/jsonUtils";
+import { isJson } from "../../src/reactviews/common/jsonUtils";
 import { expect } from "@playwright/test";
 
 suite("isJsonCell Tests", () => {
@@ -138,56 +138,6 @@ suite("isJsonCell Tests", () => {
         test("Should return false for empty string", () => {
             const value = "";
             expect(isJson(value), "Empty string should return false").toBe(false);
-        });
-    });
-
-    suite("Regex validation", () => {
-        test("IsJsonRegex should match empty object", () => {
-            expect("{}".match(IsJsonRegex), "Empty object should match regex").toBeTruthy();
-        });
-
-        test("IsJsonRegex should match empty array", () => {
-            expect("[]".match(IsJsonRegex), "Empty array should match regex").toBeTruthy();
-        });
-
-        test("IsJsonRegex should match object with whitespace", () => {
-            expect(
-                "  { }  ".match(IsJsonRegex),
-                "Object with whitespace should match regex",
-            ).toBeTruthy();
-        });
-
-        test("IsJsonRegex should match array with whitespace", () => {
-            expect(
-                "  [ ]  ".match(IsJsonRegex),
-                "Array with whitespace should match regex",
-            ).toBeTruthy();
-        });
-
-        test("IsJsonRegex should not match plain string", () => {
-            expect(
-                !"hello world".match(IsJsonRegex),
-                "Plain string should not match regex",
-            ).toBeTruthy();
-        });
-
-        test("IsJsonRegex should not match quoted string", () => {
-            expect(
-                !'"hello world"'.match(IsJsonRegex),
-                "Quoted string should not match regex",
-            ).toBeTruthy();
-        });
-
-        test("IsJsonRegex should not match number", () => {
-            expect(!"123".match(IsJsonRegex), "Number should not match regex").toBeTruthy();
-        });
-
-        test("IsJsonRegex should match complex nested structure", () => {
-            const complexJson = '{"a": [1, {"b": []}]}';
-            expect(
-                complexJson.match(IsJsonRegex),
-                "Complex nested structure should match regex",
-            ).toBeTruthy();
         });
     });
 });

@@ -360,10 +360,6 @@ function getColumnFormatter(columnInfo: qr.IDbColumn): (
     };
 }
 
-function isJsonCell(value: qr.DbCellValue): boolean {
-    return !!(value && !value.isNull && value.displayValue?.match(IsJsonRegex));
-}
-
 function isXmlCell(value: DBCellValue, log?: LogCallback): boolean {
     let isXML = false;
     try {

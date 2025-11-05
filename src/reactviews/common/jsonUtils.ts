@@ -3,11 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/**
- * Regular expression to match JSON objects and arrays
- * Matches strings that start with { or [ and end with } or ] respectively
+/*
+ * Determines if a string value has the shape of a JSON object or array
+ * @param value - string value to check
+ * @returns true if the value has the shape of a JSON object or array, false otherwise
  */
-export const IsJsonRegex = /^\s*(\{[\S\s]*\}|\[[\S\s]*\])\s*$/;
+function isJsonShape(value: string): boolean {
+    const trimmedValue = value?.trim();
+    return (
+        !!trimmedValue &&
+        ((trimmedValue.startsWith("{") && trimmedValue.endsWith("}")) ||
+            (trimmedValue.startsWith("[") && trimmedValue.endsWith("]")))
+    );
+}
 
 /**
  * Determines if a string value contains valid JSON data
@@ -16,7 +24,7 @@ export const IsJsonRegex = /^\s*(\{[\S\s]*\}|\[[\S\s]*\])\s*$/;
  * @returns true if the value contains valid JSON, false otherwise
  */
 export function isJson(value: string): boolean {
-    if (value?.match(IsJsonRegex)) {
+    if (isJsonShape(value)) {
         try {
             JSON.parse(value);
             return true;
