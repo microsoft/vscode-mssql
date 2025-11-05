@@ -75,6 +75,9 @@ export interface PublishDialogState
     waitingForNewConnection?: boolean;
     connectionString?: string;
     formMessage?: DialogMessageSpec;
+    defaultDeploymentOptions?: mssql.DeploymentOptions;
+    previousDatabaseList?: { displayName: string; value: string }[];
+    previousSelectedDatabase?: string;
 }
 
 /**
@@ -99,11 +102,11 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
         publishProfilePath?: string;
     };
     generatePublishScript: {};
-    openPublishAdvanced: {};
     selectPublishProfile: {};
     savePublishProfile: { publishProfileName: string };
     openConnectionDialog: {};
     closeMessage: {};
+    updateDeploymentOptions: { deploymentOptions: mssql.DeploymentOptions };
 }
 
 /**
@@ -124,4 +127,5 @@ export interface PublishProjectProvider {
     savePublishProfile(publishProfileName: string): void;
     openConnectionDialog(): void;
     closeMessage(): void;
+    updateDeploymentOptions(deploymentOptions: mssql.DeploymentOptions): void;
 }

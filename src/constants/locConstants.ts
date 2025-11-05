@@ -1353,7 +1353,12 @@ export class PublishProject {
         return l10n.t("Publish profile saved to: {0}", path);
     };
     public static PublishProfileSaveFailed = l10n.t("Failed to save publish profile");
-    public static DacFxServiceNotAvailable = l10n.t("DacFx service is not available");
+    public static DacFxServiceNotAvailable = l10n.t(
+        "DacFx service is not available. Publish and generate script operations cannot be performed.",
+    );
+    public static DacFxServiceNotAvailableProfileLoaded = l10n.t(
+        "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
+    );
     public static FailedToListDatabases = l10n.t("Failed to list databases");
 }
 
