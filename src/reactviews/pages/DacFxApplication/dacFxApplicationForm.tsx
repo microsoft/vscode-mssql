@@ -3,20 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    Button,
-    Dropdown,
-    Field,
-    Input,
-    Label,
-    makeStyles,
-    Option,
-    Radio,
-    RadioGroup,
-    Spinner,
-    tokens,
-} from "@fluentui/react-components";
-import { FolderOpen20Regular, DatabaseArrowRight20Regular } from "@fluentui/react-icons";
+import { Button, makeStyles, tokens } from "@fluentui/react-components";
+import { DatabaseArrowRight20Regular } from "@fluentui/react-icons";
 import { useState, useEffect, useContext } from "react";
 import {
     BrowseInputFileWebviewRequest,
@@ -40,6 +28,12 @@ import {
 import { DacFxApplicationContext } from "./dacFxApplicationStateProvider";
 import { useDacFxApplicationSelector } from "./dacFxApplicationSelector";
 import { locConstants } from "../../common/locConstants";
+import { TargetDatabaseSection } from "./TargetDatabaseSection";
+import { SourceDatabaseSection } from "./SourceDatabaseSection";
+import { ApplicationInfoSection } from "./ApplicationInfoSection";
+import { OperationTypeSection } from "./OperationTypeSection";
+import { ServerSelectionSection } from "./ServerSelectionSection";
+import { FilePathSection } from "./FilePathSection";
 
 /**
  * Validation message with severity level
@@ -80,24 +74,6 @@ const useStyles = makeStyles({
         color: tokens.colorNeutralForeground2,
         marginBottom: "16px",
     },
-    section: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "12px",
-    },
-    fileInputGroup: {
-        display: "flex",
-        gap: "8px",
-        alignItems: "flex-end",
-    },
-    fileInput: {
-        flexGrow: 1,
-    },
-    radioGroup: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "8px",
-    },
     actions: {
         display: "flex",
         gap: "8px",
@@ -105,17 +81,6 @@ const useStyles = makeStyles({
         marginTop: "16px",
         paddingTop: "16px",
         borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
-    },
-    progressContainer: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "8px",
-        padding: "12px",
-        backgroundColor: tokens.colorNeutralBackground3,
-        borderRadius: tokens.borderRadiusMedium,
-    },
-    warningMessage: {
-        marginTop: "8px",
     },
 });
 
@@ -753,310 +718,72 @@ export const DacFxApplicationForm = () => {
                     </div>
                 </div>
 
-                <div className={classes.section}>
-                    <Field label={locConstants.dacFxApplication.operationLabel} required>
-                        <RadioGroup
-                            value={operationType}
-                            onChange={(_, data) => {
-                                setOperationType(data.value as DacFxOperationType);
-                                setValidationMessages({});
-                                // Reset file path when switching operation types
-                                // Import/Deploy need empty (browse for existing file)
-                                // Export/Extract will be set when database name changes
-                                setFilePath("");
-                            }}
-                            disabled={isOperationInProgress}
-                            aria-label={locConstants.dacFxApplication.operationLabel}>
-                            <Radio
-                                value={DacFxOperationType.Deploy}
-                                label={
-                                    locConstants.dacFxApplication.deployDescription +
-                                    " (" +
-                                    locConstants.dacFxApplication.deployDacpac +
-                                    ")"
-                                }
-                                aria-label={locConstants.dacFxApplication.deployDacpac}
-                            />
-                            <Radio
-                                value={DacFxOperationType.Extract}
-                                label={
-                                    locConstants.dacFxApplication.extractDescription +
-                                    " (" +
-                                    locConstants.dacFxApplication.extractDacpac +
-                                    ")"
-                                }
-                                aria-label={locConstants.dacFxApplication.extractDacpac}
-                            />
-                            <Radio
-                                value={DacFxOperationType.Import}
-                                label={
-                                    locConstants.dacFxApplication.importDescription +
-                                    " (" +
-                                    locConstants.dacFxApplication.importBacpac +
-                                    ")"
-                                }
-                                aria-label={locConstants.dacFxApplication.importBacpac}
-                            />
-                            <Radio
-                                value={DacFxOperationType.Export}
-                                label={
-                                    locConstants.dacFxApplication.exportDescription +
-                                    " (" +
-                                    locConstants.dacFxApplication.exportBacpac +
-                                    ")"
-                                }
-                                aria-label={locConstants.dacFxApplication.exportBacpac}
-                            />
-                        </RadioGroup>
-                    </Field>
-                </div>
+                <OperationTypeSection
+                    operationType={operationType}
+                    setOperationType={setOperationType}
+                    isOperationInProgress={isOperationInProgress}
+                    onOperationTypeChange={() => {
+                        setValidationMessages({});
+                        // Reset file path when switching operation types
+                        // Import/Deploy need empty (browse for existing file)
+                        // Export/Extract will be set when database name changes
+                        setFilePath("");
+                    }}
+                />
 
-                <div className={classes.section}>
-                    <Field
-                        label={locConstants.dacFxApplication.serverLabel}
-                        required
-                        validationMessage={validationMessages.connection?.message}
-                        validationState={
-                            validationMessages.connection?.severity === "error" ? "error" : "none"
-                        }>
-                        {isConnecting ? (
-                            <Spinner
-                                size="tiny"
-                                label={locConstants.dacFxApplication.connectingToServer}
-                            />
-                        ) : (
-                            <Dropdown
-                                placeholder={locConstants.dacFxApplication.selectServer}
-                                value={
-                                    selectedProfileId
-                                        ? availableConnections.find(
-                                              (conn) => conn.profileId === selectedProfileId,
-                                          )?.displayName || ""
-                                        : ""
-                                }
-                                selectedOptions={selectedProfileId ? [selectedProfileId] : []}
-                                onOptionSelect={(_, data) => {
-                                    void handleServerChange(data.optionValue as string);
-                                }}
-                                disabled={
-                                    isOperationInProgress || availableConnections.length === 0
-                                }
-                                aria-label={locConstants.dacFxApplication.serverLabel}>
-                                {availableConnections.length === 0 ? (
-                                    <Option value="" disabled text="">
-                                        {locConstants.dacFxApplication.noConnectionsAvailable}
-                                    </Option>
-                                ) : (
-                                    availableConnections.map((conn) => (
-                                        <Option
-                                            key={conn.profileId}
-                                            value={conn.profileId}
-                                            text={`${conn.displayName}${conn.isConnected ? " ●" : ""}`}>
-                                            {conn.displayName}
-                                            {conn.isConnected && " ●"}
-                                        </Option>
-                                    ))
-                                )}
-                            </Dropdown>
-                        )}
-                    </Field>
-                </div>
+                <ServerSelectionSection
+                    selectedProfileId={selectedProfileId}
+                    availableConnections={availableConnections}
+                    isConnecting={isConnecting}
+                    isOperationInProgress={isOperationInProgress}
+                    validationMessages={validationMessages}
+                    onServerChange={(profileId) => void handleServerChange(profileId)}
+                />
 
-                <div className={classes.section}>
-                    <Field
-                        label={
-                            requiresInputFile
-                                ? locConstants.dacFxApplication.packageFileLabel
-                                : locConstants.dacFxApplication.outputFileLabel
-                        }
-                        required
-                        validationMessage={validationMessages.filePath?.message}
-                        validationState={
-                            validationMessages.filePath
-                                ? validationMessages.filePath.severity === "error"
-                                    ? "error"
-                                    : "warning"
-                                : "none"
-                        }>
-                        <div className={classes.fileInputGroup}>
-                            <Input
-                                className={classes.fileInput}
-                                value={filePath}
-                                onChange={(_, data) => handleFilePathChange(data.value)}
-                                placeholder={
-                                    requiresInputFile
-                                        ? locConstants.dacFxApplication.selectPackageFile
-                                        : locConstants.dacFxApplication.selectOutputFile
-                                }
-                                disabled={isOperationInProgress}
-                                aria-label={
-                                    requiresInputFile
-                                        ? locConstants.dacFxApplication.packageFileLabel
-                                        : locConstants.dacFxApplication.outputFileLabel
-                                }
-                            />
-                            <Button
-                                icon={<FolderOpen20Regular />}
-                                appearance="secondary"
-                                onClick={handleBrowseFile}
-                                disabled={isOperationInProgress}
-                                aria-label={locConstants.dacFxApplication.browse}>
-                                {locConstants.dacFxApplication.browse}
-                            </Button>
-                        </div>
-                    </Field>
-                </div>
+                <FilePathSection
+                    filePath={filePath}
+                    setFilePath={setFilePath}
+                    requiresInputFile={requiresInputFile}
+                    isOperationInProgress={isOperationInProgress}
+                    validationMessages={validationMessages}
+                    onBrowseFile={handleBrowseFile}
+                    onFilePathChange={handleFilePathChange}
+                />
 
                 {showDatabaseTarget && (
-                    <div className={classes.section}>
-                        <Label>{locConstants.dacFxApplication.targetDatabaseLabel}</Label>
-                        <RadioGroup
-                            value={isNewDatabase ? "new" : "existing"}
-                            onChange={(_, data) => setIsNewDatabase(data.value === "new")}
-                            className={classes.radioGroup}
-                            aria-label={locConstants.dacFxApplication.targetDatabaseLabel}>
-                            <Radio
-                                value="new"
-                                label={locConstants.dacFxApplication.newDatabase}
-                                disabled={isOperationInProgress}
-                                aria-label={locConstants.dacFxApplication.newDatabase}
-                            />
-                            <Radio
-                                value="existing"
-                                label={locConstants.dacFxApplication.existingDatabase}
-                                disabled={isOperationInProgress}
-                                aria-label={locConstants.dacFxApplication.existingDatabase}
-                            />
-                        </RadioGroup>
-
-                        {isNewDatabase ? (
-                            <Field
-                                label={locConstants.dacFxApplication.databaseNameLabel}
-                                required
-                                validationMessage={validationMessages.databaseName?.message}
-                                validationState={
-                                    validationMessages.databaseName?.severity === "error"
-                                        ? "error"
-                                        : "none"
-                                }>
-                                <Input
-                                    value={databaseName}
-                                    onChange={(_, data) => setDatabaseName(data.value)}
-                                    placeholder={locConstants.dacFxApplication.enterDatabaseName}
-                                    disabled={isOperationInProgress}
-                                    aria-label={locConstants.dacFxApplication.databaseNameLabel}
-                                />
-                            </Field>
-                        ) : (
-                            <Field
-                                label={locConstants.dacFxApplication.databaseNameLabel}
-                                required
-                                validationMessage={
-                                    validationMessages.databaseName?.message ||
-                                    validationMessages.database?.message
-                                }
-                                validationState={
-                                    validationMessages.databaseName?.severity === "error" ||
-                                    validationMessages.database?.severity === "error"
-                                        ? "error"
-                                        : "none"
-                                }>
-                                <Dropdown
-                                    placeholder={locConstants.dacFxApplication.selectDatabase}
-                                    value={databaseName}
-                                    selectedOptions={[databaseName]}
-                                    onOptionSelect={(_, data) =>
-                                        setDatabaseName(data.optionText || "")
-                                    }
-                                    disabled={isOperationInProgress || !ownerUri}
-                                    aria-label={locConstants.dacFxApplication.databaseNameLabel}>
-                                    {availableDatabases.map((db) => (
-                                        <Option key={db} value={db}>
-                                            {db}
-                                        </Option>
-                                    ))}
-                                </Dropdown>
-                            </Field>
-                        )}
-                    </div>
+                    <TargetDatabaseSection
+                        databaseName={databaseName}
+                        setDatabaseName={setDatabaseName}
+                        isNewDatabase={isNewDatabase}
+                        setIsNewDatabase={setIsNewDatabase}
+                        availableDatabases={availableDatabases}
+                        isOperationInProgress={isOperationInProgress}
+                        ownerUri={ownerUri}
+                        validationMessages={validationMessages}
+                    />
                 )}
 
                 {(showDatabaseSource || showNewDatabase) && (
-                    <div className={classes.section}>
-                        {showDatabaseSource ? (
-                            <Field
-                                label={locConstants.dacFxApplication.sourceDatabaseLabel}
-                                required
-                                validationMessage={
-                                    validationMessages.databaseName?.message ||
-                                    validationMessages.database?.message
-                                }
-                                validationState={
-                                    validationMessages.databaseName?.severity === "error" ||
-                                    validationMessages.database?.severity === "error"
-                                        ? "error"
-                                        : "none"
-                                }>
-                                <Dropdown
-                                    placeholder={locConstants.dacFxApplication.selectDatabase}
-                                    value={databaseName}
-                                    selectedOptions={[databaseName]}
-                                    onOptionSelect={(_, data) =>
-                                        setDatabaseName(data.optionText || "")
-                                    }
-                                    disabled={isOperationInProgress || !ownerUri}
-                                    aria-label={locConstants.dacFxApplication.sourceDatabaseLabel}>
-                                    {availableDatabases.map((db) => (
-                                        <Option key={db} value={db}>
-                                            {db}
-                                        </Option>
-                                    ))}
-                                </Dropdown>
-                            </Field>
-                        ) : (
-                            <Field
-                                label={locConstants.dacFxApplication.databaseNameLabel}
-                                required
-                                validationMessage={validationMessages.databaseName?.message}
-                                validationState={
-                                    validationMessages.databaseName?.severity === "error"
-                                        ? "error"
-                                        : "none"
-                                }>
-                                <Input
-                                    value={databaseName}
-                                    onChange={(_, data) => setDatabaseName(data.value)}
-                                    placeholder={locConstants.dacFxApplication.enterDatabaseName}
-                                    disabled={isOperationInProgress}
-                                    aria-label={locConstants.dacFxApplication.databaseNameLabel}
-                                />
-                            </Field>
-                        )}
-                    </div>
+                    <SourceDatabaseSection
+                        databaseName={databaseName}
+                        setDatabaseName={setDatabaseName}
+                        availableDatabases={availableDatabases}
+                        isOperationInProgress={isOperationInProgress}
+                        ownerUri={ownerUri}
+                        validationMessages={validationMessages}
+                        showDatabaseSource={showDatabaseSource}
+                        showNewDatabase={showNewDatabase}
+                    />
                 )}
 
                 {showApplicationInfo && (
-                    <div className={classes.section}>
-                        <Field label={locConstants.dacFxApplication.applicationNameLabel}>
-                            <Input
-                                value={applicationName}
-                                onChange={(_, data) => setApplicationName(data.value)}
-                                placeholder={locConstants.dacFxApplication.enterApplicationName}
-                                disabled={isOperationInProgress}
-                                aria-label={locConstants.dacFxApplication.applicationNameLabel}
-                            />
-                        </Field>
-
-                        <Field label={locConstants.dacFxApplication.applicationVersionLabel}>
-                            <Input
-                                value={applicationVersion}
-                                onChange={(_, data) => setApplicationVersion(data.value)}
-                                placeholder={DEFAULT_APPLICATION_VERSION}
-                                disabled={isOperationInProgress}
-                                aria-label={locConstants.dacFxApplication.applicationVersionLabel}
-                            />
-                        </Field>
-                    </div>
+                    <ApplicationInfoSection
+                        applicationName={applicationName}
+                        setApplicationName={setApplicationName}
+                        applicationVersion={applicationVersion}
+                        setApplicationVersion={setApplicationVersion}
+                        isOperationInProgress={isOperationInProgress}
+                    />
                 )}
 
                 <div className={classes.actions}>
