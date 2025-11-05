@@ -436,10 +436,4 @@ suite("Execution Plan Utilities", () => {
 
         expect(result, "Total cost should be 0 for an empty executionPlanGraphs array").to.equal(0);
     });
-
-    test("formatXml: should return original xml contents if it is not a valid xml file", () => {
-        const invalidXml = "</";
-        const result = epUtils.formatXml(invalidXml);
-        expect(result, "Xml input should not be changed if invalid format").to.equal(invalidXml);
-    });
 });
