@@ -172,7 +172,8 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
                     canSelectMany: false,
                     openLabel: LocConstants.DacFxApplication.Select,
                     filters: {
-                        [`${params.fileExtension.toUpperCase()} Files`]: [params.fileExtension],
+                        [`${params.fileExtension.toUpperCase()} ${LocConstants.DacFxApplication.Files}`]:
+                            [params.fileExtension],
                     },
                 });
 
@@ -199,7 +200,8 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
                     defaultUri: defaultUri,
                     saveLabel: LocConstants.DacFxApplication.Save,
                     filters: {
-                        [`${params.fileExtension.toUpperCase()} Files`]: [params.fileExtension],
+                        [`${params.fileExtension.toUpperCase()} ${LocConstants.DacFxApplication.Files}`]:
+                            [params.fileExtension],
                     },
                 });
 

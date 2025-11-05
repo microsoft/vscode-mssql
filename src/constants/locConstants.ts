@@ -2104,4 +2104,5 @@ export class DacFxApplication {
     public static Cancel = l10n.t("Cancel");
     public static Select = l10n.t("Select");
     public static Save = l10n.t("Save");
+    public static Files = l10n.t("Files");
 }
