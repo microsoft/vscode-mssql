@@ -554,7 +554,7 @@ export abstract class ReactWebviewBaseController<State, Reducers> implements vsc
     private readKeyBindingsConfig(): Record<string, string> {
         return vscode.workspace
             .getConfiguration()
-            .get<Record<string, string>>(Constants.configShortcuts);
+            ?.get<Record<string, string>>(Constants.configShortcuts);
     }
 }
 
