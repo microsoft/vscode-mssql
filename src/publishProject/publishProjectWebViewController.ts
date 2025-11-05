@@ -133,7 +133,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
     }
 
     /**
-     * Executes publish or generate script operation with progress notifications
+     * Executes publish or generate script operation with notifications
      * @param state Current dialog state
      * @param isPublish If true, publishes to database; if false, generates script
      */
@@ -141,97 +141,87 @@ export class PublishProjectWebViewController extends FormWebviewController<
         state: PublishDialogState,
         isPublish: boolean,
     ): Promise<void> {
-        const operationName = isPublish ? "Publishing" : "Generating script for";
         const databaseName = state.formState.databaseName;
 
         try {
-            // Show progress notification
-            await vscode.window.withProgress(
+            // Build the project first (shows its own progress notification)
+            const dacpacPath = await this._projectController.buildProject(state.projectFilePath!);
+            if (!dacpacPath) {
+                // Build failed - error already shown by buildProject
+                return;
+            }
+
+            // Get settings from form state
+            const connectionUri = state.connectionUri || "";
+            const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
+
+            // Determine if database already exists
+            let upgradeExisting = true;
+            if (state.formState.publishTarget === PublishTarget.ExistingServer && connectionUri) {
+                const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
+                if (databaseComponent?.options) {
+                    upgradeExisting = databaseComponent.options.some(
+                        (option) => option.value === databaseName,
+                    );
+                }
+            } else if (state.formState.publishTarget === PublishTarget.LocalContainer) {
+                upgradeExisting = false;
+            }
+
+            // Send telemetry
+            sendActionEvent(
+                TelemetryViews.SqlProjects,
+                isPublish
+                    ? TelemetryActions.PublishProjectChanges
+                    : TelemetryActions.GenerateScript,
                 {
-                    location: vscode.ProgressLocation.Notification,
-                    title: `${operationName} project to database '${databaseName}'...`,
-                    cancellable: false,
-                },
-                async () => {
-                    // Build the project first
-                    const dacpacPath = await this._projectController.buildProject(
-                        state.projectFilePath!,
-                    );
-                    if (!dacpacPath) {
-                        throw new Error("Failed to build project");
-                    }
-
-                    // Get settings from form state
-                    const connectionUri = state.connectionUri || "";
-                    const sqlCmdVariables = new Map(
-                        Object.entries(state.formState.sqlCmdVariables || {}),
-                    );
-
-                    // Determine if database already exists
-                    let upgradeExisting = true;
-                    if (
-                        state.formState.publishTarget === PublishTarget.ExistingServer &&
-                        connectionUri
-                    ) {
-                        const databaseComponent =
-                            this.state.formComponents[PublishFormFields.DatabaseName];
-                        if (databaseComponent?.options) {
-                            upgradeExisting = databaseComponent.options.some(
-                                (option) => option.value === databaseName,
-                            );
-                        }
-                    } else if (state.formState.publishTarget === PublishTarget.LocalContainer) {
-                        upgradeExisting = false;
-                    }
-
-                    // Send telemetry
-                    sendActionEvent(
-                        TelemetryViews.SqlProjects,
-                        isPublish
-                            ? TelemetryActions.PublishProjectChanges
-                            : TelemetryActions.GenerateScript,
-                        {
-                            projectFilePath: state.projectFilePath!,
-                            publishTarget: state.formState.publishTarget || "",
-                            upgradeExisting: upgradeExisting.toString(),
-                        },
-                    );
-
-                    // Execute the operation
-                    let result: mssql.DacFxResult;
-                    if (isPublish) {
-                        result = await this._dacFxService!.deployDacpac(
-                            dacpacPath,
-                            databaseName,
-                            upgradeExisting,
-                            connectionUri,
-                            TaskExecutionMode.execute,
-                            sqlCmdVariables,
-                            state.deploymentOptions,
-                        );
-                    } else {
-                        result = await this._dacFxService!.generateDeployScript(
-                            dacpacPath,
-                            databaseName,
-                            connectionUri,
-                            TaskExecutionMode.script,
-                            sqlCmdVariables,
-                            state.deploymentOptions,
-                        );
-                    }
-
-                    // Check result
-                    if (!result.success) {
-                        throw new Error(result.errorMessage || "Operation failed");
-                    }
+                    projectFilePath: state.projectFilePath!,
+                    publishTarget: state.formState.publishTarget || "",
+                    upgradeExisting: upgradeExisting.toString(),
                 },
             );
 
-            // Show success notification only for publish (script generation opens the file automatically)
+            // Execute the operation (DacFx shows its own progress notification)
+            let result: mssql.DacFxResult;
             if (isPublish) {
-                void vscode.window.showInformationMessage(
-                    `Successfully published project to database '${databaseName}'`,
+                result = await this._dacFxService!.deployDacpac(
+                    dacpacPath,
+                    databaseName,
+                    upgradeExisting,
+                    connectionUri,
+                    TaskExecutionMode.execute,
+                    sqlCmdVariables,
+                    state.deploymentOptions,
                 );
+            } else {
+                result = await this._dacFxService!.generateDeployScript(
+                    dacpacPath,
+                    databaseName,
+                    connectionUri,
+                    TaskExecutionMode.script,
+                    sqlCmdVariables,
+                    state.deploymentOptions,
+                );
+            }
+
+            // Check result and send telemetry
+            if (result.success) {
+                // Send success telemetry with database name
+                sendActionEvent(
+                    TelemetryViews.SqlProjects,
+                    isPublish
+                        ? TelemetryActions.PublishProjectChanges
+                        : TelemetryActions.GenerateScript,
+                    {
+                        databaseName: databaseName,
+                        success: "true",
+                    },
+                );
+            } else {
+                // Operation failed - show error message from STS
+                if (result.errorMessage) {
+                    void vscode.window.showErrorMessage(result.errorMessage);
+                }
             }
         } catch (error) {
             // Send error telemetry

@@ -659,4 +659,103 @@ suite("PublishProjectWebViewController Tests", () => {
         ).to.be.true;
     });
     //#endregion
+
+    //#region Generate Script Tests
+    test("generatePublishScript reducer closes dialog and triggers script generation", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Set up state with all required fields for script generation
+        controller.state.formState.serverName = "localhost";
+        controller.state.formState.databaseName = "TestDatabase";
+        controller.state.connectionUri = "mssql://test-connection-uri";
+        controller.state.projectFilePath = "c:/work/TestProject.sqlproj";
+
+        // Mock the panel dispose method using sandbox stub
+        const panelDisposeSpy = sandbox.stub();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (controller as any).panel = {
+            dispose: panelDisposeSpy,
+        };
+
+        // Spy on executePublishWithNotifications to verify it's called
+        const executePublishSpy = sandbox.stub(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            controller as any,
+            "executePublishWithNotifications",
+        );
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const generatePublishScript = reducerHandlers.get("generatePublishScript");
+        expect(generatePublishScript, "generatePublishScript reducer should be registered").to
+            .exist;
+
+        // Invoke the reducer
+        await generatePublishScript(controller.state, {});
+
+        // Verify dialog was closed
+        expect(
+            panelDisposeSpy.calledOnce,
+            "Panel dispose should be called once when generating script",
+        ).to.be.true;
+
+        // Verify executePublishWithNotifications was called with isPublish=false
+        expect(
+            executePublishSpy.calledOnce,
+            "executePublishWithNotifications should be called once when generating script",
+        ).to.be.true;
+        expect(
+            executePublishSpy.firstCall.args[1],
+            "isPublish parameter should be false for script generation",
+        ).to.be.false;
+    });
+    //#endregion
+
+    //#region Publish Tests
+    test("publishNow reducer closes dialog and triggers publish", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Set up state with all required fields for publish
+        controller.state.formState.serverName = "localhost";
+        controller.state.formState.databaseName = "TestDatabase";
+        controller.state.connectionUri = "mssql://test-connection-uri";
+        controller.state.projectFilePath = "c:/work/TestProject.sqlproj";
+
+        // Mock the panel dispose method using sandbox stub
+        const panelDisposeSpy = sandbox.stub();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (controller as any).panel = {
+            dispose: panelDisposeSpy,
+        };
+
+        // Spy on executePublishWithNotifications to verify it's called
+        const executePublishSpy = sandbox.stub(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            controller as any,
+            "executePublishWithNotifications",
+        );
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const publishNow = reducerHandlers.get("publishNow");
+        expect(publishNow, "publishNow reducer should be registered").to.exist;
+
+        // Invoke the reducer
+        await publishNow(controller.state, {});
+
+        // Verify dialog was closed
+        expect(panelDisposeSpy.calledOnce, "Panel dispose should be called once when publishing").to
+            .be.true;
+
+        // Verify executePublishWithNotifications was called with isPublish=true
+        expect(
+            executePublishSpy.calledOnce,
+            "executePublishWithNotifications should be called once when publishing",
+        ).to.be.true;
+        expect(
+            executePublishSpy.firstCall.args[1],
+            "isPublish parameter should be true for publish",
+        ).to.be.true;
+    });
+    //#endregion
 });
