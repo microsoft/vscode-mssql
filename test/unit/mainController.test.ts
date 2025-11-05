@@ -5,7 +5,7 @@
 
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
-import { expect, assert } from "chai";
+import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
 import * as Extension from "../../src/extension";
@@ -342,42 +342,27 @@ suite("MainController Tests", function () {
     suite("Data-Tier Application Commands", () => {
         test("cmdDacFxApplication command is registered", async () => {
             const commands = await vscode.commands.getCommands(true);
-            assert.ok(
-                commands.includes(Constants.cmdDacFxApplication),
-                "Expected cmdDacFxApplication to be registered",
-            );
+            expect(commands).to.include(Constants.cmdDacFxApplication);
         });
 
         test("cmdDeployDacpac command is registered", async () => {
             const commands = await vscode.commands.getCommands(true);
-            assert.ok(
-                commands.includes(Constants.cmdDeployDacpac),
-                "Expected cmdDeployDacpac to be registered",
-            );
+            expect(commands).to.include(Constants.cmdDeployDacpac);
         });
 
         test("cmdExtractDacpac command is registered", async () => {
             const commands = await vscode.commands.getCommands(true);
-            assert.ok(
-                commands.includes(Constants.cmdExtractDacpac),
-                "Expected cmdExtractDacpac to be registered",
-            );
+            expect(commands).to.include(Constants.cmdExtractDacpac);
         });
 
         test("cmdImportBacpac command is registered", async () => {
             const commands = await vscode.commands.getCommands(true);
-            assert.ok(
-                commands.includes(Constants.cmdImportBacpac),
-                "Expected cmdImportBacpac to be registered",
-            );
+            expect(commands).to.include(Constants.cmdImportBacpac);
         });
 
         test("cmdExportBacpac command is registered", async () => {
             const commands = await vscode.commands.getCommands(true);
-            assert.ok(
-                commands.includes(Constants.cmdExportBacpac),
-                "Expected cmdExportBacpac to be registered",
-            );
+            expect(commands).to.include(Constants.cmdExportBacpac);
         });
     });
 });
