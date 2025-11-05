@@ -76,6 +76,7 @@ interface VscodeWebviewProviderProps {
 }
 
 /**
+ * @deprecated Use VscodeWebviewProvider2 instead.
  * Provider for essential vscode webview functionality like
  * theming, state management, rpc and vscode api.
  * @param param0 child components
