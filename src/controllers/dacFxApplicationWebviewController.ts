@@ -225,15 +225,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
                         ? "dacpac"
                         : "bacpac";
 
-                // Format timestamp as yyyy-MM-dd-HH-mm
-                const now = new Date();
-                const year = now.getFullYear();
-                const month = String(now.getMonth() + 1).padStart(2, "0");
-                const day = String(now.getDate()).padStart(2, "0");
-                const hours = String(now.getHours()).padStart(2, "0");
-                const minutes = String(now.getMinutes()).padStart(2, "0");
-                const timestamp = `${year}-${month}-${day}-${hours}-${minutes}`;
-
+                const timestamp = this.formatTimestampForFilename();
                 const suggestedFileName = `${params.databaseName}-${timestamp}.${fileExtension}`;
 
                 // Get workspace folder or home directory
@@ -897,6 +889,20 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
             default:
                 return "Unknown";
         }
+    }
+
+    /**
+     * Formats the current date/time as yyyy-MM-dd-HH-mm for use in filenames
+     */
+    private formatTimestampForFilename(): string {
+        const pad = (n: number) => String(n).padStart(2, "0");
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = pad(now.getMonth() + 1);
+        const day = pad(now.getDate());
+        const hours = pad(now.getHours());
+        const minutes = pad(now.getMinutes());
+        return `${year}-${month}-${day}-${hours}-${minutes}`;
     }
 
     /**
