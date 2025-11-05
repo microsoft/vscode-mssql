@@ -112,43 +112,43 @@ export interface DacFxApplicationWebviewState {
 }
 
 /**
- * Parameters for deploying a DACPAC
+ * Base parameters for DacFx operations
  */
-export interface DeployDacpacParams {
-    packageFilePath: string;
-    databaseName: string;
-    isNewDatabase: boolean;
-    ownerUri: string;
-}
-
-/**
- * Parameters for extracting a DACPAC
- */
-export interface ExtractDacpacParams {
+interface DacFxOperationParams {
     databaseName: string;
     packageFilePath: string;
-    applicationName?: string;
-    applicationVersion?: string;
-    ownerUri: string;
-}
-
-/**
- * Parameters for importing a BACPAC
- */
-export interface ImportBacpacParams {
-    packageFilePath: string;
-    databaseName: string;
     ownerUri: string;
 }
 
 /**
  * Parameters for exporting a BACPAC
  */
-export interface ExportBacpacParams {
-    databaseName: string;
-    packageFilePath: string;
-    ownerUri: string;
+export interface ExportBacpacParams extends DacFxOperationParams {}
+
+/**
+ * Parameters for deploying a DACPAC
+ */
+export interface DeployDacpacParams extends DacFxOperationParams {
+    isNewDatabase: boolean;
 }
+
+/**
+ * Parameters for extracting a DACPAC
+ */
+export interface ExtractDacpacParams extends DacFxOperationParams {
+    applicationName?: string;
+    applicationVersion?: string;
+}
+
+/**
+ * Parameters for importing a BACPAC
+ */
+export interface ImportBacpacParams extends DacFxOperationParams {}
+
+/**
+ * Parameters for exporting a BACPAC
+ */
+export interface ExportBacpacParams extends DacFxOperationParams {}
 
 /**
  * Result from a DacFx Application operation
