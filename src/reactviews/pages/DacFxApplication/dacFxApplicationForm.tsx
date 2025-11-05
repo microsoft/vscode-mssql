@@ -6,34 +6,16 @@
 import { Button, makeStyles, tokens } from "@fluentui/react-components";
 import { DatabaseArrowRight20Regular } from "@fluentui/react-icons";
 import { useState, useEffect, useContext } from "react";
-import {
-    BrowseInputFileWebviewRequest,
-    BrowseOutputFileWebviewRequest,
-    ConnectionProfile,
-    ConnectToServerWebviewRequest,
-    DacFxOperationType,
-    DeployDacpacWebviewRequest,
-    ExtractDacpacWebviewRequest,
-    ImportBacpacWebviewRequest,
-    ExportBacpacWebviewRequest,
-    GetSuggestedDatabaseNameWebviewRequest,
-    GetSuggestedOutputPathWebviewRequest,
-    InitializeConnectionWebviewRequest,
-    ValidateFilePathWebviewRequest,
-    ListDatabasesWebviewRequest,
-    ValidateDatabaseNameWebviewRequest,
-    CancelDacFxApplicationWebviewNotification,
-    ConfirmDeployToExistingWebviewRequest,
-} from "../../../sharedInterfaces/dacFxApplication";
+import * as dacFxApplication from "../../../sharedInterfaces/dacFxApplication";
+import { locConstants } from "../../common/locConstants";
+import { ApplicationInfoSection } from "./ApplicationInfoSection";
 import { DacFxApplicationContext } from "./dacFxApplicationStateProvider";
 import { useDacFxApplicationSelector } from "./dacFxApplicationSelector";
-import { locConstants } from "../../common/locConstants";
-import { TargetDatabaseSection } from "./TargetDatabaseSection";
-import { SourceDatabaseSection } from "./SourceDatabaseSection";
-import { ApplicationInfoSection } from "./ApplicationInfoSection";
+import { FilePathSection } from "./FilePathSection";
 import { OperationTypeSection } from "./OperationTypeSection";
 import { ServerSelectionSection } from "./ServerSelectionSection";
-import { FilePathSection } from "./FilePathSection";
+import { SourceDatabaseSection } from "./SourceDatabaseSection";
+import { TargetDatabaseSection } from "./TargetDatabaseSection";
 
 /**
  * Validation message with severity level
@@ -98,8 +80,8 @@ export const DacFxApplicationForm = () => {
     );
 
     // Local state
-    const [operationType, setOperationType] = useState<DacFxOperationType>(
-        initialOperationType || DacFxOperationType.Deploy,
+    const [operationType, setOperationType] = useState<dacFxApplication.DacFxOperationType>(
+        initialOperationType || dacFxApplication.DacFxOperationType.Deploy,
     );
     const [filePath, setFilePath] = useState("");
     const [databaseName, setDatabaseName] = useState(initialDatabaseName || "");
@@ -113,7 +95,9 @@ export const DacFxApplicationForm = () => {
     const [validationMessages, setValidationMessages] = useState<Record<string, ValidationMessage>>(
         {},
     );
-    const [availableConnections, setAvailableConnections] = useState<ConnectionProfile[]>([]);
+    const [availableConnections, setAvailableConnections] = useState<
+        dacFxApplication.ConnectionProfile[]
+    >([]);
     const [selectedProfileId, setSelectedProfileId] = useState<string>(
         initialSelectedProfileId || "",
     );
@@ -128,7 +112,7 @@ export const DacFxApplicationForm = () => {
         return () => {
             if (isConnecting || isOperationInProgress) {
                 void context?.extensionRpc?.sendNotification(
-                    CancelDacFxApplicationWebviewNotification.type,
+                    dacFxApplication.CancelDacFxApplicationWebviewNotification.type,
                 );
             }
         };
@@ -138,9 +122,9 @@ export const DacFxApplicationForm = () => {
     useEffect(() => {
         if (
             ownerUri &&
-            (operationType === DacFxOperationType.Deploy ||
-                operationType === DacFxOperationType.Extract ||
-                operationType === DacFxOperationType.Export)
+            (operationType === dacFxApplication.DacFxOperationType.Deploy ||
+                operationType === dacFxApplication.DacFxOperationType.Extract ||
+                operationType === dacFxApplication.DacFxOperationType.Export)
         ) {
             void loadDatabases();
         }
@@ -151,13 +135,13 @@ export const DacFxApplicationForm = () => {
         const updateSuggestedPath = async () => {
             if (
                 databaseName &&
-                (operationType === DacFxOperationType.Extract ||
-                    operationType === DacFxOperationType.Export) &&
+                (operationType === dacFxApplication.DacFxOperationType.Extract ||
+                    operationType === dacFxApplication.DacFxOperationType.Export) &&
                 context?.extensionRpc
             ) {
                 // Get the suggested full path from the controller
                 const result = await context.extensionRpc.sendRequest(
-                    GetSuggestedOutputPathWebviewRequest.type,
+                    dacFxApplication.GetSuggestedOutputPathWebviewRequest.type,
                     {
                         databaseName,
                         operationType,
@@ -178,7 +162,7 @@ export const DacFxApplicationForm = () => {
             setIsConnecting(true);
 
             const result = await context?.extensionRpc?.sendRequest(
-                InitializeConnectionWebviewRequest.type,
+                dacFxApplication.InitializeConnectionWebviewRequest.type,
                 {
                     initialServerName,
                     initialDatabaseName,
@@ -244,7 +228,7 @@ export const DacFxApplicationForm = () => {
             // If not connected, connect to the server
             if (!selectedConnection.isConnected) {
                 const result = await context?.extensionRpc?.sendRequest(
-                    ConnectToServerWebviewRequest.type,
+                    dacFxApplication.ConnectToServerWebviewRequest.type,
                     { profileId },
                 );
 
@@ -281,7 +265,7 @@ export const DacFxApplicationForm = () => {
             } else {
                 // Already connected, verify connection state and get the ownerUri
                 const result = await context?.extensionRpc?.sendRequest(
-                    ConnectToServerWebviewRequest.type,
+                    dacFxApplication.ConnectToServerWebviewRequest.type,
                     { profileId },
                 );
 
@@ -326,7 +310,7 @@ export const DacFxApplicationForm = () => {
     const loadDatabases = async () => {
         try {
             const result = await context?.extensionRpc?.sendRequest(
-                ListDatabasesWebviewRequest.type,
+                dacFxApplication.ListDatabasesWebviewRequest.type,
                 { ownerUri: ownerUri || "" },
             );
             if (result?.databases) {
@@ -358,7 +342,7 @@ export const DacFxApplicationForm = () => {
 
         try {
             const result = await context?.extensionRpc?.sendRequest(
-                ValidateFilePathWebviewRequest.type,
+                dacFxApplication.ValidateFilePathWebviewRequest.type,
                 { filePath: path, shouldExist },
             );
 
@@ -423,7 +407,7 @@ export const DacFxApplicationForm = () => {
 
         try {
             const result = await context?.extensionRpc?.sendRequest(
-                ValidateDatabaseNameWebviewRequest.type,
+                dacFxApplication.ValidateDatabaseNameWebviewRequest.type,
                 {
                     databaseName: dbName,
                     ownerUri: ownerUri || "",
@@ -456,11 +440,11 @@ export const DacFxApplicationForm = () => {
             // 1. User checked "New Database" but database already exists (shouldNotExist=true)
             // 2. User unchecked "New Database" to deploy to existing (shouldNotExist=false)
             if (
-                operationType === DacFxOperationType.Deploy &&
+                operationType === dacFxApplication.DacFxOperationType.Deploy &&
                 result.errorMessage === locConstants.dacFxApplication.databaseAlreadyExists
             ) {
                 const confirmResult = await context?.extensionRpc?.sendRequest(
-                    ConfirmDeployToExistingWebviewRequest.type,
+                    dacFxApplication.ConfirmDeployToExistingWebviewRequest.type,
                     undefined,
                 );
 
@@ -500,7 +484,7 @@ export const DacFxApplicationForm = () => {
             let result;
 
             switch (operationType) {
-                case DacFxOperationType.Deploy:
+                case dacFxApplication.DacFxOperationType.Deploy:
                     if (
                         !(await validateFilePath(filePath, true)) ||
                         !(await validateDatabaseName(databaseName, isNewDatabase))
@@ -509,7 +493,7 @@ export const DacFxApplicationForm = () => {
                         return;
                     }
                     result = await context?.extensionRpc?.sendRequest(
-                        DeployDacpacWebviewRequest.type,
+                        dacFxApplication.DeployDacpacWebviewRequest.type,
                         {
                             packageFilePath: filePath,
                             databaseName,
@@ -519,7 +503,7 @@ export const DacFxApplicationForm = () => {
                     );
                     break;
 
-                case DacFxOperationType.Extract:
+                case dacFxApplication.DacFxOperationType.Extract:
                     if (
                         !(await validateFilePath(filePath, false)) ||
                         !(await validateDatabaseName(databaseName, false))
@@ -528,7 +512,7 @@ export const DacFxApplicationForm = () => {
                         return;
                     }
                     result = await context?.extensionRpc?.sendRequest(
-                        ExtractDacpacWebviewRequest.type,
+                        dacFxApplication.ExtractDacpacWebviewRequest.type,
                         {
                             databaseName,
                             packageFilePath: filePath,
@@ -539,7 +523,7 @@ export const DacFxApplicationForm = () => {
                     );
                     break;
 
-                case DacFxOperationType.Import:
+                case dacFxApplication.DacFxOperationType.Import:
                     if (
                         !(await validateFilePath(filePath, true)) ||
                         !(await validateDatabaseName(databaseName, true))
@@ -548,7 +532,7 @@ export const DacFxApplicationForm = () => {
                         return;
                     }
                     result = await context?.extensionRpc?.sendRequest(
-                        ImportBacpacWebviewRequest.type,
+                        dacFxApplication.ImportBacpacWebviewRequest.type,
                         {
                             packageFilePath: filePath,
                             databaseName,
@@ -557,7 +541,7 @@ export const DacFxApplicationForm = () => {
                     );
                     break;
 
-                case DacFxOperationType.Export:
+                case dacFxApplication.DacFxOperationType.Export:
                     if (
                         !(await validateFilePath(filePath, false)) ||
                         !(await validateDatabaseName(databaseName, false))
@@ -566,7 +550,7 @@ export const DacFxApplicationForm = () => {
                         return;
                     }
                     result = await context?.extensionRpc?.sendRequest(
-                        ExportBacpacWebviewRequest.type,
+                        dacFxApplication.ExportBacpacWebviewRequest.type,
                         {
                             databaseName,
                             packageFilePath: filePath,
@@ -597,8 +581,8 @@ export const DacFxApplicationForm = () => {
 
     const handleBrowseFile = async () => {
         const fileExtension =
-            operationType === DacFxOperationType.Deploy ||
-            operationType === DacFxOperationType.Extract
+            operationType === dacFxApplication.DacFxOperationType.Deploy ||
+            operationType === dacFxApplication.DacFxOperationType.Extract
                 ? "dacpac"
                 : "bacpac";
 
@@ -606,9 +590,12 @@ export const DacFxApplicationForm = () => {
 
         if (requiresInputFile) {
             // Browse for input file (Deploy or Import)
-            result = await context?.extensionRpc?.sendRequest(BrowseInputFileWebviewRequest.type, {
-                fileExtension,
-            });
+            result = await context?.extensionRpc?.sendRequest(
+                dacFxApplication.BrowseInputFileWebviewRequest.type,
+                {
+                    fileExtension,
+                },
+            );
         } else {
             // Browse for output file (Extract or Export)
             // Use the suggested filename from state, or fallback to a default
@@ -635,10 +622,13 @@ export const DacFxApplicationForm = () => {
                 defaultFileName = `${databaseName || "database"}-${timestamp}.${fileExtension}`;
             }
 
-            result = await context?.extensionRpc?.sendRequest(BrowseOutputFileWebviewRequest.type, {
-                fileExtension,
-                defaultFileName,
-            });
+            result = await context?.extensionRpc?.sendRequest(
+                dacFxApplication.BrowseOutputFileWebviewRequest.type,
+                {
+                    fileExtension,
+                    defaultFileName,
+                },
+            );
         }
 
         if (result?.filePath) {
@@ -654,11 +644,11 @@ export const DacFxApplicationForm = () => {
             if (
                 requiresInputFile &&
                 context?.extensionRpc &&
-                (operationType === DacFxOperationType.Deploy ||
-                    operationType === DacFxOperationType.Import)
+                (operationType === dacFxApplication.DacFxOperationType.Deploy ||
+                    operationType === dacFxApplication.DacFxOperationType.Import)
             ) {
                 const nameResult = await context.extensionRpc.sendRequest(
-                    GetSuggestedDatabaseNameWebviewRequest.type,
+                    dacFxApplication.GetSuggestedDatabaseNameWebviewRequest.type,
                     {
                         filePath: result.filePath,
                     },
@@ -677,7 +667,7 @@ export const DacFxApplicationForm = () => {
 
     const handleCancel = async () => {
         await context?.extensionRpc?.sendNotification(
-            CancelDacFxApplicationWebviewNotification.type,
+            dacFxApplication.CancelDacFxApplicationWebviewNotification.type,
         );
     };
 
@@ -692,12 +682,14 @@ export const DacFxApplicationForm = () => {
     };
 
     const requiresInputFile =
-        operationType === DacFxOperationType.Deploy || operationType === DacFxOperationType.Import;
-    const showDatabaseTarget = operationType === DacFxOperationType.Deploy;
+        operationType === dacFxApplication.DacFxOperationType.Deploy ||
+        operationType === dacFxApplication.DacFxOperationType.Import;
+    const showDatabaseTarget = operationType === dacFxApplication.DacFxOperationType.Deploy;
     const showDatabaseSource =
-        operationType === DacFxOperationType.Extract || operationType === DacFxOperationType.Export;
-    const showNewDatabase = operationType === DacFxOperationType.Import;
-    const showApplicationInfo = operationType === DacFxOperationType.Extract;
+        operationType === dacFxApplication.DacFxOperationType.Extract ||
+        operationType === dacFxApplication.DacFxOperationType.Export;
+    const showNewDatabase = operationType === dacFxApplication.DacFxOperationType.Import;
+    const showApplicationInfo = operationType === dacFxApplication.DacFxOperationType.Extract;
 
     async function handleFilePathChange(value: string): Promise<void> {
         setFilePath(value);
