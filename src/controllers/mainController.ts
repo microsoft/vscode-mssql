@@ -1787,11 +1787,16 @@ export default class MainController implements vscode.Disposable {
             ),
         );
 
-        // Data-tier Application - Main command
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdDacFxApplication,
-                async (node?: TreeNodeInfo) => {
+        /**
+         * Helper function to register Data-tier Application commands
+         * Reduces code duplication across Deploy, Extract, Import, and Export operations
+         */
+        const registerDacFxCommand = (
+            commandId: string,
+            operationType: DacFxOperationType,
+        ): void => {
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(commandId, async (node?: TreeNodeInfo) => {
                     const connectionProfile = node?.connectionProfile;
                     const ownerUri = connectionProfile
                         ? this._connectionMgr.getUriForConnection(connectionProfile)
@@ -1808,7 +1813,7 @@ export default class MainController implements vscode.Disposable {
                         serverName,
                         databaseName,
                         selectedProfileId: profileId,
-                        operationType: DacFxOperationType.Deploy,
+                        operationType,
                     };
 
                     const controller = new DacFxApplicationWebviewController(
@@ -1820,157 +1825,16 @@ export default class MainController implements vscode.Disposable {
                         ownerUri,
                     );
                     await controller.revealToForeground();
-                },
-            ),
-        );
+                }),
+            );
+        };
 
-        // Data-tier Application - Deploy DACPAC
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdDeployDacpac,
-                async (node?: TreeNodeInfo) => {
-                    const connectionProfile = node?.connectionProfile;
-                    const ownerUri = connectionProfile
-                        ? this._connectionMgr.getUriForConnection(connectionProfile)
-                        : "";
-                    const serverName = connectionProfile?.server || "";
-                    const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
-                    const profileId = connectionProfile
-                        ? connectionProfile.id ||
-                          `${connectionProfile.server}_${connectionProfile.database || ""}`
-                        : undefined;
-
-                    const initialState: DacFxApplicationWebviewState = {
-                        ownerUri,
-                        serverName,
-                        databaseName,
-                        selectedProfileId: profileId,
-                        operationType: DacFxOperationType.Deploy,
-                    };
-
-                    const controller = new DacFxApplicationWebviewController(
-                        this._context,
-                        this._vscodeWrapper,
-                        this._connectionMgr,
-                        this.dacFxService,
-                        initialState,
-                        ownerUri,
-                    );
-                    await controller.revealToForeground();
-                },
-            ),
-        );
-
-        // Data-tier Application - Extract DACPAC
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdExtractDacpac,
-                async (node?: TreeNodeInfo) => {
-                    const connectionProfile = node?.connectionProfile;
-                    const ownerUri = connectionProfile
-                        ? this._connectionMgr.getUriForConnection(connectionProfile)
-                        : "";
-                    const serverName = connectionProfile?.server || "";
-                    const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
-                    const profileId = connectionProfile
-                        ? connectionProfile.id ||
-                          `${connectionProfile.server}_${connectionProfile.database || ""}`
-                        : undefined;
-
-                    const initialState: DacFxApplicationWebviewState = {
-                        ownerUri,
-                        serverName,
-                        databaseName,
-                        selectedProfileId: profileId,
-                        operationType: DacFxOperationType.Extract,
-                    };
-
-                    const controller = new DacFxApplicationWebviewController(
-                        this._context,
-                        this._vscodeWrapper,
-                        this._connectionMgr,
-                        this.dacFxService,
-                        initialState,
-                        ownerUri,
-                    );
-                    await controller.revealToForeground();
-                },
-            ),
-        );
-
-        // Data-tier Application - Import BACPAC
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdImportBacpac,
-                async (node?: TreeNodeInfo) => {
-                    const connectionProfile = node?.connectionProfile;
-                    const ownerUri = connectionProfile
-                        ? this._connectionMgr.getUriForConnection(connectionProfile)
-                        : "";
-                    const serverName = connectionProfile?.server || "";
-                    const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
-                    const profileId = connectionProfile
-                        ? connectionProfile.id ||
-                          `${connectionProfile.server}_${connectionProfile.database || ""}`
-                        : undefined;
-
-                    const initialState: DacFxApplicationWebviewState = {
-                        ownerUri,
-                        serverName,
-                        databaseName,
-                        selectedProfileId: profileId,
-                        operationType: DacFxOperationType.Import,
-                    };
-
-                    const controller = new DacFxApplicationWebviewController(
-                        this._context,
-                        this._vscodeWrapper,
-                        this._connectionMgr,
-                        this.dacFxService,
-                        initialState,
-                        ownerUri,
-                    );
-                    await controller.revealToForeground();
-                },
-            ),
-        );
-
-        // Data-tier Application - Export BACPAC
-        this._context.subscriptions.push(
-            vscode.commands.registerCommand(
-                Constants.cmdExportBacpac,
-                async (node?: TreeNodeInfo) => {
-                    const connectionProfile = node?.connectionProfile;
-                    const ownerUri = connectionProfile
-                        ? this._connectionMgr.getUriForConnection(connectionProfile)
-                        : "";
-                    const serverName = connectionProfile?.server || "";
-                    const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
-                    const profileId = connectionProfile
-                        ? connectionProfile.id ||
-                          `${connectionProfile.server}_${connectionProfile.database || ""}`
-                        : undefined;
-
-                    const initialState: DacFxApplicationWebviewState = {
-                        ownerUri,
-                        serverName,
-                        databaseName,
-                        selectedProfileId: profileId,
-                        operationType: DacFxOperationType.Export,
-                    };
-
-                    const controller = new DacFxApplicationWebviewController(
-                        this._context,
-                        this._vscodeWrapper,
-                        this._connectionMgr,
-                        this.dacFxService,
-                        initialState,
-                        ownerUri,
-                    );
-                    await controller.revealToForeground();
-                },
-            ),
-        );
+        // Data-tier Application commands
+        registerDacFxCommand(Constants.cmdDacFxApplication, DacFxOperationType.Deploy);
+        registerDacFxCommand(Constants.cmdDeployDacpac, DacFxOperationType.Deploy);
+        registerDacFxCommand(Constants.cmdExtractDacpac, DacFxOperationType.Extract);
+        registerDacFxCommand(Constants.cmdImportBacpac, DacFxOperationType.Import);
+        registerDacFxCommand(Constants.cmdExportBacpac, DacFxOperationType.Export);
 
         // Copy object name command
         this._context.subscriptions.push(
