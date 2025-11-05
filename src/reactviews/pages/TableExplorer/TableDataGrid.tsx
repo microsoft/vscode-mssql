@@ -332,7 +332,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 }
             }
             // Scenario 2: Row count changed (delete/add operations) - incremental add/remove
-            else if (rowCountChanged && reactGridRef.current?.dataView) {
+            else if (
+                rowCountChanged &&
+                reactGridRef.current?.dataView &&
+                reactGridRef.current?.gridService
+            ) {
                 console.log("Row count changed - applying incremental updates");
 
                 // Use ID-based comparison instead of position-based
@@ -344,7 +348,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 console.log(`Adding ${rowsToAdd.length} new row(s) by ID`);
                 for (const newRow of rowsToAdd) {
                     const dataRow = convertRowToDataRow(newRow);
-                    reactGridRef.current.dataView.addItem(dataRow);
+                    // Use gridService.addItem with position 'bottom' and scrollRowIntoView
+                    // gridService automatically handles pagination updates
+                    reactGridRef.current.gridService.addItem(dataRow, {
+                        position: "bottom",
+                        highlightRow: true,
+                        scrollRowIntoView: true,
+                        triggerEvent: true,
+                    });
+                    console.log(`Added row ${dataRow.id} at bottom using gridService`);
                 }
 
                 // Remove deleted rows (rows in previous but not in current)
@@ -353,18 +365,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 );
                 console.log(`Removing ${rowsToRemove.length} deleted row(s) by ID`);
                 for (const removedRow of rowsToRemove) {
-                    reactGridRef.current.dataView.deleteItem(removedRow.id);
-                }
-
-                // Update the dataset state to match the new resultSet
-                const newDataset = resultSet.subset.map(convertRowToDataRow);
-                setDataset(newDataset);
-                console.log(`Updated dataset state, new length: ${newDataset.length}`);
-
-                // Refresh grid display
-                if (reactGridRef.current?.slickGrid) {
-                    reactGridRef.current.slickGrid.invalidate();
-                    reactGridRef.current.slickGrid.render();
+                    reactGridRef.current.gridService.deleteItemById(removedRow.id);
                 }
             }
             // Scenario 3: Row count same - incremental updates only
