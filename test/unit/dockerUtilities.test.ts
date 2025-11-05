@@ -764,7 +764,7 @@ suite("Docker Utilities", () => {
             .onSecondCall()
             .returns(
                 createSuccessProcess(
-                    "C:/Program Files/Docker/Docker/resources/bin/docker.exe",
+                    "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
                 ) as any,
             ); // GET_DOCKER_PATH
         spawnStub.onThirdCall().returns(createSuccessProcess("Started Docker") as any); // START_DOCKER (execDockerCommand)
@@ -772,6 +772,7 @@ suite("Docker Utilities", () => {
         spawnStub.onCall(3).returns(createSuccessProcess("Docker Running") as any); // First CHECK_DOCKER_RUNNING in polling loop
 
         const result = await dockerUtils.startDocker();
+        assert.equal(result.error, undefined);
         assert.ok(result.success, "Docker should start successfully on Windows");
         assert.strictEqual(spawnStub.callCount, 4);
     });
