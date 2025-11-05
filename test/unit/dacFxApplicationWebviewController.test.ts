@@ -9,7 +9,11 @@ import sinonChai from "sinon-chai";
 import * as chai from "chai";
 import { expect } from "chai";
 import * as jsonRpc from "vscode-jsonrpc/node";
-import { DacFxApplicationWebviewController } from "../../src/controllers/dacFxApplicationWebviewController";
+import {
+    DacFxApplicationWebviewController,
+    DACPAC_EXTENSION,
+    BACPAC_EXTENSION,
+} from "../../src/controllers/dacFxApplicationWebviewController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { DacFxService } from "../../src/services/dacFxService";
 import {
@@ -565,7 +569,7 @@ suite("DacFxApplicationWebviewController", () => {
 
             expect(result.fullPath).to.include("myproject");
             expect(result.fullPath).to.include("AdventureWorks");
-            expect(result.fullPath).to.include(".dacpac");
+            expect(result.fullPath).to.include(DACPAC_EXTENSION);
             // Should include timestamp in format yyyy-MM-dd-HH-mm
             expect(result.fullPath).to.match(/\d{4}-\d{2}-\d{2}-\d{2}-\d{2}/);
         });
@@ -585,7 +589,7 @@ suite("DacFxApplicationWebviewController", () => {
 
             expect(result.fullPath).to.not.include("workspace");
             expect(result.fullPath).to.include("TestDB");
-            expect(result.fullPath).to.include(".bacpac");
+            expect(result.fullPath).to.include(BACPAC_EXTENSION);
             // Should include timestamp in format yyyy-MM-dd-HH-mm
             expect(result.fullPath).to.match(/\d{4}-\d{2}-\d{2}-\d{2}-\d{2}/);
         });
@@ -606,8 +610,8 @@ suite("DacFxApplicationWebviewController", () => {
                 operationType: DacFxOperationType.Extract,
             });
 
-            expect(result.fullPath).to.include(".dacpac");
-            expect(result.fullPath).to.not.include(".bacpac");
+            expect(result.fullPath).to.include(DACPAC_EXTENSION);
+            expect(result.fullPath).to.not.include(BACPAC_EXTENSION);
         });
 
         test("get suggested output path uses correct extension for Export", async () => {
@@ -626,8 +630,8 @@ suite("DacFxApplicationWebviewController", () => {
                 operationType: DacFxOperationType.Export,
             });
 
-            expect(result.fullPath).to.include(".bacpac");
-            expect(result.fullPath).to.not.include(".dacpac");
+            expect(result.fullPath).to.include(BACPAC_EXTENSION);
+            expect(result.fullPath).to.not.include(DACPAC_EXTENSION);
         });
 
         test("get suggested database name removes extension from simple filename", async () => {

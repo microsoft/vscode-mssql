@@ -21,6 +21,10 @@ import * as dacFxApplication from "../sharedInterfaces/dacFxApplication";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { ListDatabasesRequest } from "../models/contracts/connection";
 
+// File extension constants
+export const DACPAC_EXTENSION = ".dacpac";
+export const BACPAC_EXTENSION = ".bacpac";
+
 /**
  * Controller for the DacFxApplication webview.
  * Manages DACPAC and BACPAC operations (Deploy, Extract, Import, Export) using the Data-tier Application Framework (DacFx).
@@ -489,7 +493,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
         }
 
         const extension = path.extname(filePath).toLowerCase();
-        if (extension !== ".dacpac" && extension !== ".bacpac") {
+        if (extension !== DACPAC_EXTENSION && extension !== BACPAC_EXTENSION) {
             return {
                 isValid: false,
                 errorMessage: LocConstants.DacFxApplication.InvalidFileExtension,
