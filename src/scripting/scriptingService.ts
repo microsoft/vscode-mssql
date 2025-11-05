@@ -292,7 +292,7 @@ export class ScriptingService {
             scriptTelemetryActivity.endFailed(error, false /* do not include error message */);
         }
 
-        UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
+        UserSurvey.getInstance()?.promptUserForNPSFeedback("scriptAs");
     }
 
     public static getScriptCompatibility(serverMajorVersion: number, serverMinorVersion: number) {

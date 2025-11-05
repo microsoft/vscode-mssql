@@ -30,7 +30,13 @@ import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { ActivityObject, ActivityStatus } from "../../src/sharedInterfaces/telemetry";
 import { Logger } from "../../src/models/logger";
-import { getMockContext, initializeIconUtils, stubVscodeWrapper } from "./utils";
+import {
+    getMockContext,
+    initializeIconUtils,
+    stubUserSurvey,
+    stubVscodeWrapper,
+    stubWithProgress,
+} from "./utils";
 
 chai.use(sinonChai);
 
@@ -154,23 +160,23 @@ suite("Scripting Service", () => {
         telemetryActivities = [];
         registeredCommands = {};
 
-        withProgressStub = sandbox
-            .stub(vscode.window, "withProgress")
-            .callsFake(async (_options, task) => {
-                const progress = {
-                    report: sandbox.stub(),
-                } as vscode.Progress<{ message?: string; increment?: number }>;
+        stubUserSurvey(sandbox);
 
-                const token: vscode.CancellationToken = {
-                    isCancellationRequested: false,
-                    onCancellationRequested: (callback: (e: unknown) => void) => {
-                        cancellationCallback = callback;
-                        return { dispose: () => undefined } as vscode.Disposable;
-                    },
-                } as vscode.CancellationToken;
+        withProgressStub = stubWithProgress(sandbox, async (_options, task) => {
+            const progress = {
+                report: sandbox.stub(),
+            } as vscode.Progress<{ message?: string; increment?: number }>;
 
-                return await task(progress, token);
-            });
+            const token: vscode.CancellationToken = {
+                isCancellationRequested: false,
+                onCancellationRequested: (callback: (e: unknown) => void) => {
+                    cancellationCallback = callback;
+                    return { dispose: () => undefined } as vscode.Disposable;
+                },
+            } as vscode.CancellationToken;
+
+            return await task(progress, token);
+        });
 
         showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage").resolves(undefined);
         showInformationMessageStub = sandbox
@@ -311,10 +317,12 @@ suite("Scripting Service", () => {
         try {
             await scriptingService.scriptNode(node, ScriptOperation.Select);
 
-            expect(connectionManager.connect).to.have.been.calledOnceWithExactly(
-                NODE_URI,
-                sinon.match.has("database", TEST_DB_NAME),
-            );
+            expect(connectionManager.connect).to.have.been.calledOnce;
+            const [connectUri, connectCreds, connectOptions] =
+                connectionManager.connect.getCall(0).args;
+            expect(connectUri).to.equal(NODE_URI);
+            expect(connectCreds).to.include({ database: TEST_DB_NAME });
+            expect(connectOptions).to.deep.equal({ connectionSource: "scriptNode" });
             expect(sqlDocumentService.newQuery).to.have.been.calledOnce;
             const newQueryArgs = sqlDocumentService.newQuery.getCall(0).args[0];
             expect(newQueryArgs.content).to.equal("SELECT 1");
