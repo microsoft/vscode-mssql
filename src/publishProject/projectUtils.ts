@@ -202,7 +202,7 @@ export async function getSqlServerContainerTagsForTargetVersion(
         // Determine minimum year based on target version
         let minYear: number = maxYear;
         if (targetVersion) {
-            const versionNum = parseInt(targetVersion, 10);
+            const versionNum = parseInt(targetVersion);
             const mappedYear = DSP_VERSION_TO_YEAR.get(versionNum);
             minYear = mappedYear ?? maxYear;
         }
