@@ -6,13 +6,13 @@
 import ReactDOM from "react-dom/client";
 import "../../index.css";
 import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
-import { DataTierApplicationStateProvider } from "./dataTierApplicationStateProvider";
-import { DataTierApplicationPage } from "./dataTierApplicationPage";
+import { DacFxApplicationStateProvider } from "./dacFxApplicationStateProvider";
+import { DacFxApplicationPage } from "./dacFxApplicationPage";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <VscodeWebviewProvider2>
-        <DataTierApplicationStateProvider>
-            <DataTierApplicationPage />
-        </DataTierApplicationStateProvider>
+        <DacFxApplicationStateProvider>
+            <DacFxApplicationPage />
+        </DacFxApplicationStateProvider>
     </VscodeWebviewProvider2>,
 );

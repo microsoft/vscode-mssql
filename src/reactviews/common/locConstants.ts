@@ -852,7 +852,7 @@ export class LocConstants {
             selectSource: l10n.t("Select Source"),
             selectTarget: l10n.t("Select Target"),
             close: l10n.t("Close"),
-            dataTierApplicationFile: l10n.t("Data-tier Application File (.dacpac)"),
+            dacFxApplicationFile: l10n.t("Data-tier Application File (.dacpac)"),
             databaseProject: l10n.t("Database Project"),
             ok: l10n.t("OK"),
             cancel: l10n.t("Cancel"),
@@ -1087,7 +1087,7 @@ export class LocConstants {
         };
     }
 
-    public get dataTierApplication() {
+    public get dacFxApplication() {
         return {
             title: l10n.t("Data-tier Application"),
             subtitle: l10n.t(

@@ -23,7 +23,7 @@ import {
     BrowseOutputFileWebviewRequest,
     ConnectionProfile,
     ConnectToServerWebviewRequest,
-    DataTierOperationType,
+    DacFxOperationType,
     DeployDacpacWebviewRequest,
     ExtractDacpacWebviewRequest,
     ImportBacpacWebviewRequest,
@@ -34,11 +34,11 @@ import {
     ValidateFilePathWebviewRequest,
     ListDatabasesWebviewRequest,
     ValidateDatabaseNameWebviewRequest,
-    CancelDataTierApplicationWebviewNotification,
+    CancelDacFxApplicationWebviewNotification,
     ConfirmDeployToExistingWebviewRequest,
-} from "../../../sharedInterfaces/dataTierApplication";
-import { DataTierApplicationContext } from "./dataTierApplicationStateProvider";
-import { useDataTierApplicationSelector } from "./dataTierApplicationSelector";
+} from "../../../sharedInterfaces/dacFxApplication";
+import { DacFxApplicationContext } from "./dacFxApplicationStateProvider";
+import { useDacFxApplicationSelector } from "./dacFxApplicationSelector";
 import { locConstants } from "../../common/locConstants";
 
 /**
@@ -119,22 +119,22 @@ const useStyles = makeStyles({
     },
 });
 
-export const DataTierApplicationForm = () => {
+export const DacFxApplicationForm = () => {
     const classes = useStyles();
-    const context = useContext(DataTierApplicationContext);
+    const context = useContext(DacFxApplicationContext);
 
     // State from the controller
-    const initialOperationType = useDataTierApplicationSelector((state) => state.operationType);
-    const initialOwnerUri = useDataTierApplicationSelector((state) => state.ownerUri);
-    const initialServerName = useDataTierApplicationSelector((state) => state.serverName);
-    const initialDatabaseName = useDataTierApplicationSelector((state) => state.databaseName);
-    const initialSelectedProfileId = useDataTierApplicationSelector(
+    const initialOperationType = useDacFxApplicationSelector((state) => state.operationType);
+    const initialOwnerUri = useDacFxApplicationSelector((state) => state.ownerUri);
+    const initialServerName = useDacFxApplicationSelector((state) => state.serverName);
+    const initialDatabaseName = useDacFxApplicationSelector((state) => state.databaseName);
+    const initialSelectedProfileId = useDacFxApplicationSelector(
         (state) => state.selectedProfileId,
     );
 
     // Local state
-    const [operationType, setOperationType] = useState<DataTierOperationType>(
-        initialOperationType || DataTierOperationType.Deploy,
+    const [operationType, setOperationType] = useState<DacFxOperationType>(
+        initialOperationType || DacFxOperationType.Deploy,
     );
     const [filePath, setFilePath] = useState("");
     const [databaseName, setDatabaseName] = useState(initialDatabaseName || "");
@@ -163,7 +163,7 @@ export const DataTierApplicationForm = () => {
         return () => {
             if (isConnecting || isOperationInProgress) {
                 void context?.extensionRpc?.sendNotification(
-                    CancelDataTierApplicationWebviewNotification.type,
+                    CancelDacFxApplicationWebviewNotification.type,
                 );
             }
         };
@@ -173,9 +173,9 @@ export const DataTierApplicationForm = () => {
     useEffect(() => {
         if (
             ownerUri &&
-            (operationType === DataTierOperationType.Deploy ||
-                operationType === DataTierOperationType.Extract ||
-                operationType === DataTierOperationType.Export)
+            (operationType === DacFxOperationType.Deploy ||
+                operationType === DacFxOperationType.Extract ||
+                operationType === DacFxOperationType.Export)
         ) {
             void loadDatabases();
         }
@@ -186,8 +186,8 @@ export const DataTierApplicationForm = () => {
         const updateSuggestedPath = async () => {
             if (
                 databaseName &&
-                (operationType === DataTierOperationType.Extract ||
-                    operationType === DataTierOperationType.Export) &&
+                (operationType === DacFxOperationType.Extract ||
+                    operationType === DacFxOperationType.Export) &&
                 context?.extensionRpc
             ) {
                 // Get the suggested full path from the controller
@@ -240,7 +240,7 @@ export const DataTierApplicationForm = () => {
                         setValidationMessages((prev) => ({
                             ...prev,
                             connection: {
-                                message: `${locConstants.dataTierApplication.connectionFailed}: ${result.errorMessage}`,
+                                message: `${locConstants.dacFxApplication.connectionFailed}: ${result.errorMessage}`,
                                 severity: "error",
                             },
                         }));
@@ -251,7 +251,7 @@ export const DataTierApplicationForm = () => {
             const errorMsg = error instanceof Error ? error.message : String(error);
             setValidationMessages({
                 connection: {
-                    message: `${locConstants.dataTierApplication.connectionFailed}: ${errorMsg}`,
+                    message: `${locConstants.dacFxApplication.connectionFailed}: ${errorMsg}`,
                     severity: "error",
                 },
             });
@@ -305,7 +305,7 @@ export const DataTierApplicationForm = () => {
                     );
                     // Show error message to user
                     const errorMsg =
-                        result?.errorMessage || locConstants.dataTierApplication.connectionFailed;
+                        result?.errorMessage || locConstants.dacFxApplication.connectionFailed;
                     setValidationMessages({
                         connection: {
                             message: errorMsg,
@@ -336,7 +336,7 @@ export const DataTierApplicationForm = () => {
                     );
                     // Show error message to user
                     const errorMsg =
-                        result?.errorMessage || locConstants.dataTierApplication.connectionFailed;
+                        result?.errorMessage || locConstants.dacFxApplication.connectionFailed;
                     setValidationMessages({
                         connection: {
                             message: errorMsg,
@@ -349,7 +349,7 @@ export const DataTierApplicationForm = () => {
             const errorMsg = error instanceof Error ? error.message : String(error);
             setValidationMessages({
                 connection: {
-                    message: `${locConstants.dataTierApplication.connectionFailed}: ${errorMsg}`,
+                    message: `${locConstants.dacFxApplication.connectionFailed}: ${errorMsg}`,
                     severity: "error",
                 },
             });
@@ -372,7 +372,7 @@ export const DataTierApplicationForm = () => {
             setValidationMessages((prev) => ({
                 ...prev,
                 database: {
-                    message: `${locConstants.dataTierApplication.failedToLoadDatabases}: ${errorMsg}`,
+                    message: `${locConstants.dacFxApplication.failedToLoadDatabases}: ${errorMsg}`,
                     severity: "error",
                 },
             }));
@@ -384,7 +384,7 @@ export const DataTierApplicationForm = () => {
             setValidationMessages((prev) => ({
                 ...prev,
                 filePath: {
-                    message: locConstants.dataTierApplication.filePathRequired,
+                    message: locConstants.dacFxApplication.filePathRequired,
                     severity: "error",
                 },
             }));
@@ -401,8 +401,7 @@ export const DataTierApplicationForm = () => {
                 setValidationMessages((prev) => ({
                     ...prev,
                     filePath: {
-                        message:
-                            result?.errorMessage || locConstants.dataTierApplication.invalidFile,
+                        message: result?.errorMessage || locConstants.dacFxApplication.invalidFile,
                         severity: "error",
                     },
                 }));
@@ -430,7 +429,7 @@ export const DataTierApplicationForm = () => {
             const errorMessage =
                 error instanceof Error
                     ? error.message
-                    : locConstants.dataTierApplication.validationFailed;
+                    : locConstants.dacFxApplication.validationFailed;
             setValidationMessages((prev) => ({
                 ...prev,
                 filePath: {
@@ -450,7 +449,7 @@ export const DataTierApplicationForm = () => {
             setValidationMessages((prev) => ({
                 ...prev,
                 databaseName: {
-                    message: locConstants.dataTierApplication.databaseNameRequired,
+                    message: locConstants.dacFxApplication.databaseNameRequired,
                     severity: "error",
                 },
             }));
@@ -473,8 +472,7 @@ export const DataTierApplicationForm = () => {
                     ...prev,
                     databaseName: {
                         message:
-                            result?.errorMessage ||
-                            locConstants.dataTierApplication.invalidDatabase,
+                            result?.errorMessage || locConstants.dacFxApplication.invalidDatabase,
                         severity: "error",
                     },
                 }));
@@ -493,8 +491,8 @@ export const DataTierApplicationForm = () => {
             // 1. User checked "New Database" but database already exists (shouldNotExist=true)
             // 2. User unchecked "New Database" to deploy to existing (shouldNotExist=false)
             if (
-                operationType === DataTierOperationType.Deploy &&
-                result.errorMessage === locConstants.dataTierApplication.databaseAlreadyExists
+                operationType === DacFxOperationType.Deploy &&
+                result.errorMessage === locConstants.dacFxApplication.databaseAlreadyExists
             ) {
                 const confirmResult = await context?.extensionRpc?.sendRequest(
                     ConfirmDeployToExistingWebviewRequest.type,
@@ -509,7 +507,7 @@ export const DataTierApplicationForm = () => {
             const errorMessage =
                 error instanceof Error
                     ? error.message
-                    : locConstants.dataTierApplication.validationFailed;
+                    : locConstants.dacFxApplication.validationFailed;
             setValidationMessages((prev) => ({
                 ...prev,
                 databaseName: {
@@ -537,7 +535,7 @@ export const DataTierApplicationForm = () => {
             let result;
 
             switch (operationType) {
-                case DataTierOperationType.Deploy:
+                case DacFxOperationType.Deploy:
                     if (
                         !(await validateFilePath(filePath, true)) ||
                         !(await validateDatabaseName(databaseName, isNewDatabase))
@@ -556,7 +554,7 @@ export const DataTierApplicationForm = () => {
                     );
                     break;
 
-                case DataTierOperationType.Extract:
+                case DacFxOperationType.Extract:
                     if (
                         !(await validateFilePath(filePath, false)) ||
                         !(await validateDatabaseName(databaseName, false))
@@ -576,7 +574,7 @@ export const DataTierApplicationForm = () => {
                     );
                     break;
 
-                case DataTierOperationType.Import:
+                case DacFxOperationType.Import:
                     if (
                         !(await validateFilePath(filePath, true)) ||
                         !(await validateDatabaseName(databaseName, true))
@@ -594,7 +592,7 @@ export const DataTierApplicationForm = () => {
                     );
                     break;
 
-                case DataTierOperationType.Export:
+                case DacFxOperationType.Export:
                     if (
                         !(await validateFilePath(filePath, false)) ||
                         !(await validateDatabaseName(databaseName, false))
@@ -618,7 +616,7 @@ export const DataTierApplicationForm = () => {
                 clearForm();
             } else {
                 console.error(
-                    result?.errorMessage || locConstants.dataTierApplication.operationFailed,
+                    result?.errorMessage || locConstants.dacFxApplication.operationFailed,
                 );
                 setIsOperationInProgress(false);
             }
@@ -626,7 +624,7 @@ export const DataTierApplicationForm = () => {
             console.error(
                 error instanceof Error
                     ? error.message
-                    : locConstants.dataTierApplication.unexpectedError,
+                    : locConstants.dacFxApplication.unexpectedError,
             );
             setIsOperationInProgress(false);
         }
@@ -634,8 +632,8 @@ export const DataTierApplicationForm = () => {
 
     const handleBrowseFile = async () => {
         const fileExtension =
-            operationType === DataTierOperationType.Deploy ||
-            operationType === DataTierOperationType.Extract
+            operationType === DacFxOperationType.Deploy ||
+            operationType === DacFxOperationType.Extract
                 ? "dacpac"
                 : "bacpac";
 
@@ -691,8 +689,8 @@ export const DataTierApplicationForm = () => {
             if (
                 requiresInputFile &&
                 context?.extensionRpc &&
-                (operationType === DataTierOperationType.Deploy ||
-                    operationType === DataTierOperationType.Import)
+                (operationType === DacFxOperationType.Deploy ||
+                    operationType === DacFxOperationType.Import)
             ) {
                 const nameResult = await context.extensionRpc.sendRequest(
                     GetSuggestedDatabaseNameWebviewRequest.type,
@@ -714,7 +712,7 @@ export const DataTierApplicationForm = () => {
 
     const handleCancel = async () => {
         await context?.extensionRpc?.sendNotification(
-            CancelDataTierApplicationWebviewNotification.type,
+            CancelDacFxApplicationWebviewNotification.type,
         );
     };
 
@@ -729,14 +727,12 @@ export const DataTierApplicationForm = () => {
     };
 
     const requiresInputFile =
-        operationType === DataTierOperationType.Deploy ||
-        operationType === DataTierOperationType.Import;
-    const showDatabaseTarget = operationType === DataTierOperationType.Deploy;
+        operationType === DacFxOperationType.Deploy || operationType === DacFxOperationType.Import;
+    const showDatabaseTarget = operationType === DacFxOperationType.Deploy;
     const showDatabaseSource =
-        operationType === DataTierOperationType.Extract ||
-        operationType === DataTierOperationType.Export;
-    const showNewDatabase = operationType === DataTierOperationType.Import;
-    const showApplicationInfo = operationType === DataTierOperationType.Extract;
+        operationType === DacFxOperationType.Extract || operationType === DacFxOperationType.Export;
+    const showNewDatabase = operationType === DacFxOperationType.Import;
+    const showApplicationInfo = operationType === DacFxOperationType.Extract;
 
     async function handleFilePathChange(value: string): Promise<void> {
         setFilePath(value);
@@ -751,18 +747,18 @@ export const DataTierApplicationForm = () => {
         <div className={classes.root}>
             <div className={classes.formContainer}>
                 <div>
-                    <div className={classes.title}>{locConstants.dataTierApplication.title}</div>
+                    <div className={classes.title}>{locConstants.dacFxApplication.title}</div>
                     <div className={classes.description}>
-                        {locConstants.dataTierApplication.subtitle}
+                        {locConstants.dacFxApplication.subtitle}
                     </div>
                 </div>
 
                 <div className={classes.section}>
-                    <Field label={locConstants.dataTierApplication.operationLabel} required>
+                    <Field label={locConstants.dacFxApplication.operationLabel} required>
                         <RadioGroup
                             value={operationType}
                             onChange={(_, data) => {
-                                setOperationType(data.value as DataTierOperationType);
+                                setOperationType(data.value as DacFxOperationType);
                                 setValidationMessages({});
                                 // Reset file path when switching operation types
                                 // Import/Deploy need empty (browse for existing file)
@@ -770,46 +766,46 @@ export const DataTierApplicationForm = () => {
                                 setFilePath("");
                             }}
                             disabled={isOperationInProgress}
-                            aria-label={locConstants.dataTierApplication.operationLabel}>
+                            aria-label={locConstants.dacFxApplication.operationLabel}>
                             <Radio
-                                value={DataTierOperationType.Deploy}
+                                value={DacFxOperationType.Deploy}
                                 label={
-                                    locConstants.dataTierApplication.deployDescription +
+                                    locConstants.dacFxApplication.deployDescription +
                                     " (" +
-                                    locConstants.dataTierApplication.deployDacpac +
+                                    locConstants.dacFxApplication.deployDacpac +
                                     ")"
                                 }
-                                aria-label={locConstants.dataTierApplication.deployDacpac}
+                                aria-label={locConstants.dacFxApplication.deployDacpac}
                             />
                             <Radio
-                                value={DataTierOperationType.Extract}
+                                value={DacFxOperationType.Extract}
                                 label={
-                                    locConstants.dataTierApplication.extractDescription +
+                                    locConstants.dacFxApplication.extractDescription +
                                     " (" +
-                                    locConstants.dataTierApplication.extractDacpac +
+                                    locConstants.dacFxApplication.extractDacpac +
                                     ")"
                                 }
-                                aria-label={locConstants.dataTierApplication.extractDacpac}
+                                aria-label={locConstants.dacFxApplication.extractDacpac}
                             />
                             <Radio
-                                value={DataTierOperationType.Import}
+                                value={DacFxOperationType.Import}
                                 label={
-                                    locConstants.dataTierApplication.importDescription +
+                                    locConstants.dacFxApplication.importDescription +
                                     " (" +
-                                    locConstants.dataTierApplication.importBacpac +
+                                    locConstants.dacFxApplication.importBacpac +
                                     ")"
                                 }
-                                aria-label={locConstants.dataTierApplication.importBacpac}
+                                aria-label={locConstants.dacFxApplication.importBacpac}
                             />
                             <Radio
-                                value={DataTierOperationType.Export}
+                                value={DacFxOperationType.Export}
                                 label={
-                                    locConstants.dataTierApplication.exportDescription +
+                                    locConstants.dacFxApplication.exportDescription +
                                     " (" +
-                                    locConstants.dataTierApplication.exportBacpac +
+                                    locConstants.dacFxApplication.exportBacpac +
                                     ")"
                                 }
-                                aria-label={locConstants.dataTierApplication.exportBacpac}
+                                aria-label={locConstants.dacFxApplication.exportBacpac}
                             />
                         </RadioGroup>
                     </Field>
@@ -817,7 +813,7 @@ export const DataTierApplicationForm = () => {
 
                 <div className={classes.section}>
                     <Field
-                        label={locConstants.dataTierApplication.serverLabel}
+                        label={locConstants.dacFxApplication.serverLabel}
                         required
                         validationMessage={validationMessages.connection?.message}
                         validationState={
@@ -826,11 +822,11 @@ export const DataTierApplicationForm = () => {
                         {isConnecting ? (
                             <Spinner
                                 size="tiny"
-                                label={locConstants.dataTierApplication.connectingToServer}
+                                label={locConstants.dacFxApplication.connectingToServer}
                             />
                         ) : (
                             <Dropdown
-                                placeholder={locConstants.dataTierApplication.selectServer}
+                                placeholder={locConstants.dacFxApplication.selectServer}
                                 value={
                                     selectedProfileId
                                         ? availableConnections.find(
@@ -845,10 +841,10 @@ export const DataTierApplicationForm = () => {
                                 disabled={
                                     isOperationInProgress || availableConnections.length === 0
                                 }
-                                aria-label={locConstants.dataTierApplication.serverLabel}>
+                                aria-label={locConstants.dacFxApplication.serverLabel}>
                                 {availableConnections.length === 0 ? (
                                     <Option value="" disabled text="">
-                                        {locConstants.dataTierApplication.noConnectionsAvailable}
+                                        {locConstants.dacFxApplication.noConnectionsAvailable}
                                     </Option>
                                 ) : (
                                     availableConnections.map((conn) => (
@@ -870,8 +866,8 @@ export const DataTierApplicationForm = () => {
                     <Field
                         label={
                             requiresInputFile
-                                ? locConstants.dataTierApplication.packageFileLabel
-                                : locConstants.dataTierApplication.outputFileLabel
+                                ? locConstants.dacFxApplication.packageFileLabel
+                                : locConstants.dacFxApplication.outputFileLabel
                         }
                         required
                         validationMessage={validationMessages.filePath?.message}
@@ -889,14 +885,14 @@ export const DataTierApplicationForm = () => {
                                 onChange={(_, data) => handleFilePathChange(data.value)}
                                 placeholder={
                                     requiresInputFile
-                                        ? locConstants.dataTierApplication.selectPackageFile
-                                        : locConstants.dataTierApplication.selectOutputFile
+                                        ? locConstants.dacFxApplication.selectPackageFile
+                                        : locConstants.dacFxApplication.selectOutputFile
                                 }
                                 disabled={isOperationInProgress}
                                 aria-label={
                                     requiresInputFile
-                                        ? locConstants.dataTierApplication.packageFileLabel
-                                        : locConstants.dataTierApplication.outputFileLabel
+                                        ? locConstants.dacFxApplication.packageFileLabel
+                                        : locConstants.dacFxApplication.outputFileLabel
                                 }
                             />
                             <Button
@@ -904,8 +900,8 @@ export const DataTierApplicationForm = () => {
                                 appearance="secondary"
                                 onClick={handleBrowseFile}
                                 disabled={isOperationInProgress}
-                                aria-label={locConstants.dataTierApplication.browse}>
-                                {locConstants.dataTierApplication.browse}
+                                aria-label={locConstants.dacFxApplication.browse}>
+                                {locConstants.dacFxApplication.browse}
                             </Button>
                         </div>
                     </Field>
@@ -913,29 +909,29 @@ export const DataTierApplicationForm = () => {
 
                 {showDatabaseTarget && (
                     <div className={classes.section}>
-                        <Label>{locConstants.dataTierApplication.targetDatabaseLabel}</Label>
+                        <Label>{locConstants.dacFxApplication.targetDatabaseLabel}</Label>
                         <RadioGroup
                             value={isNewDatabase ? "new" : "existing"}
                             onChange={(_, data) => setIsNewDatabase(data.value === "new")}
                             className={classes.radioGroup}
-                            aria-label={locConstants.dataTierApplication.targetDatabaseLabel}>
+                            aria-label={locConstants.dacFxApplication.targetDatabaseLabel}>
                             <Radio
                                 value="new"
-                                label={locConstants.dataTierApplication.newDatabase}
+                                label={locConstants.dacFxApplication.newDatabase}
                                 disabled={isOperationInProgress}
-                                aria-label={locConstants.dataTierApplication.newDatabase}
+                                aria-label={locConstants.dacFxApplication.newDatabase}
                             />
                             <Radio
                                 value="existing"
-                                label={locConstants.dataTierApplication.existingDatabase}
+                                label={locConstants.dacFxApplication.existingDatabase}
                                 disabled={isOperationInProgress}
-                                aria-label={locConstants.dataTierApplication.existingDatabase}
+                                aria-label={locConstants.dacFxApplication.existingDatabase}
                             />
                         </RadioGroup>
 
                         {isNewDatabase ? (
                             <Field
-                                label={locConstants.dataTierApplication.databaseNameLabel}
+                                label={locConstants.dacFxApplication.databaseNameLabel}
                                 required
                                 validationMessage={validationMessages.databaseName?.message}
                                 validationState={
@@ -946,14 +942,14 @@ export const DataTierApplicationForm = () => {
                                 <Input
                                     value={databaseName}
                                     onChange={(_, data) => setDatabaseName(data.value)}
-                                    placeholder={locConstants.dataTierApplication.enterDatabaseName}
+                                    placeholder={locConstants.dacFxApplication.enterDatabaseName}
                                     disabled={isOperationInProgress}
-                                    aria-label={locConstants.dataTierApplication.databaseNameLabel}
+                                    aria-label={locConstants.dacFxApplication.databaseNameLabel}
                                 />
                             </Field>
                         ) : (
                             <Field
-                                label={locConstants.dataTierApplication.databaseNameLabel}
+                                label={locConstants.dacFxApplication.databaseNameLabel}
                                 required
                                 validationMessage={
                                     validationMessages.databaseName?.message ||
@@ -966,14 +962,14 @@ export const DataTierApplicationForm = () => {
                                         : "none"
                                 }>
                                 <Dropdown
-                                    placeholder={locConstants.dataTierApplication.selectDatabase}
+                                    placeholder={locConstants.dacFxApplication.selectDatabase}
                                     value={databaseName}
                                     selectedOptions={[databaseName]}
                                     onOptionSelect={(_, data) =>
                                         setDatabaseName(data.optionText || "")
                                     }
                                     disabled={isOperationInProgress || !ownerUri}
-                                    aria-label={locConstants.dataTierApplication.databaseNameLabel}>
+                                    aria-label={locConstants.dacFxApplication.databaseNameLabel}>
                                     {availableDatabases.map((db) => (
                                         <Option key={db} value={db}>
                                             {db}
@@ -989,7 +985,7 @@ export const DataTierApplicationForm = () => {
                     <div className={classes.section}>
                         {showDatabaseSource ? (
                             <Field
-                                label={locConstants.dataTierApplication.sourceDatabaseLabel}
+                                label={locConstants.dacFxApplication.sourceDatabaseLabel}
                                 required
                                 validationMessage={
                                     validationMessages.databaseName?.message ||
@@ -1002,16 +998,14 @@ export const DataTierApplicationForm = () => {
                                         : "none"
                                 }>
                                 <Dropdown
-                                    placeholder={locConstants.dataTierApplication.selectDatabase}
+                                    placeholder={locConstants.dacFxApplication.selectDatabase}
                                     value={databaseName}
                                     selectedOptions={[databaseName]}
                                     onOptionSelect={(_, data) =>
                                         setDatabaseName(data.optionText || "")
                                     }
                                     disabled={isOperationInProgress || !ownerUri}
-                                    aria-label={
-                                        locConstants.dataTierApplication.sourceDatabaseLabel
-                                    }>
+                                    aria-label={locConstants.dacFxApplication.sourceDatabaseLabel}>
                                     {availableDatabases.map((db) => (
                                         <Option key={db} value={db}>
                                             {db}
@@ -1021,7 +1015,7 @@ export const DataTierApplicationForm = () => {
                             </Field>
                         ) : (
                             <Field
-                                label={locConstants.dataTierApplication.databaseNameLabel}
+                                label={locConstants.dacFxApplication.databaseNameLabel}
                                 required
                                 validationMessage={validationMessages.databaseName?.message}
                                 validationState={
@@ -1032,9 +1026,9 @@ export const DataTierApplicationForm = () => {
                                 <Input
                                     value={databaseName}
                                     onChange={(_, data) => setDatabaseName(data.value)}
-                                    placeholder={locConstants.dataTierApplication.enterDatabaseName}
+                                    placeholder={locConstants.dacFxApplication.enterDatabaseName}
                                     disabled={isOperationInProgress}
-                                    aria-label={locConstants.dataTierApplication.databaseNameLabel}
+                                    aria-label={locConstants.dacFxApplication.databaseNameLabel}
                                 />
                             </Field>
                         )}
@@ -1043,25 +1037,23 @@ export const DataTierApplicationForm = () => {
 
                 {showApplicationInfo && (
                     <div className={classes.section}>
-                        <Field label={locConstants.dataTierApplication.applicationNameLabel}>
+                        <Field label={locConstants.dacFxApplication.applicationNameLabel}>
                             <Input
                                 value={applicationName}
                                 onChange={(_, data) => setApplicationName(data.value)}
-                                placeholder={locConstants.dataTierApplication.enterApplicationName}
+                                placeholder={locConstants.dacFxApplication.enterApplicationName}
                                 disabled={isOperationInProgress}
-                                aria-label={locConstants.dataTierApplication.applicationNameLabel}
+                                aria-label={locConstants.dacFxApplication.applicationNameLabel}
                             />
                         </Field>
 
-                        <Field label={locConstants.dataTierApplication.applicationVersionLabel}>
+                        <Field label={locConstants.dacFxApplication.applicationVersionLabel}>
                             <Input
                                 value={applicationVersion}
                                 onChange={(_, data) => setApplicationVersion(data.value)}
                                 placeholder={DEFAULT_APPLICATION_VERSION}
                                 disabled={isOperationInProgress}
-                                aria-label={
-                                    locConstants.dataTierApplication.applicationVersionLabel
-                                }
+                                aria-label={locConstants.dacFxApplication.applicationVersionLabel}
                             />
                         </Field>
                     </div>
@@ -1072,16 +1064,16 @@ export const DataTierApplicationForm = () => {
                         appearance="secondary"
                         onClick={handleCancel}
                         disabled={isOperationInProgress}
-                        aria-label={locConstants.dataTierApplication.cancel}>
-                        {locConstants.dataTierApplication.cancel}
+                        aria-label={locConstants.dacFxApplication.cancel}>
+                        {locConstants.dacFxApplication.cancel}
                     </Button>
                     <Button
                         appearance="primary"
                         icon={<DatabaseArrowRight20Regular />}
                         onClick={handleSubmit}
                         disabled={!isFormValid() || isOperationInProgress || isConnecting}
-                        aria-label={locConstants.dataTierApplication.execute}>
-                        {locConstants.dataTierApplication.execute}
+                        aria-label={locConstants.dacFxApplication.execute}>
+                        {locConstants.dacFxApplication.execute}
                     </Button>
                 </div>
             </div>

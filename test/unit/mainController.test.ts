@@ -340,11 +340,11 @@ suite("MainController Tests", function () {
     });
 
     suite("Data-Tier Application Commands", () => {
-        test("cmdDataTierApplication command is registered", async () => {
+        test("cmdDacFxApplication command is registered", async () => {
             const commands = await vscode.commands.getCommands(true);
             assert.ok(
-                commands.includes(Constants.cmdDataTierApplication),
-                "Expected cmdDataTierApplication to be registered",
+                commands.includes(Constants.cmdDacFxApplication),
+                "Expected cmdDacFxApplication to be registered",
             );
         });
 

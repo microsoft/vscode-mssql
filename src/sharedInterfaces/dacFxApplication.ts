@@ -6,9 +6,9 @@
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 
 /**
- * The type of Data-tier Application operation to perform
+ * The type of DacFx Application operation to perform
  */
-export enum DataTierOperationType {
+export enum DacFxOperationType {
     Deploy = "deploy",
     Extract = "extract",
     Import = "import",
@@ -50,13 +50,13 @@ export interface ConnectionProfile {
 }
 
 /**
- * The state of the Data-tier Application webview
+ * The state of the DacFx Application webview
  */
-export interface DataTierApplicationWebviewState {
+export interface DacFxApplicationWebviewState {
     /**
      * The currently selected operation type
      */
-    operationType: DataTierOperationType;
+    operationType: DacFxOperationType;
     /**
      * The selected DACPAC/BACPAC file path
      */
@@ -151,9 +151,9 @@ export interface ExportBacpacParams {
 }
 
 /**
- * Result from a Data-tier Application operation
+ * Result from a DacFx Application operation
  */
-export interface DataTierApplicationResult {
+export interface DacFxApplicationResult {
     success: boolean;
     errorMessage?: string;
     operationId?: string;
@@ -163,8 +163,8 @@ export interface DataTierApplicationResult {
  * Request to deploy a DACPAC from the webview
  */
 export namespace DeployDacpacWebviewRequest {
-    export const type = new RequestType<DeployDacpacParams, DataTierApplicationResult, void>(
-        "dataTierApplication/deployDacpac",
+    export const type = new RequestType<DeployDacpacParams, DacFxApplicationResult, void>(
+        "dacFxApplication/deployDacpac",
     );
 }
 
@@ -172,8 +172,8 @@ export namespace DeployDacpacWebviewRequest {
  * Request to extract a DACPAC from the webview
  */
 export namespace ExtractDacpacWebviewRequest {
-    export const type = new RequestType<ExtractDacpacParams, DataTierApplicationResult, void>(
-        "dataTierApplication/extractDacpac",
+    export const type = new RequestType<ExtractDacpacParams, DacFxApplicationResult, void>(
+        "dacFxApplication/extractDacpac",
     );
 }
 
@@ -181,8 +181,8 @@ export namespace ExtractDacpacWebviewRequest {
  * Request to import a BACPAC from the webview
  */
 export namespace ImportBacpacWebviewRequest {
-    export const type = new RequestType<ImportBacpacParams, DataTierApplicationResult, void>(
-        "dataTierApplication/importBacpac",
+    export const type = new RequestType<ImportBacpacParams, DacFxApplicationResult, void>(
+        "dacFxApplication/importBacpac",
     );
 }
 
@@ -190,8 +190,8 @@ export namespace ImportBacpacWebviewRequest {
  * Request to export a BACPAC from the webview
  */
 export namespace ExportBacpacWebviewRequest {
-    export const type = new RequestType<ExportBacpacParams, DataTierApplicationResult, void>(
-        "dataTierApplication/exportBacpac",
+    export const type = new RequestType<ExportBacpacParams, DacFxApplicationResult, void>(
+        "dacFxApplication/exportBacpac",
     );
 }
 
@@ -203,7 +203,7 @@ export namespace ValidateFilePathWebviewRequest {
         { filePath: string; shouldExist: boolean },
         { isValid: boolean; errorMessage?: string },
         void
-    >("dataTierApplication/validateFilePath");
+    >("dacFxApplication/validateFilePath");
 }
 
 /**
@@ -211,7 +211,7 @@ export namespace ValidateFilePathWebviewRequest {
  */
 export namespace ListDatabasesWebviewRequest {
     export const type = new RequestType<{ ownerUri: string }, { databases: string[] }, void>(
-        "dataTierApplication/listDatabases",
+        "dacFxApplication/listDatabases",
     );
 }
 
@@ -224,11 +224,11 @@ export namespace ValidateDatabaseNameWebviewRequest {
             databaseName: string;
             ownerUri: string;
             shouldNotExist: boolean;
-            operationType?: DataTierOperationType;
+            operationType?: DacFxOperationType;
         },
         { isValid: boolean; errorMessage?: string },
         void
-    >("dataTierApplication/validateDatabaseName");
+    >("dacFxApplication/validateDatabaseName");
 }
 
 /**
@@ -236,7 +236,7 @@ export namespace ValidateDatabaseNameWebviewRequest {
  */
 export namespace ListConnectionsWebviewRequest {
     export const type = new RequestType<void, { connections: ConnectionProfile[] }, void>(
-        "dataTierApplication/listConnections",
+        "dacFxApplication/listConnections",
     );
 }
 
@@ -260,7 +260,7 @@ export namespace InitializeConnectionWebviewRequest {
             errorMessage?: string;
         },
         void
-    >("dataTierApplication/initializeConnection");
+    >("dacFxApplication/initializeConnection");
 }
 
 /**
@@ -271,22 +271,22 @@ export namespace ConnectToServerWebviewRequest {
         { profileId: string },
         { ownerUri: string; isConnected: boolean; errorMessage?: string },
         void
-    >("dataTierApplication/connectToServer");
+    >("dacFxApplication/connectToServer");
 }
 
 /**
  * Notification sent from the webview to cancel the operation
  */
-export namespace CancelDataTierApplicationWebviewNotification {
-    export const type = new NotificationType<void>("dataTierApplication/cancel");
+export namespace CancelDacFxApplicationWebviewNotification {
+    export const type = new NotificationType<void>("dacFxApplication/cancel");
 }
 
 /**
  * Notification sent to the webview to update progress
  */
-export namespace DataTierApplicationProgressNotification {
+export namespace DacFxApplicationProgressNotification {
     export const type = new NotificationType<{ message: string; percentage?: number }>(
-        "dataTierApplication/progress",
+        "dacFxApplication/progress",
     );
 }
 
@@ -295,7 +295,7 @@ export namespace DataTierApplicationProgressNotification {
  */
 export namespace BrowseInputFileWebviewRequest {
     export const type = new RequestType<{ fileExtension: string }, { filePath?: string }, void>(
-        "dataTierApplication/browseInputFile",
+        "dacFxApplication/browseInputFile",
     );
 }
 
@@ -307,7 +307,7 @@ export namespace BrowseOutputFileWebviewRequest {
         { fileExtension: string; defaultFileName?: string },
         { filePath?: string },
         void
-    >("dataTierApplication/browseOutputFile");
+    >("dacFxApplication/browseOutputFile");
 }
 
 /**
@@ -316,10 +316,10 @@ export namespace BrowseOutputFileWebviewRequest {
  */
 export namespace GetSuggestedOutputPathWebviewRequest {
     export const type = new RequestType<
-        { databaseName: string; operationType: DataTierOperationType },
+        { databaseName: string; operationType: DacFxOperationType },
         { fullPath: string },
         void
-    >("dataTierApplication/getSuggestedOutputPath");
+    >("dacFxApplication/getSuggestedOutputPath");
 }
 
 /**
@@ -328,7 +328,7 @@ export namespace GetSuggestedOutputPathWebviewRequest {
  */
 export namespace GetSuggestedDatabaseNameWebviewRequest {
     export const type = new RequestType<{ filePath: string }, { databaseName: string }, void>(
-        "dataTierApplication/getSuggestedDatabaseName",
+        "dacFxApplication/getSuggestedDatabaseName",
     );
 }
 
@@ -337,6 +337,6 @@ export namespace GetSuggestedDatabaseNameWebviewRequest {
  */
 export namespace ConfirmDeployToExistingWebviewRequest {
     export const type = new RequestType<void, { confirmed: boolean }, void>(
-        "dataTierApplication/confirmDeployToExisting",
+        "dacFxApplication/confirmDeployToExisting",
     );
 }

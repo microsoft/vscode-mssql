@@ -19,13 +19,13 @@ import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInter
 import {
     BrowseInputFileWebviewRequest,
     BrowseOutputFileWebviewRequest,
-    CancelDataTierApplicationWebviewNotification,
+    CancelDacFxApplicationWebviewNotification,
     ConfirmDeployToExistingWebviewRequest,
     ConnectionProfile,
     ConnectToServerWebviewRequest,
-    DataTierApplicationResult,
-    DataTierApplicationWebviewState,
-    DataTierOperationType,
+    DacFxApplicationResult,
+    DacFxApplicationWebviewState,
+    DacFxOperationType,
     DeployDacpacParams,
     DeployDacpacWebviewRequest,
     ExportBacpacParams,
@@ -41,18 +41,18 @@ import {
     ListDatabasesWebviewRequest,
     ValidateDatabaseNameWebviewRequest,
     ValidateFilePathWebviewRequest,
-} from "../sharedInterfaces/dataTierApplication";
+} from "../sharedInterfaces/dacFxApplication";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { ListDatabasesRequest } from "../models/contracts/connection";
 
 /**
- * Controller for the Data-tier Application webview
- * Manages DACPAC and BACPAC operations (Deploy, Extract, Import, Export)
+ * Controller for the DacFxApplication webview.
+ * Manages DACPAC and BACPAC operations (Deploy, Extract, Import, Export) using the Data-tier Application Framework (DacFx).
  */
-export class DataTierApplicationWebviewController extends ReactWebviewPanelController<
-    DataTierApplicationWebviewState,
+export class DacFxApplicationWebviewController extends ReactWebviewPanelController<
+    DacFxApplicationWebviewState,
     void,
-    DataTierApplicationResult
+    DacFxApplicationResult
 > {
     private _ownerUri: string;
 
@@ -61,11 +61,11 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
         vscodeWrapper: VscodeWrapper,
         private connectionManager: ConnectionManager,
         private dacFxService: DacFxService,
-        initialState: DataTierApplicationWebviewState,
+        initialState: DacFxApplicationWebviewState,
         ownerUri: string,
     ) {
-        super(context, vscodeWrapper, "dataTierApplication", "dataTierApplication", initialState, {
-            title: LocConstants.DataTierApplication.Title,
+        super(context, vscodeWrapper, "dacFxApplication", "dacFxApplication", initialState, {
+            title: LocConstants.DacFxApplication.Title,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {
                 dark: vscode.Uri.joinPath(context.extensionUri, "media", "database_dark.svg"),
@@ -126,7 +126,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
                 databaseName: string;
                 ownerUri: string;
                 shouldNotExist: boolean;
-                operationType?: DataTierOperationType;
+                operationType?: DacFxOperationType;
             }) => {
                 if (!params.ownerUri || params.ownerUri.trim() === "") {
                     this.logger.error("Cannot validate database name: ownerUri is empty");
@@ -179,7 +179,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
                     canSelectFiles: true,
                     canSelectFolders: false,
                     canSelectMany: false,
-                    openLabel: LocConstants.DataTierApplication.Select,
+                    openLabel: LocConstants.DacFxApplication.Select,
                     filters: {
                         [`${params.fileExtension.toUpperCase()} Files`]: [params.fileExtension],
                     },
@@ -206,7 +206,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
 
                 const fileUri = await vscode.window.showSaveDialog({
                     defaultUri: defaultUri,
-                    saveLabel: LocConstants.DataTierApplication.Save,
+                    saveLabel: LocConstants.DacFxApplication.Save,
                     filters: {
                         [`${params.fileExtension.toUpperCase()} Files`]: [params.fileExtension],
                     },
@@ -223,9 +223,9 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
         // Get default output path without showing dialog
         this.onRequest(
             GetSuggestedOutputPathWebviewRequest.type,
-            async (params: { databaseName: string; operationType: DataTierOperationType }) => {
+            async (params: { databaseName: string; operationType: DacFxOperationType }) => {
                 const fileExtension =
-                    params.operationType === DataTierOperationType.Extract ? "dacpac" : "bacpac";
+                    params.operationType === DacFxOperationType.Extract ? "dacpac" : "bacpac";
 
                 // Format timestamp as yyyy-MM-dd-HH-mm
                 const now = new Date();
@@ -266,18 +266,18 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
         // Confirm deploy to existing database request handler
         this.onRequest(ConfirmDeployToExistingWebviewRequest.type, async () => {
             const result = await this.vscodeWrapper.showWarningMessageAdvanced(
-                LocConstants.DataTierApplication.DeployToExistingMessage,
+                LocConstants.DacFxApplication.DeployToExistingMessage,
                 { modal: true },
-                [LocConstants.DataTierApplication.DeployToExistingConfirm],
+                [LocConstants.DacFxApplication.DeployToExistingConfirm],
             );
 
             return {
-                confirmed: result === LocConstants.DataTierApplication.DeployToExistingConfirm,
+                confirmed: result === LocConstants.DacFxApplication.DeployToExistingConfirm,
             };
         });
 
         // Cancel operation notification handler
-        this.onNotification(CancelDataTierApplicationWebviewNotification.type, () => {
+        this.onNotification(CancelDacFxApplicationWebviewNotification.type, () => {
             this.dialogResult.resolve(undefined);
             this.panel.dispose();
         });
@@ -286,11 +286,9 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
     /**
      * Handles deploying a DACPAC file to a database
      */
-    private async handleDeployDacpac(
-        params: DeployDacpacParams,
-    ): Promise<DataTierApplicationResult> {
+    private async handleDeployDacpac(params: DeployDacpacParams): Promise<DacFxApplicationResult> {
         const activity = startActivity(
-            TelemetryViews.DataTierApplication,
+            TelemetryViews.DacFxApplication,
             TelemetryActions.DacFxDeployDacpac,
             undefined,
             {
@@ -307,7 +305,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
                 TaskExecutionMode.execute,
             );
 
-            const appResult: DataTierApplicationResult = {
+            const appResult: DacFxApplicationResult = {
                 success: result.success,
                 errorMessage: result.errorMessage,
                 operationId: result.operationId,
@@ -340,9 +338,9 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
      */
     private async handleExtractDacpac(
         params: ExtractDacpacParams,
-    ): Promise<DataTierApplicationResult> {
+    ): Promise<DacFxApplicationResult> {
         const activity = startActivity(
-            TelemetryViews.DataTierApplication,
+            TelemetryViews.DacFxApplication,
             TelemetryActions.DacFxExtractDacpac,
         );
 
@@ -356,7 +354,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
                 TaskExecutionMode.execute,
             );
 
-            const appResult: DataTierApplicationResult = {
+            const appResult: DacFxApplicationResult = {
                 success: result.success,
                 errorMessage: result.errorMessage,
                 operationId: result.operationId,
@@ -387,11 +385,9 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
     /**
      * Handles importing a BACPAC file to create a new database
      */
-    private async handleImportBacpac(
-        params: ImportBacpacParams,
-    ): Promise<DataTierApplicationResult> {
+    private async handleImportBacpac(params: ImportBacpacParams): Promise<DacFxApplicationResult> {
         const activity = startActivity(
-            TelemetryViews.DataTierApplication,
+            TelemetryViews.DacFxApplication,
             TelemetryActions.DacFxImportBacpac,
         );
 
@@ -403,7 +399,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
                 TaskExecutionMode.execute,
             );
 
-            const appResult: DataTierApplicationResult = {
+            const appResult: DacFxApplicationResult = {
                 success: result.success,
                 errorMessage: result.errorMessage,
                 operationId: result.operationId,
@@ -434,11 +430,9 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
     /**
      * Handles exporting a database to a BACPAC file
      */
-    private async handleExportBacpac(
-        params: ExportBacpacParams,
-    ): Promise<DataTierApplicationResult> {
+    private async handleExportBacpac(params: ExportBacpacParams): Promise<DacFxApplicationResult> {
         const activity = startActivity(
-            TelemetryViews.DataTierApplication,
+            TelemetryViews.DacFxApplication,
             TelemetryActions.DacFxExportBacpac,
         );
 
@@ -450,7 +444,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
                 TaskExecutionMode.execute,
             );
 
-            const appResult: DataTierApplicationResult = {
+            const appResult: DacFxApplicationResult = {
                 success: result.success,
                 errorMessage: result.errorMessage,
                 operationId: result.operationId,
@@ -488,7 +482,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
         if (!filePath || filePath.trim() === "") {
             return {
                 isValid: false,
-                errorMessage: LocConstants.DataTierApplication.FilePathRequired,
+                errorMessage: LocConstants.DacFxApplication.FilePathRequired,
             };
         }
 
@@ -497,7 +491,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
         if (shouldExist && !fileFound) {
             return {
                 isValid: false,
-                errorMessage: LocConstants.DataTierApplication.FileNotFound,
+                errorMessage: LocConstants.DacFxApplication.FileNotFound,
             };
         }
 
@@ -505,7 +499,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
         if (extension !== ".dacpac" && extension !== ".bacpac") {
             return {
                 isValid: false,
-                errorMessage: LocConstants.DataTierApplication.InvalidFileExtension,
+                errorMessage: LocConstants.DacFxApplication.InvalidFileExtension,
             };
         }
 
@@ -515,7 +509,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             if (!fs.existsSync(directory)) {
                 return {
                     isValid: false,
-                    errorMessage: LocConstants.DataTierApplication.DirectoryNotFound,
+                    errorMessage: LocConstants.DacFxApplication.DirectoryNotFound,
                 };
             }
 
@@ -524,7 +518,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
                 // This is just a warning - the operation can continue with user confirmation
                 return {
                     isValid: true,
-                    errorMessage: LocConstants.DataTierApplication.FileAlreadyExists,
+                    errorMessage: LocConstants.DacFxApplication.FileAlreadyExists,
                 };
             }
         }
@@ -906,12 +900,12 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
         databaseName: string,
         ownerUri: string,
         shouldNotExist: boolean,
-        operationType?: DataTierOperationType,
+        operationType?: DacFxOperationType,
     ): Promise<{ isValid: boolean; errorMessage?: string }> {
         if (!databaseName || databaseName.trim() === "") {
             return {
                 isValid: false,
-                errorMessage: LocConstants.DataTierApplication.DatabaseNameRequired,
+                errorMessage: LocConstants.DacFxApplication.DatabaseNameRequired,
             };
         }
 
@@ -920,7 +914,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
         if (invalidChars.test(databaseName)) {
             return {
                 isValid: false,
-                errorMessage: LocConstants.DataTierApplication.InvalidDatabaseName,
+                errorMessage: LocConstants.DacFxApplication.InvalidDatabaseName,
             };
         }
 
@@ -928,7 +922,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
         if (databaseName.length > 128) {
             return {
                 isValid: false,
-                errorMessage: LocConstants.DataTierApplication.DatabaseNameTooLong,
+                errorMessage: LocConstants.DacFxApplication.DatabaseNameTooLong,
             };
         }
 
@@ -946,10 +940,10 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             // This ensures confirmation dialog is shown in both cases:
             // 1. User selected "New Database" but database already exists (shouldNotExist=true)
             // 2. User selected "Existing Database" and selected existing database (shouldNotExist=false)
-            if (operationType === DataTierOperationType.Deploy && exists) {
+            if (operationType === DacFxOperationType.Deploy && exists) {
                 return {
                     isValid: true, // Allow the operation but with a warning
-                    errorMessage: LocConstants.DataTierApplication.DatabaseAlreadyExists,
+                    errorMessage: LocConstants.DacFxApplication.DatabaseAlreadyExists,
                 };
             }
 
@@ -957,7 +951,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             if (shouldNotExist && exists) {
                 return {
                     isValid: true, // Allow the operation but with a warning
-                    errorMessage: LocConstants.DataTierApplication.DatabaseAlreadyExists,
+                    errorMessage: LocConstants.DacFxApplication.DatabaseAlreadyExists,
                 };
             }
 
@@ -965,7 +959,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             if (!shouldNotExist && !exists) {
                 return {
                     isValid: false,
-                    errorMessage: LocConstants.DataTierApplication.DatabaseNotFound,
+                    errorMessage: LocConstants.DacFxApplication.DatabaseNotFound,
                 };
             }
 
@@ -974,7 +968,7 @@ export class DataTierApplicationWebviewController extends ReactWebviewPanelContr
             const errorMessage =
                 error instanceof Error
                     ? `Failed to validate database name: ${error.message}`
-                    : LocConstants.DataTierApplication.ValidationFailed;
+                    : LocConstants.DacFxApplication.ValidationFailed;
             this.logger.error(errorMessage);
             return {
                 isValid: false,

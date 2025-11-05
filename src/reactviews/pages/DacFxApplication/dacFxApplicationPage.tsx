@@ -5,12 +5,12 @@
 
 import { useContext } from "react";
 import { Spinner } from "@fluentui/react-components";
-import { DataTierApplicationContext } from "./dataTierApplicationStateProvider";
-import { DataTierApplicationForm } from "./dataTierApplicationForm";
+import { DacFxApplicationContext } from "./dacFxApplicationStateProvider";
+import { DacFxApplicationForm } from "./dacFxApplicationForm";
 import { locConstants } from "../../common/locConstants";
 
-export const DataTierApplicationPage = () => {
-    const context = useContext(DataTierApplicationContext);
+export const DacFxApplicationPage = () => {
+    const context = useContext(DacFxApplicationContext);
 
     if (!context) {
         return (
@@ -27,10 +27,10 @@ export const DataTierApplicationPage = () => {
                     alignItems: "center",
                     justifyContent: "center",
                 }}>
-                <Spinner label={locConstants.dataTierApplication.loading} labelPosition="below" />
+                <Spinner label={locConstants.dacFxApplication.loading} labelPosition="below" />
             </div>
         );
     }
 
-    return <DataTierApplicationForm />;
+    return <DacFxApplicationForm />;
 };

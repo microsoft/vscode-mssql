@@ -282,7 +282,7 @@ const SchemaSelectorDrawer = (props: Props) => {
                         value={schemaType}
                         onChange={(_, data) => handleSchemaTypeChange(data.value)}>
                         <Radio value="database" label={loc.schemaCompare.database} />
-                        <Radio value="dacpac" label={loc.schemaCompare.dataTierApplicationFile} />
+                        <Radio value="dacpac" label={loc.schemaCompare.dacFxApplicationFile} />
                         {isSqlProjExtensionInstalled && (
                             <Radio value="sqlproj" label={loc.schemaCompare.databaseProject} />
                         )}

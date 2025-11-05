@@ -32,7 +32,7 @@ export enum TelemetryViews {
     Connection = "Connection",
     Credential = "Credential",
     ConnectionManager = "ConnectionManager",
-    DataTierApplication = "DataTierApplication",
+    DacFxApplication = "DacFxApplication",
 }
 
 export enum TelemetryActions {

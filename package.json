@@ -548,7 +548,7 @@
                     "group": "2_MSSQL_serverDbActions@2"
                 },
                 {
-                    "command": "mssql.dataTierApplication",
+                    "command": "mssql.dacFxApplication",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
                     "group": "2_MSSQL_serverDbActions@3"
                 },
@@ -1034,8 +1034,8 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.dataTierApplication",
-                "title": "%mssql.dataTierApplication%",
+                "command": "mssql.dacFxApplication",
+                "title": "%mssql.dacFxApplication%",
                 "category": "MS SQL",
                 "icon": "$(database)"
             },

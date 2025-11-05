@@ -47,11 +47,11 @@ import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInter
 import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
-import { DataTierApplicationWebviewController } from "./dataTierApplicationWebviewController";
+import { DacFxApplicationWebviewController } from "./dacFxApplicationWebviewController";
 import {
-    DataTierApplicationWebviewState,
-    DataTierOperationType,
-} from "../sharedInterfaces/dataTierApplication";
+    DacFxApplicationWebviewState,
+    DacFxOperationType,
+} from "../sharedInterfaces/dacFxApplication";
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
 import {
     DatabaseObjectSearchService,
@@ -1790,7 +1790,7 @@ export default class MainController implements vscode.Disposable {
         // Data-tier Application - Main command
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
-                Constants.cmdDataTierApplication,
+                Constants.cmdDacFxApplication,
                 async (node?: TreeNodeInfo) => {
                     const connectionProfile = node?.connectionProfile;
                     const ownerUri = connectionProfile
@@ -1803,15 +1803,15 @@ export default class MainController implements vscode.Disposable {
                           `${connectionProfile.server}_${connectionProfile.database || ""}`
                         : undefined;
 
-                    const initialState: DataTierApplicationWebviewState = {
+                    const initialState: DacFxApplicationWebviewState = {
                         ownerUri,
                         serverName,
                         databaseName,
                         selectedProfileId: profileId,
-                        operationType: DataTierOperationType.Deploy,
+                        operationType: DacFxOperationType.Deploy,
                     };
 
-                    const controller = new DataTierApplicationWebviewController(
+                    const controller = new DacFxApplicationWebviewController(
                         this._context,
                         this._vscodeWrapper,
                         this._connectionMgr,
@@ -1840,15 +1840,15 @@ export default class MainController implements vscode.Disposable {
                           `${connectionProfile.server}_${connectionProfile.database || ""}`
                         : undefined;
 
-                    const initialState: DataTierApplicationWebviewState = {
+                    const initialState: DacFxApplicationWebviewState = {
                         ownerUri,
                         serverName,
                         databaseName,
                         selectedProfileId: profileId,
-                        operationType: DataTierOperationType.Deploy,
+                        operationType: DacFxOperationType.Deploy,
                     };
 
-                    const controller = new DataTierApplicationWebviewController(
+                    const controller = new DacFxApplicationWebviewController(
                         this._context,
                         this._vscodeWrapper,
                         this._connectionMgr,
@@ -1877,15 +1877,15 @@ export default class MainController implements vscode.Disposable {
                           `${connectionProfile.server}_${connectionProfile.database || ""}`
                         : undefined;
 
-                    const initialState: DataTierApplicationWebviewState = {
+                    const initialState: DacFxApplicationWebviewState = {
                         ownerUri,
                         serverName,
                         databaseName,
                         selectedProfileId: profileId,
-                        operationType: DataTierOperationType.Extract,
+                        operationType: DacFxOperationType.Extract,
                     };
 
-                    const controller = new DataTierApplicationWebviewController(
+                    const controller = new DacFxApplicationWebviewController(
                         this._context,
                         this._vscodeWrapper,
                         this._connectionMgr,
@@ -1914,15 +1914,15 @@ export default class MainController implements vscode.Disposable {
                           `${connectionProfile.server}_${connectionProfile.database || ""}`
                         : undefined;
 
-                    const initialState: DataTierApplicationWebviewState = {
+                    const initialState: DacFxApplicationWebviewState = {
                         ownerUri,
                         serverName,
                         databaseName,
                         selectedProfileId: profileId,
-                        operationType: DataTierOperationType.Import,
+                        operationType: DacFxOperationType.Import,
                     };
 
-                    const controller = new DataTierApplicationWebviewController(
+                    const controller = new DacFxApplicationWebviewController(
                         this._context,
                         this._vscodeWrapper,
                         this._connectionMgr,
@@ -1951,15 +1951,15 @@ export default class MainController implements vscode.Disposable {
                           `${connectionProfile.server}_${connectionProfile.database || ""}`
                         : undefined;
 
-                    const initialState: DataTierApplicationWebviewState = {
+                    const initialState: DacFxApplicationWebviewState = {
                         ownerUri,
                         serverName,
                         databaseName,
                         selectedProfileId: profileId,
-                        operationType: DataTierOperationType.Export,
+                        operationType: DacFxOperationType.Export,
                     };
 
-                    const controller = new DataTierApplicationWebviewController(
+                    const controller = new DacFxApplicationWebviewController(
                         this._context,
                         this._vscodeWrapper,
                         this._connectionMgr,

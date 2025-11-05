@@ -9,15 +9,15 @@ import sinonChai from "sinon-chai";
 import * as chai from "chai";
 import { expect } from "chai";
 import * as jsonRpc from "vscode-jsonrpc/node";
-import { DataTierApplicationWebviewController } from "../../src/controllers/dataTierApplicationWebviewController";
+import { DacFxApplicationWebviewController } from "../../src/controllers/dacFxApplicationWebviewController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { DacFxService } from "../../src/services/dacFxService";
 import {
-    CancelDataTierApplicationWebviewNotification,
+    CancelDacFxApplicationWebviewNotification,
     ConfirmDeployToExistingWebviewRequest,
     ConnectToServerWebviewRequest,
-    DataTierApplicationResult,
-    DataTierOperationType,
+    DacFxApplicationResult,
+    DacFxOperationType,
     DeployDacpacWebviewRequest,
     ExportBacpacWebviewRequest,
     ExtractDacpacWebviewRequest,
@@ -31,7 +31,7 @@ import {
     ValidateFilePathWebviewRequest,
     BrowseInputFileWebviewRequest,
     BrowseOutputFileWebviewRequest,
-} from "../../src/sharedInterfaces/dataTierApplication";
+} from "../../src/sharedInterfaces/dacFxApplication";
 import * as LocConstants from "../../src/constants/locConstants";
 import {
     stubTelemetry,
@@ -57,7 +57,7 @@ import {
 
 chai.use(sinonChai);
 
-suite("DataTierApplicationWebviewController", () => {
+suite("DacFxApplicationWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
@@ -70,12 +70,12 @@ suite("DataTierApplicationWebviewController", () => {
     let connectionStub: jsonRpc.MessageConnection;
     let createWebviewPanelStub: sinon.SinonStub;
     let panelStub: vscode.WebviewPanel;
-    let controller: DataTierApplicationWebviewController;
+    let controller: DacFxApplicationWebviewController;
     let fsExistsSyncStub: sinon.SinonStub;
 
     const ownerUri = "test-connection-uri";
     const initialState = {
-        operationType: DataTierOperationType.Deploy,
+        operationType: DacFxOperationType.Deploy,
         serverName: "test-server",
     };
 
@@ -124,8 +124,8 @@ suite("DataTierApplicationWebviewController", () => {
         sandbox.restore();
     });
 
-    function createController(): DataTierApplicationWebviewController {
-        controller = new DataTierApplicationWebviewController(
+    function createController(): DacFxApplicationWebviewController {
+        controller = new DacFxApplicationWebviewController(
             mockContext,
             vscodeWrapperStub,
             connectionManagerStub,
@@ -158,7 +158,7 @@ suite("DataTierApplicationWebviewController", () => {
             };
 
             const resolveSpy = sandbox.spy(controller.dialogResult, "resolve");
-            const response = (await requestHandler!(params)) as DataTierApplicationResult;
+            const response = (await requestHandler!(params)) as DacFxApplicationResult;
 
             expect(dacFxServiceStub.deployDacpac).to.have.been.calledOnce;
             expect(dacFxServiceStub.deployDacpac).to.have.been.calledWith(
@@ -560,7 +560,7 @@ suite("DataTierApplicationWebviewController", () => {
             );
             const result = await requestHandler!({
                 databaseName: "AdventureWorks",
-                operationType: DataTierOperationType.Extract,
+                operationType: DacFxOperationType.Extract,
             });
 
             expect(result.fullPath).to.include("myproject");
@@ -580,7 +580,7 @@ suite("DataTierApplicationWebviewController", () => {
             );
             const result = await requestHandler!({
                 databaseName: "TestDB",
-                operationType: DataTierOperationType.Export,
+                operationType: DacFxOperationType.Export,
             });
 
             expect(result.fullPath).to.not.include("workspace");
@@ -603,7 +603,7 @@ suite("DataTierApplicationWebviewController", () => {
             );
             const result = await requestHandler!({
                 databaseName: "MyDB",
-                operationType: DataTierOperationType.Extract,
+                operationType: DacFxOperationType.Extract,
             });
 
             expect(result.fullPath).to.include(".dacpac");
@@ -623,7 +623,7 @@ suite("DataTierApplicationWebviewController", () => {
             );
             const result = await requestHandler!({
                 databaseName: "MyDB",
-                operationType: DataTierOperationType.Export,
+                operationType: DacFxOperationType.Export,
             });
 
             expect(result.fullPath).to.include(".bacpac");
@@ -860,7 +860,7 @@ suite("DataTierApplicationWebviewController", () => {
             });
 
             expect(response.isValid).to.be.false;
-            expect(response.errorMessage).to.equal(LocConstants.DataTierApplication.FileNotFound);
+            expect(response.errorMessage).to.equal(LocConstants.DacFxApplication.FileNotFound);
         });
 
         test("rejects empty file path", async () => {
@@ -873,9 +873,7 @@ suite("DataTierApplicationWebviewController", () => {
             });
 
             expect(response.isValid).to.be.false;
-            expect(response.errorMessage).to.equal(
-                LocConstants.DataTierApplication.FilePathRequired,
-            );
+            expect(response.errorMessage).to.equal(LocConstants.DacFxApplication.FilePathRequired);
         });
 
         test("rejects invalid file extension", async () => {
@@ -890,7 +888,7 @@ suite("DataTierApplicationWebviewController", () => {
 
             expect(response.isValid).to.be.false;
             expect(response.errorMessage).to.equal(
-                LocConstants.DataTierApplication.InvalidFileExtension,
+                LocConstants.DacFxApplication.InvalidFileExtension,
             );
         });
 
@@ -927,9 +925,7 @@ suite("DataTierApplicationWebviewController", () => {
             });
 
             expect(response.isValid).to.be.true;
-            expect(response.errorMessage).to.equal(
-                LocConstants.DataTierApplication.FileAlreadyExists,
-            );
+            expect(response.errorMessage).to.equal(LocConstants.DacFxApplication.FileAlreadyExists);
         });
 
         test("rejects output file path when directory doesn't exist", async () => {
@@ -943,9 +939,7 @@ suite("DataTierApplicationWebviewController", () => {
             });
 
             expect(response.isValid).to.be.false;
-            expect(response.errorMessage).to.equal(
-                LocConstants.DataTierApplication.DirectoryNotFound,
-            );
+            expect(response.errorMessage).to.equal(LocConstants.DacFxApplication.DirectoryNotFound);
         });
     });
 
@@ -1033,7 +1027,7 @@ suite("DataTierApplicationWebviewController", () => {
 
             expect(response.isValid).to.be.true;
             expect(response.errorMessage).to.equal(
-                LocConstants.DataTierApplication.DatabaseAlreadyExists,
+                LocConstants.DacFxApplication.DatabaseAlreadyExists,
             );
         });
 
@@ -1081,9 +1075,7 @@ suite("DataTierApplicationWebviewController", () => {
             });
 
             expect(response.isValid).to.be.false;
-            expect(response.errorMessage).to.equal(
-                LocConstants.DataTierApplication.DatabaseNotFound,
-            );
+            expect(response.errorMessage).to.equal(LocConstants.DacFxApplication.DatabaseNotFound);
         });
 
         test("rejects empty database name", async () => {
@@ -1100,7 +1092,7 @@ suite("DataTierApplicationWebviewController", () => {
 
             expect(response.isValid).to.be.false;
             expect(response.errorMessage).to.equal(
-                LocConstants.DataTierApplication.DatabaseNameRequired,
+                LocConstants.DacFxApplication.DatabaseNameRequired,
             );
         });
 
@@ -1118,7 +1110,7 @@ suite("DataTierApplicationWebviewController", () => {
 
             expect(response.isValid).to.be.false;
             expect(response.errorMessage).to.equal(
-                LocConstants.DataTierApplication.InvalidDatabaseName,
+                LocConstants.DacFxApplication.InvalidDatabaseName,
             );
         });
 
@@ -1137,7 +1129,7 @@ suite("DataTierApplicationWebviewController", () => {
 
             expect(response.isValid).to.be.false;
             expect(response.errorMessage).to.equal(
-                LocConstants.DataTierApplication.DatabaseNameTooLong,
+                LocConstants.DacFxApplication.DatabaseNameTooLong,
             );
         });
 
@@ -1163,7 +1155,7 @@ suite("DataTierApplicationWebviewController", () => {
 
             expect(response.isValid).to.be.true;
             expect(response.errorMessage).to.equal(
-                LocConstants.DataTierApplication.DatabaseAlreadyExists,
+                LocConstants.DacFxApplication.DatabaseAlreadyExists,
             );
         });
 
@@ -1195,7 +1187,7 @@ suite("DataTierApplicationWebviewController", () => {
             createController();
 
             const cancelHandler = notificationHandlers.get(
-                CancelDataTierApplicationWebviewNotification.type.method,
+                CancelDacFxApplicationWebviewNotification.type.method,
             );
             expect(cancelHandler, "Cancel handler was not registered").to.be.a("function");
 
@@ -1222,15 +1214,15 @@ suite("DataTierApplicationWebviewController", () => {
 
             // Mock user clicking "Deploy" button
             vscodeWrapperStub.showWarningMessageAdvanced.resolves(
-                LocConstants.DataTierApplication.DeployToExistingConfirm,
+                LocConstants.DacFxApplication.DeployToExistingConfirm,
             );
 
             const response = await confirmHandler!(undefined);
 
             expect(vscodeWrapperStub.showWarningMessageAdvanced).to.have.been.calledOnceWith(
-                LocConstants.DataTierApplication.DeployToExistingMessage,
+                LocConstants.DacFxApplication.DeployToExistingMessage,
                 { modal: true },
-                [LocConstants.DataTierApplication.DeployToExistingConfirm],
+                [LocConstants.DacFxApplication.DeployToExistingConfirm],
             );
             expect(response.confirmed).to.be.true;
         });
@@ -1249,9 +1241,9 @@ suite("DataTierApplicationWebviewController", () => {
             const response = await confirmHandler!(undefined);
 
             expect(vscodeWrapperStub.showWarningMessageAdvanced).to.have.been.calledOnceWith(
-                LocConstants.DataTierApplication.DeployToExistingMessage,
+                LocConstants.DacFxApplication.DeployToExistingMessage,
                 { modal: true },
-                [LocConstants.DataTierApplication.DeployToExistingConfirm],
+                [LocConstants.DacFxApplication.DeployToExistingConfirm],
             );
             expect(response.confirmed).to.be.false;
         });
@@ -1270,9 +1262,9 @@ suite("DataTierApplicationWebviewController", () => {
             const response = await confirmHandler!(undefined);
 
             expect(vscodeWrapperStub.showWarningMessageAdvanced).to.have.been.calledOnceWith(
-                LocConstants.DataTierApplication.DeployToExistingMessage,
+                LocConstants.DacFxApplication.DeployToExistingMessage,
                 { modal: true },
-                [LocConstants.DataTierApplication.DeployToExistingConfirm],
+                [LocConstants.DacFxApplication.DeployToExistingConfirm],
             );
             expect(response.confirmed).to.be.false;
         });
@@ -1285,7 +1277,7 @@ suite("DataTierApplicationWebviewController", () => {
             expect(createWebviewPanelStub).to.have.been.calledOnce;
             expect(createWebviewPanelStub).to.have.been.calledWith(
                 "mssql-react-webview",
-                LocConstants.DataTierApplication.Title,
+                LocConstants.DacFxApplication.Title,
                 sinon.match.any,
                 sinon.match.any,
             );
@@ -1310,9 +1302,8 @@ suite("DataTierApplicationWebviewController", () => {
         test("registers cancel notification handler", () => {
             createController();
 
-            expect(
-                notificationHandlers.has(CancelDataTierApplicationWebviewNotification.type.method),
-            ).to.be.true;
+            expect(notificationHandlers.has(CancelDacFxApplicationWebviewNotification.type.method))
+                .to.be.true;
         });
 
         test("returns correct owner URI", () => {
@@ -2182,7 +2173,7 @@ suite("DataTierApplicationWebviewController", () => {
                 // Verify startActivity was called with correct parameters (twice: once for Load, once for the operation)
                 expect(startActivityStub).to.have.been.calledTwice;
                 expect(startActivityStub.secondCall).to.have.been.calledWith(
-                    TelemetryViews.DataTierApplication,
+                    TelemetryViews.DacFxApplication,
                     TelemetryActions.DacFxDeployDacpac,
                     undefined,
                     sinon.match({ isNewDatabase: "true" }),
@@ -2308,7 +2299,7 @@ suite("DataTierApplicationWebviewController", () => {
                 // Verify telemetry was started
                 expect(startActivityStub).to.have.been.calledTwice; // Load + Extract
                 expect(startActivityStub.secondCall).to.have.been.calledWith(
-                    TelemetryViews.DataTierApplication,
+                    TelemetryViews.DacFxApplication,
                     TelemetryActions.DacFxExtractDacpac,
                 );
 
@@ -2395,7 +2386,7 @@ suite("DataTierApplicationWebviewController", () => {
 
                 expect(startActivityStub).to.have.been.calledTwice; // Load + Import
                 expect(startActivityStub.secondCall).to.have.been.calledWith(
-                    TelemetryViews.DataTierApplication,
+                    TelemetryViews.DacFxApplication,
                     TelemetryActions.DacFxImportBacpac,
                 );
 
@@ -2474,7 +2465,7 @@ suite("DataTierApplicationWebviewController", () => {
 
                 expect(startActivityStub).to.have.been.calledTwice; // Load + Export
                 expect(startActivityStub.secondCall).to.have.been.calledWith(
-                    TelemetryViews.DataTierApplication,
+                    TelemetryViews.DacFxApplication,
                     TelemetryActions.DacFxExportBacpac,
                 );
 

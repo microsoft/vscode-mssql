@@ -2073,7 +2073,7 @@ export class ConnectionGroup {
     };
 }
 
-export class DataTierApplication {
+export class DacFxApplication {
     public static Title = l10n.t("Data-tier Application");
     public static FilePathRequired = l10n.t("File path is required");
     public static FileNotFound = l10n.t("File not found");

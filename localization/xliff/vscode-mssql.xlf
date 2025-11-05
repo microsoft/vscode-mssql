@@ -4047,7 +4047,7 @@
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.description">
       <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.&#10;Once you&apos;re done making your changes, click the &apos;Publish&apos; button to send the changes to your database.</source>
     </trans-unit>
-    <trans-unit id="mssql.dataTierApplication">
+    <trans-unit id="mssql.dacFxApplication">
       <source xml:lang="en">Data-tier Application</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.description">
