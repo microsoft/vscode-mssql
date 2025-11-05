@@ -27,6 +27,7 @@ const config = {
         schemaCompare: "src/reactviews/pages/SchemaCompare/index.tsx",
         changePassword: "src/reactviews/pages/ChangePassword/index.tsx",
         publishProject: "src/reactviews/pages/PublishProject/index.tsx",
+        tableExplorer: "src/reactviews/pages/TableExplorer/index.tsx",
     },
     bundle: true,
     outdir: "dist/views",

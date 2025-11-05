@@ -10,10 +10,13 @@ import * as vscode from "vscode";
 import { IExtension } from "vscode-mssql";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as path from "path";
+import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import * as jsonRpc from "vscode-jsonrpc/node";
 import { UserSurvey } from "../../src/nps/userSurvey";
 import { IPrompter } from "../../src/prompts/question";
 import CodeAdapter from "../../src/prompts/adapter";
+import { buildCapabilitiesResult } from "./mocks";
+import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 
 // Launches and activates the extension
 export async function activateExtension(): Promise<IExtension> {
@@ -55,6 +58,17 @@ export function stubVscodeWrapper(
     stubber.stub(vscodeWrapper, "outputChannel").get(() => outputChannel);
 
     return vscodeWrapper;
+}
+
+export function stubGetCapabilitiesRequest(
+    sandbox?: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<SqlToolsServerClient> {
+    const stubber = sandbox || sinon;
+    const serviceClientMock = stubber.createStubInstance(SqlToolsServerClient);
+    serviceClientMock.sendRequest
+        .withArgs(GetCapabilitiesRequest.type)
+        .resolves(buildCapabilitiesResult());
+    return serviceClientMock;
 }
 
 /**

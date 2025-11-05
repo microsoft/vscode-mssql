@@ -456,7 +456,13 @@ export class LocConstants {
             saveAsExcel: l10n.t("Save as Excel"),
             saveAsJson: l10n.t("Save as JSON"),
             clickHereToHideThisPanel: l10n.t("Hide this panel"),
-            queryPlan: l10n.t("Query Plan"),
+            queryPlan: (count: number) => {
+                return l10n.t({
+                    message: "Query Plan ({0})",
+                    args: [count],
+                    comment: ["{0} is the number of query plans"],
+                });
+            },
             selectAll: l10n.t("Select All"),
             copy: l10n.t("Copy"),
             copyWithHeaders: l10n.t("Copy with Headers"),
@@ -925,6 +931,11 @@ export class LocConstants {
             SaveAs: l10n.t("Save As..."),
             generateScript: l10n.t("Generate Script"),
             publish: l10n.t("Publish"),
+            advancedOptions: l10n.t("Advanced"),
+            advancedPublishSettings: l10n.t("Advanced Publish Options"),
+            generalOptions: l10n.t("General Options"),
+            ignoreOptions: l10n.t("Ignore Options"),
+            excludeObjectTypes: l10n.t("Exclude Object Types"),
         };
     }
 
@@ -1078,6 +1089,37 @@ export class LocConstants {
             changePasswordButton: l10n.t("Change Password"),
             cancelButton: l10n.t("Cancel"),
             passwordsDoNotMatch: l10n.t("Passwords do not match"),
+        };
+    }
+
+    public get tableExplorer() {
+        return {
+            saveChanges: l10n.t("Save Changes"),
+            addRow: l10n.t("Add Row"),
+            showScript: l10n.t("Show Script"),
+            hideScript: l10n.t("Hide Script"),
+            openInEditor: l10n.t("Open in Editor"),
+            openInSqlEditor: l10n.t("Open in SQL Editor"),
+            copyScript: l10n.t("Copy Script"),
+            copyScriptToClipboard: l10n.t("Copy Script to Clipboard"),
+            maximizePanelSize: l10n.t("Maximize Panel Size"),
+            restorePanelSize: l10n.t("Restore Panel Size"),
+            updateScript: l10n.t("Update Script"),
+            commands: l10n.t("Commands"),
+            deleteRow: l10n.t("Delete Row"),
+            revertCell: l10n.t("Revert Cell"),
+            revertRow: l10n.t("Revert Row"),
+            totalRowsToFetch: l10n.t("Total rows to fetch:"),
+            rowsPerPage: l10n.t("Rows per page"),
+            fetchRows: l10n.t("Fetch rows"),
+            firstPage: l10n.t("First Page"),
+            previousPage: l10n.t("Previous Page"),
+            nextPage: l10n.t("Next Page"),
+            lastPage: l10n.t("Last Page"),
+            loadingTableData: l10n.t("Loading table data..."),
+            noDataAvailable: l10n.t("No data available"),
+            noPendingChanges: l10n.t("No pending changes. Make edits to generate a script."),
+            closeScriptPane: l10n.t("Close Script Pane"),
         };
     }
 }

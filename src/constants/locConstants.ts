@@ -1334,6 +1334,7 @@ export class PublishProject {
     public static SqlServerAdminPasswordConfirm = l10n.t("Confirm SQL Server admin password");
     public static SqlServerImageTag = l10n.t("Image tag");
     public static SqlServerLicenseAgreement = l10n.t("Microsoft SQL Server License Agreement");
+    public static ServerConnectionPlaceholder = l10n.t("Select Connection");
     // Validation messages
     public static InvalidPortMessage = l10n.t("Port must be a number between 1 and 65535");
     public static InvalidSQLPasswordMessage(name: string) {
@@ -1352,7 +1353,13 @@ export class PublishProject {
         return l10n.t("Publish profile saved to: {0}", path);
     };
     public static PublishProfileSaveFailed = l10n.t("Failed to save publish profile");
-    public static DacFxServiceNotAvailable = l10n.t("DacFx service is not available");
+    public static DacFxServiceNotAvailable = l10n.t(
+        "DacFx service is not available. Publish and generate script operations cannot be performed.",
+    );
+    public static DacFxServiceNotAvailableProfileLoaded = l10n.t(
+        "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
+    );
+    public static FailedToListDatabases = l10n.t("Failed to list databases");
 }
 
 export class SchemaCompare {
@@ -1605,6 +1612,23 @@ export class MssqlChatAgent {
         });
     };
     public static unknownErrorOccurred = l10n.t("An unknown error occurred. Please try again.");
+    public static messageCouldNotBeProcessed = l10n.t(
+        "This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.",
+    );
+    public static connect = l10n.t("Connect");
+    public static openSqlEditorAndConnect = l10n.t("Open SQL editor and connect");
+    public static connectionRequiredMessage = (buttonText: string) => {
+        return l10n.t({
+            message:
+                'An active connection is required for GitHub Copilot to understand your database schema and proceed.\nSelect "{0}" to establish a connection.',
+            args: [buttonText],
+            comment: ["{0} is the button text (e.g., 'Connect' or 'Open SQL editor and connect')"],
+        });
+    };
+    // Follow-up questions
+    public static followUpConnectToDatabase = l10n.t("Connect to a database");
+    public static followUpShowRandomTableDefinition = l10n.t("Show a random table definition");
+    public static followUpCountTables = l10n.t("How many tables are in this database?");
     public static listServersToolConfirmationTitle = l10n.t("List Connections");
     public static listServersToolConfirmationMessage = l10n.t(
         "List all connections registered with the mssql extension?",
@@ -1914,6 +1938,42 @@ export class MssqlChatAgent {
     public static chatCommandNotAvailable = l10n.t(
         "Chat command not available in this VS Code version",
     );
+
+    // Help command strings
+    public static helpWelcome = l10n.t(
+        "👋 I'm GitHub Copilot for MSSQL extension, your intelligent SQL development assistant in Visual Studio Code. I help you connect, explore, design, and evolve your SQL databases directly from VS Code.",
+    );
+    public static helpWhatICanDo = l10n.t("What I can do for you:");
+    public static helpCapabilityExploreDesign = l10n.t(
+        "Explore, design, and evolve database schemas using intelligent, code-first or data-first guidance",
+    );
+    public static helpCapabilityContextualSuggestions = l10n.t(
+        "Apply contextual suggestions for SQL syntax, relationships, and constraints",
+    );
+    public static helpCapabilityWriteOptimize = l10n.t(
+        "Write, optimize, and troubleshoot SQL queries with AI-recommended improvements",
+    );
+    public static helpCapabilityGenerateMockData = l10n.t(
+        "Generate mock data and seed scripts to support testing and development environments",
+    );
+    public static helpCapabilityAccelerateSchema = l10n.t(
+        "Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts",
+    );
+    public static helpCapabilityUnderstandDocument = l10n.t(
+        "Understand and document business logic embedded in stored procedures, views, and functions",
+    );
+    public static helpCapabilitySecurityRecommendations = l10n.t(
+        "Get security-related recommendations, such as avoiding SQL injection or excessive permissions",
+    );
+    public static helpCapabilityNaturalLanguage = l10n.t(
+        "Receive natural language explanations to help developers unfamiliar with T-SQL understand code",
+    );
+    public static helpCapabilityReverseEngineer = l10n.t(
+        "Reverse-engineer existing databases by explaining SQL schemas and relationships",
+    );
+    public static helpCapabilityScaffoldComponents = l10n.t(
+        "Scaffold backend components (e.g., data-access layers) based on your current database context",
+    );
 }
 
 export class QueryEditor {
@@ -2019,4 +2079,112 @@ export class ConnectionGroup {
             comment: ["{0} is the connection group name"],
         });
     };
+}
+
+export class TableExplorer {
+    public static unableToOpenTableExplorer = l10n.t(
+        "Unable to open Table Explorer: No target node provided.",
+    );
+    public static changesSavedSuccessfully = l10n.t("Changes saved successfully.");
+    public static rowCreatedSuccessfully = l10n.t("Row created.");
+    public static rowRemoved = l10n.t("Row removed.");
+
+    public static title = (tableName: string) =>
+        l10n.t({
+            message: "Table Explorer: {0} (Preview)",
+            args: [tableName],
+            comment: ["{0} is the table name"],
+        });
+
+    public static failedToSaveChanges = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to save changes: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToLoadData = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to load data: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToCreateNewRow = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to create a new row: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRemoveRow = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to remove row: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToUpdateCell = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to update cell: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRevertCell = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to revert cell: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRevertRow = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to revert row: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToGenerateScript = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to generate script: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static noScriptToOpen = l10n.t(
+        "No script available. Make changes to the table data and generate a script first.",
+    );
+
+    public static failedToOpenScript = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open script: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static scriptCopiedToClipboard = l10n.t("Script copied to clipboard.");
+
+    public static noScriptToCopy = l10n.t(
+        "No script available. Make changes to the table data and generate a script first.",
+    );
+
+    public static failedToCopyScript = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to copy script: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static unsavedChangesPrompt = (tableName: string) =>
+        l10n.t({
+            message:
+                "Table Explorer for '{0}' has unsaved changes. Do you want to save or discard them?",
+            args: [tableName],
+            comment: ["{0} is the table name"],
+        });
+
+    public static Save = l10n.t("Save");
+    public static Discard = l10n.t("Discard");
+    public static Cancel = l10n.t("Cancel");
 }

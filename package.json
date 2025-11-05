@@ -168,6 +168,7 @@
         "error-ex": "^1.3.0",
         "figures": "^1.4.0",
         "find-remove": "5.1.1",
+        "fix-path": "^5.0.0",
         "has-proto": "^1.2.0",
         "jquery": "^3.4.1",
         "lockfile": "1.0.4",
@@ -177,6 +178,7 @@
         "pretty-data": "^0.40.0",
         "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
         "shallow-equal": "^3.1.0",
+        "slickgrid-react": "^9.8.0",
         "tar": "^7.4.3",
         "tmp": "^0.2.4",
         "tunnel": "0.0.6",
@@ -233,9 +235,13 @@
             {
                 "id": "mssql.agent",
                 "name": "mssql",
-                "description": "Azure SQL Copilot agent",
+                "description": "MSSQL extension GitHub Copilot agent",
                 "isSticky": true,
                 "commands": [
+                    {
+                        "name": "help",
+                        "description": "Provide a list of available commands and their descriptions."
+                    },
                     {
                         "name": "runQuery",
                         "description": "Execute a SQL query in the currently connected database and return results."
@@ -254,7 +260,7 @@
                     },
                     {
                         "name": "getConnectionDetails",
-                        "description": "Shows a complete breakdown of the active connection: server name, database, version, authentication type."
+                        "description": "Show a complete breakdown of the active connection: server name, database, version, authentication type."
                     },
                     {
                         "name": "changeDatabase",
@@ -359,6 +365,11 @@
                 "id": "mssql.copilot.editorSubmenu",
                 "title": "%mssql.copilot.editorSubmenu%",
                 "label": "%mssql.copilot.editorSubmenu%"
+            },
+            {
+                "id": "mssql.sqlScriptsSubmenu",
+                "title": "%mssql.sqlScriptsSubmenu%",
+                "label": "%mssql.sqlScriptsSubmenu%"
             }
         ],
         "menus": {
@@ -444,6 +455,20 @@
                     "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
                     "title": "%mssql.copilot.analyzeQueryPerformance%",
                     "group": "navigation@3"
+                }
+            ],
+            "mssql.sqlScriptsSubmenu": [
+                {
+                    "command": "mssql.scriptSelect",
+                    "group": "1_scripts@1"
+                },
+                {
+                    "command": "mssql.scriptCreate",
+                    "group": "1_scripts@2"
+                },
+                {
+                    "command": "mssql.scriptDelete",
+                    "group": "1_scripts@3"
                 }
             ],
             "view/title": [
@@ -544,18 +569,33 @@
                     "group": "2_MSSQL_serverDbActions@2"
                 },
                 {
+                    "command": "mssql.tableExplorer",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences",
+                    "group": "3_MSSQL_tableActions@1"
+                },
+                {
+                    "command": "mssql.editTable",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "group": "3_MSSQL_tableActions@2"
+                },
+                {
+                    "submenu": "mssql.sqlScriptsSubmenu",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "group": "4_MSSQL_tableScripts@1"
+                },
+                {
                     "command": "mssql.scriptSelect",
-                    "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|View)\\b/",
+                    "when": "view == objectExplorer && viewItem =~  /\\btype=(View)\\b/",
                     "group": "3_MSSQL_script@1"
                 },
                 {
                     "command": "mssql.scriptCreate",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
                     "group": "3_MSSQL_script@2"
                 },
                 {
                     "command": "mssql.scriptDelete",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
                     "group": "3_MSSQL_script@3"
                 },
                 {
@@ -571,11 +611,6 @@
                 {
                     "command": "mssql.newTable",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/",
-                    "group": "4_MSSQL_object@1"
-                },
-                {
-                    "command": "mssql.editTable",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
                     "group": "4_MSSQL_object@1"
                 },
                 {
@@ -901,6 +936,11 @@
                 "category": "MS SQL"
             },
             {
+                "command": "mssql.tableExplorer",
+                "title": "%mssql.tableExplorer%",
+                "category": "MS SQL"
+            },
+            {
                 "command": "mssql.rebuildIntelliSenseCache",
                 "title": "%mssql.rebuildIntelliSenseCache%",
                 "category": "MS SQL"
@@ -1131,6 +1171,11 @@
             {
                 "command": "mssql.copilot.rewriteQuery",
                 "title": "%mssql.copilot.rewriteQuery%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.copilot.newQueryWithConnection",
+                "title": "%mssql.copilot.newQueryWithConnection%",
                 "category": "MS SQL"
             },
             {
@@ -2019,7 +2064,7 @@
                 },
                 "mssql.autoRevealResultsPanel": {
                     "type": "boolean",
-                    "default": true,
+                    "default": false,
                     "description": "%mssql.autoRevealResultsPanel%",
                     "scope": "window"
                 },

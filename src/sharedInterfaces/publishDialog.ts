@@ -6,6 +6,7 @@
 import * as constants from "../constants/constants";
 import * as mssql from "vscode-mssql";
 import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
+import { DialogMessageSpec } from "./dialogMessage";
 
 // Publish target options - defines where the database project will be published
 export enum PublishTarget {
@@ -53,7 +54,6 @@ export interface IPublishForm {
     databaseName?: string;
     publishTarget?: PublishTarget;
     sqlCmdVariables?: { [key: string]: string };
-    // Container deployment specific fields (only used when publishTarget === 'localContainer')
     containerPort?: string;
     containerAdminPassword?: string;
     containerAdminPasswordConfirm?: string;
@@ -72,6 +72,12 @@ export interface PublishDialogState
     projectProperties?: mssql.GetProjectPropertiesResult & { targetVersion?: string };
     hasFormErrors?: boolean;
     deploymentOptions?: mssql.DeploymentOptions;
+    waitingForNewConnection?: boolean;
+    connectionString?: string;
+    formMessage?: DialogMessageSpec;
+    defaultDeploymentOptions?: mssql.DeploymentOptions;
+    previousDatabaseList?: { displayName: string; value: string }[];
+    previousSelectedDatabase?: string;
 }
 
 /**
@@ -96,9 +102,11 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
         publishProfilePath?: string;
     };
     generatePublishScript: {};
-    openPublishAdvanced: {};
     selectPublishProfile: {};
     savePublishProfile: { publishProfileName: string };
+    openConnectionDialog: {};
+    closeMessage: {};
+    updateDeploymentOptions: { deploymentOptions: mssql.DeploymentOptions };
 }
 
 /**
@@ -106,9 +114,7 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
  * React context a stable, typed contract while keeping implementation details (raw RPC naming, snapshot plumbing) encapsulated.
  */
 export interface PublishProjectProvider {
-    /** Dispatch a single field value change or field-level action */
     formAction(event: FormEvent<IPublishForm>): void;
-    /** Execute an immediate publish using current (or overridden) form values */
     publishNow(payload?: {
         projectFilePath?: string;
         databaseName?: string;
@@ -116,10 +122,10 @@ export interface PublishProjectProvider {
         sqlCmdVariables?: { [key: string]: string };
         publishProfilePath?: string;
     }): void;
-    /** Generate a publish script */
     generatePublishScript(): void;
-    /** Choose a publish profile file and apply */
     selectPublishProfile(): void;
-    /** Persist current form state as a named publish profile */
     savePublishProfile(publishProfileName: string): void;
+    openConnectionDialog(): void;
+    closeMessage(): void;
+    updateDeploymentOptions(deploymentOptions: mssql.DeploymentOptions): void;
 }

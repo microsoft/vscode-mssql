@@ -7,7 +7,12 @@ import * as vscode from "vscode";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
-import { createSqlAgentRequestHandler } from "../../src/copilot/chatAgentRequestHandler";
+import * as TypeMoq from "typemoq";
+import {
+    createSqlAgentRequestHandler,
+    provideFollowups,
+    ISqlChatResult,
+} from "../../src/copilot/chatAgentRequestHandler";
 import { CopilotService } from "../../src/services/copilotService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as Utils from "../../src/models/utils";
@@ -113,6 +118,38 @@ suite("Chat Agent Request Handler Tests", () => {
             },
             subscriptions: [],
         } as unknown as vscode.ExtensionContext;
+
+        // CODEX: mockChatStream became chatStream
+        // Mock ChatResponseStream
+        mockChatStream = TypeMoq.Mock.ofType<vscode.ChatResponseStream>();
+        mockChatStream.setup((x) => x.progress(TypeMoq.It.isAnyString())).returns(() => undefined);
+        mockChatStream.setup((x) => x.markdown(TypeMoq.It.isAnyString())).returns(() => undefined);
+
+        // CODEX: mockChatRequest became chatRequest
+        // Mock Chat Request
+        mockChatRequest = TypeMoq.Mock.ofType<vscode.ChatRequest>();
+        mockChatRequest.setup((x) => x.prompt).returns(() => samplePrompt);
+        mockChatRequest.setup((x) => x.references).returns(() => []);
+        mockChatRequest.setup((x) => x.model).returns(() => mockLmChat.object);
+
+        // Mock Chat Context
+        mockChatContext = TypeMoq.Mock.ofType<vscode.ChatContext>();
+        mockChatContext.setup((x) => x.history).returns(() => []);
+
+        // CODEX: mockToken became cancellationToken
+        // Mock CancellationToken
+        mockToken = TypeMoq.Mock.ofType<vscode.CancellationToken>();
+
+        // CODEX: mockLanguageModelChatResponse is new, and has not yet been converted
+        // Mock LanguageModelChatResponse
+        mockLanguageModelChatResponse = TypeMoq.Mock.ofType<vscode.LanguageModelChatResponse>();
+        mockLanguageModelChatResponse
+            .setup((x) => x.stream)
+            .returns(() =>
+                (async function* () {
+                    yield new vscode.LanguageModelTextPart(sampleReplyText);
+                })(),
+            );
 
         // Had to create a real object instead of using TypeMoq for the response object
         const defaultResponse = {
@@ -565,6 +602,85 @@ suite("Chat Agent Request Handler Tests", () => {
             expect(matches.length, `markdown outputs: ${markdownMessages.join(" || ")}`).to.equal(
                 1,
             );
+        });
+    });
+
+    suite("provideFollowups Tests", () => {
+        let mockMainController: TypeMoq.IMock<MainController>;
+        let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+        let mockConnectionManager: TypeMoq.IMock<ConnectionManager>;
+        let mockResult: ISqlChatResult;
+        let mockConnection: ConnectionInfo;
+
+        setup(() => {
+            mockMainController = TypeMoq.Mock.ofType<MainController>();
+            mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
+            mockConnectionManager = TypeMoq.Mock.ofType<ConnectionManager>();
+
+            mockMainController
+                .setup((x) => x.connectionManager)
+                .returns(() => mockConnectionManager.object);
+
+            mockConnection = TypeMoq.Mock.ofType<ConnectionInfo>().object;
+
+            mockResult = {
+                metadata: {
+                    command: "",
+                },
+            } as ISqlChatResult;
+        });
+
+        test("should return empty array for non-help commands", async () => {
+            mockResult.metadata.command = "query";
+
+            const followups = await provideFollowups(
+                mockResult,
+                {} as vscode.ChatContext,
+                {} as vscode.CancellationToken,
+                mockMainController.object,
+                mockVscodeWrapper.object,
+            );
+
+            expect(followups).to.be.an("array").that.is.empty;
+        });
+
+        test("should return connect follow-up when disconnected", async () => {
+            mockResult.metadata.command = "help";
+            mockVscodeWrapper.setup((x) => x.activeTextEditorUri).returns(() => undefined);
+
+            const followups = await provideFollowups(
+                mockResult,
+                {} as vscode.ChatContext,
+                {} as vscode.CancellationToken,
+                mockMainController.object,
+                mockVscodeWrapper.object,
+            );
+
+            expect(followups).to.have.lengthOf(1);
+            expect(followups[0]).to.have.property("prompt");
+            expect(followups[0]).to.have.property("command", "connect");
+        });
+
+        test("should return database exploration follow-ups when connected", async () => {
+            mockResult.metadata.command = "help";
+            const mockUriString = "file:///test.sql";
+            mockVscodeWrapper.setup((x) => x.activeTextEditorUri).returns(() => mockUriString);
+            mockConnectionManager
+                .setup((x) => x.getConnectionInfo(mockUriString))
+                .returns(() => mockConnection);
+
+            const followups = await provideFollowups(
+                mockResult,
+                {} as vscode.ChatContext,
+                {} as vscode.CancellationToken,
+                mockMainController.object,
+                mockVscodeWrapper.object,
+            );
+
+            expect(followups).to.have.lengthOf(3);
+            expect(followups[0]).to.have.property("prompt");
+            expect(followups[1]).to.have.property("prompt");
+            expect(followups[2]).to.have.property("prompt");
         });
     });
 });

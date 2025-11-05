@@ -12,7 +12,11 @@ import * as utils from "./models/utils";
 import { ObjectExplorerUtils } from "./objectExplorer/objectExplorerUtils";
 import SqlToolsServerClient from "./languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
-import { createSqlAgentRequestHandler, ISqlChatResult } from "./copilot/chatAgentRequestHandler";
+import {
+    createSqlAgentRequestHandler,
+    ISqlChatResult,
+    provideFollowups,
+} from "./copilot/chatAgentRequestHandler";
 import { sendActionEvent } from "./telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
@@ -48,6 +52,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         "images",
         "mssql-chat-avatar.jpg",
     );
+    participant.followupProvider = {
+        provideFollowups: (
+            result: vscode.ChatResult,
+            context: vscode.ChatContext,
+            token: vscode.CancellationToken,
+        ) => provideFollowups(result, context, token, controller, vscodeWrapper),
+    };
 
     const receiveFeedbackDisposable = participant.onDidReceiveFeedback(
         (feedback: vscode.ChatResultFeedback) => {
@@ -73,7 +84,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         connect: async (connectionInfo: IConnectionInfo, saveConnection?: boolean) => {
             const uri = utils.generateQueryUri().toString();
             // First wait for initial connection request to succeed
-            const requestSucceeded = await controller.connect(uri, connectionInfo, saveConnection);
+            const requestSucceeded = await controller.connect(
+                uri,
+                connectionInfo,
+                saveConnection,
+                "extensionApi",
+            );
             if (!requestSucceeded) {
                 throw new Error(`Connection request for ${JSON.stringify(connectionInfo)} failed`);
             }

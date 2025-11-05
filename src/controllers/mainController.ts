@@ -93,6 +93,8 @@ import {
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { getCloudId } from "../azure/providerSettings";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
+import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
+import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
 
 /**
  * The main controller class that initializes the extension
@@ -115,6 +117,7 @@ export default class MainController implements vscode.Disposable {
     public sqlTasksService: SqlTasksService;
     public dacFxService: DacFxService;
     public schemaCompareService: SchemaCompareService;
+    public tableExplorerService: ITableExplorerService;
     public sqlProjectsService: SqlProjectsService;
     public azureAccountService: AzureAccountService;
     public azureResourceService: AzureResourceService;
@@ -212,7 +215,7 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdRunQuery);
             this._event.on(Constants.cmdRunQuery, () => {
-                void UserSurvey.getInstance().promptUserForNPSFeedback();
+                void UserSurvey.getInstance().promptUserForNPSFeedback("runQuery");
                 void this.onRunQuery();
             });
             this.registerCommand(Constants.cmdManageConnectionProfiles);
@@ -252,8 +255,13 @@ export default class MainController implements vscode.Disposable {
                 void this.runAndLogErrors(this.onChooseLanguageFlavor());
             });
             this.registerCommand(Constants.cmdLaunchUserFeedback);
-            this._event.on(Constants.cmdLaunchUserFeedback, async () => {
-                await UserSurvey.getInstance().launchSurvey("nps", getStandardNPSQuestions());
+            this._event.on(Constants.cmdLaunchUserFeedback, () => {
+                // Launch directly, bypassing checks/prompt because they explicitly requested to provide feedback
+                UserSurvey.getInstance().launchSurvey(
+                    "nps",
+                    getStandardNPSQuestions(),
+                    "commandPalette",
+                );
             });
             this.registerCommand(Constants.cmdCancelQuery);
             this._event.on(Constants.cmdCancelQuery, async () => {
@@ -481,6 +489,17 @@ export default class MainController implements vscode.Disposable {
                 },
             );
 
+            // -- NEW QUERY WITH CONNECTION (Copilot) --
+            this.registerCommandWithArgs(Constants.cmdCopilotNewQueryWithConnection);
+            this._event.on(
+                Constants.cmdCopilotNewQueryWithConnection,
+                (args?: { forceNewEditor?: boolean; forceConnect?: boolean }) => {
+                    void this.runAndLogErrors(
+                        this.onNewQueryWithConnection(args?.forceNewEditor, args?.forceConnect),
+                    );
+                },
+            );
+
             // -- PUBLISH PROJECT --
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(
@@ -536,6 +555,7 @@ export default class MainController implements vscode.Disposable {
             this.dacFxService = new DacFxService(SqlToolsServerClient.instance);
             this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
+            this.tableExplorerService = new TableExplorerService(SqlToolsServerClient.instance);
             const azureResourceController = new AzureResourceController();
             this.azureAccountService = new AzureAccountService(
                 this._connectionMgr.azureController,
@@ -730,6 +750,9 @@ export default class MainController implements vscode.Disposable {
                     const isConnected = await this.connectionManager.connect(
                         nodeUri,
                         connectionCreds,
+                        {
+                            connectionSource: "scriptNode",
+                        },
                     );
                     if (isConnected) {
                         node.updateEntraTokenInfo(connectionCreds); // may be updated Entra token after connect() call
@@ -873,6 +896,8 @@ export default class MainController implements vscode.Disposable {
                 }
             },
         );
+
+        UserSurvey.getInstance().promptUserForNPSFeedback("scriptAs");
     }
 
     /**
@@ -1105,6 +1130,9 @@ export default class MainController implements vscode.Disposable {
                         const connectionResult = await this.connectionManager.connect(
                             connectionUri,
                             connectionCreds,
+                            {
+                                connectionSource: "searchObjects",
+                            },
                         );
 
                         if (connectionResult) {
@@ -1362,6 +1390,33 @@ export default class MainController implements vscode.Disposable {
         });
         this._context.subscriptions.push(this.objectExplorerTree);
 
+        // Register command for table node double-click action
+        let lastTableClickTime = 0;
+        let lastTableNode: TreeNodeInfo | undefined;
+        const doubleClickThreshold = 500; // milliseconds
+
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(Constants.cmdTableNodeAction, (node: TreeNodeInfo) => {
+                const currentTime = Date.now();
+
+                // Check if this is a double-click on the same node
+                if (
+                    lastTableNode === node &&
+                    currentTime - lastTableClickTime < doubleClickThreshold
+                ) {
+                    // Double-click detected - open Table Explorer
+                    void this.onTableExplorer(node);
+                    // Reset to prevent triple-click
+                    lastTableNode = undefined;
+                    lastTableClickTime = 0;
+                } else {
+                    // Single click - just track it
+                    lastTableNode = node;
+                    lastTableClickTime = currentTime;
+                }
+            }),
+        );
+
         // Old style Add connection when experimental features are not enabled
 
         // Add Object Explorer Node
@@ -1589,6 +1644,12 @@ export default class MainController implements vscode.Disposable {
             );
 
             this._context.subscriptions.push(
+                vscode.commands.registerCommand(Constants.cmdTableExplorer, async (node: any) =>
+                    this.onTableExplorer(node),
+                ),
+            );
+
+            this._context.subscriptions.push(
                 vscode.commands.registerCommand(
                     Constants.cmdSchemaCompareOpenFromCommandPalette,
                     async () => {
@@ -1733,8 +1794,7 @@ export default class MainController implements vscode.Disposable {
             vscode.commands.registerCommand(
                 Constants.cmdScriptSelect,
                 async (node: TreeNodeInfo) => {
-                    await this.scriptNode(node, ScriptOperation.Select, true);
-                    UserSurvey.getInstance().promptUserForNPSFeedback();
+                    await this.scriptNode(node, ScriptOperation.Select, true /* executeScript */);
                 },
             ),
         );
@@ -1743,7 +1803,9 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptCreate,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Create),
+                async (node: TreeNodeInfo) => {
+                    await this.scriptNode(node, ScriptOperation.Create);
+                },
             ),
         );
 
@@ -1751,7 +1813,9 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptDelete,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Delete),
+                async (node: TreeNodeInfo) => {
+                    await this.scriptNode(node, ScriptOperation.Delete);
+                },
             ),
         );
 
@@ -1759,7 +1823,9 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptExecute,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Execute),
+                async (node: TreeNodeInfo) => {
+                    await this.scriptNode(node, ScriptOperation.Execute);
+                },
             ),
         );
 
@@ -1767,7 +1833,9 @@ export default class MainController implements vscode.Disposable {
         this._context.subscriptions.push(
             vscode.commands.registerCommand(
                 Constants.cmdScriptAlter,
-                async (node: TreeNodeInfo) => await this.scriptNode(node, ScriptOperation.Alter),
+                async (node: TreeNodeInfo) => {
+                    await this.scriptNode(node, ScriptOperation.Alter);
+                },
             ),
         );
 
@@ -2158,6 +2226,59 @@ export default class MainController implements vscode.Disposable {
         return false;
     }
 
+    /**
+     * Opens a new SQL editor and/or prompts for a connection based on current state and parameters
+     * @param forceNewEditor If true, always creates a new editor. If false, uses current editor if it's a SQL file
+     * @param forceConnect If true, always prompts for connection even if already connected
+     */
+    public async onNewQueryWithConnection(
+        forceNewEditor?: boolean,
+        forceConnect?: boolean,
+    ): Promise<boolean> {
+        const activeEditor = vscode.window.activeTextEditor;
+        const activeUri = activeEditor?.document.uri.toString();
+        const isSqlEditor = activeEditor?.document.languageId === Constants.languageId;
+        const isConnected = activeUri ? this.connectionManager.isConnected(activeUri) : false;
+
+        sendActionEvent(
+            TelemetryViews.MssqlCopilot,
+            TelemetryActions.CopilotNewQueryWithConnection,
+            {
+                forceNewEditor: forceNewEditor?.toString() ?? "false",
+                forceConnect: forceConnect?.toString() ?? "false",
+                isSqlEditor: isSqlEditor.toString(),
+                isConnected: isConnected.toString(),
+            },
+        );
+
+        // Determine if we need to open a new editor
+        const shouldOpenNewEditor = forceNewEditor || !isSqlEditor;
+
+        // Determine if we need to connect
+        const shouldConnect = forceConnect || !isConnected;
+
+        // If already connected to a SQL editor and not forcing changes, do nothing
+        if (isSqlEditor && isConnected && !forceNewEditor && !forceConnect) {
+            return true;
+        }
+
+        // Open new editor if needed
+        if (shouldOpenNewEditor) {
+            const document = await vscode.workspace.openTextDocument({
+                language: "sql",
+                content: "",
+            });
+            await vscode.window.showTextDocument(document);
+        }
+
+        // Connect if needed
+        if (shouldConnect) {
+            return await this.onNewConnection();
+        }
+
+        return true;
+    }
+
     public onDeployNewDatabase(initialConnectionGroup?: string): void {
         sendActionEvent(TelemetryViews.Deployment, TelemetryActions.OpenDeployment);
 
@@ -2184,9 +2305,12 @@ export default class MainController implements vscode.Disposable {
         uri: string,
         connectionInfo: IConnectionInfo,
         saveConnection?: boolean,
+        connectionSource?: string,
     ): Promise<boolean> {
         if (this.canRunCommand() && uri && connectionInfo) {
-            const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo);
+            const connectedSuccessfully = await this._connectionMgr.connect(uri, connectionInfo, {
+                connectionSource,
+            });
             if (connectedSuccessfully) {
                 if (saveConnection) {
                     await this.createObjectExplorerSession(connectionInfo);
@@ -2337,7 +2461,7 @@ export default class MainController implements vscode.Disposable {
             await this._connectionMgr.refreshAzureAccountToken(uri);
 
             // Delete stored filters and dimension states for result grid when a new query is executed
-            store.deleteMainKey(uri);
+            store.deleteUriState(uri);
 
             await this._outputContentProvider.runQuery(
                 this._statusview,
@@ -2590,6 +2714,18 @@ export default class MainController implements vscode.Disposable {
         schemaCompareWebView.revealToForeground();
     }
 
+    public async onTableExplorer(node?: any): Promise<void> {
+        const tableExplorerWebView = new TableExplorerWebViewController(
+            this._context,
+            this._vscodeWrapper,
+            this.tableExplorerService,
+            this._connectionMgr,
+            node,
+        );
+
+        tableExplorerWebView.revealToForeground();
+    }
+
     /**
      * Handler for the Publish Database Project command.
      * Accepts the project file path as an argument.
@@ -2601,6 +2737,7 @@ export default class MainController implements vscode.Disposable {
         const publishProjectWebView = new PublishProjectWebViewController(
             this._context,
             this._vscodeWrapper,
+            this.connectionManager,
             projectFilePath,
             this.sqlProjectsService,
             this.dacFxService,
