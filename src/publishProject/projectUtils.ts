@@ -186,7 +186,7 @@ export async function getSqlServerContainerTagsForTargetVersion(
 
         const yearToOptionMap = new Map<number, FormItemOptions>();
         for (const option of deploymentVersions) {
-            const year = parseInt(option.value, 10);
+            const year = parseInt(option.value);
             if (!isNaN(year)) {
                 yearToOptionMap.set(year, option);
             }
@@ -217,7 +217,7 @@ export async function getSqlServerContainerTagsForTargetVersion(
 
         return filteredVersions;
     } catch (e) {
-        dockerLogger.appendLine(`Error filtering SQL Server container tags: ${getErrorMessage(e)}`);
+        dockerLogger.error(`Error filtering SQL Server container tags: ${getErrorMessage(e)}`);
         return [];
     }
 }
