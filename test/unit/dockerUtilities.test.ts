@@ -735,6 +735,15 @@ suite("Docker Utilities", () => {
         sandbox.stub(os, "platform").returns(Platform.Windows);
         const spawnStub = sandbox.stub(childProcess, "spawn");
 
+        const dockerPath = path.join(
+            "C:",
+            "Program Files",
+            "Docker",
+            "Docker",
+            "resources",
+            "bin",
+            "docker.exe",
+        );
         // Helper to create mock process that succeeds with output
         const createSuccessProcess = (output: string) => ({
             stdout: {
@@ -760,13 +769,7 @@ suite("Docker Utilities", () => {
         spawnStub
             .onFirstCall()
             .returns(createFailureProcess(new Error("Docker not running")) as any); // CHECK_DOCKER_RUNNING (initial check)
-        spawnStub
-            .onSecondCall()
-            .returns(
-                createSuccessProcess(
-                    "C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe",
-                ) as any,
-            ); // GET_DOCKER_PATH
+        spawnStub.onSecondCall().returns(createSuccessProcess(dockerPath) as any); // GET_DOCKER_PATH
         spawnStub.onThirdCall().returns(createSuccessProcess("Started Docker") as any); // START_DOCKER (execDockerCommand)
         // For the polling loop that checks if Docker started - make it succeed immediately
         spawnStub.onCall(3).returns(createSuccessProcess("Docker Running") as any); // First CHECK_DOCKER_RUNNING in polling loop
