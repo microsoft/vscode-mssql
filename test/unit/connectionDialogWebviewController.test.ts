@@ -34,7 +34,13 @@ import {
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import { IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import { initializeIconUtils, stubTelemetry, stubUserSurvey, stubVscodeWrapper } from "./utils";
+import {
+    initializeIconUtils,
+    stubGetCapabilitiesRequest,
+    stubTelemetry,
+    stubUserSurvey,
+    stubVscodeWrapper,
+} from "./utils";
 import {
     stubVscodeAzureSignIn,
     stubFetchServersFromAzure,
@@ -45,7 +51,6 @@ import {
 } from "./azureHelperStubs";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { stubGetCapabilitiesRequest } from "./mocks";
 import { AzureController } from "../../src/azure/azureController";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { multiple_matching_tokens_error } from "../../src/azure/constants";

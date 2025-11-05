@@ -18,7 +18,7 @@ import { generateUUID } from "../e2e/baseFixtures";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { MatchScore } from "../../src/models/utils";
 import { IConnectionProfile } from "../../src/models/interfaces";
-import { stubGetCapabilitiesRequest } from "./mocks";
+import { stubGetCapabilitiesRequest } from "./utils";
 
 chai.use(sinonChai);
 
