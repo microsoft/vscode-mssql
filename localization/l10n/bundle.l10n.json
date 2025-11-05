@@ -1889,11 +1889,11 @@
     "Database name is too long. Maximum length is 128 characters": "Database name is too long. Maximum length is 128 characters",
     "Database not found on the server": "Database not found on the server",
     "Validation failed. Please check your inputs": "Validation failed. Please check your inputs",
+    "Files": "Files",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
     "Invalid connection string: {0}": "Invalid connection string: {0}",
     "No subscriptions available.  Adjust your subscription filters to try again.": "No subscriptions available.  Adjust your subscription filters to try again.",
-    "Error loading Azure databases.": "Error loading Azure databases.",
-    "Files": "Files"
+    "Error loading Azure databases.": "Error loading Azure databases."
 }
