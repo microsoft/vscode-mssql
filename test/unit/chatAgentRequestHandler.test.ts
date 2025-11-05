@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as TypeMoq from "typemoq";
-import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
+import * as sinon from "sinon";
 import { createSqlAgentRequestHandler } from "../../src/copilot/chatAgentRequestHandler";
 import { CopilotService } from "../../src/services/copilotService";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as Utils from "../../src/models/utils";
-import * as sinon from "sinon";
 import * as telemetry from "../../src/telemetry/telemetry";
 import {
     GetNextMessageResponse,
@@ -20,27 +20,37 @@ import {
 import { ActivityObject, ActivityStatus } from "../../src/sharedInterfaces/telemetry";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
+import { connectedLabelPrefix, disconnectedLabelPrefix } from "../../src/copilot/chatConstants";
+
+chai.use(sinonChai);
+const expect = chai.expect;
 
 suite("Chat Agent Request Handler Tests", () => {
-    let mockCopilotService: TypeMoq.IMock<CopilotService>;
-    let mockMainController: TypeMoq.IMock<MainController>;
-    let mockConnectionManager: TypeMoq.IMock<ConnectionManager>;
-    let mockConnectionInfo: TypeMoq.IMock<ConnectionInfo>;
-    let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
-    let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
-    let mockLmChat: TypeMoq.IMock<vscode.LanguageModelChat>;
-    let mockChatStream: TypeMoq.IMock<vscode.ChatResponseStream>;
-    let mockChatRequest: TypeMoq.IMock<vscode.ChatRequest>;
-    let mockChatContext: TypeMoq.IMock<vscode.ChatContext>;
-    let mockToken: TypeMoq.IMock<vscode.CancellationToken>;
-    let mockTextDocument: TypeMoq.IMock<vscode.TextDocument>;
-    let mockConfiguration: TypeMoq.IMock<vscode.WorkspaceConfiguration>;
-    let mockLanguageModelChatResponse: TypeMoq.IMock<vscode.LanguageModelChatResponse>;
-    let mockActivityObject: TypeMoq.IMock<ActivityObject>;
-    let startActivityStub: sinon.SinonStub;
     let sandbox: sinon.SinonSandbox;
+    let copilotService: sinon.SinonStubbedInstance<CopilotService>;
+    let mainController: sinon.SinonStubbedInstance<MainController>;
+    let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let activityObject: ActivityObject & {
+        end: sinon.SinonStub;
+        endFailed: sinon.SinonStub;
+        update: sinon.SinonStub;
+    };
+    let connectionInfo: ConnectionInfo;
+    let extensionContext: vscode.ExtensionContext;
+    let languageModelChat: vscode.LanguageModelChat;
+    let languageModelChatSendRequest: sinon.SinonStub;
+    let chatStream: vscode.ChatResponseStream;
+    let chatStreamMarkdown: sinon.SinonStub;
+    let chatStreamProgress: sinon.SinonStub;
+    let chatRequest: vscode.ChatRequest;
+    let chatContext: vscode.ChatContext;
+    let cancellationToken: vscode.CancellationToken;
+    let textDocument: vscode.TextDocument;
+    let configuration: vscode.WorkspaceConfiguration;
+    let configurationGet: sinon.SinonStub;
+    let startActivityStub: sinon.SinonStub;
 
-    // Sample data for tests
     const sampleConnectionUri = "file:///path/to/sample.sql";
     const sampleConversationUri = "conversationUri1";
     const samplePrompt = "Tell me about my database schema";
@@ -49,106 +59,50 @@ suite("Chat Agent Request Handler Tests", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        // Create the mock activity object for startActivity to return
-        mockActivityObject = TypeMoq.Mock.ofType<ActivityObject>();
-        mockActivityObject
-            .setup((x) => x.end(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() => undefined);
-        mockActivityObject
-            .setup((x) =>
-                x.endFailed(
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                ),
-            )
-            .returns(() => undefined);
 
-        // Stub telemetry functions
-        startActivityStub = sandbox
-            .stub(telemetry, "startActivity")
-            .returns(mockActivityObject.object);
+        activityObject = {
+            end: sandbox.stub(),
+            endFailed: sandbox.stub(),
+            update: sandbox.stub(),
+        } as unknown as ActivityObject & {
+            end: sinon.SinonStub;
+            endFailed: sinon.SinonStub;
+            update: sinon.SinonStub;
+        };
+
+        startActivityStub = sandbox.stub(telemetry, "startActivity").returns(activityObject);
         sandbox.stub(telemetry, "sendActionEvent");
-
-        // Stub the generateGuid function using sinon
         sandbox.stub(Utils, "generateGuid").returns(sampleCorrelationId);
 
-        // Create a mock LanguageModelChat
-        mockLmChat = TypeMoq.Mock.ofType<vscode.LanguageModelChat>();
+        copilotService = sandbox.createStubInstance(CopilotService);
+        mainController = sandbox.createStubInstance(MainController);
+        connectionManager = sandbox.createStubInstance(ConnectionManager);
+        sandbox.stub(mainController, "connectionManager").get(() => connectionManager);
 
-        // Mock CopilotService
-        mockCopilotService = TypeMoq.Mock.ofType<CopilotService>();
+        connectionInfo = new ConnectionInfo();
+        connectionInfo.credentials = {
+            server: "server",
+            database: "database",
+        } as unknown as ConnectionInfo["credentials"];
 
-        // Mock connectionManager
-        mockConnectionManager = TypeMoq.Mock.ofType<ConnectionManager>();
+        vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => sampleConnectionUri);
 
-        // Mock ConnectionInfo
-        mockConnectionInfo = TypeMoq.Mock.ofType<ConnectionInfo>();
-        mockConnectionInfo.setup((x) => x.credentials.server).returns(() => "server");
-        mockConnectionInfo.setup((x) => x.credentials.database).returns(() => "database");
+        configurationGet = sandbox.stub().returns(false);
+        configuration = {
+            get: configurationGet,
+        } as unknown as vscode.WorkspaceConfiguration;
+        vscodeWrapper.getConfiguration.returns(configuration);
 
-        // Mock MainController
-        mockMainController = TypeMoq.Mock.ofType<MainController>();
-        mockMainController
-            .setup((x) => x.connectionManager)
-            .returns(() => mockConnectionManager.object);
+        const canSendRequestStub = sandbox.stub().returns("allowed");
+        extensionContext = {
+            languageModelAccessInformation: {
+                canSendRequest: canSendRequestStub,
+            },
+            subscriptions: [],
+        } as unknown as vscode.ExtensionContext;
 
-        // Mock VscodeWrapper
-        mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
-        mockVscodeWrapper.setup((x) => x.activeTextEditorUri).returns(() => sampleConnectionUri);
-
-        // Mock configuration
-        mockConfiguration = TypeMoq.Mock.ofType<vscode.WorkspaceConfiguration>();
-        mockConfiguration
-            .setup((x) => x.get(TypeMoq.It.isAnyString(), TypeMoq.It.isAny()))
-            .returns(() => false);
-        mockVscodeWrapper
-            .setup((x) => x.getConfiguration())
-            .returns(() => mockConfiguration.object);
-
-        // Mock ExtensionContext
-        mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockContext
-            .setup((x) => x.languageModelAccessInformation)
-            .returns(
-                () =>
-                    ({
-                        canSendRequest: () => "allowed",
-                    }) as any,
-            );
-
-        // Mock ChatResponseStream
-        mockChatStream = TypeMoq.Mock.ofType<vscode.ChatResponseStream>();
-        mockChatStream.setup((x) => x.progress(TypeMoq.It.isAnyString())).returns(() => undefined);
-        mockChatStream.setup((x) => x.markdown(TypeMoq.It.isAnyString())).returns(() => undefined);
-
-        // Mock Chat Request
-        mockChatRequest = TypeMoq.Mock.ofType<vscode.ChatRequest>();
-        mockChatRequest.setup((x) => x.prompt).returns(() => samplePrompt);
-        mockChatRequest.setup((x) => x.references).returns(() => []);
-        mockChatRequest.setup((x) => x.model).returns(() => mockLmChat.object);
-
-        // Mock Chat Context
-        mockChatContext = TypeMoq.Mock.ofType<vscode.ChatContext>();
-        mockChatContext.setup((x) => x.history).returns(() => []);
-
-        // Mock CancellationToken
-        mockToken = TypeMoq.Mock.ofType<vscode.CancellationToken>();
-
-        // Mock LanguageModelChatResponse
-        mockLanguageModelChatResponse = TypeMoq.Mock.ofType<vscode.LanguageModelChatResponse>();
-        mockLanguageModelChatResponse
-            .setup((x) => x.stream)
-            .returns(() =>
-                (async function* () {
-                    yield new vscode.LanguageModelTextPart(sampleReplyText);
-                })(),
-            );
-
-        // Had to create a real object instead of using TypeMoq for the response object
-        const mockResponseObject = {
+        const defaultResponse = {
             stream: (async function* () {
                 yield new vscode.LanguageModelTextPart(sampleReplyText);
             })(),
@@ -157,81 +111,98 @@ suite("Chat Agent Request Handler Tests", () => {
             })(),
         };
 
-        mockLmChat
-            .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(mockResponseObject));
+        languageModelChatSendRequest = sandbox.stub().resolves(defaultResponse);
+        languageModelChat = {
+            sendRequest: languageModelChatSendRequest,
+        } as unknown as vscode.LanguageModelChat;
 
-        // Mock TextDocument for reference handling
-        mockTextDocument = TypeMoq.Mock.ofType<vscode.TextDocument>();
-        mockTextDocument
-            .setup((x) => x.getText(TypeMoq.It.isAny()))
-            .returns(() => "SELECT * FROM users");
-        mockTextDocument.setup((x) => x.languageId).returns(() => "sql");
+        chatStreamMarkdown = sandbox.stub().returns(undefined);
+        chatStreamProgress = sandbox.stub().returns(undefined);
+        chatStream = {
+            markdown: chatStreamMarkdown,
+            progress: chatStreamProgress,
+        } as unknown as vscode.ChatResponseStream;
 
-        // Stub the workspace.openTextDocument method instead of replacing the entire workspace object
-        sandbox.stub(vscode.workspace, "openTextDocument").resolves(mockTextDocument.object);
+        chatRequest = {
+            prompt: samplePrompt,
+            references: [],
+            model: languageModelChat,
+        } as unknown as vscode.ChatRequest;
+
+        chatContext = {
+            history: [],
+        } as unknown as vscode.ChatContext;
+
+        const disposeStub = sandbox.stub();
+        cancellationToken = {
+            isCancellationRequested: false,
+            onCancellationRequested: sandbox.stub().returns({ dispose: disposeStub }),
+        } as unknown as vscode.CancellationToken;
+
+        textDocument = {
+            getText: sandbox.stub().returns("SELECT * FROM users"),
+            languageId: "sql",
+        } as unknown as vscode.TextDocument;
+
+        sandbox.stub(vscode.workspace, "openTextDocument").resolves(textDocument);
     });
 
     teardown(() => {
         sandbox.restore();
     });
 
-    test("Creates a valid chat request handler", () => {
-        const handler = createSqlAgentRequestHandler(
-            mockCopilotService.object,
-            mockVscodeWrapper.object,
-            mockContext.object,
-            mockMainController.object,
+    function createHandler(): ReturnType<typeof createSqlAgentRequestHandler> {
+        return createSqlAgentRequestHandler(
+            copilotService,
+            vscodeWrapper,
+            extensionContext,
+            mainController,
         );
+    }
 
-        expect(typeof handler).to.equal("function");
+    function getMarkdownMessages(): string[] {
+        return chatStreamMarkdown.getCalls().map((call) => {
+            const [message] = call.args;
+            return message === undefined || message === null ? "" : message.toString();
+        });
+    }
+
+    function markdownMatchCount(predicate: (message: string) => boolean): number {
+        return getMarkdownMessages().filter((value) => predicate(value)).length;
+    }
+
+    test("Creates a valid chat request handler", () => {
+        const handler = createHandler();
+
+        expect(handler).to.be.a("function");
     });
 
     test("Returns early with a default response when no models are found", async () => {
-        // Create a fresh mock request for this test to avoid conflicts
-        const testMockChatRequest = TypeMoq.Mock.ofType<vscode.ChatRequest>();
-        testMockChatRequest.setup((x) => x.prompt).returns(() => samplePrompt);
-        testMockChatRequest.setup((x) => x.references).returns(() => []);
-        testMockChatRequest.setup((x) => x.model).returns(() => undefined);
+        const requestWithoutModel = {
+            prompt: samplePrompt,
+            references: [],
+            model: undefined,
+        } as unknown as vscode.ChatRequest;
 
-        const handler = createSqlAgentRequestHandler(
-            mockCopilotService.object,
-            mockVscodeWrapper.object,
-            mockContext.object,
-            mockMainController.object,
-        );
+        const handler = createHandler();
 
         const result = await handler(
-            testMockChatRequest.object,
-            mockChatContext.object,
-            mockChatStream.object,
-            mockToken.object,
+            requestWithoutModel,
+            chatContext,
+            chatStream,
+            cancellationToken,
         );
 
-        mockChatStream.verify((x) => x.markdown("No model found."), TypeMoq.Times.once());
+        expect(markdownMatchCount((msg) => msg === "No model found.")).to.equal(1);
         expect(result).to.deep.equal({
             metadata: { command: "", correlationId: sampleCorrelationId },
         });
     });
 
     test("Handles successful conversation flow with complete message type", async () => {
-        // Setup mocks for startConversation
-        mockCopilotService
-            .setup((x) =>
-                x.startConversation(
-                    TypeMoq.It.isAnyString(),
-                    TypeMoq.It.isAnyString(),
-                    TypeMoq.It.isAnyString(),
-                ),
-            )
-            .returns(() => Promise.resolve(true));
+        copilotService.startConversation.resolves(true);
+        connectionManager.getConnectionInfo.callsFake(() => connectionInfo);
 
-        // Mock the getConnectionInfo method to return a valid connection
-        mockConnectionManager
-            .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
-            .returns(() => mockConnectionInfo.object);
-
-        // Mock the getNextMessage to return a Complete message type
         const completeResponse: GetNextMessageResponse = {
             conversationUri: sampleConversationUri,
             messageType: MessageType.Complete,
@@ -240,116 +211,50 @@ suite("Chat Agent Request Handler Tests", () => {
             requestMessages: [],
         };
 
-        mockCopilotService
-            .setup((x) =>
-                x.getNextMessage(
-                    TypeMoq.It.isAnyString(),
-                    TypeMoq.It.isAnyString(),
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                ),
-            )
-            .returns(() => Promise.resolve(completeResponse));
+        copilotService.getNextMessage.resolves(completeResponse);
 
-        const handler = createSqlAgentRequestHandler(
-            mockCopilotService.object,
-            mockVscodeWrapper.object,
-            mockContext.object,
-            mockMainController.object,
+        const handler = createHandler();
+
+        const result = await handler(chatRequest, chatContext, chatStream, cancellationToken);
+
+        expect(copilotService.startConversation).to.have.been.calledOnceWith(
+            sinon.match.string,
+            sampleConnectionUri,
+            samplePrompt,
         );
-
-        const result = await handler(
-            mockChatRequest.object,
-            mockChatContext.object,
-            mockChatStream.object,
-            mockToken.object,
+        expect(copilotService.getNextMessage).to.have.been.calledOnce;
+        expect(startActivityStub).to.have.been.called;
+        expect(activityObject.end).to.have.been.calledOnceWith(
+            ActivityStatus.Succeeded,
+            sinon.match.any,
         );
-
-        mockCopilotService.verify(
-            (x) => x.startConversation(TypeMoq.It.isAnyString(), sampleConnectionUri, samplePrompt),
-            TypeMoq.Times.once(),
-        );
-
-        mockCopilotService.verify(
-            (x) =>
-                x.getNextMessage(
-                    TypeMoq.It.isAnyString(),
-                    TypeMoq.It.isAnyString(),
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                ),
-            TypeMoq.Times.once(),
-        );
-
-        // Verify startActivity was called
-        sinon.assert.called(startActivityStub);
-
-        // Verify end was called on the activity object
-        mockActivityObject.verify(
-            (x) => x.end(ActivityStatus.Succeeded, TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
-        );
-
-        mockChatStream.verify(
-            (x) => x.markdown(TypeMoq.It.is((msg) => msg.toString().startsWith("> 🟢"))),
-            TypeMoq.Times.once(),
-        );
-
+        const markdownMessages = getMarkdownMessages();
+        const matches = markdownMessages.filter((msg) => msg.startsWith(connectedLabelPrefix));
+        expect(matches.length, `markdown outputs: ${markdownMessages.join(" || ")}`).to.equal(1);
         expect(result).to.deep.equal({
             metadata: { command: "", correlationId: sampleCorrelationId },
         });
     });
 
     test("Handles conversation with disconnected editor", async () => {
-        // Mock the getConnectionInfo method to return an invalid connection
-        mockConnectionManager
-            .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
-            .returns(() => {
-                return undefined;
-            });
+        connectionManager.getConnectionInfo.callsFake(() => undefined);
 
-        const handler = createSqlAgentRequestHandler(
-            mockCopilotService.object,
-            mockVscodeWrapper.object,
-            mockContext.object,
-            mockMainController.object,
-        );
+        const handler = createHandler();
 
-        const result = await handler(
-            mockChatRequest.object,
-            mockChatContext.object,
-            mockChatStream.object,
-            mockToken.object,
-        );
+        const result = await handler(chatRequest, chatContext, chatStream, cancellationToken);
 
-        mockChatStream.verify(
-            (x) => x.markdown(TypeMoq.It.is((msg) => msg.toString().startsWith("> ⚠️"))),
-            TypeMoq.Times.once(),
-        );
-
+        const markdownMessages = getMarkdownMessages();
+        const matches = markdownMessages.filter((msg) => msg.startsWith(disconnectedLabelPrefix));
+        expect(matches.length, `markdown outputs: ${markdownMessages.join(" || ")}`).to.equal(1);
         expect(result).to.deep.equal({
             metadata: { command: "", correlationId: sampleCorrelationId },
         });
     });
 
     test("Handles conversation with Fragment message type", async () => {
-        // Setup mocks for startConversation
-        mockCopilotService
-            .setup((x) =>
-                x.startConversation(
-                    TypeMoq.It.isAnyString(),
-                    TypeMoq.It.isAnyString(),
-                    TypeMoq.It.isAnyString(),
-                ),
-            )
-            .returns(() => Promise.resolve(true));
+        copilotService.startConversation.resolves(true);
+        connectionManager.getConnectionInfo.callsFake(() => connectionInfo);
 
-        // Mock the getConnectionInfo method to return a valid connection
-        mockConnectionManager
-            .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
-            .returns(() => mockConnectionInfo.object);
-
-        // First return a Fragment message type
         const fragmentResponse: GetNextMessageResponse = {
             conversationUri: sampleConversationUri,
             messageType: MessageType.Fragment,
@@ -358,7 +263,6 @@ suite("Chat Agent Request Handler Tests", () => {
             requestMessages: [],
         };
 
-        // Then return a Complete message type
         const completeResponse: GetNextMessageResponse = {
             conversationUri: sampleConversationUri,
             messageType: MessageType.Complete,
@@ -370,102 +274,37 @@ suite("Chat Agent Request Handler Tests", () => {
         let callCount = 0;
         const responses = [fragmentResponse, completeResponse];
 
-        mockCopilotService
-            .setup((x) =>
-                x.getNextMessage(
-                    TypeMoq.It.isAnyString(),
-                    TypeMoq.It.isAnyString(),
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                ),
-            )
-            .returns(() => {
-                return Promise.resolve(responses[callCount++]);
-            });
+        copilotService.getNextMessage.callsFake(async () => responses[callCount++]);
 
-        const handler = createSqlAgentRequestHandler(
-            mockCopilotService.object,
-            mockVscodeWrapper.object,
-            mockContext.object,
-            mockMainController.object,
-        );
+        const handler = createHandler();
 
-        await handler(
-            mockChatRequest.object,
-            mockChatContext.object,
-            mockChatStream.object,
-            mockToken.object,
-        );
+        await handler(chatRequest, chatContext, chatStream, cancellationToken);
 
-        mockCopilotService.verify(
-            (x) =>
-                x.getNextMessage(
-                    TypeMoq.It.isAnyString(),
-                    TypeMoq.It.isAnyString(),
-                    TypeMoq.It.isAny(),
-                    TypeMoq.It.isAny(),
-                ),
-            TypeMoq.Times.exactly(2),
-        );
+        expect(copilotService.getNextMessage).to.have.been.calledTwice;
     });
 
     test("Handles errors during conversation gracefully", async () => {
-        // Setup mocks for startConversation to throw
-        mockCopilotService
-            .setup((x) =>
-                x.startConversation(
-                    TypeMoq.It.isAnyString(),
-                    TypeMoq.It.isAnyString(),
-                    TypeMoq.It.isAnyString(),
-                ),
-            )
-            .throws(new Error("Connection failed"));
+        copilotService.startConversation.throws(new Error("Connection failed"));
+        connectionManager.getConnectionInfo.callsFake(() => connectionInfo);
 
-        // Mock the getConnectionInfo method to return a valid connection
-        mockConnectionManager
-            .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
-            .returns(() => mockConnectionInfo.object);
+        const handler = createHandler();
 
-        const handler = createSqlAgentRequestHandler(
-            mockCopilotService.object,
-            mockVscodeWrapper.object,
-            mockContext.object,
-            mockMainController.object,
-        );
+        await handler(chatRequest, chatContext, chatStream, cancellationToken);
 
-        await handler(
-            mockChatRequest.object,
-            mockChatContext.object,
-            mockChatStream.object,
-            mockToken.object,
-        );
-
-        // Should show error message
-        mockChatStream.verify(
-            (x) => x.markdown(TypeMoq.It.is((msg) => msg.toString().includes("An error occurred"))),
-            TypeMoq.Times.once(),
-        );
+        const markdownMessages = getMarkdownMessages();
+        const matches = markdownMessages.filter((msg) => msg.includes("An error occurred"));
+        expect(matches.length, `markdown outputs: ${markdownMessages.join(" || ")}`).to.equal(1);
     });
 
     suite("Tool Mapping Tests", () => {
+        function setUpSuccessfulConversation(): void {
+            copilotService.startConversation.resolves(true);
+            connectionManager.getConnectionInfo.callsFake(() => connectionInfo);
+        }
+
         test("Handles tools with valid JSON parameters in RequestLLM message", async () => {
-            // Setup mocks for startConversation
-            mockCopilotService
-                .setup((x) =>
-                    x.startConversation(
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAnyString(),
-                    ),
-                )
-                .returns(() => Promise.resolve(true));
+            setUpSuccessfulConversation();
 
-            // Mock the getConnectionInfo method to return a valid connection
-            mockConnectionManager
-                .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
-                .returns(() => mockConnectionInfo.object);
-
-            // Mock the getNextMessage to return RequestLLM with valid tools
             const requestLLMResponse: GetNextMessageResponse = {
                 conversationUri: sampleConversationUri,
                 messageType: MessageType.RequestLLM,
@@ -497,68 +336,24 @@ suite("Chat Agent Request Handler Tests", () => {
             let callCount = 0;
             const responses = [requestLLMResponse, completeResponse];
 
-            mockCopilotService
-                .setup((x) =>
-                    x.getNextMessage(
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                    ),
-                )
-                .returns(() => Promise.resolve(responses[callCount++]));
+            copilotService.getNextMessage.callsFake(async () => responses[callCount++]);
 
-            const handler = createSqlAgentRequestHandler(
-                mockCopilotService.object,
-                mockVscodeWrapper.object,
-                mockContext.object,
-                mockMainController.object,
-            );
+            const handler = createHandler();
 
-            const result = await handler(
-                mockChatRequest.object,
-                mockChatContext.object,
-                mockChatStream.object,
-                mockToken.object,
-            );
+            const result = await handler(chatRequest, chatContext, chatStream, cancellationToken);
 
-            // Verify that the handler completed successfully
             expect(result).to.deep.equal({
                 metadata: { command: "", correlationId: sampleCorrelationId },
             });
 
-            // Verify sendRequest was called with tools
-            mockLmChat.verify(
-                (x) =>
-                    x.sendRequest(
-                        TypeMoq.It.is((messages) => Array.isArray(messages)),
-                        TypeMoq.It.is(
-                            (options) => Array.isArray(options.tools) && options.tools.length > 0,
-                        ),
-                        TypeMoq.It.isAny(),
-                    ),
-                TypeMoq.Times.once(),
-            );
+            expect(languageModelChatSendRequest).to.have.been.calledOnce;
+            const [, options] = languageModelChatSendRequest.firstCall.args;
+            expect(options.tools).to.be.an("array").that.is.not.empty;
         });
 
         test("Handles tools with invalid JSON parameters by falling back to empty schema", async () => {
-            // Setup mocks for startConversation
-            mockCopilotService
-                .setup((x) =>
-                    x.startConversation(
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAnyString(),
-                    ),
-                )
-                .returns(() => Promise.resolve(true));
+            setUpSuccessfulConversation();
 
-            // Mock the getConnectionInfo method to return a valid connection
-            mockConnectionManager
-                .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
-                .returns(() => mockConnectionInfo.object);
-
-            // Mock the getNextMessage to return RequestLLM with invalid JSON in tool parameters
             const requestLLMResponse: GetNextMessageResponse = {
                 conversationUri: sampleConversationUri,
                 messageType: MessageType.RequestLLM,
@@ -567,7 +362,7 @@ suite("Chat Agent Request Handler Tests", () => {
                     {
                         functionName: "mssql_run_query",
                         functionDescription: "Runs a SQL query",
-                        functionParameters: "{invalid json syntax here}", // Invalid JSON
+                        functionParameters: "{invalid json syntax here}",
                     },
                 ],
                 requestMessages: [
@@ -589,62 +384,22 @@ suite("Chat Agent Request Handler Tests", () => {
             let callCount = 0;
             const responses = [requestLLMResponse, completeResponse];
 
-            mockCopilotService
-                .setup((x) =>
-                    x.getNextMessage(
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                    ),
-                )
-                .returns(() => Promise.resolve(responses[callCount++]));
+            copilotService.getNextMessage.callsFake(async () => responses[callCount++]);
 
-            const handler = createSqlAgentRequestHandler(
-                mockCopilotService.object,
-                mockVscodeWrapper.object,
-                mockContext.object,
-                mockMainController.object,
-            );
+            const handler = createHandler();
 
-            // Should not throw, but handle gracefully with fallback schema
-            const result = await handler(
-                mockChatRequest.object,
-                mockChatContext.object,
-                mockChatStream.object,
-                mockToken.object,
-            );
+            const result = await handler(chatRequest, chatContext, chatStream, cancellationToken);
 
-            // Verify that the handler completed successfully despite invalid JSON
             expect(result).to.deep.equal({
                 metadata: { command: "", correlationId: sampleCorrelationId },
             });
 
-            // Verify sendRequest was still called (with fallback empty schema)
-            mockLmChat.verify(
-                (x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
+            expect(languageModelChatSendRequest).to.have.been.calledOnce;
         });
 
         test("Handles tools with null or undefined description", async () => {
-            // Setup mocks for startConversation
-            mockCopilotService
-                .setup((x) =>
-                    x.startConversation(
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAnyString(),
-                    ),
-                )
-                .returns(() => Promise.resolve(true));
+            setUpSuccessfulConversation();
 
-            // Mock the getConnectionInfo method to return a valid connection
-            mockConnectionManager
-                .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
-                .returns(() => mockConnectionInfo.object);
-
-            // Mock the getNextMessage to return RequestLLM with null description
             const requestLLMResponse: GetNextMessageResponse = {
                 conversationUri: sampleConversationUri,
                 messageType: MessageType.RequestLLM,
@@ -652,7 +407,7 @@ suite("Chat Agent Request Handler Tests", () => {
                 tools: [
                     {
                         functionName: "mssql_connect",
-                        functionDescription: undefined as unknown as string, // Undefined description
+                        functionDescription: undefined as unknown as string,
                         functionParameters: '{"type":"object"}',
                     },
                 ],
@@ -675,55 +430,20 @@ suite("Chat Agent Request Handler Tests", () => {
             let callCount = 0;
             const responses = [requestLLMResponse, completeResponse];
 
-            mockCopilotService
-                .setup((x) =>
-                    x.getNextMessage(
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                    ),
-                )
-                .returns(() => Promise.resolve(responses[callCount++]));
+            copilotService.getNextMessage.callsFake(async () => responses[callCount++]);
 
-            const handler = createSqlAgentRequestHandler(
-                mockCopilotService.object,
-                mockVscodeWrapper.object,
-                mockContext.object,
-                mockMainController.object,
-            );
+            const handler = createHandler();
 
-            const result = await handler(
-                mockChatRequest.object,
-                mockChatContext.object,
-                mockChatStream.object,
-                mockToken.object,
-            );
+            const result = await handler(chatRequest, chatContext, chatStream, cancellationToken);
 
-            // Verify that the handler completed successfully
             expect(result).to.deep.equal({
                 metadata: { command: "", correlationId: sampleCorrelationId },
             });
         });
 
         test("Handles tools with empty or whitespace-only parameters", async () => {
-            // Setup mocks for startConversation
-            mockCopilotService
-                .setup((x) =>
-                    x.startConversation(
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAnyString(),
-                    ),
-                )
-                .returns(() => Promise.resolve(true));
+            setUpSuccessfulConversation();
 
-            // Mock the getConnectionInfo method to return a valid connection
-            mockConnectionManager
-                .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
-                .returns(() => mockConnectionInfo.object);
-
-            // Mock the getNextMessage to return RequestLLM with empty parameters
             const requestLLMResponse: GetNextMessageResponse = {
                 conversationUri: sampleConversationUri,
                 messageType: MessageType.RequestLLM,
@@ -732,7 +452,7 @@ suite("Chat Agent Request Handler Tests", () => {
                     {
                         functionName: "mssql_disconnect",
                         functionDescription: "Disconnects from database",
-                        functionParameters: "   ", // Whitespace-only
+                        functionParameters: "   ",
                     },
                 ],
                 requestMessages: [
@@ -754,62 +474,27 @@ suite("Chat Agent Request Handler Tests", () => {
             let callCount = 0;
             const responses = [requestLLMResponse, completeResponse];
 
-            mockCopilotService
-                .setup((x) =>
-                    x.getNextMessage(
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                    ),
-                )
-                .returns(() => Promise.resolve(responses[callCount++]));
+            copilotService.getNextMessage.callsFake(async () => responses[callCount++]);
 
-            const handler = createSqlAgentRequestHandler(
-                mockCopilotService.object,
-                mockVscodeWrapper.object,
-                mockContext.object,
-                mockMainController.object,
-            );
+            const handler = createHandler();
 
-            const result = await handler(
-                mockChatRequest.object,
-                mockChatContext.object,
-                mockChatStream.object,
-                mockToken.object,
-            );
+            const result = await handler(chatRequest, chatContext, chatStream, cancellationToken);
 
-            // Verify that the handler completed successfully with fallback empty schema
             expect(result).to.deep.equal({
                 metadata: { command: "", correlationId: sampleCorrelationId },
             });
         });
 
         test("Throws error when tool has invalid or missing functionName", async () => {
-            // Setup mocks for startConversation
-            mockCopilotService
-                .setup((x) =>
-                    x.startConversation(
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAnyString(),
-                    ),
-                )
-                .returns(() => Promise.resolve(true));
+            setUpSuccessfulConversation();
 
-            // Mock the getConnectionInfo method to return a valid connection
-            mockConnectionManager
-                .setup((x) => x.getConnectionInfo(TypeMoq.It.isAnyString()))
-                .returns(() => mockConnectionInfo.object);
-
-            // Mock the getNextMessage to return RequestLLM with missing functionName
             const requestLLMResponse: GetNextMessageResponse = {
                 conversationUri: sampleConversationUri,
                 messageType: MessageType.RequestLLM,
                 responseText: "Processing request",
                 tools: [
                     {
-                        functionName: undefined as unknown as string, // Missing function name
+                        functionName: undefined as unknown as string,
                         functionDescription: "A tool without a name",
                         functionParameters: '{"type":"object"}',
                     },
@@ -822,39 +507,16 @@ suite("Chat Agent Request Handler Tests", () => {
                 ],
             };
 
-            mockCopilotService
-                .setup((x) =>
-                    x.getNextMessage(
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAnyString(),
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                    ),
-                )
-                .returns(() => Promise.resolve(requestLLMResponse));
+            copilotService.getNextMessage.resolves(requestLLMResponse);
 
-            const handler = createSqlAgentRequestHandler(
-                mockCopilotService.object,
-                mockVscodeWrapper.object,
-                mockContext.object,
-                mockMainController.object,
-            );
+            const handler = createHandler();
 
-            // Should handle the error and show error message
-            await handler(
-                mockChatRequest.object,
-                mockChatContext.object,
-                mockChatStream.object,
-                mockToken.object,
-            );
+            await handler(chatRequest, chatContext, chatStream, cancellationToken);
 
-            // Verify error message is shown
-            mockChatStream.verify(
-                (x) =>
-                    x.markdown(
-                        TypeMoq.It.is((msg) => msg.toString().includes("An error occurred")),
-                    ),
-                TypeMoq.Times.once(),
+            const markdownMessages = getMarkdownMessages();
+            const matches = markdownMessages.filter((msg) => msg.includes("An error occurred"));
+            expect(matches.length, `markdown outputs: ${markdownMessages.join(" || ")}`).to.equal(
+                1,
             );
         });
     });
