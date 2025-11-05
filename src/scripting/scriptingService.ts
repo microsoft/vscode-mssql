@@ -23,7 +23,7 @@ import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInter
 import { startActivity } from "../telemetry/telemetry";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Constants from "../constants/constants";
-import { getUriKey } from "../utils/utils";
+import { getErrorMessage, getUriKey } from "../utils/utils";
 import { Deferred } from "../protocol";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
 import { IConnectionProfile } from "../models/interfaces";
@@ -288,7 +288,7 @@ export class ScriptingService {
 
             scriptTelemetryActivity.end(ActivityStatus.Succeeded);
         } catch (error) {
-            this._logger.error("Scripting failed: ", error);
+            this._logger.error("Scripting failed: ", getErrorMessage(error));
             scriptTelemetryActivity.endFailed(error, false /* do not include error message */);
         }
 
