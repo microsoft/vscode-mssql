@@ -2555,6 +2555,15 @@
                                     "REVOKE",
                                     "BACKUP",
                                     "RESTORE",
+                                    "EXEC",
+                                    "DECLARE",
+                                    "IF",
+                                    "WHILE",
+                                    "TRY_CATCH",
+                                    "TEMP_TABLE",
+                                    "CONSTRAINT",
+                                    "TRIGGER",
+                                    "SET",
                                     "OTHER"
                                 ]
                             }
@@ -2570,7 +2579,9 @@
                                 "troubleshooting",
                                 "schema_creation",
                                 "schema_modification",
+                                "schema_exploration",
                                 "data_maintenance",
+                                "data_seeding",
                                 "testing_validation",
                                 "backup_restore",
                                 "performance_tuning",
