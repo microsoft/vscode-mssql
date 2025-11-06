@@ -4673,7 +4673,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
         <source xml:lang="en">This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
-        <target state="new">This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.</target>
+        <target state="translated">無法處理此訊息。如果此問題持續發生，請檢查記錄，並在 GitHub 上開啟問題。</target>
       </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
@@ -5206,7 +5206,7 @@ Query: {1}</source>
       </trans-unit>
       <trans-unit id="mssql.copilot.analyzeQueryPerformance">
         <source xml:lang="en">Analyze Query Performance</source>
-        <target state="new">Analyze Query Performance</target>
+        <target state="translated">分析查詢效能</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.applicationIntentLabel">
         <source xml:lang="en">Application Intent</source>
@@ -5386,6 +5386,10 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <source xml:lang="en">Edit Connection Sharing Permissions</source>
         <target state="translated">編輯連線共用權限</target>
       </trans-unit>
+      <trans-unit id="mssql.tableExplorer">
+        <source xml:lang="en">Edit Data (Preview)</source>
+        <target state="new">Edit Data (Preview)</target>
+      </trans-unit>
       <trans-unit id="mssql.enableActualPlan">
         <source xml:lang="en">Enable Actual Plan</source>
         <target state="translated">啟用實際計劃</target>
@@ -5534,7 +5538,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.copilot.explainQuery">
         <source xml:lang="en">Explain Query</source>
-        <target state="new">Explain Query</target>
+        <target state="translated">說明查詢</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.description">
         <source xml:lang="en">Familiarize yourself with more features of the MSSQL extension that can help you be more productive.</source>
@@ -5558,7 +5562,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
-        <target state="new">MSSQL Copilot</target>
+        <target state="translated">MSSQL Copilot</target>
       </trans-unit>
       <trans-unit id="mssql.Configuration">
         <source xml:lang="en">MSSQL configuration</source>
@@ -5597,8 +5601,8 @@ You can connect to a database by entering your connection information, using a c
         <target state="translated">SELECT 陳述式所傳回 text 與 Ntext 資料的大小上限</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
-        <source xml:lang="en">Modify Table Structure</source>
-        <target state="new">Modify Table Structure</target>
+        <source xml:lang="en">Modify Table</source>
+        <target state="new">Modify Table</target>
       </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
@@ -5644,7 +5648,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.copilot.newQueryWithConnection">
         <source xml:lang="en">Open New Query and Connect</source>
-        <target state="new">Open New Query and Connect</target>
+        <target state="translated">開啟新查詢並連線</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryHistory">
         <source xml:lang="en">Open Query</source>
@@ -5656,11 +5660,11 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in Copilot Agent mode</source>
-        <target state="new">Open in Copilot Agent mode</target>
+        <target state="translated">在 Copilot Agent 中開啟模式</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabase">
         <source xml:lang="en">Open in Copilot Ask mode</source>
-        <target state="new">Open in Copilot Ask mode</target>
+        <target state="translated">在 Copilot Ask 中開啟模式</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
@@ -5716,7 +5720,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.copilot.rewriteQuery">
         <source xml:lang="en">Rewrite Query</source>
-        <target state="new">Rewrite Query</target>
+        <target state="translated">改寫查詢</target>
       </trans-unit>
       <trans-unit id="mssql.runQueryHistory">
         <source xml:lang="en">Run Query</source>
@@ -5772,7 +5776,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.userFeedback">
         <source xml:lang="en">Send Feedback</source>
-        <target state="new">Send Feedback</target>
+        <target state="translated">傳送意見反應</target>
       </trans-unit>
       <trans-unit id="mssql.resultsFontFamily">
         <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>
@@ -5975,10 +5979,6 @@ See the estimated plan without running the query, or view the actual query plan 
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">使用資料庫</target>
-      </trans-unit>
-      <trans-unit id="mssql.tableExplorer">
-        <source xml:lang="en">View &amp; Edit Data (Preview)</source>
-        <target state="new">View &amp; Edit Data (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
