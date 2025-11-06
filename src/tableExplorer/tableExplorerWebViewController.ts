@@ -579,8 +579,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     );
 
                     if (rowIndex !== -1) {
-                        state.resultSet.subset[rowIndex].cells[payload.columnId] =
-                            updateCellResult.cell;
+                        const updatedCell = {
+                            ...updateCellResult.cell,
+                            displayValue: payload.newValue,
+                        };
+
+                        state.resultSet.subset[rowIndex].cells[payload.columnId] = updatedCell;
 
                         this.updateState();
 
