@@ -28,7 +28,7 @@
 }
 
 #tableExplorerGrid .slick-viewport {
-    overflow-x: hidden !important;
+    overflow-x: auto !important; /* Enable horizontal scrolling */
 }
 
 #tableExplorerGrid .slick-cell {
