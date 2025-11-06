@@ -9,6 +9,7 @@ import type { PagedAsyncIterableIterator } from "@azure/core-paging";
 import { IConnectionInfo } from "vscode-mssql";
 import * as os from "os";
 import { FormItemSpec, FormState } from "../sharedInterfaces/form";
+import xmlFormatter from "xml-formatter";
 
 export async function exists(path: string, uri?: vscode.Uri): Promise<boolean> {
     if (uri) {
@@ -179,4 +180,27 @@ export function hasAnyMissingRequiredValues<
             (typeof value === "boolean" && value !== true)
         );
     });
+}
+
+export function formatXml(xml: string): string {
+    const multipleNodesErrorMessage = "Found multiple root nodes";
+    try {
+        return xmlFormatter(xml);
+    } catch (e) {
+        // some XML fragments may not have a single root node, which xml-formatter requires
+        // in that case, we can wrap it in a root node, format it, then remove the root node
+        if (e.message === multipleNodesErrorMessage) {
+            const wrapped = `<root>${xml}</root>`;
+            try {
+                return xmlFormatter(wrapped)
+                    .replace(/^<root>\s*\n?/, "") // remove opening root tag
+                    .replace(/\n?\s*<\/root>$/, "") // remove closing root tag
+                    .replace(/^\s+/gm, ""); // remove leading spaces from each child line
+            } catch {
+                return xml; // return unformatted XML on error
+            }
+        } else {
+            return xml; // return unformatted XML on error
+        }
+    }
 }

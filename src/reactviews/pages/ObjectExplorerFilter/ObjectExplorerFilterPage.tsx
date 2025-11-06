@@ -82,133 +82,72 @@ export const ObjectExplorerFilterPage = () => {
     const [uiFilters, setUiFilters] = useState<ObjectExplorerPageFilter[]>([]);
 
     const AND = locConstants.objectExplorerFiltering.and;
-    const CONTAINS = locConstants.objectExplorerFiltering.contains;
-    const NOT_CONTAINS = locConstants.objectExplorerFiltering.notContains;
-    const STARTS_WITH = locConstants.objectExplorerFiltering.startsWith;
-    const NOT_STARTS_WITH = locConstants.objectExplorerFiltering.notStartsWith;
-    const ENDS_WITH = locConstants.objectExplorerFiltering.endsWith;
-    const NOT_ENDS_WITH = locConstants.objectExplorerFiltering.notEndsWith;
-    const EQUALS = locConstants.objectExplorerFiltering.equals;
-    const NOT_EQUALS = locConstants.objectExplorerFiltering.notEquals;
-    const LESS_THAN = locConstants.objectExplorerFiltering.lessThan;
-    const LESS_THAN_OR_EQUALS = locConstants.objectExplorerFiltering.lessThanOrEquals;
-    const GREATER_THAN = locConstants.objectExplorerFiltering.greaterThan;
-    const GREATER_THAN_OR_EQUALS = locConstants.objectExplorerFiltering.greaterThanOrEquals;
-    const BETWEEN = locConstants.objectExplorerFiltering.between;
-    const NOT_BETWEEN = locConstants.objectExplorerFiltering.notBetween;
 
-    function getFilterOperatorString(operator: NodeFilterOperator | undefined): string | undefined {
+    const operatorLabels: Record<NodeFilterOperator, string> = {
+        [NodeFilterOperator.Contains]: locConstants.objectExplorerFiltering.contains,
+        [NodeFilterOperator.NotContains]: locConstants.objectExplorerFiltering.notContains,
+        [NodeFilterOperator.StartsWith]: locConstants.objectExplorerFiltering.startsWith,
+        [NodeFilterOperator.NotStartsWith]: locConstants.objectExplorerFiltering.notStartsWith,
+        [NodeFilterOperator.EndsWith]: locConstants.objectExplorerFiltering.endsWith,
+        [NodeFilterOperator.NotEndsWith]: locConstants.objectExplorerFiltering.notEndsWith,
+        [NodeFilterOperator.Equals]: locConstants.objectExplorerFiltering.equals,
+        [NodeFilterOperator.NotEquals]: locConstants.objectExplorerFiltering.notEquals,
+        [NodeFilterOperator.LessThan]: locConstants.objectExplorerFiltering.lessThan,
+        [NodeFilterOperator.LessThanOrEquals]:
+            locConstants.objectExplorerFiltering.lessThanOrEquals,
+        [NodeFilterOperator.GreaterThan]: locConstants.objectExplorerFiltering.greaterThan,
+        [NodeFilterOperator.GreaterThanOrEquals]:
+            locConstants.objectExplorerFiltering.greaterThanOrEquals,
+        [NodeFilterOperator.Between]: locConstants.objectExplorerFiltering.between,
+        [NodeFilterOperator.NotBetween]: locConstants.objectExplorerFiltering.notBetween,
+    };
+
+    function getFilterOperatorString(operator: NodeFilterOperator | undefined): string {
         if (operator === undefined) {
-            return undefined;
+            return "";
         }
-        switch (operator) {
-            case NodeFilterOperator.Contains:
-                return CONTAINS;
-            case NodeFilterOperator.NotContains:
-                return NOT_CONTAINS;
-            case NodeFilterOperator.StartsWith:
-                return STARTS_WITH;
-            case NodeFilterOperator.NotStartsWith:
-                return NOT_STARTS_WITH;
-            case NodeFilterOperator.EndsWith:
-                return ENDS_WITH;
-            case NodeFilterOperator.NotEndsWith:
-                return NOT_ENDS_WITH;
-            case NodeFilterOperator.Equals:
-                return EQUALS;
-            case NodeFilterOperator.NotEquals:
-                return NOT_EQUALS;
-            case NodeFilterOperator.LessThan:
-                return LESS_THAN;
-            case NodeFilterOperator.LessThanOrEquals:
-                return LESS_THAN_OR_EQUALS;
-            case NodeFilterOperator.GreaterThan:
-                return GREATER_THAN;
-            case NodeFilterOperator.GreaterThanOrEquals:
-                return GREATER_THAN_OR_EQUALS;
-            case NodeFilterOperator.Between:
-                return BETWEEN;
-            case NodeFilterOperator.NotBetween:
-                return NOT_BETWEEN;
-            default:
-                return "";
-        }
+        return operatorLabels[operator] ?? "";
     }
 
-    function getFilterOperatorEnum(operator: string): NodeFilterOperator {
-        switch (operator) {
-            case CONTAINS:
-                return NodeFilterOperator.Contains;
-            case NOT_CONTAINS:
-                return NodeFilterOperator.NotContains;
-            case STARTS_WITH:
-                return NodeFilterOperator.StartsWith;
-            case NOT_STARTS_WITH:
-                return NodeFilterOperator.NotStartsWith;
-            case ENDS_WITH:
-                return NodeFilterOperator.EndsWith;
-            case NOT_ENDS_WITH:
-                return NodeFilterOperator.NotEndsWith;
-            case EQUALS:
-                return NodeFilterOperator.Equals;
-            case NOT_EQUALS:
-                return NodeFilterOperator.NotEquals;
-            case LESS_THAN:
-                return NodeFilterOperator.LessThan;
-            case LESS_THAN_OR_EQUALS:
-                return NodeFilterOperator.LessThanOrEquals;
-            case GREATER_THAN:
-                return NodeFilterOperator.GreaterThan;
-            case GREATER_THAN_OR_EQUALS:
-                return NodeFilterOperator.GreaterThanOrEquals;
-            case BETWEEN:
-                return NodeFilterOperator.Between;
-            case NOT_BETWEEN:
-                return NodeFilterOperator.NotBetween;
-            default:
-                return NodeFilterOperator.Equals;
-        }
-    }
-
-    function getFilterOperators(property: vscodeMssql.NodeFilterProperty): string[] {
+    function getFilterOperators(property: vscodeMssql.NodeFilterProperty): NodeFilterOperator[] {
         switch (property.type) {
             case NodeFilterPropertyDataType.Boolean:
-                return [EQUALS, NOT_EQUALS];
+                return [NodeFilterOperator.Equals, NodeFilterOperator.NotEquals];
             case NodeFilterPropertyDataType.String:
                 return [
-                    CONTAINS,
-                    NOT_CONTAINS,
-                    STARTS_WITH,
-                    NOT_STARTS_WITH,
-                    ENDS_WITH,
-                    NOT_ENDS_WITH,
-                    EQUALS,
-                    NOT_EQUALS,
+                    NodeFilterOperator.Contains,
+                    NodeFilterOperator.NotContains,
+                    NodeFilterOperator.StartsWith,
+                    NodeFilterOperator.NotStartsWith,
+                    NodeFilterOperator.EndsWith,
+                    NodeFilterOperator.NotEndsWith,
+                    NodeFilterOperator.Equals,
+                    NodeFilterOperator.NotEquals,
                 ];
             case NodeFilterPropertyDataType.Number:
                 return [
-                    EQUALS,
-                    NOT_EQUALS,
-                    LESS_THAN,
-                    LESS_THAN_OR_EQUALS,
-                    GREATER_THAN,
-                    GREATER_THAN_OR_EQUALS,
-                    BETWEEN,
-                    NOT_BETWEEN,
+                    NodeFilterOperator.Equals,
+                    NodeFilterOperator.NotEquals,
+                    NodeFilterOperator.LessThan,
+                    NodeFilterOperator.LessThanOrEquals,
+                    NodeFilterOperator.GreaterThan,
+                    NodeFilterOperator.GreaterThanOrEquals,
+                    NodeFilterOperator.Between,
+                    NodeFilterOperator.NotBetween,
                 ];
             case NodeFilterPropertyDataType.Date:
                 return [
-                    EQUALS,
-                    NOT_EQUALS,
-                    LESS_THAN,
-                    LESS_THAN_OR_EQUALS,
-                    GREATER_THAN,
-                    GREATER_THAN_OR_EQUALS,
-                    BETWEEN,
-                    NOT_BETWEEN,
+                    NodeFilterOperator.Equals,
+                    NodeFilterOperator.NotEquals,
+                    NodeFilterOperator.LessThan,
+                    NodeFilterOperator.LessThanOrEquals,
+                    NodeFilterOperator.GreaterThan,
+                    NodeFilterOperator.GreaterThanOrEquals,
+                    NodeFilterOperator.Between,
+                    NodeFilterOperator.NotBetween,
                 ];
             case NodeFilterPropertyDataType.Choice:
-                return [EQUALS, NOT_EQUALS];
+                return [NodeFilterOperator.Equals, NodeFilterOperator.NotEquals];
             default:
                 return [];
         }
@@ -260,6 +199,8 @@ export const ObjectExplorerFilterPage = () => {
                     const filter = provider?.state?.existingFilters?.find(
                         (f) => f.name === value.name,
                     );
+                    const operatorOptions = getFilterOperators(value);
+                    const defaultOperator = operatorOptions[0] ?? NodeFilterOperator.Equals;
                     return {
                         index: index,
                         name: value.name,
@@ -267,11 +208,9 @@ export const ObjectExplorerFilterPage = () => {
                         value: filter?.value ?? "",
                         type: value.type,
                         choices: getFilterChoices(value) ?? [],
-                        operatorOptions: getFilterOperators(value),
+                        operatorOptions: operatorOptions,
                         selectedOperator:
-                            filter === undefined
-                                ? getFilterOperators(value)[0]
-                                : (getFilterOperatorString(filter?.operator) ?? ""),
+                            filter?.operator !== undefined ? filter.operator : defaultOperator,
                         description: value.description,
                     };
                 }) ?? [],
@@ -298,12 +237,24 @@ export const ObjectExplorerFilterPage = () => {
                             id={`operator-${item.index}`}
                             className={classes.operatorOptions}
                             size="small"
-                            value={item.selectedOperator ?? ""}
-                            selectedOptions={[item.selectedOperator]}
+                            value={getFilterOperatorString(item.selectedOperator)}
+                            selectedOptions={[item.selectedOperator.toString()]}
                             onOptionSelect={(_e, d) => {
-                                uiFilters[item.index].selectedOperator = d.optionValue!;
-                                // Check if the value is an array and set it to an empty array if it is
-                                if (d.optionValue === BETWEEN || d.optionValue === NOT_BETWEEN) {
+                                if (d.optionValue === undefined) {
+                                    return;
+                                }
+                                const selectedValue = Number(d.optionValue);
+                                if (Number.isNaN(selectedValue)) {
+                                    return;
+                                }
+                                uiFilters[item.index].selectedOperator =
+                                    selectedValue as NodeFilterOperator;
+                                if (
+                                    uiFilters[item.index].selectedOperator ===
+                                        NodeFilterOperator.Between ||
+                                    uiFilters[item.index].selectedOperator ===
+                                        NodeFilterOperator.NotBetween
+                                ) {
                                     if (!Array.isArray(uiFilters[item.index].value)) {
                                         uiFilters[item.index].value = [
                                             uiFilters[item.index].value as string,
@@ -321,18 +272,18 @@ export const ObjectExplorerFilterPage = () => {
                             }}>
                             {item.operatorOptions.map((option) => {
                                 return (
-                                    <Option key={option} value={option}>
-                                        {option}
+                                    <Option key={option} value={option.toString()}>
+                                        {getFilterOperatorString(option)}
                                     </Option>
                                 );
                             })}
                         </Dropdown>
-                        {item.selectedOperator === BETWEEN ||
-                            (item.selectedOperator === NOT_BETWEEN && (
-                                <Text className={classes.andOrText} size={200}>
-                                    {AND}
-                                </Text>
-                            ))}
+                        {(item.selectedOperator === NodeFilterOperator.Between ||
+                            item.selectedOperator === NodeFilterOperator.NotBetween) && (
+                            <Text className={classes.andOrText} size={200}>
+                                {AND}
+                            </Text>
+                        )}
                     </div>
                 );
             case "value":
@@ -353,8 +304,8 @@ export const ObjectExplorerFilterPage = () => {
                                 break;
                         }
                         if (
-                            item.selectedOperator === BETWEEN ||
-                            item.selectedOperator === NOT_BETWEEN
+                            item.selectedOperator === NodeFilterOperator.Between ||
+                            item.selectedOperator === NodeFilterOperator.NotBetween
                         ) {
                             return (
                                 <div className={classes.tableCell}>
@@ -429,8 +380,10 @@ export const ObjectExplorerFilterPage = () => {
                             icon={<EraserRegular />}
                             onClick={() => {
                                 if (
-                                    uiFilters[item.index].selectedOperator === BETWEEN ||
-                                    uiFilters[item.index].selectedOperator === NOT_BETWEEN
+                                    uiFilters[item.index].selectedOperator ===
+                                        NodeFilterOperator.Between ||
+                                    uiFilters[item.index].selectedOperator ===
+                                        NodeFilterOperator.NotBetween
                                 ) {
                                     uiFilters[item.index].value = ["", ""];
                                 } else {
@@ -575,8 +528,8 @@ export const ObjectExplorerFilterPage = () => {
                     onClick={() => {
                         for (let filters of uiFilters) {
                             if (
-                                filters.selectedOperator === BETWEEN ||
-                                filters.selectedOperator === NOT_BETWEEN
+                                filters.selectedOperator === NodeFilterOperator.Between ||
+                                filters.selectedOperator === NodeFilterOperator.NotBetween
                             ) {
                                 filters.value = ["", ""];
                             } else {
@@ -612,8 +565,8 @@ export const ObjectExplorerFilterPage = () => {
                                         break;
                                     case NodeFilterPropertyDataType.Number:
                                         if (
-                                            f.selectedOperator === BETWEEN ||
-                                            f.selectedOperator === NOT_BETWEEN
+                                            f.selectedOperator === NodeFilterOperator.Between ||
+                                            f.selectedOperator === NodeFilterOperator.NotBetween
                                         ) {
                                             value = (f.value as string[]).map((v) => Number(v));
                                         } else {
@@ -637,7 +590,7 @@ export const ObjectExplorerFilterPage = () => {
                                 return {
                                     name: f.name,
                                     value: value!,
-                                    operator: getFilterOperatorEnum(f.selectedOperator),
+                                    operator: f.selectedOperator,
                                 };
                             })
                             .filter((f) => {
@@ -664,19 +617,19 @@ export const ObjectExplorerFilterPage = () => {
                                 if (!value1 && value2) {
                                     errorText =
                                         locConstants.objectExplorerFiltering.firstValueEmptyError(
-                                            getFilterOperatorString(filter.operator)!,
+                                            getFilterOperatorString(filter.operator),
                                             filter.name,
                                         );
                                 } else if (!value2 && value1) {
                                     errorText =
                                         locConstants.objectExplorerFiltering.secondValueEmptyError(
-                                            getFilterOperatorString(filter.operator)!,
+                                            getFilterOperatorString(filter.operator),
                                             filter.name,
                                         );
                                 } else if (value1 > value2) {
                                     errorText =
                                         locConstants.objectExplorerFiltering.firstValueLessThanSecondError(
-                                            getFilterOperatorString(filter.operator)!,
+                                            getFilterOperatorString(filter.operator),
                                             filter.name,
                                         );
                                 }

@@ -21,6 +21,7 @@ import { QueryResultWebviewController } from "./queryResultWebViewController";
 import store, { QueryResultSingletonStore } from "./singletonStore";
 import { JsonFormattingEditProvider } from "../utils/jsonFormatter";
 import * as LocalizedConstants from "../constants/locConstants";
+import { formatXml } from "../utils/utils";
 
 export const MAX_VIEW_COLUMN = 9;
 
@@ -316,9 +317,8 @@ export function registerCommonRequestHandlers(
         return state;
     });
     webviewController.registerReducer("openFileThroughLink", async (state, payload) => {
-        // TO DO: add formatting? ADS doesn't do this, but it may be nice...
-
         // If the content is an execution plan XML, open it in the execution plan tab
+        let formattedText = payload.content;
         if (
             payload.type === Constants.xml &&
             payload.content.startsWith(Constants.queryPlanXmlStart)
@@ -336,10 +336,12 @@ export function registerCommonRequestHandlers(
                 Constants.queryPlan,
             );
             return state;
+        } else if (payload.type === Constants.xml) {
+            formattedText = formatXml(payload.content);
         }
 
         const newDoc = await vscode.workspace.openTextDocument({
-            content: payload.content,
+            content: formattedText,
             language: payload.type,
         });
 

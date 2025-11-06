@@ -6,6 +6,8 @@
 import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
@@ -16,6 +18,8 @@ import { validateSqlServerPassword } from "../../src/deployment/dockerUtils";
 import { stubVscodeWrapper } from "./utils";
 import { PublishTarget } from "../../src/sharedInterfaces/publishDialog";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
+
+chai.use(sinonChai);
 
 suite("PublishProjectWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -116,6 +120,10 @@ suite("PublishProjectWebViewController Tests", () => {
             reducerHandlers.has("savePublishProfile"),
             "savePublishProfile reducer should be registered",
         ).to.be.true;
+        expect(
+            reducerHandlers.has("updateDeploymentOptions"),
+            "updateDeploymentOptions reducer should be registered",
+        ).to.be.true;
     });
 
     test("default publish target is EXISTING_SERVER", async () => {
@@ -191,8 +199,14 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(controller.state.formState.publishTarget).to.equal(PublishTarget.LocalContainer);
 
         // Test that changing publish target updates field visibility
-        expect(controller.state.formComponents.containerPort?.hidden).to.not.be.true;
-        expect(controller.state.formComponents.serverName?.hidden).to.be.true;
+        expect(
+            controller.state.formComponents.containerPort?.hidden,
+            "containerPort should be visible for LocalContainer target",
+        ).to.not.be.true;
+        expect(
+            controller.state.formComponents.serverName?.hidden,
+            "serverName should be hidden for LocalContainer target",
+        ).to.be.true;
     });
 
     test("Azure SQL project shows Azure-specific labels", async () => {
@@ -201,6 +215,7 @@ suite("PublishProjectWebViewController Tests", () => {
                 success: true,
                 databaseSchemaProvider:
                     "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
+                outputPath: "bin/Debug",
             }),
         };
 
@@ -240,6 +255,7 @@ suite("PublishProjectWebViewController Tests", () => {
                 projectGuid: "test-guid",
                 databaseSchemaProvider:
                     "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
+                outputPath: "bin/Debug",
             }),
         };
 
@@ -293,6 +309,8 @@ suite("PublishProjectWebViewController Tests", () => {
     <TargetDatabaseName>MyDatabase</TargetDatabaseName>
     <DeployScriptFileName>MyDatabase.sql</DeployScriptFileName>
     <TargetConnectionString>Data Source=myserver.database.windows.net;Persist Security Info=False;User ID=admin;Pooling=False;MultipleActiveResultSets=False;</TargetConnectionString>
+    <AllowIncompatiblePlatform>True</AllowIncompatiblePlatform>
+    <IgnoreComments>True</IgnoreComments>
     <ProfileVersionNumber>1</ProfileVersionNumber>
   </PropertyGroup>
   <ItemGroup>
@@ -318,7 +336,7 @@ suite("PublishProjectWebViewController Tests", () => {
         // Mock file picker
         sandbox.stub(vscode.window, "showOpenDialog").resolves([vscode.Uri.file(profilePath)]);
 
-        // Mock DacFx service
+        // Mock DacFx service to return deployment options matching XML
         mockDacFxService.getOptionsFromProfile.resolves({
             success: true,
             errorMessage: "",
@@ -328,7 +346,18 @@ suite("PublishProjectWebViewController Tests", () => {
                     description: "",
                     displayName: "",
                 },
-                booleanOptionsDictionary: {},
+                booleanOptionsDictionary: {
+                    allowIncompatiblePlatform: {
+                        value: true,
+                        description: "Allow incompatible platform",
+                        displayName: "Allow Incompatible Platform",
+                    },
+                    ignoreComments: {
+                        value: true,
+                        description: "Ignore comments",
+                        displayName: "Ignore Comments",
+                    },
+                },
                 objectTypesDictionary: {},
             },
         });
@@ -349,45 +378,23 @@ suite("PublishProjectWebViewController Tests", () => {
             Var2: "Value2",
         });
 
-        // Verify deployment options were loaded from DacFx
-        expect(mockDacFxService.getOptionsFromProfile.calledOnce).to.be.true;
+        // Verify deployment options were loaded from DacFx matching XML properties
+        expect(mockDacFxService.getOptionsFromProfile).to.have.been.calledOnce;
+        expect(newState.deploymentOptions.excludeObjectTypes.value).to.deep.equal([
+            "Users",
+            "Logins",
+        ]);
+        expect(
+            newState.deploymentOptions.booleanOptionsDictionary.allowIncompatiblePlatform?.value,
+            "allowIncompatiblePlatform should be true from parsed profile",
+        ).to.be.true;
+        expect(
+            newState.deploymentOptions.booleanOptionsDictionary.ignoreComments?.value,
+            "ignoreComments should be true from parsed profile",
+        ).to.be.true;
     });
 
     test("savePublishProfile reducer is invoked and triggers save file dialog", async () => {
-        const controller = createTestController();
-
-        await controller.initialized.promise;
-
-        // Set up some form state to save
-        controller.state.formState.serverName = "localhost";
-        controller.state.formState.databaseName = "TestDB";
-
-        // Stub showSaveDialog to simulate user choosing a save location
-        const savedProfilePath = "c:/profiles/NewProfile.publish.xml";
-        sandbox.stub(vscode.window, "showSaveDialog").resolves(vscode.Uri.file(savedProfilePath));
-
-        // Mock DacFx service
-        mockDacFxService.savePublishProfile.resolves({ success: true, errorMessage: "" });
-
-        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
-        const savePublishProfile = reducerHandlers.get("savePublishProfile");
-        expect(savePublishProfile, "savePublishProfile reducer should be registered").to.exist;
-
-        // Invoke the reducer with an optional default filename
-        const newState = await savePublishProfile(controller.state, {
-            event: "TestProject.publish.xml",
-        });
-
-        // Verify DacFx save was called
-        expect(mockDacFxService.savePublishProfile.calledOnce).to.be.true;
-
-        // Verify the state is returned unchanged (savePublishProfile does NOT update path in state)
-        expect(newState.formState.publishProfilePath).to.equal(
-            controller.state.formState.publishProfilePath,
-        );
-    });
-
-    test("savePublishProfile reducer saves server and database names to file", async () => {
         const controller = createTestController();
 
         await controller.initialized.promise;
@@ -397,6 +404,31 @@ suite("PublishProjectWebViewController Tests", () => {
         controller.state.formState.databaseName = "ProductionDB";
         controller.state.formState.sqlCmdVariables = {
             EnvironmentName: "Production",
+        };
+
+        // Set up deployment options state
+        controller.state.deploymentOptions = {
+            excludeObjectTypes: {
+                value: ["Users", "Permissions"],
+                description: "Object types to exclude",
+                displayName: "Exclude Object Types",
+            },
+            booleanOptionsDictionary: {
+                ignoreTableOptions: {
+                    value: true,
+                    description: "Ignore table options",
+                    displayName: "Ignore Table Options",
+                },
+                allowIncompatiblePlatform: {
+                    value: false,
+                    description: "Allow incompatible platform",
+                    displayName: "Allow Incompatible Platform",
+                },
+            },
+            objectTypesDictionary: {
+                users: "Users",
+                permissions: "Permissions",
+            },
         };
 
         // Stub showSaveDialog to simulate user choosing a save location
@@ -416,7 +448,7 @@ suite("PublishProjectWebViewController Tests", () => {
         });
 
         // Verify DacFx save was called with correct parameters
-        expect(mockDacFxService.savePublishProfile.calledOnce).to.be.true;
+        expect(mockDacFxService.savePublishProfile).to.have.been.calledOnce;
 
         const saveCall = mockDacFxService.savePublishProfile.getCall(0);
         expect(saveCall.args[0].replace(/\\/g, "/")).to.equal(savedProfilePath); // File path (normalize for cross-platform)
@@ -424,6 +456,19 @@ suite("PublishProjectWebViewController Tests", () => {
         // Connection string is args[2]
         const sqlCmdVariables = saveCall.args[3]; // SQL CMD variables
         expect(sqlCmdVariables.get("EnvironmentName")).to.equal("Production");
+
+        // Verify deployment options are included (args[4])
+        const deploymentOptions = saveCall.args[4];
+        expect(deploymentOptions).to.exist;
+        expect(deploymentOptions.excludeObjectTypes.value).to.deep.equal(["Users", "Permissions"]);
+        expect(
+            deploymentOptions.booleanOptionsDictionary.ignoreTableOptions?.value,
+            "ignoreTableOptions should be true in saved deployment options",
+        ).to.be.true;
+        expect(
+            deploymentOptions.booleanOptionsDictionary.allowIncompatiblePlatform?.value,
+            "allowIncompatiblePlatform should be false in saved deployment options",
+        ).to.be.false;
     });
     //#endregion
 
@@ -437,14 +482,14 @@ suite("PublishProjectWebViewController Tests", () => {
         const serverComponent = controller.state.formComponents.serverName;
         expect(serverComponent).to.exist;
         expect(serverComponent.label).to.exist;
-        expect(serverComponent.required).to.be.true;
+        expect(serverComponent.required, "serverName component should be required").to.be.true;
         expect(controller.state.formState.serverName).to.equal("");
 
         // Verify database component and default value (project name)
         const databaseComponent = controller.state.formComponents.databaseName;
         expect(databaseComponent).to.exist;
         expect(databaseComponent.label).to.exist;
-        expect(databaseComponent.required).to.be.true;
+        expect(databaseComponent.required, "databaseName component should be required").to.be.true;
         expect(controller.state.formState.databaseName).to.equal("MyTestProject");
     });
 
@@ -480,6 +525,231 @@ suite("PublishProjectWebViewController Tests", () => {
 
         // Verify database name is updated
         expect(controller.state.formState.databaseName).to.equal("SelectedDatabase");
+    });
+    //#endregion
+
+    //#region Advanced Options Section Tests
+    test("deployment options should have three groups: General, Ignore, and Exclude", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Set up comprehensive deployment options with all three types
+        const deploymentOptions = {
+            excludeObjectTypes: {
+                value: [],
+                description: "Object types to exclude",
+                displayName: "Exclude Object Types",
+            },
+            booleanOptionsDictionary: {
+                allowDropBlockingAssemblies: {
+                    value: false,
+                    description: "Allow drop blocking assemblies",
+                    displayName: "Allow Drop Blocking Assemblies",
+                },
+                ignoreTableOptions: {
+                    value: false,
+                    description: "Ignore table options during deployment",
+                    displayName: "Ignore Table Options",
+                },
+                ignoreIndexes: {
+                    value: false,
+                    description: "Ignore indexes during deployment",
+                    displayName: "Ignore Indexes",
+                },
+            },
+            objectTypesDictionary: {
+                users: "Users",
+                logins: "Logins",
+                tables: "Tables",
+            },
+        };
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const updateDeploymentOptions = reducerHandlers.get("updateDeploymentOptions");
+
+        // Update deployment options
+        const newState = await updateDeploymentOptions(controller.state, {
+            deploymentOptions,
+        });
+
+        // Verify we have the expected structure
+        expect(newState.deploymentOptions.booleanOptionsDictionary).to.exist;
+        expect(newState.deploymentOptions.objectTypesDictionary).to.exist;
+        expect(newState.deploymentOptions.excludeObjectTypes).to.exist;
+
+        // Verify General group - one option that doesn't start with "Ignore"
+        expect(newState.deploymentOptions.booleanOptionsDictionary.allowDropBlockingAssemblies).to
+            .exist;
+
+        // Verify Ignore group - one option that starts with "Ignore"
+        expect(newState.deploymentOptions.booleanOptionsDictionary.ignoreTableOptions).to.exist;
+
+        // Verify Exclude group - object types dictionary
+        expect(newState.deploymentOptions.objectTypesDictionary.users).to.equal("Users");
+    });
+
+    test("updateDeploymentOptions reducer should save and collect options properly", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        const originalOptions = {
+            excludeObjectTypes: {
+                value: ["Users"],
+                description: "Object types to exclude",
+                displayName: "Exclude Object Types",
+            },
+            booleanOptionsDictionary: {
+                allowDropBlockingAssemblies: {
+                    value: false,
+                    description: "Allow drop blocking assemblies",
+                    displayName: "Allow Drop Blocking Assemblies",
+                },
+            },
+            objectTypesDictionary: {
+                users: "Users",
+                logins: "Logins",
+            },
+        };
+
+        const updatedOptions = {
+            excludeObjectTypes: {
+                value: ["Users", "Logins"],
+                description: "Object types to exclude",
+                displayName: "Exclude Object Types",
+            },
+            booleanOptionsDictionary: {
+                allowDropBlockingAssemblies: {
+                    value: true,
+                    description: "Allow drop blocking assemblies",
+                    displayName: "Allow Drop Blocking Assemblies",
+                },
+            },
+            objectTypesDictionary: {
+                users: "Users",
+                logins: "Logins",
+            },
+        };
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const updateDeploymentOptions = reducerHandlers.get("updateDeploymentOptions");
+
+        // Set initial state
+        let newState = await updateDeploymentOptions(controller.state, {
+            deploymentOptions: originalOptions,
+        });
+
+        // Verify initial state is saved correctly
+        expect(newState.deploymentOptions.excludeObjectTypes.value).to.deep.equal(["Users"]);
+        expect(
+            newState.deploymentOptions.booleanOptionsDictionary.allowDropBlockingAssemblies.value,
+        ).to.be.false;
+
+        // Update with new options
+        newState = await updateDeploymentOptions(newState, {
+            deploymentOptions: updatedOptions,
+        });
+
+        // Verify updated state is collected properly
+        expect(newState.deploymentOptions.excludeObjectTypes.value).to.deep.equal([
+            "Users",
+            "Logins",
+        ]);
+        expect(
+            newState.deploymentOptions.booleanOptionsDictionary.allowDropBlockingAssemblies.value,
+        ).to.be.true;
+    });
+    //#endregion
+
+    //#region Generate Script Tests
+    test("generatePublishScript reducer closes dialog and triggers script generation", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Set up state with all required fields for script generation
+        controller.state.formState.serverName = "localhost";
+        controller.state.formState.databaseName = "TestDatabase";
+        controller["_connectionUri"] = "mssql://test-connection-uri";
+        controller.state.projectFilePath = "c:/work/TestProject.sqlproj";
+
+        // Mock the panel dispose method using sandbox stub
+        const panelDisposeSpy = sandbox.stub();
+        Object.defineProperty(controller, "panel", {
+            value: { dispose: panelDisposeSpy },
+            writable: true,
+            configurable: true,
+        });
+
+        // Spy on executePublishAndGenerateScript to verify it's called
+        const executePublishSpy = sandbox.stub(
+            controller as typeof controller & {
+                executePublishAndGenerateScript: (state: unknown, isPublish: boolean) => void;
+            },
+            "executePublishAndGenerateScript",
+        );
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const generatePublishScript = reducerHandlers.get("generatePublishScript");
+        expect(generatePublishScript, "generatePublishScript reducer should be registered").to
+            .exist;
+
+        // Invoke the reducer
+        await generatePublishScript(controller.state, {});
+
+        // Verify dialog was closed
+        expect(panelDisposeSpy).to.have.been.calledOnce;
+
+        // Verify executePublishAndGenerateScript was called with isPublish=false
+        expect(executePublishSpy).to.have.been.calledOnce;
+        expect(
+            executePublishSpy.firstCall.args[1],
+            "isPublish parameter should be false for script generation",
+        ).to.be.false;
+    });
+    //#endregion
+
+    //#region Publish Tests
+    test("publishNow reducer closes dialog and triggers publish", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Set up state with all required fields for publish
+        controller.state.formState.serverName = "localhost";
+        controller.state.formState.databaseName = "TestDatabase";
+        controller["_connectionUri"] = "mssql://test-connection-uri";
+        controller.state.projectFilePath = "c:/work/TestProject.sqlproj";
+
+        // Mock the panel dispose method using sandbox stub
+        const panelDisposeSpy = sandbox.stub();
+        Object.defineProperty(controller, "panel", {
+            value: { dispose: panelDisposeSpy },
+            writable: true,
+            configurable: true,
+        });
+
+        // Spy on executePublishAndGenerateScript to verify it's called
+        const executePublishSpy = sandbox.stub(
+            controller as typeof controller & {
+                executePublishAndGenerateScript: (state: unknown, isPublish: boolean) => void;
+            },
+            "executePublishAndGenerateScript",
+        );
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const publishNow = reducerHandlers.get("publishNow");
+        expect(publishNow, "publishNow reducer should be registered").to.exist;
+
+        // Invoke the reducer
+        await publishNow(controller.state, {});
+
+        // Verify dialog was closed
+        expect(panelDisposeSpy).to.have.been.calledOnce;
+
+        // Verify executePublishAndGenerateScript was called with isPublish=true
+        expect(executePublishSpy).to.have.been.calledOnce;
+        expect(
+            executePublishSpy.firstCall.args[1],
+            "isPublish parameter should be true for publish",
+        ).to.be.true;
     });
     //#endregion
 });

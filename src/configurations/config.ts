@@ -7,7 +7,7 @@ export const config = {
     service: {
         downloadUrl:
             "https://github.com/Microsoft/sqltoolsservice/releases/download/{#version#}/microsoft.sqltools.servicelayer-{#fileName#}",
-        version: "5.0.20251029.3",
+        version: "5.0.20251104.2",
         downloadFileNames: {
             Windows_86: "win-x86-net8.0.zip",
             Windows_64: "win-x64-net8.0.zip",

@@ -33,6 +33,8 @@ export enum TelemetryViews {
     Credential = "Credential",
     ConnectionManager = "ConnectionManager",
     DacpacDialog = "DacpacDialog",
+    ScriptingService = "ScriptingService",
+    TableExplorer = "TableExplorer",
 }
 
 export enum TelemetryActions {
@@ -43,6 +45,7 @@ export enum TelemetryActions {
     IncludeExcludeNode = "IncludeExcludeNode",
     PublishProjectChanges = "PublishProjectChanges",
     PublishDatabaseChanges = "PublishDatabaseChanges",
+    BuildProject = "BuildProject",
     AddNewConnectionDialogOpened = "AddNewConnectionDialogOpened",
     ListingActiveServers = "ListingActiveServers",
     SqlProjectInstalledVerification = "SqlProjectInstalledVerification",
@@ -157,11 +160,20 @@ export enum TelemetryActions {
     LoadFabricWorkspaces = "LoadFabricWorkspaces",
     LoadDatabases = "LoadDatabases",
     GetSqlAnalyticsEndpointUrlFromFabric = "GetSqlAnalyticsEndpointUrlFromFabric",
+    SurveyFunnel = "SurveyFunnel",
     CopilotNewQueryWithConnection = "CopilotNewQueryWithConnection",
     DacFxDeployDacpac = "DacFxDeployDacpac",
     DacFxExtractDacpac = "DacFxExtractDacpac",
     DacFxImportBacpac = "DacFxImportBacpac",
     DacFxExportBacpac = "DacFxExportBacpac",
+    Script = "Script",
+    CommitChanges = "CommitChanges",
+    CreateRow = "CreateRow",
+    DeleteRow = "DeleteRow",
+    UpdateCell = "UpdateCell",
+    RevertCell = "RevertCell",
+    RevertRow = "RevertRow",
+    LoadSubset = "LoadSubset",
 }
 
 /**

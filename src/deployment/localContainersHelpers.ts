@@ -18,12 +18,13 @@ import * as lc from "../sharedInterfaces/localContainers";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
-import { DeploymentWebviewController } from "./deploymentWebviewController";
+import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import * as dockerUtils from "./dockerUtils";
 import MainController from "../controllers/mainController";
 import { arch } from "os";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
+import { UserSurvey } from "../nps/userSurvey";
 
 export async function initializeLocalContainersState(
     groupOptions: FormItemOptions[],
@@ -89,6 +90,10 @@ export function registerLocalContainersReducers(deploymentController: Deployment
             if (!connectionResult) {
                 currentStep.errorMessage = `${connectErrorTooltip} ${localContainersState.formState.profileName}`;
             }
+
+            UserSurvey.getInstance().promptUserForNPSFeedback(
+                `${DEPLOYMENT_VIEW_ID}_localContainer`,
+            );
         } else {
             const args = currentStep.argNames.map(
                 (argName) => localContainersState.formState[argName],

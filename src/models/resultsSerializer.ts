@@ -15,7 +15,7 @@ import * as Contracts from "../models/contracts";
 import * as Utils from "../models/utils";
 import opener from "opener";
 
-type SaveAsRequestParams =
+export type SaveAsRequestParams =
     | Contracts.SaveResultsAsCsvRequestParams
     | Contracts.SaveResultsAsJsonRequestParams
     | Contracts.SaveResultsAsExcelRequestParams

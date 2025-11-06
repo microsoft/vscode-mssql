@@ -12,10 +12,10 @@ import * as Extension from "../../src/extension";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { TestExtensionContext } from "./stubs";
-import { activateExtension } from "./utils";
+import { activateExtension, stubExtensionContext, stubVscodeWrapper } from "./utils";
 import { SchemaCompareEndpointInfo } from "vscode-mssql";
 import * as Constants from "../../src/constants/constants";
+import { UserSurvey } from "../../src/nps/userSurvey";
 
 chai.use(sinonChai);
 
@@ -23,6 +23,8 @@ suite("MainController Tests", function () {
     let sandbox: sinon.SinonSandbox;
     let mainController: MainController;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let context: vscode.ExtensionContext;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
@@ -36,6 +38,11 @@ suite("MainController Tests", function () {
         connectionManager = sandbox.createStubInstance(ConnectionManager);
         mainController.connectionManager = connectionManager;
         (mainController.sqlDocumentService as any)["_connectionMgr"] = connectionManager;
+
+        vscodeWrapper = stubVscodeWrapper(sandbox);
+        context = stubExtensionContext(sandbox);
+
+        UserSurvey.createInstance(context, vscodeWrapper);
     });
 
     teardown(() => {
@@ -50,7 +57,7 @@ suite("MainController Tests", function () {
             return undefined;
         });
         const controller: MainController = new MainController(
-            TestExtensionContext.object,
+            context,
             undefined, // ConnectionManager
             vscodeWrapper,
         );
@@ -68,7 +75,7 @@ suite("MainController Tests", function () {
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "test_uri");
         const controller: MainController = new MainController(
-            TestExtensionContext.object,
+            context,
             undefined, // ConnectionManager
             vscodeWrapper,
         );
@@ -86,7 +93,7 @@ suite("MainController Tests", function () {
         connectionManager.onManageProfiles.resolves();
 
         const controller: MainController = new MainController(
-            TestExtensionContext.object,
+            context,
             connectionManager,
             vscodeWrapper,
         );

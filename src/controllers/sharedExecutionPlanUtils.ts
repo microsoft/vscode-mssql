@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { getErrorMessage, getUniqueFilePath } from "../utils/utils";
+import { getErrorMessage, getUniqueFilePath, formatXml } from "../utils/utils";
 import { homedir } from "os";
 import {
     ExecutionPlanGraphInfo,
@@ -184,27 +184,4 @@ export function calculateTotalCost(
         sum += graph.root.cost + graph.root.subTreeCost;
     }
     return sum;
-}
-
-export function formatXml(xmlContents: string): string {
-    try {
-        let formattedXml = "";
-        let currentLevel = 0;
-
-        const elements = xmlContents.match(/<[^>]*>/g);
-        for (const element of elements) {
-            if (element.startsWith("</")) {
-                // Closing tag: decrement the level
-                currentLevel--;
-            }
-            formattedXml += "\t".repeat(currentLevel) + element + "\n";
-            if (element.startsWith("<") && !element.startsWith("</") && !element.endsWith("/>")) {
-                // Opening tag: increment the level
-                currentLevel++;
-            }
-        }
-        return formattedXml;
-    } catch {
-        return xmlContents;
-    }
 }
