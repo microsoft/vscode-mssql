@@ -582,6 +582,18 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         state.resultSet.subset[rowIndex].cells[payload.columnId] =
                             updateCellResult.cell;
 
+                        // Also update state.newRows if this is a new row to prevent data loss during fetch
+                        const newRowIndex = state.newRows.findIndex(
+                            (row) => row.id === payload.rowId,
+                        );
+                        if (newRowIndex !== -1) {
+                            state.newRows[newRowIndex].cells[payload.columnId] =
+                                updateCellResult.cell;
+                            this.logger.info(
+                                `Updated cell in newRows tracking at index ${newRowIndex}, column ${payload.columnId}`,
+                            );
+                        }
+
                         this.updateState();
 
                         this.logger.info(
@@ -686,6 +698,30 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                             }),
                         };
 
+                        // Also update state.newRows if this is a new row to prevent data loss during fetch
+                        const newRowIndex = state.newRows.findIndex(
+                            (row) => row.id === payload.rowId,
+                        );
+                        if (newRowIndex !== -1) {
+                            state.newRows = state.newRows.map((row, idx) => {
+                                if (idx === newRowIndex) {
+                                    return {
+                                        ...row,
+                                        cells: row.cells.map((cell, cellIdx) => {
+                                            if (cellIdx === payload.columnId) {
+                                                return revertCellResult.cell;
+                                            }
+                                            return cell;
+                                        }),
+                                    };
+                                }
+                                return row;
+                            });
+                            this.logger.info(
+                                `Reverted cell in newRows tracking at index ${newRowIndex}, column ${payload.columnId}`,
+                            );
+                        }
+
                         this.updateState();
 
                         this.logger.info(
@@ -770,6 +806,22 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                                 return row;
                             }),
                         };
+
+                        // Also update state.newRows if this is a new row to prevent data loss during fetch
+                        const newRowIndex = state.newRows.findIndex(
+                            (row) => row.id === payload.rowId,
+                        );
+                        if (newRowIndex !== -1) {
+                            state.newRows = state.newRows.map((row, idx) => {
+                                if (idx === newRowIndex) {
+                                    return revertRowResult.row;
+                                }
+                                return row;
+                            });
+                            this.logger.info(
+                                `Reverted row in newRows tracking at index ${newRowIndex} with ${revertRowResult.row.cells.length} cells`,
+                            );
+                        }
 
                         this.updateState();
 
