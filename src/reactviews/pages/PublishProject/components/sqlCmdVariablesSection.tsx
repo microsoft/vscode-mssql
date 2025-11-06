@@ -88,22 +88,19 @@ export const SqlCmdVariablesSection: React.FC = () => {
     const originalSqlCmdVariables = usePublishDialogSelector((s) => s.originalSqlCmdVariables);
 
     // Local state to track current input values (prevents cursor jumping)
-    const [localValues, setLocalValues] = useState<{ [key: string]: string }>({});
+    const [localValues, setLocalValues] = useState<{ [key: string]: string }>(
+        sqlCmdVariables || {},
+    );
 
-    // Initialize local values from sqlCmdVariables
+    // Sync local values when sqlCmdVariables changes from external sources (e.g., profile load)
     useEffect(() => {
         setLocalValues(sqlCmdVariables || {});
     }, [sqlCmdVariables]);
 
-    if (!publishCtx || !sqlCmdVariables || !sqlCmdComponent || sqlCmdComponent.hidden) {
-        return undefined;
-    }
-
-    const variableEntries = Object.entries(sqlCmdVariables);
-
-    if (variableEntries.length === 0) {
-        return undefined;
-    }
+    // Memoize variable entries calculation
+    const variableEntries = useMemo(() => {
+        return Object.entries(sqlCmdVariables || {});
+    }, [sqlCmdVariables]);
 
     // Check if any values have been modified from their original values
     // Use localValues for immediate revert button update
@@ -126,6 +123,8 @@ export const SqlCmdVariablesSection: React.FC = () => {
 
     const handleValueChange = useCallback(
         (varName: string, newValue: string) => {
+            if (!publishCtx || !sqlCmdComponent) return;
+
             setLocalValues((prev) => ({
                 ...prev,
                 [varName]: newValue,
@@ -142,11 +141,13 @@ export const SqlCmdVariablesSection: React.FC = () => {
                 updateValidation: false,
             });
         },
-        [sqlCmdVariables, sqlCmdComponent.propertyName, publishCtx],
+        [sqlCmdVariables, sqlCmdComponent, publishCtx],
     );
 
     const handleValueBlur = useCallback(
         (varName: string, newValue: string) => {
+            if (!publishCtx || !sqlCmdComponent) return;
+
             // Update backend state when user finishes editing
             const updatedVariables = {
                 ...sqlCmdVariables,
@@ -159,14 +160,22 @@ export const SqlCmdVariablesSection: React.FC = () => {
                 updateValidation: true,
             });
         },
-        [sqlCmdVariables, sqlCmdComponent.propertyName, publishCtx],
+        [sqlCmdVariables, sqlCmdComponent, publishCtx],
     );
 
-    const handleRevertValues = () => {
+    const handleRevertValues = useCallback(() => {
         if (publishCtx && hasModifiedValues) {
             publishCtx.revertSqlCmdVariables();
         }
-    };
+    }, [publishCtx, hasModifiedValues]);
+
+    if (!publishCtx || !sqlCmdVariables || !sqlCmdComponent || sqlCmdComponent.hidden) {
+        return undefined;
+    }
+
+    if (variableEntries.length === 0) {
+        return undefined;
+    }
 
     return (
         <Field

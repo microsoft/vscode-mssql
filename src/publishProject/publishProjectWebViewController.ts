@@ -361,8 +361,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this.state.formState.databaseName,
         );
 
-        this.updateState();
-
         // Fetch Docker tags for the container image dropdown
         const tagComponent = this.state.formComponents[PublishFormFields.ContainerImageTag];
         if (tagComponent) {
@@ -382,7 +380,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
             }
         }
 
-        void this.updateItemVisibility();
+        // Update item visibility before updating state to ensure SQLCMD table is visible if needed
+        await this.updateItemVisibility();
+
+        this.updateState();
 
         // Run initial validation to set hasFormErrors state for button enablement
         await this.validateForm(this.state.formState, undefined, true);
@@ -500,6 +501,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
                     // Validate form after loading profile to update button states
                     await this.validateForm(this.state.formState, undefined, false);
+
+                    // Update item visibility to show SQLCMD variables table if variables exist
+                    await this.updateItemVisibility();
 
                     // Update UI immediately with profile data
                     this.updateState();
