@@ -911,6 +911,11 @@
     <trans-unit id="++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126">
       <source xml:lang="en">Cost</source>
     </trans-unit>
+    <trans-unit id="++CODE++f630f91edbf1dc6649a7de55179cb551ef8245ef63461de0094de54e58d5ea62">
+      <source xml:lang="en">Could not find scripting metadata for {0} &apos;{1}&apos;.</source>
+      <note>{0} is the node type
+{1} is the node label</note>
+    </trans-unit>
     <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
       <source xml:lang="en">Count: {0}</source>
       <note>{0} is the count</note>
@@ -1491,6 +1496,9 @@
       <source xml:lang="en">Failed to generate publish script: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the generate script operation</note>
     </trans-unit>
+    <trans-unit id="++CODE++765a301a99c7eee94fb83e4719d18340210f77b71528783b41061a2a9d555e3e">
+      <source xml:lang="en">Failed to generate script. Please check the logs for more details.</source>
+    </trans-unit>
     <trans-unit id="++CODE++cdf943bd7b320469af4343440384b361de46832547d9bc9c08b3bd9a90610364">
       <source xml:lang="en">Failed to generate script: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the generate script operation</note>
@@ -1531,6 +1539,9 @@
     <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
       <source xml:lang="en">Failed to open scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the open scmp operation</note>
+    </trans-unit>
+    <trans-unit id="++CODE++139d19f27345e3ce0787cd0cdd3497658705c987f492c0f1881127e5ffcdc79e">
+      <source xml:lang="en">Failed to open script in editor.</source>
     </trans-unit>
     <trans-unit id="++CODE++00e34162fb43e373f12b352ea75d1e2241f480dbda87ec290aaa6f020232edaa">
       <source xml:lang="en">Failed to open script: {0}</source>
@@ -1730,6 +1741,9 @@
     </trans-unit>
     <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
       <source xml:lang="en">Generating report, this might take a while...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++915fc447c859d56fa8e745484ac300e07e104e9ef318105f82b578bedf32c405">
+      <source xml:lang="en">Generating script...</source>
     </trans-unit>
     <trans-unit id="++CODE++fddd3d1537452414b2a4c7bb1b231ca37398b9f211c1e0d8d80e6f69a7f58f2d">
       <source xml:lang="en">Get Connection Details</source>
@@ -2585,8 +2599,14 @@
     <trans-unit id="++CODE++d81d6eb21f473c77ba01056237fcd372e9021b555b36efc68d24d22a5d608ba5">
       <source xml:lang="en">Please make your password 8-128 characters long.</source>
     </trans-unit>
+    <trans-unit id="++CODE++268f2704823f66b7bf71157cbbb60e14938ed5553068335e93ee23bb6960ed47">
+      <source xml:lang="en">Please select a node from Object Explorer to script.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2e0422920bb9bd61c1c7edf3554564e5ca37f4f0bc5d5a96b0402fb3a4c00155">
       <source xml:lang="en">Please select a workspace where you have sufficient permissions (Contributor or higher)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++56244c066a4a09fb49e716fc19de4620d586a5b4776fb08f8450b3e7800850b1">
+      <source xml:lang="en">Please select only one node to script. Multiple node scripting is not supported.</source>
     </trans-unit>
     <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
       <source xml:lang="en">Port</source>
