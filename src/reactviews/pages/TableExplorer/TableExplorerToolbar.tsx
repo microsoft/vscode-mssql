@@ -9,20 +9,25 @@ import { SaveRegular, AddRegular, CodeRegular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 interface TableExplorerToolbarProps {
     onSaveComplete?: () => void;
     cellChangeCount: number;
+    deletionCount: number;
 }
 
 export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     onSaveComplete,
     cellChangeCount,
+    deletionCount,
 }) => {
     const context = useTableExplorerContext();
 
     // Use selectors to access state
     const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
+    const loadStatus = useTableExplorerSelector((s) => s.loadStatus);
+    const isLoading = loadStatus === ApiStatus.Loading;
 
     const handleSave = () => {
         context.commitChanges();
@@ -36,9 +41,8 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
         context.createRow();
     };
 
-    // Use cell-level change count directly
-    // This provides accurate granularity: each cell edit counts as one change
-    const changeCount = cellChangeCount;
+    // Total changes includes both cell edits and row deletions
+    const changeCount = cellChangeCount + deletionCount;
 
     const saveButtonText =
         changeCount > 0
@@ -52,14 +56,15 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 title={saveButtonText}
                 icon={<SaveRegular />}
                 onClick={handleSave}
-                disabled={changeCount === 0}>
+                disabled={changeCount === 0 || isLoading}>
                 {saveButtonText}
             </ToolbarButton>
             <ToolbarButton
                 aria-label={loc.tableExplorer.addRow}
                 title={loc.tableExplorer.addRow}
                 icon={<AddRegular />}
-                onClick={handleAddRow}>
+                onClick={handleAddRow}
+                disabled={isLoading}>
                 {loc.tableExplorer.addRow}
             </ToolbarButton>
             <ToolbarButton
@@ -74,7 +79,8 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                     } else {
                         context.generateScript();
                     }
-                }}>
+                }}
+                disabled={isLoading}>
                 {showScriptPane ? loc.tableExplorer.hideScript : loc.tableExplorer.showScript}
             </ToolbarButton>
         </Toolbar>

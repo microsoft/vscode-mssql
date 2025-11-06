@@ -32,6 +32,7 @@ export enum TelemetryViews {
     Connection = "Connection",
     Credential = "Credential",
     ConnectionManager = "ConnectionManager",
+    ScriptingService = "ScriptingService",
     TableExplorer = "TableExplorer",
 }
 
@@ -43,6 +44,7 @@ export enum TelemetryActions {
     IncludeExcludeNode = "IncludeExcludeNode",
     PublishProjectChanges = "PublishProjectChanges",
     PublishDatabaseChanges = "PublishDatabaseChanges",
+    BuildProject = "BuildProject",
     AddNewConnectionDialogOpened = "AddNewConnectionDialogOpened",
     ListingActiveServers = "ListingActiveServers",
     SqlProjectInstalledVerification = "SqlProjectInstalledVerification",
@@ -159,6 +161,7 @@ export enum TelemetryActions {
     GetSqlAnalyticsEndpointUrlFromFabric = "GetSqlAnalyticsEndpointUrlFromFabric",
     SurveyFunnel = "SurveyFunnel",
     CopilotNewQueryWithConnection = "CopilotNewQueryWithConnection",
+    Script = "Script",
     CommitChanges = "CommitChanges",
     CreateRow = "CreateRow",
     DeleteRow = "DeleteRow",

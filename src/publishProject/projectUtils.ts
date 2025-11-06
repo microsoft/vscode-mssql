@@ -6,12 +6,14 @@
 import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
+import * as path from "path";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { promises as fs } from "fs";
 import { DOMParser } from "@xmldom/xmldom";
 import { getSqlServerContainerVersions, dockerLogger } from "../deployment/dockerUtils";
 import { FormItemOptions } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
+import { ProjectPropertiesResult } from "../sharedInterfaces/publishDialog";
 
 /**
  * Checks if preview features are enabled in VS Code settings for SQL Database Projects.
@@ -124,7 +126,7 @@ export async function getProjectTargetVersion(
 export async function readProjectProperties(
     sqlProjectsService: SqlProjectsService | mssql.ISqlProjectsService,
     projectFilePath: string,
-): Promise<(mssql.GetProjectPropertiesResult & { targetVersion?: string }) | undefined> {
+): Promise<ProjectPropertiesResult | undefined> {
     try {
         if (!projectFilePath) {
             return undefined;
@@ -134,9 +136,23 @@ export async function readProjectProperties(
             return undefined;
         }
         const version = await getProjectTargetVersion(sqlProjectsService, projectFilePath);
+
+        // Calculate DACPAC output path
+        const projectDir = path.dirname(projectFilePath);
+        const projectName = path.basename(projectFilePath, path.extname(projectFilePath));
+        const outputPath = path.isAbsolute(result.outputPath)
+            ? result.outputPath
+            : path.join(projectDir, result.outputPath);
+        const dacpacOutputPath = path.join(
+            outputPath,
+            `${projectName}${constants.DacpacExtension}`,
+        );
+
         return {
             ...result,
             targetVersion: version,
+            projectFilePath: projectFilePath,
+            dacpacOutputPath: dacpacOutputPath,
         };
     } catch {
         return undefined;

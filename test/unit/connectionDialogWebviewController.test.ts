@@ -3,12 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
-
 import { expect } from "chai";
 
 import {
@@ -36,7 +34,13 @@ import {
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import { IAccount } from "vscode-mssql";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import { initializeIconUtils, stubTelemetry, stubUserSurvey } from "./utils";
+import {
+    initializeIconUtils,
+    stubGetCapabilitiesRequest,
+    stubTelemetry,
+    stubUserSurvey,
+    stubVscodeWrapper,
+} from "./utils";
 import {
     stubVscodeAzureSignIn,
     stubFetchServersFromAzure,
@@ -47,7 +51,6 @@ import {
 } from "./azureHelperStubs";
 import { CreateSessionResponse } from "../../src/models/contracts/objectExplorer/createSessionRequest";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { mockGetCapabilitiesRequest } from "./mocks";
 import { AzureController } from "../../src/azure/azureController";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { multiple_matching_tokens_error } from "../../src/azure/constants";
@@ -64,16 +67,15 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
 
     let controller: ConnectionDialogWebviewController;
-    let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
-    let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
-    let outputChannel: TypeMoq.IMock<vscode.OutputChannel>;
+    let mockContext: vscode.ExtensionContext;
+    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mainController: MainController;
-    let connectionManager: TypeMoq.IMock<ConnectionManager>;
-    let connectionStore: TypeMoq.IMock<ConnectionStore>;
-    let connectionUi: TypeMoq.IMock<ConnectionUI>;
-    let mockObjectExplorerProvider: TypeMoq.IMock<ObjectExplorerProvider>;
-    let azureAccountService: TypeMoq.IMock<AzureAccountService>;
-    let serviceClientMock: TypeMoq.IMock<SqlToolsServerClient>;
+    let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let connectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
+    let connectionUi: sinon.SinonStubbedInstance<ConnectionUI>;
+    let mockObjectExplorerProvider: sinon.SinonStubbedInstance<ObjectExplorerProvider>;
+    let azureAccountService: sinon.SinonStubbedInstance<AzureAccountService>;
+    let serviceClientMock: sinon.SinonStubbedInstance<SqlToolsServerClient>;
 
     const TEST_ROOT_GROUP_ID = "test-root-group-id";
 
@@ -94,103 +96,60 @@ suite("ConnectionDialogWebviewController Tests", () => {
         sandbox = sinon.createSandbox();
         initializeIconUtils();
 
-        mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockVscodeWrapper = TypeMoq.Mock.ofType<VscodeWrapper>();
-        mockObjectExplorerProvider = TypeMoq.Mock.ofType<ObjectExplorerProvider>();
+        const globalState = {
+            get: sandbox.stub().callsFake((_key, defaultValue) => defaultValue),
+        } as unknown as vscode.Memento;
 
-        outputChannel = TypeMoq.Mock.ofType<vscode.OutputChannel>();
-        outputChannel.setup((c) => c.clear());
-        outputChannel.setup((c) => c.append(TypeMoq.It.isAny()));
-        outputChannel.setup((c) => c.show(TypeMoq.It.isAny()));
+        mockContext = {
+            extensionUri: vscode.Uri.parse("file://fakePath"),
+            extensionPath: "fakePath",
+            subscriptions: [],
+            globalState,
+        } as unknown as vscode.ExtensionContext;
 
-        mockVscodeWrapper.setup((v) => v.outputChannel).returns(() => outputChannel.object);
+        mockVscodeWrapper = stubVscodeWrapper(sandbox);
+        mockObjectExplorerProvider = sandbox.createStubInstance(ObjectExplorerProvider);
 
-        mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockContext.setup((c) => c.extensionUri).returns(() => vscode.Uri.parse("file://fakePath"));
-        mockContext.setup((c) => c.extensionPath).returns(() => "fakePath");
-        mockContext.setup((c) => c.subscriptions).returns(() => []);
-        mockContext
-            .setup((c) => c.globalState)
-            .returns(() => {
-                /* eslint-disable @typescript-eslint/no-explicit-any */
-                return {
-                    get: (key: string, defaultValue: any) => defaultValue,
-                } as any;
-                /* eslint-enable @typescript-eslint/no-explicit-any */
-            });
+        connectionManager = sandbox.createStubInstance(ConnectionManager);
+        connectionStore = sandbox.createStubInstance(ConnectionStore);
+        connectionUi = sandbox.createStubInstance(ConnectionUI);
+        azureAccountService = sandbox.createStubInstance(AzureAccountService);
+        serviceClientMock = stubGetCapabilitiesRequest(sandbox);
 
-        connectionManager = TypeMoq.Mock.ofType(
-            ConnectionManager,
-            TypeMoq.MockBehavior.Loose,
-            mockContext.object,
-        );
+        sandbox.stub(connectionManager, "connectionStore").get(() => connectionStore);
+        sandbox.stub(connectionManager, "connectionUI").get(() => connectionUi);
+        sandbox.stub(connectionManager, "client").get(() => serviceClientMock);
 
-        connectionStore = TypeMoq.Mock.ofType(
-            ConnectionStore,
-            TypeMoq.MockBehavior.Loose,
-            mockContext.object,
-        );
+        connectionStore.readAllConnections.resolves([testMruConnection, testSavedConnection]);
+        connectionStore.readAllConnectionGroups.resolves([
+            { id: TEST_ROOT_GROUP_ID, name: ConnectionConfig.RootGroupName },
+        ]);
 
-        connectionUi = TypeMoq.Mock.ofType(
-            ConnectionUI,
-            TypeMoq.MockBehavior.Loose,
-            connectionManager.object,
-            mockContext.object,
-        );
+        azureAccountService.getAccounts.resolves([
+            {
+                displayInfo: {
+                    displayName: "Test Display Name",
+                    userId: "TestUserId",
+                },
+                key: {
+                    id: "TestUserId",
+                },
+            } as IAccount,
+        ]);
 
-        azureAccountService = TypeMoq.Mock.ofType(AzureAccountService, TypeMoq.MockBehavior.Loose);
-
-        serviceClientMock = TypeMoq.Mock.ofType(SqlToolsServerClient, TypeMoq.MockBehavior.Loose);
-
-        connectionManager.setup((cm) => cm.connectionStore).returns(() => connectionStore.object);
-        connectionManager.setup((cm) => cm.connectionUI).returns(() => connectionUi.object);
-        connectionManager.setup((cm) => cm.client).returns(() => serviceClientMock.object);
-
-        connectionStore
-            .setup((cs) => cs.readAllConnections(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve([testMruConnection, testSavedConnection]));
-
-        connectionStore
-            .setup((cs) => cs.readAllConnectionGroups())
-            .returns(() =>
-                Promise.resolve([{ id: TEST_ROOT_GROUP_ID, name: ConnectionConfig.RootGroupName }]),
-            );
-
-        azureAccountService
-            .setup((a) => a.getAccounts())
-            .returns(() =>
-                Promise.resolve([
-                    {
-                        displayInfo: {
-                            displayName: "Test Display Name",
-                            userId: "TestUserId",
-                        },
-                        key: {
-                            id: "TestUserId",
-                        },
-                    } as IAccount,
-                ]),
-            );
-
-        mockGetCapabilitiesRequest(serviceClientMock);
-
-        mainController = new MainController(
-            mockContext.object,
-            connectionManager.object,
-            mockVscodeWrapper.object,
-        );
+        mainController = new MainController(mockContext, connectionManager, mockVscodeWrapper);
 
         sandbox.stub(vscode.commands, "registerCommand");
         sandbox.stub(vscode.window, "registerWebviewViewProvider");
 
-        mainController.azureAccountService = azureAccountService.object;
-        await mainController["initializeObjectExplorer"](mockObjectExplorerProvider.object);
+        mainController.azureAccountService = azureAccountService;
+        await mainController["initializeObjectExplorer"](mockObjectExplorerProvider);
 
         controller = new ConnectionDialogWebviewController(
-            mockContext.object,
-            mockVscodeWrapper.object,
+            mockContext,
+            mockVscodeWrapper,
             mainController,
-            mockObjectExplorerProvider.object,
+            mockObjectExplorerProvider,
             undefined /* connection to edit */,
         );
 
@@ -292,10 +251,10 @@ suite("ConnectionDialogWebviewController Tests", () => {
             } as IConnectionDialogProfile;
 
             controller = new ConnectionDialogWebviewController(
-                mockContext.object,
-                mockVscodeWrapper.object,
+                mockContext,
+                mockVscodeWrapper,
                 mainController,
-                mockObjectExplorerProvider.object,
+                mockObjectExplorerProvider,
                 editedConnection,
             );
             await controller.initialized;
@@ -322,10 +281,10 @@ suite("ConnectionDialogWebviewController Tests", () => {
             } as IConnectionDialogProfile;
 
             controller = new ConnectionDialogWebviewController(
-                mockContext.object,
-                mockVscodeWrapper.object,
+                mockContext,
+                mockVscodeWrapper,
                 mainController,
-                mockObjectExplorerProvider.object,
+                mockObjectExplorerProvider,
                 editedConnection,
             );
             await controller.initialized;
@@ -486,34 +445,19 @@ suite("ConnectionDialogWebviewController Tests", () => {
             });
 
             test("connect happy path", async () => {
-                mockObjectExplorerProvider
-                    .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
-                    .returns(() => {
-                        return Promise.resolve({
-                            sessionId: "testSessionId",
-                            rootNode: mockConnectionNode,
-                            success: true,
-                        } as CreateSessionResponse);
-                    });
+                mockObjectExplorerProvider.createSession.resolves({
+                    sessionId: "testSessionId",
+                    rootNode: mockConnectionNode,
+                    success: true,
+                } as CreateSessionResponse);
 
-                connectionManager
-                    .setup((cm) =>
-                        cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                    )
-                    .returns(() => Promise.resolve(true));
+                connectionManager.connect.resolves(true);
 
-                let mockObjectExplorerTree = TypeMoq.Mock.ofType<vscode.TreeView<TreeNodeInfo>>(
-                    undefined,
-                    TypeMoq.MockBehavior.Loose,
-                );
+                const mockObjectExplorerTree = {
+                    reveal: sandbox.stub().resolves(),
+                } as unknown as vscode.TreeView<TreeNodeInfo>;
 
-                mockObjectExplorerTree
-                    .setup((oet) => oet.reveal(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                    .returns(() => {
-                        return Promise.resolve();
-                    });
-
-                mainController.objectExplorerTree = mockObjectExplorerTree.object;
+                mainController.objectExplorerTree = mockObjectExplorerTree;
 
                 // Run test
                 controller.state.formState = testFormState;
@@ -522,23 +466,15 @@ suite("ConnectionDialogWebviewController Tests", () => {
             });
 
             test("displays actionable error message for multiple_matching_tokens_error", async () => {
-                mockObjectExplorerProvider
-                    .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
-                    .returns(() => {
-                        return Promise.resolve({
-                            sessionId: "testSessionId",
-                            rootNode: mockConnectionNode,
-                            success: true,
-                        } as CreateSessionResponse);
-                    });
+                mockObjectExplorerProvider.createSession.resolves({
+                    sessionId: "testSessionId",
+                    rootNode: mockConnectionNode,
+                    success: true,
+                } as CreateSessionResponse);
 
                 const errorMessage = `Error: Connection failed due to ${multiple_matching_tokens_error}`;
 
-                connectionManager
-                    .setup((cm) =>
-                        cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                    )
-                    .throws(new Error(errorMessage));
+                connectionManager.connect.rejects(new Error(errorMessage));
 
                 // Run test
                 controller.state.formState = testFormState;
@@ -554,15 +490,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
             test("displays error when attempting to create OE session fails", async () => {
                 const errorMessage = "Test createSession error";
-                mockObjectExplorerProvider
-                    .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
-                    .throws(new Error(errorMessage));
+                mockObjectExplorerProvider.createSession.rejects(new Error(errorMessage));
 
-                connectionManager
-                    .setup((cm) =>
-                        cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                    )
-                    .returns(() => Promise.resolve(true));
+                connectionManager.connect.resolves(true);
 
                 // Run test
                 controller.state.formState = testFormState;
@@ -575,39 +505,25 @@ suite("ConnectionDialogWebviewController Tests", () => {
             });
 
             test("displays password changed dialog upon password expired error", async () => {
-                mockObjectExplorerProvider
-                    .setup((oep) => oep.createSession(TypeMoq.It.isAny()))
-                    .returns(() => {
-                        return Promise.resolve({
-                            sessionId: "testSessionId",
-                            rootNode: mockConnectionNode,
-                            success: true,
-                        } as CreateSessionResponse);
-                    });
+                mockObjectExplorerProvider.createSession.resolves({
+                    sessionId: "testSessionId",
+                    rootNode: mockConnectionNode,
+                    success: true,
+                } as CreateSessionResponse);
 
                 const errorMessage = "Your password has expired and needs to be changed.";
 
-                connectionManager
-                    .setup((cm) =>
-                        cm.connect(TypeMoq.It.isAny(), TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                    )
-                    .returns(() => {
-                        return Promise.resolve(false);
-                    });
+                connectionManager.connect.resolves(false);
 
-                connectionManager
-                    .setup((cm) => cm.getConnectionInfo(TypeMoq.It.isAny()))
-                    .returns(() => {
-                        return {
-                            errorNumber: errorPasswordExpired,
-                            errorMessage,
-                            messages: errorMessage,
-                            credentials: {
-                                server: mockServerName,
-                                user: mockUserName,
-                            },
-                        } as ConnectionInfo;
-                    });
+                connectionManager.getConnectionInfo.returns({
+                    errorNumber: errorPasswordExpired,
+                    errorMessage,
+                    messages: errorMessage,
+                    credentials: {
+                        server: mockServerName,
+                        user: mockUserName,
+                    },
+                } as ConnectionInfo);
 
                 // Run test
                 controller.state.formState = testFormState;
@@ -670,9 +586,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
                 const azureControllerStub = sandbox.createStubInstance(MsalAzureController);
 
-                connectionManager
-                    .setup((cm) => cm.azureController)
-                    .returns(() => azureControllerStub);
+                connectionManager.azureController = azureControllerStub;
 
                 await controller["_reducerHandlers"].get("messageButtonClicked")(controller.state, {
                     buttonId: CLEAR_TOKEN_CACHE,
@@ -708,9 +622,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     new Error(errorMessage),
                 );
 
-                connectionManager
-                    .setup((cm) => cm.firewallService)
-                    .returns(() => mockFirewallService);
+                sandbox.stub(connectionManager, "firewallService").get(() => mockFirewallService);
 
                 controller.state.dialog = {
                     type: "addFirewallRule",
@@ -750,9 +662,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         // Test error handling when getAccountSecurityToken throws
         isTokenValidStub.restore();
-        sandbox
-            .stub(mainController.azureAccountService, "getAccountSecurityToken")
-            .throws(new Error("Test error"));
+        azureAccountService.getAccountSecurityToken.throws(new Error("Test error"));
 
         buttons = await controller["getAzureActionButtons"]();
         expect(buttons.length).to.equal(2);
