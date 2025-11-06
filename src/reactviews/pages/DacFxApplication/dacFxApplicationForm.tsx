@@ -76,9 +76,7 @@ export const DacFxApplicationForm = () => {
         // Cleanup function - cancel ongoing operations when component unmounts
         return () => {
             if (isConnecting || isOperationInProgress) {
-                void context?.extensionRpc?.sendNotification(
-                    dacFxApplication.CancelDacFxApplicationWebviewNotification.type,
-                );
+                void context?.cancel();
             }
         };
     }, []);
@@ -102,16 +100,13 @@ export const DacFxApplicationForm = () => {
                 databaseName &&
                 (operationType === dacFxApplication.DacFxOperationType.Extract ||
                     operationType === dacFxApplication.DacFxOperationType.Export) &&
-                context?.extensionRpc
+                context?.getSuggestedOutputPath
             ) {
                 // Get the suggested full path from the controller
-                const result = await context.extensionRpc.sendRequest(
-                    dacFxApplication.GetSuggestedOutputPathWebviewRequest.type,
-                    {
-                        databaseName,
-                        operationType,
-                    },
-                );
+                const result = await context.getSuggestedOutputPath({
+                    databaseName,
+                    operationType,
+                });
 
                 if (result?.fullPath) {
                     setFilePath(result.fullPath);
@@ -126,15 +121,12 @@ export const DacFxApplicationForm = () => {
         try {
             setIsConnecting(true);
 
-            const result = await context?.extensionRpc?.sendRequest(
-                dacFxApplication.InitializeConnectionWebviewRequest.type,
-                {
-                    initialServerName,
-                    initialDatabaseName,
-                    initialOwnerUri,
-                    initialProfileId: initialSelectedProfileId,
-                },
-            );
+            const result = await context?.initializeConnection({
+                initialServerName,
+                initialDatabaseName,
+                initialOwnerUri,
+                initialProfileId: initialSelectedProfileId,
+            });
 
             if (result) {
                 // Set all available connections
@@ -189,10 +181,7 @@ export const DacFxApplicationForm = () => {
 
         try {
             // Connect to the server
-            const result = await context?.extensionRpc?.sendRequest(
-                dacFxApplication.ConnectToServerWebviewRequest.type,
-                { profileId },
-            );
+            const result = await context?.connectToServer({ profileId });
 
             if (result?.isConnected && result.ownerUri) {
                 setOwnerUri(result.ownerUri);
@@ -227,10 +216,7 @@ export const DacFxApplicationForm = () => {
 
     const loadDatabases = async () => {
         try {
-            const result = await context?.extensionRpc?.sendRequest(
-                dacFxApplication.ListDatabasesWebviewRequest.type,
-                { ownerUri: ownerUri || "" },
-            );
+            const result = await context?.listDatabases({ ownerUri: ownerUri || "" });
             if (result?.databases) {
                 setAvailableDatabases(result.databases);
             }
@@ -259,10 +245,7 @@ export const DacFxApplicationForm = () => {
         }
 
         try {
-            const result = await context?.extensionRpc?.sendRequest(
-                dacFxApplication.ValidateFilePathWebviewRequest.type,
-                { filePath: path, shouldExist },
-            );
+            const result = await context?.validateFilePath({ filePath: path, shouldExist });
 
             if (!result?.isValid) {
                 setValidationMessages((prev) => ({
@@ -324,15 +307,12 @@ export const DacFxApplicationForm = () => {
         }
 
         try {
-            const result = await context?.extensionRpc?.sendRequest(
-                dacFxApplication.ValidateDatabaseNameWebviewRequest.type,
-                {
-                    databaseName: dbName,
-                    ownerUri: ownerUri || "",
-                    shouldNotExist: shouldNotExist,
-                    operationType: operationType,
-                },
-            );
+            const result = await context?.validateDatabaseName({
+                databaseName: dbName,
+                ownerUri: ownerUri || "",
+                shouldNotExist: shouldNotExist,
+                operationType: operationType,
+            });
 
             if (!result?.isValid) {
                 setValidationMessages((prev) => ({
@@ -361,10 +341,7 @@ export const DacFxApplicationForm = () => {
                 operationType === dacFxApplication.DacFxOperationType.Deploy &&
                 result.errorMessage === locConstants.dacFxApplication.databaseAlreadyExists
             ) {
-                const confirmResult = await context?.extensionRpc?.sendRequest(
-                    dacFxApplication.ConfirmDeployToExistingWebviewRequest.type,
-                    undefined,
-                );
+                const confirmResult = await context?.confirmDeployToExisting();
 
                 return confirmResult?.confirmed === true;
             }
@@ -443,50 +420,38 @@ export const DacFxApplicationForm = () => {
 
             switch (operationType) {
                 case dacFxApplication.DacFxOperationType.Deploy:
-                    result = await context?.extensionRpc?.sendRequest(
-                        dacFxApplication.DeployDacpacWebviewRequest.type,
-                        {
-                            packageFilePath: filePath,
-                            databaseName,
-                            isNewDatabase,
-                            ownerUri: ownerUri || "",
-                        },
-                    );
+                    result = await context?.deployDacpac({
+                        packageFilePath: filePath,
+                        databaseName,
+                        isNewDatabase,
+                        ownerUri: ownerUri || "",
+                    });
                     break;
 
                 case dacFxApplication.DacFxOperationType.Extract:
-                    result = await context?.extensionRpc?.sendRequest(
-                        dacFxApplication.ExtractDacpacWebviewRequest.type,
-                        {
-                            databaseName,
-                            packageFilePath: filePath,
-                            applicationName,
-                            applicationVersion,
-                            ownerUri: ownerUri || "",
-                        },
-                    );
+                    result = await context?.extractDacpac({
+                        databaseName,
+                        packageFilePath: filePath,
+                        applicationName,
+                        applicationVersion,
+                        ownerUri: ownerUri || "",
+                    });
                     break;
 
                 case dacFxApplication.DacFxOperationType.Import:
-                    result = await context?.extensionRpc?.sendRequest(
-                        dacFxApplication.ImportBacpacWebviewRequest.type,
-                        {
-                            packageFilePath: filePath,
-                            databaseName,
-                            ownerUri: ownerUri || "",
-                        },
-                    );
+                    result = await context?.importBacpac({
+                        packageFilePath: filePath,
+                        databaseName,
+                        ownerUri: ownerUri || "",
+                    });
                     break;
 
                 case dacFxApplication.DacFxOperationType.Export:
-                    result = await context?.extensionRpc?.sendRequest(
-                        dacFxApplication.ExportBacpacWebviewRequest.type,
-                        {
-                            databaseName,
-                            packageFilePath: filePath,
-                            ownerUri: ownerUri || "",
-                        },
-                    );
+                    result = await context?.exportBacpac({
+                        databaseName,
+                        packageFilePath: filePath,
+                        ownerUri: ownerUri || "",
+                    });
                     break;
             }
 
@@ -520,39 +485,30 @@ export const DacFxApplicationForm = () => {
 
         if (requiresInputFile) {
             // Browse for input file (Deploy or Import)
-            result = await context?.extensionRpc?.sendRequest(
-                dacFxApplication.BrowseInputFileWebviewRequest.type,
-                {
-                    fileExtension,
-                },
-            );
+            result = await context?.browseInputFile({
+                fileExtension,
+            });
         } else {
             // Browse for output file (Extract or Export)
             // Use the suggested filename from state, or get from backend
             let defaultFileName = filePath;
 
-            if (!defaultFileName && context?.extensionRpc) {
+            if (!defaultFileName && context) {
                 // Get suggested filename with timestamp from backend
-                const filenameResult = await context.extensionRpc.sendRequest(
-                    dacFxApplication.GetSuggestedFilenameWebviewRequest.type,
-                    {
-                        databaseName: databaseName || "database",
-                        fileExtension,
-                    },
-                );
+                const filenameResult = await context.getSuggestedFilename({
+                    databaseName: databaseName || "database",
+                    fileExtension,
+                });
 
                 if (filenameResult?.filename) {
                     defaultFileName = filenameResult.filename;
                 }
             }
 
-            result = await context?.extensionRpc?.sendRequest(
-                dacFxApplication.BrowseOutputFileWebviewRequest.type,
-                {
-                    fileExtension,
-                    defaultFileName,
-                },
-            );
+            result = await context?.browseOutputFile({
+                fileExtension,
+                defaultFileName,
+            });
         }
 
         if (result?.filePath) {
@@ -567,16 +523,13 @@ export const DacFxApplicationForm = () => {
             // For Deploy/Import operations, suggest database name from the selected file
             if (
                 requiresInputFile &&
-                context?.extensionRpc &&
+                context &&
                 (operationType === dacFxApplication.DacFxOperationType.Deploy ||
                     operationType === dacFxApplication.DacFxOperationType.Import)
             ) {
-                const nameResult = await context.extensionRpc.sendRequest(
-                    dacFxApplication.GetSuggestedDatabaseNameWebviewRequest.type,
-                    {
-                        filePath: result.filePath,
-                    },
-                );
+                const nameResult = await context.getSuggestedDatabaseName({
+                    filePath: result.filePath,
+                });
 
                 if (nameResult?.databaseName) {
                     setDatabaseName(nameResult.databaseName);
@@ -590,9 +543,7 @@ export const DacFxApplicationForm = () => {
     };
 
     const handleCancel = async () => {
-        await context?.extensionRpc?.sendNotification(
-            dacFxApplication.CancelDacFxApplicationWebviewNotification.type,
-        );
+        await context?.cancel();
     };
 
     const isFormValid = () => {
