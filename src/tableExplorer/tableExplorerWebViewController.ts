@@ -22,6 +22,7 @@ import { getErrorMessage } from "../utils/utils";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { generateGuid } from "../models/utils";
+import { ApiStatus } from "../sharedInterfaces/webview";
 
 export class TableExplorerWebViewController extends ReactWebviewPanelController<
     TableExplorerWebViewState,
@@ -53,7 +54,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 serverName: serverName,
                 connectionProfile: _targetNode?.connectionProfile,
                 schemaName: schemaName,
-                isLoading: true,
+                loadStatus: ApiStatus.Loading,
                 ownerUri: "",
                 resultSet: undefined,
                 currentRowCount: 100, // Default row count for data loading
@@ -179,7 +180,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             this.logger.error(
                 `Error initializing table explorer: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
             );
-            this.state.isLoading = false;
+            this.state.loadStatus = ApiStatus.Error;
             this.updateState();
 
             endActivity.endFailed(
@@ -201,7 +202,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         return (result: EditSessionReadyParams): void => {
             if (result.success) {
                 self.state.ownerUri = result.ownerUri;
-                self.state.isLoading = true;
+                self.state.loadStatus = ApiStatus.Loading;
                 self.updateState();
 
                 void self.loadResultSet();
@@ -212,7 +213,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
     private async loadResultSet(): Promise<void> {
         const subsetResult = await this._tableExplorerService.subset(this.state.ownerUri, 0, 100);
         this.state.resultSet = subsetResult;
-        this.state.isLoading = false;
+        this.state.loadStatus = ApiStatus.Loaded;
 
         this.updateState();
     }
@@ -322,7 +323,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             );
 
             // Set loading state before fetching data
-            state.isLoading = true;
+            state.loadStatus = ApiStatus.Loading;
             this.updateState();
 
             try {
@@ -349,7 +350,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 state.currentRowCount = payload.rowCount;
-                state.isLoading = false;
+                state.loadStatus = ApiStatus.Loaded;
 
                 this.updateState();
 
@@ -359,7 +360,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     rowsLoaded: subsetResult.rowCount.toString(),
                 });
             } catch (error) {
-                state.isLoading = false;
+                state.loadStatus = ApiStatus.Error;
 
                 this.logger.error(
                     `Error loading subset: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,

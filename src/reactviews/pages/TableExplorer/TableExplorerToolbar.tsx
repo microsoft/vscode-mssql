@@ -9,6 +9,7 @@ import { SaveRegular, AddRegular, CodeRegular } from "@fluentui/react-icons";
 import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 interface TableExplorerToolbarProps {
     onSaveComplete?: () => void;
@@ -25,7 +26,8 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
 
     // Use selectors to access state
     const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
-    const isLoading = useTableExplorerSelector((s) => s.isLoading);
+    const loadStatus = useTableExplorerSelector((s) => s.loadStatus);
+    const isLoading = loadStatus === ApiStatus.Loading;
 
     const handleSave = () => {
         context.commitChanges();
