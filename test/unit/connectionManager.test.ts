@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
@@ -25,6 +24,9 @@ import { azureCloudProviderId } from "../../src/azure/providerSettings";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { AccountStore } from "../../src/azure/accountStore";
 import { TestPrompter } from "./stubs";
+import { stubExtensionContext, stubVscodeWrapper } from "./utils";
+import { Deferred } from "../../src/protocol";
+import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 
 chai.use(sinonChai);
 
@@ -32,30 +34,31 @@ suite("ConnectionManager Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let connectionManager: ConnectionManager;
 
-    let mockContext: TypeMoq.IMock<vscode.ExtensionContext>;
-    let mockLogger: TypeMoq.IMock<Logger>;
-    let mockCredentialStore: TypeMoq.IMock<CredentialStore>;
-    let mockVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
-    let mockConnectionStore: TypeMoq.IMock<ConnectionStore>;
-    let mockServiceClient: TypeMoq.IMock<SqlToolsServerClient>;
-    let mockStatusView: TypeMoq.IMock<StatusView>;
+    let mockContext: vscode.ExtensionContext;
+    let mockLogger: sinon.SinonStubbedInstance<Logger>;
+    let mockCredentialStore: sinon.SinonStubbedInstance<CredentialStore>;
+    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
+    let mockServiceClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
+    let mockStatusView: sinon.SinonStubbedInstance<StatusView>;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
+        mockContext = stubExtensionContext(sandbox);
+        mockVscodeWrapper = stubVscodeWrapper(sandbox);
+        mockLogger = sandbox.createStubInstance(Logger);
+        mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
+        mockCredentialStore = sandbox.createStubInstance(CredentialStore);
+        mockServiceClient = sandbox.createStubInstance(SqlToolsServerClient);
+        mockStatusView = sandbox.createStubInstance(StatusView);
 
-        mockContext = TypeMoq.Mock.ofType<vscode.ExtensionContext>();
-        mockVscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-        mockLogger = TypeMoq.Mock.ofType<Logger>();
-        mockConnectionStore = TypeMoq.Mock.ofType<ConnectionStore>();
-        mockCredentialStore = TypeMoq.Mock.ofType<CredentialStore>();
-        mockServiceClient = TypeMoq.Mock.ofType(SqlToolsServerClient, TypeMoq.MockBehavior.Loose);
-        mockStatusView = TypeMoq.Mock.ofType<StatusView>(undefined, TypeMoq.MockBehavior.Loose);
+        const initializedDeferred = new Deferred<void>();
+        initializedDeferred.resolve();
+        Object.defineProperty(mockConnectionStore, "initialized", {
+            get: () => initializedDeferred,
+        });
 
-        mockConnectionStore
-            .setup((c) => c.readAllConnections(TypeMoq.It.isAny()))
-            .returns(() => {
-                return Promise.resolve([]);
-            });
+        mockConnectionStore.readAllConnections.resolves([]);
     });
 
     teardown(() => {
@@ -66,14 +69,14 @@ suite("ConnectionManager Tests", () => {
         test("Initializes correctly", async () => {
             expect(() => {
                 connectionManager = new ConnectionManager(
-                    mockContext.object,
-                    mockStatusView.object,
+                    mockContext,
+                    mockStatusView,
                     undefined, // prompter
-                    mockLogger.object,
-                    mockServiceClient.object,
-                    mockVscodeWrapper.object,
-                    mockConnectionStore.object,
-                    mockCredentialStore.object,
+                    mockLogger,
+                    mockServiceClient,
+                    mockVscodeWrapper,
+                    mockConnectionStore,
+                    mockCredentialStore,
                     undefined, // connectionUI
                     undefined, // accountStore
                 );
@@ -91,73 +94,54 @@ suite("ConnectionManager Tests", () => {
             const testCredentialId = `Microsoft.SqlTools|itemtype:Profile|server:${testServer}|db:${testDatabase}|user:${testUser}|isConnectionString:true`;
             const testConnectionId = "00000000-1111-2222-3333-444444444444";
 
-            mockCredentialStore
-                .setup((cs) => cs.readCredential(TypeMoq.It.isAny()))
-                .returns((credId: string) => {
-                    return Promise.resolve({
-                        credentialId: credId,
-                        password: testConnectionString,
-                    });
-                });
+            mockCredentialStore.readCredential.callsFake(async (credId: string) => {
+                return {
+                    credentialId: credId,
+                    password: testConnectionString,
+                };
+            });
 
-            mockConnectionStore.reset();
+            mockConnectionStore.readAllConnections.resolves([
+                {
+                    id: testConnectionId,
+                    connectionString: testCredentialId,
+                    server: testServer,
+                    database: testDatabase,
+                    user: testUser,
+                } as IConnectionProfileWithSource,
+            ]);
 
-            mockConnectionStore
-                .setup((cs) => cs.readAllConnections(TypeMoq.It.isAny()))
-                .returns(() => {
-                    return Promise.resolve([
-                        {
-                            id: testConnectionId,
-                            connectionString: testCredentialId,
-                            server: testServer,
-                            database: testDatabase,
-                            user: testUser,
-                        } as IConnectionProfileWithSource,
-                    ]);
-                });
+            mockConnectionStore.lookupPassword
+                .withArgs(sinon.match.any, true)
+                .resolves(testConnectionString);
 
-            mockConnectionStore
-                .setup((cs) => cs.lookupPassword(TypeMoq.It.isAny(), true))
-                .returns(() => {
-                    return Promise.resolve(testConnectionString);
-                });
+            let savedProfile: IConnectionProfile | undefined;
 
-            let savedProfile: IConnectionProfile;
+            mockConnectionStore.saveProfile.callsFake(async (profile: IConnectionProfile) => {
+                savedProfile = profile;
+                return profile;
+            });
 
-            mockConnectionStore
-                .setup((cs) => cs.saveProfile(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                .returns((profile: IConnectionProfile) => {
-                    savedProfile = profile;
-                    return Promise.resolve(profile);
-                });
-
-            mockServiceClient
-                .setup((sc) =>
-                    sc.sendRequest(
-                        TypeMoq.It.isValue(ParseConnectionStringRequest.type),
-                        TypeMoq.It.isAny(),
-                    ),
-                )
-                .returns(() => {
-                    return Promise.resolve({
-                        options: {
-                            server: testServer,
-                            database: testDatabase,
-                            user: testUser,
-                            password: testPassword,
-                        },
-                    } as ConnectionDetails);
-                });
+            mockServiceClient.sendRequest
+                .withArgs(ParseConnectionStringRequest.type, sinon.match.any)
+                .resolves({
+                    options: {
+                        server: testServer,
+                        database: testDatabase,
+                        user: testUser,
+                        password: testPassword,
+                    },
+                } as ConnectionDetails);
 
             connectionManager = new ConnectionManager(
-                mockContext.object,
-                mockStatusView.object,
+                mockContext,
+                mockStatusView,
                 undefined, // prompter
-                mockLogger.object,
-                mockServiceClient.object,
-                mockVscodeWrapper.object,
-                mockConnectionStore.object,
-                mockCredentialStore.object,
+                mockLogger,
+                mockServiceClient,
+                mockVscodeWrapper,
+                mockConnectionStore,
+                mockCredentialStore,
                 undefined, // connectionUI
                 undefined, // accountStore
             );
@@ -184,65 +168,48 @@ suite("ConnectionManager Tests", () => {
             const testDatabase = "TestDb";
             const testConnectionString = `Data Source=${testServer};Initial Catalog=${testDatabase};Integrated Security=True;`;
             const testConnectionId = "00000000-1111-2222-3333-444444444444";
-            mockCredentialStore
-                .setup((cs) => cs.readCredential(TypeMoq.It.isAny()))
-                .returns((credId: string) => {
-                    return Promise.resolve({
-                        credentialId: credId,
-                        password: testConnectionString,
-                    });
-                });
+            mockCredentialStore.readCredential.callsFake(async (credId: string) => {
+                return {
+                    credentialId: credId,
+                    password: testConnectionString,
+                };
+            });
 
-            mockConnectionStore.reset();
+            mockConnectionStore.readAllConnections.resolves([
+                {
+                    id: testConnectionId,
+                    connectionString: testConnectionString,
+                    server: testServer,
+                    database: testDatabase,
+                } as IConnectionProfileWithSource,
+            ]);
 
-            mockConnectionStore
-                .setup((cs) => cs.readAllConnections(TypeMoq.It.isAny()))
-                .returns(() => {
-                    return Promise.resolve([
-                        {
-                            id: testConnectionId,
-                            connectionString: testConnectionString,
-                            server: testServer,
-                            database: testDatabase,
-                        } as IConnectionProfileWithSource,
-                    ]);
-                });
+            let savedProfile: IConnectionProfile | undefined;
 
-            let savedProfile: IConnectionProfile;
+            mockConnectionStore.saveProfile.callsFake(async (profile: IConnectionProfile) => {
+                savedProfile = profile;
+                return profile;
+            });
 
-            mockConnectionStore
-                .setup((cs) => cs.saveProfile(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                .returns((profile: IConnectionProfile) => {
-                    savedProfile = profile;
-                    return Promise.resolve(profile);
-                });
-
-            mockServiceClient
-                .setup((sc) =>
-                    sc.sendRequest(
-                        TypeMoq.It.isValue(ParseConnectionStringRequest.type),
-                        TypeMoq.It.isAny(),
-                    ),
-                )
-                .returns(() => {
-                    return Promise.resolve({
-                        options: {
-                            server: testServer,
-                            database: testDatabase,
-                            authenticationType: "Integrated",
-                        },
-                    } as ConnectionDetails);
-                });
+            mockServiceClient.sendRequest
+                .withArgs(ParseConnectionStringRequest.type, sinon.match.any)
+                .resolves({
+                    options: {
+                        server: testServer,
+                        database: testDatabase,
+                        authenticationType: "Integrated",
+                    },
+                } as ConnectionDetails);
 
             connectionManager = new ConnectionManager(
-                mockContext.object,
-                mockStatusView.object,
+                mockContext,
+                mockStatusView,
                 undefined, // prompter
-                mockLogger.object,
-                mockServiceClient.object,
-                mockVscodeWrapper.object,
-                mockConnectionStore.object,
-                mockCredentialStore.object,
+                mockLogger,
+                mockServiceClient,
+                mockVscodeWrapper,
+                mockConnectionStore,
+                mockCredentialStore,
                 undefined, // connectionUI
                 undefined, // accountStore
             );
@@ -266,14 +233,14 @@ suite("ConnectionManager Tests", () => {
     suite("Functionality tests", () => {
         setup(() => {
             connectionManager = new ConnectionManager(
-                mockContext.object,
-                mockStatusView.object,
+                mockContext,
+                mockStatusView,
                 undefined, // prompter
-                mockLogger.object,
-                mockServiceClient.object,
-                mockVscodeWrapper.object,
-                mockConnectionStore.object,
-                mockCredentialStore.object,
+                mockLogger,
+                mockServiceClient,
+                mockVscodeWrapper,
+                mockConnectionStore,
+                mockCredentialStore,
                 undefined, // connectionUI
                 undefined, // accountStore
             );
@@ -285,22 +252,11 @@ suite("ConnectionManager Tests", () => {
                 id: "00000000-1111-2222-3333-444444444444",
             } as IConnectionProfile;
 
-            mockVscodeWrapper
-                .setup((x) => x.showErrorMessage(TypeMoq.It.isAny()))
-                .returns(() => {
-                    return Promise.resolve(undefined);
-                });
+            mockVscodeWrapper.showErrorMessage.resolves(undefined);
 
-            mockServiceClient
-                .setup((sc) =>
-                    sc.sendRequest(
-                        TypeMoq.It.isValue(ParseConnectionStringRequest.type),
-                        TypeMoq.It.isAny(),
-                    ),
-                )
-                .returns(() => {
-                    throw new Error("Test error!");
-                });
+            mockServiceClient.sendRequest
+                .withArgs(ParseConnectionStringRequest.type, sinon.match.any)
+                .rejects(new Error("Test error!"));
 
             const result = await connectionManager["migrateLegacyConnection"](erroringConnProfile);
 
@@ -308,24 +264,21 @@ suite("ConnectionManager Tests", () => {
                 "error",
             );
 
-            mockVscodeWrapper.verify(
-                (v) => v.showErrorMessage(TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
+            expect(mockVscodeWrapper.showErrorMessage).to.have.been.calledOnce;
         });
     });
 
     suite("Token request handling", () => {
         setup(() => {
             connectionManager = new ConnectionManager(
-                mockContext.object,
-                mockStatusView.object,
+                mockContext,
+                mockStatusView,
                 undefined, // prompter
-                mockLogger.object,
-                mockServiceClient.object,
-                mockVscodeWrapper.object,
-                mockConnectionStore.object,
-                mockCredentialStore.object,
+                mockLogger,
+                mockServiceClient,
+                mockVscodeWrapper,
+                mockConnectionStore,
+                mockCredentialStore,
                 undefined, // connectionUI
                 undefined, // accountStore
             );
@@ -366,29 +319,21 @@ suite("ConnectionManager Tests", () => {
             };
 
             connectionManager["_keyVaultTokenCache"].clear();
-            connectionManager["selectAccount"] = sinon
+
+            connectionManager["selectAccount"] = sandbox
                 .stub()
                 .resolves({ key: { providerId: azureCloudProviderId } });
-            connectionManager["selectTenantId"] = sinon.stub();
-            const stubbedAzureController = TypeMoq.Mock.ofType<AzureController>();
+            connectionManager["selectTenantId"] = sandbox.stub();
+
+            const stubbedAzureController = sandbox.createStubInstance(MsalAzureController);
             const token: IToken = {
                 key: "new-key",
                 token: "new-token",
                 tokenType: "test",
                 expiresOn: Date.now() / 1000 + 3600, // 1 hour from now
             };
-            stubbedAzureController
-                .setup((x) =>
-                    x.getAccountSecurityToken(
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isAny(),
-                    ),
-                )
-                .returns(() => {
-                    return Promise.resolve(token);
-                });
-            connectionManager.azureController = stubbedAzureController.object;
+            stubbedAzureController.getAccountSecurityToken.resolves(token);
+            connectionManager.azureController = stubbedAzureController;
 
             const result = await connectionManager["handleSecurityTokenRequest"](params);
 
@@ -426,10 +371,10 @@ suite("ConnectionManager Tests", () => {
 
             // Create a new connection manager instance for this test suite
             testConnectionManager = new ConnectionManager(
-                mockContext.object,
-                mockStatusView.object,
+                mockContext,
+                mockStatusView,
                 mockPrompter,
-                mockLogger.object,
+                mockLogger,
             );
 
             testConnectionManager.connectionStore = mockConnectionStore;

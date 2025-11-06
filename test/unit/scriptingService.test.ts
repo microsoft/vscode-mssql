@@ -31,7 +31,7 @@ import * as LocalizedConstants from "../../src/constants/locConstants";
 import { ActivityObject, ActivityStatus } from "../../src/sharedInterfaces/telemetry";
 import { Logger } from "../../src/models/logger";
 import {
-    getMockContext,
+    stubExtensionContext,
     initializeIconUtils,
     stubUserSurvey,
     stubVscodeWrapper,
@@ -260,7 +260,7 @@ suite("Scripting Service", () => {
         connectionManager.connect.resolves(true);
 
         scriptingService = new ScriptingService(
-            getMockContext(),
+            stubExtensionContext(sandbox),
             vscodeWrapper,
             connectionManager,
             sqlDocumentService as unknown as SqlDocumentService,
