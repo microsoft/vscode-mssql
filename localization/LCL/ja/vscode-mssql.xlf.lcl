@@ -1702,6 +1702,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[このメッセージを処理できませんでした。この問題が解決しない場合は、ログを確認し、GitHub で問題を提起ください。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++291101a07fe980e93b900ae85c9eb824f9e7e93d0d754be7440b9386b615cad7" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Operator]]></Val>
@@ -11100,46 +11109,61 @@
       </Item>
       <Item ItemId=";package.mssql.copilot.analyzeQueryPerformance" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Analyze Query Performance (Preview)]]></Val>
+          <Val><![CDATA[Analyze Query Performance]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[クエリ パフォーマンスの分析 (プレビュー)]]></Val>
+            <Val><![CDATA[クエリ パフォーマンスの分析]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Analyze Query Performance (Preview)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.copilot.editorSubmenu" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[MSSQL Copilot (Preview)]]></Val>
+          <Val><![CDATA[MSSQL Copilot]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[MSSQL Copilot (プレビュー)]]></Val>
+            <Val><![CDATA[MSSQL Copilot]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[MSSQL Copilot (Preview)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.copilot.explainQuery" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Explain Query (Preview)]]></Val>
+          <Val><![CDATA[Explain Query]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[クエリの説明 (プレビュー)]]></Val>
+            <Val><![CDATA[クエリの説明]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Explain Query (Preview)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.copilot.newQueryWithConnection" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Open New Query and Connect (Preview)]]></Val>
+          <Val><![CDATA[Open New Query and Connect]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[新しいクエリを開いて接続する (プレビュー)]]></Val>
+            <Val><![CDATA[新しいクエリを開いて接続する]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Open New Query and Connect (Preview)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.copilot.rewriteQuery" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Rewrite Query (Preview)]]></Val>
+          <Val><![CDATA[Rewrite Query]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[クエリの書き換え (プレビュー)]]></Val>
+            <Val><![CDATA[クエリの書き換え]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Rewrite Query (Preview)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -11841,22 +11865,25 @@
       </Item>
       <Item ItemId=";package.mssql.objectExplorerChatWithDatabase" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Open in Copilot Ask mode (Preview)]]></Val>
+          <Val><![CDATA[Open in Copilot Ask mode]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Copilot 質問モードで開く (プレビュー)]]></Val>
+            <Val><![CDATA[Copilot 質問モードで開く]]></Val>
           </Tgt>
           <Prev Cat="Text">
-            <Val><![CDATA[Chat with this database (Preview)]]></Val>
+            <Val><![CDATA[Open in Copilot Ask mode (Preview)]]></Val>
           </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.objectExplorerChatWithDatabaseInAgentMode" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Open in Copilot Agent mode (Preview)]]></Val>
+          <Val><![CDATA[Open in Copilot Agent mode]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Copilot エージェント モードで開く (プレビュー)]]></Val>
+            <Val><![CDATA[Copilot エージェント モードで開く]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Open in Copilot Agent mode (Preview)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -12549,10 +12576,13 @@
       </Item>
       <Item ItemId=";package.mssql.userFeedback" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Give Feedback]]></Val>
+          <Val><![CDATA[Send Feedback]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[フィードバックを送信します]]></Val>
+            <Val><![CDATA[フィードバックの送信]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Give Feedback]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
