@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
-import * as mssql from "vscode-mssql";
+import type * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
@@ -77,13 +77,12 @@ export class ProjectController {
     }
 
     /**
-     * Gets the build directory path
-     * @returns The path to the directory containing build dependencies
+     * Gets the path to the BuildDirectory folder in the extension
      */
     private getBuildDirPath(): string {
-        const extensionDir =
-            vscode.extensions.getExtension(mssql.extension.name)?.extensionPath ?? "";
-        return path.join(extensionDir, constants.buildDirectory);
+        const extensionPath =
+            vscode.extensions.getExtension(constants.extensionId)?.extensionPath ?? "";
+        return path.join(extensionPath, "BuildDirectory");
     }
 
     /**
@@ -99,7 +98,8 @@ export class ProjectController {
         const args: string[] = ["/p:NetCoreBuild=true", `/p:SystemDacpacsLocation=${buildDirPath}`];
 
         // Adding NETCoreTargetsPath only for non-SDK style projects
-        const isSdkStyle = projectStyle === mssql.ProjectType.SdkStyle;
+        // ProjectType.SdkStyle = 0, ProjectType.LegacyStyle = 1
+        const isSdkStyle = projectStyle === 0;
 
         if (!isSdkStyle) {
             args.push(`/p:NETCoreTargetsPath=${buildDirPath}`);
