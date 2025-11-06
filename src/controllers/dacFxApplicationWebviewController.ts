@@ -20,6 +20,7 @@ import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInter
 import * as dacFxApplication from "../sharedInterfaces/dacFxApplication";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { ListDatabasesRequest } from "../models/contracts/connection";
+import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 
 // File extension constants
@@ -545,32 +546,32 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
      * Lists all available connections from the connection store
      */
     private async listConnections(): Promise<{
-        connections: dacFxApplication.ConnectionProfile[];
+        connections: IConnectionDialogProfile[];
     }> {
         try {
-            const connections: dacFxApplication.ConnectionProfile[] = [];
-
             // Get all saved connections from connection store (saved profiles only, not recent connections)
             const savedConnections =
                 await this.connectionManager.connectionStore.readAllConnections();
 
-            // Build the connection profile list from saved connections
-            for (const conn of savedConnections) {
+            // Convert to IConnectionDialogProfile format and ensure profileName is set
+            const connections: IConnectionDialogProfile[] = savedConnections.map((conn) => {
                 const profile = conn as IConnectionProfile;
-                const displayName = getConnectionDisplayName(profile);
-                const profileId = profile.id || `${profile.server}_${profile.database || ""}`;
+                // Use getConnectionDisplayName if profileName is not set
+                const displayName = profile.profileName || getConnectionDisplayName(profile);
 
-                connections.push({
-                    displayName,
+                return {
                     server: profile.server,
                     database: profile.database,
-                    authenticationType: this.getAuthenticationTypeString(
-                        profile.authenticationType,
-                    ),
-                    userName: profile.user,
-                    profileId,
-                });
-            }
+                    user: profile.user,
+                    password: profile.password,
+                    authenticationType: profile.authenticationType,
+                    profileName: displayName,
+                    id: profile.id || `${profile.server}_${profile.database || ""}`,
+                    groupId: profile.groupId,
+                    savePassword: profile.savePassword,
+                    azureAuthType: profile.azureAuthType,
+                } as IConnectionDialogProfile;
+            });
 
             return { connections };
         } catch (error) {
@@ -589,8 +590,8 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
         initialOwnerUri?: string;
         initialProfileId?: string;
     }): Promise<{
-        connections: dacFxApplication.ConnectionProfile[];
-        selectedConnection?: dacFxApplication.ConnectionProfile;
+        connections: IConnectionDialogProfile[];
+        selectedConnection?: IConnectionDialogProfile;
         ownerUri?: string;
         autoConnected: boolean;
         errorMessage?: string;
@@ -642,12 +643,12 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
             initialServerName?: string;
             initialDatabaseName?: string;
         },
-        connections: dacFxApplication.ConnectionProfile[],
-    ): Promise<dacFxApplication.ConnectionProfile | undefined> {
+        connections: IConnectionDialogProfile[],
+    ): Promise<IConnectionDialogProfile | undefined> {
         // Priority 1: Match by profile ID if provided
         if (params.initialProfileId) {
             const matchingConnection = connections.find(
-                (conn) => conn.profileId === params.initialProfileId,
+                (conn) => conn.id === params.initialProfileId,
             );
             if (matchingConnection) {
                 this.logger.verbose(`Found connection by profile ID: ${params.initialProfileId}`);
@@ -673,8 +674,8 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
     private async findConnectionByServerName(
         serverName: string,
         databaseName: string | undefined,
-        connections: dacFxApplication.ConnectionProfile[],
-    ): Promise<dacFxApplication.ConnectionProfile | undefined> {
+        connections: IConnectionDialogProfile[],
+    ): Promise<IConnectionDialogProfile | undefined> {
         // Create a temporary profile to search with
         const searchProfile = {
             server: serverName,
@@ -689,7 +690,10 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
             const profileId =
                 matchResult.profile.id ||
                 `${matchResult.profile.server}_${matchResult.profile.database || ""}`;
-            const matchingConnection = connections.find((conn) => conn.profileId === profileId);
+            const matchingConnection = connections.find((conn) => {
+                const connId = conn.id || `${conn.server}_${conn.database || ""}`;
+                return connId === profileId;
+            });
 
             if (matchingConnection) {
                 this.logger.verbose(
@@ -706,12 +710,12 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
      * Returns result for an existing connection (from Object Explorer)
      */
     private useExistingConnection(
-        connections: dacFxApplication.ConnectionProfile[],
-        matchingConnection: dacFxApplication.ConnectionProfile,
+        connections: IConnectionDialogProfile[],
+        matchingConnection: IConnectionDialogProfile,
         ownerUri: string,
     ): {
-        connections: dacFxApplication.ConnectionProfile[];
-        selectedConnection: dacFxApplication.ConnectionProfile;
+        connections: IConnectionDialogProfile[];
+        selectedConnection: IConnectionDialogProfile;
         ownerUri: string;
         autoConnected: boolean;
     } {
@@ -728,18 +732,18 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
      * Attempts to connect to a matched profile and returns the result
      */
     private async connectToMatchedProfile(
-        connections: dacFxApplication.ConnectionProfile[],
-        matchingConnection: dacFxApplication.ConnectionProfile,
+        connections: IConnectionDialogProfile[],
+        matchingConnection: IConnectionDialogProfile,
     ): Promise<{
-        connections: dacFxApplication.ConnectionProfile[];
-        selectedConnection: dacFxApplication.ConnectionProfile;
+        connections: IConnectionDialogProfile[];
+        selectedConnection: IConnectionDialogProfile;
         ownerUri?: string;
         autoConnected: boolean;
         errorMessage?: string;
     }> {
-        this.logger.verbose(`Connecting to profile: ${matchingConnection.profileId}`);
+        this.logger.verbose(`Connecting to profile: ${matchingConnection.id}`);
         try {
-            const connectResult = await this.connectToServer(matchingConnection.profileId);
+            const connectResult = await this.connectToServer(matchingConnection.id!);
 
             if (connectResult.isConnected && connectResult.ownerUri) {
                 this.logger.info(`Connected to: ${matchingConnection.server}`);
@@ -841,25 +845,6 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
                 isConnected: false,
                 errorMessage: `Connection failed: ${errorMessage}`,
             };
-        }
-    }
-
-    /**
-     * Builds a display name for a connection profile
-     */
-    /**
-     * Gets a string representation of the authentication type
-     */
-    private getAuthenticationTypeString(authType: number | string | undefined): string {
-        switch (authType) {
-            case 1:
-                return "Integrated";
-            case 2:
-                return "SQL Login";
-            case 3:
-                return "Azure MFA";
-            default:
-                return "Unknown";
         }
     }
 

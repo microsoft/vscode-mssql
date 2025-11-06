@@ -7,6 +7,7 @@ import { Button, makeStyles, tokens } from "@fluentui/react-components";
 import { DatabaseArrowRight20Regular } from "@fluentui/react-icons";
 import { useState, useEffect, useContext } from "react";
 import * as dacFxApplication from "../../../sharedInterfaces/dacFxApplication";
+import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { locConstants } from "../../common/locConstants";
 import { ApplicationInfoSection } from "./ApplicationInfoSection";
 import { DacFxApplicationContext } from "./dacFxApplicationStateProvider";
@@ -59,9 +60,9 @@ export const DacFxApplicationForm = () => {
     const [validationMessages, setValidationMessages] = useState<Record<string, ValidationMessage>>(
         {},
     );
-    const [availableConnections, setAvailableConnections] = useState<
-        dacFxApplication.ConnectionProfile[]
-    >([]);
+    const [availableConnections, setAvailableConnections] = useState<IConnectionDialogProfile[]>(
+        [],
+    );
     const [selectedProfileId, setSelectedProfileId] = useState<string>(
         initialSelectedProfileId || "",
     );
@@ -141,7 +142,7 @@ export const DacFxApplicationForm = () => {
 
                 // If a connection was selected/matched
                 if (result.selectedConnection) {
-                    setSelectedProfileId(result.selectedConnection.profileId);
+                    setSelectedProfileId(result.selectedConnection.id!);
 
                     // If we have an ownerUri (either provided or from auto-connect)
                     if (result.ownerUri) {
@@ -178,9 +179,7 @@ export const DacFxApplicationForm = () => {
         setValidationMessages({});
 
         // Find the selected connection
-        const selectedConnection = availableConnections.find(
-            (conn) => conn.profileId === profileId,
-        );
+        const selectedConnection = availableConnections.find((conn) => conn.id === profileId);
 
         if (!selectedConnection) {
             return;

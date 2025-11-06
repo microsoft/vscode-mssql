@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Dropdown, Field, makeStyles, Option, Spinner } from "@fluentui/react-components";
-import { ConnectionProfile } from "../../../sharedInterfaces/dacFxApplication";
+import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { locConstants } from "../../common/locConstants";
 
 /**
@@ -17,7 +17,7 @@ interface ValidationMessage {
 
 interface ServerSelectionSectionProps {
     selectedProfileId: string;
-    availableConnections: ConnectionProfile[];
+    availableConnections: IConnectionDialogProfile[];
     isConnecting: boolean;
     isOperationInProgress: boolean;
     validationMessages: Record<string, ValidationMessage>;
@@ -58,9 +58,12 @@ export const ServerSelectionSection = ({
                         placeholder={locConstants.dacFxApplication.selectServer}
                         value={
                             selectedProfileId
-                                ? availableConnections.find(
-                                      (conn) => conn.profileId === selectedProfileId,
-                                  )?.displayName || ""
+                                ? (() => {
+                                      const conn = availableConnections.find(
+                                          (conn) => conn.id === selectedProfileId,
+                                      );
+                                      return conn?.profileName || "";
+                                  })()
                                 : ""
                         }
                         selectedOptions={selectedProfileId ? [selectedProfileId] : []}
@@ -76,11 +79,10 @@ export const ServerSelectionSection = ({
                         ) : (
                             availableConnections.map((conn) => (
                                 <Option
-                                    key={conn.profileId}
-                                    value={conn.profileId}
-                                    text={`${conn.displayName}${conn.isConnected ? " ●" : ""}`}>
-                                    {conn.displayName}
-                                    {conn.isConnected && " ●"}
+                                    key={conn.id}
+                                    value={conn.id!}
+                                    text={conn.profileName || ""}>
+                                    {conn.profileName}
                                 </Option>
                             ))
                         )}

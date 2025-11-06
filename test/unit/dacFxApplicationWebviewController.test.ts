@@ -1089,7 +1089,7 @@ suite("DacFxApplicationWebviewController", () => {
                     user: "admin",
                     profileName: "Server 1 - db1",
                     id: "conn1",
-                    authenticationType: 2, // SQL Login
+                    authenticationType: "SqlLogin", // SQL Login
                 },
                 {
                     server: "localhost",
@@ -1097,7 +1097,7 @@ suite("DacFxApplicationWebviewController", () => {
                     user: undefined,
                     profileName: "Local Server",
                     id: "conn2",
-                    authenticationType: 1, // Integrated
+                    authenticationType: "Integrated", // Integrated
                 },
                 {
                     server: "server2.database.windows.net",
@@ -1105,7 +1105,7 @@ suite("DacFxApplicationWebviewController", () => {
                     user: "user@domain.com",
                     profileName: "Azure Server",
                     id: "conn3",
-                    authenticationType: 3, // Azure MFA
+                    authenticationType: "AzureMFA", // Azure MFA
                 },
             ];
         });
@@ -1144,10 +1144,10 @@ suite("DacFxApplicationWebviewController", () => {
             const conn1 = result.connections[0];
             expect(conn1.server).to.equal("server1.database.windows.net");
             expect(conn1.database).to.equal("db1");
-            expect(conn1.userName).to.equal("admin");
-            expect(conn1.authenticationType).to.equal("SQL Login");
-            expect(conn1.profileId).to.equal("conn1");
-            expect(conn1.displayName).to.include("Server 1 - db1");
+            expect(conn1.user).to.equal("admin");
+            expect(conn1.authenticationType).to.equal("SqlLogin");
+            expect(conn1.id).to.equal("conn1");
+            expect(conn1.profileName).to.include("Server 1 - db1");
             // Verify second connection
             const conn2 = result.connections[1];
             expect(conn2.server).to.equal("localhost");
@@ -1155,7 +1155,7 @@ suite("DacFxApplicationWebviewController", () => {
             // Verify third connection
             const conn3 = result.connections[2];
             expect(conn3.server).to.equal("server2.database.windows.net");
-            expect(conn3.authenticationType).to.equal("Azure MFA");
+            expect(conn3.authenticationType).to.equal("AzureMFA");
         });
         test("returns empty array when readAllConnections fails", async () => {
             connectionStoreStub.readAllConnections.rejects(new Error("Connection store error"));
@@ -1277,7 +1277,7 @@ suite("DacFxApplicationWebviewController", () => {
             createController();
             const handler = requestHandlers.get(ListConnectionsWebviewRequest.type.method);
             const result = await handler!({});
-            expect(result.connections[0].profileId).to.equal("server1.database.windows.net_db1");
+            expect(result.connections[0].id).to.equal("server1.database.windows.net_db1");
         });
     });
     suite("Database Operations with Empty OwnerUri", () => {
@@ -1581,7 +1581,7 @@ suite("DacFxApplicationWebviewController", () => {
             });
             // Verify - should match profile2 by ID, not profile1 by server
             expect(result.selectedConnection).to.exist;
-            expect(result.selectedConnection?.profileId).to.equal("profile2");
+            expect(result.selectedConnection?.id).to.equal("profile2");
             expect(result.selectedConnection?.database).to.equal("db2");
         });
     });

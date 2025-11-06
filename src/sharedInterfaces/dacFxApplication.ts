@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
+import { IConnectionDialogProfile } from "./connectionDialog";
 
 /**
  * The type of DacFx Application operation to perform
@@ -13,36 +14,6 @@ export enum DacFxOperationType {
     Extract = "extract",
     Import = "import",
     Export = "export",
-}
-
-/**
- * Simplified connection profile for display in UI
- */
-export interface ConnectionProfile {
-    /**
-     * Display name for the connection
-     */
-    displayName: string;
-    /**
-     * Server name
-     */
-    server: string;
-    /**
-     * Database name (if specified)
-     */
-    database?: string;
-    /**
-     * Authentication type
-     */
-    authenticationType: string;
-    /**
-     * User name (for SQL Auth)
-     */
-    userName?: string;
-    /**
-     * The profile ID used to identify this connection
-     */
-    profileId: string;
 }
 
 /**
@@ -76,7 +47,7 @@ export interface DacFxApplicationWebviewState {
     /**
      * List of available connection profiles
      */
-    availableConnections?: ConnectionProfile[];
+    availableConnections?: IConnectionDialogProfile[];
     /**
      * Whether to create a new database or upgrade existing (for Deploy)
      */
@@ -231,7 +202,7 @@ export namespace ValidateDatabaseNameWebviewRequest {
  * Request to list available connections from the webview
  */
 export namespace ListConnectionsWebviewRequest {
-    export const type = new RequestType<void, { connections: ConnectionProfile[] }, void>(
+    export const type = new RequestType<void, { connections: IConnectionDialogProfile[] }, void>(
         "dacFxApplication/listConnections",
     );
 }
@@ -249,8 +220,8 @@ export namespace InitializeConnectionWebviewRequest {
             initialProfileId?: string;
         },
         {
-            connections: ConnectionProfile[];
-            selectedConnection?: ConnectionProfile;
+            connections: IConnectionDialogProfile[];
+            selectedConnection?: IConnectionDialogProfile;
             ownerUri?: string;
             autoConnected: boolean;
             errorMessage?: string;
