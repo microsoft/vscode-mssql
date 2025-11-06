@@ -939,7 +939,7 @@ Select "{0}" to establish a connection.</target>
       </trans-unit>
       <trans-unit id="++CODE++b34d1cdc1ec3705ae1fac0b6b10b411a0d5f271dfc967f647c99784ba9a323bb">
         <source xml:lang="en">Connect to a database</source>
-        <target state="new">Connect to a database</target>
+        <target state="translated">Establecer conexión con una base de datos</target>
       </trans-unit>
       <trans-unit id="++CODE++b2c490a777ddf796ff31f0e2a230e002b1329f808ec37cf885ad1bfcd7696ca3">
         <source xml:lang="en">Connect to server {0} and database {1}?</source>
@@ -1192,6 +1192,12 @@ Select "{0}" to establish a connection.</target>
       <trans-unit id="++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126">
         <source xml:lang="en">Cost</source>
         <target state="translated">Costo</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f630f91edbf1dc6649a7de55179cb551ef8245ef63461de0094de54e58d5ea62">
+        <source xml:lang="en">Could not find scripting metadata for {0} '{1}'.</source>
+        <note>{0} is the node type
+{1} is the node label</note>
+        <target state="new">Could not find scripting metadata for {0} '{1}'.</target>
       </trans-unit>
       <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
         <source xml:lang="en">Count: {0}</source>
@@ -1954,6 +1960,10 @@ Error:
         <note>{0} is the error message returned from the generate script operation</note>
         <target state="translated">Error al generar el script de publicación: "{0}"</target>
       </trans-unit>
+      <trans-unit id="++CODE++765a301a99c7eee94fb83e4719d18340210f77b71528783b41061a2a9d555e3e">
+        <source xml:lang="en">Failed to generate script. Please check the logs for more details.</source>
+        <target state="new">Failed to generate script. Please check the logs for more details.</target>
+      </trans-unit>
       <trans-unit id="++CODE++cdf943bd7b320469af4343440384b361de46832547d9bc9c08b3bd9a90610364">
         <source xml:lang="en">Failed to generate script: '{0}'</source>
         <note>{0} is the error message returned from the generate script operation</note>
@@ -2004,6 +2014,10 @@ Error:
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
         <note>{0} is the error message returned from the open scmp operation</note>
         <target state="translated">No se pudo abrir el archivo scmp: "{0}"</target>
+      </trans-unit>
+      <trans-unit id="++CODE++139d19f27345e3ce0787cd0cdd3497658705c987f492c0f1881127e5ffcdc79e">
+        <source xml:lang="en">Failed to open script in editor.</source>
+        <target state="new">Failed to open script in editor.</target>
       </trans-unit>
       <trans-unit id="++CODE++00e34162fb43e373f12b352ea75d1e2241f480dbda87ec290aaa6f020232edaa">
         <source xml:lang="en">Failed to open script: {0}</source>
@@ -2263,6 +2277,10 @@ Error:
       <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
         <source xml:lang="en">Generating report, this might take a while...</source>
         <target state="translated">Generando informe, esto puede tardar un rato...</target>
+      </trans-unit>
+      <trans-unit id="++CODE++915fc447c859d56fa8e745484ac300e07e104e9ef318105f82b578bedf32c405">
+        <source xml:lang="en">Generating script...</source>
+        <target state="new">Generating script...</target>
       </trans-unit>
       <trans-unit id="++CODE++fddd3d1537452414b2a4c7bb1b231ca37398b9f211c1e0d8d80e6f69a7f58f2d">
         <source xml:lang="en">Get Connection Details</source>
@@ -3387,9 +3405,17 @@ Error:
         <source xml:lang="en">Please make your password 8-128 characters long.</source>
         <target state="translated">Escribe la contraseña entre 8 y 128 caracteres.</target>
       </trans-unit>
+      <trans-unit id="++CODE++268f2704823f66b7bf71157cbbb60e14938ed5553068335e93ee23bb6960ed47">
+        <source xml:lang="en">Please select a node from Object Explorer to script.</source>
+        <target state="new">Please select a node from Object Explorer to script.</target>
+      </trans-unit>
       <trans-unit id="++CODE++2e0422920bb9bd61c1c7edf3554564e5ca37f4f0bc5d5a96b0402fb3a4c00155">
         <source xml:lang="en">Please select a workspace where you have sufficient permissions (Contributor or higher)</source>
         <target state="translated">Seleccione un área de trabajo en la que tenga permisos suficientes (Colaborador o superior)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++56244c066a4a09fb49e716fc19de4620d586a5b4776fb08f8450b3e7800850b1">
+        <source xml:lang="en">Please select only one node to script. Multiple node scripting is not supported.</source>
+        <target state="new">Please select only one node to script. Multiple node scripting is not supported.</target>
       </trans-unit>
       <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
         <source xml:lang="en">Port</source>
@@ -4459,11 +4485,6 @@ Consulta: {1}</target>
         <note>{0} is the table name</note>
         <target state="new">Table Explorer for '{0}' has unsaved changes. Do you want to save or discard them?</target>
       </trans-unit>
-      <trans-unit id="++CODE++7d1ab5b5ff98e8604fded16d7ad53dddbb49c37435c485b4546a9a921ea76700">
-        <source xml:lang="en">Table Explorer: {0} (Preview)</source>
-        <note>{0} is the table name</note>
-        <target state="new">Table Explorer: {0} (Preview)</target>
-      </trans-unit>
       <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
         <source xml:lang="en">Table name</source>
         <target state="translated">Nombre de tabla</target>
@@ -5010,6 +5031,11 @@ Consulta: {1}</target>
         <source xml:lang="en">{0} (Current Account)</source>
         <note>{0} is the account display name</note>
         <target state="translated">{0} (cuenta actual)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fdd1e66955c2307ddc64a5e81697afacea8973b913e99714f2d5579ddecf0c2a">
+        <source xml:lang="en">{0} (Preview)</source>
+        <note>{0} is the table name</note>
+        <target state="new">{0} (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>

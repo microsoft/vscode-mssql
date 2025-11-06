@@ -87,6 +87,7 @@ export const TableExplorerPage: React.FC = () => {
 
     const gridRef = useRef<TableDataGridRef>(null);
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
+    const [deletionCount, setDeletionCount] = React.useState(0);
 
     const handleSaveComplete = () => {
         // Clear the change tracking in the grid after successful save
@@ -95,6 +96,10 @@ export const TableExplorerPage: React.FC = () => {
 
     const handleCellChangeCountChanged = (count: number) => {
         setCellChangeCount(count);
+    };
+
+    const handleDeletionCountChanged = (count: number) => {
+        setDeletionCount(count);
     };
 
     return (
@@ -110,31 +115,34 @@ export const TableExplorerPage: React.FC = () => {
                             <TableExplorerToolbar
                                 onSaveComplete={handleSaveComplete}
                                 cellChangeCount={cellChangeCount}
+                                deletionCount={deletionCount}
                             />
                             {resultSet ? (
                                 <div className={classes.dataGridContainer}>
-                                    {isLoading && (
-                                        <div className={classes.loadingOverlay}>
+                                    {isLoading ? (
+                                        <div className={classes.loadingContainer}>
                                             <Spinner
                                                 label={loc.tableExplorer.loadingTableData}
                                                 labelPosition="below"
                                             />
                                         </div>
+                                    ) : (
+                                        <TableDataGrid
+                                            ref={gridRef}
+                                            resultSet={resultSet}
+                                            themeKind={themeKind}
+                                            pageSize={10}
+                                            currentRowCount={currentRowCount}
+                                            failedCells={failedCells}
+                                            onDeleteRow={context?.deleteRow}
+                                            onUpdateCell={context?.updateCell}
+                                            onRevertCell={context?.revertCell}
+                                            onRevertRow={context?.revertRow}
+                                            onLoadSubset={context?.loadSubset}
+                                            onCellChangeCountChanged={handleCellChangeCountChanged}
+                                            onDeletionCountChanged={handleDeletionCountChanged}
+                                        />
                                     )}
-                                    <TableDataGrid
-                                        ref={gridRef}
-                                        resultSet={resultSet}
-                                        themeKind={themeKind}
-                                        pageSize={10}
-                                        currentRowCount={currentRowCount}
-                                        failedCells={failedCells}
-                                        onDeleteRow={context?.deleteRow}
-                                        onUpdateCell={context?.updateCell}
-                                        onRevertCell={context?.revertCell}
-                                        onRevertRow={context?.revertRow}
-                                        onLoadSubset={context?.loadSubset}
-                                        onCellChangeCountChanged={handleCellChangeCountChanged}
-                                    />
                                 </div>
                             ) : (
                                 <p>{loc.tableExplorer.noDataAvailable}</p>

@@ -13,11 +13,13 @@ import { useTableExplorerSelector } from "./tableExplorerSelector";
 interface TableExplorerToolbarProps {
     onSaveComplete?: () => void;
     cellChangeCount: number;
+    deletionCount: number;
 }
 
 export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     onSaveComplete,
     cellChangeCount,
+    deletionCount,
 }) => {
     const context = useTableExplorerContext();
 
@@ -37,9 +39,8 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
         context.createRow();
     };
 
-    // Use cell-level change count directly
-    // This provides accurate granularity: each cell edit counts as one change
-    const changeCount = cellChangeCount;
+    // Total changes includes both cell edits and row deletions
+    const changeCount = cellChangeCount + deletionCount;
 
     const saveButtonText =
         changeCount > 0
