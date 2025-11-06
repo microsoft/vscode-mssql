@@ -11,10 +11,12 @@ import { IExtension } from "vscode-mssql";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as path from "path";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
-import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
-import { buildCapabilitiesResult } from "./mocks";
 import * as jsonRpc from "vscode-jsonrpc/node";
 import { UserSurvey } from "../../src/nps/userSurvey";
+import { IPrompter } from "../../src/prompts/question";
+import CodeAdapter from "../../src/prompts/adapter";
+import { buildCapabilitiesResult } from "./mocks";
+import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 
 // Launches and activates the extension
 export async function activateExtension(): Promise<IExtension> {
@@ -58,30 +60,13 @@ export function stubVscodeWrapper(
     return vscodeWrapper;
 }
 
-export function stubExtensionContext(sandbox?: sinon.SinonSandbox): vscode.ExtensionContext {
-    const stubber = sandbox || sinon;
-
-    let globalState = {
-        get: stubber.stub(),
-        update: stubber.stub(),
-    };
-
-    const context = {
-        globalState: globalState,
-        extensionUri: vscode.Uri.parse("file://fakePath"),
-        extensionPath: "fakePath",
-    } as unknown as vscode.ExtensionContext;
-
-    return context;
-}
-
 export function stubGetCapabilitiesRequest(
     sandbox?: sinon.SinonSandbox,
 ): sinon.SinonStubbedInstance<SqlToolsServerClient> {
     const stubber = sandbox || sinon;
     const serviceClientMock = stubber.createStubInstance(SqlToolsServerClient);
     serviceClientMock.sendRequest
-        .withArgs(GetCapabilitiesRequest.type, sinon.match.any)
+        .withArgs(GetCapabilitiesRequest.type)
         .resolves(buildCapabilitiesResult());
     return serviceClientMock;
 }
@@ -151,12 +136,30 @@ export function stubUserSurvey(
     return userSurvey;
 }
 
-export function getMockContext(): vscode.ExtensionContext {
-    return {
-        extensionUri: vscode.Uri.parse("file://test"),
-        extensionPath: "path",
+export function stubExtensionContext(sandbox?: sinon.SinonSandbox): vscode.ExtensionContext {
+    const stubber = sandbox || sinon;
+
+    let globalState = {
+        get: stubber.stub(),
+        update: stubber.stub(),
+    };
+
+    const context = {
+        globalState: globalState,
+        extensionUri: vscode.Uri.parse("file://testPath"),
+        extensionPath: "testPath",
         subscriptions: [],
     } as unknown as vscode.ExtensionContext;
+
+    return context;
+}
+
+export function stubPrompter(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<IPrompter> {
+    const stubber = sandbox || sinon;
+
+    const prompter = stubber.createStubInstance(CodeAdapter); // CodeAdapter is an implementation of IPrompter
+
+    return prompter;
 }
 
 export function initializeIconUtils(): void {
