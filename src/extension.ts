@@ -33,7 +33,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     IconUtils.initialize(context.extensionUri);
 
     // Check if GitHub Copilot is installed
-    const copilotExtension = vscode.extensions.getExtension("GitHub.copilot");
+    const copilotExtension = vscode.extensions.getExtension("github.copilot-chat");
     vscode.commands.executeCommand(
         "setContext",
         "mssql.copilot.isGHCInstalled",
