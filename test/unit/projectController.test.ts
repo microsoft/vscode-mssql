@@ -6,10 +6,15 @@
 import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
+import * as os from "os";
 
 import { ProjectController } from "../../src/controllers/projectController";
 import * as constants from "../../src/constants/constants";
+
+chai.use(sinonChai);
 
 suite("ProjectController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -128,8 +133,8 @@ suite("ProjectController Tests", () => {
 
         // Assert
         expect(result).to.equal(dacpacOutputPath);
-        expect(executeTaskStub.calledOnce, "executeTask should be called once").to.be.true;
-        expect(withProgressStub.calledOnce, "withProgress should be called once").to.be.true;
+        expect(executeTaskStub).to.have.been.calledOnce;
+        expect(withProgressStub).to.have.been.calledOnce;
 
         // Verify task was created with correct parameters
         const taskArg = executeTaskStub.firstCall.args[0] as vscode.Task;
@@ -139,14 +144,13 @@ suite("ProjectController Tests", () => {
         // Verify build arguments for SDK-style project (should NOT include NETCoreTargetsPath)
         const shellExec = taskArg.execution as vscode.ShellExecution;
         const args = shellExec.args as string[];
+        const argsString = args.join(" ");
+
         expect(args[0]).to.equal(constants.build);
         expect(args[1]).to.equal(projectFilePath);
         expect(args).to.include("/p:NetCoreBuild=true");
-        expect(args.some((arg) => arg.includes("SystemDacpacsLocation"))).to.be.true;
-        expect(
-            args.some((arg) => arg.includes("NETCoreTargetsPath")),
-            "SDK-style should NOT include NETCoreTargetsPath",
-        ).to.be.false;
+        expect(argsString).to.include("SystemDacpacsLocation");
+        expect(argsString).to.not.include("NETCoreTargetsPath");
     });
 
     test("buildProject should build Legacy-style project with NETCoreTargetsPath", async () => {
@@ -168,9 +172,104 @@ suite("ProjectController Tests", () => {
         const taskArg = executeTaskStub.firstCall.args[0] as vscode.Task;
         const shellExec = taskArg.execution as vscode.ShellExecution;
         const args = shellExec.args as string[];
-        expect(
-            args.some((arg) => arg.includes("NETCoreTargetsPath")),
-            "Legacy-style SHOULD include NETCoreTargetsPath",
-        ).to.be.true;
+        const argsString = args.join(" ");
+
+        expect(argsString).to.include("NETCoreTargetsPath");
+    });
+
+    test("buildProject should handle Windows-style paths correctly", async () => {
+        // Arrange
+        const platformStub = sandbox.stub(os, "platform").returns("win32");
+        const winProjectPath = "c:\\work\\TestProject.sqlproj";
+        const winDacpacPath = "c:\\work\\bin\\Debug\\TestProject.dacpac";
+        const projectProperties = createProjectProperties(
+            winProjectPath,
+            winDacpacPath,
+            mssql.ProjectType.SdkStyle,
+        );
+
+        const { executeTaskStub, triggerTaskCompletion } = setupBuildMocks(sandbox);
+
+        // Act
+        const buildPromise = projectController.buildProject(projectProperties);
+        triggerTaskCompletion(0);
+        const result = await buildPromise;
+
+        // Assert
+        expect(result).to.equal(winDacpacPath);
+        expect(executeTaskStub).to.have.been.calledOnce;
+
+        const taskArg = executeTaskStub.firstCall.args[0] as vscode.Task;
+        const shellExec = taskArg.execution as vscode.ShellExecution;
+        const args = shellExec.args as string[];
+        const argsString = args.join(" ");
+
+        // Verify path is included in build arguments
+        expect(args[1]).to.equal(winProjectPath);
+
+        // Verify build directory path is included
+        expect(argsString).to.include("SystemDacpacsLocation");
+        expect(argsString).to.include("BuildDirectory");
+
+        platformStub.restore();
+    });
+
+    test("buildProject should handle Linux/Mac-style paths correctly", async () => {
+        // Arrange
+        const platformStub = sandbox.stub(os, "platform").returns("linux");
+        const unixProjectPath = "/home/user/work/TestProject.sqlproj";
+        const unixDacpacPath = "/home/user/work/bin/Debug/TestProject.dacpac";
+        const projectProperties = createProjectProperties(
+            unixProjectPath,
+            unixDacpacPath,
+            mssql.ProjectType.SdkStyle,
+        );
+
+        const mockExtension = {
+            extensionPath: "/home/user/.vscode/extensions/mssql",
+        } as vscode.Extension<mssql.IExtension>;
+        sandbox.stub(vscode.extensions, "getExtension").returns(mockExtension);
+
+        const mockExecution = {} as vscode.TaskExecution;
+        const executeTaskStub = sandbox.stub(vscode.tasks, "executeTask").resolves(mockExecution);
+
+        let taskEndCallback: (e: vscode.TaskProcessEndEvent) => void;
+        sandbox.stub(vscode.tasks, "onDidEndTaskProcess").callsFake((callback) => {
+            taskEndCallback = callback;
+            return { dispose: sandbox.stub() } as vscode.Disposable;
+        });
+
+        sandbox.stub(vscode.window, "withProgress").callsFake(async (_options, task) => {
+            return task(
+                {} as vscode.Progress<{ message?: string; increment?: number }>,
+                {} as vscode.CancellationToken,
+            );
+        });
+
+        // Act
+        const buildPromise = projectController.buildProject(projectProperties);
+        setTimeout(() => {
+            taskEndCallback({
+                execution: mockExecution,
+                exitCode: 0,
+            } as vscode.TaskProcessEndEvent);
+        }, 0);
+        const result = await buildPromise;
+
+        // Assert
+        expect(result).to.equal(unixDacpacPath);
+        expect(executeTaskStub).to.have.been.calledOnce;
+
+        const taskArg = executeTaskStub.firstCall.args[0] as vscode.Task;
+        const shellExec = taskArg.execution as vscode.ShellExecution;
+        const args = shellExec.args as string[];
+        const argsString = args.join(" ");
+
+        // Verify path is included in build arguments
+        expect(args[1]).to.equal(unixProjectPath);
+        expect(argsString).to.include("SystemDacpacsLocation");
+        expect(argsString).to.include("BuildDirectory");
+
+        platformStub.restore();
     });
 });

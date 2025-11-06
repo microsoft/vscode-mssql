@@ -5,10 +5,13 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
-import type * as mssql from "vscode-mssql";
 import * as constants from "../constants/constants";
+import * as Loc from "../constants/locConstants";
+import type * as mssql from "vscode-mssql";
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
+import { getErrorMessage } from "../utils/utils";
+import { ProjectPropertiesResult } from "../sharedInterfaces/publishDialog";
 
 /**
  * Controller for SQL Project operations
@@ -20,10 +23,7 @@ export class ProjectController {
      * @returns Path to the generated DACPAC file
      */
     public async buildProject(
-        projectProperties: mssql.GetProjectPropertiesResult & {
-            projectFilePath: string;
-            dacpacOutputPath: string;
-        },
+        projectProperties: ProjectPropertiesResult,
     ): Promise<string | undefined> {
         try {
             const projectFilePath = projectProperties.projectFilePath;
@@ -43,7 +43,7 @@ export class ProjectController {
             // Create task definition
             const taskDefinition: vscode.TaskDefinition = {
                 type: constants.sqlProjBuildTaskType,
-                label: `Build ${projectName}`,
+                label: Loc.PublishProject.BuildProjectTaskLabel(projectName),
                 command: constants.dotnet,
                 args: args,
                 problemMatcher: constants.msBuildProblemMatcher,
@@ -69,7 +69,7 @@ export class ProjectController {
             sendErrorEvent(
                 TelemetryViews.SqlProjects,
                 TelemetryActions.BuildProject,
-                error instanceof Error ? error : new Error(String(error)),
+                error instanceof Error ? error : new Error(getErrorMessage(error)),
                 false,
             );
             throw error;
@@ -102,11 +102,8 @@ export class ProjectController {
             `/p:SystemDacpacsLocation="${buildDirPath}"`,
         ];
 
-        // Adding NETCoreTargetsPath only for non-SDK style projects
-        // ProjectType.SdkStyle = 0, ProjectType.LegacyStyle = 1
-        const isSdkStyle = projectStyle === 0;
-
-        if (!isSdkStyle) {
+        // Adding NETCoreTargetsPath only for non-SDK style projects ProjectType.LegacyStyle = 1
+        if (projectStyle === 1) {
             args.push(`/p:NETCoreTargetsPath="${buildDirPath}"`);
         }
 
@@ -122,7 +119,7 @@ export class ProjectController {
         return vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
-                title: `Building ${projectName}...`,
+                title: Loc.PublishProject.BuildingProjectProgress(projectName),
                 cancellable: false,
             },
             async () => {
@@ -137,8 +134,13 @@ export class ProjectController {
                             if (e.exitCode === 0) {
                                 resolve();
                             } else {
-                                const errorMsg = `Build failed with exit code ${e.exitCode}`;
-                                reject(new Error(errorMsg));
+                                reject(
+                                    new Error(
+                                        Loc.PublishProject.BuildFailedWithExitCode(
+                                            e.exitCode ?? -1,
+                                        ),
+                                    ),
+                                );
                             }
                         }
                     });

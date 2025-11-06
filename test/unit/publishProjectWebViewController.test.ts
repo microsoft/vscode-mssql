@@ -6,6 +6,8 @@
 import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
@@ -16,6 +18,8 @@ import { validateSqlServerPassword } from "../../src/deployment/dockerUtils";
 import { stubVscodeWrapper } from "./utils";
 import { PublishTarget } from "../../src/sharedInterfaces/publishDialog";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
+
+chai.use(sinonChai);
 
 suite("PublishProjectWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -375,10 +379,7 @@ suite("PublishProjectWebViewController Tests", () => {
         });
 
         // Verify deployment options were loaded from DacFx matching XML properties
-        expect(
-            mockDacFxService.getOptionsFromProfile.calledOnce,
-            "DacFx getOptionsFromProfile should be called once when loading profile",
-        ).to.be.true;
+        expect(mockDacFxService.getOptionsFromProfile).to.have.been.calledOnce;
         expect(newState.deploymentOptions.excludeObjectTypes.value).to.deep.equal([
             "Users",
             "Logins",
@@ -447,10 +448,7 @@ suite("PublishProjectWebViewController Tests", () => {
         });
 
         // Verify DacFx save was called with correct parameters
-        expect(
-            mockDacFxService.savePublishProfile.calledOnce,
-            "DacFx savePublishProfile should be called once when saving profile",
-        ).to.be.true;
+        expect(mockDacFxService.savePublishProfile).to.have.been.calledOnce;
 
         const saveCall = mockDacFxService.savePublishProfile.getCall(0);
         expect(saveCall.args[0].replace(/\\/g, "/")).to.equal(savedProfilePath); // File path (normalize for cross-platform)
@@ -698,16 +696,10 @@ suite("PublishProjectWebViewController Tests", () => {
         await generatePublishScript(controller.state, {});
 
         // Verify dialog was closed
-        expect(
-            panelDisposeSpy.calledOnce,
-            "Panel dispose should be called once when generating script",
-        ).to.be.true;
+        expect(panelDisposeSpy).to.have.been.calledOnce;
 
         // Verify executePublishAndGenerateScript was called with isPublish=false
-        expect(
-            executePublishSpy.calledOnce,
-            "executePublishAndGenerateScript should be called once when generating script",
-        ).to.be.true;
+        expect(executePublishSpy).to.have.been.calledOnce;
         expect(
             executePublishSpy.firstCall.args[1],
             "isPublish parameter should be false for script generation",
@@ -750,14 +742,10 @@ suite("PublishProjectWebViewController Tests", () => {
         await publishNow(controller.state, {});
 
         // Verify dialog was closed
-        expect(panelDisposeSpy.calledOnce, "Panel dispose should be called once when publishing").to
-            .be.true;
+        expect(panelDisposeSpy).to.have.been.calledOnce;
 
         // Verify executePublishAndGenerateScript was called with isPublish=true
-        expect(
-            executePublishSpy.calledOnce,
-            "executePublishAndGenerateScript should be called once when publishing",
-        ).to.be.true;
+        expect(executePublishSpy).to.have.been.calledOnce;
         expect(
             executePublishSpy.firstCall.args[1],
             "isPublish parameter should be true for publish",

@@ -320,6 +320,7 @@ export const sqlDatabaseProjectsExtensionId = "ms-mssql.sql-database-projects-vs
 export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
 export const PublishProfileExtension = "publish.xml";
+export const DacpacExtension = ".dacpac";
 export const dotnet = "dotnet";
 export const build = "build";
 export const sqlProjBuildTaskType = "sqlproj-build";

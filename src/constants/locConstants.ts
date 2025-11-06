@@ -1329,6 +1329,15 @@ export class PublishProject {
     public static PublishTargetNewAzureServer = l10n.t("New Azure SQL logical server (Preview)");
     public static GenerateScript = l10n.t("Generate Script");
     public static Publish = l10n.t("Publish");
+    public static BuildProjectTaskLabel(projectName: string) {
+        return l10n.t("Build {0}", projectName);
+    }
+    public static BuildingProjectProgress(projectName: string) {
+        return l10n.t("Building {0}...", projectName);
+    }
+    public static BuildFailedWithExitCode(exitCode: number) {
+        return l10n.t("Build failed with exit code {0}", exitCode);
+    }
     public static SqlServerPortNumber = l10n.t("SQL Server port number");
     public static SqlServerAdminPassword = l10n.t("SQL Server admin password");
     public static SqlServerAdminPasswordConfirm = l10n.t("Confirm SQL Server admin password");

@@ -33,6 +33,9 @@ import { hasAnyMissingRequiredValues, getErrorMessage } from "../utils/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import * as Utils from "../models/utils";
 import { ProjectController } from "../controllers/projectController";
+import { UserSurvey } from "../nps/userSurvey";
+
+const SQLPROJ_PUBLISH_VIEW_ID = "publishProject";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -135,6 +138,146 @@ export class PublishProjectWebViewController extends FormWebviewController<
     }
 
     /**
+     * Builds the SQL project and returns the DACPAC path
+     * @param state Current dialog state
+     * @returns Path to the built DACPAC file, or undefined if build fails
+     */
+    private async buildProject(state: PublishDialogState): Promise<string | undefined> {
+        try {
+            const dacpacPath = await this._projectController.buildProject(state.projectProperties);
+            return dacpacPath;
+        } catch (error) {
+            sendErrorEvent(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.BuildProject,
+                error instanceof Error ? error : new Error(getErrorMessage(error)),
+                false,
+            );
+            return undefined;
+        }
+    }
+
+    /**
+     * Publishes the DACPAC to the target database
+     * @param state Current dialog state
+     * @param dacpacPath Path to the DACPAC file
+     * @param databaseName Target database name
+     * @param upgradeExisting Whether to upgrade an existing database
+     */
+    private async publishToDatabase(
+        state: PublishDialogState,
+        dacpacPath: string,
+        databaseName: string,
+        upgradeExisting: boolean,
+    ): Promise<void> {
+        const connectionUri = this._connectionUri || "";
+        const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
+
+        // Send telemetry
+        sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProjectChanges, {
+            projectFilePath: state.projectFilePath!,
+            publishTarget: state.formState.publishTarget || "",
+            upgradeExisting: upgradeExisting.toString(),
+        });
+
+        try {
+            const result = await this._dacFxService!.deployDacpac(
+                dacpacPath,
+                databaseName,
+                upgradeExisting,
+                connectionUri,
+                TaskExecutionMode.execute,
+                sqlCmdVariables,
+                state.deploymentOptions,
+            );
+
+            if (result.success) {
+                sendActionEvent(
+                    TelemetryViews.SqlProjects,
+                    TelemetryActions.PublishProjectChanges,
+                    {
+                        databaseName: databaseName,
+                        success: "true",
+                    },
+                );
+                // Prompt user for NPS feedback after successful publish
+                void UserSurvey.getInstance().promptUserForNPSFeedback(SQLPROJ_PUBLISH_VIEW_ID);
+            }
+        } catch (error) {
+            sendErrorEvent(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.PublishProjectChanges,
+                error instanceof Error ? error : new Error(getErrorMessage(error)),
+                false,
+            );
+        }
+    }
+
+    /**
+     * Generates a deployment script for the DACPAC
+     * @param state Current dialog state
+     * @param dacpacPath Path to the DACPAC file
+     * @param databaseName Target database name
+     */
+    private async generateDeploymentScript(
+        state: PublishDialogState,
+        dacpacPath: string,
+        databaseName: string,
+    ): Promise<void> {
+        const connectionUri = this._connectionUri || "";
+        const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
+
+        // Send telemetry
+        sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
+            projectFilePath: state.projectFilePath!,
+            publishTarget: state.formState.publishTarget || "",
+        });
+
+        try {
+            const result = await this._dacFxService!.generateDeployScript(
+                dacpacPath,
+                databaseName,
+                connectionUri,
+                TaskExecutionMode.script,
+                sqlCmdVariables,
+                state.deploymentOptions,
+            );
+
+            if (result.success) {
+                sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
+                    databaseName: databaseName,
+                    success: "true",
+                });
+            }
+        } catch (error) {
+            sendErrorEvent(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.GenerateScript,
+                error instanceof Error ? error : new Error(getErrorMessage(error)),
+                false,
+            );
+        }
+    }
+
+    /**
+     * Determines if the target database already exists
+     * @param state Current dialog state
+     * @param databaseName Target database name
+     * @returns True if database exists, false otherwise
+     */
+    private isDatabaseExisting(state: PublishDialogState, databaseName: string): boolean {
+        if (state.formState.publishTarget === PublishTarget.ExistingServer && this._connectionUri) {
+            const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
+            if (databaseComponent?.options) {
+                return databaseComponent.options.some((option) => option.value === databaseName);
+            }
+        } else if (state.formState.publishTarget === PublishTarget.LocalContainer) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Executes publish and generate script operations
      * @param state Current dialog state
      * @param isPublish If true, publishes to database; if false, generates script
@@ -145,103 +288,20 @@ export class PublishProjectWebViewController extends FormWebviewController<
     ): Promise<void> {
         const databaseName = state.formState.databaseName;
 
-        try {
-            // Build the project
-            const dacpacPath = await this._projectController.buildProject(state.projectProperties);
-            if (!dacpacPath) {
-                return;
-            }
+        // Step 1: Build the project
+        const dacpacPath = await this.buildProject(state);
+        if (!dacpacPath) {
+            return;
+        }
 
-            // Get settings from form state
-            const connectionUri = this._connectionUri || "";
-            const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
+        // Step 2: Determine if database exists
+        const upgradeExisting = this.isDatabaseExisting(state, databaseName);
 
-            // Determine if database already exists
-            let upgradeExisting = true;
-            if (
-                state.formState.publishTarget === PublishTarget.ExistingServer &&
-                this._connectionUri
-            ) {
-                const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
-                if (databaseComponent?.options) {
-                    upgradeExisting = databaseComponent.options.some(
-                        (option) => option.value === databaseName,
-                    );
-                }
-            } else if (state.formState.publishTarget === PublishTarget.LocalContainer) {
-                upgradeExisting = false;
-            }
-
-            // Send telemetry
-            sendActionEvent(
-                TelemetryViews.SqlProjects,
-                isPublish
-                    ? TelemetryActions.PublishProjectChanges
-                    : TelemetryActions.GenerateScript,
-                {
-                    projectFilePath: state.projectFilePath!,
-                    publishTarget: state.formState.publishTarget || "",
-                    upgradeExisting: upgradeExisting.toString(),
-                },
-            );
-
-            // Execute the operation
-            let result: mssql.DacFxResult;
-            if (isPublish) {
-                result = await this._dacFxService!.deployDacpac(
-                    dacpacPath,
-                    databaseName,
-                    upgradeExisting,
-                    connectionUri,
-                    TaskExecutionMode.execute,
-                    sqlCmdVariables,
-                    state.deploymentOptions,
-                );
-            } else {
-                result = await this._dacFxService!.generateDeployScript(
-                    dacpacPath,
-                    databaseName,
-                    connectionUri,
-                    TaskExecutionMode.script,
-                    sqlCmdVariables,
-                    state.deploymentOptions,
-                );
-            }
-
-            // Check result and send telemetry
-            if (result.success) {
-                // Send success telemetry with database name
-                sendActionEvent(
-                    TelemetryViews.SqlProjects,
-                    isPublish
-                        ? TelemetryActions.PublishProjectChanges
-                        : TelemetryActions.GenerateScript,
-                    {
-                        databaseName: databaseName,
-                        success: "true",
-                    },
-                );
-            } else {
-                // Operation failed - show error message from STS
-                if (result.errorMessage) {
-                    void vscode.window.showErrorMessage(result.errorMessage);
-                }
-            }
-        } catch (error) {
-            // Send error telemetry
-            sendErrorEvent(
-                TelemetryViews.SqlProjects,
-                isPublish
-                    ? TelemetryActions.PublishProjectChanges
-                    : TelemetryActions.GenerateScript,
-                error instanceof Error ? error : new Error(String(error)),
-                false,
-            );
-
-            // Show error notification
-            void vscode.window.showErrorMessage(
-                `${isPublish ? "Publish" : "Generate script"} failed: ${getErrorMessage(error)}`,
-            );
+        // Step 3: Execute publish or generate script
+        if (isPublish) {
+            await this.publishToDatabase(state, dacpacPath, databaseName, upgradeExisting);
+        } else {
+            await this.generateDeploymentScript(state, dacpacPath, databaseName);
         }
     }
 
@@ -420,7 +480,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                                 if (connectionResult.errorMessage) {
                                     this.state.formMessage = {
                                         message: Loc.ProfileLoadedConnectionFailed,
-                                        intent: "error" as const,
+                                        intent: "error",
                                     };
                                 }
                                 this.updateState();

@@ -46,6 +46,19 @@ export const PublishFormContainerFields = [
 export const DefaultSqlPortNumber = constants.DefaultSqlPortNumber;
 
 /**
+ * Extended project properties that includes additional metadata beyond what GetProjectPropertiesResult provides.
+ * This type is used internally for publish and build operations.
+ */
+export type ProjectPropertiesResult = mssql.GetProjectPropertiesResult & {
+    /** Extracted target version from DatabaseSchemaProvider (e.g. "150", "AzureV12") */
+    targetVersion?: string;
+    /** Absolute path to the .sqlproj file */
+    projectFilePath: string;
+    /** Calculated absolute path to the output .dacpac file */
+    dacpacOutputPath: string;
+};
+
+/**
  * Data fields shown in the Publish form.
  */
 export interface IPublishForm {
@@ -69,11 +82,7 @@ export interface PublishDialogState
     projectFilePath: string;
     inProgress: boolean;
     lastPublishResult?: { success: boolean; details?: string };
-    projectProperties?: mssql.GetProjectPropertiesResult & {
-        targetVersion?: string;
-        projectFilePath: string;
-        dacpacOutputPath: string;
-    };
+    projectProperties?: ProjectPropertiesResult;
     hasFormErrors?: boolean;
     deploymentOptions?: mssql.DeploymentOptions;
     waitingForNewConnection?: boolean;
