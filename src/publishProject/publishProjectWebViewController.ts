@@ -536,8 +536,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         },
                     };
                 }
-
-                return state;
             },
         );
     }

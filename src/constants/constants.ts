@@ -316,6 +316,7 @@ export const AzureSqlServerName = "Azure SQL server";
 export const DefaultSqlPortNumber = "1433";
 export const DefaultAdminUsername = "sa";
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
+export const sqlDatabaseProjectsExtensionId = "ms-mssql.sql-database-projects-vscode";
 export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
 export const PublishProfileExtension = "publish.xml";

@@ -77,11 +77,13 @@ export class ProjectController {
     }
 
     /**
-     * Gets the path to the BuildDirectory folder in the extension
+     * Gets the path to the BuildDirectory folder from the SQL Database Projects extension
      */
     private getBuildDirPath(): string {
+        // Use the SQL Database Projects extension's BuildDirectory which contains the required build DLLs and targets
         const extensionPath =
-            vscode.extensions.getExtension(constants.extensionId)?.extensionPath ?? "";
+            vscode.extensions.getExtension(constants.sqlDatabaseProjectsExtensionId)
+                ?.extensionPath ?? "";
         return path.join(extensionPath, "BuildDirectory");
     }
 
@@ -95,14 +97,17 @@ export class ProjectController {
         buildDirPath: string,
         projectStyle: mssql.ProjectType,
     ): string[] {
-        const args: string[] = ["/p:NetCoreBuild=true", `/p:SystemDacpacsLocation=${buildDirPath}`];
+        const args: string[] = [
+            "/p:NetCoreBuild=true",
+            `/p:SystemDacpacsLocation="${buildDirPath}"`,
+        ];
 
         // Adding NETCoreTargetsPath only for non-SDK style projects
         // ProjectType.SdkStyle = 0, ProjectType.LegacyStyle = 1
         const isSdkStyle = projectStyle === 0;
 
         if (!isSdkStyle) {
-            args.push(`/p:NETCoreTargetsPath=${buildDirPath}`);
+            args.push(`/p:NETCoreTargetsPath="${buildDirPath}"`);
         }
 
         return args;
