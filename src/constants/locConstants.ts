@@ -2114,7 +2114,7 @@ export class TableExplorer {
 
     public static title = (tableName: string) =>
         l10n.t({
-            message: "Table Explorer: {0} (Preview)",
+            message: "{0} (Preview)",
             args: [tableName],
             comment: ["{0} is the table name"],
         });
