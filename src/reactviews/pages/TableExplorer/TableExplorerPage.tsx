@@ -35,7 +35,6 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         ...shorthands.overflow("hidden"),
-        padding: "20px",
         height: "100%",
     },
     dataGridContainer: {
