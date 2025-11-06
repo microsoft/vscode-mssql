@@ -61,7 +61,7 @@ export interface ObjectExplorerPageFilter {
         name: string;
         displayName: string;
     }[];
-    operatorOptions: string[];
-    selectedOperator: string;
+    operatorOptions: NodeFilterOperator[];
+    selectedOperator: NodeFilterOperator;
     description: string;
 }
