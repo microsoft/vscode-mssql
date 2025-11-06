@@ -16,6 +16,7 @@ import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
     root: {
@@ -79,11 +80,13 @@ export const TableExplorerPage: React.FC = () => {
 
     // Use selectors to access specific state properties
     const resultSet = useTableExplorerSelector((s) => s.resultSet);
-    const isLoading = useTableExplorerSelector((s) => s.isLoading);
+    const loadStatus = useTableExplorerSelector((s) => s.loadStatus);
     const currentRowCount = useTableExplorerSelector((s) => s.currentRowCount);
     const failedCells = useTableExplorerSelector((s) => s.failedCells);
     const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
     const updateScript = useTableExplorerSelector((s) => s.updateScript);
+
+    const isLoading = loadStatus === ApiStatus.Loading;
 
     const gridRef = useRef<TableDataGridRef>(null);
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
