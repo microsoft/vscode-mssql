@@ -749,6 +749,31 @@
     "Show Confirm Password": "Show Confirm Password",
     "Hide Confirm Password": "Hide Confirm Password",
     "Passwords do not match": "Passwords do not match",
+    "Save Changes": "Save Changes",
+    "Add Row": "Add Row",
+    "Show Script": "Show Script",
+    "Hide Script": "Hide Script",
+    "Open in SQL Editor": "Open in SQL Editor",
+    "Copy Script": "Copy Script",
+    "Copy Script to Clipboard": "Copy Script to Clipboard",
+    "Maximize Panel Size": "Maximize Panel Size",
+    "Restore Panel Size": "Restore Panel Size",
+    "Update Script": "Update Script",
+    "Commands": "Commands",
+    "Delete Row": "Delete Row",
+    "Revert Cell": "Revert Cell",
+    "Revert Row": "Revert Row",
+    "Total rows to fetch:": "Total rows to fetch:",
+    "Rows per page": "Rows per page",
+    "Fetch rows": "Fetch rows",
+    "First Page": "First Page",
+    "Previous Page": "Previous Page",
+    "Next Page": "Next Page",
+    "Last Page": "Last Page",
+    "Loading table data...": "Loading table data...",
+    "No data available": "No data available",
+    "No pending changes. Make edits to generate a script.": "No pending changes. Make edits to generate a script.",
+    "Close Script Pane": "Close Script Pane",
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
@@ -1070,6 +1095,18 @@
     "The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.": "The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.",
     "Testing connection profile...": "Testing connection profile...",
     "Running query is not supported when the editor is in multiple selection mode.": "Running query is not supported when the editor is in multiple selection mode.",
+    "Please select a node from Object Explorer to script.": "Please select a node from Object Explorer to script.",
+    "Please select only one node to script. Multiple node scripting is not supported.": "Please select only one node to script. Multiple node scripting is not supported.",
+    "Could not find scripting metadata for {0} '{1}'./{0} is the node type{1} is the node label": {
+        "message": "Could not find scripting metadata for {0} '{1}'.",
+        "comment": ["{0} is the node type", "{1} is the node label"]
+    },
+    "Failed to generate script. Please check the logs for more details.": "Failed to generate script. Please check the logs for more details.",
+    "Failed to open script in editor.": "Failed to open script in editor.",
+    "Failed to generate script: {0}/{0} is the error message": {
+        "message": "Failed to generate script: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "Enter new column width": "Enter new column width",
     "Invalid column width": "Invalid column width",
     "Width cannot be 0 or negative": "Width cannot be 0 or negative",
@@ -1125,6 +1162,7 @@
         "comment": ["{0} is the node label"]
     },
     "Loading...": "Loading...",
+    "Generating script...": "Generating script...",
     "Fetching {0} script.../{0} is the script type": {
         "message": "Fetching {0} script...",
         "comment": ["{0} is the script type"]
@@ -1492,8 +1530,8 @@
     "Failed to load publish profile": "Failed to load publish profile",
     "Publish profile saved to: {0}": "Publish profile saved to: {0}",
     "Failed to save publish profile": "Failed to save publish profile",
-    "DacFx service is not available": "DacFx service is not available",
-    "DacFx service is not available. Profile loaded without deployment options.": "DacFx service is not available. Profile loaded without deployment options.",
+    "DacFx service is not available. Publish and generate script operations cannot be performed.": "DacFx service is not available. Publish and generate script operations cannot be performed.",
+    "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.": "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     "Failed to list databases": "Failed to list databases",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
@@ -1590,6 +1628,7 @@
         "comment": ["{0} is the error message"]
     },
     "An unknown error occurred. Please try again.": "An unknown error occurred. Please try again.",
+    "This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.": "This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.",
     "Open SQL editor and connect": "Open SQL editor and connect",
     "An active connection is required for GitHub Copilot to understand your database schema and proceed.\nSelect \"{0}\" to establish a connection./{0} is the button text (e.g., 'Connect' or 'Open SQL editor and connect')": {
         "message": "An active connection is required for GitHub Copilot to understand your database schema and proceed.\nSelect \"{0}\" to establish a connection.",
@@ -1837,6 +1876,57 @@
         "message": "Edit Connection Group - {0}",
         "comment": ["{0} is the connection group name"]
     },
+    "Unable to open Table Explorer: No target node provided.": "Unable to open Table Explorer: No target node provided.",
+    "Changes saved successfully.": "Changes saved successfully.",
+    "Row created.": "Row created.",
+    "Row removed.": "Row removed.",
+    "{0} (Preview)/{0} is the table name": {
+        "message": "{0} (Preview)",
+        "comment": ["{0} is the table name"]
+    },
+    "Failed to save changes: {0}/{0} is the error message": {
+        "message": "Failed to save changes: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to load data: {0}/{0} is the error message": {
+        "message": "Failed to load data: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to create a new row: {0}/{0} is the error message": {
+        "message": "Failed to create a new row: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to remove row: {0}/{0} is the error message": {
+        "message": "Failed to remove row: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to update cell: {0}/{0} is the error message": {
+        "message": "Failed to update cell: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to revert cell: {0}/{0} is the error message": {
+        "message": "Failed to revert cell: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Failed to revert row: {0}/{0} is the error message": {
+        "message": "Failed to revert row: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "No script available. Make changes to the table data and generate a script first.": "No script available. Make changes to the table data and generate a script first.",
+    "Failed to open script: {0}/{0} is the error message": {
+        "message": "Failed to open script: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Script copied to clipboard.": "Script copied to clipboard.",
+    "Failed to copy script: {0}/{0} is the error message": {
+        "message": "Failed to copy script: {0}",
+        "comment": ["{0} is the error message"]
+    },
+    "Table Explorer for '{0}' has unsaved changes. Do you want to save or discard them?/{0} is the table name": {
+        "message": "Table Explorer for '{0}' has unsaved changes. Do you want to save or discard them?",
+        "comment": ["{0} is the table name"]
+    },
+    "Discard": "Discard",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

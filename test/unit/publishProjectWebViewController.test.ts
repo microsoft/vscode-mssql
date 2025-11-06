@@ -195,8 +195,14 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(controller.state.formState.publishTarget).to.equal(PublishTarget.LocalContainer);
 
         // Test that changing publish target updates field visibility
-        expect(controller.state.formComponents.containerPort?.hidden).to.not.be.true;
-        expect(controller.state.formComponents.serverName?.hidden).to.be.true;
+        expect(
+            controller.state.formComponents.containerPort?.hidden,
+            "containerPort should be visible for LocalContainer target",
+        ).to.not.be.true;
+        expect(
+            controller.state.formComponents.serverName?.hidden,
+            "serverName should be hidden for LocalContainer target",
+        ).to.be.true;
     });
 
     test("Azure SQL project shows Azure-specific labels", async () => {
@@ -367,15 +373,22 @@ suite("PublishProjectWebViewController Tests", () => {
         });
 
         // Verify deployment options were loaded from DacFx matching XML properties
-        expect(mockDacFxService.getOptionsFromProfile.calledOnce).to.be.true;
+        expect(
+            mockDacFxService.getOptionsFromProfile.calledOnce,
+            "DacFx getOptionsFromProfile should be called once when loading profile",
+        ).to.be.true;
         expect(newState.deploymentOptions.excludeObjectTypes.value).to.deep.equal([
             "Users",
             "Logins",
         ]);
-        expect(newState.deploymentOptions.booleanOptionsDictionary.allowIncompatiblePlatform?.value)
-            .to.be.true;
-        expect(newState.deploymentOptions.booleanOptionsDictionary.ignoreComments?.value).to.be
-            .true;
+        expect(
+            newState.deploymentOptions.booleanOptionsDictionary.allowIncompatiblePlatform?.value,
+            "allowIncompatiblePlatform should be true from parsed profile",
+        ).to.be.true;
+        expect(
+            newState.deploymentOptions.booleanOptionsDictionary.ignoreComments?.value,
+            "ignoreComments should be true from parsed profile",
+        ).to.be.true;
     });
 
     test("savePublishProfile reducer is invoked and triggers save file dialog", async () => {
@@ -432,7 +445,10 @@ suite("PublishProjectWebViewController Tests", () => {
         });
 
         // Verify DacFx save was called with correct parameters
-        expect(mockDacFxService.savePublishProfile.calledOnce).to.be.true;
+        expect(
+            mockDacFxService.savePublishProfile.calledOnce,
+            "DacFx savePublishProfile should be called once when saving profile",
+        ).to.be.true;
 
         const saveCall = mockDacFxService.savePublishProfile.getCall(0);
         expect(saveCall.args[0].replace(/\\/g, "/")).to.equal(savedProfilePath); // File path (normalize for cross-platform)
@@ -445,9 +461,14 @@ suite("PublishProjectWebViewController Tests", () => {
         const deploymentOptions = saveCall.args[4];
         expect(deploymentOptions).to.exist;
         expect(deploymentOptions.excludeObjectTypes.value).to.deep.equal(["Users", "Permissions"]);
-        expect(deploymentOptions.booleanOptionsDictionary.ignoreTableOptions?.value).to.be.true;
-        expect(deploymentOptions.booleanOptionsDictionary.allowIncompatiblePlatform?.value).to.be
-            .false;
+        expect(
+            deploymentOptions.booleanOptionsDictionary.ignoreTableOptions?.value,
+            "ignoreTableOptions should be true in saved deployment options",
+        ).to.be.true;
+        expect(
+            deploymentOptions.booleanOptionsDictionary.allowIncompatiblePlatform?.value,
+            "allowIncompatiblePlatform should be false in saved deployment options",
+        ).to.be.false;
     });
     //#endregion
 
@@ -461,14 +482,14 @@ suite("PublishProjectWebViewController Tests", () => {
         const serverComponent = controller.state.formComponents.serverName;
         expect(serverComponent).to.exist;
         expect(serverComponent.label).to.exist;
-        expect(serverComponent.required).to.be.true;
+        expect(serverComponent.required, "serverName component should be required").to.be.true;
         expect(controller.state.formState.serverName).to.equal("");
 
         // Verify database component and default value (project name)
         const databaseComponent = controller.state.formComponents.databaseName;
         expect(databaseComponent).to.exist;
         expect(databaseComponent.label).to.exist;
-        expect(databaseComponent.required).to.be.true;
+        expect(databaseComponent.required, "databaseName component should be required").to.be.true;
         expect(controller.state.formState.databaseName).to.equal("MyTestProject");
     });
 

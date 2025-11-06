@@ -178,6 +178,7 @@
         "pretty-data": "^0.40.0",
         "semver": "https://registry.npmjs.org/semver/-/semver-5.0.3.tgz",
         "shallow-equal": "^3.1.0",
+        "slickgrid-react": "^9.8.0",
         "tar": "^7.4.3",
         "tmp": "^0.2.4",
         "tunnel": "0.0.6",
@@ -364,6 +365,11 @@
                 "id": "mssql.copilot.editorSubmenu",
                 "title": "%mssql.copilot.editorSubmenu%",
                 "label": "%mssql.copilot.editorSubmenu%"
+            },
+            {
+                "id": "mssql.sqlScriptsSubmenu",
+                "title": "%mssql.sqlScriptsSubmenu%",
+                "label": "%mssql.sqlScriptsSubmenu%"
             }
         ],
         "menus": {
@@ -449,6 +455,20 @@
                     "when": "editorLangId == sql && mssql.copilot.isGHCInstalled",
                     "title": "%mssql.copilot.analyzeQueryPerformance%",
                     "group": "navigation@3"
+                }
+            ],
+            "mssql.sqlScriptsSubmenu": [
+                {
+                    "command": "mssql.scriptSelect",
+                    "group": "1_scripts@1"
+                },
+                {
+                    "command": "mssql.scriptCreate",
+                    "group": "1_scripts@2"
+                },
+                {
+                    "command": "mssql.scriptDelete",
+                    "group": "1_scripts@3"
                 }
             ],
             "view/title": [
@@ -549,18 +569,33 @@
                     "group": "2_MSSQL_serverDbActions@2"
                 },
                 {
+                    "command": "mssql.tableExplorer",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences",
+                    "group": "3_MSSQL_tableActions@1"
+                },
+                {
+                    "command": "mssql.editTable",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "group": "3_MSSQL_tableActions@2"
+                },
+                {
+                    "submenu": "mssql.sqlScriptsSubmenu",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "group": "4_MSSQL_tableScripts@1"
+                },
+                {
                     "command": "mssql.scriptSelect",
-                    "when": "view == objectExplorer && viewItem =~  /\\btype=(Table|View)\\b/",
+                    "when": "view == objectExplorer && viewItem =~  /\\btype=(View)\\b/",
                     "group": "3_MSSQL_script@1"
                 },
                 {
                     "command": "mssql.scriptCreate",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
                     "group": "3_MSSQL_script@2"
                 },
                 {
                     "command": "mssql.scriptDelete",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table|View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(View|AggregateFunction|PartitionFunction|ScalarValuedFunction|Schema|StoredProcedure|TableValuedFunction|User|UserDefinedTableType|Trigger|DatabaseTrigger|Index|Key|User|DatabaseRole|ApplicationRole)\\b/",
                     "group": "3_MSSQL_script@3"
                 },
                 {
@@ -576,11 +611,6 @@
                 {
                     "command": "mssql.newTable",
                     "when": "view == objectExplorer && viewItem =~ /\\bsubType=(Tables)\\b/",
-                    "group": "4_MSSQL_object@1"
-                },
-                {
-                    "command": "mssql.editTable",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
                     "group": "4_MSSQL_object@1"
                 },
                 {
@@ -903,6 +933,11 @@
             {
                 "command": "mssql.schemaCompareOpenFromCommandPalette",
                 "title": "%mssql.schemaCompare%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.tableExplorer",
+                "title": "%mssql.tableExplorer%",
                 "category": "MS SQL"
             },
             {
@@ -2527,11 +2562,74 @@
                             "description": "SQL query to execute.",
                             "title": "SQL Query",
                             "type": "string"
+                        },
+                        "queryTypes": {
+                            "description": "Classification of SQL operation types present in the query. Used for telemetry to understand tool usage patterns without capturing user content. Analyze the query and select all operation types that apply.",
+                            "title": "Query Types",
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "SELECT",
+                                    "INSERT",
+                                    "UPDATE",
+                                    "DELETE",
+                                    "CREATE",
+                                    "ALTER",
+                                    "DROP",
+                                    "TRUNCATE",
+                                    "MERGE",
+                                    "JOIN",
+                                    "CTE",
+                                    "STORED_PROCEDURE",
+                                    "FUNCTION",
+                                    "VIEW",
+                                    "INDEX",
+                                    "TRANSACTION",
+                                    "GRANT",
+                                    "REVOKE",
+                                    "BACKUP",
+                                    "RESTORE",
+                                    "EXEC",
+                                    "DECLARE",
+                                    "IF",
+                                    "WHILE",
+                                    "TRY_CATCH",
+                                    "TEMP_TABLE",
+                                    "CONSTRAINT",
+                                    "TRIGGER",
+                                    "SET",
+                                    "OTHER"
+                                ]
+                            }
+                        },
+                        "queryIntent": {
+                            "description": "Primary use case or scenario that best describes what the user is trying to accomplish with this query. Used for telemetry to understand user workflows without capturing user content.",
+                            "title": "Query Intent",
+                            "type": "string",
+                            "enum": [
+                                "data_exploration",
+                                "data_analysis",
+                                "data_migration",
+                                "troubleshooting",
+                                "schema_creation",
+                                "schema_modification",
+                                "schema_exploration",
+                                "data_maintenance",
+                                "data_seeding",
+                                "testing_validation",
+                                "backup_restore",
+                                "performance_tuning",
+                                "learning_education",
+                                "other"
+                            ]
                         }
                     },
                     "required": [
                         "connectionId",
-                        "query"
+                        "query",
+                        "queryTypes",
+                        "queryIntent"
                     ]
                 },
                 "canBeReferencedInPrompt": true,

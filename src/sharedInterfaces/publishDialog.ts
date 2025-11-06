@@ -130,6 +130,5 @@ export interface PublishProjectProvider {
     openConnectionDialog(): void;
     closeMessage(): void;
     updateDeploymentOptions(deploymentOptions: mssql.DeploymentOptions): void;
-    /** Revert all SQLCMD variables to their original project values */
     revertSqlCmdVariables(): void;
 }

@@ -311,8 +311,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         ...parsedProfile.sqlCmdVariables,
                     };
 
-                    // Update state with all parsed values - UI components will consume when available
-                    const newState = {
+                    return {
                         ...state,
                         formState: {
                             ...state.formState,
@@ -333,8 +332,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                               }
                             : undefined,
                     };
-
-                    return newState;
                 } catch (error) {
                     return {
                         ...state,

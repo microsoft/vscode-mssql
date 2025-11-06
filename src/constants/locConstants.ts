@@ -527,6 +527,28 @@ export let connectProgressNoticationTitle = l10n.t("Testing connection profile..
 export let msgMultipleSelectionModeNotSupported = l10n.t(
     "Running query is not supported when the editor is in multiple selection mode.",
 );
+export let msgSelectNodeToScript = l10n.t("Please select a node from Object Explorer to script.");
+export let msgSelectSingleNodeToScript = l10n.t(
+    "Please select only one node to script. Multiple node scripting is not supported.",
+);
+export function msgScriptingObjectNotFound(nodeType: string, nodeLabel: string): string {
+    return l10n.t({
+        message: "Could not find scripting metadata for {0} '{1}'.",
+        args: [nodeType, nodeLabel],
+        comment: ["{0} is the node type", "{1} is the node label"],
+    });
+}
+export let msgScriptingFailed = l10n.t(
+    "Failed to generate script. Please check the logs for more details.",
+);
+export let msgScriptingEditorFailed = l10n.t("Failed to open script in editor.");
+export function msgScriptingOperationFailed(error: string): string {
+    return l10n.t({
+        message: "Failed to generate script: {0}",
+        args: [error],
+        comment: ["{0} is the error message"],
+    });
+}
 export let newColumnWidthPrompt = l10n.t("Enter new column width");
 export let columnWidthInvalidNumberError = l10n.t("Invalid column width");
 export let columnWidthMustBePositiveError = l10n.t("Width cannot be 0 or negative");
@@ -624,6 +646,7 @@ export class ObjectExplorer {
     public static NodeDeletionConfirmationYes = l10n.t("Yes");
     public static NodeDeletionConfirmationNo = l10n.t("No");
     public static LoadingNodeLabel = l10n.t("Loading...");
+    public static GeneratingScript = l10n.t("Generating script...");
     public static FetchingScriptLabel(scriptType: string) {
         return l10n.t({
             message: "Fetching {0} script...",
@@ -1358,9 +1381,11 @@ export class PublishProject {
         return l10n.t("Publish profile saved to: {0}", path);
     };
     public static PublishProfileSaveFailed = l10n.t("Failed to save publish profile");
-    public static DacFxServiceNotAvailable = l10n.t("DacFx service is not available");
+    public static DacFxServiceNotAvailable = l10n.t(
+        "DacFx service is not available. Publish and generate script operations cannot be performed.",
+    );
     public static DacFxServiceNotAvailableProfileLoaded = l10n.t(
-        "DacFx service is not available. Profile loaded without deployment options.",
+        "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     );
     public static FailedToListDatabases = l10n.t("Failed to list databases");
 }
@@ -1615,6 +1640,9 @@ export class MssqlChatAgent {
         });
     };
     public static unknownErrorOccurred = l10n.t("An unknown error occurred. Please try again.");
+    public static messageCouldNotBeProcessed = l10n.t(
+        "This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.",
+    );
     public static connect = l10n.t("Connect");
     public static openSqlEditorAndConnect = l10n.t("Open SQL editor and connect");
     public static connectionRequiredMessage = (buttonText: string) => {
@@ -2079,4 +2107,112 @@ export class ConnectionGroup {
             comment: ["{0} is the connection group name"],
         });
     };
+}
+
+export class TableExplorer {
+    public static unableToOpenTableExplorer = l10n.t(
+        "Unable to open Table Explorer: No target node provided.",
+    );
+    public static changesSavedSuccessfully = l10n.t("Changes saved successfully.");
+    public static rowCreatedSuccessfully = l10n.t("Row created.");
+    public static rowRemoved = l10n.t("Row removed.");
+
+    public static title = (tableName: string) =>
+        l10n.t({
+            message: "{0} (Preview)",
+            args: [tableName],
+            comment: ["{0} is the table name"],
+        });
+
+    public static failedToSaveChanges = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to save changes: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToLoadData = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to load data: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToCreateNewRow = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to create a new row: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRemoveRow = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to remove row: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToUpdateCell = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to update cell: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRevertCell = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to revert cell: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToRevertRow = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to revert row: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static failedToGenerateScript = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to generate script: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static noScriptToOpen = l10n.t(
+        "No script available. Make changes to the table data and generate a script first.",
+    );
+
+    public static failedToOpenScript = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to open script: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static scriptCopiedToClipboard = l10n.t("Script copied to clipboard.");
+
+    public static noScriptToCopy = l10n.t(
+        "No script available. Make changes to the table data and generate a script first.",
+    );
+
+    public static failedToCopyScript = (errorMessage: string) =>
+        l10n.t({
+            message: "Failed to copy script: {0}",
+            args: [errorMessage],
+            comment: ["{0} is the error message"],
+        });
+
+    public static unsavedChangesPrompt = (tableName: string) =>
+        l10n.t({
+            message:
+                "Table Explorer for '{0}' has unsaved changes. Do you want to save or discard them?",
+            args: [tableName],
+            comment: ["{0} is the table name"],
+        });
+
+    public static Save = l10n.t("Save");
+    public static Discard = l10n.t("Discard");
+    public static Cancel = l10n.t("Cancel");
 }
