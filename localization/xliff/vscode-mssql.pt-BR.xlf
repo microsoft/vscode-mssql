@@ -183,6 +183,10 @@
         <source xml:lang="en">Advanced Options</source>
         <target state="translated">Opções Avançadas</target>
       </trans-unit>
+      <trans-unit id="++CODE++fe80d12c71bbc300158260094cf676c1a9f3546b792f027c84e7a91d9fc75b20">
+        <source xml:lang="en">Advanced Publish Options</source>
+        <target state="new">Advanced Publish Options</target>
+      </trans-unit>
       <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
         <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
         <target state="translated">Todas as permissões para extensões acessarem suas conexões foram limpas.</target>
@@ -935,7 +939,7 @@ Select "{0}" to establish a connection.</target>
       </trans-unit>
       <trans-unit id="++CODE++b34d1cdc1ec3705ae1fac0b6b10b411a0d5f271dfc967f647c99784ba9a323bb">
         <source xml:lang="en">Connect to a database</source>
-        <target state="new">Connect to a database</target>
+        <target state="translated">Conectar a um banco de dados</target>
       </trans-unit>
       <trans-unit id="++CODE++b2c490a777ddf796ff31f0e2a230e002b1329f808ec37cf885ad1bfcd7696ca3">
         <source xml:lang="en">Connect to server {0} and database {1}?</source>
@@ -1189,6 +1193,12 @@ Select "{0}" to establish a connection.</target>
         <source xml:lang="en">Cost</source>
         <target state="translated">Custo</target>
       </trans-unit>
+      <trans-unit id="++CODE++f630f91edbf1dc6649a7de55179cb551ef8245ef63461de0094de54e58d5ea62">
+        <source xml:lang="en">Could not find scripting metadata for {0} '{1}'.</source>
+        <note>{0} is the node type
+{1} is the node label</note>
+        <target state="new">Could not find scripting metadata for {0} '{1}'.</target>
+      </trans-unit>
       <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
         <source xml:lang="en">Count: {0}</source>
         <note>{0} is the count</note>
@@ -1286,9 +1296,13 @@ Select "{0}" to establish a connection.</target>
         <source xml:lang="en">Custom Zoom</source>
         <target state="translated">Zoom Personalizado</target>
       </trans-unit>
-      <trans-unit id="++CODE++ef695e4c384e9b231d25ba5d0160913f31f4153f460e645129860fa611a52b27">
-        <source xml:lang="en">DacFx service is not available</source>
-        <target state="translated">O serviço DacFx não está disponível</target>
+      <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
+        <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
+        <target state="new">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7ca6d6b94c100c4f405187f90cd8ed2b66402f6b47804856b75931feccf9b9f4">
+        <source xml:lang="en">DacFx service is not available. Publish and generate script operations cannot be performed.</source>
+        <target state="new">DacFx service is not available. Publish and generate script operations cannot be performed.</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -1785,6 +1799,10 @@ Erro:
         <source xml:lang="en">Excel</source>
         <target state="translated">Excel</target>
       </trans-unit>
+      <trans-unit id="++CODE++01ae099f23b8fe85d27a9e26613eb2624bd76e11505385e3493f316afde824c2">
+        <source xml:lang="en">Exclude Object Types</source>
+        <target state="new">Exclude Object Types</target>
+      </trans-unit>
       <trans-unit id="++CODE++e3a67d9540e9a204f7dc4aa9d44a0ec652856cfa932a21196bf9df23aa0e4cd1">
         <source xml:lang="en">Execute</source>
         <target state="translated">Executar</target>
@@ -1942,6 +1960,10 @@ Erro:
         <note>{0} is the error message returned from the generate script operation</note>
         <target state="translated">Falha ao gerar o script de publicação: '{0}'</target>
       </trans-unit>
+      <trans-unit id="++CODE++765a301a99c7eee94fb83e4719d18340210f77b71528783b41061a2a9d555e3e">
+        <source xml:lang="en">Failed to generate script. Please check the logs for more details.</source>
+        <target state="new">Failed to generate script. Please check the logs for more details.</target>
+      </trans-unit>
       <trans-unit id="++CODE++cdf943bd7b320469af4343440384b361de46832547d9bc9c08b3bd9a90610364">
         <source xml:lang="en">Failed to generate script: '{0}'</source>
         <note>{0} is the error message returned from the generate script operation</note>
@@ -1992,6 +2014,10 @@ Erro:
         <source xml:lang="en">Failed to open scmp file: '{0}'</source>
         <note>{0} is the error message returned from the open scmp operation</note>
         <target state="translated">Falha ao abrir o arquivo scmp: '{0}'</target>
+      </trans-unit>
+      <trans-unit id="++CODE++139d19f27345e3ce0787cd0cdd3497658705c987f492c0f1881127e5ffcdc79e">
+        <source xml:lang="en">Failed to open script in editor.</source>
+        <target state="new">Failed to open script in editor.</target>
       </trans-unit>
       <trans-unit id="++CODE++00e34162fb43e373f12b352ea75d1e2241f480dbda87ec290aaa6f020232edaa">
         <source xml:lang="en">Failed to open script: {0}</source>
@@ -2252,6 +2278,10 @@ Erro:
         <source xml:lang="en">Generating report, this might take a while...</source>
         <target state="translated">Gerando relatório, isso pode demorar um pouco...</target>
       </trans-unit>
+      <trans-unit id="++CODE++915fc447c859d56fa8e745484ac300e07e104e9ef318105f82b578bedf32c405">
+        <source xml:lang="en">Generating script...</source>
+        <target state="new">Generating script...</target>
+      </trans-unit>
       <trans-unit id="++CODE++fddd3d1537452414b2a4c7bb1b231ca37398b9f211c1e0d8d80e6f69a7f58f2d">
         <source xml:lang="en">Get Connection Details</source>
         <target state="translated">Obter Detalhes da Conexão</target>
@@ -2380,6 +2410,10 @@ Erro:
       <trans-unit id="++CODE++d8d462ddc91939459ae107d47fee7a34b3601b20fcd01615f98e1941674f14ea">
         <source xml:lang="en">I'm sorry, I can only assist with SQL-related questions.</source>
         <target state="translated">Desculpe, só posso ajudar com perguntas relacionadas ao SQL.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b37cea142b959c4f6c75754d7b3d56bc41d1a2d6667600c748d7a168f10c8818">
+        <source xml:lang="en">Ignore Options</source>
+        <target state="new">Ignore Options</target>
       </trans-unit>
       <trans-unit id="++CODE++1d59e3e131d04ce9ba04c0f297dbd4eddb83c0bfe977b2a6bf19bdeb73f2d5c3">
         <source xml:lang="en">Ignore Tenant</source>
@@ -3371,9 +3405,17 @@ Erro:
         <source xml:lang="en">Please make your password 8-128 characters long.</source>
         <target state="translated">Faça com que sua senha tenha de 8 a 128 caracteres.</target>
       </trans-unit>
+      <trans-unit id="++CODE++268f2704823f66b7bf71157cbbb60e14938ed5553068335e93ee23bb6960ed47">
+        <source xml:lang="en">Please select a node from Object Explorer to script.</source>
+        <target state="new">Please select a node from Object Explorer to script.</target>
+      </trans-unit>
       <trans-unit id="++CODE++2e0422920bb9bd61c1c7edf3554564e5ca37f4f0bc5d5a96b0402fb3a4c00155">
         <source xml:lang="en">Please select a workspace where you have sufficient permissions (Contributor or higher)</source>
         <target state="translated">Selecione um workspace onde você tenha permissões suficientes (Colaborador ou superior)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++56244c066a4a09fb49e716fc19de4620d586a5b4776fb08f8450b3e7800850b1">
+        <source xml:lang="en">Please select only one node to script. Multiple node scripting is not supported.</source>
+        <target state="new">Please select only one node to script. Multiple node scripting is not supported.</target>
       </trans-unit>
       <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
         <source xml:lang="en">Port</source>
@@ -4443,11 +4485,6 @@ Consulta: {1}</target>
         <note>{0} is the table name</note>
         <target state="new">Table Explorer for '{0}' has unsaved changes. Do you want to save or discard them?</target>
       </trans-unit>
-      <trans-unit id="++CODE++7d1ab5b5ff98e8604fded16d7ad53dddbb49c37435c485b4546a9a921ea76700">
-        <source xml:lang="en">Table Explorer: {0} (Preview)</source>
-        <note>{0} is the table name</note>
-        <target state="new">Table Explorer: {0} (Preview)</target>
-      </trans-unit>
       <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
         <source xml:lang="en">Table name</source>
         <target state="translated">Nome da tabela</target>
@@ -4995,6 +5032,11 @@ Consulta: {1}</target>
         <note>{0} is the account display name</note>
         <target state="translated">{0} (Conta atual)</target>
       </trans-unit>
+      <trans-unit id="++CODE++fdd1e66955c2307ddc64a5e81697afacea8973b913e99714f2d5579ddecf0c2a">
+        <source xml:lang="en">{0} (Preview)</source>
+        <note>{0} is the table name</note>
+        <target state="new">{0} (Preview)</target>
+      </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
         <target state="translated">{0} (filtrado)</target>
@@ -5344,10 +5386,6 @@ Quando terminar de fazer suas alterações, clique no botão "Publicar" para env
         <source xml:lang="en">Edit Connection Sharing Permissions</source>
         <target state="translated">Editar Permissões de Compartilhamento de Conexão</target>
       </trans-unit>
-      <trans-unit id="mssql.editTable">
-        <source xml:lang="en">Edit Table</source>
-        <target state="translated">Editar Tabela</target>
-      </trans-unit>
       <trans-unit id="mssql.enableActualPlan">
         <source xml:lang="en">Enable Actual Plan</source>
         <target state="translated">Habilitar Plano Real</target>
@@ -5558,6 +5596,10 @@ Você pode se conectar a um banco de dados inserindo suas informações de conex
         <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
         <target state="translated">O tamanho máximo de dados text e ntext retornados de uma instrução SELECT</target>
       </trans-unit>
+      <trans-unit id="mssql.editTable">
+        <source xml:lang="en">Modify Table Structure</source>
+        <target state="new">Modify Table Structure</target>
+      </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
         <target state="translated">Nova Implantação</target>
@@ -5691,6 +5733,10 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
       <trans-unit id="mssql.objectExplorer.Tooltip.containerVersionLabel">
         <source xml:lang="en">SQL Container Version</source>
         <target state="translated">Versão do Contêiner do SQL</target>
+      </trans-unit>
+      <trans-unit id="mssql.sqlScriptsSubmenu">
+        <source xml:lang="en">SQL Scripts</source>
+        <target state="new">SQL Scripts</target>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Schema Compare</source>

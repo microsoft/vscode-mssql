@@ -155,10 +155,27 @@ export function getMockContext(): vscode.ExtensionContext {
     return {
         extensionUri: vscode.Uri.parse("file://test"),
         extensionPath: "path",
+        subscriptions: [],
     } as unknown as vscode.ExtensionContext;
 }
 
 export function initializeIconUtils(): void {
     const { IconUtils } = require("../../src/utils/iconUtils");
     IconUtils.initialize(vscode.Uri.file(path.join(__dirname, "..", "..")));
+}
+
+export function stubWithProgress(
+    sandbox: sinon.SinonSandbox,
+    onInvoke: (
+        options: vscode.ProgressOptions,
+        task: (
+            progress: vscode.Progress<{
+                message?: string;
+                increment?: number;
+            }>,
+            token: vscode.CancellationToken,
+        ) => Thenable<unknown>,
+    ) => Thenable<unknown>,
+): sinon.SinonStub {
+    return sandbox.stub(vscode.window, "withProgress").callsFake(onInvoke);
 }
