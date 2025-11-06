@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DacFxApplicationWebviewState } from "../../../sharedInterfaces/dacFxApplication";
+import { DacpacDialogWebviewState } from "../../../sharedInterfaces/dacpacDialog";
 import { useVscodeSelector } from "../../common/useVscodeSelector";
 
-export function useDacFxApplicationSelector<T>(
-    selector: (state: DacFxApplicationWebviewState) => T,
+export function useDacpacDialogSelector<T>(
+    selector: (state: DacpacDialogWebviewState) => T,
     equals?: (a: T, b: T) => boolean,
 ) {
-    return useVscodeSelector<DacFxApplicationWebviewState, void, T>(selector, equals);
+    return useVscodeSelector<DacpacDialogWebviewState, void, T>(selector, equals);
 }

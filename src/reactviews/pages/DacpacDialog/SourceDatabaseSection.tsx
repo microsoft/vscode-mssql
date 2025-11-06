@@ -49,7 +49,7 @@ export const SourceDatabaseSection = ({
         <div className={classes.section}>
             {showDatabaseSource ? (
                 <Field
-                    label={locConstants.dacFxApplication.sourceDatabaseLabel}
+                    label={locConstants.dacpacDialog.sourceDatabaseLabel}
                     required
                     validationMessage={
                         validationMessages.databaseName?.message ||
@@ -62,12 +62,12 @@ export const SourceDatabaseSection = ({
                             : "none"
                     }>
                     <Dropdown
-                        placeholder={locConstants.dacFxApplication.selectDatabase}
+                        placeholder={locConstants.dacpacDialog.selectDatabase}
                         value={databaseName}
                         selectedOptions={[databaseName]}
                         onOptionSelect={(_, data) => setDatabaseName(data.optionText || "")}
                         disabled={isOperationInProgress || !ownerUri}
-                        aria-label={locConstants.dacFxApplication.sourceDatabaseLabel}>
+                        aria-label={locConstants.dacpacDialog.sourceDatabaseLabel}>
                         {availableDatabases.map((db) => (
                             <Option key={db} value={db}>
                                 {db}
@@ -78,7 +78,7 @@ export const SourceDatabaseSection = ({
             ) : (
                 showNewDatabase && (
                     <Field
-                        label={locConstants.dacFxApplication.databaseNameLabel}
+                        label={locConstants.dacpacDialog.databaseNameLabel}
                         required
                         validationMessage={validationMessages.databaseName?.message}
                         validationState={
@@ -87,9 +87,9 @@ export const SourceDatabaseSection = ({
                         <Input
                             value={databaseName}
                             onChange={(_, data) => setDatabaseName(data.value)}
-                            placeholder={locConstants.dacFxApplication.enterDatabaseName}
+                            placeholder={locConstants.dacpacDialog.enterDatabaseName}
                             disabled={isOperationInProgress}
-                            aria-label={locConstants.dacFxApplication.databaseNameLabel}
+                            aria-label={locConstants.dacpacDialog.databaseNameLabel}
                         />
                     </Field>
                 )

@@ -19,7 +19,7 @@ export enum DacFxOperationType {
 /**
  * The state of the DacFx Application webview
  */
-export interface DacFxApplicationWebviewState {
+export interface DacpacDialogWebviewState {
     /**
      * The currently selected operation type
      */
@@ -120,7 +120,7 @@ export interface ExportBacpacParams extends DacFxOperationParams {}
 /**
  * Result from a DacFx Application operation
  */
-export interface DacFxApplicationResult {
+export interface DacpacDialogResult {
     success: boolean;
     errorMessage?: string;
     operationId?: string;
@@ -130,8 +130,8 @@ export interface DacFxApplicationResult {
  * Request to deploy a DACPAC from the webview
  */
 export namespace DeployDacpacWebviewRequest {
-    export const type = new RequestType<DeployDacpacParams, DacFxApplicationResult, void>(
-        "dacFxApplication/deployDacpac",
+    export const type = new RequestType<DeployDacpacParams, DacpacDialogResult, void>(
+        "dacpacDialog/deployDacpac",
     );
 }
 
@@ -139,8 +139,8 @@ export namespace DeployDacpacWebviewRequest {
  * Request to extract a DACPAC from the webview
  */
 export namespace ExtractDacpacWebviewRequest {
-    export const type = new RequestType<ExtractDacpacParams, DacFxApplicationResult, void>(
-        "dacFxApplication/extractDacpac",
+    export const type = new RequestType<ExtractDacpacParams, DacpacDialogResult, void>(
+        "dacpacDialog/extractDacpac",
     );
 }
 
@@ -148,8 +148,8 @@ export namespace ExtractDacpacWebviewRequest {
  * Request to import a BACPAC from the webview
  */
 export namespace ImportBacpacWebviewRequest {
-    export const type = new RequestType<ImportBacpacParams, DacFxApplicationResult, void>(
-        "dacFxApplication/importBacpac",
+    export const type = new RequestType<ImportBacpacParams, DacpacDialogResult, void>(
+        "dacpacDialog/importBacpac",
     );
 }
 
@@ -157,8 +157,8 @@ export namespace ImportBacpacWebviewRequest {
  * Request to export a BACPAC from the webview
  */
 export namespace ExportBacpacWebviewRequest {
-    export const type = new RequestType<ExportBacpacParams, DacFxApplicationResult, void>(
-        "dacFxApplication/exportBacpac",
+    export const type = new RequestType<ExportBacpacParams, DacpacDialogResult, void>(
+        "dacpacDialog/exportBacpac",
     );
 }
 
@@ -170,7 +170,7 @@ export namespace ValidateFilePathWebviewRequest {
         { filePath: string; shouldExist: boolean },
         { isValid: boolean; errorMessage?: string },
         void
-    >("dacFxApplication/validateFilePath");
+    >("dacpacDialog/validateFilePath");
 }
 
 /**
@@ -178,7 +178,7 @@ export namespace ValidateFilePathWebviewRequest {
  */
 export namespace ListDatabasesWebviewRequest {
     export const type = new RequestType<{ ownerUri: string }, { databases: string[] }, void>(
-        "dacFxApplication/listDatabases",
+        "dacpacDialog/listDatabases",
     );
 }
 
@@ -195,7 +195,7 @@ export namespace ValidateDatabaseNameWebviewRequest {
         },
         { isValid: boolean; errorMessage?: string },
         void
-    >("dacFxApplication/validateDatabaseName");
+    >("dacpacDialog/validateDatabaseName");
 }
 
 /**
@@ -203,7 +203,7 @@ export namespace ValidateDatabaseNameWebviewRequest {
  */
 export namespace ListConnectionsWebviewRequest {
     export const type = new RequestType<void, { connections: IConnectionDialogProfile[] }, void>(
-        "dacFxApplication/listConnections",
+        "dacpacDialog/listConnections",
     );
 }
 
@@ -227,7 +227,7 @@ export namespace InitializeConnectionWebviewRequest {
             errorMessage?: string;
         },
         void
-    >("dacFxApplication/initializeConnection");
+    >("dacpacDialog/initializeConnection");
 }
 
 /**
@@ -238,22 +238,22 @@ export namespace ConnectToServerWebviewRequest {
         { profileId: string },
         { ownerUri: string; isConnected: boolean; errorMessage?: string },
         void
-    >("dacFxApplication/connectToServer");
+    >("dacpacDialog/connectToServer");
 }
 
 /**
  * Notification sent from the webview to cancel the operation
  */
-export namespace CancelDacFxApplicationWebviewNotification {
-    export const type = new NotificationType<void>("dacFxApplication/cancel");
+export namespace CancelDacpacDialogWebviewNotification {
+    export const type = new NotificationType<void>("dacpacDialog/cancel");
 }
 
 /**
  * Notification sent to the webview to update progress
  */
-export namespace DacFxApplicationProgressNotification {
+export namespace DacpacDialogProgressNotification {
     export const type = new NotificationType<{ message: string; percentage?: number }>(
-        "dacFxApplication/progress",
+        "dacpacDialog/progress",
     );
 }
 
@@ -262,7 +262,7 @@ export namespace DacFxApplicationProgressNotification {
  */
 export namespace BrowseInputFileWebviewRequest {
     export const type = new RequestType<{ fileExtension: string }, { filePath?: string }, void>(
-        "dacFxApplication/browseInputFile",
+        "dacpacDialog/browseInputFile",
     );
 }
 
@@ -274,7 +274,7 @@ export namespace BrowseOutputFileWebviewRequest {
         { fileExtension: string; defaultFileName?: string },
         { filePath?: string },
         void
-    >("dacFxApplication/browseOutputFile");
+    >("dacpacDialog/browseOutputFile");
 }
 
 /**
@@ -286,7 +286,7 @@ export namespace GetSuggestedOutputPathWebviewRequest {
         { databaseName: string; operationType: DacFxOperationType },
         { fullPath: string },
         void
-    >("dacFxApplication/getSuggestedOutputPath");
+    >("dacpacDialog/getSuggestedOutputPath");
 }
 
 /**
@@ -298,7 +298,7 @@ export namespace GetSuggestedFilenameWebviewRequest {
         { databaseName: string; fileExtension: string },
         { filename: string },
         void
-    >("dacFxApplication/getSuggestedFilename");
+    >("dacpacDialog/getSuggestedFilename");
 }
 
 /**
@@ -307,7 +307,7 @@ export namespace GetSuggestedFilenameWebviewRequest {
  */
 export namespace GetSuggestedDatabaseNameWebviewRequest {
     export const type = new RequestType<{ filePath: string }, { databaseName: string }, void>(
-        "dacFxApplication/getSuggestedDatabaseName",
+        "dacpacDialog/getSuggestedDatabaseName",
     );
 }
 
@@ -316,6 +316,6 @@ export namespace GetSuggestedDatabaseNameWebviewRequest {
  */
 export namespace ConfirmDeployToExistingWebviewRequest {
     export const type = new RequestType<void, { confirmed: boolean }, void>(
-        "dacFxApplication/confirmDeployToExisting",
+        "dacpacDialog/confirmDeployToExisting",
     );
 }

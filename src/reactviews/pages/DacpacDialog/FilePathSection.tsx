@@ -56,8 +56,8 @@ export const FilePathSection = ({
             <Field
                 label={
                     requiresInputFile
-                        ? locConstants.dacFxApplication.packageFileLabel
-                        : locConstants.dacFxApplication.outputFileLabel
+                        ? locConstants.dacpacDialog.packageFileLabel
+                        : locConstants.dacpacDialog.outputFileLabel
                 }
                 required
                 validationMessage={validationMessages.filePath?.message}
@@ -75,14 +75,14 @@ export const FilePathSection = ({
                         onChange={(_, data) => onFilePathChange(data.value)}
                         placeholder={
                             requiresInputFile
-                                ? locConstants.dacFxApplication.selectPackageFile
-                                : locConstants.dacFxApplication.selectOutputFile
+                                ? locConstants.dacpacDialog.selectPackageFile
+                                : locConstants.dacpacDialog.selectOutputFile
                         }
                         disabled={isOperationInProgress}
                         aria-label={
                             requiresInputFile
-                                ? locConstants.dacFxApplication.packageFileLabel
-                                : locConstants.dacFxApplication.outputFileLabel
+                                ? locConstants.dacpacDialog.packageFileLabel
+                                : locConstants.dacpacDialog.outputFileLabel
                         }
                     />
                     <Button
@@ -90,8 +90,8 @@ export const FilePathSection = ({
                         appearance="secondary"
                         onClick={onBrowseFile}
                         disabled={isOperationInProgress}
-                        aria-label={locConstants.dacFxApplication.browse}>
-                        {locConstants.dacFxApplication.browse}
+                        aria-label={locConstants.dacpacDialog.browse}>
+                        {locConstants.dacpacDialog.browse}
                     </Button>
                 </div>
             </Field>

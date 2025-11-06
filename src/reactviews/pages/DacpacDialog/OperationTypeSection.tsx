@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Field, makeStyles, Radio, RadioGroup } from "@fluentui/react-components";
-import { DacFxOperationType } from "../../../sharedInterfaces/dacFxApplication";
+import { DacFxOperationType } from "../../../sharedInterfaces/dacpacDialog";
 import { locConstants } from "../../common/locConstants";
 
 interface OperationTypeSectionProps {
@@ -32,7 +32,7 @@ export const OperationTypeSection = ({
 
     return (
         <div className={classes.section}>
-            <Field label={locConstants.dacFxApplication.operationLabel} required>
+            <Field label={locConstants.dacpacDialog.operationLabel} required>
                 <RadioGroup
                     value={operationType}
                     onChange={(_, data) => {
@@ -40,46 +40,46 @@ export const OperationTypeSection = ({
                         onOperationTypeChange?.();
                     }}
                     disabled={isOperationInProgress}
-                    aria-label={locConstants.dacFxApplication.operationLabel}>
+                    aria-label={locConstants.dacpacDialog.operationLabel}>
                     <Radio
                         value={DacFxOperationType.Deploy}
                         label={
-                            locConstants.dacFxApplication.deployDescription +
+                            locConstants.dacpacDialog.deployDescription +
                             " (" +
-                            locConstants.dacFxApplication.deployDacpac +
+                            locConstants.dacpacDialog.deployDacpac +
                             ")"
                         }
-                        aria-label={locConstants.dacFxApplication.deployDacpac}
+                        aria-label={locConstants.dacpacDialog.deployDacpac}
                     />
                     <Radio
                         value={DacFxOperationType.Extract}
                         label={
-                            locConstants.dacFxApplication.extractDescription +
+                            locConstants.dacpacDialog.extractDescription +
                             " (" +
-                            locConstants.dacFxApplication.extractDacpac +
+                            locConstants.dacpacDialog.extractDacpac +
                             ")"
                         }
-                        aria-label={locConstants.dacFxApplication.extractDacpac}
+                        aria-label={locConstants.dacpacDialog.extractDacpac}
                     />
                     <Radio
                         value={DacFxOperationType.Import}
                         label={
-                            locConstants.dacFxApplication.importDescription +
+                            locConstants.dacpacDialog.importDescription +
                             " (" +
-                            locConstants.dacFxApplication.importBacpac +
+                            locConstants.dacpacDialog.importBacpac +
                             ")"
                         }
-                        aria-label={locConstants.dacFxApplication.importBacpac}
+                        aria-label={locConstants.dacpacDialog.importBacpac}
                     />
                     <Radio
                         value={DacFxOperationType.Export}
                         label={
-                            locConstants.dacFxApplication.exportDescription +
+                            locConstants.dacpacDialog.exportDescription +
                             " (" +
-                            locConstants.dacFxApplication.exportBacpac +
+                            locConstants.dacpacDialog.exportBacpac +
                             ")"
                         }
-                        aria-label={locConstants.dacFxApplication.exportBacpac}
+                        aria-label={locConstants.dacpacDialog.exportBacpac}
                     />
                 </RadioGroup>
             </Field>

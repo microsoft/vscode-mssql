@@ -61,29 +61,29 @@ export const TargetDatabaseSection = ({
 
     return (
         <div className={classes.section}>
-            <Label>{locConstants.dacFxApplication.targetDatabaseLabel}</Label>
+            <Label>{locConstants.dacpacDialog.targetDatabaseLabel}</Label>
             <RadioGroup
                 value={isNewDatabase ? "new" : "existing"}
                 onChange={(_, data) => setIsNewDatabase(data.value === "new")}
                 className={classes.radioGroup}
-                aria-label={locConstants.dacFxApplication.targetDatabaseLabel}>
+                aria-label={locConstants.dacpacDialog.targetDatabaseLabel}>
                 <Radio
                     value="new"
-                    label={locConstants.dacFxApplication.newDatabase}
+                    label={locConstants.dacpacDialog.newDatabase}
                     disabled={isOperationInProgress}
-                    aria-label={locConstants.dacFxApplication.newDatabase}
+                    aria-label={locConstants.dacpacDialog.newDatabase}
                 />
                 <Radio
                     value="existing"
-                    label={locConstants.dacFxApplication.existingDatabase}
+                    label={locConstants.dacpacDialog.existingDatabase}
                     disabled={isOperationInProgress}
-                    aria-label={locConstants.dacFxApplication.existingDatabase}
+                    aria-label={locConstants.dacpacDialog.existingDatabase}
                 />
             </RadioGroup>
 
             {isNewDatabase ? (
                 <Field
-                    label={locConstants.dacFxApplication.databaseNameLabel}
+                    label={locConstants.dacpacDialog.databaseNameLabel}
                     required
                     validationMessage={validationMessages.databaseName?.message}
                     validationState={
@@ -92,14 +92,14 @@ export const TargetDatabaseSection = ({
                     <Input
                         value={databaseName}
                         onChange={(_, data) => setDatabaseName(data.value)}
-                        placeholder={locConstants.dacFxApplication.enterDatabaseName}
+                        placeholder={locConstants.dacpacDialog.enterDatabaseName}
                         disabled={isOperationInProgress}
-                        aria-label={locConstants.dacFxApplication.databaseNameLabel}
+                        aria-label={locConstants.dacpacDialog.databaseNameLabel}
                     />
                 </Field>
             ) : (
                 <Field
-                    label={locConstants.dacFxApplication.databaseNameLabel}
+                    label={locConstants.dacpacDialog.databaseNameLabel}
                     required
                     validationMessage={
                         validationMessages.databaseName?.message ||
@@ -112,12 +112,12 @@ export const TargetDatabaseSection = ({
                             : "none"
                     }>
                     <Dropdown
-                        placeholder={locConstants.dacFxApplication.selectDatabase}
+                        placeholder={locConstants.dacpacDialog.selectDatabase}
                         value={databaseName}
                         selectedOptions={[databaseName]}
                         onOptionSelect={(_, data) => setDatabaseName(data.optionText || "")}
                         disabled={isOperationInProgress || !ownerUri}
-                        aria-label={locConstants.dacFxApplication.databaseNameLabel}>
+                        aria-label={locConstants.dacpacDialog.databaseNameLabel}>
                         {availableDatabases.map((db) => (
                             <Option key={db} value={db}>
                                 {db}

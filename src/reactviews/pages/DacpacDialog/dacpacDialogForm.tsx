@@ -6,12 +6,12 @@
 import { Button, makeStyles, tokens } from "@fluentui/react-components";
 import { DatabaseArrowRight20Regular } from "@fluentui/react-icons";
 import { useState, useEffect, useContext } from "react";
-import * as dacFxApplication from "../../../sharedInterfaces/dacFxApplication";
+import * as dacpacDialog from "../../../sharedInterfaces/dacpacDialog";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { locConstants } from "../../common/locConstants";
 import { ApplicationInfoSection } from "./ApplicationInfoSection";
-import { DacFxApplicationContext } from "./dacFxApplicationStateProvider";
-import { useDacFxApplicationSelector } from "./dacFxApplicationSelector";
+import { DacpacDialogContext } from "./dacpacDialogStateProvider";
+import { useDacpacDialogSelector } from "./dacpacDialogSelector";
 import { FilePathSection } from "./FilePathSection";
 import { OperationTypeSection } from "./OperationTypeSection";
 import { ServerSelectionSection } from "./ServerSelectionSection";
@@ -31,22 +31,20 @@ interface ValidationMessage {
  */
 const DEFAULT_APPLICATION_VERSION = "1.0.0";
 
-export const DacFxApplicationForm = () => {
+export const DacpacDialogForm = () => {
     const classes = useStyles();
-    const context = useContext(DacFxApplicationContext);
+    const context = useContext(DacpacDialogContext);
 
     // State from the controller
-    const initialOperationType = useDacFxApplicationSelector((state) => state.operationType);
-    const initialOwnerUri = useDacFxApplicationSelector((state) => state.ownerUri);
-    const initialServerName = useDacFxApplicationSelector((state) => state.serverName);
-    const initialDatabaseName = useDacFxApplicationSelector((state) => state.databaseName);
-    const initialSelectedProfileId = useDacFxApplicationSelector(
-        (state) => state.selectedProfileId,
-    );
+    const initialOperationType = useDacpacDialogSelector((state) => state.operationType);
+    const initialOwnerUri = useDacpacDialogSelector((state) => state.ownerUri);
+    const initialServerName = useDacpacDialogSelector((state) => state.serverName);
+    const initialDatabaseName = useDacpacDialogSelector((state) => state.databaseName);
+    const initialSelectedProfileId = useDacpacDialogSelector((state) => state.selectedProfileId);
 
     // Local state
-    const [operationType, setOperationType] = useState<dacFxApplication.DacFxOperationType>(
-        initialOperationType || dacFxApplication.DacFxOperationType.Deploy,
+    const [operationType, setOperationType] = useState<dacpacDialog.DacFxOperationType>(
+        initialOperationType || dacpacDialog.DacFxOperationType.Deploy,
     );
     const [filePath, setFilePath] = useState("");
     const [databaseName, setDatabaseName] = useState(initialDatabaseName || "");
@@ -85,9 +83,9 @@ export const DacFxApplicationForm = () => {
     useEffect(() => {
         if (
             ownerUri &&
-            (operationType === dacFxApplication.DacFxOperationType.Deploy ||
-                operationType === dacFxApplication.DacFxOperationType.Extract ||
-                operationType === dacFxApplication.DacFxOperationType.Export)
+            (operationType === dacpacDialog.DacFxOperationType.Deploy ||
+                operationType === dacpacDialog.DacFxOperationType.Extract ||
+                operationType === dacpacDialog.DacFxOperationType.Export)
         ) {
             void loadDatabases();
         }
@@ -98,8 +96,8 @@ export const DacFxApplicationForm = () => {
         const updateSuggestedPath = async () => {
             if (
                 databaseName &&
-                (operationType === dacFxApplication.DacFxOperationType.Extract ||
-                    operationType === dacFxApplication.DacFxOperationType.Export) &&
+                (operationType === dacpacDialog.DacFxOperationType.Extract ||
+                    operationType === dacpacDialog.DacFxOperationType.Export) &&
                 context?.getSuggestedOutputPath
             ) {
                 // Get the suggested full path from the controller
@@ -146,7 +144,7 @@ export const DacFxApplicationForm = () => {
                         setValidationMessages((prev) => ({
                             ...prev,
                             connection: {
-                                message: `${locConstants.dacFxApplication.connectionFailed}: ${result.errorMessage}`,
+                                message: `${locConstants.dacpacDialog.connectionFailed}: ${result.errorMessage}`,
                                 severity: "error",
                             },
                         }));
@@ -157,7 +155,7 @@ export const DacFxApplicationForm = () => {
             const errorMsg = error instanceof Error ? error.message : String(error);
             setValidationMessages({
                 connection: {
-                    message: `${locConstants.dacFxApplication.connectionFailed}: ${errorMsg}`,
+                    message: `${locConstants.dacpacDialog.connectionFailed}: ${errorMsg}`,
                     severity: "error",
                 },
             });
@@ -192,8 +190,7 @@ export const DacFxApplicationForm = () => {
                 setAvailableDatabases([]);
                 setDatabaseName("");
                 // Show error message to user
-                const errorMsg =
-                    result?.errorMessage || locConstants.dacFxApplication.connectionFailed;
+                const errorMsg = result?.errorMessage || locConstants.dacpacDialog.connectionFailed;
                 setValidationMessages({
                     connection: {
                         message: errorMsg,
@@ -205,7 +202,7 @@ export const DacFxApplicationForm = () => {
             const errorMsg = error instanceof Error ? error.message : String(error);
             setValidationMessages({
                 connection: {
-                    message: `${locConstants.dacFxApplication.connectionFailed}: ${errorMsg}`,
+                    message: `${locConstants.dacpacDialog.connectionFailed}: ${errorMsg}`,
                     severity: "error",
                 },
             });
@@ -225,7 +222,7 @@ export const DacFxApplicationForm = () => {
             setValidationMessages((prev) => ({
                 ...prev,
                 database: {
-                    message: `${locConstants.dacFxApplication.failedToLoadDatabases}: ${errorMsg}`,
+                    message: `${locConstants.dacpacDialog.failedToLoadDatabases}: ${errorMsg}`,
                     severity: "error",
                 },
             }));
@@ -237,7 +234,7 @@ export const DacFxApplicationForm = () => {
             setValidationMessages((prev) => ({
                 ...prev,
                 filePath: {
-                    message: locConstants.dacFxApplication.filePathRequired,
+                    message: locConstants.dacpacDialog.filePathRequired,
                     severity: "error",
                 },
             }));
@@ -251,7 +248,7 @@ export const DacFxApplicationForm = () => {
                 setValidationMessages((prev) => ({
                     ...prev,
                     filePath: {
-                        message: result?.errorMessage || locConstants.dacFxApplication.invalidFile,
+                        message: result?.errorMessage || locConstants.dacpacDialog.invalidFile,
                         severity: "error",
                     },
                 }));
@@ -277,9 +274,7 @@ export const DacFxApplicationForm = () => {
             return true;
         } catch (error) {
             const errorMessage =
-                error instanceof Error
-                    ? error.message
-                    : locConstants.dacFxApplication.validationFailed;
+                error instanceof Error ? error.message : locConstants.dacpacDialog.validationFailed;
             setValidationMessages((prev) => ({
                 ...prev,
                 filePath: {
@@ -299,7 +294,7 @@ export const DacFxApplicationForm = () => {
             setValidationMessages((prev) => ({
                 ...prev,
                 databaseName: {
-                    message: locConstants.dacFxApplication.databaseNameRequired,
+                    message: locConstants.dacpacDialog.databaseNameRequired,
                     severity: "error",
                 },
             }));
@@ -318,8 +313,7 @@ export const DacFxApplicationForm = () => {
                 setValidationMessages((prev) => ({
                     ...prev,
                     databaseName: {
-                        message:
-                            result?.errorMessage || locConstants.dacFxApplication.invalidDatabase,
+                        message: result?.errorMessage || locConstants.dacpacDialog.invalidDatabase,
                         severity: "error",
                     },
                 }));
@@ -338,8 +332,8 @@ export const DacFxApplicationForm = () => {
             // 1. User checked "New Database" but database already exists (shouldNotExist=true)
             // 2. User unchecked "New Database" to deploy to existing (shouldNotExist=false)
             if (
-                operationType === dacFxApplication.DacFxOperationType.Deploy &&
-                result.errorMessage === locConstants.dacFxApplication.databaseAlreadyExists
+                operationType === dacpacDialog.DacFxOperationType.Deploy &&
+                result.errorMessage === locConstants.dacpacDialog.databaseAlreadyExists
             ) {
                 const confirmResult = await context?.confirmDeployToExisting();
 
@@ -349,9 +343,7 @@ export const DacFxApplicationForm = () => {
             return true;
         } catch (error) {
             const errorMessage =
-                error instanceof Error
-                    ? error.message
-                    : locConstants.dacFxApplication.validationFailed;
+                error instanceof Error ? error.message : locConstants.dacpacDialog.validationFailed;
             setValidationMessages((prev) => ({
                 ...prev,
                 databaseName: {
@@ -375,15 +367,15 @@ export const DacFxApplicationForm = () => {
     /**
      * Helper to determine validation requirements based on operation type
      */
-    const getValidationRequirements = (opType: dacFxApplication.DacFxOperationType) => {
+    const getValidationRequirements = (opType: dacpacDialog.DacFxOperationType) => {
         switch (opType) {
-            case dacFxApplication.DacFxOperationType.Deploy:
+            case dacpacDialog.DacFxOperationType.Deploy:
                 return { filePathShouldExist: true, databaseShouldNotExist: isNewDatabase };
-            case dacFxApplication.DacFxOperationType.Extract:
+            case dacpacDialog.DacFxOperationType.Extract:
                 return { filePathShouldExist: false, databaseShouldNotExist: false };
-            case dacFxApplication.DacFxOperationType.Import:
+            case dacpacDialog.DacFxOperationType.Import:
                 return { filePathShouldExist: true, databaseShouldNotExist: true };
-            case dacFxApplication.DacFxOperationType.Export:
+            case dacpacDialog.DacFxOperationType.Export:
                 return { filePathShouldExist: false, databaseShouldNotExist: false };
         }
     };
@@ -393,7 +385,7 @@ export const DacFxApplicationForm = () => {
      * @returns true if validation passes, false otherwise
      */
     const validateOperationInputs = async (
-        opType: dacFxApplication.DacFxOperationType,
+        opType: dacpacDialog.DacFxOperationType,
     ): Promise<boolean> => {
         const requirements = getValidationRequirements(opType);
 
@@ -419,7 +411,7 @@ export const DacFxApplicationForm = () => {
             let result;
 
             switch (operationType) {
-                case dacFxApplication.DacFxOperationType.Deploy:
+                case dacpacDialog.DacFxOperationType.Deploy:
                     result = await context?.deployDacpac({
                         packageFilePath: filePath,
                         databaseName,
@@ -428,7 +420,7 @@ export const DacFxApplicationForm = () => {
                     });
                     break;
 
-                case dacFxApplication.DacFxOperationType.Extract:
+                case dacpacDialog.DacFxOperationType.Extract:
                     result = await context?.extractDacpac({
                         databaseName,
                         packageFilePath: filePath,
@@ -438,7 +430,7 @@ export const DacFxApplicationForm = () => {
                     });
                     break;
 
-                case dacFxApplication.DacFxOperationType.Import:
+                case dacpacDialog.DacFxOperationType.Import:
                     result = await context?.importBacpac({
                         packageFilePath: filePath,
                         databaseName,
@@ -446,7 +438,7 @@ export const DacFxApplicationForm = () => {
                     });
                     break;
 
-                case dacFxApplication.DacFxOperationType.Export:
+                case dacpacDialog.DacFxOperationType.Export:
                     result = await context?.exportBacpac({
                         databaseName,
                         packageFilePath: filePath,
@@ -459,16 +451,12 @@ export const DacFxApplicationForm = () => {
                 setIsOperationInProgress(false);
                 clearForm();
             } else {
-                console.error(
-                    result?.errorMessage || locConstants.dacFxApplication.operationFailed,
-                );
+                console.error(result?.errorMessage || locConstants.dacpacDialog.operationFailed);
                 setIsOperationInProgress(false);
             }
         } catch (error) {
             console.error(
-                error instanceof Error
-                    ? error.message
-                    : locConstants.dacFxApplication.unexpectedError,
+                error instanceof Error ? error.message : locConstants.dacpacDialog.unexpectedError,
             );
             setIsOperationInProgress(false);
         }
@@ -476,8 +464,8 @@ export const DacFxApplicationForm = () => {
 
     const handleBrowseFile = async () => {
         const fileExtension =
-            operationType === dacFxApplication.DacFxOperationType.Deploy ||
-            operationType === dacFxApplication.DacFxOperationType.Extract
+            operationType === dacpacDialog.DacFxOperationType.Deploy ||
+            operationType === dacpacDialog.DacFxOperationType.Extract
                 ? "dacpac"
                 : "bacpac";
 
@@ -524,8 +512,8 @@ export const DacFxApplicationForm = () => {
             if (
                 requiresInputFile &&
                 context &&
-                (operationType === dacFxApplication.DacFxOperationType.Deploy ||
-                    operationType === dacFxApplication.DacFxOperationType.Import)
+                (operationType === dacpacDialog.DacFxOperationType.Deploy ||
+                    operationType === dacpacDialog.DacFxOperationType.Import)
             ) {
                 const nameResult = await context.getSuggestedDatabaseName({
                     filePath: result.filePath,
@@ -557,14 +545,14 @@ export const DacFxApplicationForm = () => {
     };
 
     const requiresInputFile =
-        operationType === dacFxApplication.DacFxOperationType.Deploy ||
-        operationType === dacFxApplication.DacFxOperationType.Import;
-    const showDatabaseTarget = operationType === dacFxApplication.DacFxOperationType.Deploy;
+        operationType === dacpacDialog.DacFxOperationType.Deploy ||
+        operationType === dacpacDialog.DacFxOperationType.Import;
+    const showDatabaseTarget = operationType === dacpacDialog.DacFxOperationType.Deploy;
     const showDatabaseSource =
-        operationType === dacFxApplication.DacFxOperationType.Extract ||
-        operationType === dacFxApplication.DacFxOperationType.Export;
-    const showNewDatabase = operationType === dacFxApplication.DacFxOperationType.Import;
-    const showApplicationInfo = operationType === dacFxApplication.DacFxOperationType.Extract;
+        operationType === dacpacDialog.DacFxOperationType.Extract ||
+        operationType === dacpacDialog.DacFxOperationType.Export;
+    const showNewDatabase = operationType === dacpacDialog.DacFxOperationType.Import;
+    const showApplicationInfo = operationType === dacpacDialog.DacFxOperationType.Extract;
 
     async function handleFilePathChange(value: string): Promise<void> {
         setFilePath(value);
@@ -579,10 +567,8 @@ export const DacFxApplicationForm = () => {
         <div className={classes.root}>
             <div className={classes.formContainer}>
                 <div>
-                    <div className={classes.title}>{locConstants.dacFxApplication.title}</div>
-                    <div className={classes.description}>
-                        {locConstants.dacFxApplication.subtitle}
-                    </div>
+                    <div className={classes.title}>{locConstants.dacpacDialog.title}</div>
+                    <div className={classes.description}>{locConstants.dacpacDialog.subtitle}</div>
                 </div>
 
                 <OperationTypeSection
@@ -658,16 +644,16 @@ export const DacFxApplicationForm = () => {
                         appearance="secondary"
                         onClick={handleCancel}
                         disabled={isOperationInProgress}
-                        aria-label={locConstants.dacFxApplication.cancel}>
-                        {locConstants.dacFxApplication.cancel}
+                        aria-label={locConstants.dacpacDialog.cancel}>
+                        {locConstants.dacpacDialog.cancel}
                     </Button>
                     <Button
                         appearance="primary"
                         icon={<DatabaseArrowRight20Regular />}
                         onClick={handleSubmit}
                         disabled={!isFormValid() || isOperationInProgress || isConnecting}
-                        aria-label={locConstants.dacFxApplication.execute}>
-                        {locConstants.dacFxApplication.execute}
+                        aria-label={locConstants.dacpacDialog.execute}>
+                        {locConstants.dacpacDialog.execute}
                     </Button>
                 </div>
             </div>

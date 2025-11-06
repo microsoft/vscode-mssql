@@ -47,11 +47,8 @@ import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInter
 import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
-import { DacFxApplicationWebviewController } from "./dacFxApplicationWebviewController";
-import {
-    DacFxApplicationWebviewState,
-    DacFxOperationType,
-} from "../sharedInterfaces/dacFxApplication";
+import { DacpacDialogWebviewController } from "./dacpacDialogWebviewController";
+import { DacpacDialogWebviewState, DacFxOperationType } from "../sharedInterfaces/dacpacDialog";
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
 import {
     DatabaseObjectSearchService,
@@ -1808,7 +1805,7 @@ export default class MainController implements vscode.Disposable {
                           `${connectionProfile.server}_${connectionProfile.database || ""}`
                         : undefined;
 
-                    const initialState: DacFxApplicationWebviewState = {
+                    const initialState: DacpacDialogWebviewState = {
                         ownerUri,
                         serverName,
                         databaseName,
@@ -1816,7 +1813,7 @@ export default class MainController implements vscode.Disposable {
                         operationType,
                     };
 
-                    const controller = new DacFxApplicationWebviewController(
+                    const controller = new DacpacDialogWebviewController(
                         this._context,
                         this._vscodeWrapper,
                         this._connectionMgr,
@@ -1830,7 +1827,7 @@ export default class MainController implements vscode.Disposable {
         };
 
         // Data-tier Application commands
-        registerDacFxCommand(Constants.cmdDacFxApplication, DacFxOperationType.Deploy);
+        registerDacFxCommand(Constants.cmdDacpacDialog, DacFxOperationType.Deploy);
         registerDacFxCommand(Constants.cmdDeployDacpac, DacFxOperationType.Deploy);
         registerDacFxCommand(Constants.cmdExtractDacpac, DacFxOperationType.Extract);
         registerDacFxCommand(Constants.cmdImportBacpac, DacFxOperationType.Import);

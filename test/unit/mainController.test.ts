@@ -340,9 +340,9 @@ suite("MainController Tests", function () {
     });
 
     suite("Data-Tier Application Commands", () => {
-        test("cmdDacFxApplication command is registered", async () => {
+        test("cmdDacpacDialog command is registered", async () => {
             const commands = await vscode.commands.getCommands(true);
-            expect(commands).to.include(Constants.cmdDacFxApplication);
+            expect(commands).to.include(Constants.cmdDacpacDialog);
         });
 
         test("cmdDeployDacpac command is registered", async () => {

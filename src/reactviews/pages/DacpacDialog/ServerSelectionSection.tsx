@@ -45,17 +45,17 @@ export const ServerSelectionSection = ({
     return (
         <div className={classes.section}>
             <Field
-                label={locConstants.dacFxApplication.serverLabel}
+                label={locConstants.dacpacDialog.serverLabel}
                 required
                 validationMessage={validationMessages.connection?.message}
                 validationState={
                     validationMessages.connection?.severity === "error" ? "error" : "none"
                 }>
                 {isConnecting ? (
-                    <Spinner size="tiny" label={locConstants.dacFxApplication.connectingToServer} />
+                    <Spinner size="tiny" label={locConstants.dacpacDialog.connectingToServer} />
                 ) : (
                     <Dropdown
-                        placeholder={locConstants.dacFxApplication.selectServer}
+                        placeholder={locConstants.dacpacDialog.selectServer}
                         value={
                             selectedProfileId
                                 ? (() => {
@@ -71,10 +71,10 @@ export const ServerSelectionSection = ({
                             onServerChange(data.optionValue as string);
                         }}
                         disabled={isOperationInProgress || availableConnections.length === 0}
-                        aria-label={locConstants.dacFxApplication.serverLabel}>
+                        aria-label={locConstants.dacpacDialog.serverLabel}>
                         {availableConnections.length === 0 ? (
                             <Option value="" disabled text="">
-                                {locConstants.dacFxApplication.noConnectionsAvailable}
+                                {locConstants.dacpacDialog.noConnectionsAvailable}
                             </Option>
                         ) : (
                             availableConnections.map((conn) => (

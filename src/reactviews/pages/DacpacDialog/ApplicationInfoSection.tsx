@@ -38,23 +38,23 @@ export const ApplicationInfoSection = ({
 
     return (
         <div className={classes.section}>
-            <Field label={locConstants.dacFxApplication.applicationNameLabel}>
+            <Field label={locConstants.dacpacDialog.applicationNameLabel}>
                 <Input
                     value={applicationName}
                     onChange={(_, data) => setApplicationName(data.value)}
-                    placeholder={locConstants.dacFxApplication.enterApplicationName}
+                    placeholder={locConstants.dacpacDialog.enterApplicationName}
                     disabled={isOperationInProgress}
-                    aria-label={locConstants.dacFxApplication.applicationNameLabel}
+                    aria-label={locConstants.dacpacDialog.applicationNameLabel}
                 />
             </Field>
 
-            <Field label={locConstants.dacFxApplication.applicationVersionLabel}>
+            <Field label={locConstants.dacpacDialog.applicationVersionLabel}>
                 <Input
                     value={applicationVersion}
                     onChange={(_, data) => setApplicationVersion(data.value)}
                     placeholder={DEFAULT_APPLICATION_VERSION}
                     disabled={isOperationInProgress}
-                    aria-label={locConstants.dacFxApplication.applicationVersionLabel}
+                    aria-label={locConstants.dacpacDialog.applicationVersionLabel}
                 />
             </Field>
         </div>

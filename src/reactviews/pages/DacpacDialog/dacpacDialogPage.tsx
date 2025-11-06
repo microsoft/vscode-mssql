@@ -5,12 +5,12 @@
 
 import { useContext } from "react";
 import { Spinner } from "@fluentui/react-components";
-import { DacFxApplicationContext } from "./dacFxApplicationStateProvider";
-import { DacFxApplicationForm } from "./dacFxApplicationForm";
+import { DacpacDialogContext } from "./dacpacDialogStateProvider";
+import { DacpacDialogForm } from "./dacpacDialogForm";
 import { locConstants } from "../../common/locConstants";
 
-export const DacFxApplicationPage = () => {
-    const context = useContext(DacFxApplicationContext);
+export const DacpacDialogPage = () => {
+    const context = useContext(DacpacDialogContext);
 
     if (!context) {
         return (
@@ -27,10 +27,10 @@ export const DacFxApplicationPage = () => {
                     alignItems: "center",
                     justifyContent: "center",
                 }}>
-                <Spinner label={locConstants.dacFxApplication.loading} labelPosition="below" />
+                <Spinner label={locConstants.dacpacDialog.loading} labelPosition="below" />
             </div>
         );
     }
 
-    return <DacFxApplicationForm />;
+    return <DacpacDialogForm />;
 };

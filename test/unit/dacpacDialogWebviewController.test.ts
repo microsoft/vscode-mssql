@@ -14,17 +14,17 @@ import * as chai from "chai";
 import { expect } from "chai";
 import * as jsonRpc from "vscode-jsonrpc/node";
 import {
-    DacFxApplicationWebviewController,
+    DacpacDialogWebviewController,
     DACPAC_EXTENSION,
     BACPAC_EXTENSION,
-} from "../../src/controllers/dacFxApplicationWebviewController";
+} from "../../src/controllers/dacpacDialogWebviewController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { DacFxService } from "../../src/services/dacFxService";
 import {
-    CancelDacFxApplicationWebviewNotification,
+    CancelDacpacDialogWebviewNotification,
     ConfirmDeployToExistingWebviewRequest,
     ConnectToServerWebviewRequest,
-    DacFxApplicationResult,
+    DacpacDialogResult,
     DacFxOperationType,
     DeployDacpacWebviewRequest,
     ExportBacpacWebviewRequest,
@@ -39,7 +39,7 @@ import {
     ValidateFilePathWebviewRequest,
     BrowseInputFileWebviewRequest,
     BrowseOutputFileWebviewRequest,
-} from "../../src/sharedInterfaces/dacFxApplication";
+} from "../../src/sharedInterfaces/dacpacDialog";
 import * as LocConstants from "../../src/constants/locConstants";
 import {
     stubTelemetry,
@@ -57,7 +57,7 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import * as fs from "fs";
 import * as path from "path";
 chai.use(sinonChai);
-suite("DacFxApplicationWebviewController", () => {
+suite("DacpacDialogWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
     let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
@@ -70,7 +70,7 @@ suite("DacFxApplicationWebviewController", () => {
     let connectionStub: jsonRpc.MessageConnection;
     let createWebviewPanelStub: sinon.SinonStub;
     let panelStub: vscode.WebviewPanel;
-    let controller: DacFxApplicationWebviewController;
+    let controller: DacpacDialogWebviewController;
     let fsExistsSyncStub: sinon.SinonStub;
     const ownerUri = "test-connection-uri";
     const initialState = {
@@ -111,8 +111,8 @@ suite("DacFxApplicationWebviewController", () => {
     teardown(() => {
         sandbox.restore();
     });
-    function createController(): DacFxApplicationWebviewController {
-        controller = new DacFxApplicationWebviewController(
+    function createController(): DacpacDialogWebviewController {
+        controller = new DacpacDialogWebviewController(
             mockContext,
             vscodeWrapperStub,
             connectionManagerStub,
@@ -140,7 +140,7 @@ suite("DacFxApplicationWebviewController", () => {
                 ownerUri: ownerUri,
             };
             const resolveSpy = sandbox.spy(controller.dialogResult, "resolve");
-            const response = (await requestHandler!(params)) as DacFxApplicationResult;
+            const response = (await requestHandler!(params)) as DacpacDialogResult;
             expect(dacFxServiceStub.deployDacpac).to.have.been.calledOnce;
             expect(dacFxServiceStub.deployDacpac).to.have.been.calledWith(
                 params.packageFilePath,
@@ -708,7 +708,7 @@ suite("DacFxApplicationWebviewController", () => {
                 shouldExist: true,
             });
             expect(response.isValid).to.be.false;
-            expect(response.errorMessage).to.equal(LocConstants.DacFxApplication.FileNotFound);
+            expect(response.errorMessage).to.equal(LocConstants.DacpacDialog.FileNotFound);
         });
         test("rejects empty file path", async () => {
             createController();
@@ -718,7 +718,7 @@ suite("DacFxApplicationWebviewController", () => {
                 shouldExist: true,
             });
             expect(response.isValid).to.be.false;
-            expect(response.errorMessage).to.equal(LocConstants.DacFxApplication.FilePathRequired);
+            expect(response.errorMessage).to.equal(LocConstants.DacpacDialog.FilePathRequired);
         });
         test("rejects invalid file extension", async () => {
             fsExistsSyncStub.returns(true);
@@ -729,9 +729,7 @@ suite("DacFxApplicationWebviewController", () => {
                 shouldExist: true,
             });
             expect(response.isValid).to.be.false;
-            expect(response.errorMessage).to.equal(
-                LocConstants.DacFxApplication.InvalidFileExtension,
-            );
+            expect(response.errorMessage).to.equal(LocConstants.DacpacDialog.InvalidFileExtension);
         });
         test("validates output file path when directory exists", async () => {
             // File doesn't exist, but directory does
@@ -760,7 +758,7 @@ suite("DacFxApplicationWebviewController", () => {
                 shouldExist: false,
             });
             expect(response.isValid).to.be.true;
-            expect(response.errorMessage).to.equal(LocConstants.DacFxApplication.FileAlreadyExists);
+            expect(response.errorMessage).to.equal(LocConstants.DacpacDialog.FileAlreadyExists);
         });
         test("rejects output file path when directory doesn't exist", async () => {
             fsExistsSyncStub.returns(false);
@@ -771,7 +769,7 @@ suite("DacFxApplicationWebviewController", () => {
                 shouldExist: false,
             });
             expect(response.isValid).to.be.false;
-            expect(response.errorMessage).to.equal(LocConstants.DacFxApplication.DirectoryNotFound);
+            expect(response.errorMessage).to.equal(LocConstants.DacpacDialog.DirectoryNotFound);
         });
     });
     suite("Database Operations", () => {
@@ -838,9 +836,7 @@ suite("DacFxApplicationWebviewController", () => {
                 shouldNotExist: true,
             });
             expect(response.isValid).to.be.true;
-            expect(response.errorMessage).to.equal(
-                LocConstants.DacFxApplication.DatabaseAlreadyExists,
-            );
+            expect(response.errorMessage).to.equal(LocConstants.DacpacDialog.DatabaseAlreadyExists);
         });
         test("validates existing database name for extract/export", async () => {
             const mockDatabases = {
@@ -877,7 +873,7 @@ suite("DacFxApplicationWebviewController", () => {
                 shouldNotExist: false,
             });
             expect(response.isValid).to.be.false;
-            expect(response.errorMessage).to.equal(LocConstants.DacFxApplication.DatabaseNotFound);
+            expect(response.errorMessage).to.equal(LocConstants.DacpacDialog.DatabaseNotFound);
         });
         test("rejects empty database name", async () => {
             createController();
@@ -890,9 +886,7 @@ suite("DacFxApplicationWebviewController", () => {
                 shouldNotExist: true,
             });
             expect(response.isValid).to.be.false;
-            expect(response.errorMessage).to.equal(
-                LocConstants.DacFxApplication.DatabaseNameRequired,
-            );
+            expect(response.errorMessage).to.equal(LocConstants.DacpacDialog.DatabaseNameRequired);
         });
         test("rejects database name with invalid characters", async () => {
             createController();
@@ -905,9 +899,7 @@ suite("DacFxApplicationWebviewController", () => {
                 shouldNotExist: true,
             });
             expect(response.isValid).to.be.false;
-            expect(response.errorMessage).to.equal(
-                LocConstants.DacFxApplication.InvalidDatabaseName,
-            );
+            expect(response.errorMessage).to.equal(LocConstants.DacpacDialog.InvalidDatabaseName);
         });
         test("rejects database name that is too long", async () => {
             createController();
@@ -921,9 +913,7 @@ suite("DacFxApplicationWebviewController", () => {
                 shouldNotExist: true,
             });
             expect(response.isValid).to.be.false;
-            expect(response.errorMessage).to.equal(
-                LocConstants.DacFxApplication.DatabaseNameTooLong,
-            );
+            expect(response.errorMessage).to.equal(LocConstants.DacpacDialog.DatabaseNameTooLong);
         });
         test("validates database name case-insensitively with warning", async () => {
             const mockDatabases = {
@@ -942,9 +932,7 @@ suite("DacFxApplicationWebviewController", () => {
                 shouldNotExist: true,
             });
             expect(response.isValid).to.be.true;
-            expect(response.errorMessage).to.equal(
-                LocConstants.DacFxApplication.DatabaseAlreadyExists,
-            );
+            expect(response.errorMessage).to.equal(LocConstants.DacpacDialog.DatabaseAlreadyExists);
         });
         test("returns validation failed on error", async () => {
             sqlToolsClientStub.sendRequest
@@ -969,7 +957,7 @@ suite("DacFxApplicationWebviewController", () => {
         test("cancel notification resolves dialog with undefined and disposes panel", async () => {
             createController();
             const cancelHandler = notificationHandlers.get(
-                CancelDacFxApplicationWebviewNotification.type.method,
+                CancelDacpacDialogWebviewNotification.type.method,
             );
             expect(cancelHandler, "Cancel handler was not registered").to.be.a("function");
             const resultPromise = controller.dialogResult.promise;
@@ -990,13 +978,13 @@ suite("DacFxApplicationWebviewController", () => {
             expect(confirmHandler, "Confirm handler was not registered").to.be.a("function");
             // Mock user clicking "Deploy" button
             vscodeWrapperStub.showWarningMessageAdvanced.resolves(
-                LocConstants.DacFxApplication.DeployToExistingConfirm,
+                LocConstants.DacpacDialog.DeployToExistingConfirm,
             );
             const response = await confirmHandler!(undefined);
             expect(vscodeWrapperStub.showWarningMessageAdvanced).to.have.been.calledOnceWith(
-                LocConstants.DacFxApplication.DeployToExistingMessage,
+                LocConstants.DacpacDialog.DeployToExistingMessage,
                 { modal: true },
-                [LocConstants.DacFxApplication.DeployToExistingConfirm],
+                [LocConstants.DacpacDialog.DeployToExistingConfirm],
             );
             expect(response.confirmed).to.be.true;
         });
@@ -1010,9 +998,9 @@ suite("DacFxApplicationWebviewController", () => {
             vscodeWrapperStub.showWarningMessageAdvanced.resolves(undefined);
             const response = await confirmHandler!(undefined);
             expect(vscodeWrapperStub.showWarningMessageAdvanced).to.have.been.calledOnceWith(
-                LocConstants.DacFxApplication.DeployToExistingMessage,
+                LocConstants.DacpacDialog.DeployToExistingMessage,
                 { modal: true },
-                [LocConstants.DacFxApplication.DeployToExistingConfirm],
+                [LocConstants.DacpacDialog.DeployToExistingConfirm],
             );
             expect(response.confirmed).to.be.false;
         });
@@ -1026,9 +1014,9 @@ suite("DacFxApplicationWebviewController", () => {
             vscodeWrapperStub.showWarningMessageAdvanced.resolves(undefined);
             const response = await confirmHandler!(undefined);
             expect(vscodeWrapperStub.showWarningMessageAdvanced).to.have.been.calledOnceWith(
-                LocConstants.DacFxApplication.DeployToExistingMessage,
+                LocConstants.DacpacDialog.DeployToExistingMessage,
                 { modal: true },
-                [LocConstants.DacFxApplication.DeployToExistingConfirm],
+                [LocConstants.DacpacDialog.DeployToExistingConfirm],
             );
             expect(response.confirmed).to.be.false;
         });
@@ -1039,7 +1027,7 @@ suite("DacFxApplicationWebviewController", () => {
             expect(createWebviewPanelStub).to.have.been.calledOnce;
             expect(createWebviewPanelStub).to.have.been.calledWith(
                 "mssql-react-webview",
-                LocConstants.DacFxApplication.Title,
+                LocConstants.DacpacDialog.Title,
                 sinon.match.any,
                 sinon.match.any,
             );
@@ -1060,8 +1048,8 @@ suite("DacFxApplicationWebviewController", () => {
         });
         test("registers cancel notification handler", () => {
             createController();
-            expect(notificationHandlers.has(CancelDacFxApplicationWebviewNotification.type.method))
-                .to.be.true;
+            expect(notificationHandlers.has(CancelDacpacDialogWebviewNotification.type.method)).to
+                .be.true;
         });
         test("returns correct owner URI", () => {
             createController();

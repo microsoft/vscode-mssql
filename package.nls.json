@@ -15,7 +15,7 @@
     "mssql.scriptDelete": "Script as Drop",
     "mssql.scriptExecute": "Script as Execute",
     "mssql.scriptAlter": "Script as Alter",
-    "mssql.launchDacFxApplication": "Data-tier Application",
+    "mssql.launchDacpacDialog": "Data-tier Application",
     "mssql.deployDacpac": "Deploy DACPAC",
     "mssql.extractDacpac": "Extract DACPAC",
     "mssql.importBacpac": "Import BACPAC",
