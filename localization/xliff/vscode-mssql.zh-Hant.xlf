@@ -485,6 +485,18 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Browse Fabric</source>
         <target state="translated">瀏覽 Fabric</target>
       </trans-unit>
+      <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
+        <source xml:lang="en">Build failed with exit code {0}</source>
+        <target state="new">Build failed with exit code {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++070df86dfd0e7f4066a971ef2e0d5b9ee8ddbb826c4edf0924026bca37ac603f">
+        <source xml:lang="en">Build {0}</source>
+        <target state="new">Build {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9168a1046e45504ed34edeecd99ec73be336161e82395399aa9a3c1d912be6b2">
+        <source xml:lang="en">Building {0}...</source>
+        <target state="new">Building {0}...</target>
+      </trans-unit>
       <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
         <source xml:lang="en">CSV</source>
         <target state="translated">CSV</target>
@@ -3493,6 +3505,10 @@ Error:
       <trans-unit id="++CODE++8a0d6f1276ee19a91fb06f73344d1d60f2d1f1c8d7e0454c8bb31ea00c2b9a30">
         <source xml:lang="en">Profile created successfully</source>
         <target state="translated">設定檔已成功建立</target>
+      </trans-unit>
+      <trans-unit id="++CODE++21eda41850777c46deb17245aa52751b4406410fdcc51f6644fc38b317201e71">
+        <source xml:lang="en">Profile loaded but connection failed. Please connect to the server manually.</source>
+        <target state="new">Profile loaded but connection failed. Please connect to the server manually.</target>
       </trans-unit>
       <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
         <source xml:lang="en">Profile removed successfully</source>
