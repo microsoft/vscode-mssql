@@ -47,7 +47,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
     private _cachedSelectedDatabase?: string;
     private _connectionUri?: string;
     private _connectionString?: string;
-    private _defaultSqlCmdVariables?: { [key: string]: string };
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _sqlProjectsService?: SqlProjectsService;
     private readonly _dacFxService?: mssql.IDacFxService;
@@ -338,10 +337,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     this.state.formState.sqlCmdVariables = sqlCmdVarsObject;
 
                     // Store immutable default values (project defaults initially)
-                    this._defaultSqlCmdVariables = { ...sqlCmdVarsObject };
-
-                    // Also set in state for UI to read
-                    this.state.originalSqlCmdVariables = { ...sqlCmdVarsObject };
+                    this.state.defaultSqlCmdVariables = { ...sqlCmdVarsObject };
                 }
             }
         } catch (error) {
@@ -472,14 +468,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     };
 
                     // Update immutable default values: project defaults + profile overrides
-                    this._defaultSqlCmdVariables = {
-                        ...this._defaultSqlCmdVariables,
+                    const updatedDefaults = {
+                        ...state.defaultSqlCmdVariables,
                         ...parsedProfile.sqlCmdVariables,
                     };
 
                     // Update state with loaded profile data immediately (non-blocking)
                     this.state = {
                         ...state,
+                        defaultSqlCmdVariables: updatedDefaults,
                         formState: {
                             ...state.formState,
                             publishProfilePath: selectedPath,
@@ -490,7 +487,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         },
                         deploymentOptions:
                             parsedProfile.deploymentOptions || state.deploymentOptions,
-                        originalSqlCmdVariables: { ...mergedSqlCmdVariables },
                         formMessage: !this._dacFxService
                             ? {
                                   message: Loc.DacFxServiceNotAvailableProfileLoaded,
@@ -543,6 +539,35 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         this.registerReducer("closeMessage", async (state: PublishDialogState) => {
             return { ...state, formMessage: undefined };
+        });
+
+        // Dedicated reducer for updating SQLCMD variables.
+        // Cannot use formAction because FormEvent.value is typed as string | boolean,
+        // but sqlCmdVariables is an object type, so we need a custom reducer for type safety.
+        this.registerReducer(
+            "updateSqlCmdVariables",
+            async (
+                state: PublishDialogState,
+                payload: { variables: { [key: string]: string } },
+            ) => {
+                return {
+                    ...state,
+                    formState: {
+                        ...state.formState,
+                        sqlCmdVariables: payload.variables,
+                    },
+                };
+            },
+        );
+
+        this.registerReducer("revertSqlCmdVariables", async (state: PublishDialogState) => {
+            return {
+                ...state,
+                formState: {
+                    ...state.formState,
+                    sqlCmdVariables: { ...state.defaultSqlCmdVariables },
+                },
+            };
         });
 
         this.registerReducer(

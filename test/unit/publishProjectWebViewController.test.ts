@@ -796,12 +796,6 @@ suite("PublishProjectWebViewController Tests", () => {
             DatabaseName: "MyTestDB",
             Environment: "Development",
         });
-
-        // Verify original values are stored for revert functionality
-        expect(controller.state.originalSqlCmdVariables).to.deep.equal({
-            DatabaseName: "MyTestDB",
-            Environment: "Development",
-        });
     });
 
     test("revertSqlCmdVariables reducer restores variables to default values", async () => {

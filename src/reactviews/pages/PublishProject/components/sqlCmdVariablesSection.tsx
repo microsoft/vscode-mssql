@@ -85,14 +85,14 @@ export const SqlCmdVariablesSection: React.FC = () => {
     const publishCtx = useContext(PublishProjectContext);
     const sqlCmdVariables = usePublishDialogSelector((s) => s.formState.sqlCmdVariables);
     const sqlCmdComponent = usePublishDialogSelector((s) => s.formComponents.sqlCmdVariables);
-    const originalSqlCmdVariables = usePublishDialogSelector((s) => s.originalSqlCmdVariables);
+    const defaultSqlCmdVariables = usePublishDialogSelector((s) => s.defaultSqlCmdVariables);
 
     // Local state to track current input values (prevents cursor jumping)
     const [localValues, setLocalValues] = useState<{ [key: string]: string }>(
         sqlCmdVariables || {},
     );
 
-    // Sync local values when sqlCmdVariables changes from external sources (e.g., profile load)
+    // Sync local values when sqlCmdVariables changes from external sources (e.g., profile load, revert)
     useEffect(() => {
         setLocalValues(sqlCmdVariables || {});
     }, [sqlCmdVariables]);
@@ -102,28 +102,32 @@ export const SqlCmdVariablesSection: React.FC = () => {
         return Object.entries(sqlCmdVariables || {});
     }, [sqlCmdVariables]);
 
-    // Check if any values have been modified from their original values
-    // Use localValues for immediate revert button update
+    // Check if current values differ from defaults
     const hasModifiedValues = useMemo(() => {
-        if (!originalSqlCmdVariables) {
+        if (!defaultSqlCmdVariables || !sqlCmdVariables) {
             return false;
         }
 
-        const allVarNames = new Set([
-            ...Object.keys(localValues),
-            ...Object.keys(originalSqlCmdVariables),
-        ]);
+        // Check if any current values differ from defaults
+        for (const varName in sqlCmdVariables) {
+            if ((sqlCmdVariables[varName] || "") !== (defaultSqlCmdVariables[varName] || "")) {
+                return true;
+            }
+        }
 
-        return Array.from(allVarNames).some((varName) => {
-            const currentValue = localValues[varName] || "";
-            const originalValue = originalSqlCmdVariables[varName] || "";
-            return currentValue !== originalValue;
-        });
-    }, [localValues, originalSqlCmdVariables]);
+        // Check if any default values are missing in current (deleted variables)
+        for (const varName in defaultSqlCmdVariables) {
+            if (!(varName in sqlCmdVariables)) {
+                return true;
+            }
+        }
+
+        return false;
+    }, [sqlCmdVariables, defaultSqlCmdVariables]);
 
     const handleValueChange = useCallback(
         (varName: string, newValue: string) => {
-            if (!publishCtx || !sqlCmdComponent) return;
+            if (!publishCtx) return;
 
             setLocalValues((prev) => ({
                 ...prev,
@@ -134,40 +138,29 @@ export const SqlCmdVariablesSection: React.FC = () => {
                 ...sqlCmdVariables,
                 [varName]: newValue,
             };
-            publishCtx.formAction({
-                propertyName: sqlCmdComponent.propertyName,
-                isAction: false,
-                value: updatedVariables as unknown as string | boolean,
-                updateValidation: false,
-            });
+            publishCtx.updateSqlCmdVariables(updatedVariables);
         },
-        [sqlCmdVariables, sqlCmdComponent, publishCtx],
+        [sqlCmdVariables, publishCtx],
     );
 
     const handleValueBlur = useCallback(
         (varName: string, newValue: string) => {
-            if (!publishCtx || !sqlCmdComponent) return;
+            if (!publishCtx) return;
 
-            // Update backend state when user finishes editing
             const updatedVariables = {
                 ...sqlCmdVariables,
                 [varName]: newValue,
             };
-            publishCtx.formAction({
-                propertyName: sqlCmdComponent.propertyName,
-                isAction: false,
-                value: updatedVariables as unknown as string | boolean,
-                updateValidation: true,
-            });
+            publishCtx.updateSqlCmdVariables(updatedVariables);
         },
-        [sqlCmdVariables, sqlCmdComponent, publishCtx],
+        [sqlCmdVariables, publishCtx],
     );
 
     const handleRevertValues = useCallback(() => {
-        if (publishCtx && hasModifiedValues) {
+        if (publishCtx) {
             publishCtx.revertSqlCmdVariables();
         }
-    }, [publishCtx, hasModifiedValues]);
+    }, [publishCtx]);
 
     if (!publishCtx || !sqlCmdVariables || !sqlCmdComponent || sqlCmdComponent.hidden) {
         return undefined;

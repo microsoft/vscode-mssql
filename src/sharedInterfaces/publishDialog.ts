@@ -88,20 +88,14 @@ export interface PublishDialogState
     waitingForNewConnection?: boolean;
     formMessage?: DialogMessageSpec;
     defaultDeploymentOptions?: mssql.DeploymentOptions;
-    previousDatabaseList?: { displayName: string; value: string }[];
-    previousSelectedDatabase?: string;
-    originalSqlCmdVariables?: { [key: string]: string };
+    defaultSqlCmdVariables?: { [key: string]: string };
 }
 
 /**
  * Form item specification for Publish dialog fields.
  */
 export interface PublishDialogFormItemSpec
-    extends FormItemSpec<IPublishForm, PublishDialogState, PublishDialogFormItemSpec> {
-    // (Removed advanced option metadata: was isAdvancedOption/optionCategory/optionCategoryLabel)
-    // Reintroduce when the Publish dialog gains an "Advanced publish options" section with grouped fields.
-    // TODO: https://github.com/microsoft/vscode-mssql/issues/20248 task for advanced options
-}
+    extends FormItemSpec<IPublishForm, PublishDialogState, PublishDialogFormItemSpec> {}
 
 /**
  * Reducers (messages) the controller supports in addition to the generic form actions.
@@ -120,6 +114,7 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
     openConnectionDialog: {};
     closeMessage: {};
     updateDeploymentOptions: { deploymentOptions: mssql.DeploymentOptions };
+    updateSqlCmdVariables: { variables: { [key: string]: string } };
     revertSqlCmdVariables: {};
 }
 
@@ -142,5 +137,6 @@ export interface PublishProjectProvider {
     openConnectionDialog(): void;
     closeMessage(): void;
     updateDeploymentOptions(deploymentOptions: mssql.DeploymentOptions): void;
+    updateSqlCmdVariables(variables: { [key: string]: string }): void;
     revertSqlCmdVariables(): void;
 }

@@ -45,6 +45,8 @@ export const PublishProjectStateProvider: React.FC<{ children: React.ReactNode }
             closeMessage: () => extensionRpc.action("closeMessage"),
             updateDeploymentOptions: (deploymentOptions: mssql.DeploymentOptions) =>
                 extensionRpc.action("updateDeploymentOptions", { deploymentOptions }),
+            updateSqlCmdVariables: (variables: { [key: string]: string }) =>
+                extensionRpc.action("updateSqlCmdVariables", { variables }),
             revertSqlCmdVariables: () => extensionRpc.action("revertSqlCmdVariables"),
             extensionRpc,
         }),
