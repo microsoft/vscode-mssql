@@ -6,6 +6,8 @@
 import * as vscode from "vscode";
 import * as mssql from "vscode-mssql";
 import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
@@ -16,6 +18,8 @@ import { validateSqlServerPassword } from "../../src/deployment/dockerUtils";
 import { stubVscodeWrapper } from "./utils";
 import { PublishTarget } from "../../src/sharedInterfaces/publishDialog";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
+
+chai.use(sinonChai);
 
 suite("PublishProjectWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -211,6 +215,7 @@ suite("PublishProjectWebViewController Tests", () => {
                 success: true,
                 databaseSchemaProvider:
                     "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
+                outputPath: "bin/Debug",
             }),
         };
 
@@ -250,6 +255,7 @@ suite("PublishProjectWebViewController Tests", () => {
                 projectGuid: "test-guid",
                 databaseSchemaProvider:
                     "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
+                outputPath: "bin/Debug",
             }),
         };
 
@@ -373,10 +379,7 @@ suite("PublishProjectWebViewController Tests", () => {
         });
 
         // Verify deployment options were loaded from DacFx matching XML properties
-        expect(
-            mockDacFxService.getOptionsFromProfile.calledOnce,
-            "DacFx getOptionsFromProfile should be called once when loading profile",
-        ).to.be.true;
+        expect(mockDacFxService.getOptionsFromProfile).to.have.been.calledOnce;
         expect(newState.deploymentOptions.excludeObjectTypes.value).to.deep.equal([
             "Users",
             "Logins",
@@ -445,10 +448,7 @@ suite("PublishProjectWebViewController Tests", () => {
         });
 
         // Verify DacFx save was called with correct parameters
-        expect(
-            mockDacFxService.savePublishProfile.calledOnce,
-            "DacFx savePublishProfile should be called once when saving profile",
-        ).to.be.true;
+        expect(mockDacFxService.savePublishProfile).to.have.been.calledOnce;
 
         const saveCall = mockDacFxService.savePublishProfile.getCall(0);
         expect(saveCall.args[0].replace(/\\/g, "/")).to.equal(savedProfilePath); // File path (normalize for cross-platform)
@@ -656,6 +656,99 @@ suite("PublishProjectWebViewController Tests", () => {
         ]);
         expect(
             newState.deploymentOptions.booleanOptionsDictionary.allowDropBlockingAssemblies.value,
+        ).to.be.true;
+    });
+    //#endregion
+
+    //#region Generate Script Tests
+    test("generatePublishScript reducer closes dialog and triggers script generation", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Set up state with all required fields for script generation
+        controller.state.formState.serverName = "localhost";
+        controller.state.formState.databaseName = "TestDatabase";
+        controller["_connectionUri"] = "mssql://test-connection-uri";
+        controller.state.projectFilePath = "c:/work/TestProject.sqlproj";
+
+        // Mock the panel dispose method using sandbox stub
+        const panelDisposeSpy = sandbox.stub();
+        Object.defineProperty(controller, "panel", {
+            value: { dispose: panelDisposeSpy },
+            writable: true,
+            configurable: true,
+        });
+
+        // Spy on executePublishAndGenerateScript to verify it's called
+        const executePublishSpy = sandbox.stub(
+            controller as typeof controller & {
+                executePublishAndGenerateScript: (state: unknown, isPublish: boolean) => void;
+            },
+            "executePublishAndGenerateScript",
+        );
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const generatePublishScript = reducerHandlers.get("generatePublishScript");
+        expect(generatePublishScript, "generatePublishScript reducer should be registered").to
+            .exist;
+
+        // Invoke the reducer
+        await generatePublishScript(controller.state, {});
+
+        // Verify dialog was closed
+        expect(panelDisposeSpy).to.have.been.calledOnce;
+
+        // Verify executePublishAndGenerateScript was called with isPublish=false
+        expect(executePublishSpy).to.have.been.calledOnce;
+        expect(
+            executePublishSpy.firstCall.args[1],
+            "isPublish parameter should be false for script generation",
+        ).to.be.false;
+    });
+    //#endregion
+
+    //#region Publish Tests
+    test("publishNow reducer closes dialog and triggers publish", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Set up state with all required fields for publish
+        controller.state.formState.serverName = "localhost";
+        controller.state.formState.databaseName = "TestDatabase";
+        controller["_connectionUri"] = "mssql://test-connection-uri";
+        controller.state.projectFilePath = "c:/work/TestProject.sqlproj";
+
+        // Mock the panel dispose method using sandbox stub
+        const panelDisposeSpy = sandbox.stub();
+        Object.defineProperty(controller, "panel", {
+            value: { dispose: panelDisposeSpy },
+            writable: true,
+            configurable: true,
+        });
+
+        // Spy on executePublishAndGenerateScript to verify it's called
+        const executePublishSpy = sandbox.stub(
+            controller as typeof controller & {
+                executePublishAndGenerateScript: (state: unknown, isPublish: boolean) => void;
+            },
+            "executePublishAndGenerateScript",
+        );
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const publishNow = reducerHandlers.get("publishNow");
+        expect(publishNow, "publishNow reducer should be registered").to.exist;
+
+        // Invoke the reducer
+        await publishNow(controller.state, {});
+
+        // Verify dialog was closed
+        expect(panelDisposeSpy).to.have.been.calledOnce;
+
+        // Verify executePublishAndGenerateScript was called with isPublish=true
+        expect(executePublishSpy).to.have.been.calledOnce;
+        expect(
+            executePublishSpy.firstCall.args[1],
+            "isPublish parameter should be true for publish",
         ).to.be.true;
     });
     //#endregion

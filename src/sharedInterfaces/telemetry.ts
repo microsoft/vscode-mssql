@@ -44,6 +44,7 @@ export enum TelemetryActions {
     IncludeExcludeNode = "IncludeExcludeNode",
     PublishProjectChanges = "PublishProjectChanges",
     PublishDatabaseChanges = "PublishDatabaseChanges",
+    BuildProject = "BuildProject",
     AddNewConnectionDialogOpened = "AddNewConnectionDialogOpened",
     ListingActiveServers = "ListingActiveServers",
     SqlProjectInstalledVerification = "SqlProjectInstalledVerification",

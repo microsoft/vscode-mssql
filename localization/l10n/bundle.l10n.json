@@ -1516,6 +1516,9 @@
     "Local development container": "Local development container",
     "New SQL Server local development container": "New SQL Server local development container",
     "New Azure SQL logical server (Preview)": "New Azure SQL logical server (Preview)",
+    "Build {0}": "Build {0}",
+    "Building {0}...": "Building {0}...",
+    "Build failed with exit code {0}": "Build failed with exit code {0}",
     "SQL Server port number": "SQL Server port number",
     "SQL Server admin password": "SQL Server admin password",
     "Confirm SQL Server admin password": "Confirm SQL Server admin password",
@@ -1533,6 +1536,7 @@
     "DacFx service is not available. Publish and generate script operations cannot be performed.": "DacFx service is not available. Publish and generate script operations cannot be performed.",
     "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.": "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     "Failed to list databases": "Failed to list databases",
+    "Profile loaded but connection failed. Please connect to the server manually.": "Profile loaded but connection failed. Please connect to the server manually.",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {

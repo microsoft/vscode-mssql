@@ -1352,6 +1352,15 @@ export class PublishProject {
     public static PublishTargetNewAzureServer = l10n.t("New Azure SQL logical server (Preview)");
     public static GenerateScript = l10n.t("Generate Script");
     public static Publish = l10n.t("Publish");
+    public static BuildProjectTaskLabel(projectName: string) {
+        return l10n.t("Build {0}", projectName);
+    }
+    public static BuildingProjectProgress(projectName: string) {
+        return l10n.t("Building {0}...", projectName);
+    }
+    public static BuildFailedWithExitCode(exitCode: number) {
+        return l10n.t("Build failed with exit code {0}", exitCode);
+    }
     public static SqlServerPortNumber = l10n.t("SQL Server port number");
     public static SqlServerAdminPassword = l10n.t("SQL Server admin password");
     public static SqlServerAdminPasswordConfirm = l10n.t("Confirm SQL Server admin password");
@@ -1383,6 +1392,9 @@ export class PublishProject {
         "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     );
     public static FailedToListDatabases = l10n.t("Failed to list databases");
+    public static ProfileLoadedConnectionFailed = l10n.t(
+        "Profile loaded but connection failed. Please connect to the server manually.",
+    );
 }
 
 export class SchemaCompare {
