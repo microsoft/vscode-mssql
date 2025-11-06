@@ -30,42 +30,6 @@ interface ValidationMessage {
  */
 const DEFAULT_APPLICATION_VERSION = "1.0.0";
 
-const useStyles = makeStyles({
-    root: {
-        display: "flex",
-        flexDirection: "column",
-        width: "100%",
-        maxHeight: "100vh",
-        overflowY: "auto",
-        padding: "10px",
-    },
-    formContainer: {
-        display: "flex",
-        flexDirection: "column",
-        width: "700px",
-        maxWidth: "calc(100% - 20px)",
-        gap: "16px",
-    },
-    title: {
-        fontSize: tokens.fontSizeBase500,
-        fontWeight: tokens.fontWeightSemibold,
-        marginBottom: "8px",
-    },
-    description: {
-        fontSize: tokens.fontSizeBase300,
-        color: tokens.colorNeutralForeground2,
-        marginBottom: "16px",
-    },
-    actions: {
-        display: "flex",
-        gap: "8px",
-        justifyContent: "flex-end",
-        marginTop: "16px",
-        paddingTop: "16px",
-        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
-    },
-});
-
 export const DacFxApplicationForm = () => {
     const classes = useStyles();
     const context = useContext(DacFxApplicationContext);
@@ -754,3 +718,39 @@ export const DacFxApplicationForm = () => {
         </div>
     );
 };
+
+const useStyles = makeStyles({
+    root: {
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        maxHeight: "100vh",
+        overflowY: "auto",
+        padding: "10px",
+    },
+    formContainer: {
+        display: "flex",
+        flexDirection: "column",
+        width: "700px",
+        maxWidth: "calc(100% - 20px)",
+        gap: "16px",
+    },
+    title: {
+        fontSize: tokens.fontSizeBase500,
+        fontWeight: tokens.fontWeightSemibold,
+        marginBottom: "8px",
+    },
+    description: {
+        fontSize: tokens.fontSizeBase300,
+        color: tokens.colorNeutralForeground2,
+        marginBottom: "16px",
+    },
+    actions: {
+        display: "flex",
+        gap: "8px",
+        justifyContent: "flex-end",
+        marginTop: "16px",
+        paddingTop: "16px",
+        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+});
