@@ -22,21 +22,12 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-right: 16px;
+    order: 3; /* Move to the right */
 }
 
 .table-explorer-custom-pagination .row-count-selector .fui-Combobox {
     position: relative;
     z-index: 10;
-}
-
-.table-explorer-custom-pagination .row-count-selector .fui-Button {
-    min-width: 32px;
-    height: 28px;
-    padding: 0 8px;
-    margin-left: 4px;
-    z-index: 11;
-    position: relative;
 }
 
 .table-explorer-custom-pagination .row-count-selector .row-count-label {
@@ -61,6 +52,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    order: 1; /* Keep on the left */
 }
 
 .table-explorer-custom-pagination .page-size-label {
@@ -91,6 +83,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    order: 2; /* Keep in the middle */
 }
 
 .table-explorer-custom-pagination .pagination-nav {

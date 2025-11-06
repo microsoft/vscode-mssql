@@ -310,6 +310,11 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 `Loading subset with rowCount: ${payload.rowCount} - OperationId: ${this.operationId}`,
             );
 
+            // Determine if the rowCount is from predefined options or custom input
+            const predefinedOptions = [10, 50, 100, 500, 1000];
+            const isPredefined = predefinedOptions.includes(payload.rowCount);
+            const isCustomAbove1000 = !isPredefined && payload.rowCount > 1000;
+
             const startTime = Date.now();
             const endActivity = startActivity(
                 TelemetryViews.TableExplorer,
@@ -319,6 +324,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     startTime: startTime.toString(),
                     operationId: this.operationId,
                     rowCount: payload.rowCount.toString(),
+                    isPredefinedOption: isPredefined.toString(),
+                    isCustomInput: (!isPredefined).toString(),
+                    isCustomAbove1000: isCustomAbove1000.toString(),
                 },
             );
 

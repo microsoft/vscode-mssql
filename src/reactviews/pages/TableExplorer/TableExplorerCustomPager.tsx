@@ -16,9 +16,8 @@ import {
     ChevronRightRegular,
     ChevronDoubleLeftRegular,
     ChevronDoubleRightRegular,
-    ArrowSyncRegular,
 } from "@fluentui/react-icons";
-import { Dropdown, Option, Combobox, Button } from "@fluentui/react-components";
+import { Dropdown, Option, Combobox } from "@fluentui/react-components";
 
 import "./TableExplorerCustomPager.css";
 import { locConstants as loc } from "../../common/locConstants";
@@ -153,6 +152,11 @@ const TableExplorerCustomPager = React.forwardRef<
         const newRowCount = data.optionValue || data.value || selectedRowCount;
         if (newRowCount) {
             setSelectedRowCount(newRowCount);
+            // Automatically fetch when a dropdown option is selected
+            const rowCountNumber = parseInt(newRowCount, RADIX_DECIMAL);
+            if (!isNaN(rowCountNumber) && rowCountNumber >= MIN_VALID_NUMBER && onLoadSubset) {
+                onLoadSubset(rowCountNumber);
+            }
         }
     };
 
@@ -161,14 +165,17 @@ const TableExplorerCustomPager = React.forwardRef<
         setSelectedRowCount(newValue);
     };
 
-    const onFetchRowsClick = () => {
-        const rowCountNumber = parseInt(
-            selectedRowCount || String(DEFAULT_ROW_COUNT),
-            RADIX_DECIMAL,
-        );
+    const onRowCountKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === "Enter") {
+            // Trigger fetch when Enter is pressed
+            const rowCountNumber = parseInt(
+                selectedRowCount || String(DEFAULT_ROW_COUNT),
+                RADIX_DECIMAL,
+            );
 
-        if (!isNaN(rowCountNumber) && rowCountNumber >= MIN_VALID_NUMBER && onLoadSubset) {
-            onLoadSubset(rowCountNumber);
+            if (!isNaN(rowCountNumber) && rowCountNumber >= MIN_VALID_NUMBER && onLoadSubset) {
+                onLoadSubset(rowCountNumber);
+            }
         }
     };
 
@@ -193,30 +200,6 @@ const TableExplorerCustomPager = React.forwardRef<
 
     return (
         <div className="table-explorer-custom-pagination" ref={paginationElementRef}>
-            <div className="row-count-selector">
-                <span className="row-count-label">{loc.tableExplorer.totalRowsToFetch}</span>
-                <Combobox
-                    value={selectedRowCount}
-                    selectedOptions={[selectedRowCount]}
-                    onOptionSelect={onRowCountChanged}
-                    onInput={onRowCountInput}
-                    size="small"
-                    freeform>
-                    <Option value="10">10</Option>
-                    <Option value="50">50</Option>
-                    <Option value="100">100</Option>
-                    <Option value="500">500</Option>
-                    <Option value="1000">1000</Option>
-                </Combobox>
-                <Button
-                    appearance="primary"
-                    size="small"
-                    icon={<ArrowSyncRegular />}
-                    onClick={onFetchRowsClick}
-                    title={loc.tableExplorer.fetchRows}
-                    aria-label={loc.tableExplorer.fetchRows}
-                />
-            </div>
             <div className="page-size-selector">
                 <span className="page-size-label">{loc.tableExplorer.rowsPerPage}</span>
                 <Dropdown
@@ -280,6 +263,24 @@ const TableExplorerCustomPager = React.forwardRef<
                         <ChevronDoubleRightRegular />
                     </button>
                 </div>
+            </div>
+            <div className="row-count-selector">
+                <span className="row-count-label">{loc.tableExplorer.totalRowsToFetch}</span>
+                <Combobox
+                    value={selectedRowCount}
+                    selectedOptions={[selectedRowCount]}
+                    onOptionSelect={onRowCountChanged}
+                    onInput={onRowCountInput}
+                    onKeyDown={onRowCountKeyDown}
+                    size="small"
+                    freeform
+                    placeholder="Enter or select">
+                    <Option value="10">10</Option>
+                    <Option value="50">50</Option>
+                    <Option value="100">100</Option>
+                    <Option value="500">500</Option>
+                    <Option value="1000">1000</Option>
+                </Combobox>
             </div>
         </div>
     );
