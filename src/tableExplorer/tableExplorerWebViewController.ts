@@ -566,6 +566,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 this.showRestorePromptAfterClose = true;
 
+                // Remove from failed cells tracking if it was previously failed
+                if (state.failedCells) {
+                    const failedKey = `${payload.rowId}-${payload.columnId}`;
+                    state.failedCells = state.failedCells.filter((key) => key !== failedKey);
+                }
+
                 // Update the cell value in the result set
                 if (state.resultSet && updateCellResult.cell) {
                     const rowIndex = state.resultSet.subset.findIndex(
