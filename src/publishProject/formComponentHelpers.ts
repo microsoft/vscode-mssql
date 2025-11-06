@@ -186,7 +186,7 @@ export function generatePublishFormComponents(
             label: Loc.SqlCmdVariablesLabel,
             required: false,
             type: FormItemType.Table,
-            hidden: true, // Will be shown conditionally based on whether variables exist
+            hidden: true,
         },
     };
 
