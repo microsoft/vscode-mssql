@@ -27,7 +27,7 @@ const useStyles = makeStyles({
     tableContainer: {
         width: "100%",
         maxWidth: "640px",
-        maxHeight: "400px",
+        maxHeight: "425px",
         overflowY: "auto",
         border: "1px solid var(--vscode-panel-border)",
         position: "relative",
