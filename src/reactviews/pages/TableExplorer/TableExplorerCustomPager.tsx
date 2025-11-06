@@ -21,6 +21,7 @@ import { Dropdown, Option, Combobox } from "@fluentui/react-components";
 
 import "./TableExplorerCustomPager.css";
 import { locConstants as loc } from "../../common/locConstants";
+import { PREDEFINED_ROW_COUNT_OPTIONS } from "../../../sharedInterfaces/tableExplorer";
 
 // Default pagination constants
 const DEFAULT_PAGE_SIZE = 100;
@@ -275,11 +276,11 @@ const TableExplorerCustomPager = React.forwardRef<
                     size="small"
                     freeform
                     placeholder={loc.tableExplorer.enterOrSelectRowCount}>
-                    <Option value="10">10</Option>
-                    <Option value="50">50</Option>
-                    <Option value="100">100</Option>
-                    <Option value="500">500</Option>
-                    <Option value="1000">1000</Option>
+                    {PREDEFINED_ROW_COUNT_OPTIONS.map((count) => (
+                        <Option key={count} value={String(count)} text={String(count)}>
+                            {count}
+                        </Option>
+                    ))}
                 </Combobox>
             </div>
         </div>

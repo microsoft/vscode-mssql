@@ -1253,6 +1253,9 @@
     <trans-unit id="++CODE++15f691f800a4b76afbf264547e3718c96fbb46fc076005b8f12575eac2f1f136">
       <source xml:lang="en">Enter new password</source>
     </trans-unit>
+    <trans-unit id="++CODE++064daf04d2fa9716fe1a1cd18c81b0d58a3906a5ab17c396db5770d044a50d75">
+      <source xml:lang="en">Enter or select</source>
+    </trans-unit>
     <trans-unit id="++CODE++03c72a0dd31428f797eaadef0452b218e6d7cfbfc8b66e7f47e404818a53cda0">
       <source xml:lang="en">Enter part of an object name to search for</source>
     </trans-unit>
