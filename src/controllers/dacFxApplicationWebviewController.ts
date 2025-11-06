@@ -22,6 +22,7 @@ import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { ListDatabasesRequest } from "../models/contracts/connection";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { getConnectionDisplayName } from "../models/connectionInfo";
+import { validateDatabaseNameFormat, DatabaseNameValidationError } from "../models/utils";
 
 // File extension constants
 export const DACPAC_EXTENSION = ".dacpac";
@@ -881,28 +882,26 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
         shouldNotExist: boolean,
         operationType?: dacFxApplication.DacFxOperationType,
     ): Promise<{ isValid: boolean; errorMessage?: string }> {
-        if (!databaseName || databaseName.trim() === "") {
-            return {
-                isValid: false,
-                errorMessage: LocConstants.DacFxApplication.DatabaseNameRequired,
-            };
-        }
-
-        // Check for invalid characters
-        const invalidChars = /[<>*?"/\\|]/;
-        if (invalidChars.test(databaseName)) {
-            return {
-                isValid: false,
-                errorMessage: LocConstants.DacFxApplication.InvalidDatabaseName,
-            };
-        }
-
-        // Check length (SQL Server max identifier length is 128)
-        if (databaseName.length > 128) {
-            return {
-                isValid: false,
-                errorMessage: LocConstants.DacFxApplication.DatabaseNameTooLong,
-            };
+        // Validate database name format
+        const formatValidation = validateDatabaseNameFormat(databaseName);
+        if (!formatValidation.isValid) {
+            // Map error type to localized message
+            let errorMessage: string;
+            switch (formatValidation.errorType) {
+                case DatabaseNameValidationError.Required:
+                    errorMessage = LocConstants.DacFxApplication.DatabaseNameRequired;
+                    break;
+                case DatabaseNameValidationError.InvalidCharacters:
+                    errorMessage = LocConstants.DacFxApplication.InvalidDatabaseName;
+                    break;
+                case DatabaseNameValidationError.TooLong:
+                    errorMessage = LocConstants.DacFxApplication.DatabaseNameTooLong;
+                    break;
+                default:
+                    errorMessage = LocConstants.DacFxApplication.InvalidDatabaseName;
+                    break;
+            }
+            return { isValid: false, errorMessage };
         }
 
         // Check if database exists
