@@ -509,11 +509,13 @@ export const DacpacDialogForm = () => {
             await validateFilePath(result.filePath, requiresInputFile);
 
             // For Deploy/Import operations, suggest database name from the selected file
+            // Only auto-suggest if the dialog was NOT launched with a specific database context
             if (
                 requiresInputFile &&
                 context &&
                 (operationType === dacpacDialog.DacFxOperationType.Deploy ||
-                    operationType === dacpacDialog.DacFxOperationType.Import)
+                    operationType === dacpacDialog.DacFxOperationType.Import) &&
+                !initialDatabaseName // Only suggest if no initial database context
             ) {
                 const nameResult = await context.getSuggestedDatabaseName({
                     filePath: result.filePath,
