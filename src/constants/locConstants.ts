@@ -527,6 +527,28 @@ export let connectProgressNoticationTitle = l10n.t("Testing connection profile..
 export let msgMultipleSelectionModeNotSupported = l10n.t(
     "Running query is not supported when the editor is in multiple selection mode.",
 );
+export let msgSelectNodeToScript = l10n.t("Please select a node from Object Explorer to script.");
+export let msgSelectSingleNodeToScript = l10n.t(
+    "Please select only one node to script. Multiple node scripting is not supported.",
+);
+export function msgScriptingObjectNotFound(nodeType: string, nodeLabel: string): string {
+    return l10n.t({
+        message: "Could not find scripting metadata for {0} '{1}'.",
+        args: [nodeType, nodeLabel],
+        comment: ["{0} is the node type", "{1} is the node label"],
+    });
+}
+export let msgScriptingFailed = l10n.t(
+    "Failed to generate script. Please check the logs for more details.",
+);
+export let msgScriptingEditorFailed = l10n.t("Failed to open script in editor.");
+export function msgScriptingOperationFailed(error: string): string {
+    return l10n.t({
+        message: "Failed to generate script: {0}",
+        args: [error],
+        comment: ["{0} is the error message"],
+    });
+}
 export let newColumnWidthPrompt = l10n.t("Enter new column width");
 export let columnWidthInvalidNumberError = l10n.t("Invalid column width");
 export let columnWidthMustBePositiveError = l10n.t("Width cannot be 0 or negative");
@@ -624,6 +646,7 @@ export class ObjectExplorer {
     public static NodeDeletionConfirmationYes = l10n.t("Yes");
     public static NodeDeletionConfirmationNo = l10n.t("No");
     public static LoadingNodeLabel = l10n.t("Loading...");
+    public static GeneratingScript = l10n.t("Generating script...");
     public static FetchingScriptLabel(scriptType: string) {
         return l10n.t({
             message: "Fetching {0} script...",
