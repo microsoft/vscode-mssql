@@ -401,17 +401,18 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 // Update result set with new row
                 if (state.resultSet) {
+                    // Create a completely new resultSet object to ensure React detects the change
                     state.resultSet = {
                         ...state.resultSet,
                         subset: [...state.resultSet.subset, result.row],
                         rowCount: state.resultSet.rowCount + 1,
                     };
 
-                    this.updateState();
-
                     this.logger.info(
                         `Added new row to result set, now has ${state.resultSet.rowCount} rows (${state.newRows.length} new)`,
                     );
+
+                    this.updateState();
                 } else {
                     this.logger.warn("Cannot add row: result set is undefined");
                 }
