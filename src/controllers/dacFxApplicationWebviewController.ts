@@ -599,45 +599,8 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
             // Get all connections
             const { connections } = await this.listConnections();
 
-            let matchingConnection: dacFxApplication.ConnectionProfile | undefined;
-
-            // Priority 1: Match by profile ID if provided
-            if (params.initialProfileId) {
-                matchingConnection = connections.find(
-                    (conn) => conn.profileId === params.initialProfileId,
-                );
-                if (matchingConnection) {
-                    this.logger.verbose(
-                        `Found connection by profile ID: ${params.initialProfileId}`,
-                    );
-                }
-            }
-
-            // Priority 2: Use findMatchingProfile if we have server name
-            if (!matchingConnection && params.initialServerName) {
-                // Create a temporary profile to search with
-                const searchProfile = {
-                    server: params.initialServerName,
-                    database: params.initialDatabaseName || "",
-                } as IConnectionProfile;
-
-                const matchResult =
-                    await this.connectionManager.connectionStore.findMatchingProfile(searchProfile);
-
-                if (matchResult?.profile) {
-                    // Find the matching connection in our list
-                    const profileId =
-                        matchResult.profile.id ||
-                        `${matchResult.profile.server}_${matchResult.profile.database || ""}`;
-                    matchingConnection = connections.find((conn) => conn.profileId === profileId);
-
-                    if (matchingConnection) {
-                        this.logger.verbose(
-                            `Found connection by server/database using findMatchingProfile: ${params.initialServerName}/${params.initialDatabaseName || "default"}`,
-                        );
-                    }
-                }
-            }
+            // Find matching connection based on initial parameters
+            const matchingConnection = await this.findMatchingConnection(params, connections);
 
             if (!matchingConnection) {
                 // No match found - return all connections, let user choose
@@ -648,57 +611,17 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
                 };
             }
 
-            // Found a matching connection
-
-            // Case 1: Already connected via Object Explorer (ownerUri provided)
+            // Handle existing connection from Object Explorer
             if (params.initialOwnerUri) {
-                this.logger.verbose(
-                    `Using existing connection from Object Explorer: ${params.initialOwnerUri}`,
+                return this.useExistingConnection(
+                    connections,
+                    matchingConnection,
+                    params.initialOwnerUri,
                 );
-                return {
-                    connections,
-                    selectedConnection: matchingConnection,
-                    ownerUri: params.initialOwnerUri,
-                    autoConnected: false, // Was already connected
-                };
             }
 
-            // Case 2: Connect to the matched profile
-            // connectToServer handles checking if already connected internally
-            this.logger.verbose(`Connecting to profile: ${matchingConnection.profileId}`);
-            try {
-                const connectResult = await this.connectToServer(matchingConnection.profileId);
-
-                if (connectResult.isConnected && connectResult.ownerUri) {
-                    this.logger.info(`Connected to: ${matchingConnection.server}`);
-                    return {
-                        connections,
-                        selectedConnection: matchingConnection,
-                        ownerUri: connectResult.ownerUri,
-                        autoConnected: true,
-                    };
-                } else {
-                    // Connection failed
-                    this.logger.error(
-                        `Connection failed: ${connectResult.errorMessage || "Unknown error"}`,
-                    );
-                    return {
-                        connections,
-                        selectedConnection: matchingConnection,
-                        autoConnected: false,
-                        errorMessage: connectResult.errorMessage,
-                    };
-                }
-            } catch (error) {
-                const errorMsg = error instanceof Error ? error.message : String(error);
-                this.logger.error(`Connection exception: ${errorMsg}`);
-                return {
-                    connections,
-                    selectedConnection: matchingConnection,
-                    autoConnected: false,
-                    errorMessage: errorMsg,
-                };
-            }
+            // Attempt to connect to the matched profile
+            return await this.connectToMatchedProfile(connections, matchingConnection);
         } catch (error) {
             this.logger.error(`Failed to initialize connection: ${error}`);
             // Fallback: return empty state
@@ -706,6 +629,146 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
                 connections: [],
                 autoConnected: false,
                 errorMessage: error instanceof Error ? error.message : String(error),
+            };
+        }
+    }
+
+    /**
+     * Finds a matching connection profile based on profile ID or server/database name
+     */
+    private async findMatchingConnection(
+        params: {
+            initialProfileId?: string;
+            initialServerName?: string;
+            initialDatabaseName?: string;
+        },
+        connections: dacFxApplication.ConnectionProfile[],
+    ): Promise<dacFxApplication.ConnectionProfile | undefined> {
+        // Priority 1: Match by profile ID if provided
+        if (params.initialProfileId) {
+            const matchingConnection = connections.find(
+                (conn) => conn.profileId === params.initialProfileId,
+            );
+            if (matchingConnection) {
+                this.logger.verbose(`Found connection by profile ID: ${params.initialProfileId}`);
+                return matchingConnection;
+            }
+        }
+
+        // Priority 2: Use findMatchingProfile if we have server name
+        if (params.initialServerName) {
+            return await this.findConnectionByServerName(
+                params.initialServerName,
+                params.initialDatabaseName,
+                connections,
+            );
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Finds a connection by server and database name using the connection store's matching logic
+     */
+    private async findConnectionByServerName(
+        serverName: string,
+        databaseName: string | undefined,
+        connections: dacFxApplication.ConnectionProfile[],
+    ): Promise<dacFxApplication.ConnectionProfile | undefined> {
+        // Create a temporary profile to search with
+        const searchProfile = {
+            server: serverName,
+            database: databaseName || "",
+        } as IConnectionProfile;
+
+        const matchResult =
+            await this.connectionManager.connectionStore.findMatchingProfile(searchProfile);
+
+        if (matchResult?.profile) {
+            // Find the matching connection in our list
+            const profileId =
+                matchResult.profile.id ||
+                `${matchResult.profile.server}_${matchResult.profile.database || ""}`;
+            const matchingConnection = connections.find((conn) => conn.profileId === profileId);
+
+            if (matchingConnection) {
+                this.logger.verbose(
+                    `Found connection by server/database using findMatchingProfile: ${serverName}/${databaseName || "default"}`,
+                );
+                return matchingConnection;
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Returns result for an existing connection (from Object Explorer)
+     */
+    private useExistingConnection(
+        connections: dacFxApplication.ConnectionProfile[],
+        matchingConnection: dacFxApplication.ConnectionProfile,
+        ownerUri: string,
+    ): {
+        connections: dacFxApplication.ConnectionProfile[];
+        selectedConnection: dacFxApplication.ConnectionProfile;
+        ownerUri: string;
+        autoConnected: boolean;
+    } {
+        this.logger.verbose(`Using existing connection from Object Explorer: ${ownerUri}`);
+        return {
+            connections,
+            selectedConnection: matchingConnection,
+            ownerUri,
+            autoConnected: false, // Was already connected
+        };
+    }
+
+    /**
+     * Attempts to connect to a matched profile and returns the result
+     */
+    private async connectToMatchedProfile(
+        connections: dacFxApplication.ConnectionProfile[],
+        matchingConnection: dacFxApplication.ConnectionProfile,
+    ): Promise<{
+        connections: dacFxApplication.ConnectionProfile[];
+        selectedConnection: dacFxApplication.ConnectionProfile;
+        ownerUri?: string;
+        autoConnected: boolean;
+        errorMessage?: string;
+    }> {
+        this.logger.verbose(`Connecting to profile: ${matchingConnection.profileId}`);
+        try {
+            const connectResult = await this.connectToServer(matchingConnection.profileId);
+
+            if (connectResult.isConnected && connectResult.ownerUri) {
+                this.logger.info(`Connected to: ${matchingConnection.server}`);
+                return {
+                    connections,
+                    selectedConnection: matchingConnection,
+                    ownerUri: connectResult.ownerUri,
+                    autoConnected: true,
+                };
+            } else {
+                // Connection failed
+                this.logger.error(
+                    `Connection failed: ${connectResult.errorMessage || "Unknown error"}`,
+                );
+                return {
+                    connections,
+                    selectedConnection: matchingConnection,
+                    autoConnected: false,
+                    errorMessage: connectResult.errorMessage,
+                };
+            }
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Connection exception: ${errorMsg}`);
+            return {
+                connections,
+                selectedConnection: matchingConnection,
+                autoConnected: false,
+                errorMessage: errorMsg,
             };
         }
     }
