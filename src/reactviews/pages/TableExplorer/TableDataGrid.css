@@ -21,8 +21,6 @@
     --slick-cell-border-left: 0;
     --slick-cell-box-shadow: none;
     --slick-grid-border-color: var(--vscode-editorWidget-border);
-    width: 100%;
-    max-width: 100%;
     flex: 1;
     min-height: 0;
 }
@@ -68,6 +66,9 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    overflow: hidden !important; /* Hide overflow */
+    text-overflow: ellipsis !important; /* Show ellipsis for long text */
+    white-space: nowrap !important; /* Prevent text wrapping */
 }
 
 #tableExplorerGrid .slick-header-column:last-child {
@@ -82,6 +83,9 @@
     justify-content: center !important;
     height: 100% !important;
     margin: 0 !important; /* Remove excessive margin that pushes text out of view */
+    overflow: hidden !important; /* Hide overflow */
+    text-overflow: ellipsis !important; /* Show ellipsis for long text */
+    white-space: nowrap !important; /* Prevent text wrapping */
 }
 
 #tableExplorerGrid .slick-cell,

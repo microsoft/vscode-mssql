@@ -308,7 +308,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                             container: "#grid-container",
                             bottomPadding: 50, // Reserve space for custom pagination
                         },
-                        forceFitColumns: true,
+                        forceFitColumns: false, // Allow horizontal scrolling for many columns
                         enableColumnReorder: false,
                         enableHeaderMenu: false,
                         enableCellNavigation: true,
