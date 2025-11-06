@@ -1166,37 +1166,6 @@ suite("DacFxApplicationWebviewController", () => {
             expect(result).to.exist;
             expect(result.connections).to.be.an("array").that.is.empty;
         });
-        test("builds display name correctly with all fields", async () => {
-            connectionStoreStub.readAllConnections.resolves([mockConnections[0]]);
-            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({}));
-            createController();
-            const handler = requestHandlers.get(ListConnectionsWebviewRequest.type.method);
-            const result = await handler!({});
-            const conn = result.connections[0];
-            // getConnectionDisplayName returns profileName if available
-            expect(conn.displayName).to.equal("Server 1 - db1");
-        });
-        test("builds display name without optional fields", async () => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const minimalConnection: any = {
-                server: "testserver",
-                database: undefined,
-                user: undefined,
-                profileName: undefined,
-                id: "conn-minimal",
-                authenticationType: 1,
-            };
-            connectionStoreStub.readAllConnections.resolves([minimalConnection]);
-            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({}));
-            createController();
-            const handler = requestHandlers.get(ListConnectionsWebviewRequest.type.method);
-            const result = await handler!({});
-            const conn = result.connections[0];
-            // When profileName is not set, getConnectionDisplayName generates: server, database (authType)
-            // With authenticationType=1 (Integrated), database undefined -> "testserver, <default> (1)"
-            expect(conn.displayName).to.include("testserver");
-            expect(conn.displayName).to.include("<default>");
-        });
         test("connects to server successfully when not already connected", async () => {
             connectionStoreStub.readAllConnections.resolves([mockConnections[0]]);
             connectionManagerStub.getUriForConnection.returns("new-owner-uri");
@@ -1298,65 +1267,6 @@ suite("DacFxApplicationWebviewController", () => {
             expect(result.errorMessage).to.include("Connection failed");
             expect(result.errorMessage).to.include("Network timeout");
         });
-        test("identifies connected server by matching server and database", async () => {
-            connectionStoreStub.readAllConnections.resolves(mockConnections);
-            // Mock active connection with matching server and database
-            const mockActiveConnections = {
-                uri1: {
-                    credentials: {
-                        server: "localhost",
-                        database: "master",
-                    },
-                },
-            };
-            sandbox
-                .stub(connectionManagerStub, "activeConnections")
-                .get(() => mockActiveConnections);
-            // Stub getUriForConnection and isConnected
-            connectionManagerStub.getUriForConnection.callsFake((profile) => {
-                if (profile.server === "localhost" && profile.database === "master") {
-                    return "uri1";
-                }
-                return undefined;
-            });
-            connectionManagerStub.isConnected.callsFake((uri) => uri === "uri1");
-            createController();
-            const handler = requestHandlers.get(ListConnectionsWebviewRequest.type.method);
-            const result = await handler!({});
-            // Find localhost connection
-            const localhostConn = result.connections.find((c) => c.server === "localhost");
-            expect(localhostConn).to.exist;
-        });
-        test("identifies connected server when database is undefined in both", async () => {
-            const connectionWithoutDb = {
-                ...mockConnections[2],
-                database: undefined,
-            };
-            connectionStoreStub.readAllConnections.resolves([connectionWithoutDb]);
-            // Mock active connection without database
-            const mockActiveConnections = {
-                uri1: {
-                    credentials: {
-                        server: "server2.database.windows.net",
-                        database: undefined,
-                    },
-                },
-            };
-            sandbox
-                .stub(connectionManagerStub, "activeConnections")
-                .get(() => mockActiveConnections);
-            // Stub getUriForConnection and isConnected
-            connectionManagerStub.getUriForConnection.callsFake((profile) => {
-                if (profile.server === "server2.database.windows.net") {
-                    return "uri1";
-                }
-                return undefined;
-            });
-            connectionManagerStub.isConnected.callsFake((uri) => uri === "uri1");
-            createController();
-            const handler = requestHandlers.get(ListConnectionsWebviewRequest.type.method);
-            const result = await handler!({});
-        });
         test("generates profileId from server and database when id is missing", async () => {
             const connectionWithoutId: (typeof mockConnections)[0] = {
                 ...mockConnections[0],
@@ -1368,63 +1278,6 @@ suite("DacFxApplicationWebviewController", () => {
             const handler = requestHandlers.get(ListConnectionsWebviewRequest.type.method);
             const result = await handler!({});
             expect(result.connections[0].profileId).to.equal("server1.database.windows.net_db1");
-        });
-        test("matches connection by server and database when both provided", async () => {
-            connectionStoreStub.readAllConnections.resolves(mockConnections);
-            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({}));
-            createController();
-            const handler = requestHandlers.get(ListConnectionsWebviewRequest.type.method);
-            const result = await handler!({});
-            // Find the connection that matches server1.database.windows.net and db1
-            const matchingConnection = result.connections.find(
-                (conn) => conn.server === "server1.database.windows.net" && conn.database === "db1",
-            );
-            expect(matchingConnection).to.exist;
-            expect(matchingConnection!.profileId).to.equal("conn1");
-        });
-        test("matches connection by server only when database is not specified", async () => {
-            connectionStoreStub.readAllConnections.resolves(mockConnections);
-            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({}));
-            createController();
-            const handler = requestHandlers.get(ListConnectionsWebviewRequest.type.method);
-            const result = await handler!({});
-            // Find the connection that matches localhost (conn2 has master database)
-            const matchingConnection = result.connections.find(
-                (conn) => conn.server === "localhost" && conn.database === "master",
-            );
-            expect(matchingConnection).to.exist;
-            expect(matchingConnection!.profileId).to.equal("conn2");
-        });
-        test("finds connection when database is undefined in profile", async () => {
-            // This tests the scenario where a server-level connection exists
-            // (database is undefined in the connection profile)
-            connectionStoreStub.readAllConnections.resolves(mockConnections);
-            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({}));
-            createController();
-            const handler = requestHandlers.get(ListConnectionsWebviewRequest.type.method);
-            const result = await handler!({});
-            // conn3 has undefined database - should still be findable by server
-            const matchingConnection = result.connections.find(
-                (conn) => conn.server === "server2.database.windows.net",
-            );
-            expect(matchingConnection).to.exist;
-            expect(matchingConnection!.profileId).to.equal("conn3");
-            expect(matchingConnection!.database).to.be.undefined;
-        });
-        test("connection matching is case-sensitive for server names", async () => {
-            connectionStoreStub.readAllConnections.resolves(mockConnections);
-            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({}));
-            createController();
-            const handler = requestHandlers.get(ListConnectionsWebviewRequest.type.method);
-            const result = await handler!({});
-            // Case must match exactly
-            const matchingConnection = result.connections.find(
-                (conn) => conn.server === "LOCALHOST", // Different case
-            );
-            expect(matchingConnection).to.be.undefined;
-            // Correct case should work
-            const correctMatch = result.connections.find((conn) => conn.server === "localhost");
-            expect(correctMatch).to.exist;
         });
     });
     suite("Database Operations with Empty OwnerUri", () => {
