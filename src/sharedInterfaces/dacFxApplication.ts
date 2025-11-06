@@ -40,10 +40,6 @@ export interface ConnectionProfile {
      */
     userName?: string;
     /**
-     * Whether this connection is currently active
-     */
-    isConnected: boolean;
-    /**
      * The profile ID used to identify this connection
      */
     profileId: string;

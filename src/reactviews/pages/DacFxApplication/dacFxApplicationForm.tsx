@@ -225,74 +225,29 @@ export const DacFxApplicationForm = () => {
         setIsConnecting(true);
 
         try {
-            // If not connected, connect to the server
-            if (!selectedConnection.isConnected) {
-                const result = await context?.extensionRpc?.sendRequest(
-                    dacFxApplication.ConnectToServerWebviewRequest.type,
-                    { profileId },
-                );
+            // Connect to the server
+            const result = await context?.extensionRpc?.sendRequest(
+                dacFxApplication.ConnectToServerWebviewRequest.type,
+                { profileId },
+            );
 
-                if (result?.isConnected && result.ownerUri) {
-                    setOwnerUri(result.ownerUri);
-                    // Update the connection status in our list
-                    setAvailableConnections((prev) =>
-                        prev.map((conn) =>
-                            conn.profileId === profileId ? { ...conn, isConnected: true } : conn,
-                        ),
-                    );
-                    // Databases will be loaded automatically via useEffect
-                } else {
-                    // Connection failed - clear state
-                    setOwnerUri("");
-                    setAvailableDatabases([]);
-                    setDatabaseName("");
-                    // Ensure connection is marked as not connected
-                    setAvailableConnections((prev) =>
-                        prev.map((conn) =>
-                            conn.profileId === profileId ? { ...conn, isConnected: false } : conn,
-                        ),
-                    );
-                    // Show error message to user
-                    const errorMsg =
-                        result?.errorMessage || locConstants.dacFxApplication.connectionFailed;
-                    setValidationMessages({
-                        connection: {
-                            message: errorMsg,
-                            severity: "error",
-                        },
-                    });
-                }
+            if (result?.isConnected && result.ownerUri) {
+                setOwnerUri(result.ownerUri);
+                // Databases will be loaded automatically via useEffect
             } else {
-                // Already connected, verify connection state and get the ownerUri
-                const result = await context?.extensionRpc?.sendRequest(
-                    dacFxApplication.ConnectToServerWebviewRequest.type,
-                    { profileId },
-                );
-
-                if (result?.isConnected && result.ownerUri) {
-                    setOwnerUri(result.ownerUri);
-                    // Databases will be loaded automatically via useEffect
-                } else {
-                    // Connection is no longer valid - clear state
-                    setOwnerUri("");
-                    setAvailableDatabases([]);
-                    setDatabaseName("");
-                    // Mark connection as not connected
-                    setAvailableConnections((prev) =>
-                        prev.map((conn) =>
-                            conn.profileId === profileId ? { ...conn, isConnected: false } : conn,
-                        ),
-                    );
-                    // Show error message to user
-                    const errorMsg =
-                        result?.errorMessage || locConstants.dacFxApplication.connectionFailed;
-                    setValidationMessages({
-                        connection: {
-                            message: errorMsg,
-                            severity: "error",
-                        },
-                    });
-                }
+                // Connection failed - clear state
+                setOwnerUri("");
+                setAvailableDatabases([]);
+                setDatabaseName("");
+                // Show error message to user
+                const errorMsg =
+                    result?.errorMessage || locConstants.dacFxApplication.connectionFailed;
+                setValidationMessages({
+                    connection: {
+                        message: errorMsg,
+                        severity: "error",
+                    },
+                });
             }
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);

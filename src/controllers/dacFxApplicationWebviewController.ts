@@ -20,6 +20,7 @@ import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInter
 import * as dacFxApplication from "../sharedInterfaces/dacFxApplication";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { ListDatabasesRequest } from "../models/contracts/connection";
+import { getConnectionDisplayName } from "../models/connectionInfo";
 
 // File extension constants
 export const DACPAC_EXTENSION = ".dacpac";
@@ -541,7 +542,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
     }
 
     /**
-     * Lists all available connections (recent and active)
+     * Lists all available connections from the connection store
      */
     private async listConnections(): Promise<{
         connections: dacFxApplication.ConnectionProfile[];
@@ -549,25 +550,15 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
         try {
             const connections: dacFxApplication.ConnectionProfile[] = [];
 
-            // Get recently used connections from connection store
-            const recentConnections =
-                this.connectionManager.connectionStore.getRecentlyUsedConnections();
+            // Get all saved connections from connection store (saved profiles only, not recent connections)
+            const savedConnections =
+                await this.connectionManager.connectionStore.readAllConnections();
 
-            // Get active connections
-            const activeConnections = this.connectionManager.activeConnections;
-
-            // Build the connection profile list from recent connections
-            for (const conn of recentConnections) {
+            // Build the connection profile list from saved connections
+            for (const conn of savedConnections) {
                 const profile = conn as IConnectionProfile;
-                const displayName = this.buildConnectionDisplayName(profile);
+                const displayName = getConnectionDisplayName(profile);
                 const profileId = profile.id || `${profile.server}_${profile.database || ""}`;
-
-                // Check if this connection is active and properly connected
-                const ownerUri = this.connectionManager.getUriForConnection(profile);
-                const isConnected =
-                    ownerUri && activeConnections[ownerUri]
-                        ? this.connectionManager.isConnected(ownerUri)
-                        : false;
 
                 connections.push({
                     displayName,
@@ -577,42 +568,8 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
                         profile.authenticationType,
                     ),
                     userName: profile.user,
-                    isConnected,
                     profileId,
                 });
-            }
-
-            const existingProfileIds = new Set(connections.map((conn) => conn.profileId));
-
-            // Include active connections that may not appear in the recent list
-            for (const activeConnection of Object.values(activeConnections)) {
-                const profile = activeConnection.credentials as IConnectionProfile;
-                const profileId = profile.id || `${profile.server}_${profile.database || ""}`;
-
-                if (existingProfileIds.has(profileId)) {
-                    continue;
-                }
-
-                // Only include if actually connected (not in connecting state or errored)
-                const ownerUri = this.connectionManager.getUriForConnection(profile);
-                if (!ownerUri || !this.connectionManager.isConnected(ownerUri)) {
-                    continue;
-                }
-
-                const displayName = this.buildConnectionDisplayName(profile);
-
-                connections.push({
-                    displayName,
-                    server: profile.server,
-                    database: profile.database,
-                    authenticationType: this.getAuthenticationTypeString(
-                        profile.authenticationType,
-                    ),
-                    userName: profile.user,
-                    isConnected: true,
-                    profileId,
-                });
-                existingProfileIds.add(profileId);
             }
 
             return { connections };
@@ -639,7 +596,7 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
         errorMessage?: string;
     }> {
         try {
-            // Get all connections (recent + active)
+            // Get all connections
             const { connections } = await this.listConnections();
 
             // Helper to find matching connection
@@ -691,95 +648,58 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
 
             // Found a matching connection
             let ownerUri = params.initialOwnerUri;
-            let updatedConnections = connections;
 
             // Case 1: Already connected via Object Explorer (ownerUri provided)
             if (params.initialOwnerUri) {
                 this.logger.verbose(
                     `Using existing connection from Object Explorer: ${params.initialOwnerUri}`,
                 );
-                // Mark as connected if not already
-                if (!matchingConnection.isConnected) {
-                    updatedConnections = connections.map((conn) =>
-                        conn.profileId === matchingConnection.profileId
-                            ? { ...conn, isConnected: true }
-                            : conn,
-                    );
-                }
                 return {
-                    connections: updatedConnections,
-                    selectedConnection: { ...matchingConnection, isConnected: true },
+                    connections,
+                    selectedConnection: matchingConnection,
                     ownerUri: params.initialOwnerUri,
                     autoConnected: false, // Was already connected
                 };
             }
 
-            // Case 2: Connection exists but not connected - auto-connect
-            if (!matchingConnection.isConnected) {
-                this.logger.verbose(`Auto-connecting to profile: ${matchingConnection.profileId}`);
-                try {
-                    const connectResult = await this.connectToServer(matchingConnection.profileId);
+            // Case 2: Try to connect to the matched profile
+            this.logger.verbose(`Auto-connecting to profile: ${matchingConnection.profileId}`);
+            try {
+                const connectResult = await this.connectToServer(matchingConnection.profileId);
 
-                    if (connectResult.isConnected && connectResult.ownerUri) {
-                        ownerUri = connectResult.ownerUri;
-                        updatedConnections = connections.map((conn) =>
-                            conn.profileId === matchingConnection.profileId
-                                ? { ...conn, isConnected: true }
-                                : conn,
-                        );
-                        this.logger.info(
-                            `Successfully auto-connected to: ${matchingConnection.server}`,
-                        );
-                        return {
-                            connections: updatedConnections,
-                            selectedConnection: { ...matchingConnection, isConnected: true },
-                            ownerUri,
-                            autoConnected: true,
-                        };
-                    } else {
-                        // Connection failed
-                        this.logger.error(
-                            `Auto-connect failed: ${connectResult.errorMessage || "Unknown error"}`,
-                        );
-                        return {
-                            connections,
-                            selectedConnection: matchingConnection,
-                            autoConnected: false,
-                            errorMessage: connectResult.errorMessage,
-                        };
-                    }
-                } catch (error) {
-                    const errorMsg = error instanceof Error ? error.message : String(error);
-                    this.logger.error(`Auto-connect exception: ${errorMsg}`);
+                if (connectResult.isConnected && connectResult.ownerUri) {
+                    ownerUri = connectResult.ownerUri;
+                    this.logger.info(
+                        `Successfully auto-connected to: ${matchingConnection.server}`,
+                    );
+                    return {
+                        connections,
+                        selectedConnection: matchingConnection,
+                        ownerUri,
+                        autoConnected: true,
+                    };
+                } else {
+                    // Connection failed
+                    this.logger.error(
+                        `Auto-connect failed: ${connectResult.errorMessage || "Unknown error"}`,
+                    );
                     return {
                         connections,
                         selectedConnection: matchingConnection,
                         autoConnected: false,
-                        errorMessage: errorMsg,
+                        errorMessage: connectResult.errorMessage,
                     };
                 }
-            }
-
-            // Case 3: Connection already active - fetch ownerUri
-            this.logger.verbose(
-                `Connection already active, fetching ownerUri for: ${matchingConnection.profileId}`,
-            );
-            try {
-                const connectResult = await this.connectToServer(matchingConnection.profileId);
-                if (connectResult.ownerUri) {
-                    ownerUri = connectResult.ownerUri;
-                    this.logger.verbose(`Fetched ownerUri: ${ownerUri}`);
-                }
             } catch (error) {
-                this.logger.error(`Failed to fetch ownerUri: ${error}`);
+                const errorMsg = error instanceof Error ? error.message : String(error);
+                this.logger.error(`Auto-connect exception: ${errorMsg}`);
+                return {
+                    connections,
+                    selectedConnection: matchingConnection,
+                    autoConnected: false,
+                    errorMessage: errorMsg,
+                };
             }
-
-            return {
-                connections,
-                selectedConnection: matchingConnection,
-                ownerUri,
-                autoConnected: false, // Was already connected
-            };
         } catch (error) {
             this.logger.error(`Failed to initialize connection: ${error}`);
             // Fallback: return empty state
@@ -798,10 +718,10 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
         profileId: string,
     ): Promise<{ ownerUri: string; isConnected: boolean; errorMessage?: string }> {
         try {
-            // Find the profile in recent connections
-            const recentConnections =
-                this.connectionManager.connectionStore.getRecentlyUsedConnections();
-            const profile = recentConnections.find((conn: vscodeMssql.IConnectionInfo) => {
+            // Find the profile in saved connections
+            const savedConnections =
+                await this.connectionManager.connectionStore.readAllConnections();
+            const profile = savedConnections.find((conn: vscodeMssql.IConnectionInfo) => {
                 const connProfile = conn as IConnectionProfile;
                 const connId = connProfile.id || `${conn.server}_${conn.database || ""}`;
                 return connId === profileId;
@@ -865,17 +785,6 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
     /**
      * Builds a display name for a connection profile
      */
-    private buildConnectionDisplayName(profile: IConnectionProfile): string {
-        let displayName = profile.profileName || profile.server;
-        if (profile.database) {
-            displayName += ` (${profile.database})`;
-        }
-        if (profile.user) {
-            displayName += ` - ${profile.user}`;
-        }
-        return displayName;
-    }
-
     /**
      * Gets a string representation of the authentication type
      */
