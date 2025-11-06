@@ -6,9 +6,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import * as vscode from "vscode";
-import * as TypeMoq from "typemoq";
 import { expect } from "chai";
 import * as sinon from "sinon";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import { RunQueryTool, RunQueryToolParams } from "../../src/copilot/tools/runQueryTool";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
@@ -17,12 +18,14 @@ import { SimpleExecuteResult } from "vscode-mssql";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { UserSurvey } from "../../src/nps/userSurvey";
 
+chai.use(sinonChai);
+
 suite("RunQueryTool Tests", () => {
-    let mockConnectionManager: TypeMoq.IMock<ConnectionManager>;
-    let mockServiceClient: TypeMoq.IMock<SqlToolsServiceClient>;
-    let mockConnectionInfo: TypeMoq.IMock<ConnectionInfo>;
-    let mockCredentials: TypeMoq.IMock<IConnectionProfile>;
-    let mockToken: TypeMoq.IMock<vscode.CancellationToken>;
+    let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let mockServiceClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
+    let mockConnectionInfo: ConnectionInfo;
+    let mockCredentials: IConnectionProfile;
+    let mockToken: vscode.CancellationToken;
     let sendActionEventStub: sinon.SinonStub;
     let sandbox: sinon.SinonSandbox;
     let runQueryTool: RunQueryTool;
@@ -45,26 +48,29 @@ suite("RunQueryTool Tests", () => {
         sandbox.stub(UserSurvey, "getInstance").returns(mockUserSurvey as any);
 
         // Mock credentials
-        mockCredentials = TypeMoq.Mock.ofType<IConnectionProfile>();
+        mockCredentials = {} as IConnectionProfile;
 
-        // Mock ConnectionInfo
-        mockConnectionInfo = TypeMoq.Mock.ofType<ConnectionInfo>();
-        mockConnectionInfo.setup((x) => x.credentials).returns(() => mockCredentials.object);
+        // Mock ConnectionInfo - use partial mock with unknown cast
+        mockConnectionInfo = {
+            credentials: mockCredentials,
+            connectionId: sampleConnectionId,
+        } as unknown as ConnectionInfo;
 
         // Mock ConnectionManager
-        mockConnectionManager = TypeMoq.Mock.ofType<ConnectionManager>();
-        mockConnectionManager
-            .setup((x) => x.getConnectionInfo(sampleConnectionId))
-            .returns(() => mockConnectionInfo.object);
+        mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
+        mockConnectionManager.getConnectionInfo.returns(mockConnectionInfo);
 
         // Mock ServiceClient
-        mockServiceClient = TypeMoq.Mock.ofType<SqlToolsServiceClient>();
+        mockServiceClient = sandbox.createStubInstance(SqlToolsServiceClient);
 
         // Mock CancellationToken
-        mockToken = TypeMoq.Mock.ofType<vscode.CancellationToken>();
+        mockToken = {} as vscode.CancellationToken;
 
         // Create the tool instance
-        runQueryTool = new RunQueryTool(mockConnectionManager.object, mockServiceClient.object);
+        runQueryTool = new RunQueryTool(
+            mockConnectionManager as unknown as ConnectionManager,
+            mockServiceClient as unknown as SqlToolsServiceClient,
+        );
     });
 
     teardown(() => {
@@ -82,17 +88,7 @@ suite("RunQueryTool Tests", () => {
                 ] as any,
             };
 
-            mockServiceClient
-                .setup((x) =>
-                    x.sendRequest(
-                        TypeMoq.It.isAny(),
-                        TypeMoq.It.isObjectWith({
-                            ownerUri: sampleConnectionId,
-                            queryString: sampleQuery,
-                        }),
-                    ),
-                )
-                .returns(() => Promise.resolve(mockResult));
+            mockServiceClient.sendRequest.resolves(mockResult);
 
             const options = {
                 input: {
@@ -103,7 +99,7 @@ suite("RunQueryTool Tests", () => {
                 },
             } as vscode.LanguageModelToolInvocationOptions<RunQueryToolParams>;
 
-            await runQueryTool.call(options, mockToken.object);
+            await runQueryTool.call(options, mockToken);
 
             // Verify telemetry was sent with correct parameters
             expect(sendActionEventStub.calledOnce).to.be.true;
@@ -122,9 +118,7 @@ suite("RunQueryTool Tests", () => {
                 rows: [[3]] as any,
             };
 
-            mockServiceClient
-                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                .returns(() => Promise.resolve(mockResult));
+            mockServiceClient.sendRequest.resolves(mockResult);
 
             const options = {
                 input: {
@@ -135,7 +129,7 @@ suite("RunQueryTool Tests", () => {
                 },
             } as vscode.LanguageModelToolInvocationOptions<RunQueryToolParams>;
 
-            const result = await runQueryTool.call(options, mockToken.object);
+            const result = await runQueryTool.call(options, mockToken);
             const parsedResult = JSON.parse(result);
 
             expect(parsedResult.success).to.be.true;
@@ -145,14 +139,12 @@ suite("RunQueryTool Tests", () => {
 
         test("should return error when connection is not found", async () => {
             // Create a new mock that returns undefined for this specific test
-            const noConnectionMock = TypeMoq.Mock.ofType<ConnectionManager>();
-            noConnectionMock
-                .setup((x) => x.getConnectionInfo(sampleConnectionId))
-                .returns(() => undefined as any);
+            const noConnectionMock = sandbox.createStubInstance(ConnectionManager);
+            noConnectionMock.getConnectionInfo.returns(undefined as any);
 
             const toolWithNoConnection = new RunQueryTool(
-                noConnectionMock.object,
-                mockServiceClient.object,
+                noConnectionMock as unknown as ConnectionManager,
+                mockServiceClient as unknown as SqlToolsServiceClient,
             );
 
             const options = {
@@ -164,7 +156,7 @@ suite("RunQueryTool Tests", () => {
                 },
             } as vscode.LanguageModelToolInvocationOptions<RunQueryToolParams>;
 
-            const result = await toolWithNoConnection.call(options, mockToken.object);
+            const result = await toolWithNoConnection.call(options, mockToken);
             const parsedResult = JSON.parse(result);
 
             expect(parsedResult.success).to.be.false;
@@ -173,9 +165,7 @@ suite("RunQueryTool Tests", () => {
 
         test("should return error when query execution fails", async () => {
             const errorMessage = "Syntax error near SELECT";
-            mockServiceClient
-                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                .returns(() => Promise.reject(new Error(errorMessage)));
+            mockServiceClient.sendRequest.rejects(new Error(errorMessage));
 
             const options = {
                 input: {
@@ -186,7 +176,7 @@ suite("RunQueryTool Tests", () => {
                 },
             } as vscode.LanguageModelToolInvocationOptions<RunQueryToolParams>;
 
-            const result = await runQueryTool.call(options, mockToken.object);
+            const result = await runQueryTool.call(options, mockToken);
             const parsedResult = JSON.parse(result);
 
             expect(parsedResult.success).to.be.false;
@@ -200,9 +190,7 @@ suite("RunQueryTool Tests", () => {
                 rows: [] as any,
             };
 
-            mockServiceClient
-                .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-                .returns(() => Promise.resolve(mockResult));
+            mockServiceClient.sendRequest.resolves(mockResult);
 
             const options = {
                 input: {
@@ -213,7 +201,7 @@ suite("RunQueryTool Tests", () => {
                 },
             } as vscode.LanguageModelToolInvocationOptions<RunQueryToolParams>;
 
-            await runQueryTool.call(options, mockToken.object);
+            await runQueryTool.call(options, mockToken);
 
             // Verify telemetry defaults to "unknown"
             const telemetryCall = sendActionEventStub.getCall(0);
@@ -236,7 +224,7 @@ suite("RunQueryTool Tests", () => {
                 },
             } as vscode.LanguageModelToolInvocationPrepareOptions<RunQueryToolParams>;
 
-            await runQueryTool.prepareInvocation(options, mockToken.object);
+            await runQueryTool.prepareInvocation(options, mockToken);
 
             // Verify telemetry was sent with prepare phase
             expect(sendActionEventStub.calledOnce).to.be.true;
@@ -258,7 +246,7 @@ suite("RunQueryTool Tests", () => {
                 },
             } as vscode.LanguageModelToolInvocationPrepareOptions<RunQueryToolParams>;
 
-            const result = await runQueryTool.prepareInvocation(options, mockToken.object);
+            const result = await runQueryTool.prepareInvocation(options, mockToken);
 
             expect(result.confirmationMessages).to.exist;
             expect(result.confirmationMessages.title).to.include("Run Query");
@@ -278,7 +266,7 @@ suite("RunQueryTool Tests", () => {
                 },
             } as vscode.LanguageModelToolInvocationPrepareOptions<RunQueryToolParams>;
 
-            await runQueryTool.prepareInvocation(options, mockToken.object);
+            await runQueryTool.prepareInvocation(options, mockToken);
 
             // Verify destructive operations are tracked
             const telemetryCall = sendActionEventStub.getCall(0);
