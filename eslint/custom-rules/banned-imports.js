@@ -27,14 +27,15 @@ module.exports = {
 
                 const isFileInReactviews = /\/src\/reactviews\//.test(filePath);
                 const isFileInSharedInterfaces = /\/src\/sharedInterfaces\//.test(filePath);
+                const isFileInTest = /\/test\//.test(filePath);
                 const isImportFromVscodeClient = /vscode-languageclient/.test(importSource);
 
                 // Importing *reactviews* from outside reactviews
-                if (isImportFromReactviews && !isFileInReactviews) {
+                if (isImportFromReactviews && !isFileInReactviews && !isFileInTest) {
                     context.report({
                         node,
                         message:
-                            "Importing from 'reactviews' is not allowed outside the reactviews directory",
+                            "Importing from 'reactviews' is not allowed outside the reactviews directory (except in test).",
                     });
                 }
 

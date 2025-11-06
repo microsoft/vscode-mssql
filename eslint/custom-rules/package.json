@@ -1,5 +1,5 @@
 {
     "name": "eslint-plugin-custom-eslint-rules",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "main": "index.js"
 }
