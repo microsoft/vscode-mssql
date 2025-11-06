@@ -5,6 +5,12 @@
 
 import { ApiStatus } from "./webview";
 
+/**
+ * Predefined row count options for the Table Explorer "Total rows to fetch" dropdown.
+ * These values are used both in the UI component and for telemetry tracking.
+ */
+export const PREDEFINED_ROW_COUNT_OPTIONS = [10, 50, 100, 500, 1000] as const;
+
 export interface IEditSessionOperationParams {
     ownerUri: string;
 }

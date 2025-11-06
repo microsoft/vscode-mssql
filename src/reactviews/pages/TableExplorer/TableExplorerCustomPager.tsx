@@ -274,7 +274,7 @@ const TableExplorerCustomPager = React.forwardRef<
                     onKeyDown={onRowCountKeyDown}
                     size="small"
                     freeform
-                    placeholder="Enter or select">
+                    placeholder={loc.tableExplorer.enterOrSelectRowCount}>
                     <Option value="10">10</Option>
                     <Option value="50">50</Option>
                     <Option value="100">100</Option>

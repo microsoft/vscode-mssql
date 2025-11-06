@@ -9,6 +9,7 @@ import {
     TableExplorerWebViewState,
     TableExplorerReducers,
     EditSessionReadyParams,
+    PREDEFINED_ROW_COUNT_OPTIONS,
 } from "../sharedInterfaces/tableExplorer";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
@@ -311,8 +312,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             );
 
             // Determine if the rowCount is from predefined options or custom input
-            const predefinedOptions = [10, 50, 100, 500, 1000];
-            const isPredefined = predefinedOptions.includes(payload.rowCount);
+            const isPredefined = PREDEFINED_ROW_COUNT_OPTIONS.includes(
+                payload.rowCount as (typeof PREDEFINED_ROW_COUNT_OPTIONS)[number],
+            );
             const isCustomAbove1000 = !isPredefined && payload.rowCount > 1000;
 
             const startTime = Date.now();
@@ -325,7 +327,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     operationId: this.operationId,
                     rowCount: payload.rowCount.toString(),
                     isPredefinedOption: isPredefined.toString(),
-                    isCustomInput: (!isPredefined).toString(),
                     isCustomAbove1000: isCustomAbove1000.toString(),
                 },
             );

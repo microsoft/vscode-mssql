@@ -1112,6 +1112,7 @@ export class LocConstants {
             totalRowsToFetch: l10n.t("Total rows to fetch:"),
             rowsPerPage: l10n.t("Rows per page"),
             fetchRows: l10n.t("Fetch rows"),
+            enterOrSelectRowCount: l10n.t("Enter or select"),
             firstPage: l10n.t("First Page"),
             previousPage: l10n.t("Previous Page"),
             nextPage: l10n.t("Next Page"),
