@@ -244,6 +244,16 @@ export class DacFxApplicationWebviewController extends ReactWebviewPanelControll
             },
         );
 
+        // Get suggested filename with timestamp
+        this.onRequest(
+            dacFxApplication.GetSuggestedFilenameWebviewRequest.type,
+            async (params: { databaseName: string; fileExtension: string }) => {
+                const timestamp = this.formatTimestampForFilename();
+                const filename = `${params.databaseName}-${timestamp}.${params.fileExtension}`;
+                return { filename };
+            },
+        );
+
         // Get suggested database name from file path
         this.onRequest(
             dacFxApplication.GetSuggestedDatabaseNameWebviewRequest.type,

@@ -516,28 +516,22 @@ export const DacFxApplicationForm = () => {
             );
         } else {
             // Browse for output file (Extract or Export)
-            // Use the suggested filename from state, or fallback to a default
+            // Use the suggested filename from state, or get from backend
             let defaultFileName = filePath;
 
-            if (!defaultFileName) {
-                // Generate default filename with timestamp using Intl.DateTimeFormat
-                const now = new Date();
-                const dateFormatter = new Intl.DateTimeFormat("en-US", {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                });
-                const timeFormatter = new Intl.DateTimeFormat("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                });
+            if (!defaultFileName && context?.extensionRpc) {
+                // Get suggested filename with timestamp from backend
+                const filenameResult = await context.extensionRpc.sendRequest(
+                    dacFxApplication.GetSuggestedFilenameWebviewRequest.type,
+                    {
+                        databaseName: databaseName || "database",
+                        fileExtension,
+                    },
+                );
 
-                const datePart = dateFormatter.format(now); // yyyy-MM-dd
-                const timePart = timeFormatter.format(now).replace(/:/g, "-"); // HH-mm
-                const timestamp = `${datePart}-${timePart}`;
-
-                defaultFileName = `${databaseName || "database"}-${timestamp}.${fileExtension}`;
+                if (filenameResult?.filename) {
+                    defaultFileName = filenameResult.filename;
+                }
             }
 
             result = await context?.extensionRpc?.sendRequest(

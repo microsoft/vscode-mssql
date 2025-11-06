@@ -290,6 +290,18 @@ export namespace GetSuggestedOutputPathWebviewRequest {
 }
 
 /**
+ * Request to get the suggested filename (with timestamp) for an output file
+ * Used when browsing to suggest a default filename
+ */
+export namespace GetSuggestedFilenameWebviewRequest {
+    export const type = new RequestType<
+        { databaseName: string; fileExtension: string },
+        { filename: string },
+        void
+    >("dacFxApplication/getSuggestedFilename");
+}
+
+/**
  * Request to get the suggested database name from a file path
  * Extracts database name from the filename without extension or timestamps
  */
