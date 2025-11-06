@@ -5386,6 +5386,10 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
         <source xml:lang="en">Edit Connection Sharing Permissions</source>
         <target state="translated">Berechtigungen für die gemeinsame Verbindungsnutzung bearbeiten</target>
       </trans-unit>
+      <trans-unit id="mssql.tableExplorer">
+        <source xml:lang="en">Edit Data (Preview)</source>
+        <target state="new">Edit Data (Preview)</target>
+      </trans-unit>
       <trans-unit id="mssql.enableActualPlan">
         <source xml:lang="en">Enable Actual Plan</source>
         <target state="translated">Tatsächlichen Plan aktivieren</target>
@@ -5597,8 +5601,8 @@ Sie können eine Verbindung mit einer Datenbank herstellen, indem Sie Ihre Verbi
         <target state="translated">Maximale Größe von text- und ntext-Daten, die von einer SELECT-Anweisung zurückgegeben werden</target>
       </trans-unit>
       <trans-unit id="mssql.editTable">
-        <source xml:lang="en">Modify Table Structure</source>
-        <target state="new">Modify Table Structure</target>
+        <source xml:lang="en">Modify Table</source>
+        <target state="new">Modify Table</target>
       </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
@@ -5975,10 +5979,6 @@ Zeigen Sie den geschätzten Plan an, ohne die Abfrage auszuführen, oder zeigen 
       <trans-unit id="mssql.chooseDatabase">
         <source xml:lang="en">Use Database</source>
         <target state="translated">Datenbank verwenden</target>
-      </trans-unit>
-      <trans-unit id="mssql.tableExplorer">
-        <source xml:lang="en">View &amp; Edit Data (Preview)</source>
-        <target state="new">View &amp; Edit Data (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
         <source xml:lang="en">Visualize a Query Plan</source>
