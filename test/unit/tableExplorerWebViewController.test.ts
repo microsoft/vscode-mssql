@@ -472,6 +472,101 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("Updated");
         });
 
+        test("should update cell value in newRows when editing a new row", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            const newRow = createMockRow(100, ["", "John", "Doe"]);
+            controller.state.newRows = [newRow];
+            controller.state.resultSet = {
+                ...createMockSubsetResult(2),
+                subset: [...createMockSubsetResult(2).subset, newRow],
+                rowCount: 3,
+            };
+            const updatedCell: EditCellResult = {
+                cell: {
+                    displayValue: "Jane",
+                    isNull: false,
+                    invariantCultureDisplayValue: "Jane",
+                    isDirty: true,
+                },
+                isRowDirty: true,
+            };
+            mockTableExplorerService.updateCell.resolves(updatedCell);
+
+            // Act
+            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                rowId: 100,
+                columnId: 1,
+                newValue: "Jane",
+            });
+
+            // Assert
+            expect(controller.state.resultSet?.subset[2].cells[1].displayValue).to.equal("Jane");
+            expect(controller.state.newRows[0].cells[1].displayValue).to.equal("Jane");
+        });
+
+        test("should preserve all column edits in newRows during loadSubset (fetch)", async () => {
+            // Arrange - Create a new row with multiple column edits
+            controller.state.ownerUri = "test-owner-uri";
+            const newRow = createMockRow(100, ["", "John", "Doe"]);
+            controller.state.newRows = [newRow];
+            controller.state.resultSet = {
+                ...createMockSubsetResult(2),
+                subset: [...createMockSubsetResult(2).subset, newRow],
+                rowCount: 3,
+            };
+
+            // Edit first column (firstName)
+            const firstNameCell: EditCellResult = {
+                cell: {
+                    displayValue: "Jane",
+                    isNull: false,
+                    invariantCultureDisplayValue: "Jane",
+                    isDirty: true,
+                },
+                isRowDirty: true,
+            };
+            mockTableExplorerService.updateCell.resolves(firstNameCell);
+            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                rowId: 100,
+                columnId: 1,
+                newValue: "Jane",
+            });
+
+            // Edit second column (lastName)
+            const lastNameCell: EditCellResult = {
+                cell: {
+                    displayValue: "Smith",
+                    isNull: false,
+                    invariantCultureDisplayValue: "Smith",
+                    isDirty: true,
+                },
+                isRowDirty: true,
+            };
+            mockTableExplorerService.updateCell.resolves(lastNameCell);
+            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                rowId: 100,
+                columnId: 2,
+                newValue: "Smith",
+            });
+
+            // Verify both edits are in newRows
+            expect(controller.state.newRows[0].cells[1].displayValue).to.equal("Jane");
+            expect(controller.state.newRows[0].cells[2].displayValue).to.equal("Smith");
+
+            // Act - Fetch new data (loadSubset)
+            const mockResult = createMockSubsetResult(2);
+            mockTableExplorerService.subset.resolves(mockResult);
+            await controller["_reducerHandlers"].get("loadSubset")(controller.state, {
+                rowCount: 100,
+            });
+
+            // Assert - Both column edits should be preserved in the result
+            expect(controller.state.resultSet?.subset[2].id).to.equal(100);
+            expect(controller.state.resultSet?.subset[2].cells[1].displayValue).to.equal("Jane");
+            expect(controller.state.resultSet?.subset[2].cells[2].displayValue).to.equal("Smith");
+        });
+
         test("should regenerate script if script pane is visible", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
@@ -549,6 +644,38 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("John");
         });
 
+        test("should revert cell in newRows when reverting a new row's cell", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            const newRow = createMockRow(100, ["", "Jane", "Doe"]);
+            controller.state.newRows = [newRow];
+            controller.state.resultSet = {
+                ...createMockSubsetResult(2),
+                subset: [...createMockSubsetResult(2).subset, newRow],
+                rowCount: 3,
+            };
+            const revertedCell: EditCellResult = {
+                cell: {
+                    displayValue: "John",
+                    isNull: false,
+                    invariantCultureDisplayValue: "John",
+                    isDirty: false,
+                },
+                isRowDirty: false,
+            };
+            mockTableExplorerService.revertCell.resolves(revertedCell);
+
+            // Act
+            await controller["_reducerHandlers"].get("revertCell")(controller.state, {
+                rowId: 100,
+                columnId: 1,
+            });
+
+            // Assert
+            expect(controller.state.resultSet?.subset[2].cells[1].displayValue).to.equal("John");
+            expect(controller.state.newRows[0].cells[1].displayValue).to.equal("John");
+        });
+
         test("should regenerate script if script pane is visible", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
@@ -611,6 +738,31 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(mockTableExplorerService.revertRow.calledOnceWith("test-owner-uri", 0)).to.be
                 .true;
             expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("John");
+        });
+
+        test("should revert row in newRows when reverting a new row", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            const newRow = createMockRow(100, ["", "Jane", "Smith"]);
+            controller.state.newRows = [newRow];
+            controller.state.resultSet = {
+                ...createMockSubsetResult(2),
+                subset: [...createMockSubsetResult(2).subset, newRow],
+                rowCount: 3,
+            };
+            const revertedRow: EditRevertRowResult = {
+                row: createMockRow(100, ["", "John", "Doe"]),
+            };
+            mockTableExplorerService.revertRow.resolves(revertedRow);
+
+            // Act
+            await controller["_reducerHandlers"].get("revertRow")(controller.state, { rowId: 100 });
+
+            // Assert
+            expect(controller.state.resultSet?.subset[2].cells[1].displayValue).to.equal("John");
+            expect(controller.state.resultSet?.subset[2].cells[2].displayValue).to.equal("Doe");
+            expect(controller.state.newRows[0].cells[1].displayValue).to.equal("John");
+            expect(controller.state.newRows[0].cells[2].displayValue).to.equal("Doe");
         });
 
         test("should regenerate script if script pane is visible", async () => {
