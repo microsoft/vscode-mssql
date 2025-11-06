@@ -27,8 +27,8 @@ import { parsePublishProfileXml, readProjectProperties } from "./projectUtils";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
+import { getSqlServerContainerTagsForTargetVersion } from "../publishProject/projectUtils";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
-import { getSqlServerContainerTagsForTargetVersion } from "../deployment/dockerUtils";
 import { hasAnyMissingRequiredValues, getErrorMessage } from "../utils/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import * as Utils from "../models/utils";
@@ -325,7 +325,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
             }
         } catch (error) {
             // Log error and send telemetry, but keep dialog resilient
-            console.error("Failed to read project properties:", error);
+            this.logger.error("Failed to read project properties:", error);
             sendErrorEvent(
                 TelemetryViews.SqlProjects,
                 TelemetryActions.PublishProjectChanges,
@@ -348,16 +348,15 @@ export class PublishProjectWebViewController extends FormWebviewController<
             try {
                 const tagOptions =
                     await getSqlServerContainerTagsForTargetVersion(projectTargetVersion);
-                if (tagOptions && tagOptions.length > 0) {
-                    tagComponent.options = tagOptions;
-
-                    // Set default to first option (most recent -latest) if not already set
-                    if (!this.state.formState.containerImageTag && tagOptions[0]) {
-                        this.state.formState.containerImageTag = tagOptions[0].value;
-                    }
+                tagComponent.options = tagOptions;
+                if (!this.state.formState.containerImageTag && tagOptions.length > 0) {
+                    this.state.formState.containerImageTag = tagOptions[0].value;
                 }
             } catch (error) {
-                console.error("Failed to fetch Docker container tags:", error);
+                this.state.formMessage = {
+                    message: Loc.FailedToFetchContainerTags(getErrorMessage(error)),
+                    intent: "error",
+                };
             }
         }
 

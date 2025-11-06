@@ -18,6 +18,8 @@ import { validateSqlServerPassword } from "../../src/deployment/dockerUtils";
 import { stubVscodeWrapper } from "./utils";
 import { PublishTarget } from "../../src/sharedInterfaces/publishDialog";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
+import * as dockerUtils from "../../src/deployment/dockerUtils";
+import * as projectUtils from "../../src/publishProject/projectUtils";
 
 chai.use(sinonChai);
 
@@ -298,6 +300,25 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(validateSqlServerPassword("Abc123!@#".repeat(20)), "too long invalid").to.not.equal(
             "",
         );
+    });
+
+    test("getSqlServerContainerTagsForTargetVersion filters versions correctly for SQL Server 2022", async () => {
+        // Mock deployment versions that would be returned from getSqlServerContainerVersions()
+        const mockDeploymentVersions = [
+            { displayName: "SQL Server 2025 image (latest)", value: "2025-latest" },
+            { displayName: "SQL Server 2022 image", value: "2022" },
+            { displayName: "SQL Server 2019 image", value: "2019" },
+            { displayName: "SQL Server 2017 image", value: "2017" },
+        ];
+
+        sandbox.stub(dockerUtils, "getSqlServerContainerVersions").resolves(mockDeploymentVersions);
+
+        const result = await projectUtils.getSqlServerContainerTagsForTargetVersion("160");
+
+        // Should return only versions >= 2022 (2025 and 2022, filtered out 2019 and 2017)
+        expect(result).to.have.lengthOf(2);
+        expect(result[0].displayName).to.equal("SQL Server 2025 image (latest)");
+        expect(result[1].displayName).to.equal("SQL Server 2022 image");
     });
 
     //#region Publish Profile Section Tests

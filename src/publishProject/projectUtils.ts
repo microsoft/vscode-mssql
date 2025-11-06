@@ -10,6 +10,9 @@ import * as path from "path";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { promises as fs } from "fs";
 import { DOMParser } from "@xmldom/xmldom";
+import { getSqlServerContainerVersions, dockerLogger } from "../deployment/dockerUtils";
+import { FormItemOptions } from "../sharedInterfaces/form";
+import { getErrorMessage } from "../utils/utils";
 import { ProjectPropertiesResult } from "../sharedInterfaces/publishDialog";
 
 /**
@@ -27,6 +30,7 @@ export function isPreviewFeaturesEnabled(): boolean {
 /**
  * Target platforms for a SQL project - these are user-facing display names shown in the VS Code UI.
  * The corresponding internal version numbers used by DacFx are defined in targetPlatformToVersion map.
+ * Maps Dacfx Microsoft.Data.Tools.Schema.SchemaModel.SqlPlatformNames to vscode display names.
  */
 export const enum SqlTargetPlatform {
     sqlServer2012 = "SQL Server 2012",
@@ -35,6 +39,7 @@ export const enum SqlTargetPlatform {
     sqlServer2017 = "SQL Server 2017",
     sqlServer2019 = "SQL Server 2019",
     sqlServer2022 = "SQL Server 2022",
+    sqlServer2025 = "SQL Server 2025",
     sqlAzure = "Azure SQL Database",
     sqlDW = "Azure Synapse SQL Pool",
     sqlDwServerless = "Azure Synapse Serverless SQL Pool",
@@ -53,11 +58,26 @@ export const targetPlatformToVersion: Map<string, string> = new Map<string, stri
     [SqlTargetPlatform.sqlServer2017, "140"],
     [SqlTargetPlatform.sqlServer2019, "150"],
     [SqlTargetPlatform.sqlServer2022, "160"],
+    [SqlTargetPlatform.sqlServer2025, "170"],
     [SqlTargetPlatform.sqlAzure, "AzureV12"],
     [SqlTargetPlatform.sqlDW, "Dw"],
     [SqlTargetPlatform.sqlDwServerless, "Serverless"],
     [SqlTargetPlatform.sqlDwUnified, "DwUnified"],
     [SqlTargetPlatform.sqlDbFabric, "DbFabric"],
+]);
+
+/**
+ * Maps DSP version numbers to SQL Server release years.
+ * Add new versions here as they become available.
+ */
+const DSP_VERSION_TO_YEAR: Map<number, number> = new Map([
+    [170, 2025], // SQL Server 2025
+    [160, 2022], // SQL Server 2022
+    [150, 2019], // SQL Server 2019
+    [140, 2017], // SQL Server 2017
+    [130, 2016], // SQL Server 2016
+    [120, 2014], // SQL Server 2014
+    [110, 2012], // SQL Server 2012
 ]);
 
 /**
@@ -157,6 +177,65 @@ export function getPublishServerName(target: string) {
  */
 export function validateSqlServerPortNumber(port: number): boolean {
     return Number.isInteger(port) && port >= 1 && port <= constants.MAX_PORT_NUMBER;
+}
+
+/**
+ * Retrieves and filters SQL Server container tags based on project target version.
+ * Used by Publish Project dialog to provide granular tag selection.
+ *
+ * This follows the same filtering logic as ADS (Azure Data Studio):
+ * - If target version is known: filter to show versions >= target version year
+ * - If target version is unknown: fallback to max available version year (like ADS)
+ *
+ * @param targetVersion - The SQL Server version (e.g., "160" for SQL Server 2022)
+ * @returns Sorted array of tags filtered by version from deployment UI versions
+ */
+export async function getSqlServerContainerTagsForTargetVersion(
+    targetVersion?: string,
+): Promise<FormItemOptions[]> {
+    try {
+        // Get the deployment UI versions first
+        const deploymentVersions = await getSqlServerContainerVersions();
+        if (!deploymentVersions || deploymentVersions.length === 0) {
+            return [];
+        }
+
+        const yearToOptionMap = new Map<number, FormItemOptions>();
+        for (const option of deploymentVersions) {
+            const year = parseInt(option.value);
+            if (!isNaN(year)) {
+                yearToOptionMap.set(year, option);
+            }
+        }
+
+        if (yearToOptionMap.size === 0) {
+            return deploymentVersions;
+        }
+
+        const availableYears = Array.from(yearToOptionMap.keys());
+        const maxYear = Math.max(...availableYears);
+
+        // Determine minimum year based on target version
+        let minYear: number = maxYear;
+        if (targetVersion) {
+            const versionNum = parseInt(targetVersion);
+            const mappedYear = DSP_VERSION_TO_YEAR.get(versionNum);
+            minYear = mappedYear ?? maxYear;
+        }
+
+        // Filter the image tags that are >= minYear
+        const filteredVersions: FormItemOptions[] = [];
+        for (const [year, option] of yearToOptionMap.entries()) {
+            if (year >= minYear) {
+                filteredVersions.push(option);
+            }
+        }
+
+        return filteredVersions;
+    } catch (e) {
+        dockerLogger.error(`Error filtering SQL Server container tags: ${getErrorMessage(e)}`);
+        return [];
+    }
 }
 
 /**

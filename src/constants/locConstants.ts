@@ -1392,6 +1392,9 @@ export class PublishProject {
         "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     );
     public static FailedToListDatabases = l10n.t("Failed to list databases");
+    public static FailedToFetchContainerTags = (errorMessage: string) => {
+        return l10n.t("Failed to fetch Docker container tags: {0}", errorMessage);
+    };
     public static ProfileLoadedConnectionFailed = l10n.t(
         "Profile loaded but connection failed. Please connect to the server manually.",
     );

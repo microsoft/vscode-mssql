@@ -1498,6 +1498,9 @@
       <source xml:lang="en">Failed to establish connection with ID &quot;{0}&quot;. Please check connection details and network connectivity.</source>
       <note>{0} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++5da8436d7f85f325dbcb03e43c8b81f49b13fa6997b2e200ff9f5272cb577fc5">
+      <source xml:lang="en">Failed to fetch Docker container tags: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
       <source xml:lang="en">Failed to fetch user tokens.</source>
     </trans-unit>
