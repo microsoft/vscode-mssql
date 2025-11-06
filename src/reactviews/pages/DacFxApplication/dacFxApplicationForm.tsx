@@ -395,21 +395,54 @@ export const DacFxApplicationForm = () => {
         setIsNewDatabase(true);
     };
 
+    /**
+     * Helper to determine validation requirements based on operation type
+     */
+    const getValidationRequirements = (opType: dacFxApplication.DacFxOperationType) => {
+        switch (opType) {
+            case dacFxApplication.DacFxOperationType.Deploy:
+                return { filePathShouldExist: true, databaseShouldNotExist: isNewDatabase };
+            case dacFxApplication.DacFxOperationType.Extract:
+                return { filePathShouldExist: false, databaseShouldNotExist: false };
+            case dacFxApplication.DacFxOperationType.Import:
+                return { filePathShouldExist: true, databaseShouldNotExist: true };
+            case dacFxApplication.DacFxOperationType.Export:
+                return { filePathShouldExist: false, databaseShouldNotExist: false };
+        }
+    };
+
+    /**
+     * Validates file path and database name based on operation requirements
+     * @returns true if validation passes, false otherwise
+     */
+    const validateOperationInputs = async (
+        opType: dacFxApplication.DacFxOperationType,
+    ): Promise<boolean> => {
+        const requirements = getValidationRequirements(opType);
+
+        const filePathValid = await validateFilePath(filePath, requirements.filePathShouldExist);
+        const databaseValid = await validateDatabaseName(
+            databaseName,
+            requirements.databaseShouldNotExist,
+        );
+
+        return filePathValid && databaseValid;
+    };
+
     const handleSubmit = async () => {
         setIsOperationInProgress(true);
 
         try {
+            // Validate inputs before proceeding
+            if (!(await validateOperationInputs(operationType))) {
+                setIsOperationInProgress(false);
+                return;
+            }
+
             let result;
 
             switch (operationType) {
                 case dacFxApplication.DacFxOperationType.Deploy:
-                    if (
-                        !(await validateFilePath(filePath, true)) ||
-                        !(await validateDatabaseName(databaseName, isNewDatabase))
-                    ) {
-                        setIsOperationInProgress(false);
-                        return;
-                    }
                     result = await context?.extensionRpc?.sendRequest(
                         dacFxApplication.DeployDacpacWebviewRequest.type,
                         {
@@ -422,13 +455,6 @@ export const DacFxApplicationForm = () => {
                     break;
 
                 case dacFxApplication.DacFxOperationType.Extract:
-                    if (
-                        !(await validateFilePath(filePath, false)) ||
-                        !(await validateDatabaseName(databaseName, false))
-                    ) {
-                        setIsOperationInProgress(false);
-                        return;
-                    }
                     result = await context?.extensionRpc?.sendRequest(
                         dacFxApplication.ExtractDacpacWebviewRequest.type,
                         {
@@ -442,13 +468,6 @@ export const DacFxApplicationForm = () => {
                     break;
 
                 case dacFxApplication.DacFxOperationType.Import:
-                    if (
-                        !(await validateFilePath(filePath, true)) ||
-                        !(await validateDatabaseName(databaseName, true))
-                    ) {
-                        setIsOperationInProgress(false);
-                        return;
-                    }
                     result = await context?.extensionRpc?.sendRequest(
                         dacFxApplication.ImportBacpacWebviewRequest.type,
                         {
@@ -460,13 +479,6 @@ export const DacFxApplicationForm = () => {
                     break;
 
                 case dacFxApplication.DacFxOperationType.Export:
-                    if (
-                        !(await validateFilePath(filePath, false)) ||
-                        !(await validateDatabaseName(databaseName, false))
-                    ) {
-                        setIsOperationInProgress(false);
-                        return;
-                    }
                     result = await context?.extensionRpc?.sendRequest(
                         dacFxApplication.ExportBacpacWebviewRequest.type,
                         {
