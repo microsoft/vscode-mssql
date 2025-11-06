@@ -4485,11 +4485,6 @@ Abfrage: {1}</target>
         <note>{0} is the table name</note>
         <target state="new">Table Explorer for '{0}' has unsaved changes. Do you want to save or discard them?</target>
       </trans-unit>
-      <trans-unit id="++CODE++7d1ab5b5ff98e8604fded16d7ad53dddbb49c37435c485b4546a9a921ea76700">
-        <source xml:lang="en">Table Explorer: {0} (Preview)</source>
-        <note>{0} is the table name</note>
-        <target state="new">Table Explorer: {0} (Preview)</target>
-      </trans-unit>
       <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
         <source xml:lang="en">Table name</source>
         <target state="translated">Tabellenname</target>
@@ -5036,6 +5031,11 @@ Abfrage: {1}</target>
         <source xml:lang="en">{0} (Current Account)</source>
         <note>{0} is the account display name</note>
         <target state="translated">{0} (Aktuelles Konto)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++fdd1e66955c2307ddc64a5e81697afacea8973b913e99714f2d5579ddecf0c2a">
+        <source xml:lang="en">{0} (Preview)</source>
+        <note>{0} is the table name</note>
+        <target state="new">{0} (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
