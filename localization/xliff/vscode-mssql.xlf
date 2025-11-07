@@ -2889,8 +2889,8 @@
     <trans-unit id="++CODE++2f34dcbb175e7163055db4c74f8da053a82783ca89ca052d216bc867598b3ef3">
       <source xml:lang="en">Row created.</source>
     </trans-unit>
-    <trans-unit id="++CODE++d25169d1cd9a1ad455e2189423ab2b7341b1274e599218785aee69402ee977fc">
-      <source xml:lang="en">Row removed.</source>
+    <trans-unit id="++CODE++bec1d11423719e75365ab2e2d94e69229e18d8e25440ece25c0855deac353687">
+      <source xml:lang="en">Row marked for removal.</source>
     </trans-unit>
     <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
       <source xml:lang="en">Rows per page</source>
