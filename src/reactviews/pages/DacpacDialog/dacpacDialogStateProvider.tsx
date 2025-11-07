@@ -10,7 +10,7 @@ import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { WebviewRpc } from "../../common/rpc";
 
 /**
- * RPC helper methods for DacFx operations
+ * RPC helper methods for DacPac operations
  */
 export interface DacpacDialogRpcMethods {
     // Operation execution methods
