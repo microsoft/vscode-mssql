@@ -261,11 +261,11 @@ export function eventMatchesShortcut(
 ): boolean {
     if (!combo) return false;
 
-    // Treat undefined modifier as "don't care".
-    if (combo.ctrlKey !== undefined && combo.ctrlKey !== event.ctrlKey) return false;
-    if (combo.metaKey !== undefined && combo.metaKey !== event.metaKey) return false;
-    if (combo.altKey !== undefined && combo.altKey !== event.altKey) return false;
-    if (combo.shiftKey !== undefined && combo.shiftKey !== event.shiftKey) return false;
+    // Treat undefined modifier as not pressed.
+    if ((combo.ctrlKey ?? false) !== event.ctrlKey) return false;
+    if ((combo.metaKey ?? false) !== event.metaKey) return false;
+    if ((combo.altKey ?? false) !== event.altKey) return false;
+    if ((combo.shiftKey ?? false) !== event.shiftKey) return false;
 
     // If a code is provided, it must match.
     if (combo.code) {
