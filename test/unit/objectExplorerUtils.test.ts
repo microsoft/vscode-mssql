@@ -5,7 +5,7 @@
 
 import * as path from "path";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
-import { expect, assert } from "chai";
+import { expect } from "chai";
 import * as Constants from "../../src/constants/constants";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { ConnectionProfile } from "../../src/models/connectionProfile";
@@ -160,7 +160,7 @@ suite("Object Explorer Utils Tests", () => {
         const result = ObjectExplorerUtils.getNodeUri(treeNode);
 
         // Verify
-        assert.strictEqual(result, "");
+        expect(result).to.equal("");
     });
 
     test("should get URI from TreeNodeInfo", () => {
@@ -196,8 +196,8 @@ suite("Object Explorer Utils Tests", () => {
         const result = ObjectExplorerUtils.getNodeUri(treeNode);
 
         // Verify
-        assert(getNodeUriFromProfileStub.calledOnceWith(profile));
-        assert.strictEqual(result, "testUri");
+        expect(getNodeUriFromProfileStub.calledOnceWith(profile)).to.be.true;
+        expect(result).to.equal("testUri");
     });
 
     test("should get URI from parent node", () => {
@@ -238,8 +238,8 @@ suite("Object Explorer Utils Tests", () => {
         const result = ObjectExplorerUtils.getNodeUri(mockNode);
 
         // Verify
-        assert(getNodeUriFromProfileStub.calledOnceWith(profile));
-        assert.strictEqual(result, "testParentUri");
+        expect(getNodeUriFromProfileStub.calledOnceWith(profile)).to.be.true;
+        expect(result).to.equal("testParentUri");
     });
 
     test("should return connection string without password if present", () => {
@@ -258,7 +258,7 @@ suite("Object Explorer Utils Tests", () => {
         const result = ObjectExplorerUtils.getNodeUriFromProfile(profile);
 
         // Verify - should include all parts except the password
-        assert.strictEqual(result, "Server=myServer;Database=myDb;User Id=myUser;");
+        expect(result).to.equal("Server=myServer;Database=myDb;User Id=myUser;");
     });
 
     test("should create URI for SQL authentication without connection string", () => {
@@ -276,7 +276,7 @@ suite("Object Explorer Utils Tests", () => {
         const result = ObjectExplorerUtils.getNodeUriFromProfile(profile);
 
         // Verify
-        assert.strictEqual(result, "testServer_testDB_testUser_testProfile");
+        expect(result).to.equal("testServer_testDB_testUser_testProfile");
     });
 
     test("should create URI for Windows authentication without connection string", () => {
@@ -293,7 +293,7 @@ suite("Object Explorer Utils Tests", () => {
         const result = ObjectExplorerUtils.getNodeUriFromProfile(profile);
 
         // Verify
-        assert.strictEqual(result, "testServer_testDB_testProfile");
+        expect(result).to.equal("testServer_testDB_testProfile");
     });
 
     test("Test getDatabaseName", () => {
@@ -371,21 +371,21 @@ suite("Object Explorer Utils Tests", () => {
         ];
         for (let i = 0; i < testNodes.length; i++) {
             let databaseName = ObjectExplorerUtils.getDatabaseName(testNodes[i]);
-            assert.equal(databaseName, expectedDatabaseNames[i]);
+            expect(databaseName).to.equal(expectedDatabaseNames[i]);
         }
     });
 
     test("Test isFirewallError", () => {
         const loginError = 18456;
-        assert.isNotTrue(
+        expect(
             ObjectExplorerUtils.isFirewallError(loginError),
             "Error should not be a firewall error",
-        );
+        ).to.not.be.true;
         const firewallError = Constants.errorFirewallRule;
-        assert.isTrue(
+        expect(
             ObjectExplorerUtils.isFirewallError(firewallError),
             "Error should be a firewall error",
-        );
+        ).to.be.true;
     });
 
     suite("getQualifiedName Tests", () => {
@@ -416,7 +416,7 @@ suite("Object Explorer Utils Tests", () => {
             const result = ObjectExplorerUtils.getQualifiedName(node);
 
             // Verify
-            assert.strictEqual(result, "[dbo].[Customers]");
+            expect(result).to.equal("[dbo].[Customers]");
         });
 
         test("should return properly formatted qualified name for StoredProcedure", () => {
@@ -446,7 +446,7 @@ suite("Object Explorer Utils Tests", () => {
             const result = ObjectExplorerUtils.getQualifiedName(node);
 
             // Verify
-            assert.strictEqual(result, "[dbo].[GetCustomers]");
+            expect(result).to.equal("[dbo].[GetCustomers]");
         });
 
         test("should return properly formatted qualified name for View", () => {
@@ -476,7 +476,7 @@ suite("Object Explorer Utils Tests", () => {
             const result = ObjectExplorerUtils.getQualifiedName(node);
 
             // Verify
-            assert.strictEqual(result, "[dbo].[ActiveCustomers]");
+            expect(result).to.equal("[dbo].[ActiveCustomers]");
         });
 
         test("should return properly formatted qualified name for UserDefinedFunction", () => {
@@ -506,7 +506,7 @@ suite("Object Explorer Utils Tests", () => {
             const result = ObjectExplorerUtils.getQualifiedName(node);
 
             // Verify
-            assert.strictEqual(result, "[dbo].[CalculateDiscount]");
+            expect(result).to.equal("[dbo].[CalculateDiscount]");
         });
 
         test("should return name with brackets for other metadata types", () => {
@@ -535,7 +535,7 @@ suite("Object Explorer Utils Tests", () => {
             const result = ObjectExplorerUtils.getQualifiedName(node);
 
             // Verify
-            assert.strictEqual(result, "[master]");
+            expect(result).to.equal("[master]");
         });
 
         test("should return empty string if node has no metadata", () => {
@@ -558,7 +558,7 @@ suite("Object Explorer Utils Tests", () => {
             const result = ObjectExplorerUtils.getQualifiedName(node);
 
             // Verify
-            assert.strictEqual(result, "");
+            expect(result).to.equal("");
         });
     });
 });

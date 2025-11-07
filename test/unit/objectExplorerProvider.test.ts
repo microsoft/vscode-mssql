@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
-import { expect, assert } from "chai";
+import { expect } from "chai";
 
 import { ObjectExplorerProvider } from "../../src/objectExplorer/objectExplorerProvider";
 import { ObjectExplorerService } from "../../src/objectExplorer/objectExplorerService";
@@ -404,7 +404,7 @@ suite("Object Explorer Provider Tests", function () {
             "test_session",
         );
         const treeItem = objectExplorerProvider.getTreeItem(node);
-        assert.equal(treeItem, node);
+        expect(treeItem).to.equal(node);
     });
 
     // TODO: Readd these test

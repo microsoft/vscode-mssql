@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sinon from "sinon";
-import * as assert from "assert";
 
 import StatusView from "../../src/views/statusView";
 import * as LocalizedConstants from "../../src/constants/locConstants";
@@ -28,11 +27,11 @@ suite("Status View Tests", () => {
             actualStatusMessage = message;
         };
         statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
-        assert.equal(actualStatusMessage, "");
+        expect(actualStatusMessage).to.equal("");
 
         await new Promise((resolve) => {
             setTimeout(() => {
-                assert.equal(actualStatusMessage, expectedStatusMessage);
+                expect(actualStatusMessage).to.equal(expectedStatusMessage);
                 resolve(undefined);
             }, 600);
         });
@@ -53,11 +52,11 @@ suite("Status View Tests", () => {
             actualStatusMessage = message;
         };
         statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
-        assert.equal(actualStatusMessage, "");
+        expect(actualStatusMessage).to.equal("");
 
         await new Promise((resolve) => {
             setTimeout(() => {
-                assert.equal(actualStatusMessage, expectedStatusMessage);
+                expect(actualStatusMessage).to.equal(expectedStatusMessage);
                 resolve(undefined);
             }, 600);
         });
@@ -78,7 +77,7 @@ suite("Status View Tests", () => {
             actualStatusMessage = message;
         };
         statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
-        assert.equal(actualStatusMessage, expectedStatusMessage);
+        expect(actualStatusMessage).to.equal(expectedStatusMessage);
         statusView.dispose();
     });
 
@@ -95,7 +94,7 @@ suite("Status View Tests", () => {
             actualStatusMessage = message;
         };
         statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
-        assert.equal(actualStatusMessage, expectedStatusMessage);
+        expect(actualStatusMessage).to.equal(expectedStatusMessage);
         statusView.dispose();
     });
 
@@ -112,7 +111,7 @@ suite("Status View Tests", () => {
             actualStatusMessage = message;
         };
         statusView.updateStatusMessage(newStatus, getCurrentStatus, updateMessage);
-        assert.equal(actualStatusMessage, expectedStatusMessage);
+        expect(actualStatusMessage).to.equal(expectedStatusMessage);
         statusView.dispose();
     });
 

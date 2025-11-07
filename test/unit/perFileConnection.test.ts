@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
@@ -71,14 +70,14 @@ suite("Per File Connection Tests", () => {
         connectionCreds2.database = "my_other_db";
 
         const result1 = await manager.connect(testFile1, connectionCreds);
-        assert.equal(result1, true);
+        expect(result1).to.equal(true);
         const result2 = await manager.connect(testFile2, connectionCreds);
-        assert.equal(result2, true);
+        expect(result2).to.equal(true);
 
         // Check that two connections were established
-        assert.equal(manager.connectionCount, 2);
-        assert.equal(manager.isConnected(testFile1), true);
-        assert.equal(manager.isConnected(testFile2), true);
+        expect(manager.connectionCount).to.equal(2);
+        expect(manager.isConnected(testFile1)).to.equal(true);
+        expect(manager.isConnected(testFile2)).to.equal(true);
     });
 
     test("Can disconnect one file while another file stays connected", async () => {
@@ -105,20 +104,20 @@ suite("Per File Connection Tests", () => {
         connectionCreds2.database = "my_other_db";
 
         const result1 = await manager.connect(testFile1, connectionCreds);
-        assert.equal(result1, true);
+        expect(result1).to.equal(true);
         const result2 = await manager.connect(testFile2, connectionCreds);
-        assert.equal(result2, true);
+        expect(result2).to.equal(true);
 
-        assert.equal(manager.connectionCount, 2);
-        assert.equal(manager.isConnected(testFile1), true);
-        assert.equal(manager.isConnected(testFile2), true);
+        expect(manager.connectionCount).to.equal(2);
+        expect(manager.isConnected(testFile1)).to.equal(true);
+        expect(manager.isConnected(testFile2)).to.equal(true);
 
         const disconnectResult = await manager.disconnect(testFile2);
-        assert.equal(disconnectResult, true);
+        expect(disconnectResult).to.equal(true);
 
-        assert.equal(manager.connectionCount, 1);
-        assert.equal(manager.isConnected(testFile1), true);
-        assert.equal(manager.isConnected(testFile2), false);
+        expect(manager.connectionCount).to.equal(1);
+        expect(manager.isConnected(testFile1)).to.equal(true);
+        expect(manager.isConnected(testFile2)).to.equal(false);
     });
 
     test("Can disconnect and reconnect one file while another file stays connected", async () => {
@@ -145,27 +144,27 @@ suite("Per File Connection Tests", () => {
         connectionCreds2.database = "my_other_db";
 
         const result1 = await manager.connect(testFile1, connectionCreds);
-        assert.equal(result1, true);
+        expect(result1).to.equal(true);
         const result2 = await manager.connect(testFile2, connectionCreds);
-        assert.equal(result2, true);
+        expect(result2).to.equal(true);
 
-        assert.equal(manager.connectionCount, 2);
-        assert.equal(manager.isConnected(testFile1), true);
-        assert.equal(manager.isConnected(testFile2), true);
+        expect(manager.connectionCount).to.equal(2);
+        expect(manager.isConnected(testFile1)).to.equal(true);
+        expect(manager.isConnected(testFile2)).to.equal(true);
 
         const disconnectResult = await manager.disconnect(testFile2);
-        assert.equal(disconnectResult, true);
+        expect(disconnectResult).to.equal(true);
 
-        assert.equal(manager.connectionCount, 1);
-        assert.equal(manager.isConnected(testFile1), true);
-        assert.equal(manager.isConnected(testFile2), false);
+        expect(manager.connectionCount).to.equal(1);
+        expect(manager.isConnected(testFile1)).to.equal(true);
+        expect(manager.isConnected(testFile2)).to.equal(false);
 
         const reconnectResult = await manager.connect(testFile2, connectionCreds2);
-        assert.equal(reconnectResult, true);
+        expect(reconnectResult).to.equal(true);
 
-        assert.equal(manager.connectionCount, 2);
-        assert.equal(manager.isConnected(testFile1), true);
-        assert.equal(manager.isConnected(testFile2), true);
+        expect(manager.connectionCount).to.equal(2);
+        expect(manager.isConnected(testFile1)).to.equal(true);
+        expect(manager.isConnected(testFile2)).to.equal(true);
     });
 
     test("Can list databases on server used by current connection and switch databases", async () => {
@@ -209,16 +208,15 @@ suite("Per File Connection Tests", () => {
         const connectionCreds = createTestCredentials();
 
         const connectResult = await manager.connect(testFile, connectionCreds);
-        assert.equal(connectResult, true);
+        expect(connectResult).to.equal(true);
 
-        assert.equal(manager.isConnected(testFile), true);
-        assert.equal(
-            manager.getConnectionInfo(testFile).credentials.database,
+        expect(manager.isConnected(testFile)).to.equal(true);
+        expect(manager.getConnectionInfo(testFile).credentials.database).to.equal(
             connectionCreds.database,
         );
 
         const chooseResult = await manager.onChooseDatabase();
-        assert.equal(chooseResult, true);
+        expect(chooseResult).to.equal(true);
 
         const listDbCalls = serviceClientStub.sendRequest
             .getCalls()
@@ -226,8 +224,8 @@ suite("Per File Connection Tests", () => {
         expect(listDbCalls).to.have.lengthOf(1);
         expect(vscodeWrapperStub.showQuickPick).to.have.been.calledOnce;
 
-        assert.equal(manager.isConnected(testFile), true);
-        assert.equal(manager.getConnectionInfo(testFile).credentials.database, "master");
+        expect(manager.isConnected(testFile)).to.equal(true);
+        expect(manager.getConnectionInfo(testFile).credentials.database).to.equal("master");
     });
 
     test("Can disconnect instead of switching databases", async () => {
@@ -268,22 +266,21 @@ suite("Per File Connection Tests", () => {
         const connectionCreds = createTestCredentials();
 
         const connectResult = await manager.connect(testFile, connectionCreds);
-        assert.equal(connectResult, true);
-        assert.equal(manager.isConnected(testFile), true);
-        assert.equal(
-            manager.getConnectionInfo(testFile).credentials.database,
+        expect(connectResult).to.equal(true);
+        expect(manager.isConnected(testFile)).to.equal(true);
+        expect(manager.getConnectionInfo(testFile).credentials.database).to.equal(
             connectionCreds.database,
         );
 
         const chooseResult = await manager.onChooseDatabase();
-        assert.equal(chooseResult, false);
+        expect(chooseResult).to.equal(false);
 
         const listDbCalls = serviceClientStub.sendRequest
             .getCalls()
             .filter((call) => call.args[0] === ConnectionContracts.ListDatabasesRequest.type);
         expect(listDbCalls).to.have.lengthOf(1);
 
-        assert.equal(manager.isConnected(testFile), false);
+        expect(manager.isConnected(testFile)).to.equal(false);
     });
 
     test("Prompts for new connection before running query if disconnected", async () => {
@@ -326,10 +323,9 @@ suite("Per File Connection Tests", () => {
         const connectionCreds = createTestCredentials();
 
         const connectResult = await connectionManager.connect(testFile, connectionCreds);
-        assert.equal(connectResult, true);
-        assert.equal(connectionManager.isConnected(testFile), true);
-        assert.equal(
-            connectionManager.getConnectionInfo(testFile).credentials.database,
+        expect(connectResult).to.equal(true);
+        expect(connectionManager.isConnected(testFile)).to.equal(true);
+        expect(connectionManager.getConnectionInfo(testFile).credentials.database).to.equal(
             connectionCreds.database,
         );
 
@@ -343,8 +339,7 @@ suite("Per File Connection Tests", () => {
         const notificationObject = connectionManager.handleConnectionChangedNotification();
         notificationObject.call(connectionManager, parameters);
 
-        assert.equal(
-            connectionManager.getConnectionInfo(testFile).credentials.database,
+        expect(connectionManager.getConnectionInfo(testFile).credentials.database).to.equal(
             "myOtherDatabase",
         );
     });
@@ -382,9 +377,9 @@ suite("Per File Connection Tests", () => {
         manager.statusView = statusViewStub;
 
         const result = await manager.connect(testFile, connectionCreds);
-        assert.equal(result, true);
-        assert.equal(manager.getConnectionInfo(testFile).credentials.database, expectedDbName);
-        assert.equal(actualDbName, expectedDbName);
+        expect(result).to.equal(true);
+        expect(manager.getConnectionInfo(testFile).credentials.database).to.equal(expectedDbName);
+        expect(actualDbName).to.equal(expectedDbName);
     });
 
     function createConnectionResultForCreds(
@@ -453,17 +448,14 @@ suite("Per File Connection Tests", () => {
         manager.connectionStore = connectionStoreStub;
 
         const result = await manager.connect(testFile, connectionCreds);
-        assert.equal(result, true);
+        expect(result).to.equal(true);
         expect(connectionStoreStub.addRecentlyUsed).to.have.been.calledOnce;
-        assert.equal(
+        expect(
             savedConnection?.database,
-            expectedDbName,
             "Expect actual DB name returned from connection to be saved",
-        );
-        assert.equal(
-            savedConnection?.password,
+        ).to.equal(expectedDbName);
+        expect(savedConnection?.password, "Expect password to be saved").to.equal(
             connectionCreds.password,
-            "Expect password to be saved",
         );
     });
 
@@ -486,7 +478,7 @@ suite("Per File Connection Tests", () => {
         manager.client = serviceClientStub;
 
         const result = await manager.connect(testFile, createTestCredentials());
-        assert.equal(result, true);
+        expect(result).to.equal(true);
         expect(languageStatusStub).to.have.been.calledWith(
             sinon.match.any,
             LocalizedConstants.updatingIntelliSenseStatus,

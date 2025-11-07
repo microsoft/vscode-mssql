@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
 import * as os from "os";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
@@ -77,8 +76,8 @@ suite("save results tests", () => {
         (vscodeWrapper.showSaveDialog as sinon.SinonStub).resolves(fileUri);
         serverClient.sendRequest.callsFake((type, details: SaveResultsAsCsvRequestParams) => {
             try {
-                assert.equal(details.ownerUri, testFile);
-                assert.equal(details.filePath, fileUri.fsPath);
+                expect(details.ownerUri).to.equal(testFile);
+                expect(details.filePath).to.equal(fileUri.fsPath);
                 done();
             } catch (error) {
                 done(error);
@@ -142,10 +141,10 @@ suite("save results tests", () => {
 
         configureSuccess();
         serverClient.sendRequest.callsFake((type, params: SaveResultsAsCsvRequestParams) => {
-            assert.equal(params.columnStartIndex, selection[0].fromCell);
-            assert.equal(params.columnEndIndex, selection[0].toCell);
-            assert.equal(params.rowStartIndex, selection[0].fromRow);
-            assert.equal(params.rowEndIndex, selection[0].toRow);
+            expect(params.columnStartIndex).to.equal(selection[0].fromCell);
+            expect(params.columnEndIndex).to.equal(selection[0].toCell);
+            expect(params.rowStartIndex).to.equal(selection[0].fromRow);
+            expect(params.rowEndIndex).to.equal(selection[0].toRow);
             return Promise.resolve({ messages: undefined });
         });
 
@@ -165,10 +164,10 @@ suite("save results tests", () => {
 
         configureSuccess();
         serverClient.sendRequest.callsFake((type, params: SaveResultsAsCsvRequestParams) => {
-            assert.equal(params.columnStartIndex, undefined);
-            assert.equal(params.columnEndIndex, undefined);
-            assert.equal(params.rowStartIndex, undefined);
-            assert.equal(params.rowEndIndex, undefined);
+            expect(params.columnStartIndex).to.equal(undefined);
+            expect(params.columnEndIndex).to.equal(undefined);
+            expect(params.rowStartIndex).to.equal(undefined);
+            expect(params.rowEndIndex).to.equal(undefined);
             return Promise.resolve({ messages: undefined });
         });
 
@@ -200,11 +199,11 @@ suite("save results tests", () => {
 
         serverClient.sendRequest.callsFake((_type, params: SaveResultsAsCsvRequestParams) => {
             try {
-                assert.equal(params.delimiter, "\t");
-                assert.equal(params.encoding, "utf-16le");
-                assert.equal(params.includeHeaders, false);
-                assert.equal(params.textIdentifier, "'");
-                assert.equal(params.lineSeperator, "\r\n");
+                expect(params.delimiter).to.equal("\t");
+                expect(params.encoding).to.equal("utf-16le");
+                expect(params.includeHeaders).to.equal(false);
+                expect(params.textIdentifier).to.equal("'");
+                expect(params.lineSeperator).to.equal("\r\n");
                 done();
             } catch (error) {
                 done(error);
@@ -228,12 +227,11 @@ suite("save results tests", () => {
         (vscodeWrapper.showSaveDialog as sinon.SinonStub).callsFake(
             (options: vscode.SaveDialogOptions) => {
                 try {
-                    assert.ok(options.filters?.["SQL Files"], "Should have SQL Files filter");
-                    assert.deepEqual(
+                    expect(options.filters?.["SQL Files"], "Should have SQL Files filter").to.be.ok;
+                    expect(
                         options.filters?.["SQL Files"],
-                        ["sql"],
                         "Should use .sql extension",
-                    );
+                    ).to.deep.equal(["sql"]);
                     done();
                 } catch (error) {
                     done(error);
@@ -251,9 +249,9 @@ suite("save results tests", () => {
         (vscodeWrapper.showSaveDialog as sinon.SinonStub).resolves(fileUri);
         serverClient.sendRequest.callsFake((type, params: SaveAsRequestParams) => {
             try {
-                assert.equal(type.method, "query/saveInsert", "Should use INSERT request type");
-                assert.equal(params.ownerUri, testFile);
-                assert.equal(params.filePath, fileUri.fsPath);
+                expect(type.method, "Should use INSERT request type").to.equal("query/saveInsert");
+                expect(params.ownerUri).to.equal(testFile);
+                expect(params.filePath).to.equal(fileUri.fsPath);
                 done();
             } catch (error) {
                 done(error);
