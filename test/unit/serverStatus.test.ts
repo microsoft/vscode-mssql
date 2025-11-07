@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ServerStatusView } from "../../src/languageservice/serverStatus";
-import { assert } from "chai";
+import { expect } from "chai";
 import * as Constants from "../../src/constants/constants";
 
 suite("Server Status View Tests", () => {
@@ -19,15 +19,13 @@ suite("Server Status View Tests", () => {
         let p = new Promise<void>((resolve, reject) => {
             setTimeout(() => {
                 let statusBarItem = serverStatusView.statusBarItem;
-                assert.isUndefined(
-                    statusBarItem.command,
-                    "Status Bar Item command should be undefined",
-                );
+                expect(statusBarItem.command, "Status Bar Item command should be undefined").to.be
+                    .undefined;
                 let installingServiceText = "$(desktop-download) " + Constants.serviceInstalling;
-                assert.isTrue(
+                expect(
                     statusBarItem.text.includes(installingServiceText),
                     "Status Bar Item text should be updated",
-                );
+                ).to.be.true;
                 serverStatusView.dispose();
                 resolve();
             }, 300);
@@ -39,22 +37,20 @@ suite("Server Status View Tests", () => {
         serverStatusView.updateServiceDownloadingProgress(50);
         let statusBarItem = serverStatusView.statusBarItem;
         let progressText = "$(cloud-download) " + `${Constants.serviceDownloading} ... 50%`;
-        assert.equal(
+        expect(
             statusBarItem.text,
-            progressText,
             "Status bar item text should show the correct progress percentage",
-        );
+        ).to.equal(progressText);
         serverStatusView.dispose();
     });
 
     test("Test service installed status", () => {
         serverStatusView.serviceInstalled();
         let statusBarItem = serverStatusView.statusBarItem;
-        assert.isUndefined(statusBarItem.command, "Status Bar Item command should be undefined");
-        assert.equal(
-            statusBarItem.text,
+        expect(statusBarItem.command, "Status Bar Item command should be undefined").to.be
+            .undefined;
+        expect(statusBarItem.text, "Status Bar Item text should show installed").to.equal(
             Constants.serviceInstalled,
-            "Status Bar Item text should show installed",
         );
         serverStatusView.dispose();
     });
@@ -62,12 +58,12 @@ suite("Server Status View Tests", () => {
     test("Test service installation failed status", () => {
         serverStatusView.serviceInstallationFailed();
         let statusBarItem = serverStatusView.statusBarItem;
-        assert.isUndefined(statusBarItem.command, "Status Bar Item command should be undefined");
-        assert.equal(
+        expect(statusBarItem.command, "Status Bar Item command should be undefined").to.be
+            .undefined;
+        expect(
             statusBarItem.text,
-            Constants.serviceInstallationFailed,
             "Status Bar Item text should show installation failure",
-        );
+        ).to.equal(Constants.serviceInstallationFailed);
         serverStatusView.dispose();
     });
 });

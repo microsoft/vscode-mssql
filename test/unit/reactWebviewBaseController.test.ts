@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
+import { expect } from "chai";
 import * as utils from "../../src/utils/utils";
 import * as vscode from "vscode";
 import Sinon, * as sinon from "sinon";
@@ -61,46 +61,42 @@ suite("ReactWebviewController Tests", () => {
     });
 
     test("Should initialize with initial state", () => {
-        assert.deepStrictEqual(
-            controller.state,
-            { count: 0 },
-            "State is not initialized correctly",
-        );
+        expect(controller.state, "State is not initialized correctly").to.deep.equal({ count: 0 });
     });
 
     test("Should register default request handlers", () => {
-        assert.ok(
+        expect(
             onRequestStub.calledWith(GetStateRequest.type(), sinon.match.any),
             "GetStateRequest handler is not registered",
-        );
-        assert.ok(
+        ).to.be.ok;
+        expect(
             onRequestStub.calledWith(ReducerRequest.type(), sinon.match.any),
             "ReducerRequest handler is not registered",
-        );
-        assert.ok(
+        ).to.be.ok;
+        expect(
             onRequestStub.calledWith(GetThemeRequest.type, sinon.match.any),
             "GetThemeRequest handler is not registered",
-        );
-        assert.ok(
+        ).to.be.ok;
+        expect(
             onRequestStub.calledWith(GetLocalizationRequest.type, sinon.match.any),
             "GetLocalizationRequest handler is not registered",
-        );
-        assert.ok(
+        ).to.be.ok;
+        expect(
             onRequestStub.calledWith(ExecuteCommandRequest.type, sinon.match.any),
             "ExecuteCommandRequest handler is not registered",
-        );
-        assert.ok(
+        ).to.be.ok;
+        expect(
             onNotificationStub.calledWith(LoadStatsNotification.type, sinon.match.any),
             "LoadStatsNotification handler is not registered",
-        );
-        assert.ok(
+        ).to.be.ok;
+        expect(
             onNotificationStub.calledWith(SendActionEventNotification.type, sinon.match.any),
             "SendActionEventNotification handler is not registered",
-        );
-        assert.ok(
+        ).to.be.ok;
+        expect(
             onNotificationStub.calledWith(SendErrorEventNotification.type, sinon.match.any),
             "SendErrorEventNotification handler is not registered",
-        );
+        ).to.be.ok;
     });
 
     test("should register a new reducer", () => {
@@ -110,30 +106,30 @@ suite("ReactWebviewController Tests", () => {
 
         controller.registerReducer("increment", reducer);
         const reducers = (controller as any)._reducerHandlers;
-        assert.ok(reducers.has("increment"), "Reducer is not registered");
+        expect(reducers.has("increment"), "Reducer is not registered").to.be.ok;
     });
 
     test("Should post notification to webview", () => {
         controller.postMessage({ type: MessageType.Notification, method: "test" });
-        assert.ok(
+        expect(
             controller._webview.postMessage.calledWith({
                 type: MessageType.Notification,
                 method: "test",
             }),
             "Notification is not sent correctly",
-        );
+        ).to.be.ok;
     });
 
     test("Should update state and send notification to webview", async () => {
         controller.updateState({ count: 6 });
-        assert.deepStrictEqual(controller.state, { count: 6 }, "State is not updated correctly");
+        expect(controller.state, "State is not updated correctly").to.deep.equal({ count: 6 });
         await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for async operations
-        assert.ok(
+        expect(
             sendNotificationStub.calledWith(StateChangeNotification.type(), {
                 count: 6,
             }),
             "Notification is not sent correctly",
-        );
+        ).to.be.ok;
     });
 
     test("Should dispose properly", () => {
@@ -142,19 +138,19 @@ suite("ReactWebviewController Tests", () => {
         };
         (controller as any)._disposables.push(disposable);
         controller.dispose();
-        assert.ok(disposable.dispose.calledOnce, "Disposables are not disposed");
+        expect(disposable.dispose.calledOnce, "Disposables are not disposed").to.be.ok;
     });
 
     test("Should not post message if disposed", () => {
         controller.dispose();
         controller.postMessage({ type: MessageType.Notification, method: "test" });
-        assert.ok(
+        expect(
             !controller._webview.postMessage.calledWith({
                 type: MessageType.Notification,
                 method: "test",
             }),
             "Message is posted after dispose",
-        );
+        ).to.be.ok;
     });
 
     test("Should setup theming and handle theme change", () => {
@@ -170,19 +166,19 @@ suite("ReactWebviewController Tests", () => {
             });
             (controller as any).initializeBase();
 
-            assert.ok(
+            expect(
                 sendNotificationStub.calledWith(
                     ColorThemeChangeNotification.type,
                     vscode.window.activeColorTheme.kind,
                 ),
-            );
+            ).to.be.ok;
 
             themeChangedCallback({ kind: 3 });
 
-            assert.ok(
+            expect(
                 sendNotificationStub.calledWith(ColorThemeChangeNotification.type, 3),
                 "Theme change notification is not sent correctly",
-            );
+            ).to.be.ok;
         } finally {
             (vscode.window.onDidChangeActiveColorTheme as any) = originalOnChangeActiveColorTheme;
         }
@@ -193,13 +189,11 @@ suite("ReactWebviewController Tests", () => {
         sandbox.stub(utils, "getNonce").returns("test-nonce");
         (controller as any)._getWebview().asWebviewUri = webviewUriStub;
         const html = controller["_getHtmlTemplate"]();
-        assert.ok(html.includes("testSource.css"), "CSS file is not included");
-        assert.ok(html.includes("testSource.js"), "JS file is not included");
-        assert.ok(html.includes('nonce="test-nonce"'), "Nonce is not included");
-        assert.ok(
-            html.includes('<base href="https://example.com//">'),
-            "Base href is not included",
-        );
+        expect(html.includes("testSource.css"), "CSS file is not included").to.be.ok;
+        expect(html.includes("testSource.js"), "JS file is not included").to.be.ok;
+        expect(html.includes('nonce="test-nonce"'), "Nonce is not included").to.be.ok;
+        expect(html.includes('<base href="https://example.com//">'), "Base href is not included").to
+            .be.ok;
     });
 });
 

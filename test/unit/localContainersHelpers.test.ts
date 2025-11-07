@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
+import { expect } from "chai";
 import * as sinon from "sinon";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { FormItemType } from "../../src/sharedInterfaces/form";
@@ -54,10 +54,10 @@ suite("localContainers logic", () => {
             undefined,
         );
 
-        assert.strictEqual(state.loadState, ApiStatus.Loaded);
-        assert.strictEqual(state.formState.version, "latest");
-        assert.ok(state.formComponents.password);
-        assert.strictEqual(state.dockerSteps.length, 1);
+        expect(state.loadState).to.equal(ApiStatus.Loaded);
+        expect(state.formState.version).to.equal("latest");
+        expect(state.formComponents.password).to.be.ok;
+        expect(state.dockerSteps.length).to.equal(1);
     });
 
     test("initializeLocalContainersState sets connection group", async () => {
@@ -74,11 +74,11 @@ suite("localContainers logic", () => {
             "testGroup",
         );
 
-        assert.strictEqual(state.loadState, ApiStatus.Loaded);
-        assert.strictEqual(state.formState.version, "latest");
-        assert.ok(state.formComponents.password);
-        assert.strictEqual(state.dockerSteps.length, 1);
-        assert.strictEqual(state.formState.groupId, "testGroup");
+        expect(state.loadState).to.equal(ApiStatus.Loaded);
+        expect(state.formState.version).to.equal("latest");
+        expect(state.formComponents.password).to.be.ok;
+        expect(state.dockerSteps.length).to.equal(1);
+        expect(state.formState.groupId).to.equal("testGroup");
     });
 
     test("setLocalContainersFormComponents builds expected keys", () => {
@@ -101,9 +101,9 @@ suite("localContainers logic", () => {
             "acceptEula",
         ];
 
-        assert.deepEqual(Object.keys(components), expectedKeys);
-        assert.strictEqual(components.password.type, FormItemType.Password);
-        assert.ok(components.version.options.length > 0);
+        expect(Object.keys(components)).to.deep.equal(expectedKeys);
+        expect(components.password.type).to.equal(FormItemType.Password);
+        expect(components.version.options.length > 0).to.be.ok;
     });
 
     test("validatePort works for valid and invalid ports", async () => {
@@ -114,10 +114,10 @@ suite("localContainers logic", () => {
             .withArgs(1)
             .resolves(-1);
 
-        assert.strictEqual(await localContainersHelpers.validatePort("1433"), true);
-        assert.strictEqual(await localContainersHelpers.validatePort("1"), false);
-        assert.strictEqual(await localContainersHelpers.validatePort("NaN"), false);
-        assert.strictEqual(await localContainersHelpers.validatePort(""), true);
+        expect(await localContainersHelpers.validatePort("1433")).to.equal(true);
+        expect(await localContainersHelpers.validatePort("1")).to.equal(false);
+        expect(await localContainersHelpers.validatePort("NaN")).to.equal(false);
+        expect(await localContainersHelpers.validatePort("")).to.equal(true);
     });
 
     test("validateDockerConnectionProfile validates containerName and port", async () => {
@@ -150,13 +150,13 @@ suite("localContainers logic", () => {
         } as lc.LocalContainersState;
 
         const validResult = await localContainersHelpers.validateDockerConnectionProfile(state);
-        assert.deepEqual(validResult.formErrors, []);
+        expect(validResult.formErrors).to.deep.equal([]);
 
         state.formState.containerName = "badName";
         state.formState.port = 1;
         const invalidResult = await localContainersHelpers.validateDockerConnectionProfile(state);
-        assert.ok(invalidResult.formErrors.includes("containerName"));
-        assert.ok(invalidResult.formErrors.includes("port"));
+        expect(invalidResult.formErrors.includes("containerName")).to.be.ok;
+        expect(invalidResult.formErrors.includes("port")).to.be.ok;
     });
 
     test("completeDockerStep updates state on successful step", async () => {
@@ -176,9 +176,9 @@ suite("localContainers logic", () => {
             dockerStep: 0,
         });
 
-        assert.strictEqual(newState.deploymentTypeState.dockerSteps[0].loadState, ApiStatus.Loaded);
-        assert.strictEqual(newState.deploymentTypeState.currentDockerStep, 1);
-        assert.ok(sendActionEvent.called);
+        expect(newState.deploymentTypeState.dockerSteps[0].loadState).to.equal(ApiStatus.Loaded);
+        expect(newState.deploymentTypeState.currentDockerStep).to.equal(1);
+        expect(sendActionEvent.called).to.be.ok;
     });
 
     test("completeDockerStep updates state on failed step", async () => {
@@ -200,9 +200,9 @@ suite("localContainers logic", () => {
             dockerStep: 0,
         });
 
-        assert.strictEqual(newState.deploymentTypeState.dockerSteps[0].loadState, ApiStatus.Error);
-        assert.strictEqual(newState.deploymentTypeState.currentDockerStep, 0);
-        assert.ok(sendErrorEvent.called);
+        expect(newState.deploymentTypeState.dockerSteps[0].loadState).to.equal(ApiStatus.Error);
+        expect(newState.deploymentTypeState.currentDockerStep).to.equal(0);
+        expect(sendErrorEvent.called).to.be.ok;
     });
 
     test("resetDockerStepState resets current step", async () => {
@@ -216,11 +216,10 @@ suite("localContainers logic", () => {
         localContainersHelpers.registerLocalContainersReducers(deploymentController);
         const newState = await (deploymentController as any).resetDockerStepState(state, {});
 
-        assert.strictEqual(
-            newState.deploymentTypeState.dockerSteps[0].loadState,
+        expect(newState.deploymentTypeState.dockerSteps[0].loadState).to.equal(
             ApiStatus.NotStarted,
         );
-        assert.ok(sendActionEvent.called);
+        expect(sendActionEvent.called).to.be.ok;
     });
 
     test("checkDockerProfile validates form and sends telemetry", async () => {
@@ -278,11 +277,8 @@ suite("localContainers logic", () => {
         const newState = await (deploymentController as any).checkDockerProfile(state, {});
 
         // Assertions
-        assert.strictEqual(
-            newState.deploymentTypeState.formValidationLoadState,
-            ApiStatus.NotStarted,
-        );
-        assert.ok(sendActionEvent.called);
+        expect(newState.deploymentTypeState.formValidationLoadState).to.equal(ApiStatus.NotStarted);
+        expect(sendActionEvent.called).to.be.ok;
     });
 
     test("addContainerConnection returns true on success", async () => {
@@ -307,9 +303,9 @@ suite("localContainers logic", () => {
             dockerProfile,
             mainController,
         );
-        assert.strictEqual(result, true);
-        assert.ok(saveProfileStub.calledOnce);
-        assert.ok(createSessionStub.calledOnce);
+        expect(result).to.equal(true);
+        expect(saveProfileStub.calledOnce).to.be.ok;
+        expect(createSessionStub.calledOnce).to.be.ok;
     });
 
     test("sendLocalContainersCloseEventTelemetry sends telemetry event", async () => {
@@ -320,12 +316,12 @@ suite("localContainers logic", () => {
 
         await localContainersHelpers.sendLocalContainersCloseEventTelemetry(state);
 
-        assert.ok(sendActionEvent.calledOnce);
+        expect(sendActionEvent.calledOnce).to.be.ok;
     });
 
     test("updateLocalContainersState updates state", async () => {
         await localContainersHelpers.updateLocalContainersState(deploymentController, {} as any);
 
-        assert.ok(updateStateStub.calledOnce);
+        expect(updateStateStub.calledOnce).to.be.ok;
     });
 });

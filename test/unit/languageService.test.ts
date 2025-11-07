@@ -6,7 +6,7 @@
 import DecompressProvider from "../../src/languageservice/decompressProvider";
 import { IPackage, IStatusView } from "../../src/languageservice/interfaces";
 import { ILogger } from "../../src/models/interfaces";
-import { assert } from "chai";
+import { expect } from "chai";
 import HttpClient, { IDownloadProgress } from "../../src/languageservice/httpClient";
 
 suite("Language Service Tests", () => {
@@ -29,7 +29,7 @@ suite("Language Service Tests", () => {
             try {
                 await decompressProvider.decompress(testPackage, testLogger);
             } catch (err) {
-                assert.isNotNull(err, "Should throw an error");
+                expect(err, "Should throw an error").to.not.be.null;
             }
         });
     });
@@ -63,9 +63,9 @@ suite("Language Service Tests", () => {
                 testLogger,
                 mockStatusView,
             );
-            assert.strictEqual(mockProgress.downloadPercentage, 50);
-            assert.strictEqual(mockProgress.downloadedBytes, 5);
-            assert.strictEqual(mockProgress.dots, 10);
+            expect(mockProgress.downloadPercentage).to.equal(50);
+            expect(mockProgress.downloadedBytes).to.equal(5);
+            expect(mockProgress.dots).to.equal(10);
         });
     });
 });
