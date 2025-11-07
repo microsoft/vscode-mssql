@@ -391,7 +391,7 @@ suite("PublishProjectWebViewController Tests", () => {
         });
 
         // Verify original values are updated
-        expect(newState.originalSqlCmdVariables).to.deep.equal({
+        expect(newState.defaultSqlCmdVariables).to.deep.equal({
             Var1: "Value1",
             Var2: "Value2",
         });
@@ -881,7 +881,7 @@ suite("PublishProjectWebViewController Tests", () => {
         });
 
         // Verify original values are set to profile values
-        expect(newState.originalSqlCmdVariables).to.deep.equal({
+        expect(newState.defaultSqlCmdVariables).to.deep.equal({
             Var1: "Value1",
             Var2: "Value2",
         });
