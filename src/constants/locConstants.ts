@@ -2125,7 +2125,7 @@ export class TableExplorer {
     );
     public static changesSavedSuccessfully = l10n.t("Changes saved successfully.");
     public static rowCreatedSuccessfully = l10n.t("Row created.");
-    public static rowRemoved = l10n.t("Row removed.");
+    public static rowMarkedForRemoval = l10n.t("Row marked for removal.");
 
     public static title = (tableName: string) =>
         l10n.t({
