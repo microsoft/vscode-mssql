@@ -546,7 +546,13 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                 { ownerUri: ownerUri },
             );
 
-            return { databases: result.databaseNames || [] };
+            // Filter out system databases
+            const systemDatabases = ["master", "tempdb", "model", "msdb"];
+            const userDatabases = (result.databaseNames || []).filter(
+                (db) => !systemDatabases.includes(db.toLowerCase()),
+            );
+
+            return { databases: userDatabases };
         } catch (error) {
             this.logger.error(`Failed to list databases: ${error}`);
             return { databases: [] };
