@@ -22,7 +22,11 @@ import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { ListDatabasesRequest } from "../models/contracts/connection";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { getConnectionDisplayName } from "../models/connectionInfo";
-import { validateDatabaseNameFormat, DatabaseNameValidationError } from "../models/utils";
+import {
+    validateDatabaseNameFormat,
+    DatabaseNameValidationError,
+    ConnectionMatcher,
+} from "../models/utils";
 
 // File extension constants
 export const DACPAC_EXTENSION = ".dacpac";
@@ -127,7 +131,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                 databaseName: string;
                 ownerUri: string;
                 shouldNotExist: boolean;
-                operationType?: dacpacDialog.DacFxOperationType;
+                operationType?: dacpacDialog.DacPacDialogOperationType;
             }) => {
                 if (!params.ownerUri || params.ownerUri.trim() === "") {
                     this.logger.error("Cannot validate database name: ownerUri is empty");
@@ -228,10 +232,10 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             dacpacDialog.GetSuggestedOutputPathWebviewRequest.type,
             async (params: {
                 databaseName: string;
-                operationType: dacpacDialog.DacFxOperationType;
+                operationType: dacpacDialog.DacPacDialogOperationType;
             }) => {
                 const fileExtension =
-                    params.operationType === dacpacDialog.DacFxOperationType.Extract
+                    params.operationType === dacpacDialog.DacPacDialogOperationType.Extract
                         ? "dacpac"
                         : "bacpac";
 
@@ -298,7 +302,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
     ): Promise<dacpacDialog.DacpacDialogResult> {
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
-            TelemetryActions.DacFxDeployDacpac,
+            TelemetryActions.DacpacDialogDeployDacpac,
             undefined,
             {
                 isNewDatabase: params.isNewDatabase.toString(),
@@ -354,7 +358,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
     ): Promise<dacpacDialog.DacpacDialogResult> {
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
-            TelemetryActions.DacFxExtractDacpac,
+            TelemetryActions.DacpacDialogExtractDacpac,
         );
 
         try {
@@ -418,7 +422,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
     ): Promise<dacpacDialog.DacpacDialogResult> {
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
-            TelemetryActions.DacFxImportBacpac,
+            TelemetryActions.DacpacDialogImportBacpac,
         );
 
         try {
@@ -469,7 +473,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
     ): Promise<dacpacDialog.DacpacDialogResult> {
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
-            TelemetryActions.DacFxExportBacpac,
+            TelemetryActions.DacpacDialogExportBacpac,
         );
 
         try {
@@ -624,7 +628,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                     password: profile.password,
                     authenticationType: profile.authenticationType,
                     profileName: displayName,
-                    id: profile.id || `${profile.server}_${profile.database || ""}`,
+                    id: profile.id,
                     groupId: profile.groupId,
                     savePassword: profile.savePassword,
                     azureAuthType: profile.azureAuthType,
@@ -657,11 +661,19 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
         try {
             // Get all connections
             const { connections } = await this.listConnections();
+            const connectionProfile = {
+                server: params.initialServerName,
+                database: params.initialDatabaseName,
+                id: params.initialProfileId,
+            } as IConnectionProfile;
 
             // Find matching connection based on initial parameters
-            const matchingConnection = await this.findMatchingConnection(params, connections);
+            const matchingConnection = await ConnectionMatcher.findMatchingProfile(
+                connectionProfile,
+                connections as IConnectionProfile[],
+            );
 
-            if (!matchingConnection) {
+            if (!matchingConnection.profile) {
                 // No match found - return all connections, let user choose
                 this.logger.verbose("No matching connection found in initial state");
                 return {
@@ -672,15 +684,16 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
 
             // Handle existing connection from Object Explorer
             if (params.initialOwnerUri) {
-                return this.useExistingConnection(
-                    connections,
-                    matchingConnection,
+                const existingConnResult = this.useExistingConnection(
+                    matchingConnection.profile,
                     params.initialOwnerUri,
                 );
+                return { ...existingConnResult, connections };
             }
 
             // Attempt to connect to the matched profile
-            return await this.connectToMatchedProfile(connections, matchingConnection);
+            const connectResult = await this.connectToMatchedProfile(matchingConnection.profile);
+            return { ...connectResult, connections };
         } catch (error) {
             this.logger.error(`Failed to initialize connection: ${error}`);
             // Fallback: return empty state
@@ -693,93 +706,18 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
     }
 
     /**
-     * Finds a matching connection profile based on profile ID or server/database name
-     */
-    private async findMatchingConnection(
-        params: {
-            initialProfileId?: string;
-            initialServerName?: string;
-            initialDatabaseName?: string;
-        },
-        connections: IConnectionDialogProfile[],
-    ): Promise<IConnectionDialogProfile | undefined> {
-        // Priority 1: Match by profile ID if provided
-        if (params.initialProfileId) {
-            const matchingConnection = connections.find(
-                (conn) => conn.id === params.initialProfileId,
-            );
-            if (matchingConnection) {
-                this.logger.verbose(`Found connection by profile ID: ${params.initialProfileId}`);
-                return matchingConnection;
-            }
-        }
-
-        // Priority 2: Use findMatchingProfile if we have server name
-        if (params.initialServerName) {
-            return await this.findConnectionByServerName(
-                params.initialServerName,
-                params.initialDatabaseName,
-                connections,
-            );
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Finds a connection by server and database name using the connection store's matching logic
-     */
-    private async findConnectionByServerName(
-        serverName: string,
-        databaseName: string | undefined,
-        connections: IConnectionDialogProfile[],
-    ): Promise<IConnectionDialogProfile | undefined> {
-        // Create a temporary profile to search with
-        const searchProfile = {
-            server: serverName,
-            database: databaseName || "",
-        } as IConnectionProfile;
-
-        const matchResult =
-            await this.connectionManager.connectionStore.findMatchingProfile(searchProfile);
-
-        if (matchResult?.profile) {
-            // Find the matching connection in our list
-            const profileId =
-                matchResult.profile.id ||
-                `${matchResult.profile.server}_${matchResult.profile.database || ""}`;
-            const matchingConnection = connections.find((conn) => {
-                const connId = conn.id || `${conn.server}_${conn.database || ""}`;
-                return connId === profileId;
-            });
-
-            if (matchingConnection) {
-                this.logger.verbose(
-                    `Found connection by server/database using findMatchingProfile: ${serverName}/${databaseName || "default"}`,
-                );
-                return matchingConnection;
-            }
-        }
-
-        return undefined;
-    }
-
-    /**
      * Returns result for an existing connection (from Object Explorer)
      */
     private useExistingConnection(
-        connections: IConnectionDialogProfile[],
         matchingConnection: IConnectionDialogProfile,
         ownerUri: string,
     ): {
-        connections: IConnectionDialogProfile[];
         selectedConnection: IConnectionDialogProfile;
         ownerUri: string;
         autoConnected: boolean;
     } {
         this.logger.verbose(`Using existing connection from Object Explorer: ${ownerUri}`);
         return {
-            connections,
             selectedConnection: matchingConnection,
             ownerUri,
             autoConnected: false, // Was already connected
@@ -789,11 +727,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
     /**
      * Attempts to connect to a matched profile and returns the result
      */
-    private async connectToMatchedProfile(
-        connections: IConnectionDialogProfile[],
-        matchingConnection: IConnectionDialogProfile,
-    ): Promise<{
-        connections: IConnectionDialogProfile[];
+    private async connectToMatchedProfile(matchingConnection: IConnectionDialogProfile): Promise<{
         selectedConnection: IConnectionDialogProfile;
         ownerUri?: string;
         autoConnected: boolean;
@@ -806,7 +740,6 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             if (connectResult.isConnected && connectResult.ownerUri) {
                 this.logger.info(`Connected to: ${matchingConnection.server}`);
                 return {
-                    connections,
                     selectedConnection: matchingConnection,
                     ownerUri: connectResult.ownerUri,
                     autoConnected: true,
@@ -817,7 +750,6 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                     `Connection failed: ${connectResult.errorMessage || "Unknown error"}`,
                 );
                 return {
-                    connections,
                     selectedConnection: matchingConnection,
                     autoConnected: false,
                     errorMessage: connectResult.errorMessage,
@@ -827,7 +759,6 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             const errorMsg = error instanceof Error ? error.message : String(error);
             this.logger.error(`Connection exception: ${errorMsg}`);
             return {
-                connections,
                 selectedConnection: matchingConnection,
                 autoConnected: false,
                 errorMessage: errorMsg,
@@ -927,7 +858,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
         databaseName: string,
         ownerUri: string,
         shouldNotExist: boolean,
-        operationType?: dacpacDialog.DacFxOperationType,
+        operationType?: dacpacDialog.DacPacDialogOperationType,
     ): Promise<{ isValid: boolean; errorMessage?: string }> {
         // Validate database name format
         const formatValidation = validateDatabaseNameFormat(databaseName);
@@ -965,7 +896,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             // This ensures confirmation dialog is shown in both cases:
             // 1. User selected "New Database" but database already exists (shouldNotExist=true)
             // 2. User selected "Existing Database" and selected existing database (shouldNotExist=false)
-            if (operationType === dacpacDialog.DacFxOperationType.Deploy && exists) {
+            if (operationType === dacpacDialog.DacPacDialogOperationType.Deploy && exists) {
                 return {
                     isValid: true, // Allow the operation but with a warning
                     errorMessage: LocConstants.DacpacDialog.DatabaseAlreadyExists,

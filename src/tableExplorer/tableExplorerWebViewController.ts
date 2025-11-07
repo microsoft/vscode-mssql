@@ -478,7 +478,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
             try {
                 await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
-                vscode.window.showInformationMessage(LocConstants.TableExplorer.rowRemoved);
+                vscode.window.showInformationMessage(
+                    LocConstants.TableExplorer.rowMarkedForRemoval,
+                );
 
                 // Remove from newRows tracking if it was a new row
                 state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
@@ -579,8 +581,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     );
 
                     if (rowIndex !== -1) {
-                        state.resultSet.subset[rowIndex].cells[payload.columnId] =
-                            updateCellResult.cell;
+                        const updatedCell = {
+                            ...updateCellResult.cell,
+                            displayValue: payload.newValue,
+                        };
+
+                        state.resultSet.subset[rowIndex].cells[payload.columnId] = updatedCell;
 
                         this.updateState();
 

@@ -418,7 +418,7 @@ export class ScriptingService {
             ownerURI: uri,
             selectScript: undefined,
             operation: operation,
-            returnScriptAsEvent: true,
+            returnScriptAsynchronously: true,
         };
         return scriptingParams;
     }

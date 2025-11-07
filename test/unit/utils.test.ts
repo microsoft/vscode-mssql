@@ -7,7 +7,7 @@ import { expect, assert } from "chai";
 import * as Utils from "../../src/models/utils";
 import * as Constants from "../../src/constants/constants";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
-import { IConnectionProfile } from "../../src/models/interfaces";
+import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
 import * as utilUtils from "../../src/utils/utils";
 
 suite("Utility Tests - parseTimeString", () => {
@@ -366,6 +366,31 @@ suite("ConnectionMatcher", () => {
                 `Expected ${JSON.stringify(testCase.conn1)} and ${JSON.stringify(testCase.conn2)} match score to be ${testCase.expected}`,
             ).to.equal(testCase.expected);
         }
+    });
+
+    test("findMatchingProfile", async () => {
+        const connections = [
+            sqlAuthConn as IConnectionProfileWithSource,
+            azureAuthConn as IConnectionProfileWithSource,
+            connStringConn as IConnectionProfileWithSource,
+        ];
+
+        let match = Utils.ConnectionMatcher.findMatchingProfile(azureAuthConn, connections);
+        expect(match).to.deep.equal({
+            profile: azureAuthConn,
+            score: Utils.MatchScore.AllAvailableProps,
+        });
+
+        match = Utils.ConnectionMatcher.findMatchingProfile(
+            {
+                server: "noMatch",
+            } as IConnectionProfile,
+            connections,
+        );
+        expect(match).to.deep.equal({
+            profile: undefined,
+            score: Utils.MatchScore.NotMatch,
+        });
     });
 });
 

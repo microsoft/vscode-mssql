@@ -43,8 +43,8 @@ export const DacpacDialogForm = () => {
     const initialSelectedProfileId = useDacpacDialogSelector((state) => state.selectedProfileId);
 
     // Local state
-    const [operationType, setOperationType] = useState<dacpacDialog.DacFxOperationType>(
-        initialOperationType || dacpacDialog.DacFxOperationType.Deploy,
+    const [operationType, setOperationType] = useState<dacpacDialog.DacPacDialogOperationType>(
+        initialOperationType || dacpacDialog.DacPacDialogOperationType.Deploy,
     );
     const [filePath, setFilePath] = useState("");
     const [databaseName, setDatabaseName] = useState(initialDatabaseName || "");
@@ -83,9 +83,9 @@ export const DacpacDialogForm = () => {
     useEffect(() => {
         if (
             ownerUri &&
-            (operationType === dacpacDialog.DacFxOperationType.Deploy ||
-                operationType === dacpacDialog.DacFxOperationType.Extract ||
-                operationType === dacpacDialog.DacFxOperationType.Export)
+            (operationType === dacpacDialog.DacPacDialogOperationType.Deploy ||
+                operationType === dacpacDialog.DacPacDialogOperationType.Extract ||
+                operationType === dacpacDialog.DacPacDialogOperationType.Export)
         ) {
             void loadDatabases();
         }
@@ -96,8 +96,8 @@ export const DacpacDialogForm = () => {
         const updateSuggestedPath = async () => {
             if (
                 databaseName &&
-                (operationType === dacpacDialog.DacFxOperationType.Extract ||
-                    operationType === dacpacDialog.DacFxOperationType.Export) &&
+                (operationType === dacpacDialog.DacPacDialogOperationType.Extract ||
+                    operationType === dacpacDialog.DacPacDialogOperationType.Export) &&
                 context?.getSuggestedOutputPath
             ) {
                 // Get the suggested full path from the controller
@@ -332,7 +332,7 @@ export const DacpacDialogForm = () => {
             // 1. User checked "New Database" but database already exists (shouldNotExist=true)
             // 2. User unchecked "New Database" to deploy to existing (shouldNotExist=false)
             if (
-                operationType === dacpacDialog.DacFxOperationType.Deploy &&
+                operationType === dacpacDialog.DacPacDialogOperationType.Deploy &&
                 result.errorMessage === locConstants.dacpacDialog.databaseAlreadyExists
             ) {
                 const confirmResult = await context?.confirmDeployToExisting();
@@ -407,15 +407,15 @@ export const DacpacDialogForm = () => {
     /**
      * Helper to determine validation requirements based on operation type
      */
-    const getValidationRequirements = (opType: dacpacDialog.DacFxOperationType) => {
+    const getValidationRequirements = (opType: dacpacDialog.DacPacDialogOperationType) => {
         switch (opType) {
-            case dacpacDialog.DacFxOperationType.Deploy:
+            case dacpacDialog.DacPacDialogOperationType.Deploy:
                 return { filePathShouldExist: true, databaseShouldNotExist: isNewDatabase };
-            case dacpacDialog.DacFxOperationType.Extract:
+            case dacpacDialog.DacPacDialogOperationType.Extract:
                 return { filePathShouldExist: false, databaseShouldNotExist: false };
-            case dacpacDialog.DacFxOperationType.Import:
+            case dacpacDialog.DacPacDialogOperationType.Import:
                 return { filePathShouldExist: true, databaseShouldNotExist: true };
-            case dacpacDialog.DacFxOperationType.Export:
+            case dacpacDialog.DacPacDialogOperationType.Export:
                 return { filePathShouldExist: false, databaseShouldNotExist: false };
         }
     };
@@ -425,7 +425,7 @@ export const DacpacDialogForm = () => {
      * @returns true if validation passes, false otherwise
      */
     const validateOperationInputs = async (
-        opType: dacpacDialog.DacFxOperationType,
+        opType: dacpacDialog.DacPacDialogOperationType,
     ): Promise<boolean> => {
         const requirements = getValidationRequirements(opType);
 
@@ -457,7 +457,7 @@ export const DacpacDialogForm = () => {
             let result;
 
             switch (operationType) {
-                case dacpacDialog.DacFxOperationType.Deploy:
+                case dacpacDialog.DacPacDialogOperationType.Deploy:
                     result = await context?.deployDacpac({
                         packageFilePath: filePath,
                         databaseName,
@@ -466,7 +466,7 @@ export const DacpacDialogForm = () => {
                     });
                     break;
 
-                case dacpacDialog.DacFxOperationType.Extract:
+                case dacpacDialog.DacPacDialogOperationType.Extract:
                     result = await context?.extractDacpac({
                         databaseName,
                         packageFilePath: filePath,
@@ -476,7 +476,7 @@ export const DacpacDialogForm = () => {
                     });
                     break;
 
-                case dacpacDialog.DacFxOperationType.Import:
+                case dacpacDialog.DacPacDialogOperationType.Import:
                     result = await context?.importBacpac({
                         packageFilePath: filePath,
                         databaseName,
@@ -484,7 +484,7 @@ export const DacpacDialogForm = () => {
                     });
                     break;
 
-                case dacpacDialog.DacFxOperationType.Export:
+                case dacpacDialog.DacPacDialogOperationType.Export:
                     result = await context?.exportBacpac({
                         databaseName,
                         packageFilePath: filePath,
@@ -510,8 +510,8 @@ export const DacpacDialogForm = () => {
 
     const handleBrowseFile = async () => {
         const fileExtension =
-            operationType === dacpacDialog.DacFxOperationType.Deploy ||
-            operationType === dacpacDialog.DacFxOperationType.Extract
+            operationType === dacpacDialog.DacPacDialogOperationType.Deploy ||
+            operationType === dacpacDialog.DacPacDialogOperationType.Extract
                 ? "dacpac"
                 : "bacpac";
 
@@ -559,9 +559,8 @@ export const DacpacDialogForm = () => {
             if (
                 requiresInputFile &&
                 context &&
-                (operationType === dacpacDialog.DacFxOperationType.Deploy ||
-                    operationType === dacpacDialog.DacFxOperationType.Import) &&
-                !initialDatabaseName // Only suggest if no initial database context
+                (operationType === dacpacDialog.DacPacDialogOperationType.Deploy ||
+                    operationType === dacpacDialog.DacPacDialogOperationType.Import)
             ) {
                 const nameResult = await context.getSuggestedDatabaseName({
                     filePath: result.filePath,
@@ -593,14 +592,14 @@ export const DacpacDialogForm = () => {
     };
 
     const requiresInputFile =
-        operationType === dacpacDialog.DacFxOperationType.Deploy ||
-        operationType === dacpacDialog.DacFxOperationType.Import;
-    const showDatabaseTarget = operationType === dacpacDialog.DacFxOperationType.Deploy;
+        operationType === dacpacDialog.DacPacDialogOperationType.Deploy ||
+        operationType === dacpacDialog.DacPacDialogOperationType.Import;
+    const showDatabaseTarget = operationType === dacpacDialog.DacPacDialogOperationType.Deploy;
     const showDatabaseSource =
-        operationType === dacpacDialog.DacFxOperationType.Extract ||
-        operationType === dacpacDialog.DacFxOperationType.Export;
-    const showNewDatabase = operationType === dacpacDialog.DacFxOperationType.Import;
-    const showApplicationInfo = operationType === dacpacDialog.DacFxOperationType.Extract;
+        operationType === dacpacDialog.DacPacDialogOperationType.Extract ||
+        operationType === dacpacDialog.DacPacDialogOperationType.Export;
+    const showNewDatabase = operationType === dacpacDialog.DacPacDialogOperationType.Import;
+    const showApplicationInfo = operationType === dacpacDialog.DacPacDialogOperationType.Extract;
 
     async function handleFilePathChange(value: string): Promise<void> {
         setFilePath(value);

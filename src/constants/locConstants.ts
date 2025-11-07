@@ -1346,9 +1346,7 @@ export class PublishProject {
     public static SqlCmdVariablesLabel = l10n.t("SQLCMD Variables");
     public static PublishTargetLabel = l10n.t("Publish Target");
     public static PublishTargetExisting = l10n.t("Existing SQL server");
-    public static PublishTargetExistingLogical = l10n.t("Existing Azure SQL logical server");
-    public static PublishTargetContainer = l10n.t("Local development container");
-    public static PublishTargetAzureEmulator = l10n.t("New SQL Server local development container");
+    public static PublishTargetContainer = l10n.t("New SQL Server Local development container");
     public static PublishTargetNewAzureServer = l10n.t("New Azure SQL logical server (Preview)");
     public static GenerateScript = l10n.t("Generate Script");
     public static Publish = l10n.t("Publish");
@@ -1392,6 +1390,9 @@ export class PublishProject {
         "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     );
     public static FailedToListDatabases = l10n.t("Failed to list databases");
+    public static FailedToFetchContainerTags = (errorMessage: string) => {
+        return l10n.t("Failed to fetch Docker container tags: {0}", errorMessage);
+    };
     public static ProfileLoadedConnectionFailed = l10n.t(
         "Profile loaded but connection failed. Please connect to the server manually.",
     );
@@ -2188,7 +2189,7 @@ export class TableExplorer {
     );
     public static changesSavedSuccessfully = l10n.t("Changes saved successfully.");
     public static rowCreatedSuccessfully = l10n.t("Row created.");
-    public static rowRemoved = l10n.t("Row removed.");
+    public static rowMarkedForRemoval = l10n.t("Row marked for removal.");
 
     public static title = (tableName: string) =>
         l10n.t({

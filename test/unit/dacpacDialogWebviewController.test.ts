@@ -25,7 +25,7 @@ import {
     ConfirmDeployToExistingWebviewRequest,
     ConnectToServerWebviewRequest,
     DacpacDialogResult,
-    DacFxOperationType,
+    DacPacDialogOperationType,
     DeployDacpacWebviewRequest,
     ExportBacpacWebviewRequest,
     ExtractDacpacWebviewRequest,
@@ -74,7 +74,7 @@ suite("DacpacDialogWebviewController", () => {
     let fsExistsSyncStub: sinon.SinonStub;
     const ownerUri = "test-connection-uri";
     const initialState = {
-        operationType: DacFxOperationType.Deploy,
+        operationType: DacPacDialogOperationType.Deploy,
         serverName: "test-server",
     };
     setup(() => {
@@ -463,7 +463,7 @@ suite("DacpacDialogWebviewController", () => {
             );
             const result = await requestHandler!({
                 databaseName: "AdventureWorks",
-                operationType: DacFxOperationType.Extract,
+                operationType: DacPacDialogOperationType.Extract,
             });
             expect(result.fullPath).to.include("myproject");
             expect(result.fullPath).to.include("AdventureWorks");
@@ -479,7 +479,7 @@ suite("DacpacDialogWebviewController", () => {
             );
             const result = await requestHandler!({
                 databaseName: "TestDB",
-                operationType: DacFxOperationType.Export,
+                operationType: DacPacDialogOperationType.Export,
             });
             expect(result.fullPath).to.not.include("workspace");
             expect(result.fullPath).to.include("TestDB");
@@ -498,7 +498,7 @@ suite("DacpacDialogWebviewController", () => {
             );
             const result = await requestHandler!({
                 databaseName: "MyDB",
-                operationType: DacFxOperationType.Extract,
+                operationType: DacPacDialogOperationType.Extract,
             });
             expect(result.fullPath).to.include(DACPAC_EXTENSION);
             expect(result.fullPath).to.not.include(BACPAC_EXTENSION);
@@ -514,7 +514,7 @@ suite("DacpacDialogWebviewController", () => {
             );
             const result = await requestHandler!({
                 databaseName: "MyDB",
-                operationType: DacFxOperationType.Export,
+                operationType: DacPacDialogOperationType.Export,
             });
             expect(result.fullPath).to.include(BACPAC_EXTENSION);
             expect(result.fullPath).to.not.include(DACPAC_EXTENSION);
@@ -1248,18 +1248,6 @@ suite("DacpacDialogWebviewController", () => {
             expect(result.ownerUri).to.equal("");
             expect(result.errorMessage).to.include("Connection failed");
             expect(result.errorMessage).to.include("Network timeout");
-        });
-        test("generates profileId from server and database when id is missing", async () => {
-            const connectionWithoutId: (typeof mockConnections)[0] = {
-                ...mockConnections[0],
-                id: undefined,
-            };
-            connectionStoreStub.readAllConnections.resolves([connectionWithoutId]);
-            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({}));
-            createController();
-            const handler = requestHandlers.get(ListConnectionsWebviewRequest.type.method);
-            const result = await handler!({});
-            expect(result.connections[0].id).to.equal("server1.database.windows.net_db1");
         });
     });
     suite("Database Operations with Empty OwnerUri", () => {

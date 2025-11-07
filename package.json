@@ -147,7 +147,6 @@
         "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.49",
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
-        "typemoq": "^1.7.0",
         "typescript": "^5.8.3",
         "typescript-eslint": "^8.34.0",
         "xliff": "^6.2.1",
@@ -575,19 +574,24 @@
                     "group": "2_MSSQL_serverDbActions@3"
                 },
                 {
+                    "command": "mssql.objectExplorerNewQuery",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "group": "3_MSSQL_newQuery@1"
+                },
+                {
                     "command": "mssql.tableExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences",
-                    "group": "3_MSSQL_tableActions@1"
+                    "group": "4_MSSQL_tableActions@1"
                 },
                 {
                     "command": "mssql.editTable",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "3_MSSQL_tableActions@2"
+                    "group": "4_MSSQL_tableActions@2"
                 },
                 {
                     "submenu": "mssql.sqlScriptsSubmenu",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "4_MSSQL_tableScripts@1"
+                    "group": "5_MSSQL_tableScripts@1"
                 },
                 {
                     "command": "mssql.scriptSelect",
@@ -1621,21 +1625,37 @@
                     "type": "object",
                     "description": "%mssql.shortcuts%",
                     "default": {
-                        "_comment": "Short cuts must follow the format (ctrl)+(shift)+(alt)+[key]",
-                        "event.toggleResultPane": "ctrl+alt+R",
-                        "event.focusResultsGrid": "ctrl+alt+G",
-                        "event.toggleMessagePane": "ctrl+alt+Y",
-                        "event.prevGrid": "ctrl+up",
-                        "event.nextGrid": "ctrl+down",
-                        "event.copySelection": "ctrl+C",
-                        "event.copyWithHeaders": "",
-                        "event.copyAllHeaders": "",
-                        "event.maximizeGrid": "",
-                        "event.selectAll": "ctrl+A",
-                        "event.saveAsJSON": "",
-                        "event.saveAsCSV": "",
-                        "event.saveAsExcel": "",
-                        "event.changeColumnWidth": "ctrl+alt+S"
+                        "_comment": "Use 'ctrlcmd' to represent 'ctrl' on Windows/Linux and 'cmd' on macOS.",
+                        "event.queryResults.switchToResultsTab": "ctrl+alt+R",
+                        "event.queryResults.switchToMessagesTab": "ctrl+alt+Y",
+                        "event.queryResults.switchToQueryPlanTab": "ctrl+alt+E",
+                        "event.queryResults.prevGrid": "ctrlcmd+up",
+                        "event.queryResults.nextGrid": "ctrlcmd+down",
+                        "event.queryResults.switchToTextView": "",
+                        "event.queryResults.maximizeGrid": "",
+                        "event.queryResults.saveAsJSON": "",
+                        "event.queryResults.saveAsCSV": "",
+                        "event.queryResults.saveAsExcel": "",
+                        "event.queryResults.saveAsInsert": "",
+                        "event.resultGrid.copySelection": "ctrlcmd+c",
+                        "event.resultGrid.copyWithHeaders": "",
+                        "event.resultGrid.copyAllHeaders": "",
+                        "event.resultGrid.selectAll": "ctrlcmd+a",
+                        "event.resultGrid.copyAsCSV": "",
+                        "event.resultGrid.copyAsJSON": "",
+                        "event.resultGrid.copyAsInsert": "",
+                        "event.resultGrid.copyAsInClause": "",
+                        "event.resultGrid.changeColumnWidth": "alt+shift+s",
+                        "event.resultGrid.expandSelectionLeft": "shift+left",
+                        "event.resultGrid.expandSelectionRight": "shift+right",
+                        "event.resultGrid.expandSelectionUp": "shift+up",
+                        "event.resultGrid.expandSelectionDown": "shift+down",
+                        "event.resultGrid.openColumnMenu": "f3",
+                        "event.resultGrid.moveToRowStart": "ctrlcmd+left",
+                        "event.resultGrid.moveToRowEnd": "ctrlcmd+right",
+                        "event.resultGrid.selectColumn": "ctrl+space",
+                        "event.resultGrid.selectRow": "shift+space",
+                        "event.resultGrid.toggleSort": "alt+shift+o"
                     },
                     "scope": "resource"
                 },

@@ -264,7 +264,7 @@ export async function validateDockerConnectionProfile(
     if (
         (!propertyName || propertyName === "version") &&
         arch() === "arm64" &&
-        state.formState.version.includes("2025")
+        state?.formState?.version?.includes("2025")
     ) {
         state.dialog = {
             type: "armSql2025Error",
@@ -362,7 +362,7 @@ export function setLocalContainersFormComponents(
             validate(_state, value) {
                 // Handle ARM64 architecture case where SQL Server 2025 latest is broken
                 // Issue tracking this: https://github.com/microsoft/vscode-mssql/issues/20337
-                const isArm64With2025 = arch() === "arm64" && value.toString().includes("2025");
+                const isArm64With2025 = arch() === "arm64" && value?.toString()?.includes("2025");
                 return {
                     isValid: !isArm64With2025,
                     validationMessage: isArm64With2025 ? LocalContainers.sqlServer2025ArmError : "",

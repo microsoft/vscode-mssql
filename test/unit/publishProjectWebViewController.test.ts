@@ -18,6 +18,8 @@ import { validateSqlServerPassword } from "../../src/deployment/dockerUtils";
 import { stubVscodeWrapper } from "./utils";
 import { PublishTarget } from "../../src/sharedInterfaces/publishDialog";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
+import * as dockerUtils from "../../src/deployment/dockerUtils";
+import * as projectUtils from "../../src/publishProject/projectUtils";
 
 chai.use(sinonChai);
 
@@ -237,46 +239,8 @@ suite("PublishProjectWebViewController Tests", () => {
             (opt) => opt.value === PublishTarget.LocalContainer,
         );
 
-        expect(existingServerOption?.displayName).to.equal("Existing Azure SQL logical server");
-        expect(containerOption?.displayName).to.equal("New SQL Server local development container");
-    });
-
-    test("NEW_AZURE_SERVER option appears with preview features enabled for Azure SQL", async () => {
-        // Enable preview features
-        const configStub = sandbox.stub(vscode.workspace, "getConfiguration");
-        configStub.withArgs("sqlDatabaseProjects").returns({
-            get: sandbox.stub().withArgs("enablePreviewFeatures").returns(true),
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any);
-
-        const mockSqlProjectsService: Partial<SqlProjectsService> = {
-            getProjectProperties: sandbox.stub().resolves({
-                success: true,
-                projectGuid: "test-guid",
-                databaseSchemaProvider:
-                    "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
-                outputPath: "bin/Debug",
-            }),
-        };
-
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            mockConnectionManager,
-            "c:/work/AzureProject.sqlproj",
-            mockSqlProjectsService as SqlProjectsService,
-        );
-
-        await controller.initialized.promise;
-
-        const publishTargetComponent = controller.state.formComponents.publishTarget;
-        expect(publishTargetComponent.options?.length).to.equal(3);
-
-        const azureOption = publishTargetComponent.options?.find(
-            (opt) => opt.value === PublishTarget.NewAzureServer,
-        );
-        expect(azureOption).to.exist;
-        expect(azureOption?.displayName).to.equal("New Azure SQL logical server (Preview)");
+        expect(existingServerOption?.displayName).to.equal("Existing SQL server");
+        expect(containerOption?.displayName).to.equal("New SQL Server Local development container");
     });
 
     test("field validators enforce container and server requirements", () => {
@@ -298,6 +262,25 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(validateSqlServerPassword("Abc123!@#".repeat(20)), "too long invalid").to.not.equal(
             "",
         );
+    });
+
+    test("getSqlServerContainerTagsForTargetVersion filters versions correctly for SQL Server 2022", async () => {
+        // Mock deployment versions that would be returned from getSqlServerContainerVersions()
+        const mockDeploymentVersions = [
+            { displayName: "SQL Server 2025 image (latest)", value: "2025-latest" },
+            { displayName: "SQL Server 2022 image", value: "2022" },
+            { displayName: "SQL Server 2019 image", value: "2019" },
+            { displayName: "SQL Server 2017 image", value: "2017" },
+        ];
+
+        sandbox.stub(dockerUtils, "getSqlServerContainerVersions").resolves(mockDeploymentVersions);
+
+        const result = await projectUtils.getSqlServerContainerTagsForTargetVersion("160");
+
+        // Should return only versions >= 2022 (2025 and 2022, filtered out 2019 and 2017)
+        expect(result).to.have.lengthOf(2);
+        expect(result[0].displayName).to.equal("SQL Server 2025 image (latest)");
+        expect(result[1].displayName).to.equal("SQL Server 2022 image");
     });
 
     //#region Publish Profile Section Tests
@@ -324,6 +307,16 @@ suite("PublishProjectWebViewController Tests", () => {
 </Project>`;
 
     test("selectPublishProfile reducer parses XML profile correctly", async () => {
+        // Set up initial project SQLCMD variables (these are the project defaults)
+        mockSqlProjectsService.getSqlCmdVariables.resolves({
+            success: true,
+            errorMessage: "",
+            sqlCmdVariables: [
+                { varName: "Var1", value: "$(Var1)", defaultValue: "Value1" },
+                { varName: "Var2", value: "$(Var2)", defaultValue: "Value2" },
+            ],
+        });
+
         const controller = createTestController();
         await controller.initialized.promise;
 
@@ -373,7 +366,15 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(newState.formState.publishProfilePath.replace(/\\/g, "/")).to.equal(profilePath);
         expect(newState.formState.databaseName).to.equal("MyDatabase");
         expect(newState.formState.serverName).to.equal("myserver.database.windows.net");
+
+        // Verify SQLCMD variables from profile XML
         expect(newState.formState.sqlCmdVariables).to.deep.equal({
+            Var1: "Value1",
+            Var2: "Value2",
+        });
+
+        // Verify original values are updated
+        expect(newState.defaultSqlCmdVariables).to.deep.equal({
             Var1: "Value1",
             Var2: "Value2",
         });
@@ -750,6 +751,123 @@ suite("PublishProjectWebViewController Tests", () => {
             executePublishSpy.firstCall.args[1],
             "isPublish parameter should be true for publish",
         ).to.be.true;
+    });
+    //#endregion
+
+    //#region SQLCMD Variables Tests
+    test("SQLCMD variables are loaded from project during initialization", async () => {
+        // Mock getSqlCmdVariables to return test variables
+        mockSqlProjectsService.getSqlCmdVariables.resolves({
+            success: true,
+            errorMessage: "",
+            sqlCmdVariables: [
+                { varName: "DatabaseName", value: "$(DatabaseName)", defaultValue: "MyTestDB" },
+                { varName: "Environment", value: "$(Environment)", defaultValue: "Development" },
+            ],
+        });
+
+        const controller = createTestController("c:/work/TestProject.sqlproj");
+        await controller.initialized.promise;
+
+        // Verify getSqlCmdVariables was called with project path
+        expect(mockSqlProjectsService.getSqlCmdVariables).to.have.been.calledWith(
+            "c:/work/TestProject.sqlproj",
+        );
+
+        // Verify SQLCMD variables were loaded into state
+        expect(controller.state.formState.sqlCmdVariables).to.deep.equal({
+            DatabaseName: "MyTestDB",
+            Environment: "Development",
+        });
+    });
+
+    test("revertSqlCmdVariables reducer restores variables to default values", async () => {
+        // Set up initial project SQLCMD variables
+        mockSqlProjectsService.getSqlCmdVariables.resolves({
+            success: true,
+            errorMessage: "",
+            sqlCmdVariables: [
+                { varName: "ServerName", value: "$(ServerName)", defaultValue: "localhost" },
+                { varName: "DatabaseName", value: "$(DatabaseName)", defaultValue: "TestDB" },
+            ],
+        });
+
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Simulate user modifying the variables
+        controller.state.formState.sqlCmdVariables = {
+            ServerName: "prodserver.database.windows.net",
+            DatabaseName: "ProductionDB",
+        };
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const revertSqlCmdVariables = reducerHandlers.get("revertSqlCmdVariables");
+        expect(revertSqlCmdVariables, "revertSqlCmdVariables reducer should be registered").to
+            .exist;
+
+        // Invoke the reducer
+        const newState = await revertSqlCmdVariables(controller.state, {});
+
+        // Verify variables were reverted to defaults
+        expect(newState.formState.sqlCmdVariables).to.deep.equal({
+            ServerName: "localhost",
+            DatabaseName: "TestDB",
+        });
+    });
+
+    test("Loading profile with SQLCMD variables when project has none should show variables", async () => {
+        // Mock getSqlCmdVariables to return NO variables (project has none)
+        mockSqlProjectsService.getSqlCmdVariables.resolves({
+            success: true,
+            errorMessage: "",
+            sqlCmdVariables: [],
+        });
+
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Verify initially no SQLCMD variables
+        expect(controller.state.formState.sqlCmdVariables).to.deep.equal({});
+
+        const profilePath = "c:/profiles/ProfileWithVariables.publish.xml";
+
+        // Mock file system read
+        const fs = await import("fs");
+        sandbox.stub(fs.promises, "readFile").resolves(SAMPLE_PUBLISH_PROFILE_XML);
+
+        // Mock file picker
+        sandbox.stub(vscode.window, "showOpenDialog").resolves([vscode.Uri.file(profilePath)]);
+
+        // Mock DacFx service
+        mockDacFxService.getOptionsFromProfile.resolves({
+            success: true,
+            errorMessage: "",
+            deploymentOptions: {
+                excludeObjectTypes: { value: [], description: "", displayName: "" },
+                booleanOptionsDictionary: {},
+                objectTypesDictionary: {},
+            },
+        });
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const selectPublishProfile = reducerHandlers.get("selectPublishProfile");
+        expect(selectPublishProfile, "selectPublishProfile reducer should be registered").to.exist;
+
+        // Load the profile
+        const newState = await selectPublishProfile(controller.state, {});
+
+        // Verify SQLCMD variables from profile are now present even though project had none
+        expect(newState.formState.sqlCmdVariables).to.deep.equal({
+            Var1: "Value1",
+            Var2: "Value2",
+        });
+
+        // Verify original values are set to profile values
+        expect(newState.defaultSqlCmdVariables).to.deep.equal({
+            Var1: "Value1",
+            Var2: "Value2",
+        });
     });
     //#endregion
 });
