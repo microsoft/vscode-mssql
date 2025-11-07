@@ -96,6 +96,23 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         function reactGridReady(reactGrid: SlickgridReactInstance) {
             reactGridRef.current = reactGrid;
             isInitializedRef.current = true;
+
+            // Commit any active edits when the grid loses focus
+            if (reactGrid.slickGrid) {
+                const gridElement = reactGrid.slickGrid.getContainerNode();
+                if (gridElement) {
+                    gridElement.addEventListener("focusout", (event: FocusEvent) => {
+                        // Check if focus is leaving the grid container entirely
+                        const relatedTarget = event.relatedTarget as HTMLElement;
+                        if (!relatedTarget || !gridElement.contains(relatedTarget)) {
+                            // Commit the current edit if any
+                            if (reactGrid.slickGrid?.getEditorLock().isActive()) {
+                                reactGrid.slickGrid.getEditorLock().commitCurrentEdit();
+                            }
+                        }
+                    });
+                }
+            }
         }
 
         // Clear all change tracking (called after successful save)
