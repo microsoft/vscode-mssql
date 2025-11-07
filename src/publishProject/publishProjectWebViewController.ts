@@ -97,12 +97,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "schemaCompare_dark.svg",
+                        "publishProject_dark.svg",
                     ),
                     light: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "schemaCompare_light.svg",
+                        "publishProject_light.svg",
                     ),
                 },
             },
