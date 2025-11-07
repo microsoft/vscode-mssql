@@ -1392,8 +1392,8 @@
     <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
       <source xml:lang="en">Execution Plan</source>
     </trans-unit>
-    <trans-unit id="++CODE++b5f54c19df1649916f59331f9decf53dc337a2c241a3afb20d58810309ebe30f">
-      <source xml:lang="en">Existing Azure SQL logical server</source>
+    <trans-unit id="++CODE++6e70f2efe82744e86406531b7767f19ad25970b8075f1ef14fd2b91a94ab1b93">
+      <source xml:lang="en">Existing Azure SQL server</source>
     </trans-unit>
     <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
       <source xml:lang="en">Existing SQL server</source>
