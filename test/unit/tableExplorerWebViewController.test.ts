@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from "assert";
+import { expect } from "chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { TableExplorerWebViewController } from "../../src/tableExplorer/tableExplorerWebViewController";
@@ -25,6 +25,7 @@ import {
 import { IConnectionProfile } from "../../src/models/interfaces";
 import * as LocConstants from "../../src/constants/locConstants";
 import { stubTelemetry, stubVscodeWrapper } from "./utils";
+import { ApiStatus } from "../../src/sharedInterfaces/webview";
 
 suite("TableExplorerWebViewController - Reducers", () => {
     let sandbox: sinon.SinonSandbox;
@@ -188,13 +189,13 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
 
             // Assert
-            assert.ok(mockTableExplorerService.commit.calledOnceWith("test-owner-uri"));
-            assert.ok(
+            expect(mockTableExplorerService.commit.calledOnceWith("test-owner-uri")).to.be.true;
+            expect(
                 showInformationMessageStub.calledOnceWith(
                     LocConstants.TableExplorer.changesSavedSuccessfully,
                 ),
-            );
-            assert.strictEqual(controller.state.newRows.length, 0);
+            ).to.be.true;
+            expect(controller.state.newRows.length).to.equal(0);
         });
 
         test("should show error message when commit fails", async () => {
@@ -207,9 +208,9 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
 
             // Assert
-            assert.ok(mockTableExplorerService.commit.calledOnce);
-            assert.ok(showErrorMessageStub.calledOnce);
-            assert.ok(showErrorMessageStub.firstCall.args[0].includes("Failed to save changes"));
+            expect(mockTableExplorerService.commit.calledOnce).to.be.true;
+            expect(showErrorMessageStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to save changes");
         });
     });
 
@@ -218,6 +219,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
             controller.state.newRows = [];
+            controller.state.loadStatus = ApiStatus.Loaded;
             const mockResult = createMockSubsetResult(5);
             mockTableExplorerService.subset.resolves(mockResult);
             mockTableExplorerService.subset.resetHistory(); // Reset call history from initialization
@@ -228,10 +230,34 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            sinon.assert.calledOnce(mockTableExplorerService.subset);
-            sinon.assert.calledWith(mockTableExplorerService.subset, "test-owner-uri", 0, 100);
-            assert.strictEqual(controller.state.currentRowCount, 100);
-            assert.strictEqual(controller.state.resultSet?.rowCount, 2);
+            expect(mockTableExplorerService.subset.calledOnce).to.be.true;
+            expect(mockTableExplorerService.subset.calledWith("test-owner-uri", 0, 100)).to.be.true;
+            expect(controller.state.currentRowCount).to.equal(100);
+            expect(controller.state.resultSet?.rowCount).to.equal(2);
+            expect(controller.state.loadStatus).to.equal(ApiStatus.Loaded);
+        });
+
+        test("should set loadStatus to Loading before loading and Loaded after", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [];
+            controller.state.loadStatus = ApiStatus.Loaded;
+            const mockResult = createMockSubsetResult(2);
+
+            let loadStatusDuringFetch: ApiStatus | undefined;
+            mockTableExplorerService.subset.callsFake(async () => {
+                loadStatusDuringFetch = controller.state.loadStatus;
+                return mockResult;
+            });
+
+            // Act
+            await controller["_reducerHandlers"].get("loadSubset")(controller.state, {
+                rowCount: 50,
+            });
+
+            // Assert
+            expect(loadStatusDuringFetch).to.equal(ApiStatus.Loading);
+            expect(controller.state.loadStatus).to.equal(ApiStatus.Loaded);
         });
 
         test("should append newRows to subset result", async () => {
@@ -248,14 +274,15 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            assert.strictEqual(controller.state.resultSet?.rowCount, 3); // 2 from DB + 1 new
-            assert.strictEqual(controller.state.resultSet?.subset.length, 3);
-            assert.strictEqual(controller.state.resultSet?.subset[2].id, 100);
+            expect(controller.state.resultSet?.rowCount).to.equal(3); // 2 from DB + 1 new
+            expect(controller.state.resultSet?.subset.length).to.equal(3);
+            expect(controller.state.resultSet?.subset[2].id).to.equal(100);
         });
 
         test("should show error message when loadSubset fails", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
+            controller.state.loadStatus = ApiStatus.Loaded;
             const error = new Error("Load failed");
             mockTableExplorerService.subset.rejects(error);
 
@@ -265,8 +292,9 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            assert.ok(showErrorMessageStub.calledOnce);
-            assert.ok(showErrorMessageStub.firstCall.args[0].includes("Failed to load data"));
+            expect(showErrorMessageStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to load data");
+            expect(controller.state.loadStatus).to.equal(ApiStatus.Error);
         });
     });
 
@@ -287,15 +315,15 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("createRow")(controller.state, {});
 
             // Assert
-            assert.ok(mockTableExplorerService.createRow.calledOnceWith("test-owner-uri"));
-            assert.ok(
+            expect(mockTableExplorerService.createRow.calledOnceWith("test-owner-uri")).to.be.true;
+            expect(
                 showInformationMessageStub.calledOnceWith(
                     LocConstants.TableExplorer.rowCreatedSuccessfully,
                 ),
-            );
-            assert.strictEqual(controller.state.newRows.length, 1);
-            assert.strictEqual(controller.state.newRows[0].id, 100);
-            assert.strictEqual(controller.state.resultSet?.rowCount, 3);
+            ).to.be.true;
+            expect(controller.state.newRows.length).to.equal(1);
+            expect(controller.state.newRows[0].id).to.equal(100);
+            expect(controller.state.resultSet?.rowCount).to.equal(3);
         });
 
         test("should regenerate script if script pane is visible", async () => {
@@ -318,7 +346,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("createRow")(controller.state, {});
 
             // Assert
-            assert.ok(mockTableExplorerService.generateScripts.calledOnce);
+            expect(mockTableExplorerService.generateScripts.calledOnce).to.be.true;
         });
 
         test("should show error message when createRow fails", async () => {
@@ -333,10 +361,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("createRow")(controller.state, {});
 
             // Assert
-            sinon.assert.calledOnce(showErrorMessageStub);
-            assert.ok(
-                showErrorMessageStub.firstCall.args[0].includes("Failed to create a new row"),
-            );
+            expect(showErrorMessageStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to create a new row");
         });
     });
 
@@ -351,12 +377,12 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("deleteRow")(controller.state, { rowId: 0 });
 
             // Assert
-            assert.ok(mockTableExplorerService.deleteRow.calledOnceWith("test-owner-uri", 0));
-            assert.ok(
-                showInformationMessageStub.calledOnceWith(LocConstants.TableExplorer.rowRemoved),
-            );
-            assert.strictEqual(controller.state.resultSet?.rowCount, 1);
-            assert.strictEqual(controller.state.resultSet?.subset.length, 1);
+            expect(mockTableExplorerService.deleteRow.calledOnceWith("test-owner-uri", 0)).to.be
+                .true;
+            expect(showInformationMessageStub.calledOnceWith(LocConstants.TableExplorer.rowRemoved))
+                .to.be.true;
+            expect(controller.state.resultSet?.rowCount).to.equal(1);
+            expect(controller.state.resultSet?.subset.length).to.equal(1);
         });
 
         test("should remove row from newRows array if it's a new row", async () => {
@@ -375,8 +401,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("deleteRow")(controller.state, { rowId: 100 });
 
             // Assert
-            assert.strictEqual(controller.state.newRows.length, 0);
-            assert.strictEqual(controller.state.resultSet?.rowCount, 2);
+            expect(controller.state.newRows.length).to.equal(0);
+            expect(controller.state.resultSet?.rowCount).to.equal(2);
         });
 
         test("should regenerate script if script pane is visible", async () => {
@@ -393,7 +419,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("deleteRow")(controller.state, { rowId: 0 });
 
             // Assert
-            assert.ok(mockTableExplorerService.generateScripts.calledOnce);
+            expect(mockTableExplorerService.generateScripts.calledOnce).to.be.true;
         });
 
         test("should show error message when deleteRow fails", async () => {
@@ -406,8 +432,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("deleteRow")(controller.state, { rowId: 0 });
 
             // Assert
-            assert.ok(showErrorMessageStub.calledOnce);
-            assert.ok(showErrorMessageStub.firstCall.args[0].includes("Failed to remove row"));
+            expect(showErrorMessageStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to remove row");
         });
     });
 
@@ -435,18 +461,15 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            assert.ok(
+            expect(
                 mockTableExplorerService.updateCell.calledOnceWith(
                     "test-owner-uri",
                     0,
                     1,
                     "Updated",
                 ),
-            );
-            assert.strictEqual(
-                controller.state.resultSet?.subset[0].cells[1].displayValue,
-                "Updated",
-            );
+            ).to.be.true;
+            expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("Updated");
         });
 
         test("should regenerate script if script pane is visible", async () => {
@@ -476,7 +499,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            assert.ok(mockTableExplorerService.generateScripts.calledOnce);
+            expect(mockTableExplorerService.generateScripts.calledOnce).to.be.true;
         });
 
         test("should show error message when updateCell fails", async () => {
@@ -493,8 +516,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            assert.ok(showErrorMessageStub.calledOnce);
-            assert.ok(showErrorMessageStub.firstCall.args[0].includes("Failed to update cell"));
+            expect(showErrorMessageStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to update cell");
         });
     });
 
@@ -521,8 +544,9 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            assert.ok(mockTableExplorerService.revertCell.calledOnceWith("test-owner-uri", 0, 1));
-            assert.strictEqual(controller.state.resultSet?.subset[0].cells[1].displayValue, "John");
+            expect(mockTableExplorerService.revertCell.calledOnceWith("test-owner-uri", 0, 1)).to.be
+                .true;
+            expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("John");
         });
 
         test("should regenerate script if script pane is visible", async () => {
@@ -549,7 +573,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            assert.ok(mockTableExplorerService.generateScripts.calledOnce);
+            expect(mockTableExplorerService.generateScripts.calledOnce).to.be.true;
         });
 
         test("should show error message when revertCell fails", async () => {
@@ -565,8 +589,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            assert.ok(showErrorMessageStub.calledOnce);
-            assert.ok(showErrorMessageStub.firstCall.args[0].includes("Failed to revert cell"));
+            expect(showErrorMessageStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to revert cell");
         });
     });
 
@@ -584,8 +608,9 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("revertRow")(controller.state, { rowId: 0 });
 
             // Assert
-            assert.ok(mockTableExplorerService.revertRow.calledOnceWith("test-owner-uri", 0));
-            assert.strictEqual(controller.state.resultSet?.subset[0].cells[1].displayValue, "John");
+            expect(mockTableExplorerService.revertRow.calledOnceWith("test-owner-uri", 0)).to.be
+                .true;
+            expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("John");
         });
 
         test("should regenerate script if script pane is visible", async () => {
@@ -603,7 +628,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("revertRow")(controller.state, { rowId: 0 });
 
             // Assert
-            assert.ok(mockTableExplorerService.generateScripts.calledOnce);
+            expect(mockTableExplorerService.generateScripts.calledOnce).to.be.true;
         });
 
         test("should show error message when revertRow fails", async () => {
@@ -616,8 +641,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("revertRow")(controller.state, { rowId: 0 });
 
             // Assert
-            assert.ok(showErrorMessageStub.calledOnce);
-            assert.ok(showErrorMessageStub.firstCall.args[0].includes("Failed to revert row"));
+            expect(showErrorMessageStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to revert row");
         });
     });
 
@@ -638,10 +663,11 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("generateScript")(controller.state, {});
 
             // Assert
-            assert.ok(mockTableExplorerService.generateScripts.calledOnceWith("test-owner-uri"));
-            assert.ok(controller.state.updateScript?.includes("UPDATE TestTable"));
-            assert.ok(controller.state.updateScript?.includes("DELETE FROM TestTable"));
-            assert.strictEqual(controller.state.showScriptPane, true);
+            expect(mockTableExplorerService.generateScripts.calledOnceWith("test-owner-uri")).to.be
+                .true;
+            expect(controller.state.updateScript).to.include("UPDATE TestTable");
+            expect(controller.state.updateScript).to.include("DELETE FROM TestTable");
+            expect(controller.state.showScriptPane).to.be.true;
         });
 
         test("should handle empty script array", async () => {
@@ -656,8 +682,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("generateScript")(controller.state, {});
 
             // Assert
-            assert.strictEqual(controller.state.updateScript, "");
-            assert.strictEqual(controller.state.showScriptPane, true);
+            expect(controller.state.updateScript).to.equal("");
+            expect(controller.state.showScriptPane).to.be.true;
         });
 
         test("should show error message when generateScript fails", async () => {
@@ -670,8 +696,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("generateScript")(controller.state, {});
 
             // Assert
-            assert.ok(showErrorMessageStub.calledOnce);
-            assert.ok(showErrorMessageStub.firstCall.args[0].includes("Failed to generate script"));
+            expect(showErrorMessageStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to generate script");
         });
     });
 
@@ -687,11 +713,11 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("openScriptInEditor")(controller.state, {});
 
             // Assert
-            assert.ok(openTextDocumentStub.calledOnce);
+            expect(openTextDocumentStub.calledOnce).to.be.true;
             const callArgs = openTextDocumentStub.firstCall.args[0];
-            assert.strictEqual(callArgs.content, "SELECT * FROM TestTable;");
-            assert.strictEqual(callArgs.language, "sql");
-            assert.ok(showTextDocumentStub.calledOnceWith(mockDocument));
+            expect(callArgs.content).to.equal("SELECT * FROM TestTable;");
+            expect(callArgs.language).to.equal("sql");
+            expect(showTextDocumentStub.calledOnceWith(mockDocument)).to.be.true;
         });
 
         test("should show warning when no script to open", async () => {
@@ -702,10 +728,9 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("openScriptInEditor")(controller.state, {});
 
             // Assert
-            assert.ok(openTextDocumentStub.notCalled);
-            assert.ok(
-                showWarningMessageStub.calledOnceWith(LocConstants.TableExplorer.noScriptToOpen),
-            );
+            expect(openTextDocumentStub.notCalled).to.be.true;
+            expect(showWarningMessageStub.calledOnceWith(LocConstants.TableExplorer.noScriptToOpen))
+                .to.be.true;
         });
 
         test("should show error message when opening script fails", async () => {
@@ -718,8 +743,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("openScriptInEditor")(controller.state, {});
 
             // Assert
-            assert.ok(showErrorMessageStub.calledOnce);
-            assert.ok(showErrorMessageStub.firstCall.args[0].includes("Failed to open script"));
+            expect(showErrorMessageStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to open script");
         });
     });
 
@@ -733,12 +758,12 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("copyScriptToClipboard")(controller.state, {});
 
             // Assert
-            assert.ok(writeTextStub.calledOnceWith("SELECT * FROM TestTable;"));
-            assert.ok(
+            expect(writeTextStub.calledOnceWith("SELECT * FROM TestTable;")).to.be.true;
+            expect(
                 showInformationMessageStub.calledOnceWith(
                     LocConstants.TableExplorer.scriptCopiedToClipboard,
                 ),
-            );
+            ).to.be.true;
         });
 
         test("should show warning when no script to copy", async () => {
@@ -749,10 +774,9 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("copyScriptToClipboard")(controller.state, {});
 
             // Assert
-            assert.ok(writeTextStub.notCalled);
-            assert.ok(
-                showWarningMessageStub.calledOnceWith(LocConstants.TableExplorer.noScriptToCopy),
-            );
+            expect(writeTextStub.notCalled).to.be.true;
+            expect(showWarningMessageStub.calledOnceWith(LocConstants.TableExplorer.noScriptToCopy))
+                .to.be.true;
         });
 
         test("should show error message when copying script fails", async () => {
@@ -765,8 +789,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("copyScriptToClipboard")(controller.state, {});
 
             // Assert
-            assert.ok(showErrorMessageStub.calledOnce);
-            assert.ok(showErrorMessageStub.firstCall.args[0].includes("Failed to copy script"));
+            expect(showErrorMessageStub.calledOnce).to.be.true;
+            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to copy script");
         });
     });
 
@@ -779,7 +803,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("toggleScriptPane")(controller.state, {});
 
             // Assert
-            assert.strictEqual(controller.state.showScriptPane, true);
+            expect(controller.state.showScriptPane).to.be.true;
         });
 
         test("should toggle script pane from true to false", async () => {
@@ -790,7 +814,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("toggleScriptPane")(controller.state, {});
 
             // Assert
-            assert.strictEqual(controller.state.showScriptPane, false);
+            expect(controller.state.showScriptPane).to.be.false;
         });
     });
 
@@ -805,7 +829,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             // Assert
-            assert.strictEqual(controller.state.currentPage, 5);
+            expect(controller.state.currentPage).to.equal(5);
         });
 
         test("should update page number multiple times", async () => {
@@ -816,12 +840,12 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("setCurrentPage")(controller.state, {
                 pageNumber: 2,
             });
-            assert.strictEqual(controller.state.currentPage, 2);
+            expect(controller.state.currentPage).to.equal(2);
 
             await controller["_reducerHandlers"].get("setCurrentPage")(controller.state, {
                 pageNumber: 10,
             });
-            assert.strictEqual(controller.state.currentPage, 10);
+            expect(controller.state.currentPage).to.equal(10);
         });
     });
 });

@@ -367,6 +367,15 @@
     <trans-unit id="++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1">
       <source xml:lang="en">Browse Fabric</source>
     </trans-unit>
+    <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
+      <source xml:lang="en">Build failed with exit code {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++070df86dfd0e7f4066a971ef2e0d5b9ee8ddbb826c4edf0924026bca37ac603f">
+      <source xml:lang="en">Build {0}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9168a1046e45504ed34edeecd99ec73be336161e82395399aa9a3c1d912be6b2">
+      <source xml:lang="en">Building {0}...</source>
+    </trans-unit>
     <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
       <source xml:lang="en">CSV</source>
     </trans-unit>
@@ -910,6 +919,11 @@
     </trans-unit>
     <trans-unit id="++CODE++204a5eb2cd28bcfdf3be9f8c765948e9e831609e3c57048cdbd6b8a94cf49126">
       <source xml:lang="en">Cost</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f630f91edbf1dc6649a7de55179cb551ef8245ef63461de0094de54e58d5ea62">
+      <source xml:lang="en">Could not find scripting metadata for {0} &apos;{1}&apos;.</source>
+      <note>{0} is the node type
+{1} is the node label</note>
     </trans-unit>
     <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
       <source xml:lang="en">Count: {0}</source>
@@ -1484,12 +1498,18 @@
       <source xml:lang="en">Failed to establish connection with ID &quot;{0}&quot;. Please check connection details and network connectivity.</source>
       <note>{0} is the connection ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++5da8436d7f85f325dbcb03e43c8b81f49b13fa6997b2e200ff9f5272cb577fc5">
+      <source xml:lang="en">Failed to fetch Docker container tags: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
       <source xml:lang="en">Failed to fetch user tokens.</source>
     </trans-unit>
     <trans-unit id="++CODE++fe1cb43be8ed9ac5acc09fb31eba382f60c86eaadf55b6931322b9b139162a9e">
       <source xml:lang="en">Failed to generate publish script: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the generate script operation</note>
+    </trans-unit>
+    <trans-unit id="++CODE++765a301a99c7eee94fb83e4719d18340210f77b71528783b41061a2a9d555e3e">
+      <source xml:lang="en">Failed to generate script. Please check the logs for more details.</source>
     </trans-unit>
     <trans-unit id="++CODE++cdf943bd7b320469af4343440384b361de46832547d9bc9c08b3bd9a90610364">
       <source xml:lang="en">Failed to generate script: &apos;{0}&apos;</source>
@@ -1531,6 +1551,9 @@
     <trans-unit id="++CODE++0b4d03ded989b13fa01f90e1cff6b70f68bdae9f9cd4e6ab5607a098baa80b20">
       <source xml:lang="en">Failed to open scmp file: &apos;{0}&apos;</source>
       <note>{0} is the error message returned from the open scmp operation</note>
+    </trans-unit>
+    <trans-unit id="++CODE++139d19f27345e3ce0787cd0cdd3497658705c987f492c0f1881127e5ffcdc79e">
+      <source xml:lang="en">Failed to open script in editor.</source>
     </trans-unit>
     <trans-unit id="++CODE++00e34162fb43e373f12b352ea75d1e2241f480dbda87ec290aaa6f020232edaa">
       <source xml:lang="en">Failed to open script: {0}</source>
@@ -1730,6 +1753,9 @@
     </trans-unit>
     <trans-unit id="++CODE++019c93d8e0baa64c24b53c1e6f34c8faa0fcac26a0ac69fdaa46b788f6c05912">
       <source xml:lang="en">Generating report, this might take a while...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++915fc447c859d56fa8e745484ac300e07e104e9ef318105f82b578bedf32c405">
+      <source xml:lang="en">Generating script...</source>
     </trans-unit>
     <trans-unit id="++CODE++fddd3d1537452414b2a4c7bb1b231ca37398b9f211c1e0d8d80e6f69a7f58f2d">
       <source xml:lang="en">Get Connection Details</source>
@@ -2593,8 +2619,14 @@
     <trans-unit id="++CODE++d81d6eb21f473c77ba01056237fcd372e9021b555b36efc68d24d22a5d608ba5">
       <source xml:lang="en">Please make your password 8-128 characters long.</source>
     </trans-unit>
+    <trans-unit id="++CODE++268f2704823f66b7bf71157cbbb60e14938ed5553068335e93ee23bb6960ed47">
+      <source xml:lang="en">Please select a node from Object Explorer to script.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2e0422920bb9bd61c1c7edf3554564e5ca37f4f0bc5d5a96b0402fb3a4c00155">
       <source xml:lang="en">Please select a workspace where you have sufficient permissions (Contributor or higher)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++56244c066a4a09fb49e716fc19de4620d586a5b4776fb08f8450b3e7800850b1">
+      <source xml:lang="en">Please select only one node to script. Multiple node scripting is not supported.</source>
     </trans-unit>
     <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
       <source xml:lang="en">Port</source>
@@ -2654,6 +2686,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8a0d6f1276ee19a91fb06f73344d1d60f2d1f1c8d7e0454c8bb31ea00c2b9a30">
       <source xml:lang="en">Profile created successfully</source>
+    </trans-unit>
+    <trans-unit id="++CODE++21eda41850777c46deb17245aa52751b4406410fdcc51f6644fc38b317201e71">
+      <source xml:lang="en">Profile loaded but connection failed. Please connect to the server manually.</source>
     </trans-unit>
     <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
       <source xml:lang="en">Profile removed successfully</source>
@@ -3447,10 +3482,6 @@
       <source xml:lang="en">Table Explorer for &apos;{0}&apos; has unsaved changes. Do you want to save or discard them?</source>
       <note>{0} is the table name</note>
     </trans-unit>
-    <trans-unit id="++CODE++7d1ab5b5ff98e8604fded16d7ad53dddbb49c37435c485b4546a9a921ea76700">
-      <source xml:lang="en">Table Explorer: {0} (Preview)</source>
-      <note>{0} is the table name</note>
-    </trans-unit>
     <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
       <source xml:lang="en">Table name</source>
     </trans-unit>
@@ -3865,6 +3896,10 @@
       <source xml:lang="en">{0} (Current Account)</source>
       <note>{0} is the account display name</note>
     </trans-unit>
+    <trans-unit id="++CODE++fdd1e66955c2307ddc64a5e81697afacea8973b913e99714f2d5579ddecf0c2a">
+      <source xml:lang="en">{0} (Preview)</source>
+      <note>{0} is the table name</note>
+    </trans-unit>
     <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
       <source xml:lang="en">{0} (filtered)</source>
     </trans-unit>
@@ -4131,6 +4166,9 @@
     <trans-unit id="mssql.connectionSharing.editConnectionSharingPermissions">
       <source xml:lang="en">Edit Connection Sharing Permissions</source>
     </trans-unit>
+    <trans-unit id="mssql.tableExplorer">
+      <source xml:lang="en">Edit Data (Preview)</source>
+    </trans-unit>
     <trans-unit id="mssql.enableActualPlan">
       <source xml:lang="en">Enable Actual Plan</source>
     </trans-unit>
@@ -4285,7 +4323,7 @@
       <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
     </trans-unit>
     <trans-unit id="mssql.editTable">
-      <source xml:lang="en">Modify Table Structure</source>
+      <source xml:lang="en">Modify Table</source>
     </trans-unit>
     <trans-unit id="mssql.newDeployment">
       <source xml:lang="en">New Deployment</source>
@@ -4565,9 +4603,6 @@
     </trans-unit>
     <trans-unit id="mssql.chooseDatabase">
       <source xml:lang="en">Use Database</source>
-    </trans-unit>
-    <trans-unit id="mssql.tableExplorer">
-      <source xml:lang="en">View &amp; Edit Data (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.title">
       <source xml:lang="en">Visualize a Query Plan</source>

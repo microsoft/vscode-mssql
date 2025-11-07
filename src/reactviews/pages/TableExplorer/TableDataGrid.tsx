@@ -38,6 +38,7 @@ interface TableDataGridProps {
     onRevertRow?: (rowId: number) => void;
     onLoadSubset?: (rowCount: number) => void;
     onCellChangeCountChanged?: (count: number) => void;
+    onDeletionCountChanged?: (count: number) => void;
 }
 
 export interface TableDataGridRef {
@@ -61,6 +62,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             onRevertRow,
             onLoadSubset,
             onCellChangeCountChanged,
+            onDeletionCountChanged,
         },
         ref,
     ) => {
@@ -70,6 +72,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const [currentTheme, setCurrentTheme] = useState<ColorThemeKind | undefined>(themeKind);
         const reactGridRef = useRef<SlickgridReactInstance | null>(null);
         const cellChangesRef = useRef<Map<string, any>>(new Map());
+        const deletedRowsRef = useRef<Set<number>>(new Set());
         const failedCellsRef = useRef<Set<string>>(new Set());
         const lastPageRef = useRef<number>(1);
         const lastItemsPerPageRef = useRef<number>(pageSize);
@@ -98,6 +101,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // Clear all change tracking (called after successful save)
         function clearAllChangeTracking() {
             cellChangesRef.current.clear();
+            deletedRowsRef.current.clear();
             failedCellsRef.current.clear();
             // Force grid to re-render to remove all colored backgrounds
             if (reactGridRef.current?.slickGrid) {
@@ -107,6 +111,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             // Notify parent of change count update
             if (onCellChangeCountChanged) {
                 onCellChangeCountChanged(0);
+            }
+            if (onDeletionCountChanged) {
+                onDeletionCountChanged(0);
             }
         }
 
@@ -308,7 +315,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                             container: "#grid-container",
                             bottomPadding: 50, // Reserve space for custom pagination
                         },
-                        forceFitColumns: true,
+                        forceFitColumns: false, // Allow horizontal scrolling for many columns
                         enableColumnReorder: false,
                         enableHeaderMenu: false,
                         enableCellNavigation: true,
@@ -332,7 +339,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 }
             }
             // Scenario 2: Row count changed (delete/add operations) - incremental add/remove
-            else if (rowCountChanged && reactGridRef.current?.dataView) {
+            else if (
+                rowCountChanged &&
+                reactGridRef.current?.dataView &&
+                reactGridRef.current?.gridService
+            ) {
                 console.log("Row count changed - applying incremental updates");
 
                 // Use ID-based comparison instead of position-based
@@ -344,7 +355,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 console.log(`Adding ${rowsToAdd.length} new row(s) by ID`);
                 for (const newRow of rowsToAdd) {
                     const dataRow = convertRowToDataRow(newRow);
-                    reactGridRef.current.dataView.addItem(dataRow);
+                    // Use gridService.addItem with position 'bottom' and scrollRowIntoView
+                    // gridService automatically handles pagination updates
+                    reactGridRef.current.gridService.addItem(dataRow, {
+                        position: "bottom",
+                        highlightRow: true,
+                        scrollRowIntoView: true,
+                        triggerEvent: true,
+                    });
+                    console.log(`Added row ${dataRow.id} at bottom using gridService`);
                 }
 
                 // Remove deleted rows (rows in previous but not in current)
@@ -353,13 +372,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 );
                 console.log(`Removing ${rowsToRemove.length} deleted row(s) by ID`);
                 for (const removedRow of rowsToRemove) {
-                    reactGridRef.current.dataView.deleteItem(removedRow.id);
-                }
-
-                // Refresh grid display
-                if (reactGridRef.current?.slickGrid) {
-                    reactGridRef.current.slickGrid.invalidate();
-                    reactGridRef.current.slickGrid.render();
+                    reactGridRef.current.gridService.deleteItemById(removedRow.id);
                 }
             }
             // Scenario 3: Row count same - incremental updates only
@@ -481,6 +494,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         onDeleteRow(rowId);
                     }
 
+                    // Track the deletion
+                    deletedRowsRef.current.add(rowId);
+
                     // Remove tracked changes and failed cells for this row
                     const keysToDelete: string[] = [];
                     cellChangesRef.current.forEach((_, key) => {
@@ -496,6 +512,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     // Notify parent of change count update
                     if (onCellChangeCountChanged) {
                         onCellChangeCountChanged(cellChangesRef.current.size);
+                    }
+                    if (onDeletionCountChanged) {
+                        onDeletionCountChanged(deletedRowsRef.current.size);
                     }
                     break;
 

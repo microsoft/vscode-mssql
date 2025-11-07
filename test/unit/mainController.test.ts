@@ -12,16 +12,10 @@ import * as Extension from "../../src/extension";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { TestExtensionContext } from "./stubs";
 import { activateExtension, stubExtensionContext, stubVscodeWrapper } from "./utils";
-import { IScriptingObject, SchemaCompareEndpointInfo } from "vscode-mssql";
+import { SchemaCompareEndpointInfo } from "vscode-mssql";
 import * as Constants from "../../src/constants/constants";
-import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { ScriptOperation } from "../../src/models/contracts/scripting/scriptingRequest";
-import { IConnectionProfile } from "../../src/models/interfaces";
 import { UserSurvey } from "../../src/nps/userSurvey";
-import { ScriptingService } from "../../src/scripting/scriptingService";
-import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 
 chai.use(sinonChai);
 
@@ -30,6 +24,7 @@ suite("MainController Tests", function () {
     let mainController: MainController;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let context: vscode.ExtensionContext;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
@@ -45,7 +40,7 @@ suite("MainController Tests", function () {
         (mainController.sqlDocumentService as any)["_connectionMgr"] = connectionManager;
 
         vscodeWrapper = stubVscodeWrapper(sandbox);
-        const context = stubExtensionContext(sandbox);
+        context = stubExtensionContext(sandbox);
 
         UserSurvey.createInstance(context, vscodeWrapper);
     });
@@ -62,7 +57,7 @@ suite("MainController Tests", function () {
             return undefined;
         });
         const controller: MainController = new MainController(
-            TestExtensionContext.object,
+            context,
             undefined, // ConnectionManager
             vscodeWrapper,
         );
@@ -80,7 +75,7 @@ suite("MainController Tests", function () {
         const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "test_uri");
         const controller: MainController = new MainController(
-            TestExtensionContext.object,
+            context,
             undefined, // ConnectionManager
             vscodeWrapper,
         );
@@ -98,7 +93,7 @@ suite("MainController Tests", function () {
         connectionManager.onManageProfiles.resolves();
 
         const controller: MainController = new MainController(
-            TestExtensionContext.object,
+            context,
             connectionManager,
             vscodeWrapper,
         );
@@ -348,100 +343,6 @@ suite("MainController Tests", function () {
             } finally {
                 mainController.onNewConnection = originalOnNewConnection;
             }
-        });
-    });
-
-    test("ScriptNode", async () => {
-        const controller = new MainController(
-            TestExtensionContext.object,
-            connectionManager,
-            vscodeWrapper,
-        );
-
-        const testNode: TreeNodeInfo = {
-            nodePath: "test/path",
-            nodeType: Constants.serverLabel,
-            connectionProfile: {
-                profileName: "TestProfile",
-                server: "TestServer",
-                database: "TestDatabase",
-                authenticationType: Constants.azureMfa,
-            } as unknown as IConnectionProfile,
-        } as TreeNodeInfo;
-
-        connectionManager.isConnected.returns(true);
-
-        const scriptingServiceStub = sandbox.createStubInstance(ScriptingService);
-        scriptingServiceStub.scriptTreeNode.resolves("SELECT 'test script';");
-        scriptingServiceStub.getObjectFromNode.returns({
-            schema: "dbo",
-            name: "TestObject",
-        } as IScriptingObject);
-
-        const sqlDocumentServiceStub = sandbox.createStubInstance(SqlDocumentService);
-
-        sandbox.stub(controller as any, "_scriptingService").get(() => scriptingServiceStub);
-        sandbox.stub(controller as any, "_sqlDocumentService").get(() => sqlDocumentServiceStub);
-
-        const promptStub = sandbox.stub();
-        const getInstanceStub = sandbox.stub(UserSurvey, "getInstance").returns({
-            promptUserForNPSFeedback: promptStub,
-        } as unknown as UserSurvey);
-
-        await controller.scriptNode(testNode, ScriptOperation.Create);
-
-        expect(getInstanceStub).to.have.been.calledOnce;
-        expect(promptStub).to.have.been.calledOnce;
-    });
-
-    suite("Command triggers", () => {
-        test("Script as Select", async () => {
-            const testNode = { nodePath: "test/path" } as TreeNodeInfo;
-
-            const scriptNodeStub = sandbox.stub(mainController, "scriptNode");
-            await vscode.commands.executeCommand(Constants.cmdScriptSelect, testNode);
-
-            expect(scriptNodeStub).to.have.been.calledOnceWith(
-                testNode,
-                ScriptOperation.Select,
-                true, // executeScript
-            );
-        });
-
-        test("Script as Create", async () => {
-            const testNode = { nodePath: "test/path" } as TreeNodeInfo;
-
-            const scriptNodeStub = sandbox.stub(mainController, "scriptNode");
-            await vscode.commands.executeCommand(Constants.cmdScriptCreate, testNode);
-
-            expect(scriptNodeStub).to.have.been.calledOnceWith(testNode, ScriptOperation.Create);
-        });
-
-        test("Script as Delete", async () => {
-            const testNode = { nodePath: "test/path" } as TreeNodeInfo;
-
-            const scriptNodeStub = sandbox.stub(mainController, "scriptNode");
-            await vscode.commands.executeCommand(Constants.cmdScriptDelete, testNode);
-
-            expect(scriptNodeStub).to.have.been.calledOnceWith(testNode, ScriptOperation.Delete);
-        });
-
-        test("Script as Execute", async () => {
-            const testNode = { nodePath: "test/path" } as TreeNodeInfo;
-
-            const scriptNodeStub = sandbox.stub(mainController, "scriptNode");
-            await vscode.commands.executeCommand(Constants.cmdScriptExecute, testNode);
-
-            expect(scriptNodeStub).to.have.been.calledOnceWith(testNode, ScriptOperation.Execute);
-        });
-
-        test("Script as Alter", async () => {
-            const testNode = { nodePath: "test/path" } as TreeNodeInfo;
-
-            const scriptNodeStub = sandbox.stub(mainController, "scriptNode");
-            await vscode.commands.executeCommand(Constants.cmdScriptAlter, testNode);
-
-            expect(scriptNodeStub).to.have.been.calledOnceWith(testNode, ScriptOperation.Alter);
         });
     });
 });

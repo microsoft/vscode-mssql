@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ApiStatus } from "./webview";
+
 export interface IEditSessionOperationParams {
     ownerUri: string;
 }
@@ -179,7 +181,7 @@ export interface TableExplorerWebViewState {
     serverName: string;
     schemaName?: string;
     connectionProfile?: any;
-    isLoading: boolean;
+    loadStatus: ApiStatus;
     ownerUri: string;
     resultSet: EditSubsetResult | undefined;
     currentRowCount: number; // Track the user's selected row count for data loading

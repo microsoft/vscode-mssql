@@ -527,6 +527,28 @@ export let connectProgressNoticationTitle = l10n.t("Testing connection profile..
 export let msgMultipleSelectionModeNotSupported = l10n.t(
     "Running query is not supported when the editor is in multiple selection mode.",
 );
+export let msgSelectNodeToScript = l10n.t("Please select a node from Object Explorer to script.");
+export let msgSelectSingleNodeToScript = l10n.t(
+    "Please select only one node to script. Multiple node scripting is not supported.",
+);
+export function msgScriptingObjectNotFound(nodeType: string, nodeLabel: string): string {
+    return l10n.t({
+        message: "Could not find scripting metadata for {0} '{1}'.",
+        args: [nodeType, nodeLabel],
+        comment: ["{0} is the node type", "{1} is the node label"],
+    });
+}
+export let msgScriptingFailed = l10n.t(
+    "Failed to generate script. Please check the logs for more details.",
+);
+export let msgScriptingEditorFailed = l10n.t("Failed to open script in editor.");
+export function msgScriptingOperationFailed(error: string): string {
+    return l10n.t({
+        message: "Failed to generate script: {0}",
+        args: [error],
+        comment: ["{0} is the error message"],
+    });
+}
 export let newColumnWidthPrompt = l10n.t("Enter new column width");
 export let columnWidthInvalidNumberError = l10n.t("Invalid column width");
 export let columnWidthMustBePositiveError = l10n.t("Width cannot be 0 or negative");
@@ -624,6 +646,7 @@ export class ObjectExplorer {
     public static NodeDeletionConfirmationYes = l10n.t("Yes");
     public static NodeDeletionConfirmationNo = l10n.t("No");
     public static LoadingNodeLabel = l10n.t("Loading...");
+    public static GeneratingScript = l10n.t("Generating script...");
     public static FetchingScriptLabel(scriptType: string) {
         return l10n.t({
             message: "Fetching {0} script...",
@@ -1329,6 +1352,15 @@ export class PublishProject {
     public static PublishTargetNewAzureServer = l10n.t("New Azure SQL logical server (Preview)");
     public static GenerateScript = l10n.t("Generate Script");
     public static Publish = l10n.t("Publish");
+    public static BuildProjectTaskLabel(projectName: string) {
+        return l10n.t("Build {0}", projectName);
+    }
+    public static BuildingProjectProgress(projectName: string) {
+        return l10n.t("Building {0}...", projectName);
+    }
+    public static BuildFailedWithExitCode(exitCode: number) {
+        return l10n.t("Build failed with exit code {0}", exitCode);
+    }
     public static SqlServerPortNumber = l10n.t("SQL Server port number");
     public static SqlServerAdminPassword = l10n.t("SQL Server admin password");
     public static SqlServerAdminPasswordConfirm = l10n.t("Confirm SQL Server admin password");
@@ -1360,6 +1392,12 @@ export class PublishProject {
         "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     );
     public static FailedToListDatabases = l10n.t("Failed to list databases");
+    public static FailedToFetchContainerTags = (errorMessage: string) => {
+        return l10n.t("Failed to fetch Docker container tags: {0}", errorMessage);
+    };
+    public static ProfileLoadedConnectionFailed = l10n.t(
+        "Profile loaded but connection failed. Please connect to the server manually.",
+    );
 }
 
 export class SchemaCompare {
@@ -2091,7 +2129,7 @@ export class TableExplorer {
 
     public static title = (tableName: string) =>
         l10n.t({
-            message: "Table Explorer: {0} (Preview)",
+            message: "{0} (Preview)",
             args: [tableName],
             comment: ["{0} is the table name"],
         });

@@ -3,21 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
-import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { ServiceOption } from "vscode-mssql";
-import { CapabilitiesResult, GetCapabilitiesRequest } from "../../src/models/contracts/connection";
+import { CapabilitiesResult } from "../../src/models/contracts/connection";
 import { AuthenticationType } from "../../src/sharedInterfaces/connectionDialog";
-
-export function mockGetCapabilitiesRequest(
-    serviceClientMock: TypeMoq.IMock<SqlToolsServerClient>,
-): void {
-    serviceClientMock
-        .setup((s) =>
-            s.sendRequest(TypeMoq.It.isValue(GetCapabilitiesRequest.type), TypeMoq.It.isAny()),
-        )
-        .returns(() => Promise.resolve(buildCapabilitiesResult()));
-}
 
 export function buildCapabilitiesResult(): CapabilitiesResult {
     return {

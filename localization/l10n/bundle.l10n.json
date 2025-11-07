@@ -1142,6 +1142,18 @@
     "The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.": "The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.",
     "Testing connection profile...": "Testing connection profile...",
     "Running query is not supported when the editor is in multiple selection mode.": "Running query is not supported when the editor is in multiple selection mode.",
+    "Please select a node from Object Explorer to script.": "Please select a node from Object Explorer to script.",
+    "Please select only one node to script. Multiple node scripting is not supported.": "Please select only one node to script. Multiple node scripting is not supported.",
+    "Could not find scripting metadata for {0} '{1}'./{0} is the node type{1} is the node label": {
+        "message": "Could not find scripting metadata for {0} '{1}'.",
+        "comment": ["{0} is the node type", "{1} is the node label"]
+    },
+    "Failed to generate script. Please check the logs for more details.": "Failed to generate script. Please check the logs for more details.",
+    "Failed to open script in editor.": "Failed to open script in editor.",
+    "Failed to generate script: {0}/{0} is the error message": {
+        "message": "Failed to generate script: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "Enter new column width": "Enter new column width",
     "Invalid column width": "Invalid column width",
     "Width cannot be 0 or negative": "Width cannot be 0 or negative",
@@ -1197,6 +1209,7 @@
         "comment": ["{0} is the node label"]
     },
     "Loading...": "Loading...",
+    "Generating script...": "Generating script...",
     "Fetching {0} script.../{0} is the script type": {
         "message": "Fetching {0} script...",
         "comment": ["{0} is the script type"]
@@ -1551,6 +1564,9 @@
     "Local development container": "Local development container",
     "New SQL Server local development container": "New SQL Server local development container",
     "New Azure SQL logical server (Preview)": "New Azure SQL logical server (Preview)",
+    "Build {0}": "Build {0}",
+    "Building {0}...": "Building {0}...",
+    "Build failed with exit code {0}": "Build failed with exit code {0}",
     "SQL Server port number": "SQL Server port number",
     "SQL Server admin password": "SQL Server admin password",
     "Confirm SQL Server admin password": "Confirm SQL Server admin password",
@@ -1568,6 +1584,8 @@
     "DacFx service is not available. Publish and generate script operations cannot be performed.": "DacFx service is not available. Publish and generate script operations cannot be performed.",
     "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.": "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     "Failed to list databases": "Failed to list databases",
+    "Failed to fetch Docker container tags: {0}": "Failed to fetch Docker container tags: {0}",
+    "Profile loaded but connection failed. Please connect to the server manually.": "Profile loaded but connection failed. Please connect to the server manually.",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
     "Failed to generate script: '{0}'/{0} is the error message returned from the generate script operation": {
@@ -1915,8 +1933,8 @@
     "Changes saved successfully.": "Changes saved successfully.",
     "Row created.": "Row created.",
     "Row removed.": "Row removed.",
-    "Table Explorer: {0} (Preview)/{0} is the table name": {
-        "message": "Table Explorer: {0} (Preview)",
+    "{0} (Preview)/{0} is the table name": {
+        "message": "{0} (Preview)",
         "comment": ["{0} is the table name"]
     },
     "Failed to save changes: {0}/{0} is the error message": {
@@ -1945,10 +1963,6 @@
     },
     "Failed to revert row: {0}/{0} is the error message": {
         "message": "Failed to revert row: {0}",
-        "comment": ["{0} is the error message"]
-    },
-    "Failed to generate script: {0}/{0} is the error message": {
-        "message": "Failed to generate script: {0}",
         "comment": ["{0} is the error message"]
     },
     "No script available. Make changes to the table data and generate a script first.": "No script available. Make changes to the table data and generate a script first.",
