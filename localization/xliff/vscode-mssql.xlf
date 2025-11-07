@@ -225,6 +225,12 @@
     <trans-unit id="++CODE++a187c7382f4026c938df224dd7484977538cd582c67e94b62861499fe68c68a4">
       <source xml:lang="en">Application Version</source>
     </trans-unit>
+    <trans-unit id="++CODE++3bce900ec4939301dbcf9f9199be4416b9c310a90af78e6a083fcbb7c517696e">
+      <source xml:lang="en">Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++70e9cc5a50f7eb5ba95c18dffd367c22caeef8814be8188d6af4f5654a8fc728">
+      <source xml:lang="en">Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)</source>
+    </trans-unit>
     <trans-unit id="++CODE++31e392d1c0378beca611de66c0f4c71cba29159905cc54242d9bddee5b23d851">
       <source xml:lang="en">Apply</source>
     </trans-unit>

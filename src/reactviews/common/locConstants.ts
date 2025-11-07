@@ -1161,6 +1161,9 @@ export class LocConstants {
             ),
             deployToExistingConfirm: l10n.t("Deploy"),
             databaseAlreadyExists: l10n.t("A database with this name already exists on the server"),
+            invalidApplicationVersion: l10n.t(
+                "Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)",
+            ),
         };
     }
 

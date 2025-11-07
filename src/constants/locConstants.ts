@@ -2148,6 +2148,9 @@ export class DacpacDialog {
     public static Select = l10n.t("Select");
     public static Save = l10n.t("Save");
     public static Files = l10n.t("Files");
+    public static InvalidApplicationVersion = l10n.t(
+        "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)",
+    );
 }
 
 export class TableExplorer {

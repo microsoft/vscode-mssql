@@ -365,6 +365,46 @@ export const DacpacDialogForm = () => {
     };
 
     /**
+     * Validates application version format (n.n.n.n where n is a number)
+     * @returns true if validation passes, false otherwise
+     */
+    const validateApplicationVersion = (version: string): boolean => {
+        if (!version) {
+            setValidationMessages((prev) => ({
+                ...prev,
+                applicationVersion: {
+                    message: locConstants.dacpacDialog.invalidApplicationVersion,
+                    severity: "error",
+                },
+            }));
+            return false;
+        }
+
+        // Regex to match n.n.n.n format where n is one or more digits
+        // Allows 3 or 4 parts (1.0.0 or 1.0.0.0)
+        const versionRegex = /^\d+\.\d+\.\d+(\.\d+)?$/;
+
+        if (!versionRegex.test(version)) {
+            setValidationMessages((prev) => ({
+                ...prev,
+                applicationVersion: {
+                    message: locConstants.dacpacDialog.invalidApplicationVersion,
+                    severity: "error",
+                },
+            }));
+            return false;
+        }
+
+        // Clear validation error if valid
+        setValidationMessages((prev) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { applicationVersion: _av, ...rest } = prev;
+            return rest;
+        });
+        return true;
+    };
+
+    /**
      * Helper to determine validation requirements based on operation type
      */
     const getValidationRequirements = (opType: dacpacDialog.DacFxOperationType) => {
@@ -395,7 +435,13 @@ export const DacpacDialogForm = () => {
             requirements.databaseShouldNotExist,
         );
 
-        return filePathValid && databaseValid;
+        // For Extract operation, also validate application version
+        let versionValid = true;
+        if (opType === dacpacDialog.DacFxOperationType.Extract) {
+            versionValid = validateApplicationVersion(applicationVersion);
+        }
+
+        return filePathValid && databaseValid && versionValid;
     };
 
     const handleSubmit = async () => {
@@ -638,6 +684,10 @@ export const DacpacDialogForm = () => {
                         applicationVersion={applicationVersion}
                         setApplicationVersion={setApplicationVersion}
                         isOperationInProgress={isOperationInProgress}
+                        validationMessages={validationMessages}
+                        onApplicationVersionChange={async (value) => {
+                            validateApplicationVersion(value);
+                        }}
                     />
                 )}
 
