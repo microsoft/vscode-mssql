@@ -123,7 +123,7 @@ suite("DacpacDialogWebviewController", () => {
         return controller;
     }
     suite("Deployment Operations", () => {
-        test("deploy DACPAC succeeds for new database", async () => {
+        test("Publish DACPAC succeeds for new database", async () => {
             const mockResult: DacFxResult = {
                 success: true,
                 errorMessage: undefined,
@@ -156,7 +156,7 @@ suite("DacpacDialogWebviewController", () => {
             });
             expect(resolveSpy).to.have.been.calledOnce;
         });
-        test("deploy DACPAC succeeds for existing database", async () => {
+        test("Publish DACPAC succeeds for existing database", async () => {
             const mockResult: DacFxResult = {
                 success: true,
                 errorMessage: undefined,
@@ -181,7 +181,7 @@ suite("DacpacDialogWebviewController", () => {
             );
             expect(response.success).to.be.true;
         });
-        test("deploy DACPAC returns error on failure", async () => {
+        test("Publish DACPAC returns error on failure", async () => {
             const mockResult: DacFxResult = {
                 success: false,
                 errorMessage: "Deployment failed: Permission denied",
@@ -202,7 +202,7 @@ suite("DacpacDialogWebviewController", () => {
             expect(response.errorMessage).to.equal("Deployment failed: Permission denied");
             expect(resolveSpy).to.have.been.called;
         });
-        test("deploy DACPAC handles exception", async () => {
+        test("Publish DACPAC handles exception", async () => {
             dacFxServiceStub.deployDacpac.rejects(new Error("Network timeout"));
             createController();
             const requestHandler = requestHandlers.get(DeployDacpacWebviewRequest.type.method);

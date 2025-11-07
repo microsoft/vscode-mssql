@@ -65,7 +65,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
      * Registers all RPC handlers for webview communication
      */
     private registerRpcHandlers(): void {
-        // Deploy DACPAC request handler
+        // Publish DACPAC request handler
         this.onRequest(
             dacpacDialog.DeployDacpacWebviewRequest.type,
             async (params: dacpacDialog.DeployDacpacParams) => {
