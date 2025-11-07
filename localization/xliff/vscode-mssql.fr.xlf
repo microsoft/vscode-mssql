@@ -887,7 +887,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++b269dc4e81a528a4d42e9e74101923514a626f55f8dd76b1461e0690e72d041a">
         <source xml:lang="en">Commands</source>
-        <target state="new">Commands</target>
+        <target state="translated">Commandes</target>
       </trans-unit>
       <trans-unit id="++CODE++e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9">
         <source xml:lang="en">Compare</source>
@@ -1463,7 +1463,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++eb1a70e39274bb762b5d7c1adb5debeea2b05e12af28207f21a375b596853273">
         <source xml:lang="en">Discard</source>
-        <target state="new">Discard</target>
+        <target state="translated">Ignorer</target>
       </trans-unit>
       <trans-unit id="++CODE++acfc5be785a9bb3da11c9f05adb69bd5633096f09002aa44813a1b3207e912ad">
         <source xml:lang="en">Disconnect</source>
@@ -1826,10 +1826,6 @@ Erreur :
       <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
         <source xml:lang="en">Execution Plan</source>
         <target state="translated">Plan d’exécution</target>
-      </trans-unit>
-      <trans-unit id="++CODE++b5f54c19df1649916f59331f9decf53dc337a2c241a3afb20d58810309ebe30f">
-        <source xml:lang="en">Existing Azure SQL logical server</source>
-        <target state="translated">Serveur logique Azure SQL existant</target>
       </trans-unit>
       <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
         <source xml:lang="en">Existing SQL server</source>
@@ -2811,10 +2807,6 @@ Erreur :
         <source xml:lang="en">Local SQL Server database container</source>
         <target state="translated">Conteneur de base de données SQL Server local</target>
       </trans-unit>
-      <trans-unit id="++CODE++9aa8c99c1e1071fa2070e9283b4cd9a737a77249f44f1a41b559073d99293249">
-        <source xml:lang="en">Local development container</source>
-        <target state="translated">Conteneur de développement local</target>
-      </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
         <target state="translated">Emplacement</target>
@@ -3006,9 +2998,9 @@ Erreur :
         <source xml:lang="en">New Password</source>
         <target state="translated">Nouveau mot de passe</target>
       </trans-unit>
-      <trans-unit id="++CODE++80e8f069713682d743cceecaad91cb538d199e18712328724d348491bfbb64af">
-        <source xml:lang="en">New SQL Server local development container</source>
-        <target state="translated">Nouveau conteneur de développement local SQL Server</target>
+      <trans-unit id="++CODE++652b81589c6b1b34e452b1d3a3f326e1b3796877eca3c750be3e84412a6d9777">
+        <source xml:lang="en">New SQL Server Local development container</source>
+        <target state="new">New SQL Server Local development container</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -3751,6 +3743,10 @@ Erreur :
       <trans-unit id="++CODE++196561ed1b886dfa24402369be0ac725998191df58790075d4c74ff0378851b5">
         <source xml:lang="en">Revert Row</source>
         <target state="new">Revert Row</target>
+      </trans-unit>
+      <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
+        <source xml:lang="en">Revert values to project defaults</source>
+        <target state="new">Revert values to project defaults</target>
       </trans-unit>
       <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
         <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</source>
@@ -4693,7 +4689,7 @@ Requête : {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
         <source xml:lang="en">This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
-        <target state="new">This message couldn't be processed. If this issue persists, please check the logs and open an issue on GitHub.</target>
+        <target state="translated">Ce message n’a pas pu être traité. Si ce problème persiste, veuillez vérifier les journaux et ouvrir un problème sur GitHub.</target>
       </trans-unit>
       <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
         <source xml:lang="en">Timestamp</source>
@@ -5226,7 +5222,7 @@ Requête : {1}</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.analyzeQueryPerformance">
         <source xml:lang="en">Analyze Query Performance</source>
-        <target state="new">Analyze Query Performance</target>
+        <target state="translated">Analyser les performances des requêtes</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.applicationIntentLabel">
         <source xml:lang="en">Application Intent</source>
@@ -5558,7 +5554,7 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
       </trans-unit>
       <trans-unit id="mssql.copilot.explainQuery">
         <source xml:lang="en">Explain Query</source>
-        <target state="new">Explain Query</target>
+        <target state="translated">Expliquer la requête</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.description">
         <source xml:lang="en">Familiarize yourself with more features of the MSSQL extension that can help you be more productive.</source>
@@ -5582,7 +5578,7 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
-        <target state="new">MSSQL Copilot</target>
+        <target state="translated">MSSQL Copilot</target>
       </trans-unit>
       <trans-unit id="mssql.Configuration">
         <source xml:lang="en">MSSQL configuration</source>
@@ -5668,7 +5664,7 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
       </trans-unit>
       <trans-unit id="mssql.copilot.newQueryWithConnection">
         <source xml:lang="en">Open New Query and Connect</source>
-        <target state="new">Open New Query and Connect</target>
+        <target state="translated">Ouvrir une nouvelle requête et se connecter</target>
       </trans-unit>
       <trans-unit id="mssql.openQueryHistory">
         <source xml:lang="en">Open Query</source>
@@ -5680,11 +5676,11 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabaseInAgentMode">
         <source xml:lang="en">Open in Copilot Agent mode</source>
-        <target state="new">Open in Copilot Agent mode</target>
+        <target state="translated">Ouvrir en mode Assistant Copilot</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorerChatWithDatabase">
         <source xml:lang="en">Open in Copilot Ask mode</source>
-        <target state="new">Open in Copilot Ask mode</target>
+        <target state="translated">Ouvrir en mode Demander à Copilot</target>
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
@@ -5740,7 +5736,7 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
       </trans-unit>
       <trans-unit id="mssql.copilot.rewriteQuery">
         <source xml:lang="en">Rewrite Query</source>
-        <target state="new">Rewrite Query</target>
+        <target state="translated">Réécrire la requête</target>
       </trans-unit>
       <trans-unit id="mssql.runQueryHistory">
         <source xml:lang="en">Run Query</source>
@@ -5796,7 +5792,7 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
       </trans-unit>
       <trans-unit id="mssql.userFeedback">
         <source xml:lang="en">Send Feedback</source>
-        <target state="new">Send Feedback</target>
+        <target state="translated">Envoyer des commentaires</target>
       </trans-unit>
       <trans-unit id="mssql.resultsFontFamily">
         <source xml:lang="en">Set the font family for the results grid; set to blank to use the editor font</source>

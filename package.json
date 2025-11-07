@@ -147,7 +147,6 @@
         "slickgrid": "github:Microsoft/SlickGrid.ADS#2.3.49",
         "source-map-support": "^0.5.21",
         "ts-node": "^10.9.2",
-        "typemoq": "^1.7.0",
         "typescript": "^5.8.3",
         "typescript-eslint": "^8.34.0",
         "xliff": "^6.2.1",
@@ -570,19 +569,24 @@
                     "group": "2_MSSQL_serverDbActions@2"
                 },
                 {
+                    "command": "mssql.objectExplorerNewQuery",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "group": "3_MSSQL_newQuery@1"
+                },
+                {
                     "command": "mssql.tableExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences",
-                    "group": "3_MSSQL_tableActions@1"
+                    "group": "4_MSSQL_tableActions@1"
                 },
                 {
                     "command": "mssql.editTable",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "3_MSSQL_tableActions@2"
+                    "group": "4_MSSQL_tableActions@2"
                 },
                 {
                     "submenu": "mssql.sqlScriptsSubmenu",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "4_MSSQL_tableScripts@1"
+                    "group": "5_MSSQL_tableScripts@1"
                 },
                 {
                     "command": "mssql.scriptSelect",
