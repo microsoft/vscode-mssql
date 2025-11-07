@@ -572,22 +572,22 @@
                 {
                     "command": "mssql.objectExplorerNewQuery",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "3_MSSQL_tableActions@0"
+                    "group": "3_MSSQL_newQuery@1"
                 },
                 {
                     "command": "mssql.tableExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences",
-                    "group": "3_MSSQL_tableActions@1"
+                    "group": "4_MSSQL_tableActions@1"
                 },
                 {
                     "command": "mssql.editTable",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "3_MSSQL_tableActions@2"
+                    "group": "4_MSSQL_tableActions@2"
                 },
                 {
                     "submenu": "mssql.sqlScriptsSubmenu",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
-                    "group": "4_MSSQL_tableScripts@1"
+                    "group": "5_MSSQL_tableScripts@1"
                 },
                 {
                     "command": "mssql.scriptSelect",
