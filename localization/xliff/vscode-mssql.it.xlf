@@ -2860,6 +2860,11 @@ Errore:
         <source xml:lang="en">Maximize</source>
         <target state="translated">Ingrandisci</target>
       </trans-unit>
+      <trans-unit id="++CODE++413bb729f02d5d830364779a608ec96486cdbac9d8f519d246b280ee3fd3027d">
+        <source xml:lang="en">Maximize ({0})</source>
+        <note>{0} is the keyboard shortcut for maximizing the grid</note>
+        <target state="new">Maximize ({0})</target>
+      </trans-unit>
       <trans-unit id="++CODE++bfb44e231009293c2b2333bb7d0e9e5c0c79294bbb1c6a42c3471892ef016229">
         <source xml:lang="en">Maximize Panel Size</source>
         <target state="new">Maximize Panel Size</target>
@@ -2875,6 +2880,11 @@ Errore:
       <trans-unit id="++CODE++04d7b48339271ea67d3c8493e07e90bc68dc565485eebe5e0b67c21c1586e3c0">
         <source xml:lang="en">Messages</source>
         <target state="translated">Messaggi</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d383f047a2ab3c6127191873e02bfe1e822d683f30c084fb0a6f54bad4716328">
+        <source xml:lang="en">Messages ({0})</source>
+        <note>{0} is the keyboard shortcut for the messages tab</note>
+        <target state="new">Messages ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++2d275a74912cca2e02e6d41f9cae3a75ceef3ed0ef734eff3710e10eb7112228">
         <source xml:lang="en">Metric</source>
@@ -3567,6 +3577,15 @@ Errore:
         <source xml:lang="en">Pulling the SQL Server container image. This might take a few minutes depending on your internet connection.</source>
         <target state="translated">Pull dell'immagine del contenitore di SQL Server in corso... Questa operazione potrebbe richiedere alcuni minuti a seconda della connessione Internet.</target>
       </trans-unit>
+      <trans-unit id="++CODE++f44ad102b5dd5df1b5691408d19d39ee92cc1c9ad20f7125845df3d961a805d3">
+        <source xml:lang="en">Query Plan</source>
+        <target state="new">Query Plan</target>
+      </trans-unit>
+      <trans-unit id="++CODE++849546c6df0763a6f8aa890e76dff62d494b20db8125f937e529ad74e52c34f1">
+        <source xml:lang="en">Query Plan ({0})</source>
+        <note>{0} is the keyboard shortcut for the query plan tab</note>
+        <target state="new">Query Plan ({0})</target>
+      </trans-unit>
       <trans-unit id="++CODE++bebc9b760db9e5ba55f2632c57871653521c9094223eeb46476e3d7d49218b89">
         <source xml:lang="en">Query Plan ({0})</source>
         <note>{0} is the number of query plans</note>
@@ -3694,6 +3713,11 @@ Errore:
         <source xml:lang="en">Restore</source>
         <target state="translated">Ripristina</target>
       </trans-unit>
+      <trans-unit id="++CODE++aa23cbfa14a31ad474e4c88dbaf83494d1f988d659568633b40d2e93cc39b61d">
+        <source xml:lang="en">Restore ({0})</source>
+        <note>{0} is the keyboard shortcut for restoring the grid</note>
+        <target state="new">Restore ({0})</target>
+      </trans-unit>
       <trans-unit id="++CODE++08a1e27d6e3c46f5a5b553a82a39ac2d0e89f6b37a9f57269532ed172d6d2de8">
         <source xml:lang="en">Restore Panel Size</source>
         <target state="new">Restore Panel Size</target>
@@ -3719,6 +3743,11 @@ Errore:
         <source xml:lang="en">Results ({0})</source>
         <note>{0} is the number of results</note>
         <target state="translated">Risultati ({0})</target>
+      </trans-unit>
+      <trans-unit id="++CODE++82d510eecb9f37659e99b55edff96e66aced3765063d0981d26bb433381f1945">
+        <source xml:lang="en">Results ({0})</source>
+        <note>{0} is the keyboard shortcut for the results tab</note>
+        <target state="new">Results ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++a71f9e2908cf7df2e5ce9dafa67f3f4949fc4c74f525b9f4a6229ff6a7f93c86">
         <source xml:lang="en">Results copied to clipboard</source>
@@ -3912,17 +3941,37 @@ Query: {1}</target>
         <source xml:lang="en">Save as CSV</source>
         <target state="translated">Salva in formato CSV</target>
       </trans-unit>
+      <trans-unit id="++CODE++f16fdea0ffe7c1d1a7e39080f54fcf518de82268186b3a569d4132cda24f138f">
+        <source xml:lang="en">Save as CSV ({0})</source>
+        <note>{0} is the keyboard shortcut for saving as CSV</note>
+        <target state="new">Save as CSV ({0})</target>
+      </trans-unit>
       <trans-unit id="++CODE++40838c73e26d7ae3162bb4250c2c1e261a33fec5478432e6e47ba9ab6649c1ef">
         <source xml:lang="en">Save as Excel</source>
         <target state="translated">Salva in formato Excel</target>
       </trans-unit>
-      <trans-unit id="++CODE++49e889d19cb98b87430fab55b6c5203e191463e874e2d94eb44d43f38395e226">
-        <source xml:lang="en">Save as INSERT</source>
-        <target state="translated">Salvare come INSERT</target>
+      <trans-unit id="++CODE++c6d0c9d65b752916c8f5647d310c760cc1f9e2aa20e9994942fe8a8219f5e043">
+        <source xml:lang="en">Save as Excel ({0})</source>
+        <note>{0} is the keyboard shortcut for saving as Excel</note>
+        <target state="new">Save as Excel ({0})</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b99387bd84bcf310d6fb1c7e860b919e4f57e8d6d1fdac34cc2e624cbf0b5496">
+        <source xml:lang="en">Save as INSERT INTO</source>
+        <target state="new">Save as INSERT INTO</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d4c4a2d704829f0ab4b2a416311ebfab2b516e06fb2fe3eb0673fe5c2f65104c">
+        <source xml:lang="en">Save as INSERT INTO ({0})</source>
+        <note>{0} is the keyboard shortcut for saving as INSERT INTO</note>
+        <target state="new">Save as INSERT INTO ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++910ed5e0c43df2bc1a2c71f1d5ecd2168b919fd4dc9f6d4b1f13f660cba9c524">
         <source xml:lang="en">Save as JSON</source>
         <target state="translated">Salva in formato JSON</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0572989f274f777f1664fd8629f853c8dd7c0ec75f8d64332f4501b5d45c40d5">
+        <source xml:lang="en">Save as JSON ({0})</source>
+        <note>{0} is the keyboard shortcut for saving as JSON</note>
+        <target state="new">Save as JSON ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++bae1da28225af71a125385224716f5ff7870573e6c01494c597e8ed4168b12e3">
         <source xml:lang="en">Save results command cannot be used with multiple selections.</source>
@@ -4225,9 +4274,14 @@ Query: {1}</target>
         <source xml:lang="en">Show MSSQL output</source>
         <target state="translated">Mostra output MSSQL</target>
       </trans-unit>
-      <trans-unit id="++CODE++1615831401345ad7af7c55f1b68f51dd051827cf4ab1e7f3864619ce377d6ef1">
-        <source xml:lang="en">Show Menu (F3)</source>
-        <target state="translated">Mostra menu (F3)</target>
+      <trans-unit id="++CODE++a16e132b133cc57c4d467bde193d78fe48f170a197d0581c2e6578162824902f">
+        <source xml:lang="en">Show Menu</source>
+        <target state="new">Show Menu</target>
+      </trans-unit>
+      <trans-unit id="++CODE++d014d52362848d2e01dc78db0a3788e52c984baecefb3c94fd4539d03e331e78">
+        <source xml:lang="en">Show Menu ({0})</source>
+        <note>{0} is the keyboard shortcut for showing the menu</note>
+        <target state="new">Show Menu ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++169b9d739add25522ff9a236b54583826c27bd79c2dcb1a4efcc50143164f78c">
         <source xml:lang="en">Show New Password</source>
@@ -4470,6 +4524,11 @@ Query: {1}</target>
         <source xml:lang="en">Switch to Grid View</source>
         <target state="translated">Passa alla visualizzazione Griglia</target>
       </trans-unit>
+      <trans-unit id="++CODE++8882381c4129993cbaf9650deef13f6320270deb238c6d124489eb7ecfab1c29">
+        <source xml:lang="en">Switch to Grid View ({0})</source>
+        <note>{0} is the keyboard shortcut for switching to grid view</note>
+        <target state="new">Switch to Grid View ({0})</target>
+      </trans-unit>
       <trans-unit id="++CODE++5b483648ad7b3afcd20f3ccef6fdc7471e39d5a8c9bb30697cba5f82c4ff8dc1">
         <source xml:lang="en">Switch to MSAL</source>
         <target state="translated">Passa a MSAL</target>
@@ -4477,6 +4536,11 @@ Query: {1}</target>
       <trans-unit id="++CODE++fe49fbfd86c4792c2bd6cf8b59085cc2d787fa377a2af3ebdcbd88104e556d8c">
         <source xml:lang="en">Switch to Text View</source>
         <target state="translated">Passa alla visualizzazione Testo</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1cd65c404018fe0b10838ebb1d185bc820d942c2bab789cf9e0ed90db9bb6451">
+        <source xml:lang="en">Switch to Text View ({0})</source>
+        <note>{0} is the keyboard shortcut for switching to text view</note>
+        <target state="new">Switch to Text View ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++494731de200692139842ce40b55ca4e15ccb299d4d82b803ed1f0bd25ce82efd">
         <source xml:lang="en">Switching to Linux containers was canceled. SQL Server only supports Linux containers.</source>
