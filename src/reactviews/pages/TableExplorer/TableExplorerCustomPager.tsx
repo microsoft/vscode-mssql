@@ -16,16 +16,14 @@ import {
     ChevronRightRegular,
     ChevronDoubleLeftRegular,
     ChevronDoubleRightRegular,
-    ArrowSyncRegular,
 } from "@fluentui/react-icons";
-import { Dropdown, Option, Combobox, Button } from "@fluentui/react-components";
+import { Dropdown, Option } from "@fluentui/react-components";
 
 import "./TableExplorerCustomPager.css";
 import { locConstants as loc } from "../../common/locConstants";
 
 // Default pagination constants
 const DEFAULT_PAGE_SIZE = 100;
-const DEFAULT_ROW_COUNT = 100;
 const MIN_VALID_NUMBER = 1;
 const FIRST_PAGE_NUMBER = 1;
 const RADIX_DECIMAL = 10;
@@ -40,23 +38,13 @@ export interface TableExplorerCustomPagerRef {
     renderPagination: () => void;
 }
 
-export interface TableExplorerCustomPagerProps {
-    currentRowCount?: number;
-    onLoadSubset?: (rowCount: number) => void;
-}
-
-const TableExplorerCustomPager = React.forwardRef<
-    TableExplorerCustomPagerRef,
-    TableExplorerCustomPagerProps
->((props, ref) => {
-    const { currentRowCount, onLoadSubset } = props;
+const TableExplorerCustomPager = React.forwardRef<TableExplorerCustomPagerRef>((_, ref) => {
     const [currentPagination, setCurrentPagination] = useState<PaginationMetadata>(
         {} as PaginationMetadata,
     );
     const [isLeftPaginationDisabled, setIsLeftPaginationDisabled] = useState(false);
     const [isRightPaginationDisabled, setIsRightPaginationDisabled] = useState(false);
     const [selectedPageSize, setSelectedPageSize] = useState<string>(String(DEFAULT_PAGE_SIZE));
-    const [selectedRowCount, setSelectedRowCount] = useState<string>(String(DEFAULT_ROW_COUNT));
 
     const paginationElementRef = useRef<HTMLDivElement | null>(null);
     const gridRef = useRef<SlickGrid | null>(null);
@@ -149,40 +137,11 @@ const TableExplorerCustomPager = React.forwardRef<
         }
     };
 
-    const onRowCountChanged = (_event: any, data: any) => {
-        const newRowCount = data.optionValue || data.value || selectedRowCount;
-        if (newRowCount) {
-            setSelectedRowCount(newRowCount);
-        }
-    };
-
-    const onRowCountInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const newValue = event.target.value;
-        setSelectedRowCount(newValue);
-    };
-
-    const onFetchRowsClick = () => {
-        const rowCountNumber = parseInt(
-            selectedRowCount || String(DEFAULT_ROW_COUNT),
-            RADIX_DECIMAL,
-        );
-
-        if (!isNaN(rowCountNumber) && rowCountNumber >= MIN_VALID_NUMBER && onLoadSubset) {
-            onLoadSubset(rowCountNumber);
-        }
-    };
-
     useEffect(() => {
         return () => {
             dispose();
         };
     }, []);
-
-    useEffect(() => {
-        if (currentRowCount !== undefined) {
-            setSelectedRowCount(String(currentRowCount));
-        }
-    }, [currentRowCount]);
 
     // Expose methods via ref
     useImperativeHandle(ref, () => ({
@@ -193,30 +152,6 @@ const TableExplorerCustomPager = React.forwardRef<
 
     return (
         <div className="table-explorer-custom-pagination" ref={paginationElementRef}>
-            <div className="row-count-selector">
-                <span className="row-count-label">{loc.tableExplorer.totalRowsToFetch}</span>
-                <Combobox
-                    value={selectedRowCount}
-                    selectedOptions={[selectedRowCount]}
-                    onOptionSelect={onRowCountChanged}
-                    onInput={onRowCountInput}
-                    size="small"
-                    freeform>
-                    <Option value="10">10</Option>
-                    <Option value="50">50</Option>
-                    <Option value="100">100</Option>
-                    <Option value="500">500</Option>
-                    <Option value="1000">1000</Option>
-                </Combobox>
-                <Button
-                    appearance="primary"
-                    size="small"
-                    icon={<ArrowSyncRegular />}
-                    onClick={onFetchRowsClick}
-                    title={loc.tableExplorer.fetchRows}
-                    aria-label={loc.tableExplorer.fetchRows}
-                />
-            </div>
             <div className="page-size-selector">
                 <span className="page-size-label">{loc.tableExplorer.rowsPerPage}</span>
                 <Dropdown
