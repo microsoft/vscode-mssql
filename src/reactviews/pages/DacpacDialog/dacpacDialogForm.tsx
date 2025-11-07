@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, makeStyles, tokens } from "@fluentui/react-components";
+import { Button, Link, makeStyles, tokens } from "@fluentui/react-components";
 import { DatabaseArrowRight20Regular } from "@fluentui/react-icons";
 import { useState, useEffect, useContext } from "react";
 import * as dacpacDialog from "../../../sharedInterfaces/dacpacDialog";
@@ -616,7 +616,12 @@ export const DacpacDialogForm = () => {
             <div className={classes.formContainer}>
                 <div>
                     <div className={classes.title}>{locConstants.dacpacDialog.title}</div>
-                    <div className={classes.description}>{locConstants.dacpacDialog.subtitle}</div>
+                    <div className={classes.description}>
+                        {locConstants.dacpacDialog.subtitle}{" "}
+                        <Link href="https://learn.microsoft.com/en-us/sql/tools/sql-database-projects/concepts/data-tier-applications/overview?view=sql-server-ver17">
+                            {locConstants.dacpacDialog.learnMore}
+                        </Link>
+                    </div>
                 </div>
 
                 <OperationTypeSection

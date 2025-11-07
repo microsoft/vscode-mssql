@@ -1164,6 +1164,7 @@ export class LocConstants {
             invalidApplicationVersion: l10n.t(
                 "Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)",
             ),
+            learnMore: l10n.t("Learn More"),
         };
     }
 
