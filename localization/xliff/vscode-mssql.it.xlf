@@ -887,7 +887,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++b269dc4e81a528a4d42e9e74101923514a626f55f8dd76b1461e0690e72d041a">
         <source xml:lang="en">Commands</source>
-        <target state="new">Commands</target>
+        <target state="translated">Comandi</target>
       </trans-unit>
       <trans-unit id="++CODE++e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9">
         <source xml:lang="en">Compare</source>
@@ -1463,7 +1463,7 @@ Seleziona "{0}" per stabilire una connessione.</target>
       </trans-unit>
       <trans-unit id="++CODE++eb1a70e39274bb762b5d7c1adb5debeea2b05e12af28207f21a375b596853273">
         <source xml:lang="en">Discard</source>
-        <target state="new">Discard</target>
+        <target state="translated">Rimuovi</target>
       </trans-unit>
       <trans-unit id="++CODE++acfc5be785a9bb3da11c9f05adb69bd5633096f09002aa44813a1b3207e912ad">
         <source xml:lang="en">Disconnect</source>
