@@ -23,7 +23,11 @@ import {
 } from "../sharedInterfaces/publishDialog";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { generatePublishFormComponents } from "./formComponentHelpers";
-import { parsePublishProfileXml, readProjectProperties } from "./projectUtils";
+import {
+    parsePublishProfileXml,
+    readProjectProperties,
+    validateSqlCmdVariables,
+} from "./projectUtils";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
@@ -322,6 +326,23 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     this.state.projectProperties = props;
                     projectTargetVersion = props.targetVersion;
                 }
+
+                // Load SQLCMD variables from the project
+                const sqlCmdVarsResult =
+                    await this._sqlProjectsService.getSqlCmdVariables(projectFilePath);
+                if (sqlCmdVarsResult?.success && sqlCmdVarsResult.sqlCmdVariables) {
+                    // Convert array to object for form state
+                    const sqlCmdVarsObject: { [key: string]: string } = {};
+                    for (const sqlCmdVar of sqlCmdVarsResult.sqlCmdVariables) {
+                        // Use the defaultValue which contains the actual values, not variable references like $(SqlCmdVar__1)
+                        const varValue = sqlCmdVar.defaultValue || "";
+                        sqlCmdVarsObject[sqlCmdVar.varName] = varValue;
+                    }
+                    this.state.formState.sqlCmdVariables = sqlCmdVarsObject;
+
+                    // Store immutable default values (project defaults initially)
+                    this.state.defaultSqlCmdVariables = { ...sqlCmdVarsObject };
+                }
             }
         } catch (error) {
             // Log error and send telemetry, but keep dialog resilient
@@ -339,8 +360,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
             projectTargetVersion,
             this.state.formState.databaseName,
         );
-
-        this.updateState();
 
         // Fetch Docker tags for the container image dropdown
         const tagComponent = this.state.formComponents[PublishFormFields.ContainerImageTag];
@@ -360,7 +379,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
             }
         }
 
-        void this.updateItemVisibility();
+        // Update item visibility before updating state to ensure SQLCMD table is visible if needed
+        await this.updateItemVisibility();
+
+        this.updateState();
 
         // Run initial validation to set hasFormErrors state for button enablement
         await this.validateForm(this.state.formState, undefined, true);
@@ -442,29 +464,45 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         TelemetryActions.PublishProfileLoaded,
                     );
 
-                    // Update state with loaded profile data immediately (non-blocking)
+                    // Merge SQLCMD variables: start with current values, then overlay profile variables
+                    const mergedSqlCmdVariables = {
+                        ...state.formState.sqlCmdVariables,
+                        ...parsedProfile.sqlCmdVariables,
+                    };
+
+                    // Update immutable default values: project defaults + profile overrides
+                    const updatedDefaults = {
+                        ...state.defaultSqlCmdVariables,
+                        ...parsedProfile.sqlCmdVariables,
+                    };
+
+                    // Update state with loaded profile data
                     this.state = {
                         ...state,
+                        defaultSqlCmdVariables: updatedDefaults,
                         formState: {
                             ...state.formState,
                             publishProfilePath: selectedPath,
                             databaseName:
                                 parsedProfile.databaseName || state.formState.databaseName,
                             serverName: parsedProfile.serverName || state.formState.serverName,
-                            sqlCmdVariables: parsedProfile.sqlCmdVariables,
+                            sqlCmdVariables: mergedSqlCmdVariables,
                         },
                         deploymentOptions:
                             parsedProfile.deploymentOptions || state.deploymentOptions,
                         formMessage: !this._dacFxService
                             ? {
                                   message: Loc.DacFxServiceNotAvailableProfileLoaded,
-                                  intent: "error" as const,
+                                  intent: "error",
                               }
                             : undefined,
                     };
 
                     // Validate form after loading profile to update button states
                     await this.validateForm(this.state.formState, undefined, false);
+
+                    // Update item visibility to show SQLCMD variables table if variables exist
+                    await this.updateItemVisibility();
 
                     // Update UI immediately with profile data
                     this.updateState();
@@ -504,6 +542,25 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         this.registerReducer("closeMessage", async (state: PublishDialogState) => {
             return { ...state, formMessage: undefined };
+        });
+
+        // Dedicated reducer for updating SQLCMD variables.
+        // Cannot use formAction because FormEvent.value is typed as string | boolean,
+        // but sqlCmdVariables is an object type, so we need a custom reducer for type safety.
+        this.registerReducer(
+            "updateSqlCmdVariables",
+            async (
+                state: PublishDialogState,
+                payload: { variables: { [key: string]: string } },
+            ) => {
+                state.formState.sqlCmdVariables = payload.variables;
+                return state;
+            },
+        );
+
+        this.registerReducer("revertSqlCmdVariables", async (state: PublishDialogState) => {
+            state.formState.sqlCmdVariables = { ...state.defaultSqlCmdVariables };
+            return state;
         });
 
         this.registerReducer(
@@ -782,6 +839,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
             hidden.push(...PublishFormContainerFields);
         }
 
+        // Hide SQLCMD variables section if no variables exist
+        const sqlCmdVars = currentState.formState?.sqlCmdVariables;
+        const hasSqlCmdVariables = sqlCmdVars && Object.keys(sqlCmdVars).length > 0;
+        if (!hasSqlCmdVariables) {
+            hidden.push(PublishFormFields.SqlCmdVariables);
+        }
+
         for (const component of Object.values(currentState.formComponents)) {
             component.hidden = hidden.includes(component.propertyName);
         }
@@ -805,8 +869,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this.state.formState,
         );
 
+        // Check SQLCMD variables validation using shared utility
+        const sqlCmdVariablesValid = validateSqlCmdVariables(this.state.formState.sqlCmdVariables);
+
         // hasFormErrors state tracks to disable buttons if ANY errors exist
-        this.state.hasFormErrors = hasValidationErrors || hasMissingRequiredValues;
+        this.state.hasFormErrors =
+            hasValidationErrors || hasMissingRequiredValues || !sqlCmdVariablesValid;
 
         return erroredInputs;
     }

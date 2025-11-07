@@ -1346,7 +1346,7 @@ export class PublishProject {
     public static SqlCmdVariablesLabel = l10n.t("SQLCMD Variables");
     public static PublishTargetLabel = l10n.t("Publish Target");
     public static PublishTargetExisting = l10n.t("Existing SQL server");
-    public static PublishTargetExistingLogical = l10n.t("Existing Azure SQL logical server");
+    public static PublishTargetExistingLogical = l10n.t("Existing Azure SQL server");
     public static PublishTargetContainer = l10n.t("Local development container");
     public static PublishTargetAzureEmulator = l10n.t("New SQL Server local development container");
     public static PublishTargetNewAzureServer = l10n.t("New Azure SQL logical server (Preview)");

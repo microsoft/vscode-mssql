@@ -370,3 +370,16 @@ export async function parsePublishProfileXml(
         throw new Error(`Failed to parse publish profile: ${error}`);
     }
 }
+
+/**
+ * Validates that all SQLCMD variables have non-empty values.
+ * @param sqlCmdVariables The SQLCMD variables object to validate
+ * @returns true if all variables have non-empty values, false otherwise
+ */
+export function validateSqlCmdVariables(sqlCmdVariables?: { [key: string]: string }): boolean {
+    if (!sqlCmdVariables) {
+        return true; // No variables to validate
+    }
+
+    return Object.values(sqlCmdVariables).every((v) => v !== "" && v !== undefined);
+}
