@@ -4,12 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles } from "@fluentui/react-components";
-import { createRef, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createRef, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import CommandBar from "./commandBar";
 import ResultGrid, { ResultGridHandle } from "./resultGrid";
+import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
+import { eventMatchesShortcut } from "../../common/keyboardUtils";
+import { WebviewAction } from "../../../sharedInterfaces/webview";
 
 const useStyles = makeStyles({
     gridViewContainer: {
@@ -55,6 +58,7 @@ export const QueryResultsGridView = () => {
     const gridContainerRefs = useRef<Map<string, React.RefObject<HTMLDivElement>>>(new Map());
     const [maximizedGridKey, setMaximizedGridKey] = useState<string | undefined>(undefined);
     const gridRefs = useRef<Array<ResultGridHandle | undefined>>([]);
+    const { keyBindings } = useVscodeWebview2();
 
     // Derive a stable flat list for rendering
     const gridList: GridItem[] = useMemo(() => {
@@ -101,6 +105,116 @@ export const QueryResultsGridView = () => {
         }
         void restoreMaximizedGrid();
     }, [uri, tabStates, viewMode]);
+
+    const getActiveGrid = useCallback(():
+        | {
+              gridContainerDiv: HTMLDivElement | null;
+              grid: ResultGridHandle | undefined;
+              gridIndex: number;
+              gridDef: GridItem;
+          }
+        | undefined => {
+        const activeElement = document.activeElement;
+        for (let i = 0; i < gridList.length; i++) {
+            const item = gridList[i];
+            const gridContainerDiv = gridContainerRefs.current.get(
+                `${item.batchId}_${item.resultId}`,
+            )?.current;
+
+            if (gridContainerDiv === activeElement || gridContainerDiv?.contains(activeElement)) {
+                return {
+                    gridContainerDiv: gridContainerDiv,
+                    gridIndex: i,
+                    grid: gridRefs.current[i],
+                    gridDef: item,
+                };
+            }
+        }
+        return undefined;
+    }, [gridList, gridContainerRefs, gridRefs]);
+
+    useEffect(() => {
+        const handler = (event: KeyboardEvent) => {
+            let handled = false;
+            if (
+                eventMatchesShortcut(
+                    event,
+                    keyBindings[WebviewAction.QueryResultMaximizeGrid]?.keyCombination,
+                )
+            ) {
+                if (viewMode === qr.QueryResultViewMode.Grid && gridList.length > 1) {
+                    const targetGrid = getActiveGrid();
+                    if (!targetGrid) {
+                        return;
+                    }
+                    if (
+                        maximizedGridKey ===
+                        `${targetGrid.gridDef.batchId}_${targetGrid.gridDef.resultId}`
+                    ) {
+                        setMaximizedGridKey(undefined);
+                    } else {
+                        setMaximizedGridKey(
+                            `${targetGrid.gridDef.batchId}_${targetGrid.gridDef.resultId}`,
+                        );
+                    }
+                }
+            } else if (
+                eventMatchesShortcut(
+                    event,
+                    keyBindings[WebviewAction.QueryResultPrevGrid]?.keyCombination,
+                )
+            ) {
+                const activeGrid = getActiveGrid();
+                if (!activeGrid) {
+                    return;
+                }
+                // Circular navigation
+                const newIndex = (activeGrid.gridIndex - 1 + gridList.length) % gridList.length;
+
+                // Scroll div into view before focusing grid
+                gridContainerRefs.current
+                    .get(`${activeGrid.gridDef.batchId}_${activeGrid.gridDef.resultId}`)
+                    ?.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                const gridToFocus = gridRefs.current[newIndex];
+                if (gridToFocus) {
+                    gridToFocus.focusGrid();
+                    handled = true;
+                }
+            } else if (
+                eventMatchesShortcut(
+                    event,
+                    keyBindings[WebviewAction.QueryResultNextGrid]?.keyCombination,
+                )
+            ) {
+                const activeGrid = getActiveGrid();
+                if (!activeGrid) {
+                    return;
+                }
+                // Circular navigation
+                const newIndex = (activeGrid.gridIndex + 1) % gridList.length;
+
+                // Scroll div into view before focusing grid
+                gridContainerRefs.current
+                    .get(`${activeGrid.gridDef.batchId}_${activeGrid.gridDef.resultId}`)
+                    ?.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+                const gridToFocus = gridRefs.current[newIndex];
+                if (gridToFocus) {
+                    gridToFocus.focusGrid();
+                    handled = true;
+                }
+            }
+
+            if (handled) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+        };
+        document.addEventListener("keydown", handler, true);
+        return () => {
+            document.removeEventListener("keydown", handler, true);
+        };
+    }, [keyBindings, gridList, getActiveGrid, viewMode, maximizedGridKey]);
 
     const handleToggleMaximize = (gridKey: string) => {
         const isAlreadyMaximized = maximizedGridKey === gridKey;

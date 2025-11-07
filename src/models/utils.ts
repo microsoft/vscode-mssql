@@ -356,6 +356,30 @@ export class ConnectionMatcher {
     }
 
     /**
+     * Finds the closest-matching profile from the provided list for the given partial connection profile
+     * @param connProfile partial connection profile to match against
+     * @returns closest-matching connection profile from the provided list. If none is found, returns {score: MatchScore.NotMatch}
+     */
+    public static findMatchingProfile(
+        connProfile: IConnectionProfile,
+        connectionList: IConnectionProfile[],
+    ): { profile: IConnectionProfile; score: MatchScore } {
+        let bestMatch: IConnectionProfile | undefined;
+        let bestMatchScore = MatchScore.NotMatch;
+
+        for (const savedConn of connectionList) {
+            const matchLevel = ConnectionMatcher.isMatchingConnection(savedConn, connProfile);
+
+            if (matchLevel > bestMatchScore) {
+                bestMatchScore = matchLevel;
+                bestMatch = savedConn;
+            }
+        }
+
+        return { profile: bestMatch, score: bestMatchScore };
+    }
+
+    /**
      * Checks if the server names match.  Normalizes "." to "localhost" for comparison purposes.  Case-sensitive.
      */
     public static serverMatches(

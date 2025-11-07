@@ -351,27 +351,62 @@
     "Privacy Statement": "Privacy Statement",
     "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...": "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions...",
     "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.": "Microsoft will process the feedback you submit pursuant to your organization’s instructions in order to improve your and your organization’s experience with this product. If you have any questions about the use of feedback data, please contact your tenant administrator. Processing of feedback data is governed by the Microsoft Products and Services Data Protection Addendum between your organization and Microsoft, and the feedback you submit is considered Personal Data under that addendum.",
+    "Results ({0})/{0} is the keyboard shortcut for the results tab": {
+        "message": "Results ({0})",
+        "comment": ["{0} is the keyboard shortcut for the results tab"]
+    },
+    "Results": "Results",
     "Results ({0})/{0} is the number of results": {
         "message": "Results ({0})",
         "comment": ["{0} is the number of results"]
+    },
+    "Messages ({0})/{0} is the keyboard shortcut for the messages tab": {
+        "message": "Messages ({0})",
+        "comment": ["{0} is the keyboard shortcut for the messages tab"]
     },
     "Messages": "Messages",
     "Timestamp": "Timestamp",
     "Message": "Message",
     "Open in New Tab": "Open in New Tab",
     "Showplan XML": "Showplan XML",
-    "Show Menu (F3)": "Show Menu (F3)",
+    "Show Menu ({0})/{0} is the keyboard shortcut for showing the menu": {
+        "message": "Show Menu ({0})",
+        "comment": ["{0} is the keyboard shortcut for showing the menu"]
+    },
+    "Show Menu": "Show Menu",
     "Sort Ascending": "Sort Ascending",
     "Sort Descending": "Sort Descending",
     "Clear Sort": "Clear Sort",
+    "Save as CSV ({0})/{0} is the keyboard shortcut for saving as CSV": {
+        "message": "Save as CSV ({0})",
+        "comment": ["{0} is the keyboard shortcut for saving as CSV"]
+    },
     "Save as CSV": "Save as CSV",
+    "Save as Excel ({0})/{0} is the keyboard shortcut for saving as Excel": {
+        "message": "Save as Excel ({0})",
+        "comment": ["{0} is the keyboard shortcut for saving as Excel"]
+    },
     "Save as Excel": "Save as Excel",
+    "Save as JSON ({0})/{0} is the keyboard shortcut for saving as JSON": {
+        "message": "Save as JSON ({0})",
+        "comment": ["{0} is the keyboard shortcut for saving as JSON"]
+    },
     "Save as JSON": "Save as JSON",
+    "Save as INSERT INTO ({0})/{0} is the keyboard shortcut for saving as INSERT INTO": {
+        "message": "Save as INSERT INTO ({0})",
+        "comment": ["{0} is the keyboard shortcut for saving as INSERT INTO"]
+    },
+    "Save as INSERT INTO": "Save as INSERT INTO",
     "Hide this panel": "Hide this panel",
     "Query Plan ({0})/{0} is the number of query plans": {
         "message": "Query Plan ({0})",
         "comment": ["{0} is the number of query plans"]
     },
+    "Query Plan ({0})/{0} is the keyboard shortcut for the query plan tab": {
+        "message": "Query Plan ({0})",
+        "comment": ["{0} is the keyboard shortcut for the query plan tab"]
+    },
+    "Query Plan": "Query Plan",
     "Select All": "Select All",
     "Copy with Headers": "Copy with Headers",
     "Copy Headers": "Copy Headers",
@@ -380,16 +415,31 @@
     "Copy as JSON": "Copy as JSON",
     "Copy as IN clause": "Copy as IN clause",
     "Copy as INSERT INTO": "Copy as INSERT INTO",
-    "Save as INSERT": "Save as INSERT",
     "NULL": "NULL",
     "Blanks": "Blanks",
     "Search...": "Search...",
+    "Maximize ({0})/{0} is the keyboard shortcut for maximizing the grid": {
+        "message": "Maximize ({0})",
+        "comment": ["{0} is the keyboard shortcut for maximizing the grid"]
+    },
     "Maximize": "Maximize",
+    "Restore ({0})/{0} is the keyboard shortcut for restoring the grid": {
+        "message": "Restore ({0})",
+        "comment": ["{0} is the keyboard shortcut for restoring the grid"]
+    },
     "Restore": "Restore",
+    "Switch to Grid View ({0})/{0} is the keyboard shortcut for switching to grid view": {
+        "message": "Switch to Grid View ({0})",
+        "comment": ["{0} is the keyboard shortcut for switching to grid view"]
+    },
+    "Switch to Grid View": "Switch to Grid View",
+    "Switch to Text View ({0})/{0} is the keyboard shortcut for switching to text view": {
+        "message": "Switch to Text View ({0})",
+        "comment": ["{0} is the keyboard shortcut for switching to text view"]
+    },
+    "Switch to Text View": "Switch to Text View",
     "Grid View": "Grid View",
     "Text View": "Text View",
-    "Switch to Grid View": "Switch to Grid View",
-    "Switch to Text View": "Switch to Text View",
     "No results to display": "No results to display",
     "Error generating text view. Please try switching back to grid view.": "Error generating text view. Please try switching back to grid view.",
     "(0 rows affected)": "(0 rows affected)",
@@ -661,6 +711,8 @@
     "Advanced Publish Options": "Advanced Publish Options",
     "Ignore Options": "Ignore Options",
     "Exclude Object Types": "Exclude Object Types",
+    "SQLCMD Variables": "SQLCMD Variables",
+    "Revert values to project defaults": "Revert values to project defaults",
     "Create New Connection Group": "Create New Connection Group",
     "Edit Connection Group: {0}/{0} is the name of the connection group being edited": {
         "message": "Edit Connection Group: {0}",
@@ -1097,7 +1149,6 @@
     "CSV": "CSV",
     "JSON": "JSON",
     "Excel": "Excel",
-    "Results": "Results",
     "Select all": "Select all",
     "Executing query...": "Executing query...",
     "Query executed": "Query executed",
@@ -1557,12 +1608,9 @@
     "Load profile...": "Load profile...",
     "Save As": "Save As",
     "Publish Settings File": "Publish Settings File",
-    "SQLCMD Variables": "SQLCMD Variables",
     "Publish Target": "Publish Target",
     "Existing SQL server": "Existing SQL server",
-    "Existing Azure SQL logical server": "Existing Azure SQL logical server",
-    "Local development container": "Local development container",
-    "New SQL Server local development container": "New SQL Server local development container",
+    "New SQL Server Local development container": "New SQL Server Local development container",
     "New Azure SQL logical server (Preview)": "New Azure SQL logical server (Preview)",
     "Build {0}": "Build {0}",
     "Building {0}...": "Building {0}...",
@@ -1584,6 +1632,7 @@
     "DacFx service is not available. Publish and generate script operations cannot be performed.": "DacFx service is not available. Publish and generate script operations cannot be performed.",
     "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.": "DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.",
     "Failed to list databases": "Failed to list databases",
+    "Failed to fetch Docker container tags: {0}": "Failed to fetch Docker container tags: {0}",
     "Profile loaded but connection failed. Please connect to the server manually.": "Profile loaded but connection failed. Please connect to the server manually.",
     "Schema Compare": "Schema Compare",
     "Options have changed. Recompare to see the comparison?": "Options have changed. Recompare to see the comparison?",
@@ -1940,7 +1989,7 @@
     "Unable to open Table Explorer: No target node provided.": "Unable to open Table Explorer: No target node provided.",
     "Changes saved successfully.": "Changes saved successfully.",
     "Row created.": "Row created.",
-    "Row removed.": "Row removed.",
+    "Row marked for removal.": "Row marked for removal.",
     "{0} (Preview)/{0} is the table name": {
         "message": "{0} (Preview)",
         "comment": ["{0} is the table name"]

@@ -14,9 +14,11 @@ import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import {
     ColorThemeChangeNotification,
     ExecuteCommandRequest,
+    GetKeyBindingsConfigRequest,
     GetLocalizationRequest,
     GetStateRequest,
     GetThemeRequest,
+    KeyBindingsChangeNotification,
     LoadStatsNotification,
     MessageType,
     ReducerRequest,
@@ -24,6 +26,13 @@ import {
     SendErrorEventNotification,
     StateChangeNotification,
 } from "../../src/sharedInterfaces/webview";
+import * as Constants from "../../src/constants/constants";
+
+const DEMO_BINDING = {
+    "mssql.shortcut": {
+        "test.action": "ctrl+alt+p",
+    },
+};
 
 suite("ReactWebviewController Tests", () => {
     let controller: TestWebviewController;
@@ -32,12 +41,34 @@ suite("ReactWebviewController Tests", () => {
     let onRequestStub: sinon.SinonStub;
     let onNotificationStub: sinon.SinonStub;
     let sendNotificationStub: sinon.SinonStub;
+    let onDidChangeConfigurationStub: sinon.SinonStub;
+    let getConfigurationStub: sinon.SinonStub;
+    let configChangeHandlers: Array<(e: vscode.ConfigurationChangeEvent) => void>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         sandbox.restore();
         sinon.reset();
         stubTelemetry(sandbox);
+
+        configChangeHandlers = [];
+        getConfigurationStub = sandbox.stub(vscode.workspace, "getConfiguration").callsFake(() => {
+            return {
+                get: sandbox.stub().callsFake((section: string) => {
+                    if (section === Constants.configShortcuts) {
+                        return DEMO_BINDING;
+                    }
+                    return undefined;
+                }),
+            } as unknown as vscode.WorkspaceConfiguration;
+        });
+
+        onDidChangeConfigurationStub = sandbox
+            .stub(vscode.workspace, "onDidChangeConfiguration")
+            .callsFake((handler) => {
+                configChangeHandlers.push(handler);
+                return { dispose: sandbox.stub() } as vscode.Disposable;
+            });
         // Create a mock extension context
         mockContext = {
             extensionUri: vscode.Uri.parse("file://test"),
@@ -82,6 +113,10 @@ suite("ReactWebviewController Tests", () => {
             "GetThemeRequest handler is not registered",
         );
         assert.ok(
+            onRequestStub.calledWith(GetKeyBindingsConfigRequest.type, sinon.match.any),
+            "GetKeyBindingsConfigRequest handler is not registered",
+        );
+        assert.ok(
             onRequestStub.calledWith(GetLocalizationRequest.type, sinon.match.any),
             "GetLocalizationRequest handler is not registered",
         );
@@ -101,6 +136,44 @@ suite("ReactWebviewController Tests", () => {
             onNotificationStub.calledWith(SendErrorEventNotification.type, sinon.match.any),
             "SendErrorEventNotification handler is not registered",
         );
+    });
+
+    test("Should send initial keybindings notification", () => {
+        assert.ok(
+            sendNotificationStub.calledWith(KeyBindingsChangeNotification.type, DEMO_BINDING),
+            "Initial keybindings notification not sent",
+        );
+        assert.ok(onDidChangeConfigurationStub.calledOnce, "Configuration listener not registered");
+    });
+
+    test("Should notify keybindings when configuration changes", () => {
+        sendNotificationStub.resetHistory();
+        const handler = configChangeHandlers[0];
+        assert.ok(handler, "Configuration change handler not registered");
+        handler({
+            affectsConfiguration: (section: string) => section === Constants.configShortcuts,
+        } as vscode.ConfigurationChangeEvent);
+
+        assert.ok(
+            sendNotificationStub.calledWith(KeyBindingsChangeNotification.type, DEMO_BINDING),
+            "Keybindings change notification not sent",
+        );
+    });
+
+    test("GetKeyBindingsConfigRequest returns current configuration", async () => {
+        const requestCall = onRequestStub
+            .getCalls()
+            .find((call) => call.args[0] === GetKeyBindingsConfigRequest.type);
+        assert.ok(requestCall, "GetKeyBindingsConfigRequest handler not registered");
+        const handler = requestCall.args[1];
+        const result = await handler();
+        assert.deepStrictEqual(result, DEMO_BINDING);
+    });
+
+    test("readKeyBindingsConfig returns empty object when configuration missing", () => {
+        getConfigurationStub.callsFake(() => undefined as unknown as vscode.WorkspaceConfiguration);
+        const result = (controller as any).readKeyBindingsConfig();
+        assert.deepStrictEqual(result, {});
     });
 
     test("should register a new reducer", () => {

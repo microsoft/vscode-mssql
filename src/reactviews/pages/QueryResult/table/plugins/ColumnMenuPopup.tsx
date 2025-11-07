@@ -28,7 +28,8 @@ import {
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { locConstants } from "../../../../common/locConstants";
 import { SortProperties } from "../../../../../sharedInterfaces/queryResult";
-import { altShiftOKeyboardShortcut, altShiftSKeyboardShortcut } from "../../../../common/constants";
+import { useVscodeWebview2 } from "../../../../common/vscodeWebviewProvider2";
+import { WebviewAction } from "../../../../../sharedInterfaces/webview";
 
 export type FilterValue = string | undefined;
 
@@ -262,6 +263,8 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
     );
     const [focusedIndex, setFocusedIndex] = useState<number>(-1);
     const [popupHeight, setPopupHeight] = useState<number>(0);
+
+    const { keyBindings } = useVscodeWebview2();
 
     const filteredItems = useMemo(() => {
         const trimmed = search.trim().toLowerCase();
@@ -562,7 +565,9 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
             style={{ left: position.left, top: position.top }}
             role="dialog"
             aria-modal="true"
-            aria-label={locConstants.queryResult.showMenu}
+            aria-label={locConstants.queryResult.showMenu(
+                keyBindings[WebviewAction.ResultGridOpenColumnMenu]?.label,
+            )}
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={handleRootKeyDown}>
             <div className={styles.titleBar}>
@@ -574,7 +579,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                             fontWeight: "100",
                             marginLeft: "6px",
                         }}>
-                        {altShiftOKeyboardShortcut}
+                        {keyBindings[WebviewAction.ResultGridToggleSort]?.label}
                     </span>
                 </Text>
                 <Button
@@ -644,7 +649,7 @@ export const ColumnMenuPopup: React.FC<ColumnMenuPopupProps> = ({
                                 marginLeft: "auto",
                                 paddingLeft: "6px",
                             }}>
-                            {altShiftSKeyboardShortcut}
+                            {keyBindings[WebviewAction.ResultGridChangeColumnWidth].label}
                         </span>
                     </Button>
                 </Toolbar>

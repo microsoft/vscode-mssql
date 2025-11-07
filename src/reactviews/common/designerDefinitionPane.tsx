@@ -124,6 +124,7 @@ export const DesignerDefinitionPane = forwardRef<
         onIssueClick?: (issue: DesignerIssue) => void;
         activeTab?: DesignerDefinitionTabs;
         setActiveTab?: (tab: DesignerDefinitionTabs) => void;
+        onClose?: () => void;
     }
 >(
     (
@@ -136,6 +137,7 @@ export const DesignerDefinitionPane = forwardRef<
             onIssueClick,
             activeTab,
             setActiveTab,
+            onClose,
         },
         ref,
     ) => {
@@ -257,6 +259,8 @@ export const DesignerDefinitionPane = forwardRef<
                                 if (panelRef.current) {
                                     panelRef.current.collapse();
                                 }
+                                // Notify parent component that panel is closing
+                                onClose?.();
                             }}
                         />
                     </Toolbar>
