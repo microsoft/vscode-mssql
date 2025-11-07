@@ -625,15 +625,16 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
 
             // Handle existing connection from Object Explorer
             if (params.initialOwnerUri) {
-                return this.useExistingConnection(
-                    connections,
+                const existingConnResult = this.useExistingConnection(
                     matchingConnection,
                     params.initialOwnerUri,
                 );
+                return { ...existingConnResult, connections };
             }
 
             // Attempt to connect to the matched profile
-            return await this.connectToMatchedProfile(connections, matchingConnection);
+            const connectResult = await this.connectToMatchedProfile(matchingConnection);
+            return { ...connectResult, connections };
         } catch (error) {
             this.logger.error(`Failed to initialize connection: ${error}`);
             // Fallback: return empty state
@@ -721,18 +722,15 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
      * Returns result for an existing connection (from Object Explorer)
      */
     private useExistingConnection(
-        connections: IConnectionDialogProfile[],
         matchingConnection: IConnectionDialogProfile,
         ownerUri: string,
     ): {
-        connections: IConnectionDialogProfile[];
         selectedConnection: IConnectionDialogProfile;
         ownerUri: string;
         autoConnected: boolean;
     } {
         this.logger.verbose(`Using existing connection from Object Explorer: ${ownerUri}`);
         return {
-            connections,
             selectedConnection: matchingConnection,
             ownerUri,
             autoConnected: false, // Was already connected
@@ -742,11 +740,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
     /**
      * Attempts to connect to a matched profile and returns the result
      */
-    private async connectToMatchedProfile(
-        connections: IConnectionDialogProfile[],
-        matchingConnection: IConnectionDialogProfile,
-    ): Promise<{
-        connections: IConnectionDialogProfile[];
+    private async connectToMatchedProfile(matchingConnection: IConnectionDialogProfile): Promise<{
         selectedConnection: IConnectionDialogProfile;
         ownerUri?: string;
         autoConnected: boolean;
@@ -759,7 +753,6 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             if (connectResult.isConnected && connectResult.ownerUri) {
                 this.logger.info(`Connected to: ${matchingConnection.server}`);
                 return {
-                    connections,
                     selectedConnection: matchingConnection,
                     ownerUri: connectResult.ownerUri,
                     autoConnected: true,
@@ -770,7 +763,6 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                     `Connection failed: ${connectResult.errorMessage || "Unknown error"}`,
                 );
                 return {
-                    connections,
                     selectedConnection: matchingConnection,
                     autoConnected: false,
                     errorMessage: connectResult.errorMessage,
@@ -780,7 +772,6 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             const errorMsg = error instanceof Error ? error.message : String(error);
             this.logger.error(`Connection exception: ${errorMsg}`);
             return {
-                connections,
                 selectedConnection: matchingConnection,
                 autoConnected: false,
                 errorMessage: errorMsg,
