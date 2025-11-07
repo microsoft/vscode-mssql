@@ -7,13 +7,8 @@ import React, { useMemo, useRef } from "react";
 import { Menu, MenuList, MenuItem, MenuPopover, MenuTrigger } from "@fluentui/react-components";
 import { locConstants } from "../../../../common/locConstants";
 import { GridContextMenuAction } from "../../../../../sharedInterfaces/queryResult";
-import { isMac } from "../../../../common/utils";
-import {
-    cmdAKeyboardShortcut,
-    cmdCKeyboardShortcut,
-    ctrlAKeyboardShortcut,
-    ctrlCKeyboardShortcut,
-} from "../../../../common/constants";
+import { useVscodeWebview2 } from "../../../../common/vscodeWebviewProvider2";
+import { WebviewAction } from "../../../../../sharedInterfaces/webview";
 
 export interface GridContextMenuProps {
     x: number;
@@ -39,6 +34,7 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
 }) => {
     const virtualTarget = useMemo(() => createVirtualElement(x, y), [x, y]);
     const popoverRef = useRef<HTMLDivElement | null>(null);
+    const { keyBindings } = useVscodeWebview2();
 
     return (
         <div
@@ -66,23 +62,29 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                 <MenuPopover onClick={(e) => e.stopPropagation()} ref={popoverRef}>
                     <MenuList>
                         <MenuItem
-                            secondaryContent={
-                                isMac() ? cmdAKeyboardShortcut : ctrlAKeyboardShortcut
-                            }
+                            secondaryContent={keyBindings[WebviewAction.ResultGridSelectAll].label}
                             onClick={() => onAction(GridContextMenuAction.SelectAll)}>
                             {locConstants.queryResult.selectAll}
                         </MenuItem>
                         <MenuItem
                             secondaryContent={
-                                isMac() ? cmdCKeyboardShortcut : ctrlCKeyboardShortcut
+                                keyBindings[WebviewAction.ResultGridCopySelection].label
                             }
                             onClick={() => onAction(GridContextMenuAction.CopySelection)}>
                             {locConstants.queryResult.copy}
                         </MenuItem>
-                        <MenuItem onClick={() => onAction(GridContextMenuAction.CopyWithHeaders)}>
+                        <MenuItem
+                            secondaryContent={
+                                keyBindings[WebviewAction.ResultGridCopyWithHeaders].label
+                            }
+                            onClick={() => onAction(GridContextMenuAction.CopyWithHeaders)}>
                             {locConstants.queryResult.copyWithHeaders}
                         </MenuItem>
-                        <MenuItem onClick={() => onAction(GridContextMenuAction.CopyHeaders)}>
+                        <MenuItem
+                            secondaryContent={
+                                keyBindings[WebviewAction.ResultGridCopyAllHeaders].label
+                            }
+                            onClick={() => onAction(GridContextMenuAction.CopyHeaders)}>
                             {locConstants.queryResult.copyHeaders}
                         </MenuItem>
                         <Menu>
@@ -92,20 +94,33 @@ export const GridContextMenu: React.FC<GridContextMenuProps> = ({
                             <MenuPopover>
                                 <MenuList>
                                     <MenuItem
+                                        secondaryContent={
+                                            keyBindings[WebviewAction.ResultGridCopyAsCsv].label
+                                        }
                                         onClick={() => onAction(GridContextMenuAction.CopyAsCsv)}>
                                         {locConstants.queryResult.copyAsCsv}
                                     </MenuItem>
                                     <MenuItem
+                                        secondaryContent={
+                                            keyBindings[WebviewAction.ResultGridCopyAsJson].label
+                                        }
                                         onClick={() => onAction(GridContextMenuAction.CopyAsJson)}>
                                         {locConstants.queryResult.copyAsJson}
                                     </MenuItem>
                                     <MenuItem
+                                        secondaryContent={
+                                            keyBindings[WebviewAction.ResultGridCopyAsInsert].label
+                                        }
                                         onClick={() =>
                                             onAction(GridContextMenuAction.CopyAsInsertInto)
                                         }>
                                         {locConstants.queryResult.copyAsInsertInto}
                                     </MenuItem>
                                     <MenuItem
+                                        secondaryContent={
+                                            keyBindings[WebviewAction.ResultGridCopyAsInClause]
+                                                ?.label
+                                        }
                                         onClick={() =>
                                             onAction(GridContextMenuAction.CopyAsInClause)
                                         }>

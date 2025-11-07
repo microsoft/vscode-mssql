@@ -140,6 +140,10 @@ export interface WebviewContextProps<TState> {
      * Theme of the webview.
      */
     themeKind: ColorThemeKind;
+    /**
+     * Key bindings for the webview.
+     */
+    keyBindings: WebviewKeyBindings;
     log(message: string, level?: LoggerLevel): void;
     sendActionEvent(event: WebviewTelemetryActionEvent): void;
     sendErrorEvent(event: WebviewTelemetryErrorEvent): void;
@@ -168,6 +172,16 @@ export namespace ColorThemeChangeNotification {
 }
 
 /**
+ * Key bindings change event callback declaration.
+ * This is used to notify the webview of key binding changes.
+ */
+export namespace KeyBindingsChangeNotification {
+    export const type = new NotificationType<WebviewKeyBindingConfiguration>(
+        "onDidChangeKeyBindings",
+    );
+}
+
+/**
  * State change event callback declaration.
  * This is used to notify the webview of state changes that it should be aware of.
  */
@@ -193,6 +207,15 @@ export namespace GetStateRequest {
  */
 export namespace GetThemeRequest {
     export const type = new RequestType<void, ColorThemeKind, void>("getTheme");
+}
+
+/**
+ * Request to get key bindings for the webview.
+ */
+export namespace GetKeyBindingsConfigRequest {
+    export const type = new RequestType<void, WebviewKeyBindingConfiguration, void>(
+        "getKeyBindingsConfig",
+    );
 }
 
 /**
@@ -277,3 +300,66 @@ export interface CoreRPCs {
     sendActionEvent(event: WebviewTelemetryActionEvent): void;
     sendErrorEvent(event: WebviewTelemetryErrorEvent): void;
 }
+
+export enum WebviewAction {
+    QueryResultSwitchToResultsTab = "event.queryResults.switchToResultsTab",
+    QueryResultSwitchToMessagesTab = "event.queryResults.switchToMessagesTab",
+    QueryResultSwitchToQueryPlanTab = "event.queryResults.switchToQueryPlanTab",
+    QueryResultPrevGrid = "event.queryResults.prevGrid",
+    QueryResultNextGrid = "event.queryResults.nextGrid",
+    QueryResultSwitchToTextView = "event.queryResults.switchToTextView",
+    QueryResultMaximizeGrid = "event.queryResults.maximizeGrid",
+    QueryResultSaveAsJson = "event.queryResults.saveAsJSON",
+    QueryResultSaveAsCsv = "event.queryResults.saveAsCSV",
+    QueryResultSaveAsExcel = "event.queryResults.saveAsExcel",
+    QueryResultSaveAsInsert = "event.queryResults.saveAsInsert",
+    ResultGridCopySelection = "event.resultGrid.copySelection",
+    ResultGridCopyWithHeaders = "event.resultGrid.copyWithHeaders",
+    ResultGridCopyAllHeaders = "event.resultGrid.copyAllHeaders",
+    ResultGridSelectAll = "event.resultGrid.selectAll",
+    ResultGridCopyAsCsv = "event.resultGrid.copyAsCSV",
+    ResultGridCopyAsJson = "event.resultGrid.copyAsJSON",
+    ResultGridCopyAsInsert = "event.resultGrid.copyAsInsert",
+    ResultGridCopyAsInClause = "event.resultGrid.copyAsInClause",
+    ResultGridChangeColumnWidth = "event.resultGrid.changeColumnWidth",
+    ResultGridExpandSelectionLeft = "event.resultGrid.expandSelectionLeft",
+    ResultGridExpandSelectionRight = "event.resultGrid.expandSelectionRight",
+    ResultGridExpandSelectionUp = "event.resultGrid.expandSelectionUp",
+    ResultGridExpandSelectionDown = "event.resultGrid.expandSelectionDown",
+    ResultGridOpenColumnMenu = "event.resultGrid.openColumnMenu",
+    ResultGridMoveToRowStart = "event.resultGrid.moveToRowStart",
+    ResultGridMoveToRowEnd = "event.resultGrid.moveToRowEnd",
+    ResultGridSelectColumn = "event.resultGrid.selectColumn",
+    ResultGridSelectRow = "event.resultGrid.selectRow",
+    ResultGridToggleSort = "event.resultGrid.toggleSort",
+}
+
+/**
+ * Keyboard shortcut configuration for webview actions.
+ */
+export type WebviewKeyBindingConfiguration = Record<WebviewAction, string>;
+
+/**
+ * Representation of a key combination for a webview shortcut.
+ */
+export interface WebviewKeyCombination {
+    key?: string;
+    code?: string;
+    ctrlKey?: boolean;
+    shiftKey?: boolean;
+    altKey?: boolean;
+    metaKey?: boolean;
+}
+
+/**
+ * Representation of a webview shortcut including its key combination and label.
+ */
+export interface WebviewKeyBinding {
+    keyCombination: WebviewKeyCombination;
+    label: string;
+}
+
+/**
+ * Collection of webview shortcuts mapped by their actions.
+ */
+export type WebviewKeyBindings = Record<WebviewAction, WebviewKeyBinding>;

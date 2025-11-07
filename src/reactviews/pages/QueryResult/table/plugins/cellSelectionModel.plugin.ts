@@ -24,6 +24,8 @@ import {
     getPreviousFocusableElementOutside,
     isMetaOrCtrlKeyPressed,
 } from "../../../../common/utils";
+import { WebviewAction, WebviewKeyBindings } from "../../../../../sharedInterfaces/webview";
+import { eventMatchesShortcut } from "../../../../common/keyboardUtils";
 
 export interface ICellSelectionModelOptions {
     cellRangeSelector?: any;
@@ -56,6 +58,7 @@ export class CellSelectionModel<T extends Slick.SlickData>
         private context: QueryResultReactProvider,
         private uri: string,
         private resultSetSummary: ResultSetSummary,
+        public keyBindings: WebviewKeyBindings,
         private gridId: string,
         private headerFilter?: HeaderMenu<T>,
     ) {
@@ -604,89 +607,120 @@ export class CellSelectionModel<T extends Slick.SlickData>
 
     private async handleKeyDown(e: KeyboardEvent): Promise<void> {
         const keyCode = e.code;
-        const metaOrCtrlPressed = isMetaOrCtrlKeyPressed(e);
         let isHandled = false;
+        const keyBindings = this.keyBindings;
 
-        // Range selection via Shift + Arrow (no Alt, no Meta/Ctrl)
-        const isArrow =
-            keyCode === KeyCode.ArrowLeft ||
-            keyCode === KeyCode.ArrowRight ||
-            keyCode === KeyCode.ArrowUp ||
-            keyCode === KeyCode.ArrowDown;
-
-        if (isArrow && e.shiftKey && !e.altKey && !metaOrCtrlPressed) {
-            this.expandSelection(keyCode);
+        if (
+            !isHandled &&
+            eventMatchesShortcut(
+                e,
+                keyBindings[WebviewAction.ResultGridExpandSelectionLeft].keyCombination,
+            )
+        ) {
+            this.expandSelection(KeyCode.ArrowLeft);
             isHandled = true;
-        }
-
-        // Open Header menu (F3)
-        if (keyCode === KeyCode.F3) {
+        } else if (
+            !isHandled &&
+            eventMatchesShortcut(
+                e,
+                keyBindings[WebviewAction.ResultGridExpandSelectionRight].keyCombination,
+            )
+        ) {
+            this.expandSelection(KeyCode.ArrowRight);
+            isHandled = true;
+        } else if (
+            !isHandled &&
+            eventMatchesShortcut(
+                e,
+                keyBindings[WebviewAction.ResultGridExpandSelectionUp].keyCombination,
+            )
+        ) {
+            this.expandSelection(KeyCode.ArrowUp);
+            isHandled = true;
+        } else if (
+            !isHandled &&
+            eventMatchesShortcut(
+                e,
+                keyBindings[WebviewAction.ResultGridExpandSelectionDown].keyCombination,
+            )
+        ) {
+            this.expandSelection(KeyCode.ArrowDown);
+            isHandled = true;
+        } else if (
+            !isHandled &&
+            eventMatchesShortcut(
+                e,
+                keyBindings[WebviewAction.ResultGridOpenColumnMenu].keyCombination,
+            )
+        ) {
             await this.headerFilter?.openMenuForActiveColumn();
             isHandled = true;
-        }
-
-        // Select All (Cmd/Ctrl + A)
-        if (metaOrCtrlPressed && keyCode === KeyCode.KeyA) {
+        } else if (
+            !isHandled &&
+            eventMatchesShortcut(e, keyBindings[WebviewAction.ResultGridSelectAll].keyCombination)
+        ) {
             await this.handleSelectAll();
             isHandled = true;
-        }
-
-        // Move to first cell of row (Ctrl + left)
-        if (metaOrCtrlPressed && keyCode === KeyCode.ArrowLeft) {
+        } else if (
+            !isHandled &&
+            eventMatchesShortcut(
+                e,
+                keyBindings[WebviewAction.ResultGridMoveToRowStart].keyCombination,
+            )
+        ) {
             this.moveToFirstCellInRow();
             isHandled = true;
-        }
-
-        // Move to last cell of row (Ctrl + right)
-        if (metaOrCtrlPressed && keyCode === KeyCode.ArrowRight) {
+        } else if (
+            !isHandled &&
+            eventMatchesShortcut(
+                e,
+                keyBindings[WebviewAction.ResultGridMoveToRowEnd].keyCombination,
+            )
+        ) {
             this.moveToLastCellInRow();
             isHandled = true;
-        }
-
-        // Select current column (Ctrl + space)
-        if (e.ctrlKey && keyCode === KeyCode.Space) {
+        } else if (
+            !isHandled &&
+            eventMatchesShortcut(
+                e,
+                keyBindings[WebviewAction.ResultGridSelectColumn].keyCombination,
+            )
+        ) {
             this.selectActiveCellColumn();
             isHandled = true;
-        }
-
-        // Open context menu (Shift + F10) or ContextMenu key
-        if ((e.shiftKey && keyCode === KeyCode.F10) || keyCode === KeyCode.ContextMenu) {
-            // Open context menu
-            // Already handled by onContextMenu event
-            return;
-        }
-
-        // Select current row (Shift + space)
-        if (e.shiftKey && keyCode === KeyCode.Space) {
+        } else if (
+            !isHandled &&
+            eventMatchesShortcut(e, keyBindings[WebviewAction.ResultGridSelectRow].keyCombination)
+        ) {
             this.selectActiveCellRow();
             isHandled = true;
-        }
-
-        // Move focus to previous focusable element outside the grid (Shift + Tab)
-        if (e.shiftKey && keyCode === KeyCode.Tab) {
-            // Prevent SlickGrid's default Tab behavior and move focus to previous component
+        } else if (
+            !isHandled &&
+            eventMatchesShortcut(e, keyBindings[WebviewAction.ResultGridToggleSort].keyCombination)
+        ) {
+            await this.toggleSortForActiveCell();
+            isHandled = true;
+        } else if (
+            !isHandled &&
+            eventMatchesShortcut(
+                e,
+                keyBindings[WebviewAction.ResultGridChangeColumnWidth].keyCombination,
+            )
+        ) {
+            await this.resizeColumnForActiveCell();
+            isHandled = true;
+        } else if (
+            !isHandled &&
+            ((e.shiftKey && keyCode === KeyCode.F10) || keyCode === KeyCode.ContextMenu)
+        ) {
+            return;
+        } else if (!isHandled && e.shiftKey && keyCode === KeyCode.Tab) {
             e.stopImmediatePropagation();
             await this.moveFocusToOutsideGrid(false);
             isHandled = true;
-        }
-
-        // Move focus to next focusable element outside the grid (Tab)
-        if (!e.shiftKey && keyCode === KeyCode.Tab) {
-            // Prevent SlickGrid's default Tab behavior and move focus to next component
+        } else if (!isHandled && !e.shiftKey && keyCode === KeyCode.Tab) {
             e.stopImmediatePropagation();
             await this.moveFocusToOutsideGrid(true);
-            isHandled = true;
-        }
-
-        // Toggle sort (Shift+Alt+O)
-        if (e.shiftKey && e.altKey && keyCode === KeyCode.KeyO && !metaOrCtrlPressed) {
-            await this.toggleSortForActiveCell();
-            isHandled = true;
-        }
-
-        // Resize column (Alt+Shift+S)
-        if (e.altKey && e.shiftKey && keyCode === KeyCode.KeyS && !metaOrCtrlPressed) {
-            await this.resizeColumnForActiveCell();
             isHandled = true;
         }
 

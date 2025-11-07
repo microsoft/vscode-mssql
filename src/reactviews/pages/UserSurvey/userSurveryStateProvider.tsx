@@ -37,6 +37,7 @@ const UserSurveyStateProvider: React.FC<UserSurveyProviderProps> = ({ children }
                     await vscodeWebviewProvider.extensionRpc.action("openPrivacyStatement");
                 },
                 themeKind: vscodeWebviewProvider.themeKind,
+                keyBindings: vscodeWebviewProvider.keyBindings,
             }}>
             {children}
         </UserSurveyContext.Provider>
