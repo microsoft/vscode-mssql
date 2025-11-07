@@ -239,8 +239,8 @@ suite("PublishProjectWebViewController Tests", () => {
             (opt) => opt.value === PublishTarget.LocalContainer,
         );
 
-        expect(existingServerOption?.displayName).to.equal("Existing Azure SQL logical server");
-        expect(containerOption?.displayName).to.equal("New SQL Server local development container");
+        expect(existingServerOption?.displayName).to.equal("Existing SQL server");
+        expect(containerOption?.displayName).to.equal("New SQL Server Local development container");
     });
 
     test("NEW_AZURE_SERVER option appears with preview features enabled for Azure SQL", async () => {
