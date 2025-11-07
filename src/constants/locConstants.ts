@@ -2151,6 +2151,35 @@ export class DacpacDialog {
     public static InvalidApplicationVersion = l10n.t(
         "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)",
     );
+    public static RevealInExplorer = l10n.t("Reveal in Explorer");
+    public static DeploySuccessWithDatabase(databaseName: string): string {
+        return l10n.t({
+            message: "DACPAC deployed successfully to database '{0}'",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    }
+    public static ExtractSuccessWithFile(filePath: string): string {
+        return l10n.t({
+            message: "DACPAC extracted successfully to '{0}'",
+            args: [filePath],
+            comment: ["{0} is the file path"],
+        });
+    }
+    public static ImportSuccessWithDatabase(databaseName: string): string {
+        return l10n.t({
+            message: "BACPAC imported successfully to database '{0}'",
+            args: [databaseName],
+            comment: ["{0} is the database name"],
+        });
+    }
+    public static ExportSuccessWithFile(filePath: string): string {
+        return l10n.t({
+            message: "BACPAC exported successfully to '{0}'",
+            args: [filePath],
+            comment: ["{0} is the file path"],
+        });
+    }
 }
 
 export class TableExplorer {

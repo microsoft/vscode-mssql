@@ -28,6 +28,9 @@ import { validateDatabaseNameFormat, DatabaseNameValidationError } from "../mode
 export const DACPAC_EXTENSION = ".dacpac";
 export const BACPAC_EXTENSION = ".bacpac";
 
+// VS Code command constants
+const REVEAL_FILE_IN_OS_COMMAND = "revealFileInOS";
+
 /**
  * Controller for the DacpacDialog webview.
  * Manages DACPAC and BACPAC operations (Deploy, Extract, Import, Export) using the Data-tier Application Framework (DacFx).
@@ -319,6 +322,10 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
 
             if (result.success) {
                 activity.end(ActivityStatus.Succeeded);
+                // Show success notification for Deploy operation
+                void this.vscodeWrapper.showInformationMessage(
+                    LocConstants.DacpacDialog.DeploySuccessWithDatabase(params.databaseName),
+                );
                 this.dialogResult.resolve(appResult);
             } else {
                 activity.endFailed(
@@ -368,6 +375,21 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
 
             if (result.success) {
                 activity.end(ActivityStatus.Succeeded);
+                // Show success notification with "Reveal in Explorer" button for Extract operation
+                const fileName = path.basename(params.packageFilePath);
+                void this.vscodeWrapper
+                    .showInformationMessage(
+                        LocConstants.DacpacDialog.ExtractSuccessWithFile(fileName),
+                        LocConstants.DacpacDialog.RevealInExplorer,
+                    )
+                    .then((selection) => {
+                        if (selection === LocConstants.DacpacDialog.RevealInExplorer) {
+                            void vscode.commands.executeCommand(
+                                REVEAL_FILE_IN_OS_COMMAND,
+                                vscode.Uri.file(params.packageFilePath),
+                            );
+                        }
+                    });
                 this.dialogResult.resolve(appResult);
             } else {
                 activity.endFailed(
@@ -415,6 +437,10 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
 
             if (result.success) {
                 activity.end(ActivityStatus.Succeeded);
+                // Show success notification for Import operation
+                void this.vscodeWrapper.showInformationMessage(
+                    LocConstants.DacpacDialog.ImportSuccessWithDatabase(params.databaseName),
+                );
                 this.dialogResult.resolve(appResult);
             } else {
                 activity.endFailed(
@@ -462,6 +488,21 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
 
             if (result.success) {
                 activity.end(ActivityStatus.Succeeded);
+                // Show success notification with "Reveal in Explorer" button for Export operation
+                const fileName = path.basename(params.packageFilePath);
+                void this.vscodeWrapper
+                    .showInformationMessage(
+                        LocConstants.DacpacDialog.ExportSuccessWithFile(fileName),
+                        LocConstants.DacpacDialog.RevealInExplorer,
+                    )
+                    .then((selection) => {
+                        if (selection === LocConstants.DacpacDialog.RevealInExplorer) {
+                            void vscode.commands.executeCommand(
+                                REVEAL_FILE_IN_OS_COMMAND,
+                                vscode.Uri.file(params.packageFilePath),
+                            );
+                        }
+                    });
                 this.dialogResult.resolve(appResult);
             } else {
                 activity.endFailed(

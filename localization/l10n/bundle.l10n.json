@@ -1939,6 +1939,23 @@
     "Validation failed. Please check your inputs": "Validation failed. Please check your inputs",
     "Files": "Files",
     "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)": "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)",
+    "Reveal in Explorer": "Reveal in Explorer",
+    "DACPAC deployed successfully to database '{0}'/{0} is the database name": {
+        "message": "DACPAC deployed successfully to database '{0}'",
+        "comment": ["{0} is the database name"]
+    },
+    "DACPAC extracted successfully to '{0}'/{0} is the file path": {
+        "message": "DACPAC extracted successfully to '{0}'",
+        "comment": ["{0} is the file path"]
+    },
+    "BACPAC imported successfully to database '{0}'/{0} is the database name": {
+        "message": "BACPAC imported successfully to database '{0}'",
+        "comment": ["{0} is the database name"]
+    },
+    "BACPAC exported successfully to '{0}'/{0} is the file path": {
+        "message": "BACPAC exported successfully to '{0}'",
+        "comment": ["{0} is the file path"]
+    },
     "Unable to open Table Explorer: No target node provided.": "Unable to open Table Explorer: No target node provided.",
     "Changes saved successfully.": "Changes saved successfully.",
     "Row created.": "Row created.",

@@ -357,8 +357,16 @@
     <trans-unit id="++CODE++3f0ddb46dd6305bf6e540e48d31bb83d2b269566ab7d0c8b742bf37022ee716b">
       <source xml:lang="en">BACPAC exported successfully</source>
     </trans-unit>
+    <trans-unit id="++CODE++c77ba6ce31916c226def02930b4f3867d3bba2e1814b5528c12d5b3b62828eca">
+      <source xml:lang="en">BACPAC exported successfully to &apos;{0}&apos;</source>
+      <note>{0} is the file path</note>
+    </trans-unit>
     <trans-unit id="++CODE++2ba87440799be3f6c8b0aa29316cf97584087cc46962e689c375699adb392137">
       <source xml:lang="en">BACPAC imported successfully</source>
+    </trans-unit>
+    <trans-unit id="++CODE++98dbbe35459fbe282206441874ff66bc527f1c735eb99367c073ac68f713c396">
+      <source xml:lang="en">BACPAC imported successfully to database &apos;{0}&apos;</source>
+      <note>{0} is the database name</note>
     </trans-unit>
     <trans-unit id="++CODE++76900f1bfd16c8d4dd3d25e6f46638d7165aee23883ccea6bfe071c514421769">
       <source xml:lang="en">Back</source>
@@ -1032,8 +1040,16 @@
     <trans-unit id="++CODE++8f56b52b4f497c14810f52351db46c7f638c38f1a321f5bdfb38a3fb817f0ad9">
       <source xml:lang="en">DACPAC deployed successfully</source>
     </trans-unit>
+    <trans-unit id="++CODE++c013d84f45a8e17f8b3f0bfea676174416117e054fa2315d1e3f1daeac57af36">
+      <source xml:lang="en">DACPAC deployed successfully to database &apos;{0}&apos;</source>
+      <note>{0} is the database name</note>
+    </trans-unit>
     <trans-unit id="++CODE++fec6ccad8071c66a146f4f9bab40620ba0279984c3c35763ac115ac3825fa6fd">
       <source xml:lang="en">DACPAC extracted successfully</source>
+    </trans-unit>
+    <trans-unit id="++CODE++efa7e304910e512aeaeb6c9dc608a6f993bd69b672cd3de63dba56475ed3e244">
+      <source xml:lang="en">DACPAC extracted successfully to &apos;{0}&apos;</source>
+      <note>{0} is the file path</note>
     </trans-unit>
     <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
       <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
@@ -3000,6 +3016,9 @@
     </trans-unit>
     <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
       <source xml:lang="en">Retry</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b1d3c17e8d131616e4c9d243a6536aa7c23973e93908621d94b6b7ebf6486863">
+      <source xml:lang="en">Reveal in Explorer</source>
     </trans-unit>
     <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
       <source xml:lang="en">Reverse Alphabetical</source>
