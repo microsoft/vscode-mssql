@@ -54,13 +54,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             resultSet,
             themeKind,
             pageSize = 100,
-            currentRowCount,
             failedCells,
             onDeleteRow,
             onUpdateCell,
             onRevertCell,
             onRevertRow,
-            onLoadSubset,
             onCellChangeCountChanged,
             onDeletionCountChanged,
         },
@@ -79,18 +77,13 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const previousResultSetRef = useRef<EditSubsetResult | undefined>(undefined);
         const isInitializedRef = useRef<boolean>(false);
 
-        // Create a custom pager component with bound props
+        // Create a custom pager component
         const BoundCustomPager = useMemo(
             () =>
                 React.forwardRef<any, any>((pagerProps, pagerRef) => (
-                    <TableExplorerCustomPager
-                        ref={pagerRef}
-                        {...pagerProps}
-                        currentRowCount={currentRowCount}
-                        onLoadSubset={onLoadSubset}
-                    />
+                    <TableExplorerCustomPager ref={pagerRef} {...pagerProps} />
                 )),
-            [currentRowCount, onLoadSubset],
+            [],
         );
 
         function reactGridReady(reactGrid: SlickgridReactInstance) {
