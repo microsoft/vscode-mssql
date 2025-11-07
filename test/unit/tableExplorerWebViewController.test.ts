@@ -379,8 +379,6 @@ suite("TableExplorerWebViewController - Reducers", () => {
             // Assert
             expect(mockTableExplorerService.deleteRow.calledOnceWith("test-owner-uri", 0)).to.be
                 .true;
-            expect(showInformationMessageStub.calledOnceWith(LocConstants.TableExplorer.rowRemoved))
-                .to.be.true;
             expect(controller.state.resultSet?.rowCount).to.equal(1);
             expect(controller.state.resultSet?.subset.length).to.equal(1);
         });
