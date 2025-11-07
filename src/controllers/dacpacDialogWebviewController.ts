@@ -577,7 +577,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                     password: profile.password,
                     authenticationType: profile.authenticationType,
                     profileName: displayName,
-                    id: profile.id || `${profile.server}_${profile.database || ""}`,
+                    id: profile.id,
                     groupId: profile.groupId,
                     savePassword: profile.savePassword,
                     azureAuthType: profile.azureAuthType,
