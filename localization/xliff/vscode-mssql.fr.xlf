@@ -1827,10 +1827,6 @@ Erreur :
         <source xml:lang="en">Execution Plan</source>
         <target state="translated">Plan d’exécution</target>
       </trans-unit>
-      <trans-unit id="++CODE++6e70f2efe82744e86406531b7767f19ad25970b8075f1ef14fd2b91a94ab1b93">
-        <source xml:lang="en">Existing Azure SQL server</source>
-        <target state="new">Existing Azure SQL server</target>
-      </trans-unit>
       <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
         <source xml:lang="en">Existing SQL server</source>
         <target state="translated">Serveur SQL existant</target>
@@ -2811,10 +2807,6 @@ Erreur :
         <source xml:lang="en">Local SQL Server database container</source>
         <target state="translated">Conteneur de base de données SQL Server local</target>
       </trans-unit>
-      <trans-unit id="++CODE++9aa8c99c1e1071fa2070e9283b4cd9a737a77249f44f1a41b559073d99293249">
-        <source xml:lang="en">Local development container</source>
-        <target state="translated">Conteneur de développement local</target>
-      </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
         <target state="translated">Emplacement</target>
@@ -3006,9 +2998,9 @@ Erreur :
         <source xml:lang="en">New Password</source>
         <target state="translated">Nouveau mot de passe</target>
       </trans-unit>
-      <trans-unit id="++CODE++80e8f069713682d743cceecaad91cb538d199e18712328724d348491bfbb64af">
-        <source xml:lang="en">New SQL Server local development container</source>
-        <target state="translated">Nouveau conteneur de développement local SQL Server</target>
+      <trans-unit id="++CODE++652b81589c6b1b34e452b1d3a3f326e1b3796877eca3c750be3e84412a6d9777">
+        <source xml:lang="en">New SQL Server Local development container</source>
+        <target state="new">New SQL Server Local development container</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
