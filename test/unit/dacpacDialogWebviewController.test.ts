@@ -100,6 +100,8 @@ suite("DacpacDialogWebviewController", () => {
             subscriptions: [],
         } as unknown as vscode.ExtensionContext;
         vscodeWrapperStub = stubVscodeWrapper(sandbox);
+        // Stub showInformationMessage to return a resolved Promise
+        vscodeWrapperStub.showInformationMessage.resolves(undefined);
         connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
         dacFxServiceStub = sandbox.createStubInstance(DacFxService);
         sqlToolsClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
@@ -215,6 +217,7 @@ suite("DacpacDialogWebviewController", () => {
             const response = await requestHandler!(params);
             expect(response.success).to.be.false;
             expect(response.errorMessage).to.equal("Network timeout");
+            expect(response).to.not.have.property("operationId");
         });
     });
     suite("Extract Operations", () => {
@@ -784,7 +787,8 @@ suite("DacpacDialogWebviewController", () => {
             const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
             expect(requestHandler, "Request handler was not registered").to.be.a("function");
             const response = await requestHandler!({ ownerUri: ownerUri });
-            expect(response.databases).to.deep.equal(mockDatabases.databaseNames);
+            // System databases are filtered out, only user databases are returned
+            expect(response.databases).to.deep.equal(["TestDB"]);
             expect(sqlToolsClientStub.sendRequest).to.have.been.calledWith(
                 ListDatabasesRequest.type,
                 { ownerUri: ownerUri },

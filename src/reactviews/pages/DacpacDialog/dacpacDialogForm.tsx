@@ -437,7 +437,7 @@ export const DacpacDialogForm = () => {
 
         // For Extract operation, also validate application version
         let versionValid = true;
-        if (opType === dacpacDialog.DacFxOperationType.Extract) {
+        if (opType === dacpacDialog.DacPacDialogOperationType.Extract) {
             versionValid = validateApplicationVersion(applicationVersion);
         }
 
