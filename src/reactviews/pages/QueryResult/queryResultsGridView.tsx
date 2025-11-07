@@ -33,12 +33,16 @@ const useStyles = makeStyles({
         paddingRight: "8px", // Space for scrollbar
         boxSizing: "border-box",
         borderBottom: "1px solid var(--vscode-editorWidget-border)",
+        flex: "0 0 auto",
     },
 });
 
 type GridItem = { batchId: number; resultId: number; index: number };
 
-const MIN_GRID_HEIGHT_PX = 200;
+const MAX_GRID_HEIGHT_PX = 210;
+const ROW_HEIGHT = 26;
+const HEADER = 30;
+export const MARGIN_BOTTOM = 10;
 
 export const QueryResultsGridView = () => {
     const classes = useStyles();
@@ -237,12 +241,27 @@ export const QueryResultsGridView = () => {
         });
     };
 
-    // Calculate height for each grid based on total count
-    const getGridHeight = () => {
-        const totalGrids = gridList.length;
-        const percentage = 100 / totalGrids;
-        // Ensure a minimum height
-        return `max(${MIN_GRID_HEIGHT_PX}px, ${percentage}%)`;
+    // Calculate height for each grid based on row count
+    const getGridHeight = (gridItem: GridItem, gridKey: string) => {
+        const totalHeightAvailable = gridViewContainerRef.current?.clientHeight ?? 0;
+
+        if (maximizedGridKey === gridKey) {
+            return `100%`;
+        }
+
+        const equalHeights = totalHeightAvailable / gridList.length;
+        const maxHeightAdjusted = Math.max(equalHeights, MAX_GRID_HEIGHT_PX);
+
+        const resultSetSummary = resultSetSummaries?.[gridItem.batchId]?.[gridItem.resultId];
+
+        let calculatedMaxHeight =
+            HEADER + (resultSetSummary?.rowCount ?? 0) * ROW_HEIGHT + MARGIN_BOTTOM;
+        if (resultSetSummary?.rowCount === 1) {
+            calculatedMaxHeight = 80;
+        }
+
+        const finalHeight = Math.min(calculatedMaxHeight, maxHeightAdjusted);
+        return `${finalHeight}px`;
     };
 
     return (
@@ -289,7 +308,7 @@ export const QueryResultsGridView = () => {
                                 ? fontSettings.fontFamily
                                 : "var(--vscode-font-family)",
                             fontSize: `${fontSettings.fontSize ?? 12}px`,
-                            height: isMaximized ? "100%" : getGridHeight(),
+                            height: `${getGridHeight(item, gridKey)}`,
                         }}>
                         <div style={{ flex: 1, minWidth: 0, overflow: "auto" }} ref={containerRef}>
                             <ResultGrid

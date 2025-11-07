@@ -22,6 +22,7 @@ import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { SLICKGRID_ROW_ID_PROP } from "./table/utils";
 import { deepEqual } from "../../common/utils";
+import { MARGIN_BOTTOM } from "./queryResultsGridView";
 
 window.jQuery = $ as any;
 require("slickgrid/lib/jquery.event.drag-2.3.0.js");
@@ -47,8 +48,6 @@ export interface ResultGridProps {
 export interface ResultGridHandle {
     focusGrid: () => void;
 }
-
-export const GRID_BOTTOM_PADDING = 5;
 
 const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultGridProps, ref) => {
     const tableRef = useRef<Table<any> | null>(null);
@@ -133,7 +132,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
                 tableRef.current.layout(
                     new DOM.Dimension(
                         props.gridParentRef.current.clientWidth,
-                        props.gridParentRef.current.clientHeight - GRID_BOTTOM_PADDING,
+                        props.gridParentRef.current.clientHeight - MARGIN_BOTTOM,
                     ),
                 );
             }
