@@ -165,30 +165,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         // Create columns from columnInfo
         function createColumns(columnInfo: any[]): Column[] {
-            // Row number column
-            const rowNumberColumn: Column = {
-                id: "rowNumber",
-                name: '<span class="table-row-number">#</span>',
-                field: "id",
-                excludeFromColumnPicker: true,
-                excludeFromGridMenu: true,
-                excludeFromHeaderMenu: true,
-                width: 50,
-                minWidth: 40,
-                maxWidth: 80,
-                sortable: false,
-                resizable: true,
-                focusable: false,
-                selectable: false,
-                formatter: (row: number) => {
-                    const paginationService = reactGridRef.current?.paginationService;
-                    const pageNumber = paginationService?.pageNumber ?? 1;
-                    const itemsPerPage = paginationService?.itemsPerPage ?? pageSize;
-                    const actualRowNumber = (pageNumber - 1) * itemsPerPage + row + 1;
-                    return `<span class="table-row-number">${actualRowNumber}</span>`;
-                },
-            };
-
             // Data columns
             const dataColumns: Column[] = columnInfo.map((colInfo, index) => {
                 const column: Column = {
@@ -205,7 +181,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         dataContext: any,
                     ) => {
                         const rowId = dataContext.id;
-                        const changeKey = `${rowId}-${cell - 1}`;
+                        const changeKey = `${rowId}-${cell}`;
                         const isModified = cellChangesRef.current.has(changeKey);
                         const hasFailed = failedCellsRef.current.has(changeKey);
                         const displayValue = value ?? "";
@@ -261,7 +237,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return column;
             });
 
-            return [rowNumberColumn, ...dataColumns];
+            return dataColumns;
         }
 
         // Handle page size changes from props
@@ -459,7 +435,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
 
             const cellIndex = args.cell;
-            const columnIndex = cellIndex - 1;
+            const columnIndex = cellIndex;
             const column = columns[cellIndex];
             const rowId = args.item.id;
 
@@ -537,7 +513,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
                 case "revert-cell":
                     const cellIndex = args.cell;
-                    const columnIndex = cellIndex - 1;
+                    const columnIndex = cellIndex;
                     const changeKey = `${rowId}-${columnIndex}`;
 
                     if (onRevertCell) {
