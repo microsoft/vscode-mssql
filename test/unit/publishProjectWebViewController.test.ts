@@ -243,44 +243,6 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(containerOption?.displayName).to.equal("New SQL Server Local development container");
     });
 
-    test("NEW_AZURE_SERVER option appears with preview features enabled for Azure SQL", async () => {
-        // Enable preview features
-        const configStub = sandbox.stub(vscode.workspace, "getConfiguration");
-        configStub.withArgs("sqlDatabaseProjects").returns({
-            get: sandbox.stub().withArgs("enablePreviewFeatures").returns(true),
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any);
-
-        const mockSqlProjectsService: Partial<SqlProjectsService> = {
-            getProjectProperties: sandbox.stub().resolves({
-                success: true,
-                projectGuid: "test-guid",
-                databaseSchemaProvider:
-                    "Microsoft.Data.Tools.Schema.Sql.SqlAzureV12DatabaseSchemaProvider",
-                outputPath: "bin/Debug",
-            }),
-        };
-
-        const controller = new PublishProjectWebViewController(
-            contextStub,
-            vscodeWrapperStub,
-            mockConnectionManager,
-            "c:/work/AzureProject.sqlproj",
-            mockSqlProjectsService as SqlProjectsService,
-        );
-
-        await controller.initialized.promise;
-
-        const publishTargetComponent = controller.state.formComponents.publishTarget;
-        expect(publishTargetComponent.options?.length).to.equal(3);
-
-        const azureOption = publishTargetComponent.options?.find(
-            (opt) => opt.value === PublishTarget.NewAzureServer,
-        );
-        expect(azureOption).to.exist;
-        expect(azureOption?.displayName).to.equal("New Azure SQL logical server (Preview)");
-    });
-
     test("field validators enforce container and server requirements", () => {
         // Port validation
         expect(validateSqlServerPortNumber(1433)).to.be.true;

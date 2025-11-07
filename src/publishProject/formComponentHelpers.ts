@@ -32,20 +32,6 @@ function generatePublishTargetOptions(): FormItemOptions[] {
             value: PublishTarget.LocalContainer,
         },
     ];
-    // TODO: Hiding the logical contianer publishing target option till we provide the full publishing experience
-    /*
-    // Check if this is an Azure SQL project
-        const isAzureSqlProject = projectTargetVersion === constants.AzureSqlV12;
-        if (isAzureSqlProject) {
-            // Only show "Publish to New Azure Server" option if preview feature tag is enabled
-            if (isPreviewFeaturesEnabled()) {
-                options.push({
-                    displayName: Loc.PublishTargetNewAzureServer,
-                    value: PublishTarget.NewAzureServer,
-                });
-            }
-        }
-    */
 
     return options;
 }
