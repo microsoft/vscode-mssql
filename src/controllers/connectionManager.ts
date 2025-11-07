@@ -386,9 +386,14 @@ export default class ConnectionManager {
         return fileUri in this._connections && this._connections[fileUri].connecting;
     }
 
+    /**
+     * Finds the closest-matching profile from the saved connections for the given partial connection profile
+     * @param connProfile partial connection profile to match against
+     * @returns closest-matching connection profile from the saved connections. If none is found, returns {score: MatchScore.NotMatch}
+     */
     public async findMatchingProfile(
         connProfile: IConnectionProfile,
-    ): Promise<{ profile: IConnectionProfile; score: Utils.MatchScore } | undefined> {
+    ): Promise<{ profile: IConnectionProfile; score: Utils.MatchScore }> {
         return this.connectionStore.findMatchingProfile(connProfile);
     }
 

@@ -727,24 +727,17 @@ export class ConnectionStore {
         return connResults;
     }
 
+    /**
+     * Finds the closest-matching profile from the saved connections for the given partial connection profile
+     * @param connProfile partial connection profile to match against
+     * @returns closest-matching connection profile from the saved connections. If none is found, returns {score: MatchScore.NotMatch}
+     */
     public async findMatchingProfile(
         connProfile: IConnectionProfile,
-    ): Promise<{ profile: IConnectionProfile; score: MatchScore } | undefined> {
+    ): Promise<{ profile: IConnectionProfile; score: MatchScore }> {
         const savedConnections = await this.readAllConnections();
 
-        let bestMatch: IConnectionProfile | undefined;
-        let bestMatchScore = MatchScore.NotMatch;
-
-        for (const savedConn of savedConnections) {
-            const matchLevel = ConnectionMatcher.isMatchingConnection(savedConn, connProfile);
-
-            if (matchLevel > bestMatchScore) {
-                bestMatchScore = matchLevel;
-                bestMatch = savedConn;
-            }
-        }
-
-        return { profile: bestMatch, score: bestMatchScore };
+        return ConnectionMatcher.findMatchingProfile(connProfile, savedConnections);
     }
 
     /** Gets the groupId for connections  */
