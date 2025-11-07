@@ -1632,7 +1632,7 @@ export default class MainController implements vscode.Disposable {
          * Helper function to register Data-tier Application commands
          * Reduces code duplication across Deploy, Extract, Import, and Export operations
          */
-        const registerDacFxCommand = (
+        const registerDacPacCommand = (
             commandId: string,
             operationType: DacPacDialogOperationType,
         ): void => {
@@ -1671,11 +1671,11 @@ export default class MainController implements vscode.Disposable {
         };
 
         // Data-tier Application commands
-        registerDacFxCommand(Constants.cmdDacpacDialog, DacPacDialogOperationType.Deploy);
-        registerDacFxCommand(Constants.cmdDeployDacpac, DacPacDialogOperationType.Deploy);
-        registerDacFxCommand(Constants.cmdExtractDacpac, DacPacDialogOperationType.Extract);
-        registerDacFxCommand(Constants.cmdImportBacpac, DacPacDialogOperationType.Import);
-        registerDacFxCommand(Constants.cmdExportBacpac, DacPacDialogOperationType.Export);
+        registerDacPacCommand(Constants.cmdDacpacDialog, DacPacDialogOperationType.Deploy);
+        registerDacPacCommand(Constants.cmdDeployDacpac, DacPacDialogOperationType.Deploy);
+        registerDacPacCommand(Constants.cmdExtractDacpac, DacPacDialogOperationType.Extract);
+        registerDacPacCommand(Constants.cmdImportBacpac, DacPacDialogOperationType.Import);
+        registerDacPacCommand(Constants.cmdExportBacpac, DacPacDialogOperationType.Export);
 
         // Copy object name command
         this._context.subscriptions.push(
