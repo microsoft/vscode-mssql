@@ -397,6 +397,7 @@
         "comment": ["{0} is the keyboard shortcut for saving as INSERT INTO"]
     },
     "Save as INSERT INTO": "Save as INSERT INTO",
+    "More Query Actions": "More Query Actions",
     "Hide this panel": "Hide this panel",
     "Query Plan ({0})/{0} is the number of query plans": {
         "message": "Query Plan ({0})",
