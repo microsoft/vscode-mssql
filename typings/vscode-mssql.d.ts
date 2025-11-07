@@ -1067,6 +1067,9 @@ declare module "vscode-mssql" {
             sqlDbDnsSuffix: string;
             dataWarehouseDnsSuffix: string;
         };
+        dataverse: {
+            dynamicsCrmDnsSuffix: string;
+        };
     }
 
     export interface IProviderResources {

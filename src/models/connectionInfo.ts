@@ -295,6 +295,7 @@ export function getConnectionDisplayName(connection: IConnectionInfo): string {
 export enum ServerType {
     Azure = "Azure",
     Fabric = "Fabric",
+    Dynamics = "Dynamics",
     Sql = "SQL",
     DataWarehouse = "DataWarehouse",
     Local = "Local",
@@ -331,6 +332,10 @@ export function getServerTypes(connection: IConnectionInfo, account?: IAccount):
             [providerSettings.fabric.dataWarehouseDnsSuffix]: [
                 ServerType.Fabric,
                 ServerType.DataWarehouse,
+            ],
+            [providerSettings.dataverse.dynamicsCrmDnsSuffix]: [
+                ServerType.Dynamics,
+                ServerType.Sql,
             ],
         };
 

@@ -74,6 +74,9 @@ export const publicAzureProviderSettings: IProviderSettings = {
         sqlDbDnsSuffix: ".database.fabric.microsoft.com",
         dataWarehouseDnsSuffix: ".datawarehouse.fabric.microsoft.com",
     },
+    dataverse: {
+        dynamicsCrmDnsSuffix: ".crm.dynamics.com",
+    },
     scopes: [
         "openid",
         "email",
@@ -119,6 +122,9 @@ const usGovernmentCloudProviderSettings: IProviderSettings = {
         fabricScopeUriBase: undefined,
         sqlDbDnsSuffix: undefined,
         dataWarehouseDnsSuffix: undefined,
+    },
+    dataverse: {
+        dynamicsCrmDnsSuffix: undefined,
     },
     scopes: [
         "openid",
@@ -166,6 +172,9 @@ const chinaCloudProviderSettings: IProviderSettings = {
         sqlDbDnsSuffix: undefined,
         dataWarehouseDnsSuffix: undefined,
     },
+    dataverse: {
+        dynamicsCrmDnsSuffix: undefined,
+    },
     scopes: [
         "openid",
         "email",
@@ -185,6 +194,7 @@ interface MssqlEnvironmentAdditions {
     fabricScopeUriBase?: string;
     fabricSqlDbDnsSuffix?: string;
     fabricDataWarehouseDnsSuffix?: string;
+    dynamicsCrmDnsSuffix?: string;
 }
 
 interface MssqlEnvironment extends AzureEnvironments.Environment, MssqlEnvironmentAdditions {
@@ -240,6 +250,9 @@ function getCustomCloudProviderSettings(): IProviderSettings {
             fabricScopeUriBase: customCloud.fabricScopeUriBase,
             sqlDbDnsSuffix: customCloud.fabricSqlDbDnsSuffix,
             dataWarehouseDnsSuffix: customCloud.fabricDataWarehouseDnsSuffix,
+        },
+        dataverse: {
+            dynamicsCrmDnsSuffix: customCloud.dynamicsCrmDnsSuffix,
         },
         scopes: [
             "openid",

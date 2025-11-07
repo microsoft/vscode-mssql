@@ -260,6 +260,10 @@ test("getServerTypes", () => {
             input: "test.ppe-datawarehouse.fabric.microsoft.com",
             expected: [ServerType.Fabric, ServerType.DataWarehouse],
         },
+        {
+            input: "test.crm.dynamics.com",
+            expected: [ServerType.Dynamics, ServerType.Sql],
+        },
 
         { input: "localhost", expected: [ServerType.Local, ServerType.Sql] },
         { input: "localhost,1234", expected: [ServerType.Local, ServerType.Sql] },

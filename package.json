@@ -2127,6 +2127,13 @@
                                 "null"
                             ],
                             "description": "%mssql.customEnvironment.fabricDataWarehouseDnsSuffix%"
+                        },
+                        "dynamicsCrmDnsSuffix": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "description": "%mssql.customEnvironment.dynamicsCrmDnsSuffix%"
                         }
                     }
                 }
