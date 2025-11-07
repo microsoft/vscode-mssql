@@ -795,3 +795,51 @@ export function deepClone<T>(obj: T): T {
 }
 
 export const isLinux = os.platform() === "linux";
+
+/**
+ * Database name validation error types
+ */
+export enum DatabaseNameValidationError {
+    None = "None",
+    Required = "Required",
+    InvalidCharacters = "InvalidCharacters",
+    TooLong = "TooLong",
+}
+
+/**
+ * Validates a database name format according to SQL Server rules.
+ * Checks for: empty/whitespace, invalid characters, and length limits.
+ * @param databaseName The database name to validate
+ * @returns An object with isValid flag and optional error type
+ */
+export function validateDatabaseNameFormat(databaseName: string): {
+    isValid: boolean;
+    errorType?: DatabaseNameValidationError;
+} {
+    // Check for empty or whitespace-only name
+    if (!databaseName || databaseName.trim() === "") {
+        return {
+            isValid: false,
+            errorType: DatabaseNameValidationError.Required,
+        };
+    }
+
+    // Check for invalid characters
+    const invalidChars = /[<>*?"/\\|]/;
+    if (invalidChars.test(databaseName)) {
+        return {
+            isValid: false,
+            errorType: DatabaseNameValidationError.InvalidCharacters,
+        };
+    }
+
+    // Check length (SQL Server max identifier length is 128)
+    if (databaseName.length > 128) {
+        return {
+            isValid: false,
+            errorType: DatabaseNameValidationError.TooLong,
+        };
+    }
+
+    return { isValid: true, errorType: DatabaseNameValidationError.None };
+}

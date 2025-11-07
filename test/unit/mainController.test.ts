@@ -345,4 +345,31 @@ suite("MainController Tests", function () {
             }
         });
     });
+
+    suite("Data-Tier Application Commands", () => {
+        test("cmdDacpacDialog command is registered", async () => {
+            const commands = await vscode.commands.getCommands(true);
+            expect(commands).to.include(Constants.cmdDacpacDialog);
+        });
+
+        test("cmdDeployDacpac command is registered", async () => {
+            const commands = await vscode.commands.getCommands(true);
+            expect(commands).to.include(Constants.cmdDeployDacpac);
+        });
+
+        test("cmdExtractDacpac command is registered", async () => {
+            const commands = await vscode.commands.getCommands(true);
+            expect(commands).to.include(Constants.cmdExtractDacpac);
+        });
+
+        test("cmdImportBacpac command is registered", async () => {
+            const commands = await vscode.commands.getCommands(true);
+            expect(commands).to.include(Constants.cmdImportBacpac);
+        });
+
+        test("cmdExportBacpac command is registered", async () => {
+            const commands = await vscode.commands.getCommands(true);
+            expect(commands).to.include(Constants.cmdExportBacpac);
+        });
+    });
 });

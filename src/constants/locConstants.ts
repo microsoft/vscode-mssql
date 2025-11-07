@@ -2117,6 +2117,40 @@ export class ConnectionGroup {
     };
 }
 
+export class DacpacDialog {
+    public static Title = l10n.t("Data-tier Application");
+    public static FilePathRequired = l10n.t("File path is required");
+    public static FileNotFound = l10n.t("File not found");
+    public static InvalidFileExtension = l10n.t(
+        "Invalid file extension. Expected .dacpac or .bacpac",
+    );
+    public static DirectoryNotFound = l10n.t("Directory not found");
+    public static FileAlreadyExists = l10n.t(
+        "File already exists. It will be overwritten if you continue",
+    );
+    public static DatabaseNameRequired = l10n.t("Database name is required");
+    public static InvalidDatabaseName = l10n.t(
+        'Database name contains invalid characters. Avoid using: < > * ? " / \\ |',
+    );
+    public static DatabaseNameTooLong = l10n.t(
+        "Database name is too long. Maximum length is 128 characters",
+    );
+    public static DatabaseAlreadyExists = l10n.t(
+        "A database with this name already exists on the server",
+    );
+    public static DatabaseNotFound = l10n.t("Database not found on the server");
+    public static ValidationFailed = l10n.t("Validation failed. Please check your inputs");
+    public static DeployToExistingWarning = l10n.t("Deploy to Existing Database");
+    public static DeployToExistingMessage = l10n.t(
+        "You are about to deploy to an existing database. This operation will make permanent changes to the database schema and may result in data loss. Do you want to continue?",
+    );
+    public static DeployToExistingConfirm = l10n.t("Deploy");
+    public static Cancel = l10n.t("Cancel");
+    public static Select = l10n.t("Select");
+    public static Save = l10n.t("Save");
+    public static Files = l10n.t("Files");
+}
+
 export class TableExplorer {
     public static unableToOpenTableExplorer = l10n.t(
         "Unable to open Table Explorer: No target node provided.",

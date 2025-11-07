@@ -46,6 +46,11 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
+import { DacpacDialogWebviewController } from "./dacpacDialogWebviewController";
+import {
+    DacpacDialogWebviewState,
+    DacPacDialogOperationType,
+} from "../sharedInterfaces/dacpacDialog";
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
 import {
     DatabaseObjectSearchService,
@@ -1622,6 +1627,55 @@ export default class MainController implements vscode.Disposable {
             this._statusview,
             this.objectExplorerTree,
         );
+
+        /**
+         * Helper function to register Data-tier Application commands
+         * Reduces code duplication across Deploy, Extract, Import, and Export operations
+         */
+        const registerDacPacCommand = (
+            commandId: string,
+            operationType: DacPacDialogOperationType,
+        ): void => {
+            this._context.subscriptions.push(
+                vscode.commands.registerCommand(commandId, async (node?: TreeNodeInfo) => {
+                    const connectionProfile = node?.connectionProfile;
+                    const ownerUri = connectionProfile
+                        ? this._connectionMgr.getUriForConnection(connectionProfile)
+                        : "";
+                    const serverName = connectionProfile?.server || "";
+                    const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
+                    const profileId = connectionProfile
+                        ? connectionProfile.id ||
+                          `${connectionProfile.server}_${connectionProfile.database || ""}`
+                        : undefined;
+
+                    const initialState: DacpacDialogWebviewState = {
+                        ownerUri,
+                        serverName,
+                        databaseName,
+                        selectedProfileId: profileId,
+                        operationType,
+                    };
+
+                    const controller = new DacpacDialogWebviewController(
+                        this._context,
+                        this._vscodeWrapper,
+                        this._connectionMgr,
+                        this.dacFxService,
+                        initialState,
+                        ownerUri,
+                    );
+                    await controller.revealToForeground();
+                }),
+            );
+        };
+
+        // Data-tier Application commands
+        registerDacPacCommand(Constants.cmdDacpacDialog, DacPacDialogOperationType.Deploy);
+        registerDacPacCommand(Constants.cmdDeployDacpac, DacPacDialogOperationType.Deploy);
+        registerDacPacCommand(Constants.cmdExtractDacpac, DacPacDialogOperationType.Extract);
+        registerDacPacCommand(Constants.cmdImportBacpac, DacPacDialogOperationType.Import);
+        registerDacPacCommand(Constants.cmdExportBacpac, DacPacDialogOperationType.Export);
 
         // Copy object name command
         this._context.subscriptions.push(
