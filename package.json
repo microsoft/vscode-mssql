@@ -570,6 +570,11 @@
                     "group": "2_MSSQL_serverDbActions@2"
                 },
                 {
+                    "command": "mssql.objectExplorerNewQuery",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/",
+                    "group": "3_MSSQL_tableActions@0"
+                },
+                {
                     "command": "mssql.tableExplorer",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences",
                     "group": "3_MSSQL_tableActions@1"
