@@ -36,7 +36,7 @@ export interface DacpacDialogRpcMethods {
         databaseName: string;
         ownerUri: string;
         shouldNotExist: boolean;
-        operationType?: dacpacDialog.DacFxOperationType;
+        operationType?: dacpacDialog.DacPacDialogOperationType;
     }) => Promise<{ isValid: boolean; errorMessage?: string } | undefined>;
 
     // Connection methods
@@ -72,7 +72,7 @@ export interface DacpacDialogRpcMethods {
     // Helper methods
     getSuggestedOutputPath: (params: {
         databaseName: string;
-        operationType: dacpacDialog.DacFxOperationType;
+        operationType: dacpacDialog.DacPacDialogOperationType;
     }) => Promise<{ fullPath: string } | undefined>;
     getSuggestedFilename: (params: {
         databaseName: string;
@@ -143,7 +143,7 @@ const DacpacDialogStateProvider: React.FC<DacpacDialogProviderProps> = ({ childr
         databaseName: string;
         ownerUri: string;
         shouldNotExist: boolean;
-        operationType?: dacpacDialog.DacFxOperationType;
+        operationType?: dacpacDialog.DacPacDialogOperationType;
     }) => {
         return await extensionRpc?.sendRequest(
             dacpacDialog.ValidateDatabaseNameWebviewRequest.type,
@@ -199,7 +199,7 @@ const DacpacDialogStateProvider: React.FC<DacpacDialogProviderProps> = ({ childr
     // Helper methods
     const getSuggestedOutputPath = async (params: {
         databaseName: string;
-        operationType: dacpacDialog.DacFxOperationType;
+        operationType: dacpacDialog.DacPacDialogOperationType;
     }) => {
         return await extensionRpc?.sendRequest(
             dacpacDialog.GetSuggestedOutputPathWebviewRequest.type,

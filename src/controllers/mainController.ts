@@ -47,7 +47,10 @@ import { TableDesignerService } from "../services/tableDesignerService";
 import { TableDesignerWebviewController } from "../tableDesigner/tableDesignerWebviewController";
 import { ConnectionDialogWebviewController } from "../connectionconfig/connectionDialogWebviewController";
 import { DacpacDialogWebviewController } from "./dacpacDialogWebviewController";
-import { DacpacDialogWebviewState, DacFxOperationType } from "../sharedInterfaces/dacpacDialog";
+import {
+    DacpacDialogWebviewState,
+    DacPacDialogOperationType,
+} from "../sharedInterfaces/dacpacDialog";
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
 import {
     DatabaseObjectSearchService,
@@ -1631,7 +1634,7 @@ export default class MainController implements vscode.Disposable {
          */
         const registerDacFxCommand = (
             commandId: string,
-            operationType: DacFxOperationType,
+            operationType: DacPacDialogOperationType,
         ): void => {
             this._context.subscriptions.push(
                 vscode.commands.registerCommand(commandId, async (node?: TreeNodeInfo) => {
@@ -1668,11 +1671,11 @@ export default class MainController implements vscode.Disposable {
         };
 
         // Data-tier Application commands
-        registerDacFxCommand(Constants.cmdDacpacDialog, DacFxOperationType.Deploy);
-        registerDacFxCommand(Constants.cmdDeployDacpac, DacFxOperationType.Deploy);
-        registerDacFxCommand(Constants.cmdExtractDacpac, DacFxOperationType.Extract);
-        registerDacFxCommand(Constants.cmdImportBacpac, DacFxOperationType.Import);
-        registerDacFxCommand(Constants.cmdExportBacpac, DacFxOperationType.Export);
+        registerDacFxCommand(Constants.cmdDacpacDialog, DacPacDialogOperationType.Deploy);
+        registerDacFxCommand(Constants.cmdDeployDacpac, DacPacDialogOperationType.Deploy);
+        registerDacFxCommand(Constants.cmdExtractDacpac, DacPacDialogOperationType.Extract);
+        registerDacFxCommand(Constants.cmdImportBacpac, DacPacDialogOperationType.Import);
+        registerDacFxCommand(Constants.cmdExportBacpac, DacPacDialogOperationType.Export);
 
         // Copy object name command
         this._context.subscriptions.push(

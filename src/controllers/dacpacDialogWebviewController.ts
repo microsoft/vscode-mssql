@@ -124,7 +124,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                 databaseName: string;
                 ownerUri: string;
                 shouldNotExist: boolean;
-                operationType?: dacpacDialog.DacFxOperationType;
+                operationType?: dacpacDialog.DacPacDialogOperationType;
             }) => {
                 if (!params.ownerUri || params.ownerUri.trim() === "") {
                     this.logger.error("Cannot validate database name: ownerUri is empty");
@@ -225,10 +225,10 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             dacpacDialog.GetSuggestedOutputPathWebviewRequest.type,
             async (params: {
                 databaseName: string;
-                operationType: dacpacDialog.DacFxOperationType;
+                operationType: dacpacDialog.DacPacDialogOperationType;
             }) => {
                 const fileExtension =
-                    params.operationType === dacpacDialog.DacFxOperationType.Extract
+                    params.operationType === dacpacDialog.DacPacDialogOperationType.Extract
                         ? "dacpac"
                         : "bacpac";
 
@@ -880,7 +880,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
         databaseName: string,
         ownerUri: string,
         shouldNotExist: boolean,
-        operationType?: dacpacDialog.DacFxOperationType,
+        operationType?: dacpacDialog.DacPacDialogOperationType,
     ): Promise<{ isValid: boolean; errorMessage?: string }> {
         // Validate database name format
         const formatValidation = validateDatabaseNameFormat(databaseName);
@@ -918,7 +918,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             // This ensures confirmation dialog is shown in both cases:
             // 1. User selected "New Database" but database already exists (shouldNotExist=true)
             // 2. User selected "Existing Database" and selected existing database (shouldNotExist=false)
-            if (operationType === dacpacDialog.DacFxOperationType.Deploy && exists) {
+            if (operationType === dacpacDialog.DacPacDialogOperationType.Deploy && exists) {
                 return {
                     isValid: true, // Allow the operation but with a warning
                     errorMessage: LocConstants.DacpacDialog.DatabaseAlreadyExists,

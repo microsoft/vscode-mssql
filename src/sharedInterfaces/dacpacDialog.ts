@@ -9,7 +9,7 @@ import { IConnectionDialogProfile } from "./connectionDialog";
 /**
  * The type of DacFx Application operation to perform
  */
-export enum DacFxOperationType {
+export enum DacPacDialogOperationType {
     Deploy = "deploy",
     Extract = "extract",
     Import = "import",
@@ -23,7 +23,7 @@ export interface DacpacDialogWebviewState {
     /**
      * The currently selected operation type
      */
-    operationType: DacFxOperationType;
+    operationType: DacPacDialogOperationType;
     /**
      * The selected DACPAC/BACPAC file path
      */
@@ -191,7 +191,7 @@ export namespace ValidateDatabaseNameWebviewRequest {
             databaseName: string;
             ownerUri: string;
             shouldNotExist: boolean;
-            operationType?: DacFxOperationType;
+            operationType?: DacPacDialogOperationType;
         },
         { isValid: boolean; errorMessage?: string },
         void
@@ -283,7 +283,7 @@ export namespace BrowseOutputFileWebviewRequest {
  */
 export namespace GetSuggestedOutputPathWebviewRequest {
     export const type = new RequestType<
-        { databaseName: string; operationType: DacFxOperationType },
+        { databaseName: string; operationType: DacPacDialogOperationType },
         { fullPath: string },
         void
     >("dacpacDialog/getSuggestedOutputPath");
