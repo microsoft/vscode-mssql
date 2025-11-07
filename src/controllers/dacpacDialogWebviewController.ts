@@ -295,7 +295,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
     ): Promise<dacpacDialog.DacpacDialogResult> {
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
-            TelemetryActions.DacFxDeployDacpac,
+            TelemetryActions.DacpacDialogDeployDacpac,
             undefined,
             {
                 isNewDatabase: params.isNewDatabase.toString(),
@@ -347,7 +347,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
     ): Promise<dacpacDialog.DacpacDialogResult> {
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
-            TelemetryActions.DacFxExtractDacpac,
+            TelemetryActions.DacpacDialogExtractDacpac,
         );
 
         try {
@@ -396,7 +396,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
     ): Promise<dacpacDialog.DacpacDialogResult> {
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
-            TelemetryActions.DacFxImportBacpac,
+            TelemetryActions.DacpacDialogImportBacpac,
         );
 
         try {
@@ -443,7 +443,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
     ): Promise<dacpacDialog.DacpacDialogResult> {
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
-            TelemetryActions.DacFxExportBacpac,
+            TelemetryActions.DacpacDialogExportBacpac,
         );
 
         try {
