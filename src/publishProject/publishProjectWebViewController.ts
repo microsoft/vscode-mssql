@@ -23,7 +23,11 @@ import {
 } from "../sharedInterfaces/publishDialog";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { generatePublishFormComponents } from "./formComponentHelpers";
-import { parsePublishProfileXml, readProjectProperties } from "./projectUtils";
+import {
+    parsePublishProfileXml,
+    readProjectProperties,
+    validateSqlCmdVariables,
+} from "./projectUtils";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
@@ -876,33 +880,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this.state.formState,
         );
 
-        // Check SQLCMD variables validation
-        const sqlCmdVariablesValid = this.allSqlCmdVariablesFilled();
+        // Check SQLCMD variables validation using shared utility
+        const sqlCmdVariablesValid = validateSqlCmdVariables(this.state.formState.sqlCmdVariables);
 
         // hasFormErrors state tracks to disable buttons if ANY errors exist
         this.state.hasFormErrors =
             hasValidationErrors || hasMissingRequiredValues || !sqlCmdVariablesValid;
 
         return erroredInputs;
-    }
-
-    /**
-     * Validates that all SQLCMD variables have non-empty values
-     * This follows the same validation logic as the SQL projects extension
-     */
-    private allSqlCmdVariablesFilled(): boolean {
-        const sqlCmdVariables = this.state.formState.sqlCmdVariables;
-        if (!sqlCmdVariables) {
-            return true; // No variables to validate
-        }
-
-        for (const varName in sqlCmdVariables) {
-            const value = sqlCmdVariables[varName];
-            if (value === "" || value === undefined) {
-                return false;
-            }
-        }
-
-        return true;
     }
 }
