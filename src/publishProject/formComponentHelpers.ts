@@ -13,11 +13,7 @@ import {
     PublishTarget,
     PublishFormFields,
 } from "../sharedInterfaces/publishDialog";
-import {
-    getPublishServerName,
-    validateSqlServerPortNumber,
-    isPreviewFeaturesEnabled,
-} from "./projectUtils";
+import { getPublishServerName, validateSqlServerPortNumber } from "./projectUtils";
 import { validateSqlServerPassword } from "../deployment/dockerUtils";
 
 /**
@@ -25,32 +21,17 @@ import { validateSqlServerPassword } from "../deployment/dockerUtils";
  * @param projectTargetVersion - The target version of the project (e.g., "AzureV12" for Azure SQL)
  * @returns Array of publish target options
  */
-function generatePublishTargetOptions(projectTargetVersion?: string): FormItemOptions[] {
-    // Check if this is an Azure SQL project
-    const isAzureSqlProject = projectTargetVersion === constants.AzureSqlV12;
+function generatePublishTargetOptions(): FormItemOptions[] {
     const options: FormItemOptions[] = [
         {
-            displayName: isAzureSqlProject
-                ? Loc.PublishTargetExistingLogical
-                : Loc.PublishTargetExisting,
+            displayName: Loc.PublishTargetExisting,
             value: PublishTarget.ExistingServer,
         },
         {
-            displayName: isAzureSqlProject
-                ? Loc.PublishTargetAzureEmulator
-                : Loc.PublishTargetContainer,
+            displayName: Loc.PublishTargetContainer,
             value: PublishTarget.LocalContainer,
         },
     ];
-    if (isAzureSqlProject) {
-        // Only show "Publish to New Azure Server" option if preview feature tag is enabled
-        if (isPreviewFeaturesEnabled()) {
-            options.push({
-                displayName: Loc.PublishTargetNewAzureServer,
-                value: PublishTarget.NewAzureServer,
-            });
-        }
-    }
 
     return options;
 }
@@ -98,7 +79,7 @@ export function generatePublishFormComponents(
             label: Loc.PublishTargetLabel,
             required: true,
             type: FormItemType.Dropdown,
-            options: generatePublishTargetOptions(projectTargetVersion),
+            options: generatePublishTargetOptions(),
         },
         containerPort: {
             propertyName: PublishFormFields.ContainerPort,

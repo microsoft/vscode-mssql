@@ -1827,10 +1827,6 @@ Error:
         <source xml:lang="en">Execution Plan</source>
         <target state="translated">执行计划</target>
       </trans-unit>
-      <trans-unit id="++CODE++b5f54c19df1649916f59331f9decf53dc337a2c241a3afb20d58810309ebe30f">
-        <source xml:lang="en">Existing Azure SQL logical server</source>
-        <target state="translated">现有 Azure SQL 逻辑服务器</target>
-      </trans-unit>
       <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
         <source xml:lang="en">Existing SQL server</source>
         <target state="translated">现有 SQL Server</target>
@@ -2811,10 +2807,6 @@ Error:
         <source xml:lang="en">Local SQL Server database container</source>
         <target state="translated">本地 SQL Server 数据库容器</target>
       </trans-unit>
-      <trans-unit id="++CODE++9aa8c99c1e1071fa2070e9283b4cd9a737a77249f44f1a41b559073d99293249">
-        <source xml:lang="en">Local development container</source>
-        <target state="translated">本地开发容器</target>
-      </trans-unit>
       <trans-unit id="++CODE++15b61974b2707a7b3d4201385e0f01f4ff5eb1f17c5639d98788ee5add2025cd">
         <source xml:lang="en">Location</source>
         <target state="translated">位置</target>
@@ -3006,9 +2998,9 @@ Error:
         <source xml:lang="en">New Password</source>
         <target state="translated">新密码</target>
       </trans-unit>
-      <trans-unit id="++CODE++80e8f069713682d743cceecaad91cb538d199e18712328724d348491bfbb64af">
-        <source xml:lang="en">New SQL Server local development container</source>
-        <target state="translated">新的 SQL Server 本地开发容器</target>
+      <trans-unit id="++CODE++652b81589c6b1b34e452b1d3a3f326e1b3796877eca3c750be3e84412a6d9777">
+        <source xml:lang="en">New SQL Server Local development container</source>
+        <target state="new">New SQL Server Local development container</target>
       </trans-unit>
       <trans-unit id="++CODE++f0ebbe4b20d0db8c4c52feb9dc715d1db281ae429389480780ce9120113da253">
         <source xml:lang="en">New SQL database</source>
@@ -3751,6 +3743,10 @@ Error:
       <trans-unit id="++CODE++196561ed1b886dfa24402369be0ac725998191df58790075d4c74ff0378851b5">
         <source xml:lang="en">Revert Row</source>
         <target state="translated">还原行</target>
+      </trans-unit>
+      <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
+        <source xml:lang="en">Revert values to project defaults</source>
+        <target state="new">Revert values to project defaults</target>
       </trans-unit>
       <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
         <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</source>
