@@ -22,7 +22,11 @@ import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { ListDatabasesRequest } from "../models/contracts/connection";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { getConnectionDisplayName } from "../models/connectionInfo";
-import { validateDatabaseNameFormat, DatabaseNameValidationError } from "../models/utils";
+import {
+    validateDatabaseNameFormat,
+    DatabaseNameValidationError,
+    ConnectionMatcher,
+} from "../models/utils";
 
 // File extension constants
 export const DACPAC_EXTENSION = ".dacpac";
@@ -610,11 +614,19 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
         try {
             // Get all connections
             const { connections } = await this.listConnections();
+            const connectionProfile = {
+                server: params.initialServerName,
+                database: params.initialDatabaseName,
+                id: params.initialProfileId,
+            } as IConnectionProfile;
 
             // Find matching connection based on initial parameters
-            const matchingConnection = await this.findMatchingConnection(params, connections);
+            const matchingConnection = await ConnectionMatcher.findMatchingProfile(
+                connectionProfile,
+                connections as IConnectionProfile[],
+            );
 
-            if (!matchingConnection) {
+            if (!matchingConnection.profile) {
                 // No match found - return all connections, let user choose
                 this.logger.verbose("No matching connection found in initial state");
                 return {
@@ -626,14 +638,14 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
             // Handle existing connection from Object Explorer
             if (params.initialOwnerUri) {
                 const existingConnResult = this.useExistingConnection(
-                    matchingConnection,
+                    matchingConnection.profile,
                     params.initialOwnerUri,
                 );
                 return { ...existingConnResult, connections };
             }
 
             // Attempt to connect to the matched profile
-            const connectResult = await this.connectToMatchedProfile(matchingConnection);
+            const connectResult = await this.connectToMatchedProfile(matchingConnection.profile);
             return { ...connectResult, connections };
         } catch (error) {
             this.logger.error(`Failed to initialize connection: ${error}`);
@@ -644,78 +656,6 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                 errorMessage: error instanceof Error ? error.message : String(error),
             };
         }
-    }
-
-    /**
-     * Finds a matching connection profile based on profile ID or server/database name
-     */
-    private async findMatchingConnection(
-        params: {
-            initialProfileId?: string;
-            initialServerName?: string;
-            initialDatabaseName?: string;
-        },
-        connections: IConnectionDialogProfile[],
-    ): Promise<IConnectionDialogProfile | undefined> {
-        // Priority 1: Match by profile ID if provided
-        if (params.initialProfileId) {
-            const matchingConnection = connections.find(
-                (conn) => conn.id === params.initialProfileId,
-            );
-            if (matchingConnection) {
-                this.logger.verbose(`Found connection by profile ID: ${params.initialProfileId}`);
-                return matchingConnection;
-            }
-        }
-
-        // Priority 2: Use findMatchingProfile if we have server name
-        if (params.initialServerName) {
-            return await this.findConnectionByServerName(
-                params.initialServerName,
-                params.initialDatabaseName,
-                connections,
-            );
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Finds a connection by server and database name using the connection store's matching logic
-     */
-    private async findConnectionByServerName(
-        serverName: string,
-        databaseName: string | undefined,
-        connections: IConnectionDialogProfile[],
-    ): Promise<IConnectionDialogProfile | undefined> {
-        // Create a temporary profile to search with
-        const searchProfile = {
-            server: serverName,
-            database: databaseName || "",
-        } as IConnectionProfile;
-
-        const matchResult =
-            await this.connectionManager.connectionStore.findMatchingProfile(searchProfile);
-
-        if (matchResult?.profile) {
-            // Find the matching connection in our list
-            const profileId =
-                matchResult.profile.id ||
-                `${matchResult.profile.server}_${matchResult.profile.database || ""}`;
-            const matchingConnection = connections.find((conn) => {
-                const connId = conn.id || `${conn.server}_${conn.database || ""}`;
-                return connId === profileId;
-            });
-
-            if (matchingConnection) {
-                this.logger.verbose(
-                    `Found connection by server/database using findMatchingProfile: ${serverName}/${databaseName || "default"}`,
-                );
-                return matchingConnection;
-            }
-        }
-
-        return undefined;
     }
 
     /**
