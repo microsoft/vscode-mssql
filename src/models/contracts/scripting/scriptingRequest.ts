@@ -273,7 +273,7 @@ export interface IScriptingParams {
      * Return script in events. This makes the script operation return an immediate operationId and
      * send the script back in ScriptingCompleteNotification.
      */
-    returnScriptAsEvent: boolean;
+    returnScriptAsynchronously: boolean;
 }
 
 export interface IScriptingResult {
