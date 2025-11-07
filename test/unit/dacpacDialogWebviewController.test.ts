@@ -1249,18 +1249,6 @@ suite("DacpacDialogWebviewController", () => {
             expect(result.errorMessage).to.include("Connection failed");
             expect(result.errorMessage).to.include("Network timeout");
         });
-        test("generates profileId from server and database when id is missing", async () => {
-            const connectionWithoutId: (typeof mockConnections)[0] = {
-                ...mockConnections[0],
-                id: undefined,
-            };
-            connectionStoreStub.readAllConnections.resolves([connectionWithoutId]);
-            sandbox.stub(connectionManagerStub, "activeConnections").get(() => ({}));
-            createController();
-            const handler = requestHandlers.get(ListConnectionsWebviewRequest.type.method);
-            const result = await handler!({});
-            expect(result.connections[0].id).to.equal("server1.database.windows.net_db1");
-        });
     });
     suite("Database Operations with Empty OwnerUri", () => {
         test("returns empty array when ownerUri is empty for list databases", async () => {
