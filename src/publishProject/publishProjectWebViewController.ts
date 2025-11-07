@@ -477,7 +477,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         ...parsedProfile.sqlCmdVariables,
                     };
 
-                    // Update state with loaded profile data immediately (non-blocking)
+                    // Update state with loaded profile data
                     this.state = {
                         ...state,
                         defaultSqlCmdVariables: updatedDefaults,
@@ -554,24 +554,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 state: PublishDialogState,
                 payload: { variables: { [key: string]: string } },
             ) => {
-                return {
-                    ...state,
-                    formState: {
-                        ...state.formState,
-                        sqlCmdVariables: payload.variables,
-                    },
-                };
+                state.formState.sqlCmdVariables = payload.variables;
+                return state;
             },
         );
 
         this.registerReducer("revertSqlCmdVariables", async (state: PublishDialogState) => {
-            return {
-                ...state,
-                formState: {
-                    ...state.formState,
-                    sqlCmdVariables: { ...state.defaultSqlCmdVariables },
-                },
-            };
+            state.formState.sqlCmdVariables = { ...state.defaultSqlCmdVariables };
+            return state;
         });
 
         this.registerReducer(

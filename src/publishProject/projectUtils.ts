@@ -302,15 +302,5 @@ export function validateSqlCmdVariables(sqlCmdVariables?: { [key: string]: strin
         return true; // No variables to validate
     }
 
-    // Check all variable values are non-empty
-    for (const varName in sqlCmdVariables) {
-        if (Object.prototype.hasOwnProperty.call(sqlCmdVariables, varName)) {
-            const value = sqlCmdVariables[varName];
-            if (value === "" || value === undefined) {
-                return false;
-            }
-        }
-    }
-
-    return true;
+    return Object.values(sqlCmdVariables).every((v) => v !== "" && v !== undefined);
 }
