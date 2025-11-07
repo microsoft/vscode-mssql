@@ -641,6 +641,20 @@ export const DacpacDialogForm = () => {
                     onServerChange={(profileId) => void handleServerChange(profileId)}
                 />
 
+                {/* For Extract/Export: Show database selection BEFORE file path */}
+                {showDatabaseSource && (
+                    <SourceDatabaseSection
+                        databaseName={databaseName}
+                        setDatabaseName={setDatabaseName}
+                        availableDatabases={availableDatabases}
+                        isOperationInProgress={isOperationInProgress}
+                        ownerUri={ownerUri}
+                        validationMessages={validationMessages}
+                        showDatabaseSource={showDatabaseSource}
+                        showNewDatabase={false}
+                    />
+                )}
+
                 <FilePathSection
                     filePath={filePath}
                     setFilePath={setFilePath}
@@ -651,6 +665,7 @@ export const DacpacDialogForm = () => {
                     onFilePathChange={handleFilePathChange}
                 />
 
+                {/* For Deploy: Show target database AFTER file path */}
                 {showDatabaseTarget && (
                     <TargetDatabaseSection
                         databaseName={databaseName}
@@ -664,7 +679,8 @@ export const DacpacDialogForm = () => {
                     />
                 )}
 
-                {(showDatabaseSource || showNewDatabase) && (
+                {/* For Import: Show new database name AFTER file path */}
+                {showNewDatabase && (
                     <SourceDatabaseSection
                         databaseName={databaseName}
                         setDatabaseName={setDatabaseName}
@@ -672,7 +688,7 @@ export const DacpacDialogForm = () => {
                         isOperationInProgress={isOperationInProgress}
                         ownerUri={ownerUri}
                         validationMessages={validationMessages}
-                        showDatabaseSource={showDatabaseSource}
+                        showDatabaseSource={false}
                         showNewDatabase={showNewDatabase}
                     />
                 )}
