@@ -52,16 +52,15 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
         context.createRow();
     };
 
-    const onRowCountChanged = (_event: any, data: any) => {
-        const newRowCount = data.optionValue || data.value || selectedRowCount;
-        if (newRowCount) {
-            setSelectedRowCount(newRowCount);
-        }
-    };
-
-    const onRowCountInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const onRowCountChange = (event: any) => {
         const newValue = event.target.value;
         setSelectedRowCount(newValue);
+    };
+
+    const onRowCountSelect = (_event: any, data: any) => {
+        if (data.optionValue) {
+            setSelectedRowCount(data.optionValue);
+        }
     };
 
     const onFetchRowsClick = () => {
@@ -128,12 +127,10 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 <span style={{ fontSize: "12px" }}>{loc.tableExplorer.totalRowsToFetch}</span>
                 <Combobox
                     value={selectedRowCount}
-                    selectedOptions={[selectedRowCount]}
-                    onOptionSelect={onRowCountChanged}
-                    onInput={onRowCountInput}
+                    onChange={onRowCountChange}
+                    onOptionSelect={onRowCountSelect}
                     size="small"
                     freeform
-                    style={{ width: "100px" }}
                     disabled={isLoading}>
                     <Option value="10">10</Option>
                     <Option value="50">50</Option>
