@@ -1827,9 +1827,9 @@ Fehler:
         <source xml:lang="en">Execution Plan</source>
         <target state="translated">Ausführungsplan</target>
       </trans-unit>
-      <trans-unit id="++CODE++b5f54c19df1649916f59331f9decf53dc337a2c241a3afb20d58810309ebe30f">
-        <source xml:lang="en">Existing Azure SQL logical server</source>
-        <target state="translated">Vorhandener logischer Azure SQL-Server</target>
+      <trans-unit id="++CODE++6e70f2efe82744e86406531b7767f19ad25970b8075f1ef14fd2b91a94ab1b93">
+        <source xml:lang="en">Existing Azure SQL server</source>
+        <target state="new">Existing Azure SQL server</target>
       </trans-unit>
       <trans-unit id="++CODE++1b2da57e60f89f7e5fa102ef76d7ef2ca1d7d212380c0200d648e2215a5f555d">
         <source xml:lang="en">Existing SQL server</source>
@@ -3751,6 +3751,10 @@ Fehler:
       <trans-unit id="++CODE++196561ed1b886dfa24402369be0ac725998191df58790075d4c74ff0378851b5">
         <source xml:lang="en">Revert Row</source>
         <target state="translated">Zeile wiederherstellen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
+        <source xml:lang="en">Revert values to project defaults</source>
+        <target state="new">Revert values to project defaults</target>
       </trans-unit>
       <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
         <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" in Docker Desktop &gt; Settings &gt; General.</source>
