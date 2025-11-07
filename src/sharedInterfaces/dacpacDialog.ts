@@ -7,7 +7,7 @@ import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
 import { IConnectionDialogProfile } from "./connectionDialog";
 
 /**
- * The type of DacFx Application operation to perform
+ * The type of DacPacDialog Application operation to perform
  */
 export enum DacPacDialogOperationType {
     Deploy = "deploy",
@@ -17,7 +17,7 @@ export enum DacPacDialogOperationType {
 }
 
 /**
- * The state of the DacFx Application webview
+ * The state of the DacPacDialog Application webview
  */
 export interface DacpacDialogWebviewState {
     /**
@@ -79,9 +79,9 @@ export interface DacpacDialogWebviewState {
 }
 
 /**
- * Base parameters for DacFx operations
+ * Base parameters for DacPacDialog operations
  */
-interface DacFxOperationParams {
+interface DacPacDialogOperationParams {
     databaseName: string;
     packageFilePath: string;
     ownerUri: string;
@@ -90,19 +90,19 @@ interface DacFxOperationParams {
 /**
  * Parameters for exporting a BACPAC
  */
-export interface ExportBacpacParams extends DacFxOperationParams {}
+export interface ExportBacpacParams extends DacPacDialogOperationParams {}
 
 /**
  * Parameters for deploying a DACPAC
  */
-export interface DeployDacpacParams extends DacFxOperationParams {
+export interface DeployDacpacParams extends DacPacDialogOperationParams {
     isNewDatabase: boolean;
 }
 
 /**
  * Parameters for extracting a DACPAC
  */
-export interface ExtractDacpacParams extends DacFxOperationParams {
+export interface ExtractDacpacParams extends DacPacDialogOperationParams {
     applicationName?: string;
     applicationVersion?: string;
 }
@@ -110,15 +110,15 @@ export interface ExtractDacpacParams extends DacFxOperationParams {
 /**
  * Parameters for importing a BACPAC
  */
-export interface ImportBacpacParams extends DacFxOperationParams {}
+export interface ImportBacpacParams extends DacPacDialogOperationParams {}
 
 /**
  * Parameters for exporting a BACPAC
  */
-export interface ExportBacpacParams extends DacFxOperationParams {}
+export interface ExportBacpacParams extends DacPacDialogOperationParams {}
 
 /**
- * Result from a DacFx Application operation
+ * Result from a DacPacDialog Application operation
  */
 export interface DacpacDialogResult {
     success: boolean;
