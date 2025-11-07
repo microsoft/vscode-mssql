@@ -160,6 +160,7 @@ export const TableExplorerPage: React.FC = () => {
                                 openInEditor={() => context.openScriptInEditor()}
                                 copyToClipboard={() => context.copyScriptToClipboard()}
                                 activeTab={DesignerDefinitionTabs.Script}
+                                onClose={() => context.toggleScriptPane()}
                             />
                         </>
                     )}
