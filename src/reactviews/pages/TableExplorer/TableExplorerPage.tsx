@@ -118,6 +118,8 @@ export const TableExplorerPage: React.FC = () => {
                                 onSaveComplete={handleSaveComplete}
                                 cellChangeCount={cellChangeCount}
                                 deletionCount={deletionCount}
+                                currentRowCount={currentRowCount}
+                                onLoadSubset={context?.loadSubset}
                             />
                             {resultSet ? (
                                 <div className={classes.dataGridContainer}>

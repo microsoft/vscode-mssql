@@ -4332,6 +4332,9 @@
     <trans-unit id="mssql.deleteContainer">
       <source xml:lang="en">Delete Container</source>
     </trans-unit>
+    <trans-unit id="mssql.deployDacpac">
+      <source xml:lang="en">Deploy DACPAC</source>
+    </trans-unit>
     <trans-unit id="mssql.disableActualPlan">
       <source xml:lang="en">Disable Actual Plan</source>
     </trans-unit>
@@ -4586,9 +4589,6 @@
     </trans-unit>
     <trans-unit id="mssql.authCodeGrant.description">
       <source xml:lang="en">Prompts users to sign in using their browser.</source>
-    </trans-unit>
-    <trans-unit id="mssql.deployDacpac">
-      <source xml:lang="en">Publish DACPAC</source>
     </trans-unit>
     <trans-unit id="extension.queryHistory">
       <source xml:lang="en">Query History</source>
