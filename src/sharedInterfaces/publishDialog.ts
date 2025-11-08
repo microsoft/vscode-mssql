@@ -7,6 +7,7 @@ import * as constants from "../constants/constants";
 import * as mssql from "vscode-mssql";
 import { FormItemSpec, FormState, FormReducers, FormEvent } from "./form";
 import { DialogMessageSpec } from "./dialogMessage";
+import { ApiStatus } from "./webview";
 
 // Publish target options - defines where the database project will be published
 export enum PublishTarget {
@@ -89,6 +90,7 @@ export interface PublishDialogState
     formMessage?: DialogMessageSpec;
     defaultDeploymentOptions?: mssql.DeploymentOptions;
     defaultSqlCmdVariables?: { [key: string]: string };
+    containerCreationStatus?: ApiStatus;
 }
 
 /**

@@ -12,6 +12,7 @@ import * as sinon from "sinon";
 
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ConnectionManager from "../../src/controllers/connectionManager";
+import MainController from "../../src/controllers/mainController";
 import { PublishProjectWebViewController } from "../../src/publishProject/publishProjectWebViewController";
 import { validateSqlServerPortNumber } from "../../src/publishProject/projectUtils";
 import { validateSqlServerPassword } from "../../src/deployment/dockerUtils";
@@ -30,6 +31,7 @@ suite("PublishProjectWebViewController Tests", () => {
     let mockSqlProjectsService: sinon.SinonStubbedInstance<SqlProjectsService>;
     let mockDacFxService: sinon.SinonStubbedInstance<mssql.IDacFxService>;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
+    let mockMainController: sinon.SinonStubbedInstance<MainController>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
@@ -60,6 +62,12 @@ suite("PublishProjectWebViewController Tests", () => {
             getOptionsFromProfile: sandbox.stub(),
             savePublishProfile: sandbox.stub(),
         } as sinon.SinonStubbedInstance<mssql.IDacFxService>;
+
+        // Create MainController mock - only stub methods we actually use in container creation
+        mockMainController = {
+            connectionManager: mockConnectionManager,
+            createObjectExplorerSession: sandbox.stub().resolves(),
+        } as unknown as sinon.SinonStubbedInstance<MainController>;
     });
 
     teardown(() => {
@@ -78,6 +86,7 @@ suite("PublishProjectWebViewController Tests", () => {
             vscodeWrapperStub,
             mockConnectionManager,
             projectPath,
+            mockMainController,
             mockSqlProjectsService,
             mockDacFxService,
         );
@@ -226,6 +235,7 @@ suite("PublishProjectWebViewController Tests", () => {
             vscodeWrapperStub,
             mockConnectionManager,
             "test.sqlproj",
+            mockMainController,
             mockSqlProjectsService as SqlProjectsService,
         );
 
