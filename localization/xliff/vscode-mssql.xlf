@@ -4463,6 +4463,9 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.sortAndFilterQueryResults.description">
       <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
     </trans-unit>
+    <trans-unit id="mssql.customEnvironment.dynamicsCrmDnsSuffix">
+      <source xml:lang="en">Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)</source>
+    </trans-unit>
     <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
       <source xml:lang="en">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</source>
     </trans-unit>
