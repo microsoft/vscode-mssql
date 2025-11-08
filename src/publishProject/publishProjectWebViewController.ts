@@ -335,18 +335,16 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         const result = await localContainersHelpers.runDockerPrerequisiteChecks(
             (stepIndex, step, _allSteps) => {
-                // TODO: Show step-by-step progress as VS Code notifications
-                // For now, we track steps locally for future implementation
                 const stepName = step.headerText;
-                const status =
-                    step.loadState === ApiStatus.Loading
-                        ? "Running"
-                        : step.loadState === ApiStatus.Loaded
-                          ? "Completed"
-                          : step.loadState === ApiStatus.Error
-                            ? "Failed"
-                            : "Pending";
-                console.log(`[Docker Step ${stepIndex}] ${stepName}: ${status}`);
+
+                // Show VS Code notifications for prerequisite check results
+                if (step.loadState === ApiStatus.Loaded) {
+                    void vscode.window.showInformationMessage(`✓ ${stepName}`);
+                } else if (step.loadState === ApiStatus.Error) {
+                    void vscode.window.showErrorMessage(
+                        `✗ ${stepName} failed: ${step.errorMessage}`,
+                    );
+                }
             },
         );
 
@@ -412,18 +410,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
             dockerProfile,
             this._mainController,
             (stepIndex, step, _allSteps) => {
-                // TODO: Show step-by-step progress as VS Code notifications
-                // For now, we track steps locally for future implementation
                 const stepName = step.headerText;
-                const status =
-                    step.loadState === ApiStatus.Loading
-                        ? "Running"
-                        : step.loadState === ApiStatus.Loaded
-                          ? "Completed"
-                          : step.loadState === ApiStatus.Error
-                            ? "Failed"
-                            : "Pending";
-                console.log(`[Docker Step ${stepIndex}] ${stepName}: ${status}`);
+                if (step.loadState === ApiStatus.Loaded) {
+                    void vscode.window.showInformationMessage(`✓ ${stepName}`);
+                } else if (step.loadState === ApiStatus.Error) {
+                    void vscode.window.showErrorMessage(
+                        `✗ ${stepName} failed: ${step.errorMessage}`,
+                    );
+                }
             },
         );
 
