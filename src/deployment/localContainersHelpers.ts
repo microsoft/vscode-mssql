@@ -25,6 +25,7 @@ import { arch } from "os";
 import { FormItemOptions, FormItemSpec, FormItemType } from "../sharedInterfaces/form";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { UserSurvey } from "../nps/userSurvey";
+import { ConnectionCredentials } from "../models/connectionCredentials";
 
 export async function initializeLocalContainersState(
     groupOptions: FormItemOptions[],
@@ -669,12 +670,44 @@ export async function createContainerProgrammatically(
         connectionStep.loadState = ApiStatus.Loaded;
         onProgress?.(connectionStepIndex, connectionStep, dockerSteps);
 
-        // Generate connection URI for publish
+        // Create a proper connection for DacFx operations
+        // Using the connectionManager to establish a registered connection
         const fileUri = `mssql://publish-container-${dockerProfile.containerName}`;
-        return {
-            success: true,
-            connectionUri: fileUri,
+        const connectionDetails = {
+            options: {
+                server: `${localhost},${dockerProfile.port}`,
+                database: "",
+                user: sa,
+                password: dockerProfile.password,
+                authenticationType: sqlAuthentication,
+                encrypt: false,
+                trustServerCertificate: true,
+            },
         };
+
+        try {
+            // Use ConnectionCredentials to create proper connection info
+            const connectionInfo = ConnectionCredentials.createConnectionInfo(connectionDetails);
+
+            // Connect using ConnectionManager to register the connection
+            await mainController.connectionManager.connect(fileUri, connectionInfo, {
+                shouldHandleErrors: false,
+            });
+
+            return {
+                success: true,
+                connectionUri: fileUri,
+            };
+        } catch (error) {
+            connectionStep.loadState = ApiStatus.Error;
+            connectionStep.errorMessage = `Failed to establish connection: ${error}`;
+            onProgress?.(connectionStepIndex, connectionStep, dockerSteps);
+
+            return {
+                success: false,
+                error: `Failed to establish connection: ${error}`,
+            };
+        }
     } else {
         connectionStep.loadState = ApiStatus.Error;
         connectionStep.errorMessage = connectionResult.error;

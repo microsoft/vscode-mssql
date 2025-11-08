@@ -214,6 +214,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 );
                 // Prompt user for NPS feedback after successful publish
                 void UserSurvey.getInstance().promptUserForNPSFeedback(SQLPROJ_PUBLISH_VIEW_ID);
+            } else {
+                sendErrorEvent(
+                    TelemetryViews.SqlProjects,
+                    TelemetryActions.PublishProjectChanges,
+                    new Error(getErrorMessage(result.errorMessage)),
+                    false,
+                );
             }
         } catch (error) {
             sendErrorEvent(
@@ -596,7 +603,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         state,
                         dacpacPath,
                         state.formState.databaseName,
-                        false, // upgradeExisting = false for new container
+                        false,
                     );
 
                     state.inProgress = false;
