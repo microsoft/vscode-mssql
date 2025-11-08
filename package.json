@@ -570,7 +570,7 @@
                 },
                 {
                     "command": "mssql.launchDacpacDialog",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/ && mssql.experimentalFeaturesEnabled",
                     "group": "2_MSSQL_serverDbActions@3"
                 },
                 {
