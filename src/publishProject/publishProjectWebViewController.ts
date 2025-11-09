@@ -327,12 +327,11 @@ export class PublishProjectWebViewController extends FormWebviewController<
     /**
      * Step 1: Runs Docker prerequisite checks (install, start, engine).
      * Must pass before proceeding with container creation.
-     * @returns Success flag, optional error message, and step name if failed
+     * @returns Success flag and optional error message if failed
      */
     private async runDockerPrerequisiteChecks(): Promise<{
         success: boolean;
         error?: string;
-        stepName?: string;
     }> {
         const dockerSteps = dockerUtils.initializeDockerSteps();
         const dummyProfile = {} as DockerConnectionProfile;
@@ -349,7 +348,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 return {
                     success: false,
                     error: result.error,
-                    stepName: currentStep.headerText,
                 };
             }
 
@@ -397,7 +395,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
         connectionUri?: string;
         error?: string;
         fullErrorText?: string;
-        stepName?: string;
     }> {
         // Build Docker profile using validated values
         const dockerProfile = {
@@ -431,7 +428,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     success: false,
                     error: result.error,
                     fullErrorText: result.fullErrorText,
-                    stepName: currentStep.headerText,
                 };
             }
 
@@ -464,11 +460,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 error: error,
             };
         }
-
-        // Show NPS survey
-        UserSurvey.getInstance().promptUserForNPSFeedback(
-            `${SQLPROJ_PUBLISH_VIEW_ID}_localContainer`,
-        );
 
         return {
             success: true,

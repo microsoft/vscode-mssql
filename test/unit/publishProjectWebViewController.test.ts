@@ -21,6 +21,7 @@ import { PublishTarget } from "../../src/sharedInterfaces/publishDialog";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 import * as dockerUtils from "../../src/deployment/dockerUtils";
 import * as projectUtils from "../../src/publishProject/projectUtils";
+import { DockerStep } from "../../src/sharedInterfaces/localContainers";
 
 chai.use(sinonChai);
 
@@ -878,6 +879,312 @@ suite("PublishProjectWebViewController Tests", () => {
             Var1: "Value1",
             Var2: "Value2",
         });
+    });
+    //#endregion
+
+    //#region Docker Container Publish Tests
+    test("runDockerPrerequisiteChecks succeeds when all prerequisite steps pass", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Mock Docker prerequisite steps to succeed
+        const mockDockerSteps: Partial<DockerStep>[] = [
+            {
+                headerText: "Install Docker Desktop",
+                argNames: [],
+                stepAction: sandbox.stub().resolves({ success: true }),
+            },
+            {
+                headerText: "Start Docker Desktop",
+                argNames: [],
+                stepAction: sandbox.stub().resolves({ success: true }),
+            },
+            {
+                headerText: "Check Docker Engine",
+                argNames: [],
+                stepAction: sandbox.stub().resolves({ success: true }),
+            },
+        ];
+        sandbox.stub(dockerUtils, "initializeDockerSteps").returns(mockDockerSteps as DockerStep[]);
+
+        // Mock VS Code showInformationMessage
+        const showInfoStub = sandbox.stub(vscode.window, "showInformationMessage");
+
+        // Call the method
+        const result = await controller["runDockerPrerequisiteChecks"]();
+
+        // Verify all steps were executed
+        expect(mockDockerSteps[0].stepAction).to.have.been.calledOnce;
+        expect(mockDockerSteps[1].stepAction).to.have.been.calledOnce;
+        expect(mockDockerSteps[2].stepAction).to.have.been.calledOnce;
+
+        // Verify success messages were shown
+        expect(showInfoStub).to.have.been.calledThrice;
+        expect(showInfoStub.firstCall.args[0]).to.equal("✓ Install Docker Desktop");
+        expect(showInfoStub.secondCall.args[0]).to.equal("✓ Start Docker Desktop");
+        expect(showInfoStub.thirdCall.args[0]).to.equal("✓ Check Docker Engine");
+
+        // Verify result is success
+        expect(result.success).to.be.true;
+        expect(result.error).to.be.undefined;
+    });
+
+    test("runDockerPrerequisiteChecks fails when Docker install step fails", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Mock Docker prerequisite steps with first step failing
+        const mockDockerSteps: Partial<DockerStep>[] = [
+            {
+                headerText: "Install Docker Desktop",
+                argNames: [],
+                stepAction: sandbox.stub().resolves({
+                    success: false,
+                    error: "Docker Desktop is not installed",
+                }),
+            },
+            {
+                headerText: "Start Docker Desktop",
+                argNames: [],
+                stepAction: sandbox.stub().resolves({ success: true }),
+            },
+            {
+                headerText: "Check Docker Engine",
+                argNames: [],
+                stepAction: sandbox.stub().resolves({ success: true }),
+            },
+        ];
+        sandbox.stub(dockerUtils, "initializeDockerSteps").returns(mockDockerSteps as DockerStep[]);
+
+        // Call the method
+        const result = await controller["runDockerPrerequisiteChecks"]();
+
+        // Verify only first step was executed
+        expect(mockDockerSteps[0].stepAction).to.have.been.calledOnce;
+        expect(mockDockerSteps[1].stepAction).to.not.have.been.called;
+        expect(mockDockerSteps[2].stepAction).to.not.have.been.called;
+
+        // Verify result contains error
+        expect(result.success).to.be.false;
+        expect(result.error).to.equal("Docker Desktop is not installed");
+    });
+
+    test("prepareContainerConfiguration generates unique container name and parses port", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Set up form state with container values
+        controller.state.formState.containerPort = "1450";
+
+        // Mock validateContainerName to return a unique name
+        sandbox.stub(dockerUtils, "validateContainerName").resolves("sql-server-container-abc123");
+
+        // Call the method
+        const config = await controller["prepareContainerConfiguration"](controller.state);
+
+        // Verify container name was generated
+        expect(config.containerName).to.equal("sql-server-container-abc123");
+        expect(dockerUtils.validateContainerName).to.have.been.calledOnce;
+
+        // Verify port was parsed
+        expect(config.port).to.equal(1450);
+    });
+
+    test("createDockerContainer succeeds when all steps pass and connection is established", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Set up form state
+        controller.state.formState.containerImageTag = "2022-latest";
+        controller.state.formState.containerAdminPassword = "<placeholder>";
+        controller.state.formState.acceptContainerLicense = true;
+
+        // Mock Docker steps (steps 3-6: pull, start, check, connect)
+        const mockDockerSteps: (Partial<DockerStep> | undefined)[] = Array(7).fill(undefined);
+        mockDockerSteps[3] = {
+            headerText: "Pull SQL Server image",
+            argNames: ["version"],
+            stepAction: sandbox.stub().resolves({ success: true }),
+        };
+        mockDockerSteps[4] = {
+            headerText: "Start SQL Server container",
+            argNames: ["containerName", "port", "password"],
+            stepAction: sandbox.stub().resolves({ success: true }),
+        };
+        mockDockerSteps[5] = {
+            headerText: "Check container is ready",
+            argNames: ["containerName"],
+            stepAction: sandbox.stub().resolves({ success: true }),
+        };
+        mockDockerSteps[6] = {
+            headerText: "Connect to SQL Server",
+            argNames: [],
+            stepAction: sandbox.stub().resolves({ success: true }),
+        };
+
+        sandbox.stub(dockerUtils, "initializeDockerSteps").returns(mockDockerSteps as DockerStep[]);
+
+        // Mock VS Code showInformationMessage
+        const showInfoStub = sandbox.stub(vscode.window, "showInformationMessage");
+
+        // Mock connection manager to succeed
+        const connectStub = sandbox.stub().resolves();
+        mockConnectionManager.connect = connectStub as typeof mockConnectionManager.connect;
+
+        // Call the method
+        const result = await controller["createDockerContainer"](
+            "test-container",
+            1433,
+            controller.state,
+        );
+
+        // Verify all Docker steps were executed
+        expect(mockDockerSteps[3]?.stepAction).to.have.been.calledOnce;
+        expect(mockDockerSteps[4]?.stepAction).to.have.been.calledOnce;
+        expect(mockDockerSteps[5]?.stepAction).to.have.been.calledOnce;
+
+        // Verify success messages were shown for each step
+        expect(showInfoStub.callCount).to.equal(3);
+        expect(showInfoStub.firstCall.args[0]).to.equal("✓ Pull SQL Server image");
+        expect(showInfoStub.secondCall.args[0]).to.equal("✓ Start SQL Server container");
+        expect(showInfoStub.thirdCall.args[0]).to.equal("✓ Check container is ready");
+
+        // Verify connection was established
+        expect(mockConnectionManager.connect).to.have.been.calledOnce;
+
+        // Verify result is success with connection URI
+        expect(result.success).to.be.true;
+        expect(result.connectionUri).to.equal("mssql://publish-container-test-container");
+        expect(result.error).to.be.undefined;
+    });
+
+    test("createDockerContainer fails when image pull fails", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Set up form state
+        controller.state.formState.containerImageTag = "2022-latest";
+        controller.state.formState.containerAdminPassword = "testPassword123!";
+
+        // Mock Docker steps with pull failing
+        const mockDockerSteps: (Partial<DockerStep> | undefined)[] = Array(7).fill(undefined);
+        mockDockerSteps[3] = {
+            headerText: "Pull SQL Server image",
+            argNames: ["version"],
+            stepAction: sandbox.stub().resolves({
+                success: false,
+                error: "Failed to pull image",
+                fullErrorText: "Network error: Unable to reach Docker Hub",
+            }),
+        };
+        mockDockerSteps[4] = {
+            headerText: "Start SQL Server container",
+            argNames: [],
+            stepAction: sandbox.stub().resolves({ success: true }),
+        };
+        mockDockerSteps[5] = {
+            headerText: "Check container is ready",
+            argNames: [],
+            stepAction: sandbox.stub().resolves({ success: true }),
+        };
+
+        sandbox.stub(dockerUtils, "initializeDockerSteps").returns(mockDockerSteps as DockerStep[]);
+
+        // Call the method
+        const result = await controller["createDockerContainer"](
+            "test-container",
+            1433,
+            controller.state,
+        );
+
+        // Verify only pull step was executed
+        expect(mockDockerSteps[3]?.stepAction).to.have.been.calledOnce;
+        expect(mockDockerSteps[4]?.stepAction).to.not.have.been.called;
+        expect(mockDockerSteps[5]?.stepAction).to.not.have.been.called;
+
+        // Verify result contains error
+        expect(result.success).to.be.false;
+        expect(result.error).to.equal("Failed to pull image");
+        expect(result.fullErrorText).to.equal("Network error: Unable to reach Docker Hub");
+    });
+
+    test("publishNow with LocalContainer target runs full Docker workflow", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        // Set up form state for container publish
+        controller.state.formState.publishTarget = PublishTarget.LocalContainer;
+        controller.state.formState.databaseName = "TestDB";
+        controller.state.formState.containerPort = "1433";
+        controller.state.formState.containerAdminPassword = "MyP@ssw0rd123";
+        controller.state.formState.containerImageTag = "2022-latest";
+        controller.state.formState.acceptContainerLicense = true;
+
+        // Mock prerequisite checks to succeed
+        sandbox
+            .stub(controller, "runDockerPrerequisiteChecks" as keyof typeof controller)
+            .resolves({
+                success: true,
+            });
+
+        // Mock container configuration
+        sandbox
+            .stub(controller, "prepareContainerConfiguration" as keyof typeof controller)
+            .resolves({
+                containerName: "test-container-abc",
+                port: 1433,
+            });
+
+        // Mock container creation to succeed
+        sandbox.stub(controller, "createDockerContainer" as keyof typeof controller).resolves({
+            success: true,
+            connectionUri: "mssql://publish-container-test-container-abc",
+        });
+
+        // Mock build and publish
+        sandbox
+            .stub(controller, "buildProject" as keyof typeof controller)
+            .resolves("/path/to/project.dacpac");
+        sandbox.stub(controller, "publishToDatabase" as keyof typeof controller).resolves();
+
+        // Mock panel dispose
+        const panelDisposeSpy = sandbox.stub();
+        Object.defineProperty(controller, "panel", {
+            value: { dispose: panelDisposeSpy },
+            writable: true,
+            configurable: true,
+        });
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const publishNow = reducerHandlers.get("publishNow");
+
+        // Execute publish
+        const newState = await publishNow(controller.state, {});
+
+        // Verify prerequisite checks were run
+        expect(controller["runDockerPrerequisiteChecks"]).to.have.been.calledOnce;
+
+        // Verify container configuration was prepared
+        expect(controller["prepareContainerConfiguration"]).to.have.been.calledOnce;
+
+        // Verify container was created
+        expect(controller["createDockerContainer"]).to.have.been.calledWith(
+            "test-container-abc",
+            1433,
+            sinon.match.any,
+        );
+
+        // Verify build was triggered
+        expect(controller["buildProject"]).to.have.been.calledOnce;
+
+        // Verify publish was triggered
+        expect(controller["publishToDatabase"]).to.have.been.calledOnce;
+
+        // Verify panel was closed at the end
+        expect(panelDisposeSpy).to.have.been.calledOnce;
+
+        // Verify final state
+        expect(newState.inProgress).to.be.false;
     });
     //#endregion
 });
