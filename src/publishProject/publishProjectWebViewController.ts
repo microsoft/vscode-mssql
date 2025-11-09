@@ -39,10 +39,10 @@ import * as Utils from "../models/utils";
 import { ProjectController } from "../controllers/projectController";
 import { UserSurvey } from "../nps/userSurvey";
 import * as dockerUtils from "../deployment/dockerUtils";
-import * as localContainersHelpers from "../deployment/localContainersHelpers";
-import { DockerConnectionProfile } from "../sharedInterfaces/localContainers";
+import { DockerConnectionProfile, DockerStepOrder } from "../sharedInterfaces/localContainers";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import MainController from "../controllers/mainController";
+import { localhost, sa, sqlAuthentication } from "../constants/constants";
 
 const SQLPROJ_PUBLISH_VIEW_ID = "publishProject";
 
@@ -327,34 +327,34 @@ export class PublishProjectWebViewController extends FormWebviewController<
     /**
      * Step 1: Runs Docker prerequisite checks (install, start, engine).
      * Must pass before proceeding with container creation.
-     * @returns Success flag and optional error message
+     * @returns Success flag, optional error message, and step name if failed
      */
-    private async runDockerPrerequisiteChecks(): Promise<{ success: boolean; error?: string }> {
-        this.state.containerCreationStatus = ApiStatus.Loading;
-        this.updateState();
+    private async runDockerPrerequisiteChecks(): Promise<{
+        success: boolean;
+        error?: string;
+        stepName?: string;
+    }> {
+        const dockerSteps = dockerUtils.initializeDockerSteps();
+        const dummyProfile = {} as DockerConnectionProfile;
 
-        const result = await localContainersHelpers.runDockerPrerequisiteChecks(
-            (stepIndex, step, _allSteps) => {
-                const stepName = step.headerText;
+        // Run prerequisite steps up to and including checkDockerEngine
+        for (let stepIndex = 0; stepIndex <= DockerStepOrder.checkDockerEngine; stepIndex++) {
+            const currentStep = dockerSteps[stepIndex];
+            const args = currentStep.argNames.map(
+                (argName) => (dummyProfile as unknown as Record<string, unknown>)[argName],
+            );
+            const result = await currentStep.stepAction(...args);
 
-                // Show VS Code notifications for prerequisite check results
-                if (step.loadState === ApiStatus.Loaded) {
-                    void vscode.window.showInformationMessage(`✓ ${stepName}`);
-                } else if (step.loadState === ApiStatus.Error) {
-                    void vscode.window.showErrorMessage(
-                        `✗ ${stepName} failed: ${step.errorMessage}`,
-                    );
-                }
-            },
-        );
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error,
+                    stepName: currentStep.headerText,
+                };
+            }
 
-        if (!result.success) {
-            this.state.containerCreationStatus = ApiStatus.Error;
-            this.updateState();
-            return {
-                success: false,
-                error: result.error || "Docker prerequisite check failed",
-            };
+            // Show success message matching deployment UI format
+            void vscode.window.showInformationMessage(`✓ ${currentStep.headerText}`);
         }
 
         return { success: true };
@@ -386,13 +386,19 @@ export class PublishProjectWebViewController extends FormWebviewController<
      * @param validatedContainerName - Validated unique container name
      * @param validatedPort - Validated available port
      * @param state Current publish dialog state
-     * @returns Connection URI if successful, undefined otherwise
+     * @returns Connection URI if successful, error info if failed
      */
     private async createDockerContainer(
         validatedContainerName: string,
         validatedPort: number,
         state: PublishDialogState,
-    ): Promise<string | undefined> {
+    ): Promise<{
+        success: boolean;
+        connectionUri?: string;
+        error?: string;
+        fullErrorText?: string;
+        stepName?: string;
+    }> {
         // Build Docker profile using validated values
         const dockerProfile = {
             version: state.formState.containerImageTag || "",
@@ -405,43 +411,69 @@ export class PublishProjectWebViewController extends FormWebviewController<
             acceptEula: state.formState.acceptContainerLicense || false,
         } as unknown as DockerConnectionProfile;
 
-        // Create container using existing helper
-        const result = await localContainersHelpers.createContainerProgrammatically(
-            dockerProfile,
-            this._mainController,
-            (stepIndex, step, _allSteps) => {
-                const stepName = step.headerText;
-                if (step.loadState === ApiStatus.Loaded) {
-                    void vscode.window.showInformationMessage(`✓ ${stepName}`);
-                } else if (step.loadState === ApiStatus.Error) {
-                    void vscode.window.showErrorMessage(
-                        `✗ ${stepName} failed: ${step.errorMessage}`,
-                    );
-                }
-            },
-        );
+        const dockerSteps = dockerUtils.initializeDockerSteps();
 
-        if (!result.success) {
-            // Set error message with full details if available
-            this.state.formMessage = {
-                message:
-                    result.fullErrorText || result.error || "Failed to create Docker container",
-                intent: "error",
-            };
-            this.state.containerCreationStatus = ApiStatus.Error;
-            this.updateState();
-            return undefined;
+        // Execute container creation steps: from pullImage to checkContainer
+        // Dynamic iteration ensures we don't miss any steps added in the future
+        for (
+            let stepIndex = DockerStepOrder.pullImage;
+            stepIndex <= DockerStepOrder.checkContainer;
+            stepIndex++
+        ) {
+            const currentStep = dockerSteps[stepIndex];
+            const args = currentStep.argNames.map(
+                (argName) => (dockerProfile as unknown as Record<string, unknown>)[argName],
+            );
+            const result = await currentStep.stepAction(...args);
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error,
+                    fullErrorText: result.fullErrorText,
+                    stepName: currentStep.headerText,
+                };
+            }
+
+            // Show success message matching deployment UI format
+            void vscode.window.showInformationMessage(`✓ ${currentStep.headerText}`);
         }
 
-        this.state.containerCreationStatus = ApiStatus.Loaded;
-        this.updateState();
+        // Register connection for DacFx
+        const fileUri = `mssql://publish-container-${validatedContainerName}`;
+        const connectionDetails = {
+            options: {
+                server: `${localhost},${validatedPort}`,
+                database: "",
+                user: sa,
+                password: dockerProfile.password,
+                authenticationType: sqlAuthentication,
+                encrypt: false,
+                trustServerCertificate: true,
+            },
+        };
+
+        try {
+            const connectionInfo = ConnectionCredentials.createConnectionInfo(connectionDetails);
+            await this._mainController.connectionManager.connect(fileUri, connectionInfo, {
+                shouldHandleErrors: false,
+            });
+        } catch (error) {
+            return {
+                success: false,
+                error: error,
+            };
+        }
 
         // Show NPS survey
         UserSurvey.getInstance().promptUserForNPSFeedback(
             `${SQLPROJ_PUBLISH_VIEW_ID}_localContainer`,
         );
 
-        return result.connectionUri;
+        return {
+            success: true,
+            connectionUri: fileUri,
+        };
     }
 
     private async initializeDialog(projectFilePath: string) {
@@ -544,13 +576,17 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
                 try {
                     // STEP 1: Run Docker prerequisite checks (Docker install, start, engine)
+                    state.containerCreationStatus = ApiStatus.Loading;
+                    this.updateState(state);
+
                     const prereqResult = await this.runDockerPrerequisiteChecks();
                     if (!prereqResult.success) {
                         state.formMessage = {
-                            message: `Docker prerequisite check failed: ${prereqResult.error || "Please ensure Docker is installed and running"}`,
+                            message: prereqResult.error,
                             intent: "error",
                         };
                         state.inProgress = false;
+                        state.containerCreationStatus = ApiStatus.Error;
                         this.updateState(state);
                         return state;
                     }
@@ -560,15 +596,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     const config = await this.prepareContainerConfiguration(state);
 
                     // STEP 3: Create Docker container (pull, start, check, connect)
-                    const connectionUri = await this.createDockerContainer(
+                    const containerResult = await this.createDockerContainer(
                         config.containerName,
                         config.port,
                         state,
                     );
-                    if (!connectionUri) {
+                    if (!containerResult.success) {
                         state.formMessage = {
-                            message:
-                                "Failed to create Docker container. Check the output for details.",
+                            message: containerResult.error || containerResult.fullErrorText,
                             intent: "error",
                         };
                         state.inProgress = false;
@@ -577,16 +612,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         return state;
                     }
 
+                    state.containerCreationStatus = ApiStatus.Loaded;
+
                     // STEP 4: Store connection URI for DacFx publish
-                    this._connectionUri = connectionUri;
+                    this._connectionUri = containerResult.connectionUri;
 
                     // STEP 5: Build DACPAC from project
                     const dacpacPath = await this.buildProject(state);
                     if (!dacpacPath) {
-                        state.formMessage = {
-                            message: "Failed to build project. Check the output for details.",
-                            intent: "error",
-                        };
                         state.inProgress = false;
                         this.updateState(state);
                         return state;
@@ -605,7 +638,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 } catch (error) {
                     this.logger.error("Failed during container publish:", error);
                     state.formMessage = {
-                        message: `Publish failed: ${getErrorMessage(error)}`,
+                        message: getErrorMessage(error),
                         intent: "error",
                     };
                     state.inProgress = false;
@@ -615,7 +648,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
                 return state;
             } else {
-                // Existing server publish flow (unchanged)
                 this.panel?.dispose();
                 void this.executePublishAndGenerateScript(state, true);
                 return state;
