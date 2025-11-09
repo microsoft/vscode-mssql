@@ -27,10 +27,9 @@ const useStyles = makeStyles({
     tableContainer: {
         width: "100%",
         maxWidth: "640px",
-        maxHeight: "425px",
+        maxHeight: "368px",
         overflowY: "auto",
         border: "1px solid var(--vscode-panel-border)",
-        position: "relative",
     },
     table: {
         width: "100%",
@@ -41,21 +40,7 @@ const useStyles = makeStyles({
         top: "0",
         backgroundColor: "var(--vscode-editor-background, var(--vscode-sideBar-background))",
         borderBottom: "2px solid var(--vscode-panel-border)",
-        zIndex: 2,
-    },
-    tableHeaderCell: {
-        borderRight: "1px solid var(--vscode-panel-border)",
-        padding: "4px 8px",
-        "&:last-child": {
-            borderRight: "none",
-        },
-    },
-    nameCell: {
-        width: "40%",
-        fontWeight: "600",
-    },
-    valueCell: {
-        width: "60%",
+        zIndex: 1,
     },
     tableCell: {
         borderRight: "1px solid var(--vscode-panel-border)",
@@ -68,14 +53,16 @@ const useStyles = makeStyles({
     valueHeaderContent: {
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between",
+        justifyContent: "center",
         width: "100%",
+        position: "relative",
     },
     revertButton: {
         minWidth: "20px",
         height: "20px",
         padding: "2px",
-        marginLeft: "8px",
+        position: "absolute",
+        right: "0",
     },
 });
 
@@ -176,15 +163,18 @@ export const SqlCmdVariablesSection: React.FC = () => {
             required={sqlCmdComponent.required}
             orientation="horizontal">
             <div className={styles.tableContainer}>
-                <Table className={styles.table} size="small" aria-label={loc.SqlCmdVariablesLabel}>
+                <Table
+                    className={styles.table}
+                    size="extra-small"
+                    aria-label={loc.SqlCmdVariablesLabel}>
                     <TableHeader className={styles.tableHeader}>
                         <TableRow>
-                            <TableHeaderCell
-                                className={`${styles.tableHeaderCell} ${styles.nameCell}`}>
-                                {loc.SqlCmdVariableNameColumn}
+                            <TableHeaderCell className={styles.tableCell}>
+                                <div style={{ textAlign: "center", width: "100%" }}>
+                                    {loc.SqlCmdVariableNameColumn}
+                                </div>
                             </TableHeaderCell>
-                            <TableHeaderCell
-                                className={`${styles.tableHeaderCell} ${styles.valueCell}`}>
+                            <TableHeaderCell className={styles.tableCell}>
                                 <div className={styles.valueHeaderContent}>
                                     <span>{loc.SqlCmdVariableValueColumn}</span>
                                     <Tooltip
@@ -207,12 +197,13 @@ export const SqlCmdVariablesSection: React.FC = () => {
                     <TableBody>
                         {variableEntries.map(([varName]) => (
                             <TableRow key={varName}>
-                                <TableCell className={`${styles.tableCell} ${styles.nameCell}`}>
+                                <TableCell className={styles.tableCell}>
                                     <TableCellLayout>{varName}</TableCellLayout>
                                 </TableCell>
-                                <TableCell className={`${styles.tableCell} ${styles.valueCell}`}>
+                                <TableCell className={styles.tableCell}>
                                     <Input
                                         size="small"
+                                        style={{ width: "100%" }}
                                         value={localValues[varName] || ""}
                                         onChange={(_, data) =>
                                             handleValueChange(varName, data.value)
