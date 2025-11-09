@@ -51,11 +51,13 @@ function PublishProjectDialog() {
         <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
             <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
                 {formMessage && (
-                    <DialogMessage
-                        message={formMessage}
-                        onMessageButtonClicked={() => {}}
-                        onCloseMessage={context.closeMessage}
-                    />
+                    <div style={{ marginBottom: "15px" }}>
+                        <DialogMessage
+                            message={formMessage}
+                            onMessageButtonClicked={() => {}}
+                            onCloseMessage={context.closeMessage}
+                        />
+                    </div>
                 )}
                 <PublishTargetSection />
                 <PublishProfileField />

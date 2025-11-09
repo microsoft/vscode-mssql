@@ -594,7 +594,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     );
                     if (!containerResult.success) {
                         state.formMessage = {
-                            message: containerResult.error || containerResult.fullErrorText,
+                            message: containerResult.fullErrorText || containerResult.error,
                             intent: "error",
                         };
                         state.inProgress = false;
