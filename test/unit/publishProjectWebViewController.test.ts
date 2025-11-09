@@ -21,7 +21,6 @@ import { PublishTarget } from "../../src/sharedInterfaces/publishDialog";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 import * as dockerUtils from "../../src/deployment/dockerUtils";
 import * as projectUtils from "../../src/publishProject/projectUtils";
-import { DockerStep } from "../../src/sharedInterfaces/localContainers";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 
 chai.use(sinonChai);
