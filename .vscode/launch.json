@@ -7,16 +7,9 @@
             "type": "extensionHost",
             "request": "launch",
             "runtimeExecutable": "${execPath}",
-            "args": [
-                "--extensionDevelopmentPath=C:/Projects/azuredatastudio/extensions/sql-database-projects",
-                "--extensionDevelopmentPath=C:/Projects/vscode-mssql"
-            ],
+            "args": ["--extensionDevelopmentPath=${workspaceRoot}"],
             "sourceMaps": true,
-            "outFiles": [
-                "${workspaceRoot}/dist/**/*.js",
-                "${workspaceRoot}/out/src/**/*.js",
-                "C:/Projects/azuredatastudio/extensions/sql-database-projects/out/**/*.js"
-            ],
+            "outFiles": ["${workspaceRoot}/dist/**/*.js", "${workspaceRoot}/out/src/**/*.js"],
             "rendererDebugOptions": {
                 "pauseForSourceMap": true,
                 "sourceMapRenames": true,
