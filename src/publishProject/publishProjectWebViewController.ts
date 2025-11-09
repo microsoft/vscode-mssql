@@ -570,7 +570,17 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     state.containerCreationStatus = ApiStatus.Loading;
                     this.updateState(state);
 
-                    const prereqResult = await this.runDockerPrerequisiteChecks();
+                    const prereqResult = await vscode.window.withProgress(
+                        {
+                            location: vscode.ProgressLocation.Notification,
+                            title: "Checking Docker prerequisites...",
+                            cancellable: false,
+                        },
+                        async () => {
+                            return await this.runDockerPrerequisiteChecks();
+                        },
+                    );
+
                     if (!prereqResult.success) {
                         state.formMessage = {
                             message: prereqResult.error,
@@ -587,11 +597,21 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     const config = await this.prepareContainerConfiguration(state);
 
                     // STEP 3: Create Docker container (pull, start, check, connect)
-                    const containerResult = await this.createDockerContainer(
-                        config.containerName,
-                        config.port,
-                        state,
+                    const containerResult = await vscode.window.withProgress(
+                        {
+                            location: vscode.ProgressLocation.Notification,
+                            title: "Creating SQL Server container...",
+                            cancellable: false,
+                        },
+                        async () => {
+                            return await this.createDockerContainer(
+                                config.containerName,
+                                config.port,
+                                state,
+                            );
+                        },
                     );
+
                     if (!containerResult.success) {
                         state.formMessage = {
                             message: containerResult.fullErrorText || containerResult.error,
