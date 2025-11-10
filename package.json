@@ -812,6 +812,26 @@
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences"
                 },
                 {
+                    "command": "mssql.launchDacpacDialog",
+                    "when": "mssql.experimentalFeaturesEnabled"
+                },
+                {
+                    "command": "mssql.deployDacpac",
+                    "when": "mssql.experimentalFeaturesEnabled"
+                },
+                {
+                    "command": "mssql.extractDacpac",
+                    "when": "mssql.experimentalFeaturesEnabled"
+                },
+                {
+                    "command": "mssql.importBacpac",
+                    "when": "mssql.experimentalFeaturesEnabled"
+                },
+                {
+                    "command": "mssql.exportBacpac",
+                    "when": "mssql.experimentalFeaturesEnabled"
+                },
+                {
                     "command": "mssql.connectionGroups.edit",
                     "when": "false"
                 },
