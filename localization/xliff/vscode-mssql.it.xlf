@@ -3478,6 +3478,10 @@ Errore:
         <source xml:lang="en">Open .scmp file</source>
         <target state="translated">Apri file .scmp</target>
       </trans-unit>
+      <trans-unit id="++CODE++2f51d650687c9201f9367014fa093415a3b9612e4ae2738e50210ef39ed0253e">
+        <source xml:lang="en">Open Containing Folder</source>
+        <target state="new">Open Containing Folder</target>
+      </trans-unit>
       <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
         <source xml:lang="en">Open Publish Script</source>
         <target state="translated">Apri script di pubblicazione</target>
@@ -3984,6 +3988,10 @@ Errore:
       <trans-unit id="++CODE++b1d3c17e8d131616e4c9d243a6536aa7c23973e93908621d94b6b7ebf6486863">
         <source xml:lang="en">Reveal in Explorer</source>
         <target state="new">Reveal in Explorer</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cc849385646ba0d67a8687fb561eec23fadf51b144242cf6a41dd5b594bb4180">
+        <source xml:lang="en">Reveal in Finder</source>
+        <target state="new">Reveal in Finder</target>
       </trans-unit>
       <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
         <source xml:lang="en">Reverse Alphabetical</source>
@@ -5670,7 +5678,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
         <target state="translated">Crea una nuova tabella nel tuo database o modifica le tabelle esistenti con il Designer di tabelle.
 Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare le modifiche al tuo database.</target>
       </trans-unit>
-      <trans-unit id="mssql.launchDacpacDialog">
+      <trans-unit id="mssql.dacpacDialog.launch">
         <source xml:lang="en">Data-tier Application</source>
         <target state="new">Data-tier Application</target>
       </trans-unit>
@@ -5690,7 +5698,7 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Delete Container</source>
         <target state="translated">Elimina contenitore</target>
       </trans-unit>
-      <trans-unit id="mssql.deployDacpac">
+      <trans-unit id="mssql.dacpacDialog.deploy">
         <source xml:lang="en">Deploy DACPAC</source>
         <target state="new">Deploy DACPAC</target>
       </trans-unit>
@@ -5892,11 +5900,11 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Explain Query</source>
         <target state="translated">Spiega query</target>
       </trans-unit>
-      <trans-unit id="mssql.exportBacpac">
+      <trans-unit id="mssql.dacpacDialog.export">
         <source xml:lang="en">Export BACPAC</source>
         <target state="new">Export BACPAC</target>
       </trans-unit>
-      <trans-unit id="mssql.extractDacpac">
+      <trans-unit id="mssql.dacpacDialog.extract">
         <source xml:lang="en">Extract DACPAC</source>
         <target state="new">Extract DACPAC</target>
       </trans-unit>
@@ -5920,7 +5928,7 @@ Una volta completate le modifiche, fai clic sul pulsante 'Pubblica' per inviare 
         <source xml:lang="en">Getting Started Guide</source>
         <target state="translated">Guida introduttiva</target>
       </trans-unit>
-      <trans-unit id="mssql.importBacpac">
+      <trans-unit id="mssql.dacpacDialog.import">
         <source xml:lang="en">Import BACPAC</source>
         <target state="new">Import BACPAC</target>
       </trans-unit>
