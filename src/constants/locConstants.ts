@@ -2153,6 +2153,8 @@ export class DacpacDialog {
         "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)",
     );
     public static RevealInExplorer = l10n.t("Reveal in Explorer");
+    public static RevealInFinder = l10n.t("Reveal in Finder");
+    public static OpenContainingFolder = l10n.t("Open Containing Folder");
     public static DeploySuccessWithDatabase(databaseName: string): string {
         return l10n.t({
             message: "DACPAC deployed successfully to database '{0}'",
