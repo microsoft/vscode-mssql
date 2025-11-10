@@ -6226,6 +6226,10 @@ Inizia facendo clic sul pulsante Filtro accanto alla maggior parte delle cartell
         <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
         <target state="translated">Ordina e filtra i risultati della query per trovare rapidamente i dati necessari.</target>
       </trans-unit>
+      <trans-unit id="mssql.customEnvironment.dynamicsCrmDnsSuffix">
+        <source xml:lang="en">Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)</source>
+        <target state="new">Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)</target>
+      </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</source>
         <target state="translated">Equivalente di Sovereign Cloud per `.database.fabric.microsoft.com` (incluso il punto iniziale)</target>

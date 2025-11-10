@@ -6226,6 +6226,10 @@ Comece clicando no botão de filtro ao lado da maioria das pastas na exibição 
         <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
         <target state="translated">Classifique e filtre os resultados da sua consulta para encontrar rapidamente os dados de que você precisa.</target>
       </trans-unit>
+      <trans-unit id="mssql.customEnvironment.dynamicsCrmDnsSuffix">
+        <source xml:lang="en">Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)</source>
+        <target state="new">Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)</target>
+      </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</source>
         <target state="translated">Equivalente de nuvem soberana para `.database.fabric.microsoft.com` (incluindo ponto à esquerda)</target>

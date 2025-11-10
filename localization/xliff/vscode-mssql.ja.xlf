@@ -6226,6 +6226,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Sort and filter your query results to find the data you need quickly.</source>
         <target state="translated">クエリ結果を並べ替えてフィルター処理し、必要なデータをすばやく見つけます。</target>
       </trans-unit>
+      <trans-unit id="mssql.customEnvironment.dynamicsCrmDnsSuffix">
+        <source xml:lang="en">Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)</source>
+        <target state="new">Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)</target>
+      </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</source>
         <target state="translated">'.database.fabric.microsoft.com' に相当するソブリン クラウド (先頭のドットを含む)</target>
