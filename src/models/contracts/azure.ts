@@ -136,6 +136,9 @@ export interface IProviderSettings {
         sqlDbDnsSuffix: string;
         dataWarehouseDnsSuffix: string;
     };
+    dataverse: {
+        dynamicsCrmDnsSuffix: string;
+    };
 }
 
 export interface IProviderResources {
