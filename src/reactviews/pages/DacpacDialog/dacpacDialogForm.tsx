@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, makeStyles, tokens } from "@fluentui/react-components";
+import { Button, Link, makeStyles, tokens } from "@fluentui/react-components";
 import { DatabaseArrowRight20Regular } from "@fluentui/react-icons";
 import { useState, useEffect, useContext } from "react";
 import * as dacpacDialog from "../../../sharedInterfaces/dacpacDialog";
@@ -365,6 +365,46 @@ export const DacpacDialogForm = () => {
     };
 
     /**
+     * Validates application version format (n.n.n.n where n is a number)
+     * @returns true if validation passes, false otherwise
+     */
+    const validateApplicationVersion = (version: string): boolean => {
+        if (!version) {
+            setValidationMessages((prev) => ({
+                ...prev,
+                applicationVersion: {
+                    message: locConstants.dacpacDialog.invalidApplicationVersion,
+                    severity: "error",
+                },
+            }));
+            return false;
+        }
+
+        // Regex to match n.n.n.n format where n is one or more digits
+        // Allows 3 or 4 parts (1.0.0 or 1.0.0.0)
+        const versionRegex = /^\d+\.\d+\.\d+(\.\d+)?$/;
+
+        if (!versionRegex.test(version)) {
+            setValidationMessages((prev) => ({
+                ...prev,
+                applicationVersion: {
+                    message: locConstants.dacpacDialog.invalidApplicationVersion,
+                    severity: "error",
+                },
+            }));
+            return false;
+        }
+
+        // Clear validation error if valid
+        setValidationMessages((prev) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { applicationVersion: _av, ...rest } = prev;
+            return rest;
+        });
+        return true;
+    };
+
+    /**
      * Helper to determine validation requirements based on operation type
      */
     const getValidationRequirements = (opType: dacpacDialog.DacPacDialogOperationType) => {
@@ -395,7 +435,13 @@ export const DacpacDialogForm = () => {
             requirements.databaseShouldNotExist,
         );
 
-        return filePathValid && databaseValid;
+        // For Extract operation, also validate application version
+        let versionValid = true;
+        if (opType === dacpacDialog.DacPacDialogOperationType.Extract) {
+            versionValid = validateApplicationVersion(applicationVersion);
+        }
+
+        return filePathValid && databaseValid && versionValid;
     };
 
     const handleSubmit = async () => {
@@ -509,6 +555,7 @@ export const DacpacDialogForm = () => {
             await validateFilePath(result.filePath, requiresInputFile);
 
             // For Deploy/Import operations, suggest database name from the selected file
+            // Only auto-suggest if the dialog was NOT launched with a specific database context
             if (
                 requiresInputFile &&
                 context &&
@@ -568,7 +615,12 @@ export const DacpacDialogForm = () => {
             <div className={classes.formContainer}>
                 <div>
                     <div className={classes.title}>{locConstants.dacpacDialog.title}</div>
-                    <div className={classes.description}>{locConstants.dacpacDialog.subtitle}</div>
+                    <div className={classes.description}>
+                        {locConstants.dacpacDialog.subtitle}{" "}
+                        <Link href="https://learn.microsoft.com/en-us/sql/tools/sql-database-projects/concepts/data-tier-applications/overview?view=sql-server-ver17">
+                            {locConstants.dacpacDialog.learnMore}
+                        </Link>
+                    </div>
                 </div>
 
                 <OperationTypeSection
@@ -593,6 +645,20 @@ export const DacpacDialogForm = () => {
                     onServerChange={(profileId) => void handleServerChange(profileId)}
                 />
 
+                {/* For Extract/Export: Show database selection BEFORE file path */}
+                {showDatabaseSource && (
+                    <SourceDatabaseSection
+                        databaseName={databaseName}
+                        setDatabaseName={setDatabaseName}
+                        availableDatabases={availableDatabases}
+                        isOperationInProgress={isOperationInProgress}
+                        ownerUri={ownerUri}
+                        validationMessages={validationMessages}
+                        showDatabaseSource={showDatabaseSource}
+                        showNewDatabase={false}
+                    />
+                )}
+
                 <FilePathSection
                     filePath={filePath}
                     setFilePath={setFilePath}
@@ -603,6 +669,7 @@ export const DacpacDialogForm = () => {
                     onFilePathChange={handleFilePathChange}
                 />
 
+                {/* For Deploy: Show target database AFTER file path */}
                 {showDatabaseTarget && (
                     <TargetDatabaseSection
                         databaseName={databaseName}
@@ -616,7 +683,8 @@ export const DacpacDialogForm = () => {
                     />
                 )}
 
-                {(showDatabaseSource || showNewDatabase) && (
+                {/* For Import: Show new database name AFTER file path */}
+                {showNewDatabase && (
                     <SourceDatabaseSection
                         databaseName={databaseName}
                         setDatabaseName={setDatabaseName}
@@ -624,7 +692,7 @@ export const DacpacDialogForm = () => {
                         isOperationInProgress={isOperationInProgress}
                         ownerUri={ownerUri}
                         validationMessages={validationMessages}
-                        showDatabaseSource={showDatabaseSource}
+                        showDatabaseSource={false}
                         showNewDatabase={showNewDatabase}
                     />
                 )}
@@ -636,6 +704,10 @@ export const DacpacDialogForm = () => {
                         applicationVersion={applicationVersion}
                         setApplicationVersion={setApplicationVersion}
                         isOperationInProgress={isOperationInProgress}
+                        validationMessages={validationMessages}
+                        onApplicationVersionChange={async (value) => {
+                            validateApplicationVersion(value);
+                        }}
                     />
                 )}
 

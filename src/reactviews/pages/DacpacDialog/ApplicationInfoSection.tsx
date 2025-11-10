@@ -11,12 +11,22 @@ import { locConstants } from "../../common/locConstants";
  */
 const DEFAULT_APPLICATION_VERSION = "1.0.0";
 
+/**
+ * Validation message with severity level
+ */
+interface ValidationMessage {
+    message: string;
+    severity: "error" | "warning";
+}
+
 interface ApplicationInfoSectionProps {
     applicationName: string;
     setApplicationName: (value: string) => void;
     applicationVersion: string;
     setApplicationVersion: (value: string) => void;
     isOperationInProgress: boolean;
+    validationMessages: Record<string, ValidationMessage>;
+    onApplicationVersionChange: (value: string) => Promise<void>;
 }
 
 const useStyles = makeStyles({
@@ -33,8 +43,12 @@ export const ApplicationInfoSection = ({
     applicationVersion,
     setApplicationVersion,
     isOperationInProgress,
+    validationMessages,
+    onApplicationVersionChange,
 }: ApplicationInfoSectionProps) => {
     const classes = useStyles();
+
+    const versionValidation = validationMessages.applicationVersion;
 
     return (
         <div className={classes.section}>
@@ -48,10 +62,16 @@ export const ApplicationInfoSection = ({
                 />
             </Field>
 
-            <Field label={locConstants.dacpacDialog.applicationVersionLabel}>
+            <Field
+                label={locConstants.dacpacDialog.applicationVersionLabel}
+                validationMessage={versionValidation?.message}
+                validationState={versionValidation?.severity === "error" ? "error" : "none"}>
                 <Input
                     value={applicationVersion}
-                    onChange={(_, data) => setApplicationVersion(data.value)}
+                    onChange={(_, data) => {
+                        setApplicationVersion(data.value);
+                        void onApplicationVersionChange(data.value);
+                    }}
                     placeholder={DEFAULT_APPLICATION_VERSION}
                     disabled={isOperationInProgress}
                     aria-label={locConstants.dacpacDialog.applicationVersionLabel}

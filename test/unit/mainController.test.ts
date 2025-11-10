@@ -347,29 +347,65 @@ suite("MainController Tests", function () {
     });
 
     suite("Data-Tier Application Commands", () => {
-        test("cmdDacpacDialog command is registered", async () => {
+        test("cmdDacpacDialog command is registered when experimental features enabled", async () => {
+            // Verify experimental features are enabled in the test environment
+            const config = vscode.workspace.getConfiguration();
+            const experimentalEnabled = config.get(Constants.configEnableExperimentalFeatures);
+
             const commands = await vscode.commands.getCommands(true);
-            expect(commands).to.include(Constants.cmdDacpacDialog);
+            if (experimentalEnabled) {
+                expect(commands).to.include(Constants.cmdDacpacDialog);
+            } else {
+                expect(commands).to.not.include(Constants.cmdDacpacDialog);
+            }
         });
 
-        test("cmdDeployDacpac command is registered", async () => {
+        test("cmdDeployDacpac command is registered when experimental features enabled", async () => {
+            const config = vscode.workspace.getConfiguration();
+            const experimentalEnabled = config.get(Constants.configEnableExperimentalFeatures);
+
             const commands = await vscode.commands.getCommands(true);
-            expect(commands).to.include(Constants.cmdDeployDacpac);
+            if (experimentalEnabled) {
+                expect(commands).to.include(Constants.cmdDeployDacpac);
+            } else {
+                expect(commands).to.not.include(Constants.cmdDeployDacpac);
+            }
         });
 
-        test("cmdExtractDacpac command is registered", async () => {
+        test("cmdExtractDacpac command is registered when experimental features enabled", async () => {
+            const config = vscode.workspace.getConfiguration();
+            const experimentalEnabled = config.get(Constants.configEnableExperimentalFeatures);
+
             const commands = await vscode.commands.getCommands(true);
-            expect(commands).to.include(Constants.cmdExtractDacpac);
+            if (experimentalEnabled) {
+                expect(commands).to.include(Constants.cmdExtractDacpac);
+            } else {
+                expect(commands).to.not.include(Constants.cmdExtractDacpac);
+            }
         });
 
-        test("cmdImportBacpac command is registered", async () => {
+        test("cmdImportBacpac command is registered when experimental features enabled", async () => {
+            const config = vscode.workspace.getConfiguration();
+            const experimentalEnabled = config.get(Constants.configEnableExperimentalFeatures);
+
             const commands = await vscode.commands.getCommands(true);
-            expect(commands).to.include(Constants.cmdImportBacpac);
+            if (experimentalEnabled) {
+                expect(commands).to.include(Constants.cmdImportBacpac);
+            } else {
+                expect(commands).to.not.include(Constants.cmdImportBacpac);
+            }
         });
 
-        test("cmdExportBacpac command is registered", async () => {
+        test("cmdExportBacpac command is registered when experimental features enabled", async () => {
+            const config = vscode.workspace.getConfiguration();
+            const experimentalEnabled = config.get(Constants.configEnableExperimentalFeatures);
+
             const commands = await vscode.commands.getCommands(true);
-            expect(commands).to.include(Constants.cmdExportBacpac);
+            if (experimentalEnabled) {
+                expect(commands).to.include(Constants.cmdExportBacpac);
+            } else {
+                expect(commands).to.not.include(Constants.cmdExportBacpac);
+            }
         });
     });
 });

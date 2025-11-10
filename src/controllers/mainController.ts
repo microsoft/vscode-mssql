@@ -829,6 +829,13 @@ export default class MainController implements vscode.Disposable {
             cloudType: getCloudId(),
         });
 
+        // Set context for experimental features (used for conditional menu visibility)
+        await vscode.commands.executeCommand(
+            "setContext",
+            "mssql.experimentalFeaturesEnabled",
+            this.isExperimentalEnabled,
+        );
+
         await this._connectionMgr.initialized;
 
         this._statusview.setConnectionStore(this._connectionMgr.connectionStore);
@@ -1670,12 +1677,14 @@ export default class MainController implements vscode.Disposable {
             );
         };
 
-        // Data-tier Application commands
-        registerDacPacCommand(Constants.cmdDacpacDialog, DacPacDialogOperationType.Deploy);
-        registerDacPacCommand(Constants.cmdDeployDacpac, DacPacDialogOperationType.Deploy);
-        registerDacPacCommand(Constants.cmdExtractDacpac, DacPacDialogOperationType.Extract);
-        registerDacPacCommand(Constants.cmdImportBacpac, DacPacDialogOperationType.Import);
-        registerDacPacCommand(Constants.cmdExportBacpac, DacPacDialogOperationType.Export);
+        // Data-tier Application commands (only register if experimental features are enabled)
+        if (this.isExperimentalEnabled) {
+            registerDacPacCommand(Constants.cmdDacpacDialog, DacPacDialogOperationType.Deploy);
+            registerDacPacCommand(Constants.cmdDeployDacpac, DacPacDialogOperationType.Deploy);
+            registerDacPacCommand(Constants.cmdExtractDacpac, DacPacDialogOperationType.Extract);
+            registerDacPacCommand(Constants.cmdImportBacpac, DacPacDialogOperationType.Import);
+            registerDacPacCommand(Constants.cmdExportBacpac, DacPacDialogOperationType.Export);
+        }
 
         // Copy object name command
         this._context.subscriptions.push(
