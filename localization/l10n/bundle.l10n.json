@@ -1989,6 +1989,8 @@
     "Files": "Files",
     "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)": "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)",
     "Reveal in Explorer": "Reveal in Explorer",
+    "Reveal in Finder": "Reveal in Finder",
+    "Open Containing Folder": "Open Containing Folder",
     "DACPAC deployed successfully to database '{0}'/{0} is the database name": {
         "message": "DACPAC deployed successfully to database '{0}'",
         "comment": ["{0} is the database name"]

@@ -2654,6 +2654,9 @@
     <trans-unit id="++CODE++afe20ac8b79880f255ada45b4113ce2356e2e96da5a833a6262b495ef67c7c33">
       <source xml:lang="en">Open .scmp file</source>
     </trans-unit>
+    <trans-unit id="++CODE++2f51d650687c9201f9367014fa093415a3b9612e4ae2738e50210ef39ed0253e">
+      <source xml:lang="en">Open Containing Folder</source>
+    </trans-unit>
     <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
       <source xml:lang="en">Open Publish Script</source>
     </trans-unit>
@@ -3039,6 +3042,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b1d3c17e8d131616e4c9d243a6536aa7c23973e93908621d94b6b7ebf6486863">
       <source xml:lang="en">Reveal in Explorer</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cc849385646ba0d67a8687fb561eec23fadf51b144242cf6a41dd5b594bb4180">
+      <source xml:lang="en">Reveal in Finder</source>
     </trans-unit>
     <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
       <source xml:lang="en">Reverse Alphabetical</source>
@@ -4317,7 +4323,7 @@
     <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.description">
       <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.&#10;Once you&apos;re done making your changes, click the &apos;Publish&apos; button to send the changes to your database.</source>
     </trans-unit>
-    <trans-unit id="mssql.launchDacpacDialog">
+    <trans-unit id="mssql.dacpacDialog.launch">
       <source xml:lang="en">Data-tier Application</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.description">
@@ -4332,7 +4338,7 @@
     <trans-unit id="mssql.deleteContainer">
       <source xml:lang="en">Delete Container</source>
     </trans-unit>
-    <trans-unit id="mssql.deployDacpac">
+    <trans-unit id="mssql.dacpacDialog.deploy">
       <source xml:lang="en">Deploy DACPAC</source>
     </trans-unit>
     <trans-unit id="mssql.disableActualPlan">
@@ -4482,10 +4488,10 @@
     <trans-unit id="mssql.copilot.explainQuery">
       <source xml:lang="en">Explain Query</source>
     </trans-unit>
-    <trans-unit id="mssql.exportBacpac">
+    <trans-unit id="mssql.dacpacDialog.export">
       <source xml:lang="en">Export BACPAC</source>
     </trans-unit>
-    <trans-unit id="mssql.extractDacpac">
+    <trans-unit id="mssql.dacpacDialog.extract">
       <source xml:lang="en">Extract DACPAC</source>
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.description">
@@ -4503,7 +4509,7 @@
     <trans-unit id="mssql.showGettingStarted">
       <source xml:lang="en">Getting Started Guide</source>
     </trans-unit>
-    <trans-unit id="mssql.importBacpac">
+    <trans-unit id="mssql.dacpacDialog.import">
       <source xml:lang="en">Import BACPAC</source>
     </trans-unit>
     <trans-unit id="mssql.copilot.editorSubmenu">

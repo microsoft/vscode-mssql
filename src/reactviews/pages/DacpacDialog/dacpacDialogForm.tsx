@@ -8,6 +8,7 @@ import { DatabaseArrowRight20Regular } from "@fluentui/react-icons";
 import { useState, useEffect, useContext } from "react";
 import * as dacpacDialog from "../../../sharedInterfaces/dacpacDialog";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import { dataTierApplicationsDocumentationUrl } from "../../common/constants";
 import { locConstants } from "../../common/locConstants";
 import { ApplicationInfoSection } from "./ApplicationInfoSection";
 import { DacpacDialogContext } from "./dacpacDialogStateProvider";
@@ -365,7 +366,7 @@ export const DacpacDialogForm = () => {
     };
 
     /**
-     * Validates application version format (n.n.n.n where n is a number)
+     * Validates application version format (n.n or n.n.n or n.n.n.n where n is a number)
      * @returns true if validation passes, false otherwise
      */
     const validateApplicationVersion = (version: string): boolean => {
@@ -380,9 +381,9 @@ export const DacpacDialogForm = () => {
             return false;
         }
 
-        // Regex to match n.n.n.n format where n is one or more digits
-        // Allows 3 or 4 parts (1.0.0 or 1.0.0.0)
-        const versionRegex = /^\d+\.\d+\.\d+(\.\d+)?$/;
+        // Regex to match version format where n is one or more digits
+        // Allows 2, 3, or 4 parts (1.0, 1.0.0, or 1.0.0.0)
+        const versionRegex = /^\d+\.\d+(\.\d+)?(\.\d+)?$/;
 
         if (!versionRegex.test(version)) {
             setValidationMessages((prev) => ({
@@ -617,7 +618,7 @@ export const DacpacDialogForm = () => {
                     <div className={classes.title}>{locConstants.dacpacDialog.title}</div>
                     <div className={classes.description}>
                         {locConstants.dacpacDialog.subtitle}{" "}
-                        <Link href="https://learn.microsoft.com/en-us/sql/tools/sql-database-projects/concepts/data-tier-applications/overview?view=sql-server-ver17">
+                        <Link href={dataTierApplicationsDocumentationUrl}>
                             {locConstants.dacpacDialog.learnMore}
                         </Link>
                     </div>
