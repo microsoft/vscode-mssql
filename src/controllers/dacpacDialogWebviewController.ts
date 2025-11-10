@@ -27,6 +27,7 @@ import {
     DatabaseNameValidationError,
     ConnectionMatcher,
 } from "../models/utils";
+import { PlatformInformation } from "../models/platform";
 
 // File extension constants
 export const DACPAC_EXTENSION = ".dacpac";
@@ -34,6 +35,23 @@ export const BACPAC_EXTENSION = ".bacpac";
 
 // VS Code command constants
 const REVEAL_FILE_IN_OS_COMMAND = "revealFileInOS";
+
+/**
+ * Gets the OS-specific localized text for the "Reveal/Open" file button
+ * @returns The appropriate localized string based on the operating system
+ */
+function getRevealInOsButtonText(): string {
+    const platformInfo = new PlatformInformation(process.platform, process.arch, undefined);
+
+    if (platformInfo.isMacOS) {
+        return LocConstants.DacpacDialog.RevealInFinder;
+    } else if (platformInfo.isLinux) {
+        return LocConstants.DacpacDialog.OpenContainingFolder;
+    } else {
+        // Windows or any other platform
+        return LocConstants.DacpacDialog.RevealInExplorer;
+    }
+}
 
 /**
  * Controller for the DacpacDialog webview.
@@ -379,15 +397,16 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
 
             if (result.success) {
                 activity.end(ActivityStatus.Succeeded);
-                // Show success notification with "Reveal in Explorer" button for Extract operation
+                // Show success notification with OS-specific "Reveal/Open" button for Extract operation
                 const fileName = path.basename(params.packageFilePath);
+                const revealButtonText = getRevealInOsButtonText();
                 void this.vscodeWrapper
                     .showInformationMessage(
                         LocConstants.DacpacDialog.ExtractSuccessWithFile(fileName),
-                        LocConstants.DacpacDialog.RevealInExplorer,
+                        revealButtonText,
                     )
                     .then((selection) => {
-                        if (selection === LocConstants.DacpacDialog.RevealInExplorer) {
+                        if (selection === revealButtonText) {
                             void vscode.commands.executeCommand(
                                 REVEAL_FILE_IN_OS_COMMAND,
                                 vscode.Uri.file(params.packageFilePath),
@@ -492,15 +511,16 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
 
             if (result.success) {
                 activity.end(ActivityStatus.Succeeded);
-                // Show success notification with "Reveal in Explorer" button for Export operation
+                // Show success notification with OS-specific "Reveal/Open" button for Export operation
                 const fileName = path.basename(params.packageFilePath);
+                const revealButtonText = getRevealInOsButtonText();
                 void this.vscodeWrapper
                     .showInformationMessage(
                         LocConstants.DacpacDialog.ExportSuccessWithFile(fileName),
-                        LocConstants.DacpacDialog.RevealInExplorer,
+                        revealButtonText,
                     )
                     .then((selection) => {
-                        if (selection === LocConstants.DacpacDialog.RevealInExplorer) {
+                        if (selection === revealButtonText) {
                             void vscode.commands.executeCommand(
                                 REVEAL_FILE_IN_OS_COMMAND,
                                 vscode.Uri.file(params.packageFilePath),

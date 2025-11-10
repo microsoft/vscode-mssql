@@ -65,7 +65,7 @@ export const ApplicationInfoSection = ({
             <Field
                 label={locConstants.dacpacDialog.applicationVersionLabel}
                 validationMessage={versionValidation?.message}
-                validationState={versionValidation?.severity === "error" ? "error" : "none"}>
+                validationState={versionValidation?.severity}>
                 <Input
                     value={applicationVersion}
                     onChange={(_, data) => {

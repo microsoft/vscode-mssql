@@ -569,7 +569,7 @@
                     "group": "2_MSSQL_serverDbActions@2"
                 },
                 {
-                    "command": "mssql.launchDacpacDialog",
+                    "command": "mssql.dacpacDialog.launch",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/ && mssql.experimentalFeaturesEnabled",
                     "group": "2_MSSQL_serverDbActions@3"
                 },
@@ -810,6 +810,26 @@
                 {
                     "command": "mssql.schemaDesigner",
                     "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences"
+                },
+                {
+                    "command": "mssql.dacpacDialog.launch",
+                    "when": "mssql.experimentalFeaturesEnabled"
+                },
+                {
+                    "command": "mssql.dacpacDialog.deploy",
+                    "when": "mssql.experimentalFeaturesEnabled"
+                },
+                {
+                    "command": "mssql.dacpacDialog.extract",
+                    "when": "mssql.experimentalFeaturesEnabled"
+                },
+                {
+                    "command": "mssql.dacpacDialog.import",
+                    "when": "mssql.experimentalFeaturesEnabled"
+                },
+                {
+                    "command": "mssql.dacpacDialog.export",
+                    "when": "mssql.experimentalFeaturesEnabled"
                 },
                 {
                     "command": "mssql.connectionGroups.edit",
@@ -1075,29 +1095,29 @@
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.launchDacpacDialog",
-                "title": "%mssql.launchDacpacDialog%",
+                "command": "mssql.dacpacDialog.launch",
+                "title": "%mssql.dacpacDialog.launch%",
                 "category": "MS SQL",
                 "icon": "$(database)"
             },
             {
-                "command": "mssql.deployDacpac",
-                "title": "%mssql.deployDacpac%",
+                "command": "mssql.dacpacDialog.deploy",
+                "title": "%mssql.dacpacDialog.deploy%",
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.extractDacpac",
-                "title": "%mssql.extractDacpac%",
+                "command": "mssql.dacpacDialog.extract",
+                "title": "%mssql.dacpacDialog.extract%",
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.importBacpac",
-                "title": "%mssql.importBacpac%",
+                "command": "mssql.dacpacDialog.import",
+                "title": "%mssql.dacpacDialog.import%",
                 "category": "MS SQL"
             },
             {
-                "command": "mssql.exportBacpac",
-                "title": "%mssql.exportBacpac%",
+                "command": "mssql.dacpacDialog.export",
+                "title": "%mssql.dacpacDialog.export%",
                 "category": "MS SQL"
             },
             {
