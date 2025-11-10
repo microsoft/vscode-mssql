@@ -21,7 +21,6 @@ import { PublishTarget } from "../../src/sharedInterfaces/publishDialog";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 import * as dockerUtils from "../../src/deployment/dockerUtils";
 import * as projectUtils from "../../src/publishProject/projectUtils";
-import { ApiStatus } from "../../src/sharedInterfaces/webview";
 
 chai.use(sinonChai);
 
@@ -1093,14 +1092,6 @@ suite("PublishProjectWebViewController Tests", () => {
                     message: scenario.expectedError,
                     intent: "error",
                 });
-            }
-
-            // Verify container creation status if expected
-            if (scenario.expectContainerError) {
-                expect(
-                    newState.containerCreationStatus,
-                    `${scenario.name}: containerCreationStatus should be Error`,
-                ).to.equal(ApiStatus.Error);
             }
 
             // Verify logger was called if expected

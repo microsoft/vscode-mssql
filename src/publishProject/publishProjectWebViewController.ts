@@ -40,7 +40,6 @@ import { ProjectController } from "../controllers/projectController";
 import { UserSurvey } from "../nps/userSurvey";
 import * as dockerUtils from "../deployment/dockerUtils";
 import { DockerConnectionProfile, DockerStepOrder } from "../sharedInterfaces/localContainers";
-import { ApiStatus } from "../sharedInterfaces/webview";
 import MainController from "../controllers/mainController";
 import { localhost, sa, sqlAuthentication } from "../constants/constants";
 
@@ -567,9 +566,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
                 try {
                     // STEP 1: Run Docker prerequisite checks (Docker install, start, engine)
-                    state.containerCreationStatus = ApiStatus.Loading;
-                    this.updateState(state);
-
                     const prereqResult = await vscode.window.withProgress(
                         {
                             location: vscode.ProgressLocation.Notification,
@@ -587,7 +583,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                             intent: "error",
                         };
                         state.inProgress = false;
-                        state.containerCreationStatus = ApiStatus.Error;
                         this.updateState(state);
                         return state;
                     }
@@ -618,12 +613,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                             intent: "error",
                         };
                         state.inProgress = false;
-                        state.containerCreationStatus = ApiStatus.Error;
                         this.updateState(state);
                         return state;
                     }
-
-                    state.containerCreationStatus = ApiStatus.Loaded;
 
                     // STEP 4: Store connection URI for DacFx publish
                     this._connectionUri = containerResult.connectionUri;
@@ -653,7 +645,6 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         intent: "error",
                     };
                     state.inProgress = false;
-                    state.containerCreationStatus = ApiStatus.Error;
                     this.updateState(state);
                 }
 
