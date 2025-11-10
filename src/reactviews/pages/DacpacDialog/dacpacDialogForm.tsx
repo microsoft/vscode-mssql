@@ -8,6 +8,7 @@ import { DatabaseArrowRight20Regular } from "@fluentui/react-icons";
 import { useState, useEffect, useContext } from "react";
 import * as dacpacDialog from "../../../sharedInterfaces/dacpacDialog";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
+import { dataTierApplicationsDocumentationUrl } from "../../common/constants";
 import { locConstants } from "../../common/locConstants";
 import { ApplicationInfoSection } from "./ApplicationInfoSection";
 import { DacpacDialogContext } from "./dacpacDialogStateProvider";
@@ -617,7 +618,7 @@ export const DacpacDialogForm = () => {
                     <div className={classes.title}>{locConstants.dacpacDialog.title}</div>
                     <div className={classes.description}>
                         {locConstants.dacpacDialog.subtitle}{" "}
-                        <Link href="https://learn.microsoft.com/en-us/sql/tools/sql-database-projects/concepts/data-tier-applications/overview?view=sql-server-ver17">
+                        <Link href={dataTierApplicationsDocumentationUrl}>
                             {locConstants.dacpacDialog.learnMore}
                         </Link>
                     </div>
