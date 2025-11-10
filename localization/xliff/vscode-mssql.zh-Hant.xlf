@@ -299,6 +299,14 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Application Version</source>
         <target state="new">Application Version</target>
       </trans-unit>
+      <trans-unit id="++CODE++3bce900ec4939301dbcf9f9199be4416b9c310a90af78e6a083fcbb7c517696e">
+        <source xml:lang="en">Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)</source>
+        <target state="new">Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++70e9cc5a50f7eb5ba95c18dffd367c22caeef8814be8188d6af4f5654a8fc728">
+        <source xml:lang="en">Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)</source>
+        <target state="new">Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)</target>
+      </trans-unit>
       <trans-unit id="++CODE++31e392d1c0378beca611de66c0f4c71cba29159905cc54242d9bddee5b23d851">
         <source xml:lang="en">Apply</source>
         <target state="translated">套用</target>
@@ -464,9 +472,19 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">BACPAC exported successfully</source>
         <target state="new">BACPAC exported successfully</target>
       </trans-unit>
+      <trans-unit id="++CODE++c77ba6ce31916c226def02930b4f3867d3bba2e1814b5528c12d5b3b62828eca">
+        <source xml:lang="en">BACPAC exported successfully to '{0}'</source>
+        <note>{0} is the file path</note>
+        <target state="new">BACPAC exported successfully to '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++2ba87440799be3f6c8b0aa29316cf97584087cc46962e689c375699adb392137">
         <source xml:lang="en">BACPAC imported successfully</source>
         <target state="new">BACPAC imported successfully</target>
+      </trans-unit>
+      <trans-unit id="++CODE++98dbbe35459fbe282206441874ff66bc527f1c735eb99367c073ac68f713c396">
+        <source xml:lang="en">BACPAC imported successfully to database '{0}'</source>
+        <note>{0} is the database name</note>
+        <target state="new">BACPAC imported successfully to database '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++76900f1bfd16c8d4dd3d25e6f46638d7165aee23883ccea6bfe071c514421769">
         <source xml:lang="en">Back</source>
@@ -515,15 +533,15 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
-        <target state="new">Build failed with exit code {0}</target>
+        <target state="translated">建置失敗，結束代碼為 {0}。</target>
       </trans-unit>
       <trans-unit id="++CODE++070df86dfd0e7f4066a971ef2e0d5b9ee8ddbb826c4edf0924026bca37ac603f">
         <source xml:lang="en">Build {0}</source>
-        <target state="new">Build {0}</target>
+        <target state="translated">建置 {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++9168a1046e45504ed34edeecd99ec73be336161e82395399aa9a3c1d912be6b2">
         <source xml:lang="en">Building {0}...</source>
-        <target state="new">Building {0}...</target>
+        <target state="translated">正在建置 {0}...</target>
       </trans-unit>
       <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
         <source xml:lang="en">CSV</source>
@@ -1301,10 +1319,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Create a SQL database in Fabric (Preview)</source>
         <target state="translated">在 Fabric 中建立 SQL 資料庫 (預覽)</target>
       </trans-unit>
-      <trans-unit id="++CODE++c596645c9e18f8f49df67feda1d83d1015c9e4371593afaba2c24cedf1ae14b4">
-        <source xml:lang="en">Create a database from a .bacpac file</source>
-        <target state="new">Create a database from a .bacpac file</target>
-      </trans-unit>
       <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
         <source xml:lang="en">Create a new firewall rule</source>
         <target state="translated">建立新的防火牆規則</target>
@@ -1348,9 +1362,19 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">DACPAC deployed successfully</source>
         <target state="new">DACPAC deployed successfully</target>
       </trans-unit>
+      <trans-unit id="++CODE++c013d84f45a8e17f8b3f0bfea676174416117e054fa2315d1e3f1daeac57af36">
+        <source xml:lang="en">DACPAC deployed successfully to database '{0}'</source>
+        <note>{0} is the database name</note>
+        <target state="new">DACPAC deployed successfully to database '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++fec6ccad8071c66a146f4f9bab40620ba0279984c3c35763ac115ac3825fa6fd">
         <source xml:lang="en">DACPAC extracted successfully</source>
         <target state="new">DACPAC extracted successfully</target>
+      </trans-unit>
+      <trans-unit id="++CODE++efa7e304910e512aeaeb6c9dc608a6f993bd69b672cd3de63dba56475ed3e244">
+        <source xml:lang="en">DACPAC extracted successfully to '{0}'</source>
+        <note>{0} is the file path</note>
+        <target state="new">DACPAC extracted successfully to '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
         <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
@@ -1489,13 +1513,9 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Deploy</source>
         <target state="new">Deploy</target>
       </trans-unit>
-      <trans-unit id="++CODE++e1d68ffa03dfa562a04ba8039fc29b62f9e617556acba87a075a3a8924f621f6">
-        <source xml:lang="en">Deploy DACPAC</source>
-        <target state="new">Deploy DACPAC</target>
-      </trans-unit>
-      <trans-unit id="++CODE++1642403d004fc160293e0464f1a9c0e1fdcff3e3674ba81cb2fbed23c4610739">
-        <source xml:lang="en">Deploy a data-tier application .dacpac file to an instance of SQL Server</source>
-        <target state="new">Deploy a data-tier application .dacpac file to an instance of SQL Server</target>
+      <trans-unit id="++CODE++796590e031547b420cb30aea63caa00543f57651e3244a8823b769a5f1a1a74e">
+        <source xml:lang="en">Deploy a .dacpac file to a new or existing SQL database</source>
+        <target state="new">Deploy a .dacpac file to a new or existing SQL database</target>
       </trans-unit>
       <trans-unit id="++CODE++97dc38d5949112e250523663a3556643b30754a83c8305adb6e79d88b13b200d">
         <source xml:lang="en">Deploy to Existing Database</source>
@@ -1967,9 +1987,9 @@ Error:
         <source xml:lang="en">Export BACPAC</source>
         <target state="new">Export BACPAC</target>
       </trans-unit>
-      <trans-unit id="++CODE++ac4a7f1b26c07b58805bc247b84f2cb8349fb9f206e4dcb2e3098cf508562332">
-        <source xml:lang="en">Export the schema and data from a database to the logical .bacpac file format</source>
-        <target state="new">Export the schema and data from a database to the logical .bacpac file format</target>
+      <trans-unit id="++CODE++db58c9165373339af3f704ec69490c93458bb6a0c870a7dca79c243948cc02e1">
+        <source xml:lang="en">Export the schema and data from a SQL database to a .bacpac file</source>
+        <target state="new">Export the schema and data from a SQL database to a .bacpac file</target>
       </trans-unit>
       <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
         <source xml:lang="en">Exporting BACPAC...</source>
@@ -1983,9 +2003,9 @@ Error:
         <source xml:lang="en">Extract DACPAC</source>
         <target state="new">Extract DACPAC</target>
       </trans-unit>
-      <trans-unit id="++CODE++f86c7ef9f3f43395756fb5dbdf7f9c09cf9663ab86043982da835971f4ae29fb">
-        <source xml:lang="en">Extract a data-tier application .dacpac from an instance of SQL Server to a .dacpac file</source>
-        <target state="new">Extract a data-tier application .dacpac from an instance of SQL Server to a .dacpac file</target>
+      <trans-unit id="++CODE++ae978d30fd899796154f535e3b3c547d46b2bd0c5e738928c553ce1e1e426fc8">
+        <source xml:lang="en">Extract the schema from a SQL database to a .dacpac file</source>
+        <target state="new">Extract the schema from a SQL database to a .dacpac file</target>
       </trans-unit>
       <trans-unit id="++CODE++e4c61f0d341293c441bab44693218614d6045d574d51221cd6a65d43ec0e04d4">
         <source xml:lang="en">Extracting DACPAC...</source>
@@ -2093,7 +2113,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++5da8436d7f85f325dbcb03e43c8b81f49b13fa6997b2e200ff9f5272cb577fc5">
         <source xml:lang="en">Failed to fetch Docker container tags: {0}</source>
-        <target state="new">Failed to fetch Docker container tags: {0}</target>
+        <target state="translated">無法擷取 Docker 容器標籤: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
         <source xml:lang="en">Failed to fetch user tokens.</source>
@@ -2590,6 +2610,10 @@ Error:
       <trans-unit id="++CODE++09b493255c6cc11aae4f73f97494b4d0123bb42869372d0a2182f0a324eb5ef5">
         <source xml:lang="en">Import BACPAC</source>
         <target state="new">Import BACPAC</target>
+      </trans-unit>
+      <trans-unit id="++CODE++004f8760d5d76c5e1465f93ee7c48c0dd97666347f270fbbc9d31bbc56482a6d">
+        <source xml:lang="en">Import a .bacpac file to a new or empty database</source>
+        <target state="new">Import a .bacpac file to a new or empty database</target>
       </trans-unit>
       <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
         <source xml:lang="en">Importance</source>
@@ -3710,7 +3734,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++21eda41850777c46deb17245aa52751b4406410fdcc51f6644fc38b317201e71">
         <source xml:lang="en">Profile loaded but connection failed. Please connect to the server manually.</source>
-        <target state="new">Profile loaded but connection failed. Please connect to the server manually.</target>
+        <target state="translated">已載入設定檔，但連線失敗。請手動連線到伺服器。</target>
       </trans-unit>
       <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
         <source xml:lang="en">Profile removed successfully</source>
@@ -3740,6 +3764,10 @@ Error:
       <trans-unit id="++CODE++2061d7abe64ff08b697e992f6e5b0e379cae860434c608eb72552f3ce3bbcfc8">
         <source xml:lang="en">Publish Changes</source>
         <target state="translated">發佈變更</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cf3c1d568793b842a356b2e44265de54b7f5c9d301b8de3487afd3b1689f7215">
+        <source xml:lang="en">Publish DACPAC</source>
+        <target state="new">Publish DACPAC</target>
       </trans-unit>
       <trans-unit id="++CODE++dce49ef71e44b5c107d066069bd508af15fbffd22c8e410f76db1f120371635a">
         <source xml:lang="en">Publish Profile</source>
@@ -3952,6 +3980,10 @@ Error:
       <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
         <source xml:lang="en">Retry</source>
         <target state="translated">重試</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b1d3c17e8d131616e4c9d243a6536aa7c23973e93908621d94b6b7ebf6486863">
+        <source xml:lang="en">Reveal in Explorer</source>
+        <target state="new">Reveal in Explorer</target>
       </trans-unit>
       <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
         <source xml:lang="en">Reverse Alphabetical</source>
@@ -5347,7 +5379,7 @@ Query: {1}</source>
       <trans-unit id="++CODE++fdd1e66955c2307ddc64a5e81697afacea8973b913e99714f2d5579ddecf0c2a">
         <source xml:lang="en">{0} (Preview)</source>
         <note>{0} is the table name</note>
-        <target state="new">{0} (Preview)</target>
+        <target state="translated">{0} (預覽)</target>
       </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
@@ -5708,7 +5740,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.tableExplorer">
         <source xml:lang="en">Edit Data (Preview)</source>
-        <target state="new">Edit Data (Preview)</target>
+        <target state="translated">編輯資料 (預覽)</target>
       </trans-unit>
       <trans-unit id="mssql.enableActualPlan">
         <source xml:lang="en">Enable Actual Plan</source>
@@ -5934,7 +5966,7 @@ You can connect to a database by entering your connection information, using a c
       </trans-unit>
       <trans-unit id="mssql.editTable">
         <source xml:lang="en">Modify Table</source>
-        <target state="new">Modify Table</target>
+        <target state="translated">修改資料表</target>
       </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
