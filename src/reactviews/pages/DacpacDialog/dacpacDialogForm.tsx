@@ -366,7 +366,7 @@ export const DacpacDialogForm = () => {
     };
 
     /**
-     * Validates application version format (n.n.n.n where n is a number)
+     * Validates application version format (n.n or n.n.n or n.n.n.n where n is a number)
      * @returns true if validation passes, false otherwise
      */
     const validateApplicationVersion = (version: string): boolean => {
@@ -381,9 +381,9 @@ export const DacpacDialogForm = () => {
             return false;
         }
 
-        // Regex to match n.n.n.n format where n is one or more digits
-        // Allows 3 or 4 parts (1.0.0 or 1.0.0.0)
-        const versionRegex = /^\d+\.\d+\.\d+(\.\d+)?$/;
+        // Regex to match version format where n is one or more digits
+        // Allows 2, 3, or 4 parts (1.0, 1.0.0, or 1.0.0.0)
+        const versionRegex = /^\d+\.\d+(\.\d+)?(\.\d+)?$/;
 
         if (!versionRegex.test(version)) {
             setValidationMessages((prev) => ({
