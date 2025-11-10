@@ -268,6 +268,12 @@ export interface IScriptingParams {
      * Operation associated with the script request
      */
     operation: ScriptOperation;
+
+    /**
+     * Return script in events. This makes the script operation return an immediate operationId and
+     * send the script back in ScriptingCompleteNotification.
+     */
+    returnScriptAsynchronously: boolean;
 }
 
 export interface IScriptingResult {
@@ -286,17 +292,97 @@ export namespace ScriptingRequest {
     );
 }
 
-export interface ScriptingProgressNotificationParams {
+/**
+ * Base parameters for scripting event notifications
+ */
+export interface ScriptingEventParams {
+    operationId: string;
+    sequenceNumber: number;
+}
+
+/**
+ * Parameters for scripting progress notification
+ */
+export interface ScriptingProgressNotificationParams extends ScriptingEventParams {
+    /**
+     * List of scripting objects processed so far
+     */
     scirptingObject: IScriptingObject[];
+    /**
+     * Current status of the scripting operation
+     */
     status: string;
+    /**
+     * Number of objects completed out of total objects to script
+     */
     completedCount: number;
+    /**
+     * Total number of objects to script
+     */
     totalCount: number;
+    /**
+     * Error details if any occurred during scripting
+     */
     errorDetails: string;
+    /**
+     * Error message if any occurred during scripting
+     */
     errorMessage: string;
 }
 
 export namespace ScriptingProgressNotification {
+    /**
+     * Notification sent to indicate progress of a scripting operation
+     */
     export const type = new NotificationType<ScriptingProgressNotificationParams, void>(
         "scripting/scriptProgressNotification",
+    );
+}
+
+/**
+ * Parameters for scripting complete notification
+ */
+export interface ScriptingCompleteParams extends ScriptingEventParams {
+    /**
+     * Error details if any occurred during scripting
+     */
+    errorDetails: string;
+    /**
+     * Error message if any occurred during scripting
+     */
+    errorMessage: string;
+    /**
+     * Indicates if there were errors during the scripting operation
+     */
+    hasErrors: boolean;
+    /**
+     * Indicates if the scripting operation was canceled
+     */
+    canceled: boolean;
+    /**
+     * Final message for the scripting operation
+     */
+    message: string;
+    /**
+     * The generated script from the operation. Only included if returnScriptAsEvent was true in the request
+     */
+    script: string;
+}
+
+export namespace ScriptingCompleteNotification {
+    /**
+     * Notification sent to indicate completion of a scripting operation
+     */
+    export const type = new NotificationType<ScriptingCompleteParams, void>(
+        "scripting/scriptComplete",
+    );
+}
+
+export namespace ScriptingCancelRequest {
+    /**
+     * Request to cancel an ongoing scripting operation
+     */
+    export const type = new RequestType<{ operationId: string }, void, void, void>(
+        "scripting/scriptCancel",
     );
 }

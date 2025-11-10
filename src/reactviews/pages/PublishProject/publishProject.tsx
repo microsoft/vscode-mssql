@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { Button, makeStyles } from "@fluentui/react-components";
 import { useFormStyles } from "../../common/forms/form.component";
 import { PublishProjectContext } from "./publishProjectStateProvider";
@@ -14,27 +14,23 @@ import { PublishProfileField } from "./components/PublishProfileSection";
 import { PublishTargetSection } from "./components/PublishTargetSection";
 import { ConnectionSection } from "./components/ConnectionSection";
 import { DialogMessage } from "../../common/dialogMessage";
+import { SqlCmdVariablesSection } from "./components/sqlCmdVariablesSection";
+import { AdvancedDeploymentOptionsDrawer } from "./components/advancedDeploymentOptionsDrawer";
 
 const useStyles = makeStyles({
-    root: { padding: "12px" },
-    footer: {
-        marginTop: "8px",
-        display: "flex",
-        justifyContent: "flex-end",
-        gap: "12px",
-        alignItems: "center",
-        maxWidth: "640px",
-        width: "100%",
-        paddingTop: "12px",
-        borderTop: "1px solid transparent",
+    rightButton: {
+        width: "150px",
+        marginLeft: "10px",
+        marginRight: "0px",
     },
 });
 
 function PublishProjectDialog() {
-    const classes = useStyles();
+    const styles = useStyles();
     const formStyles = useFormStyles();
     const loc = LocConstants.getInstance().publishProject;
     const context = useContext(PublishProjectContext);
+    const [isAdvancedDrawerOpen, setIsAdvancedDrawerOpen] = useState(false);
 
     // Select pieces of state needed for this component
     const formState = usePublishDialogSelector((s) => s.formState);
@@ -49,26 +45,34 @@ function PublishProjectDialog() {
     const readyToPublish = !isComponentReady || inProgress || hasFormErrors;
 
     if (!isComponentReady) {
-        return <div className={classes.root}>Loading...</div>;
+        return <div>Loading...</div>;
     }
     return (
         <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
-            <div className={classes.root}>
-                <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
-                    {formMessage && (
-                        <DialogMessage
-                            message={formMessage}
-                            onMessageButtonClicked={() => {}}
-                            onCloseMessage={context.closeMessage}
-                        />
-                    )}
-                    <PublishTargetSection />
-                    <PublishProfileField />
-                    <ConnectionSection />
+            <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
+                {formMessage && (
+                    <DialogMessage
+                        message={formMessage}
+                        onMessageButtonClicked={() => {}}
+                        onCloseMessage={context.closeMessage}
+                    />
+                )}
+                <PublishTargetSection />
+                <PublishProfileField />
+                <ConnectionSection />
+                <SqlCmdVariablesSection />
 
-                    <div className={classes.footer}>
+                <div className={formStyles.formNavTray}>
+                    <Button
+                        appearance="secondary"
+                        className={formStyles.formNavTrayButton}
+                        onClick={() => setIsAdvancedDrawerOpen(!isAdvancedDrawerOpen)}>
+                        {loc.advancedOptions}
+                    </Button>
+                    <div className={formStyles.formNavTrayRight}>
                         <Button
                             appearance="secondary"
+                            className={styles.rightButton}
                             disabled={
                                 readyToPublish ||
                                 formState?.publishTarget !== PublishTarget.ExistingServer
@@ -78,6 +82,7 @@ function PublishProjectDialog() {
                         </Button>
                         <Button
                             appearance="primary"
+                            className={styles.rightButton}
                             disabled={readyToPublish}
                             onClick={() => context.publishNow()}>
                             {loc.publish}
@@ -85,6 +90,11 @@ function PublishProjectDialog() {
                     </div>
                 </div>
             </div>
+
+            <AdvancedDeploymentOptionsDrawer
+                isAdvancedDrawerOpen={isAdvancedDrawerOpen}
+                setIsAdvancedDrawerOpen={setIsAdvancedDrawerOpen}
+            />
         </form>
     );
 }

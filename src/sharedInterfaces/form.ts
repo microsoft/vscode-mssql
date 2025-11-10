@@ -156,4 +156,5 @@ export enum FormItemType {
     Button = "button",
     TextArea = "textarea",
     SearchableDropdown = "searchableDropdown",
+    Table = "table",
 }

@@ -12,6 +12,7 @@ import { RowNumberColumn } from "./table/plugins/rowNumberColumn.plugin";
 import { VirtualizedCollection } from "./table/asyncDataView";
 import { HybridDataProvider } from "./table/hybridDataProvider";
 import { hyperLinkFormatter, textFormatter, DBCellValue, escape } from "./table/formatters";
+import { isJson } from "../../common/jsonUtils";
 import * as DOM from "./table/dom";
 import { locConstants } from "../../common/locConstants";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
@@ -57,7 +58,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         return undefined;
     }
 
-    const { themeKind } = useVscodeWebview2();
+    const { themeKind, keyBindings } = useVscodeWebview2();
 
     const uri = useQueryResultSelector((state) => state.uri);
     if (!uri) {
@@ -239,6 +240,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
                 context.openFileThroughLink,
                 props.gridId,
                 { dataProvider: dataProvider, columns: columns },
+                keyBindings,
                 tableOptions,
                 props.gridParentRef,
                 autoSizeColumns,
@@ -303,6 +305,16 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         }
     }, [resultSetSummary]);
 
+    // Update key bindings on slickgrid when key bindings change
+    useEffect(() => {
+        function updateTableKeyBindings() {
+            if (tableRef.current) {
+                tableRef.current.updateKeyBindings(keyBindings);
+            }
+        }
+        updateTableKeyBindings();
+    }, [keyBindings]);
+
     return <div id="gridContainter" ref={gridContainerRef}></div>;
 });
 
@@ -342,7 +354,7 @@ function getColumnFormatter(columnInfo: qr.IDbColumn): (
         if (isXmlCell(value) && columnInfo) {
             columnInfo.isXml = true;
             return hyperLinkFormatter(row, cell, value, columnDef, dataContext);
-        } else if (isJsonCell(value) && columnInfo) {
+        } else if (isJson(value?.displayValue) && columnInfo) {
             //TODO use showJsonAsLink config
             columnInfo.isJson = true;
             return hyperLinkFormatter(row, cell, value, columnDef, dataContext);
@@ -357,10 +369,6 @@ function getColumnFormatter(columnInfo: qr.IDbColumn): (
             );
         }
     };
-}
-
-function isJsonCell(value: qr.DbCellValue): boolean {
-    return !!(value && !value.isNull && value.displayValue?.match(IsJsonRegex));
 }
 
 function isXmlCell(value: DBCellValue, log?: LogCallback): boolean {
@@ -380,15 +388,6 @@ function isXmlCell(value: DBCellValue, log?: LogCallback): boolean {
     }
     return isXML;
 }
-
-// The regex to check whether a string is a valid JSON string. It is used to determine:
-// 1. whether the cell should be rendered as a hyperlink.
-// 2. when user clicks a cell, whether the cell content should be displayed in a new text editor as json.
-// Based on the requirements, the solution doesn't need to be very accurate, a simple regex is enough since it is more
-// performant than trying to parse the string to object.
-// Regex explaination: after removing the trailing whitespaces and line breaks, the string must start with '[' (to support arrays)
-// or '{', and there must be a '}' or ']' to close it.
-const IsJsonRegex = /^\s*[\{|\[][\S\s]*[\}\]]\s*$/g;
 
 // The css class for null cell
 const NULL_CELL_CSS_CLASS = "cell-null";

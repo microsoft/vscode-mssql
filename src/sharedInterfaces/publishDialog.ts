@@ -46,6 +46,19 @@ export const PublishFormContainerFields = [
 export const DefaultSqlPortNumber = constants.DefaultSqlPortNumber;
 
 /**
+ * Extended project properties that includes additional metadata beyond what GetProjectPropertiesResult provides.
+ * This type is used internally for publish and build operations.
+ */
+export type ProjectPropertiesResult = mssql.GetProjectPropertiesResult & {
+    /** Extracted target version from DatabaseSchemaProvider (e.g. "150", "AzureV12") */
+    targetVersion?: string;
+    /** Absolute path to the .sqlproj file */
+    projectFilePath: string;
+    /** Calculated absolute path to the output .dacpac file */
+    dacpacOutputPath: string;
+};
+
+/**
  * Data fields shown in the Publish form.
  */
 export interface IPublishForm {
@@ -69,23 +82,20 @@ export interface PublishDialogState
     projectFilePath: string;
     inProgress: boolean;
     lastPublishResult?: { success: boolean; details?: string };
-    projectProperties?: mssql.GetProjectPropertiesResult & { targetVersion?: string };
+    projectProperties?: ProjectPropertiesResult;
     hasFormErrors?: boolean;
     deploymentOptions?: mssql.DeploymentOptions;
     waitingForNewConnection?: boolean;
-    connectionString?: string;
     formMessage?: DialogMessageSpec;
+    defaultDeploymentOptions?: mssql.DeploymentOptions;
+    defaultSqlCmdVariables?: { [key: string]: string };
 }
 
 /**
  * Form item specification for Publish dialog fields.
  */
 export interface PublishDialogFormItemSpec
-    extends FormItemSpec<IPublishForm, PublishDialogState, PublishDialogFormItemSpec> {
-    // (Removed advanced option metadata: was isAdvancedOption/optionCategory/optionCategoryLabel)
-    // Reintroduce when the Publish dialog gains an "Advanced publish options" section with grouped fields.
-    // TODO: https://github.com/microsoft/vscode-mssql/issues/20248 task for advanced options
-}
+    extends FormItemSpec<IPublishForm, PublishDialogState, PublishDialogFormItemSpec> {}
 
 /**
  * Reducers (messages) the controller supports in addition to the generic form actions.
@@ -99,11 +109,13 @@ export interface PublishDialogReducers extends FormReducers<IPublishForm> {
         publishProfilePath?: string;
     };
     generatePublishScript: {};
-    openPublishAdvanced: {};
     selectPublishProfile: {};
     savePublishProfile: { publishProfileName: string };
     openConnectionDialog: {};
     closeMessage: {};
+    updateDeploymentOptions: { deploymentOptions: mssql.DeploymentOptions };
+    updateSqlCmdVariables: { variables: { [key: string]: string } };
+    revertSqlCmdVariables: {};
 }
 
 /**
@@ -124,4 +136,7 @@ export interface PublishProjectProvider {
     savePublishProfile(publishProfileName: string): void;
     openConnectionDialog(): void;
     closeMessage(): void;
+    updateDeploymentOptions(deploymentOptions: mssql.DeploymentOptions): void;
+    updateSqlCmdVariables(variables: { [key: string]: string }): void;
+    revertSqlCmdVariables(): void;
 }

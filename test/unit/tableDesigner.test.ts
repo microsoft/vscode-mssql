@@ -16,7 +16,7 @@ import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { TableDesignerService } from "../../src/services/tableDesignerService";
 import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
 import ConnectionManager from "../../src/controllers/connectionManager";
-import { getMockContext, stubUserSurvey } from "./utils";
+import { stubExtensionContext, stubUserSurvey } from "./utils";
 
 chai.use(sinonChai);
 
@@ -37,7 +37,7 @@ suite("TableDesignerWebviewController tests", () => {
 
     setup(async () => {
         sandbox = sinon.createSandbox();
-        mockContext = getMockContext();
+        mockContext = stubExtensionContext(sandbox);
         stubUserSurvey(sandbox);
 
         mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);

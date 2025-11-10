@@ -3,45 +3,54 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
+import * as sinon from "sinon";
 import * as Constants from "../../src/constants/constants";
 import * as stubs from "./stubs";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
 import { AuthenticationTypes } from "../../src/models/interfaces";
 import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
-import * as assert from "assert";
+import { expect } from "chai";
 import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
+import { stubVscodeWrapper } from "./utils";
 
 suite("ConnectionCredentials Tests", () => {
-    let vscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
+    let sandbox: sinon.SinonSandbox;
+    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     setup(() => {
-        vscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper);
+        sandbox = sinon.createSandbox();
+        vscodeWrapper = stubVscodeWrapper(sandbox);
 
         // setup default behavior for vscodeWrapper
         // setup configuration to return maxRecent for the #MRU items
-        let maxRecent = 5;
-        let configResult: { [key: string]: any } = {};
+        const maxRecent = 5;
+        const configResult: { [key: string]: any } = {};
         configResult[Constants.configMaxRecentConnections] = maxRecent;
-        let config = stubs.createWorkspaceConfiguration(configResult);
-        vscodeWrapper
-            .setup((x) => x.getConfiguration(TypeMoq.It.isAny()))
-            .returns((_x) => {
-                return config;
-            });
+        const config = stubs.createWorkspaceConfiguration(configResult);
+        vscodeWrapper.getConfiguration.returns(config);
+    });
+
+    teardown(() => {
+        sandbox.restore();
     });
 
     suite("ConnectionDetails conversion tests", () => {
         // A connection string can be set alongside other properties for createConnectionDetails
         test("createConnectionDetails sets properties in addition to the connection string", () => {
-            let credentials = new ConnectionCredentials();
+            const credentials = new ConnectionCredentials();
             credentials.connectionString = "server=some-server";
             credentials.database = "some-db";
 
-            let connectionDetails = ConnectionCredentials.createConnectionDetails(credentials);
-            assert.equal(connectionDetails.options.connectionString, credentials.connectionString);
-            assert.equal(connectionDetails.options.database, credentials.database);
+            const connectionDetails = ConnectionCredentials.createConnectionDetails(credentials);
+            expect(
+                connectionDetails.options.connectionString,
+                "Connection string should match input credentials",
+            ).to.equal(credentials.connectionString);
+            expect(
+                connectionDetails.options.database,
+                "Database should match input credentials",
+            ).to.equal(credentials.database);
         });
 
         test("createConnectionDetails sets properties from the connection string", () => {
@@ -55,10 +64,10 @@ suite("ConnectionCredentials Tests", () => {
 
             const connInfo = ConnectionCredentials.createConnectionInfo(connDetails);
 
-            assert.equal(connInfo.server, connDetails.options.server);
-            assert.equal(connInfo.user, connDetails.options.user);
-            assert.equal(connInfo.password, connDetails.options.password);
-            assert.equal(connInfo.port, 1234);
+            expect(connInfo.server).to.equal(connDetails.options.server);
+            expect(connInfo.user).to.equal(connDetails.options.user);
+            expect(connInfo.password).to.equal(connDetails.options.password);
+            expect(connInfo.port).to.equal(1234);
         });
 
         test("IConnectionInfo-ConnectionDetails conversion roundtrip", () => {
@@ -109,11 +118,10 @@ suite("ConnectionCredentials Tests", () => {
             const convertedConnInfo = ConnectionCredentials.createConnectionInfo(connDetails);
 
             for (const key in originalConnInfo) {
-                assert.equal(
-                    originalConnInfo[key as keyof IConnectionInfo],
+                expect(
                     convertedConnInfo[key as keyof IConnectionInfo],
                     `Mismatch on ${key}`,
-                );
+                ).to.equal(originalConnInfo[key as keyof IConnectionInfo]);
             }
         });
     });

@@ -437,24 +437,90 @@ export class LocConstants {
 
     public get queryResult() {
         return {
+            resultTabTooltip: (shortcut?: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Results ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for the results tab"],
+                    });
+                }
+                return l10n.t("Results");
+            },
             results: (count: number) =>
                 l10n.t({
                     message: "Results ({0})",
                     args: [count],
                     comment: ["{0} is the number of results"],
                 }),
+            messagesTabTooltip: (shortcut?: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Messages ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for the messages tab"],
+                    });
+                }
+                return l10n.t("Messages");
+            },
             messages: l10n.t("Messages"),
             timestamp: l10n.t("Timestamp"),
             message: l10n.t("Message"),
             openResultInNewTab: l10n.t("Open in New Tab"),
             showplanXML: l10n.t("Showplan XML"),
-            showMenu: l10n.t("Show Menu (F3)"),
+            showMenu: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Show Menu ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for showing the menu"],
+                    });
+                }
+                return l10n.t("Show Menu");
+            },
             sortAscending: l10n.t("Sort Ascending"),
             sortDescending: l10n.t("Sort Descending"),
             clearSort: l10n.t("Clear Sort"),
-            saveAsCsv: l10n.t("Save as CSV"),
-            saveAsExcel: l10n.t("Save as Excel"),
-            saveAsJson: l10n.t("Save as JSON"),
+            saveAsCsv: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Save as CSV ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for saving as CSV"],
+                    });
+                }
+                return l10n.t("Save as CSV");
+            },
+            saveAsExcel: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Save as Excel ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for saving as Excel"],
+                    });
+                }
+                return l10n.t("Save as Excel");
+            },
+            saveAsJson: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Save as JSON ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for saving as JSON"],
+                    });
+                }
+                return l10n.t("Save as JSON");
+            },
+            saveAsInsert: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Save as INSERT INTO ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for saving as INSERT INTO"],
+                    });
+                }
+                return l10n.t("Save as INSERT INTO");
+            },
             clickHereToHideThisPanel: l10n.t("Hide this panel"),
             queryPlan: (count: number) => {
                 return l10n.t({
@@ -462,6 +528,16 @@ export class LocConstants {
                     args: [count],
                     comment: ["{0} is the number of query plans"],
                 });
+            },
+            queryPlanTooltip: (shortcut?: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Query Plan ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for the query plan tab"],
+                    });
+                }
+                return l10n.t("Query Plan");
             },
             selectAll: l10n.t("Select All"),
             copy: l10n.t("Copy"),
@@ -472,19 +548,54 @@ export class LocConstants {
             copyAsJson: l10n.t("Copy as JSON"),
             copyAsInClause: l10n.t("Copy as IN clause"),
             copyAsInsertInto: l10n.t("Copy as INSERT INTO"),
-            saveAsInsert: l10n.t("Save as INSERT"),
             null: l10n.t("NULL"),
             blankString: l10n.t("Blanks"),
             apply: l10n.t("Apply"),
             clear: l10n.t("Clear"),
             search: l10n.t("Search..."),
             close: l10n.t("Close"),
-            maximize: l10n.t("Maximize"),
-            restore: l10n.t("Restore"),
+            maximize: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Maximize ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for maximizing the grid"],
+                    });
+                }
+                return l10n.t("Maximize");
+            },
+            restore: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Restore ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for restoring the grid"],
+                    });
+                }
+                return l10n.t("Restore");
+            },
+            toggleToGridView: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Switch to Grid View ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for switching to grid view"],
+                    });
+                }
+                return l10n.t("Switch to Grid View");
+            },
+            toggleToTextView: (shortcut: string) => {
+                if (shortcut) {
+                    return l10n.t({
+                        message: "Switch to Text View ({0})",
+                        args: [shortcut],
+                        comment: ["{0} is the keyboard shortcut for switching to text view"],
+                    });
+                }
+                return l10n.t("Switch to Text View");
+            },
             gridView: l10n.t("Grid View"),
             textView: l10n.t("Text View"),
-            toggleToGridView: l10n.t("Switch to Grid View"),
-            toggleToTextView: l10n.t("Switch to Text View"),
             noResultsToDisplay: l10n.t("No results to display"),
             errorGeneratingTextView: l10n.t(
                 "Error generating text view. Please try switching back to grid view.",
@@ -852,7 +963,7 @@ export class LocConstants {
             selectSource: l10n.t("Select Source"),
             selectTarget: l10n.t("Select Target"),
             close: l10n.t("Close"),
-            dataTierApplicationFile: l10n.t("Data-tier Application File (.dacpac)"),
+            dacpacDialogFile: l10n.t("Data-tier Application File (.dacpac)"),
             databaseProject: l10n.t("Database Project"),
             ok: l10n.t("OK"),
             cancel: l10n.t("Cancel"),
@@ -931,6 +1042,15 @@ export class LocConstants {
             SaveAs: l10n.t("Save As..."),
             generateScript: l10n.t("Generate Script"),
             publish: l10n.t("Publish"),
+            advancedOptions: l10n.t("Advanced"),
+            advancedPublishSettings: l10n.t("Advanced Publish Options"),
+            generalOptions: l10n.t("General Options"),
+            ignoreOptions: l10n.t("Ignore Options"),
+            excludeObjectTypes: l10n.t("Exclude Object Types"),
+            SqlCmdVariablesLabel: l10n.t("SQLCMD Variables"),
+            SqlCmdVariableNameColumn: l10n.t("Name"),
+            SqlCmdVariableValueColumn: l10n.t("Value"),
+            RevertSqlCmdVariablesToDefaults: l10n.t("Revert values to project defaults"),
         };
     }
 
@@ -1084,6 +1204,78 @@ export class LocConstants {
             changePasswordButton: l10n.t("Change Password"),
             cancelButton: l10n.t("Cancel"),
             passwordsDoNotMatch: l10n.t("Passwords do not match"),
+        };
+    }
+
+    public get dacpacDialog() {
+        return {
+            title: l10n.t("Data-tier Application"),
+            subtitle: l10n.t(
+                "Deploy, extract, import, or export data-tier applications on the selected database",
+            ),
+            loading: l10n.t("Loading..."),
+            operationLabel: l10n.t("Operation"),
+            selectOperation: l10n.t("Select an operation"),
+            serverLabel: l10n.t("Server"),
+            selectServer: l10n.t("Select a server"),
+            noConnectionsAvailable: l10n.t(
+                "No connections available. Please create a connection first.",
+            ),
+            connectingToServer: l10n.t("Connecting to server..."),
+            connectionFailed: l10n.t("Failed to connect to server"),
+            deployDacpac: l10n.t("Publish DACPAC"),
+            extractDacpac: l10n.t("Extract DACPAC"),
+            importBacpac: l10n.t("Import BACPAC"),
+            exportBacpac: l10n.t("Export BACPAC"),
+            deployDescription: l10n.t("Deploy a .dacpac file to a new or existing SQL database"),
+            extractDescription: l10n.t("Extract the schema from a SQL database to a .dacpac file"),
+            importDescription: l10n.t("Import a .bacpac file to a new or empty database"),
+            exportDescription: l10n.t(
+                "Export the schema and data from a SQL database to a .bacpac file",
+            ),
+            packageFileLabel: l10n.t("Package file"),
+            outputFileLabel: l10n.t("Output file"),
+            selectPackageFile: l10n.t("Select package file"),
+            selectOutputFile: l10n.t("Enter the path for the output file"),
+            browse: l10n.t("Browse..."),
+            targetDatabaseLabel: l10n.t("Target Database"),
+            sourceDatabaseLabel: l10n.t("Source Database"),
+            databaseNameLabel: l10n.t("Database Name"),
+            newDatabase: l10n.t("New Database"),
+            existingDatabase: l10n.t("Existing Database"),
+            selectDatabase: l10n.t("Select a database"),
+            enterDatabaseName: l10n.t("Enter database name"),
+            applicationNameLabel: l10n.t("Application Name"),
+            enterApplicationName: l10n.t("Enter application name"),
+            applicationVersionLabel: l10n.t("Application Version"),
+            cancel: l10n.t("Cancel"),
+            execute: l10n.t("Execute"),
+            filePathRequired: l10n.t("File path is required"),
+            invalidFile: l10n.t("Invalid file"),
+            databaseNameRequired: l10n.t("Database name is required"),
+            invalidDatabase: l10n.t("Invalid database"),
+            validationFailed: l10n.t("Validation failed"),
+            deployingDacpac: l10n.t("Deploying DACPAC..."),
+            extractingDacpac: l10n.t("Extracting DACPAC..."),
+            importingBacpac: l10n.t("Importing BACPAC..."),
+            exportingBacpac: l10n.t("Exporting BACPAC..."),
+            operationFailed: l10n.t("Operation failed"),
+            unexpectedError: l10n.t("An unexpected error occurred"),
+            failedToLoadDatabases: l10n.t("Failed to load databases"),
+            deploySuccess: l10n.t("DACPAC deployed successfully"),
+            extractSuccess: l10n.t("DACPAC extracted successfully"),
+            importSuccess: l10n.t("BACPAC imported successfully"),
+            exportSuccess: l10n.t("BACPAC exported successfully"),
+            deployToExistingWarning: l10n.t("Deploy to Existing Database"),
+            deployToExistingMessage: l10n.t(
+                "You are about to deploy to an existing database. This operation will make permanent changes to the database schema and may result in data loss. Do you want to continue?",
+            ),
+            deployToExistingConfirm: l10n.t("Deploy"),
+            databaseAlreadyExists: l10n.t("A database with this name already exists on the server"),
+            invalidApplicationVersion: l10n.t(
+                "Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)",
+            ),
+            learnMore: l10n.t("Learn More"),
         };
     }
 

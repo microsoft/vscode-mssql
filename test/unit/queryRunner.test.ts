@@ -3,8 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as TypeMoq from "typemoq";
 import * as assert from "assert";
+import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
+import * as chai from "chai";
 import QueryRunner from "../../src/controllers/queryRunner";
 import { QueryNotificationHandler } from "../../src/controllers/queryNotificationHandler";
 import * as Utils from "../../src/models/utils";
@@ -24,7 +26,10 @@ import * as QueryDisposeContracts from "../../src/models/contracts/queryDispose"
 import { ISelectionData } from "../../src/models/interfaces";
 import * as stubs from "./stubs";
 import * as vscode from "vscode";
-import { expect } from "chai";
+import { stubVscodeWrapper } from "./utils";
+
+chai.use(sinonChai);
+const { expect } = chai;
 
 // CONSTANTS //////////////////////////////////////////////////////////////////////////////////////
 const standardUri = "uri";
@@ -38,37 +43,53 @@ const standardSelection: ISelectionData = {
 
 // TESTS //////////////////////////////////////////////////////////////////////////////////////////
 suite("Query Runner tests", () => {
-    let testSqlToolsServerClient: TypeMoq.IMock<SqlToolsServerClient>;
-    let testQueryNotificationHandler: TypeMoq.IMock<QueryNotificationHandler>;
-    let testVscodeWrapper: TypeMoq.IMock<VscodeWrapper>;
-    let testStatusView: TypeMoq.IMock<StatusView>;
+    let sandbox: sinon.SinonSandbox;
+    let testSqlToolsServerClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
+    let testQueryNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>;
+    let testVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let testStatusView: sinon.SinonStubbedInstance<StatusView>;
+
+    function createQueryRunner(
+        uri: string = standardUri,
+        title: string = standardTitle,
+    ): QueryRunner {
+        return new QueryRunner(
+            uri,
+            title,
+            testStatusView,
+            testSqlToolsServerClient,
+            testQueryNotificationHandler,
+            testVscodeWrapper,
+        );
+    }
 
     setup(() => {
-        testSqlToolsServerClient = TypeMoq.Mock.ofType(
-            SqlToolsServerClient,
-            TypeMoq.MockBehavior.Loose,
+        sandbox = sinon.createSandbox();
+        testSqlToolsServerClient = sandbox.createStubInstance(SqlToolsServerClient);
+        testQueryNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
+        testVscodeWrapper = stubVscodeWrapper(sandbox);
+        testStatusView = sandbox.createStubInstance(StatusView);
+
+        (testVscodeWrapper.parseUri as sinon.SinonStub).callsFake((value: string) =>
+            vscode.Uri.parse(value),
         );
-        testQueryNotificationHandler = TypeMoq.Mock.ofType(
-            QueryNotificationHandler,
-            TypeMoq.MockBehavior.Loose,
-        );
-        testVscodeWrapper = TypeMoq.Mock.ofType(VscodeWrapper, TypeMoq.MockBehavior.Loose);
-        testStatusView = TypeMoq.Mock.ofType(StatusView, TypeMoq.MockBehavior.Loose);
+        (testVscodeWrapper.showErrorMessage as sinon.SinonStub).returns(undefined);
+        (testVscodeWrapper.showInformationMessage as sinon.SinonStub).returns(undefined);
+        (testVscodeWrapper.logToOutputChannel as sinon.SinonStub).returns(undefined);
+        (testVscodeWrapper.openTextDocument as sinon.SinonStub).resolves({} as vscode.TextDocument);
+        (testVscodeWrapper.showTextDocument as sinon.SinonStub).resolves({} as vscode.TextEditor);
+    });
+
+    teardown(() => {
+        sandbox.restore();
     });
 
     test("Constructs properly", () => {
-        let queryRunner = new QueryRunner(
-            "",
-            "",
-            testStatusView.object,
-            testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object,
-            testVscodeWrapper.object,
-        );
+        let queryRunner = createQueryRunner("", "");
         assert.equal(typeof queryRunner !== undefined, true);
     });
 
-    test("Handles Query Request Result Properly", () => {
+    test("Handles Query Request Result Properly", async () => {
         // Setup:
         // ... Standard service to handle a execute request, standard query notification
         setupStandardQueryRequestServiceMock(testSqlToolsServerClient, () => {
@@ -77,48 +98,33 @@ suite("Query Runner tests", () => {
         setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
 
         // ... Mock up the view and VSCode wrapper to handle requests to update view
-        testStatusView.setup((x) => x.executingQuery(TypeMoq.It.isAnyString()));
-        testVscodeWrapper.setup((x) => x.logToOutputChannel(TypeMoq.It.isAnyString()));
         let testDoc: vscode.TextDocument = {
             getText: () => {
                 return undefined;
             },
         } as any;
-        testVscodeWrapper
-            .setup((x) => x.openTextDocument(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(testDoc));
+        (testVscodeWrapper.openTextDocument as sinon.SinonStub).resolves(testDoc);
+        (testVscodeWrapper.showTextDocument as sinon.SinonStub).resolves({} as vscode.TextEditor);
 
         // If:
         // ... I create a query runner
-        let queryRunner = new QueryRunner(
-            standardUri,
-            standardTitle,
-            testStatusView.object,
-            testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object,
-            testVscodeWrapper.object,
-        );
+        let queryRunner = createQueryRunner();
 
         // ... And run a query
-        return queryRunner.runQuery(standardSelection).then(() => {
-            // Then:
-            // ... The query notification handler should have registered the query runner
-            testQueryNotificationHandler.verify(
-                (x) => x.registerRunner(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-                TypeMoq.Times.once(),
-            );
+        await queryRunner.runQuery(standardSelection);
 
-            // ... The VS Code status should be updated
-            testStatusView.verify<void>((x) => x.executingQuery(standardUri), TypeMoq.Times.once());
-            testVscodeWrapper.verify<void>(
-                (x) => x.logToOutputChannel(TypeMoq.It.isAnyString()),
-                TypeMoq.Times.once(),
-            );
+        // Then:
+        // ... The query notification handler should have registered the query runner
+        expect(testQueryNotificationHandler.registerRunner).to.have.been.calledOnce;
+        expect(testQueryNotificationHandler.registerRunner.firstCall.args[1]).to.equal(standardUri);
 
-            // ... The query runner should indicate that it is running a query and elapsed time should be set to 0
-            assert.equal(queryRunner.isExecutingQuery, true);
-            assert.equal(queryRunner.totalElapsedMilliseconds, 0);
-        });
+        // ... The VS Code status should be updated
+        expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
+        expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
+
+        // ... The query runner should indicate that it is running a query and elapsed time should be set to 0
+        assert.equal(queryRunner.isExecutingQuery, true);
+        assert.equal(queryRunner.totalElapsedMilliseconds, 0);
     });
 
     test("Handles Query Request Error Properly", async () => {
@@ -131,31 +137,20 @@ suite("Query Runner tests", () => {
         setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
 
         // ... Setup the status view to handle start and stop updates
-        testStatusView.setup((x) => x.executingQuery(TypeMoq.It.isAnyString()));
-        testStatusView.setup((x) => x.executedQuery(TypeMoq.It.isAnyString()));
+        testStatusView.executedQuery.resetHistory();
+        testStatusView.executingQuery.resetHistory();
 
-        // ... Setup the vs code wrapper to handle output logging and error messages
-        testVscodeWrapper.setup((x) => x.logToOutputChannel(TypeMoq.It.isAnyString()));
-        testVscodeWrapper.setup((x) => x.showErrorMessage(TypeMoq.It.isAnyString()));
         let testDoc: vscode.TextDocument = {
             getText: () => {
                 return undefined;
             },
         } as any;
-        testVscodeWrapper
-            .setup((x) => x.openTextDocument(TypeMoq.It.isAny()))
-            .returns(() => Promise.resolve(testDoc));
+        (testVscodeWrapper.openTextDocument as sinon.SinonStub).resolves(testDoc);
+        (testVscodeWrapper.showTextDocument as sinon.SinonStub).resolves({} as vscode.TextEditor);
 
         // If:
         // ... I create a query runner
-        let queryRunner = new QueryRunner(
-            standardUri,
-            standardTitle,
-            testStatusView.object,
-            testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object,
-            testVscodeWrapper.object,
-        );
+        let queryRunner = createQueryRunner();
 
         // ... And I run a query that is going to fail to start
         try {
@@ -165,12 +160,9 @@ suite("Query Runner tests", () => {
         } catch (error) {
             // Then:
             // ... The view status should have started and stopped
-            testVscodeWrapper.verify(
-                (x) => x.logToOutputChannel(TypeMoq.It.isAnyString()),
-                TypeMoq.Times.once(),
-            );
-            testStatusView.verify((x) => x.executingQuery(standardUri), TypeMoq.Times.once());
-            testStatusView.verify((x) => x.executedQuery(standardUri), TypeMoq.Times.atLeastOnce());
+            expect(testVscodeWrapper.logToOutputChannel as sinon.SinonStub).to.have.been.calledOnce;
+            expect(testStatusView.executingQuery).to.have.been.calledOnceWithExactly(standardUri);
+            expect(testStatusView.executedQuery).to.have.been.called;
 
             // ... The query runner should not be running a query
             assert.strictEqual(queryRunner.isExecutingQuery, false);
@@ -199,14 +191,7 @@ suite("Query Runner tests", () => {
         };
 
         // If: I submit a batch start notification to the query runner
-        let queryRunner = new QueryRunner(
-            "",
-            "",
-            testStatusView.object,
-            testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object,
-            testVscodeWrapper.object,
-        );
+        let queryRunner = createQueryRunner("", "");
         queryRunner.handleBatchStart(batchStart);
 
         // Then: It should store the batch, messages and emit a batch start
@@ -242,14 +227,7 @@ suite("Query Runner tests", () => {
         };
 
         // If: I submit a batch completion notification to the query runner that has a batch already started
-        let queryRunner = new QueryRunner(
-            "",
-            "",
-            testStatusView.object,
-            testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object,
-            testVscodeWrapper.object,
-        );
+        let queryRunner = createQueryRunner("", "");
         queryRunner.batchSets[0] = {
             executionElapsed: null,
             executionEnd: null,
@@ -311,14 +289,7 @@ suite("Query Runner tests", () => {
         };
 
         // If: I submit a resultSet completion notification to the query runner...
-        let queryRunner = new QueryRunner(
-            "",
-            "",
-            testStatusView.object,
-            testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object,
-            testVscodeWrapper.object,
-        );
+        let queryRunner = createQueryRunner("", "");
         queryRunner.batchSets[0] = {
             executionElapsed: null,
             executionEnd: null,
@@ -368,14 +339,7 @@ suite("Query Runner tests", () => {
 
         // If:
         // ... I submit a resultSet completion notification to the query runner
-        let queryRunner = new QueryRunner(
-            "",
-            "",
-            testStatusView.object,
-            testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object,
-            testVscodeWrapper.object,
-        );
+        let queryRunner = createQueryRunner("", "");
         queryRunner.batchSets[0] = {
             executionElapsed: null,
             executionEnd: null,
@@ -424,14 +388,7 @@ suite("Query Runner tests", () => {
 
         // If:
         // ... I have a query runner
-        let queryRunner: QueryRunner = new QueryRunner(
-            standardUri,
-            standardTitle,
-            testStatusView.object,
-            testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object,
-            testVscodeWrapper.object,
-        );
+        let queryRunner = createQueryRunner();
         queryRunner.batchSetMessages[message.message.batchId] = [];
 
         // ... And I ask to handle a message
@@ -443,10 +400,6 @@ suite("Query Runner tests", () => {
 
     test("Notification - Query complete", () => {
         // Setup:
-
-        // ... Setup the VS Code view handlers
-        testStatusView.setup((x) => x.executedQuery(TypeMoq.It.isAny()));
-        testVscodeWrapper.setup((x) => x.logToOutputChannel(TypeMoq.It.isAnyString()));
 
         // ... Create a completion notification with bogus data
         let result: QueryExecuteCompleteNotificationResult = {
@@ -466,28 +419,23 @@ suite("Query Runner tests", () => {
 
         // If:
         // ... I have a query runner
-        let queryRunner = new QueryRunner(
-            standardUri,
-            standardTitle,
-            testStatusView.object,
-            testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object,
-            testVscodeWrapper.object,
-        );
+        let queryRunner = createQueryRunner();
 
         // ... And I handle a query completion event
         queryRunner.handleQueryComplete(result);
 
         // Then:
         // ... The VS Code view should have stopped executing
-        testStatusView.verify((x) => x.executedQuery(standardUri), TypeMoq.Times.once());
+        expect(testStatusView.executedQuery).to.have.been.calledOnceWithExactly(standardUri);
+        expect(testStatusView.setExecutionTime).to.have.been.calledOnce;
+        expect(testStatusView.setExecutionTime.firstCall.args[0]).to.equal(standardUri);
 
         // ... The state of the query runner has been updated
         assert.equal(queryRunner.batchSets.length, 1);
         assert.equal(queryRunner.isExecutingQuery, false);
     });
 
-    test("Correctly handles subset", () => {
+    test("Correctly handles subset", async () => {
         let testuri = "test";
         let testresult: QueryExecuteSubsetResult = {
             resultSubset: {
@@ -516,98 +464,50 @@ suite("Query Runner tests", () => {
                 ],
             },
         };
-        testSqlToolsServerClient
-            .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .callback(() => {
-                // testing
-            })
-            .returns(() => {
-                return Promise.resolve(testresult);
-            });
-        testStatusView.setup((x) => x.executingQuery(TypeMoq.It.isAnyString()));
-        let queryRunner = new QueryRunner(
-            testuri,
-            testuri,
-            testStatusView.object,
-            testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object,
-            testVscodeWrapper.object,
-        );
+
+        testSqlToolsServerClient.sendRequest
+            .withArgs(QueryExecuteContracts.QueryExecuteSubsetRequest.type, sinon.match.object)
+            .resolves(testresult);
+
+        let queryRunner = createQueryRunner(testuri, testuri);
         queryRunner.uri = testuri;
-        return queryRunner.getRows(0, 5, 0, 0).then((result) => {
-            assert.equal(result, testresult);
-        });
+
+        const result = await queryRunner.getRows(0, 5, 0, 0);
+        assert.equal(result, testresult);
     });
 
-    test("Correctly handles error from subset request", () => {
+    test("Correctly handles error from subset request", async () => {
         let testuri = "test";
-        let testresult = {
-            message: "failed",
-        };
-        testSqlToolsServerClient
-            .setup((x) => x.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .callback(() => {
-                // testing
-            })
-            .returns(() => {
-                return Promise.resolve(testresult);
-            });
-        testVscodeWrapper.setup((x) => x.showErrorMessage(TypeMoq.It.isAnyString()));
-        let queryRunner = new QueryRunner(
-            testuri,
-            testuri,
-            testStatusView.object,
-            testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object,
-            testVscodeWrapper.object,
-        );
+
+        testSqlToolsServerClient.sendRequest
+            .withArgs(QueryExecuteContracts.QueryExecuteSubsetRequest.type, sinon.match.object)
+            .rejects(new Error("failed"));
+
+        (testVscodeWrapper.showErrorMessage as sinon.SinonStub).resetHistory();
+
+        let queryRunner = createQueryRunner(testuri, testuri);
         queryRunner.uri = testuri;
-        return queryRunner.getRows(0, 5, 0, 0).then(undefined, () => {
-            testVscodeWrapper.verify(
-                (x) => x.showErrorMessage(TypeMoq.It.isAnyString()),
-                TypeMoq.Times.once(),
-            );
-        });
+        await queryRunner.getRows(0, 5, 0, 0);
+        expect(testVscodeWrapper.showErrorMessage as sinon.SinonStub).to.have.been.calledOnce;
     });
 
     test("Toggle SQLCMD Mode sends request", async () => {
         let queryUri = "test_uri";
-        let queryRunner = new QueryRunner(
-            queryUri,
-            queryUri,
-            testStatusView.object,
-            testSqlToolsServerClient.object,
-            testQueryNotificationHandler.object,
-            testVscodeWrapper.object,
-        );
+        let queryRunner = createQueryRunner(queryUri, queryUri);
         expect(queryRunner.isSqlCmd, "Query Runner should have SQLCMD false be default").is.equal(
             false,
         );
-        testSqlToolsServerClient
-            .setup((s) =>
-                s.sendRequest(
-                    QueryExecuteContracts.QueryExecuteOptionsRequest.type,
-                    TypeMoq.It.isAny(),
-                ),
-            )
-            .returns(() => {
-                return Promise.resolve(true);
-            });
+        testSqlToolsServerClient.sendRequest
+            .withArgs(QueryExecuteContracts.QueryExecuteOptionsRequest.type, sinon.match.object)
+            .resolves(true);
         await queryRunner.toggleSqlCmd();
-        testSqlToolsServerClient.verify(
-            (s) => s.sendRequest(TypeMoq.It.isAny(), TypeMoq.It.isAny()),
-            TypeMoq.Times.once(),
-        );
+        expect(testSqlToolsServerClient.sendRequest).to.have.been.calledOnce;
         expect(queryRunner.isSqlCmd, "SQLCMD Mode should be switched").is.equal(true);
     });
 
     function setupWorkspaceConfig(configResult: { [key: string]: any }): void {
         let config = stubs.createWorkspaceConfiguration(configResult);
-        testVscodeWrapper
-            .setup((x) => x.getConfiguration(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-            .returns((x) => {
-                return config;
-            });
+        (testVscodeWrapper.getConfiguration as sinon.SinonStub).callsFake(() => config);
     }
 });
 
@@ -617,32 +517,25 @@ suite("Query Runner tests", () => {
  * @param returnCallback Function to execute when query execute request is called
  */
 function setupStandardQueryRequestServiceMock(
-    testSqlToolsServerClient: TypeMoq.IMock<SqlToolsServerClient>,
+    testSqlToolsServerClient: sinon.SinonStubbedInstance<SqlToolsServerClient>,
     returnCallback: (...x: any[]) => Thenable<QueryDisposeContracts.QueryDisposeResult>,
 ): void {
-    testSqlToolsServerClient
-        .setup((x) =>
-            x.sendRequest(
-                TypeMoq.It.isValue(QueryExecuteContracts.QueryExecuteRequest.type),
-                TypeMoq.It.isAny(),
-            ),
-        )
-        .callback((type, details: QueryExecuteParams) => {
+    testSqlToolsServerClient.sendRequest
+        .withArgs(QueryExecuteContracts.QueryExecuteRequest.type, sinon.match.object)
+        .callsFake((_type, details: QueryExecuteParams) => {
             assert.equal(details.ownerUri, standardUri);
             assert.equal(details.querySelection.startLine, standardSelection.startLine);
             assert.equal(details.querySelection.startColumn, standardSelection.startColumn);
             assert.equal(details.querySelection.endLine, standardSelection.endLine);
             assert.equal(details.querySelection.endColumn, standardSelection.endColumn);
-        })
-        .returns(returnCallback);
+            return returnCallback(_type, details);
+        });
 }
 
 function setupStandardQueryNotificationHandlerMock(
-    testQueryNotificationHandler: TypeMoq.IMock<QueryNotificationHandler>,
+    testQueryNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>,
 ): void {
-    testQueryNotificationHandler
-        .setup((x) => x.registerRunner(TypeMoq.It.isAny(), TypeMoq.It.isAny()))
-        .callback((qr, u: string) => {
-            assert.equal(u, standardUri);
-        });
+    testQueryNotificationHandler.registerRunner.callsFake((_qr, uri: string) => {
+        assert.equal(uri, standardUri);
+    });
 }

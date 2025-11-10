@@ -23,12 +23,23 @@ import {
 } from "../sharedInterfaces/publishDialog";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
 import { generatePublishFormComponents } from "./formComponentHelpers";
-import { parsePublishProfileXml, readProjectProperties } from "./projectUtils";
+import {
+    parsePublishProfileXml,
+    readProjectProperties,
+    validateSqlCmdVariables,
+} from "./projectUtils";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
-import { getSqlServerContainerTagsForTargetVersion } from "../deployment/dockerUtils";
+import { getSqlServerContainerTagsForTargetVersion } from "../publishProject/projectUtils";
+import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { hasAnyMissingRequiredValues, getErrorMessage } from "../utils/utils";
+import { ConnectionCredentials } from "../models/connectionCredentials";
+import * as Utils from "../models/utils";
+import { ProjectController } from "../controllers/projectController";
+import { UserSurvey } from "../nps/userSurvey";
+
+const SQLPROJ_PUBLISH_VIEW_ID = "publishProject";
 
 export class PublishProjectWebViewController extends FormWebviewController<
     IPublishForm,
@@ -38,10 +49,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
 > {
     private _cachedDatabaseList?: { displayName: string; value: string }[];
     private _cachedSelectedDatabase?: string;
+    private _connectionUri?: string;
+    private _connectionString?: string;
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _sqlProjectsService?: SqlProjectsService;
     private readonly _dacFxService?: mssql.IDacFxService;
     private readonly _connectionManager: ConnectionManager;
+    private readonly _projectController: ProjectController;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -71,6 +85,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 lastPublishResult: undefined,
                 hasFormErrors: true,
                 deploymentOptions: deploymentOptions,
+                defaultDeploymentOptions: deploymentOptions
+                    ? structuredClone(deploymentOptions)
+                    : undefined,
                 waitingForNewConnection: false,
             } as PublishDialogState,
             {
@@ -80,28 +97,26 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     dark: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "schemaCompare_dark.svg",
+                        "publishProject_dark.svg",
                     ),
                     light: vscode.Uri.joinPath(
                         context.extensionUri,
                         "media",
-                        "schemaCompare_light.svg",
+                        "publishProject_light.svg",
                     ),
                 },
             },
         );
 
+        // Clear default excludeObjectTypes for publish dialog, no default exclude options should exist
+        if (deploymentOptions?.excludeObjectTypes !== undefined) {
+            deploymentOptions.excludeObjectTypes.value = [];
+        }
+
         this._sqlProjectsService = sqlProjectsService;
         this._dacFxService = dacFxService;
         this._connectionManager = connectionManager;
-
-        // Clear default excludeObjectTypes for publish dialog, no default exclude options should exist
-        if (
-            this.state.deploymentOptions &&
-            this.state.deploymentOptions.excludeObjectTypes !== undefined
-        ) {
-            this.state.deploymentOptions.excludeObjectTypes.value = [];
-        }
+        this._projectController = new ProjectController();
 
         this.registerRpcHandlers();
 
@@ -126,6 +141,174 @@ export class PublishProjectWebViewController extends FormWebviewController<
             });
     }
 
+    /**
+     * Builds the SQL project and returns the DACPAC path
+     * @param state Current dialog state
+     * @returns Path to the built DACPAC file, or undefined if build fails
+     */
+    private async buildProject(state: PublishDialogState): Promise<string | undefined> {
+        try {
+            const dacpacPath = await this._projectController.buildProject(state.projectProperties);
+            return dacpacPath;
+        } catch (error) {
+            sendErrorEvent(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.BuildProject,
+                error instanceof Error ? error : new Error(getErrorMessage(error)),
+                false,
+            );
+            return undefined;
+        }
+    }
+
+    /**
+     * Publishes the DACPAC to the target database
+     * @param state Current dialog state
+     * @param dacpacPath Path to the DACPAC file
+     * @param databaseName Target database name
+     * @param upgradeExisting Whether to upgrade an existing database
+     */
+    private async publishToDatabase(
+        state: PublishDialogState,
+        dacpacPath: string,
+        databaseName: string,
+        upgradeExisting: boolean,
+    ): Promise<void> {
+        const connectionUri = this._connectionUri || "";
+        const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
+
+        // Send telemetry
+        sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProjectChanges, {
+            projectFilePath: state.projectFilePath!,
+            publishTarget: state.formState.publishTarget || "",
+            upgradeExisting: upgradeExisting.toString(),
+        });
+
+        try {
+            const result = await this._dacFxService!.deployDacpac(
+                dacpacPath,
+                databaseName,
+                upgradeExisting,
+                connectionUri,
+                TaskExecutionMode.execute,
+                sqlCmdVariables,
+                state.deploymentOptions,
+            );
+
+            if (result.success) {
+                sendActionEvent(
+                    TelemetryViews.SqlProjects,
+                    TelemetryActions.PublishProjectChanges,
+                    {
+                        databaseName: databaseName,
+                        success: "true",
+                    },
+                );
+                // Prompt user for NPS feedback after successful publish
+                void UserSurvey.getInstance().promptUserForNPSFeedback(SQLPROJ_PUBLISH_VIEW_ID);
+            }
+        } catch (error) {
+            sendErrorEvent(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.PublishProjectChanges,
+                error instanceof Error ? error : new Error(getErrorMessage(error)),
+                false,
+            );
+        }
+    }
+
+    /**
+     * Generates a deployment script for the DACPAC
+     * @param state Current dialog state
+     * @param dacpacPath Path to the DACPAC file
+     * @param databaseName Target database name
+     */
+    private async generateDeploymentScript(
+        state: PublishDialogState,
+        dacpacPath: string,
+        databaseName: string,
+    ): Promise<void> {
+        const connectionUri = this._connectionUri || "";
+        const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
+
+        // Send telemetry
+        sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
+            projectFilePath: state.projectFilePath!,
+            publishTarget: state.formState.publishTarget || "",
+        });
+
+        try {
+            const result = await this._dacFxService!.generateDeployScript(
+                dacpacPath,
+                databaseName,
+                connectionUri,
+                TaskExecutionMode.script,
+                sqlCmdVariables,
+                state.deploymentOptions,
+            );
+
+            if (result.success) {
+                sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
+                    databaseName: databaseName,
+                    success: "true",
+                });
+            }
+        } catch (error) {
+            sendErrorEvent(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.GenerateScript,
+                error instanceof Error ? error : new Error(getErrorMessage(error)),
+                false,
+            );
+        }
+    }
+
+    /**
+     * Determines if the target database already exists
+     * @param state Current dialog state
+     * @param databaseName Target database name
+     * @returns True if database exists, false otherwise
+     */
+    private isDatabaseExisting(state: PublishDialogState, databaseName: string): boolean {
+        if (state.formState.publishTarget === PublishTarget.ExistingServer && this._connectionUri) {
+            const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
+            if (databaseComponent?.options) {
+                return databaseComponent.options.some((option) => option.value === databaseName);
+            }
+        } else if (state.formState.publishTarget === PublishTarget.LocalContainer) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Executes publish and generate script operations
+     * @param state Current dialog state
+     * @param isPublish If true, publishes to database; if false, generates script
+     */
+    private async executePublishAndGenerateScript(
+        state: PublishDialogState,
+        isPublish: boolean,
+    ): Promise<void> {
+        const databaseName = state.formState.databaseName;
+
+        // Step 1: Build the project
+        const dacpacPath = await this.buildProject(state);
+        if (!dacpacPath) {
+            return;
+        }
+
+        // Step 2: Determine if database exists
+        const upgradeExisting = this.isDatabaseExisting(state, databaseName);
+
+        // Step 3: Execute publish or generate script
+        if (isPublish) {
+            await this.publishToDatabase(state, dacpacPath, databaseName, upgradeExisting);
+        } else {
+            await this.generateDeploymentScript(state, dacpacPath, databaseName);
+        }
+    }
+
     private async initializeDialog(projectFilePath: string) {
         if (projectFilePath) {
             this.state.projectFilePath = projectFilePath;
@@ -143,10 +326,27 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     this.state.projectProperties = props;
                     projectTargetVersion = props.targetVersion;
                 }
+
+                // Load SQLCMD variables from the project
+                const sqlCmdVarsResult =
+                    await this._sqlProjectsService.getSqlCmdVariables(projectFilePath);
+                if (sqlCmdVarsResult?.success && sqlCmdVarsResult.sqlCmdVariables) {
+                    // Convert array to object for form state
+                    const sqlCmdVarsObject: { [key: string]: string } = {};
+                    for (const sqlCmdVar of sqlCmdVarsResult.sqlCmdVariables) {
+                        // Use the defaultValue which contains the actual values, not variable references like $(SqlCmdVar__1)
+                        const varValue = sqlCmdVar.defaultValue || "";
+                        sqlCmdVarsObject[sqlCmdVar.varName] = varValue;
+                    }
+                    this.state.formState.sqlCmdVariables = sqlCmdVarsObject;
+
+                    // Store immutable default values (project defaults initially)
+                    this.state.defaultSqlCmdVariables = { ...sqlCmdVarsObject };
+                }
             }
         } catch (error) {
             // Log error and send telemetry, but keep dialog resilient
-            console.error("Failed to read project properties:", error);
+            this.logger.error("Failed to read project properties:", error);
             sendErrorEvent(
                 TelemetryViews.SqlProjects,
                 TelemetryActions.PublishProjectChanges,
@@ -161,28 +361,28 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this.state.formState.databaseName,
         );
 
-        this.updateState();
-
         // Fetch Docker tags for the container image dropdown
         const tagComponent = this.state.formComponents[PublishFormFields.ContainerImageTag];
         if (tagComponent) {
             try {
                 const tagOptions =
                     await getSqlServerContainerTagsForTargetVersion(projectTargetVersion);
-                if (tagOptions && tagOptions.length > 0) {
-                    tagComponent.options = tagOptions;
-
-                    // Set default to first option (most recent -latest) if not already set
-                    if (!this.state.formState.containerImageTag && tagOptions[0]) {
-                        this.state.formState.containerImageTag = tagOptions[0].value;
-                    }
+                tagComponent.options = tagOptions;
+                if (!this.state.formState.containerImageTag && tagOptions.length > 0) {
+                    this.state.formState.containerImageTag = tagOptions[0].value;
                 }
             } catch (error) {
-                console.error("Failed to fetch Docker container tags:", error);
+                this.state.formMessage = {
+                    message: Loc.FailedToFetchContainerTags(getErrorMessage(error)),
+                    intent: "error",
+                };
             }
         }
 
-        void this.updateItemVisibility();
+        // Update item visibility before updating state to ensure SQLCMD table is visible if needed
+        await this.updateItemVisibility();
+
+        this.updateState();
 
         // Run initial validation to set hasFormErrors state for button enablement
         await this.validateForm(this.state.formState, undefined, true);
@@ -201,14 +401,34 @@ export class PublishProjectWebViewController extends FormWebviewController<
         });
 
         this.registerReducer("publishNow", async (state: PublishDialogState) => {
-            // TODO: implement actual publish logic (currently just clears inProgress)
-            return { ...state, inProgress: false };
+            this.panel?.dispose();
+            void this.executePublishAndGenerateScript(state, true);
+
+            return state;
         });
 
         this.registerReducer("generatePublishScript", async (state) => {
-            // TODO: implement script generation logic
+            this.panel?.dispose();
+            void this.executePublishAndGenerateScript(state, false);
+
             return state;
         });
+
+        this.registerReducer(
+            "updateDeploymentOptions",
+            async (
+                state: PublishDialogState,
+                payload: { deploymentOptions: mssql.DeploymentOptions },
+            ) => {
+                // Update deployment options and regenerate grouped options for UI
+                const newState = {
+                    ...state,
+                    deploymentOptions: payload.deploymentOptions,
+                };
+
+                return newState;
+            },
+        );
 
         this.registerReducer("selectPublishProfile", async (state: PublishDialogState) => {
             // Derive project folder path from the project file path
@@ -244,21 +464,68 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         TelemetryActions.PublishProfileLoaded,
                     );
 
-                    // Update state with all parsed values - UI components will consume when available
-                    return {
+                    // Merge SQLCMD variables: start with current values, then overlay profile variables
+                    const mergedSqlCmdVariables = {
+                        ...state.formState.sqlCmdVariables,
+                        ...parsedProfile.sqlCmdVariables,
+                    };
+
+                    // Update immutable default values: project defaults + profile overrides
+                    const updatedDefaults = {
+                        ...state.defaultSqlCmdVariables,
+                        ...parsedProfile.sqlCmdVariables,
+                    };
+
+                    // Update state with loaded profile data
+                    this.state = {
                         ...state,
+                        defaultSqlCmdVariables: updatedDefaults,
                         formState: {
                             ...state.formState,
                             publishProfilePath: selectedPath,
                             databaseName:
                                 parsedProfile.databaseName || state.formState.databaseName,
                             serverName: parsedProfile.serverName || state.formState.serverName,
-                            sqlCmdVariables: parsedProfile.sqlCmdVariables,
+                            sqlCmdVariables: mergedSqlCmdVariables,
                         },
-                        connectionString: parsedProfile.connectionString || state.connectionString,
                         deploymentOptions:
                             parsedProfile.deploymentOptions || state.deploymentOptions,
+                        formMessage: !this._dacFxService
+                            ? {
+                                  message: Loc.DacFxServiceNotAvailableProfileLoaded,
+                                  intent: "error",
+                              }
+                            : undefined,
                     };
+
+                    // Validate form after loading profile to update button states
+                    await this.validateForm(this.state.formState, undefined, false);
+
+                    // Update item visibility to show SQLCMD variables table if variables exist
+                    await this.updateItemVisibility();
+
+                    // Update UI immediately with profile data
+                    this.updateState();
+
+                    // If profile has a connection string, connect in background (non-blocking)
+                    if (parsedProfile.connectionString) {
+                        void this.connectAndPopulateDatabases(parsedProfile.connectionString).then(
+                            (connectionResult) => {
+                                // Update connection fields after background connection completes
+                                this._connectionUri =
+                                    connectionResult.connectionUri || this._connectionUri;
+                                if (connectionResult.errorMessage) {
+                                    this.state.formMessage = {
+                                        message: Loc.ProfileLoadedConnectionFailed,
+                                        intent: "error",
+                                    };
+                                }
+                                this.updateState();
+                            },
+                        );
+                    }
+
+                    return this.state;
                 } catch (error) {
                     return {
                         ...state,
@@ -275,6 +542,25 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         this.registerReducer("closeMessage", async (state: PublishDialogState) => {
             return { ...state, formMessage: undefined };
+        });
+
+        // Dedicated reducer for updating SQLCMD variables.
+        // Cannot use formAction because FormEvent.value is typed as string | boolean,
+        // but sqlCmdVariables is an object type, so we need a custom reducer for type safety.
+        this.registerReducer(
+            "updateSqlCmdVariables",
+            async (
+                state: PublishDialogState,
+                payload: { variables: { [key: string]: string } },
+            ) => {
+                state.formState.sqlCmdVariables = payload.variables;
+                return state;
+            },
+        );
+
+        this.registerReducer("revertSqlCmdVariables", async (state: PublishDialogState) => {
+            state.formState.sqlCmdVariables = { ...state.defaultSqlCmdVariables };
+            return state;
         });
 
         this.registerReducer(
@@ -332,7 +618,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     const connectionString =
                         state.formState.publishTarget === PublishTarget.LocalContainer
                             ? ""
-                            : state.connectionString || "";
+                            : this._connectionString || "";
                     const sqlCmdVariables = new Map(
                         Object.entries(state.formState.sqlCmdVariables || {}),
                     );
@@ -366,10 +652,46 @@ export class PublishProjectWebViewController extends FormWebviewController<
                         },
                     };
                 }
-
-                return state;
             },
         );
+    }
+
+    /**
+     * Connects to SQL Server using a connection string and populates the database dropdown.
+     * This happens in the background when loading a publish profile.
+     * @param connectionString The connection string from the publish profile
+     * @returns Object containing connectionUri if successful, or errorMessage if failed
+     */
+    private async connectAndPopulateDatabases(connectionString: string): Promise<{
+        connectionUri?: string;
+        errorMessage?: string;
+    }> {
+        const fileUri = `mssql://publish-profile-${Utils.generateGuid()}`;
+
+        try {
+            // Parse connection string and connect
+            const connectionDetails =
+                await this._connectionManager.parseConnectionString(connectionString);
+            const connectionInfo = ConnectionCredentials.createConnectionInfo(connectionDetails);
+
+            await this._connectionManager.connect(fileUri, connectionInfo, {
+                shouldHandleErrors: false,
+            });
+
+            // Get and populate database list
+            const databases = await this._connectionManager.listDatabases(fileUri);
+            const databaseComponent = this.state.formComponents[PublishFormFields.DatabaseName];
+            if (databaseComponent && databases) {
+                databaseComponent.options = databases.map((db) => ({
+                    displayName: db,
+                    value: db,
+                }));
+            }
+
+            return { connectionUri: fileUri };
+        } catch (error) {
+            return { errorMessage: getErrorMessage(error) };
+        }
     }
 
     /**
@@ -389,7 +711,10 @@ export class PublishProjectWebViewController extends FormWebviewController<
             }
 
             this.state.formState.serverName = connectionProfile.server;
-            this.state.connectionString = await this._connectionManager.getConnectionString(
+
+            // Store the connectionUri and connection string for dacfx operations and saving to publish profile
+            this._connectionUri = event.fileUri;
+            this._connectionString = await this._connectionManager.getConnectionString(
                 event.fileUri,
                 true, // includePassword
                 true, // includeApplicationName
@@ -480,7 +805,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     this.state.projectFilePath,
                     path.extname(this.state.projectFilePath),
                 );
-                this.state.connectionString = undefined;
+                this._connectionUri = undefined;
+                this._connectionString = undefined;
             } else if (this.state.formState.publishTarget === PublishTarget.ExistingServer) {
                 // Restore for server mode
                 if (this._cachedDatabaseList?.length) {
@@ -513,6 +839,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
             hidden.push(...PublishFormContainerFields);
         }
 
+        // Hide SQLCMD variables section if no variables exist
+        const sqlCmdVars = currentState.formState?.sqlCmdVariables;
+        const hasSqlCmdVariables = sqlCmdVars && Object.keys(sqlCmdVars).length > 0;
+        if (!hasSqlCmdVariables) {
+            hidden.push(PublishFormFields.SqlCmdVariables);
+        }
+
         for (const component of Object.values(currentState.formComponents)) {
             component.hidden = hidden.includes(component.propertyName);
         }
@@ -536,8 +869,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this.state.formState,
         );
 
+        // Check SQLCMD variables validation using shared utility
+        const sqlCmdVariablesValid = validateSqlCmdVariables(this.state.formState.sqlCmdVariables);
+
         // hasFormErrors state tracks to disable buttons if ANY errors exist
-        this.state.hasFormErrors = hasValidationErrors || hasMissingRequiredValues;
+        this.state.hasFormErrors =
+            hasValidationErrors || hasMissingRequiredValues || !sqlCmdVariablesValid;
 
         return erroredInputs;
     }

@@ -54,6 +54,11 @@ export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdTableExplorer = "mssql.tableExplorer";
 export const cmdTableNodeAction = "mssql.tableNodeAction";
 export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
+export const cmdDacpacDialog = "mssql.launchDacpacDialog";
+export const cmdDeployDacpac = "mssql.deployDacpac";
+export const cmdExtractDacpac = "mssql.extractDacpac";
+export const cmdImportBacpac = "mssql.importBacpac";
+export const cmdExportBacpac = "mssql.exportBacpac";
 export const cmdPublishDatabaseProject = "mssql.publishDatabaseProject";
 export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
@@ -252,6 +257,7 @@ export const configSavePasswordsUntilRestart =
     "mssql.connectionManagement.rememberPasswordsUntilRestart";
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 export const configCustomEnvironment = "mssql.customEnvironment";
+export const configShortcuts = "mssql.shortcuts";
 
 // Built into VS Code
 export const sovereignCloudSectionName = "microsoft-sovereign-cloud";
@@ -316,6 +322,13 @@ export const AzureSqlServerName = "Azure SQL server";
 export const DefaultSqlPortNumber = "1433";
 export const DefaultAdminUsername = "sa";
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
+export const sqlDatabaseProjectsExtensionId = "ms-mssql.sql-database-projects-vscode";
 export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
 export const PublishProfileExtension = "publish.xml";
+export const DacpacExtension = ".dacpac";
+export const dotnet = "dotnet";
+export const build = "build";
+export const sqlProjBuildTaskType = "sqlproj-build";
+export const msBuildProblemMatcher = "$msCompile";
+export const buildDirectory = "BuildDirectory";

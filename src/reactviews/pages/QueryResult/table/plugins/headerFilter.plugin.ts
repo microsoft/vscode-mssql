@@ -23,7 +23,11 @@ import {
     ShowFilterDisabledMessageRequest,
     SortProperties,
 } from "../../../../../sharedInterfaces/queryResult";
-import { ColorThemeKind } from "../../../../../sharedInterfaces/webview";
+import {
+    ColorThemeKind,
+    WebviewAction,
+    WebviewKeyBindings,
+} from "../../../../../sharedInterfaces/webview";
 import { QueryResultReactProvider } from "../../queryResultStateProvider";
 
 export interface CommandEventArgs<T extends Slick.SlickData> {
@@ -62,6 +66,7 @@ export class HeaderMenu<T extends Slick.SlickData> {
         public theme: ColorThemeKind,
         private readonly queryResultContext: QueryResultReactProvider,
         private readonly gridId: string,
+        public keyBindings: WebviewKeyBindings,
     ) {}
 
     public init(grid: Slick.Grid<T>): void {
@@ -152,8 +157,12 @@ export class HeaderMenu<T extends Slick.SlickData> {
         const $menuButton = jQuery(
             `
             <button id="anchor-btn"
-                    aria-label="${locConstants.queryResult.showMenu}"
-                    title="${locConstants.queryResult.showMenu}" />
+                    aria-label="${locConstants.queryResult.showMenu(
+                        this.keyBindings[WebviewAction.ResultGridOpenColumnMenu].label,
+                    )}"
+                    title="${locConstants.queryResult.showMenu(
+                        this.keyBindings[WebviewAction.ResultGridOpenColumnMenu].label,
+                    )}"  />
             `,
         )
             .addClass("slick-header-menubutton")

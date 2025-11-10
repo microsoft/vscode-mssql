@@ -16,14 +16,17 @@ import {
     ColorThemeChangeNotification,
     ColorThemeKind,
     GetEOLRequest,
+    GetKeyBindingsConfigRequest,
     GetLocalizationRequest,
     GetStateRequest,
     GetThemeRequest,
     LoadStatsNotification,
     StateChangeNotification,
+    WebviewKeyBindings,
 } from "../../sharedInterfaces/webview";
 import { getEOL } from "./utils";
 import { vsCodeApiInstance } from "./acquireVsCodeApi";
+import { parseWebviewKeyboardShortcutConfig } from "./keyboardUtils";
 
 /**
  * Context for vscode webview functionality like theming, state management, rpc and vscode api.
@@ -49,6 +52,10 @@ export interface VscodeWebviewContext2Props<State, Reducers> {
      * Theme of the webview.
      */
     themeKind: ColorThemeKind;
+    /**
+     * Key bindings for the webview.
+     */
+    keyBindings: WebviewKeyBindings;
     /**
      * Localization status. The value is true when the localization file content is received from the extension.
      * This is used to force a re-render of the component when the localization file content is received.
@@ -80,6 +87,7 @@ export function VscodeWebviewProvider2<State, Reducers>({ children }: VscodeWebv
     const extensionRpc = WebviewRpc.getInstance<Reducers>(vscodeApi);
 
     const [theme, setTheme] = useState(ColorThemeKind.Light);
+    const [keyBindings, setKeyBindings] = useState<WebviewKeyBindings>({} as WebviewKeyBindings);
     const [localization, setLocalization] = useState<boolean>(false);
     const [EOL, setEOL] = useState<string>(getEOL());
 
@@ -118,15 +126,18 @@ export function VscodeWebviewProvider2<State, Reducers>({ children }: VscodeWebv
         async function bootstrap() {
             try {
                 // Coordinate all initialization operations
-                const [theme, initialState, eol, fileContents] = await Promise.all([
-                    extensionRpc.sendRequest(GetThemeRequest.type),
-                    extensionRpc.sendRequest(GetStateRequest.type<State>()),
-                    extensionRpc.sendRequest(GetEOLRequest.type),
-                    extensionRpc.sendRequest(GetLocalizationRequest.type),
-                ]);
+                const [theme, keyboardShortcuts, initialState, eol, fileContents] =
+                    await Promise.all([
+                        extensionRpc.sendRequest(GetThemeRequest.type),
+                        extensionRpc.sendRequest(GetKeyBindingsConfigRequest.type),
+                        extensionRpc.sendRequest(GetStateRequest.type<State>()),
+                        extensionRpc.sendRequest(GetEOLRequest.type),
+                        extensionRpc.sendRequest(GetLocalizationRequest.type),
+                    ]);
 
                 // Set state atomically
                 setTheme(theme);
+                setKeyBindings(parseWebviewKeyboardShortcutConfig(keyboardShortcuts));
                 stateRef.current = initialState;
                 setEOL(eol);
 
@@ -162,13 +173,14 @@ export function VscodeWebviewProvider2<State, Reducers>({ children }: VscodeWebv
     return (
         <VscodeWebviewContext2.Provider
             value={{
-                vscodeApi: vscodeApi,
-                extensionRpc: extensionRpc,
+                vscodeApi,
+                extensionRpc,
                 getSnapshot,
                 subscribe,
                 themeKind: theme,
-                localization: localization,
-                EOL: EOL,
+                keyBindings,
+                localization,
+                EOL,
             }}>
             <FluentProvider
                 style={{
