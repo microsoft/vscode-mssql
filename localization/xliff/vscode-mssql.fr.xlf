@@ -140,7 +140,7 @@
       </trans-unit>
       <trans-unit id="++CODE++02a16a835f1e9c9cbe76a8cb9042d2f3861fc237036221e1f0c60383600f45f6">
         <source xml:lang="en">Add Row</source>
-        <target state="new">Add Row</target>
+        <target state="translated">Ajouter une ligne</target>
       </trans-unit>
       <trans-unit id="++CODE++937a7b0b3cc8c58a787de5a63bfc07573789ee22a22918957f92651c0edb31f9">
         <source xml:lang="en">Add Server Connection</source>
@@ -189,7 +189,7 @@
       </trans-unit>
       <trans-unit id="++CODE++fe80d12c71bbc300158260094cf676c1a9f3546b792f027c84e7a91d9fc75b20">
         <source xml:lang="en">Advanced Publish Options</source>
-        <target state="new">Advanced Publish Options</target>
+        <target state="translated">Options de publication avancées</target>
       </trans-unit>
       <trans-unit id="++CODE++08d0861fba87c9910b6c76342c1783be7d5504ff5248fbacd869963a7322992d">
         <source xml:lang="en">All permissions for extensions to access your connections have been cleared.</source>
@@ -298,6 +298,14 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       <trans-unit id="++CODE++a187c7382f4026c938df224dd7484977538cd582c67e94b62861499fe68c68a4">
         <source xml:lang="en">Application Version</source>
         <target state="new">Application Version</target>
+      </trans-unit>
+      <trans-unit id="++CODE++3bce900ec4939301dbcf9f9199be4416b9c310a90af78e6a083fcbb7c517696e">
+        <source xml:lang="en">Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)</source>
+        <target state="new">Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)</target>
+      </trans-unit>
+      <trans-unit id="++CODE++70e9cc5a50f7eb5ba95c18dffd367c22caeef8814be8188d6af4f5654a8fc728">
+        <source xml:lang="en">Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)</source>
+        <target state="new">Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)</target>
       </trans-unit>
       <trans-unit id="++CODE++31e392d1c0378beca611de66c0f4c71cba29159905cc54242d9bddee5b23d851">
         <source xml:lang="en">Apply</source>
@@ -464,9 +472,19 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">BACPAC exported successfully</source>
         <target state="new">BACPAC exported successfully</target>
       </trans-unit>
+      <trans-unit id="++CODE++c77ba6ce31916c226def02930b4f3867d3bba2e1814b5528c12d5b3b62828eca">
+        <source xml:lang="en">BACPAC exported successfully to '{0}'</source>
+        <note>{0} is the file path</note>
+        <target state="new">BACPAC exported successfully to '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++2ba87440799be3f6c8b0aa29316cf97584087cc46962e689c375699adb392137">
         <source xml:lang="en">BACPAC imported successfully</source>
         <target state="new">BACPAC imported successfully</target>
+      </trans-unit>
+      <trans-unit id="++CODE++98dbbe35459fbe282206441874ff66bc527f1c735eb99367c073ac68f713c396">
+        <source xml:lang="en">BACPAC imported successfully to database '{0}'</source>
+        <note>{0} is the database name</note>
+        <target state="new">BACPAC imported successfully to database '{0}'</target>
       </trans-unit>
       <trans-unit id="++CODE++76900f1bfd16c8d4dd3d25e6f46638d7165aee23883ccea6bfe071c514421769">
         <source xml:lang="en">Back</source>
@@ -515,15 +533,15 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
-        <target state="new">Build failed with exit code {0}</target>
+        <target state="translated">Échec de la build avec le code de sortie {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++070df86dfd0e7f4066a971ef2e0d5b9ee8ddbb826c4edf0924026bca37ac603f">
         <source xml:lang="en">Build {0}</source>
-        <target state="new">Build {0}</target>
+        <target state="translated">Build {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++9168a1046e45504ed34edeecd99ec73be336161e82395399aa9a3c1d912be6b2">
         <source xml:lang="en">Building {0}...</source>
-        <target state="new">Building {0}...</target>
+        <target state="translated">Génération de {0}...</target>
       </trans-unit>
       <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
         <source xml:lang="en">CSV</source>
@@ -645,7 +663,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++35c09389e41adb1bb2bf8991c39e3927981a271ab80a41ec216995e909344c23">
         <source xml:lang="en">Changes saved successfully.</source>
-        <target state="new">Changes saved successfully.</target>
+        <target state="translated">Les modifications ont été enregistrées.</target>
       </trans-unit>
       <trans-unit id="++CODE++37b6d72a119e5ec53d1dc71ba94cbed9566519488230f6a4e40ae82bfc8bc79f">
         <source xml:lang="en">Changing database context to "{0}" on server "{1}" on document "{2}".</source>
@@ -820,7 +838,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++643a90a6bde33b562cd0de040386daa285bf033a5027344e98ad12c8d2cac56a">
         <source xml:lang="en">Close Script Pane</source>
-        <target state="new">Close Script Pane</target>
+        <target state="translated">Fermer le volet Script</target>
       </trans-unit>
       <trans-unit id="++CODE++3bd5ea966485fd0a628d3dc7d499e2551a0381dcb8b4237bfdbb08aaf6b88468">
         <source xml:lang="en">Close properties pane</source>
@@ -1191,11 +1209,11 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++970a1f3493ca367ca4e95e0f203ef44c08040fa0563dd8b2cc2c9c69cf125da4">
         <source xml:lang="en">Copy Script</source>
-        <target state="new">Copy Script</target>
+        <target state="translated">Copier le script</target>
       </trans-unit>
       <trans-unit id="++CODE++84f5172141bab484104cf73fd00dc9d1d9426606ec2f0a3785ede261956f1ed2">
         <source xml:lang="en">Copy Script to Clipboard</source>
-        <target state="new">Copy Script to Clipboard</target>
+        <target state="translated">Copier le script dans le Presse-papiers</target>
       </trans-unit>
       <trans-unit id="++CODE++ac030299960c4d5cba2b13fa5f358cb7f1b1531ce5f2e5315eff17b7c93a97bf">
         <source xml:lang="en">Copy as CSV</source>
@@ -1241,7 +1259,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Could not find scripting metadata for {0} '{1}'.</source>
         <note>{0} is the node type
 {1} is the node label</note>
-        <target state="new">Could not find scripting metadata for {0} '{1}'.</target>
+        <target state="translated">Métadonnées de script introuvables pour {0} « {1} ».</target>
       </trans-unit>
       <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
         <source xml:lang="en">Count: {0}</source>
@@ -1301,10 +1319,6 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Create a SQL database in Fabric (Preview)</source>
         <target state="translated">Créer une base de données SQL dans Fabric (préversion)</target>
       </trans-unit>
-      <trans-unit id="++CODE++c596645c9e18f8f49df67feda1d83d1015c9e4371593afaba2c24cedf1ae14b4">
-        <source xml:lang="en">Create a database from a .bacpac file</source>
-        <target state="new">Create a database from a .bacpac file</target>
-      </trans-unit>
       <trans-unit id="++CODE++4cbb437498e0de07f05b633c28f811c67840a2f67e956543557c6085560869e3">
         <source xml:lang="en">Create a new firewall rule</source>
         <target state="translated">Créer une règle de pare-feu</target>
@@ -1348,17 +1362,27 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">DACPAC deployed successfully</source>
         <target state="new">DACPAC deployed successfully</target>
       </trans-unit>
+      <trans-unit id="++CODE++c013d84f45a8e17f8b3f0bfea676174416117e054fa2315d1e3f1daeac57af36">
+        <source xml:lang="en">DACPAC deployed successfully to database '{0}'</source>
+        <note>{0} is the database name</note>
+        <target state="new">DACPAC deployed successfully to database '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++fec6ccad8071c66a146f4f9bab40620ba0279984c3c35763ac115ac3825fa6fd">
         <source xml:lang="en">DACPAC extracted successfully</source>
         <target state="new">DACPAC extracted successfully</target>
       </trans-unit>
+      <trans-unit id="++CODE++efa7e304910e512aeaeb6c9dc608a6f993bd69b672cd3de63dba56475ed3e244">
+        <source xml:lang="en">DACPAC extracted successfully to '{0}'</source>
+        <note>{0} is the file path</note>
+        <target state="new">DACPAC extracted successfully to '{0}'</target>
+      </trans-unit>
       <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
         <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
-        <target state="new">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</target>
+        <target state="translated">Le service DacFx n’est pas disponible. Profil chargé sans options de déploiement. Les opérations de publication et de génération de script ne peuvent pas être effectuées.</target>
       </trans-unit>
       <trans-unit id="++CODE++7ca6d6b94c100c4f405187f90cd8ed2b66402f6b47804856b75931feccf9b9f4">
         <source xml:lang="en">DacFx service is not available. Publish and generate script operations cannot be performed.</source>
-        <target state="new">DacFx service is not available. Publish and generate script operations cannot be performed.</target>
+        <target state="translated">Le service DacFx n’est pas disponible. Les opérations de publication et de génération de script ne peuvent pas être effectuées.</target>
       </trans-unit>
       <trans-unit id="++CODE++68cd154732021d9684d0dcad6276e99d675f962c9b08774f23f5de9398e19290">
         <source xml:lang="en">Data Type</source>
@@ -1471,7 +1495,7 @@ Sélectionnez « {0} » pour établir une connexion.</target>
       </trans-unit>
       <trans-unit id="++CODE++43654c6556c7d0fca93516d81791b323c7746bb3becdcb8800aa9f31300fe30c">
         <source xml:lang="en">Delete Row</source>
-        <target state="new">Delete Row</target>
+        <target state="translated">Supprimer la ligne</target>
       </trans-unit>
       <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
         <source xml:lang="en">Delete saved connection</source>
@@ -1489,13 +1513,9 @@ Sélectionnez « {0} » pour établir une connexion.</target>
         <source xml:lang="en">Deploy</source>
         <target state="new">Deploy</target>
       </trans-unit>
-      <trans-unit id="++CODE++e1d68ffa03dfa562a04ba8039fc29b62f9e617556acba87a075a3a8924f621f6">
-        <source xml:lang="en">Deploy DACPAC</source>
-        <target state="new">Deploy DACPAC</target>
-      </trans-unit>
-      <trans-unit id="++CODE++1642403d004fc160293e0464f1a9c0e1fdcff3e3674ba81cb2fbed23c4610739">
-        <source xml:lang="en">Deploy a data-tier application .dacpac file to an instance of SQL Server</source>
-        <target state="new">Deploy a data-tier application .dacpac file to an instance of SQL Server</target>
+      <trans-unit id="++CODE++796590e031547b420cb30aea63caa00543f57651e3244a8823b769a5f1a1a74e">
+        <source xml:lang="en">Deploy a .dacpac file to a new or existing SQL database</source>
+        <target state="new">Deploy a .dacpac file to a new or existing SQL database</target>
       </trans-unit>
       <trans-unit id="++CODE++97dc38d5949112e250523663a3556643b30754a83c8305adb6e79d88b13b200d">
         <source xml:lang="en">Deploy to Existing Database</source>
@@ -1913,7 +1933,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++01ae099f23b8fe85d27a9e26613eb2624bd76e11505385e3493f316afde824c2">
         <source xml:lang="en">Exclude Object Types</source>
-        <target state="new">Exclude Object Types</target>
+        <target state="translated">Exclure les types d'objet</target>
       </trans-unit>
       <trans-unit id="++CODE++e3a67d9540e9a204f7dc4aa9d44a0ec652856cfa932a21196bf9df23aa0e4cd1">
         <source xml:lang="en">Execute</source>
@@ -1967,9 +1987,9 @@ Erreur :
         <source xml:lang="en">Export BACPAC</source>
         <target state="new">Export BACPAC</target>
       </trans-unit>
-      <trans-unit id="++CODE++ac4a7f1b26c07b58805bc247b84f2cb8349fb9f206e4dcb2e3098cf508562332">
-        <source xml:lang="en">Export the schema and data from a database to the logical .bacpac file format</source>
-        <target state="new">Export the schema and data from a database to the logical .bacpac file format</target>
+      <trans-unit id="++CODE++db58c9165373339af3f704ec69490c93458bb6a0c870a7dca79c243948cc02e1">
+        <source xml:lang="en">Export the schema and data from a SQL database to a .bacpac file</source>
+        <target state="new">Export the schema and data from a SQL database to a .bacpac file</target>
       </trans-unit>
       <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
         <source xml:lang="en">Exporting BACPAC...</source>
@@ -1983,9 +2003,9 @@ Erreur :
         <source xml:lang="en">Extract DACPAC</source>
         <target state="new">Extract DACPAC</target>
       </trans-unit>
-      <trans-unit id="++CODE++f86c7ef9f3f43395756fb5dbdf7f9c09cf9663ab86043982da835971f4ae29fb">
-        <source xml:lang="en">Extract a data-tier application .dacpac from an instance of SQL Server to a .dacpac file</source>
-        <target state="new">Extract a data-tier application .dacpac from an instance of SQL Server to a .dacpac file</target>
+      <trans-unit id="++CODE++ae978d30fd899796154f535e3b3c547d46b2bd0c5e738928c553ce1e1e426fc8">
+        <source xml:lang="en">Extract the schema from a SQL database to a .dacpac file</source>
+        <target state="new">Extract the schema from a SQL database to a .dacpac file</target>
       </trans-unit>
       <trans-unit id="++CODE++e4c61f0d341293c441bab44693218614d6045d574d51221cd6a65d43ec0e04d4">
         <source xml:lang="en">Extracting DACPAC...</source>
@@ -2068,12 +2088,12 @@ Erreur :
       <trans-unit id="++CODE++c813934a8ac886dc843cc3dd41282656501a8c9f7da085c104e96d4d50d6fc93">
         <source xml:lang="en">Failed to copy script: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to copy script: {0}</target>
+        <target state="translated">Échec de la copie du script : {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++707f0ef201b7dca62aa44100faafcd54168f7614d4966e200f9188b638abdd52">
         <source xml:lang="en">Failed to create a new row: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to create a new row: {0}</target>
+        <target state="translated">Échec de la création d’une ligne : {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++62498a2ba93779ef3c23a936f530e6a9286a241a90243dcf1eb13bf44c3f0aa0">
         <source xml:lang="en">Failed to delete credential with id: {0}. {1}</source>
@@ -2093,7 +2113,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++5da8436d7f85f325dbcb03e43c8b81f49b13fa6997b2e200ff9f5272cb577fc5">
         <source xml:lang="en">Failed to fetch Docker container tags: {0}</source>
-        <target state="new">Failed to fetch Docker container tags: {0}</target>
+        <target state="translated">Échec de la récupération des balises de conteneur Docker : {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++fa3e091290b3ba78f8eaf354e98df990932f0b9bed9c453f61ac1a887867da16">
         <source xml:lang="en">Failed to fetch user tokens.</source>
@@ -2106,7 +2126,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++765a301a99c7eee94fb83e4719d18340210f77b71528783b41061a2a9d555e3e">
         <source xml:lang="en">Failed to generate script. Please check the logs for more details.</source>
-        <target state="new">Failed to generate script. Please check the logs for more details.</target>
+        <target state="translated">Échec de la génération du script. Veuillez consulter les journaux pour plus de détails.</target>
       </trans-unit>
       <trans-unit id="++CODE++cdf943bd7b320469af4343440384b361de46832547d9bc9c08b3bd9a90610364">
         <source xml:lang="en">Failed to generate script: '{0}'</source>
@@ -2116,7 +2136,7 @@ Erreur :
       <trans-unit id="++CODE++8d5f2e14eff0aed3f2ac97085dfd89e385dab998301ffa54088ed3f52b37babb">
         <source xml:lang="en">Failed to generate script: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to generate script: {0}</target>
+        <target state="translated">Échec de la génération du script : {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++90971b4f986b2a5d6c3d6f32b711a0bbb3f93d8453a9f0006c0a30d1350cdaff">
         <source xml:lang="en">Failed to get Fabric workspaces for tenant '{0} ({1})'.</source>
@@ -2148,7 +2168,7 @@ Erreur :
       <trans-unit id="++CODE++d1167662f9f4ae95339878cfc71934cb03fce7f402dd7648b10e281fad1a6c4e">
         <source xml:lang="en">Failed to load data: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to load data: {0}</target>
+        <target state="translated">Nous n’avons pas pu charger les données : {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++10b8baec7e7c3be69a945e7d6efbe3672d2a7a1b19642cd0867e8ea353335579">
         <source xml:lang="en">Failed to load databases</source>
@@ -2165,12 +2185,12 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++139d19f27345e3ce0787cd0cdd3497658705c987f492c0f1881127e5ffcdc79e">
         <source xml:lang="en">Failed to open script in editor.</source>
-        <target state="new">Failed to open script in editor.</target>
+        <target state="translated">Échec de l’ouverture du script dans l’éditeur.</target>
       </trans-unit>
       <trans-unit id="++CODE++00e34162fb43e373f12b352ea75d1e2241f480dbda87ec290aaa6f020232edaa">
         <source xml:lang="en">Failed to open script: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to open script: {0}</target>
+        <target state="translated">Échec de l'ouverture du script : {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++644046a988c76e759d05ee90c400f545f6fee393f6c75a23495c621fe9e27b5d">
         <source xml:lang="en">Failed to pull SQL Server image. Please check your network connection and try again.</source>
@@ -2185,22 +2205,22 @@ Erreur :
       <trans-unit id="++CODE++e63c0b0e63209727946a87b02022f9648e8632a2b450e52618307c2107df5ead">
         <source xml:lang="en">Failed to remove row: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to remove row: {0}</target>
+        <target state="translated">Échec de la suppression de la ligne : {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++c5dfa95897b89c1d17492b4591948b4a1c45ddde07a7e6aeebaaecca6dbdd888">
         <source xml:lang="en">Failed to revert cell: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to revert cell: {0}</target>
+        <target state="translated">Échec de la restauration de la cellule : {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++55b0c5ea36504fe873a64ee13ff67759e1652595433ef2f29f23c4672281a0fc">
         <source xml:lang="en">Failed to revert row: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to revert row: {0}</target>
+        <target state="translated">Échec de la restauration de la ligne : {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++07e849b745794c4b9068165d834b1819e8cc4663ec8a733b07337a06d1375fcb">
         <source xml:lang="en">Failed to save changes: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to save changes: {0}</target>
+        <target state="translated">Échec de l’enregistrement des changements : {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++656e30cd5a427ecbf935f88a531699c67f2edc2f0cfa7ef8cbec340a88c0c423">
         <source xml:lang="en">Failed to save publish profile</source>
@@ -2236,7 +2256,7 @@ Erreur :
       <trans-unit id="++CODE++3f91e357af9abc12f947a78cc2b4b0aa8cdd513fb4bec19a10cbee4d133445af">
         <source xml:lang="en">Failed to update cell: {0}</source>
         <note>{0} is the error message</note>
-        <target state="new">Failed to update cell: {0}</target>
+        <target state="translated">Échec de la mise à jour de la cellule : {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++7a1f2a83aca9a0819f244d5b4a7a0e7f6b779eb709dd4744136b22e724dbb10b">
         <source xml:lang="en">Favorites</source>
@@ -2244,7 +2264,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++4db3d9917ade1a9560b2a46de7b387634aedd4114bec8fb31abfb7e403241c76">
         <source xml:lang="en">Fetch rows</source>
-        <target state="new">Fetch rows</target>
+        <target state="translated">Récupérer des lignes</target>
       </trans-unit>
       <trans-unit id="++CODE++4d696d1fc30a43745a483d9bf89065718f6abfcdf8241fe4abb09ef13ec1d5e3">
         <source xml:lang="en">Fetching {0} script...</source>
@@ -2351,7 +2371,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++50f82f3bd4638f41e11892aa681c016d9f858ac119041d52c52d5fb661c5936f">
         <source xml:lang="en">First Page</source>
-        <target state="new">First Page</target>
+        <target state="translated">Première page</target>
       </trans-unit>
       <trans-unit id="++CODE++9285cedcf26a7cbb5277c70b4651a54679ee9d2c89767bc9dbe532b14f4bb697">
         <source xml:lang="en">Flat</source>
@@ -2444,7 +2464,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++915fc447c859d56fa8e745484ac300e07e104e9ef318105f82b578bedf32c405">
         <source xml:lang="en">Generating script...</source>
-        <target state="new">Generating script...</target>
+        <target state="translated">Génération du script...</target>
       </trans-unit>
       <trans-unit id="++CODE++fddd3d1537452414b2a4c7bb1b231ca37398b9f211c1e0d8d80e6f69a7f58f2d">
         <source xml:lang="en">Get Connection Details</source>
@@ -2528,7 +2548,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++f499a7a9c57676d65af8383d5a0f6c5d6b649bb599235e6e20900f73a55968bd">
         <source xml:lang="en">Hide Script</source>
-        <target state="new">Hide Script</target>
+        <target state="translated">Masquer le script</target>
       </trans-unit>
       <trans-unit id="++CODE++89276817789cad555d1e4daf6c6e0b6eac110c7073bd4b23e08ef8a6e7aad4c6">
         <source xml:lang="en">Hide full error message</source>
@@ -2577,7 +2597,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++b37cea142b959c4f6c75754d7b3d56bc41d1a2d6667600c748d7a168f10c8818">
         <source xml:lang="en">Ignore Options</source>
-        <target state="new">Ignore Options</target>
+        <target state="translated">Ignorer les options</target>
       </trans-unit>
       <trans-unit id="++CODE++1d59e3e131d04ce9ba04c0f297dbd4eddb83c0bfe977b2a6bf19bdeb73f2d5c3">
         <source xml:lang="en">Ignore Tenant</source>
@@ -2590,6 +2610,10 @@ Erreur :
       <trans-unit id="++CODE++09b493255c6cc11aae4f73f97494b4d0123bb42869372d0a2182f0a324eb5ef5">
         <source xml:lang="en">Import BACPAC</source>
         <target state="new">Import BACPAC</target>
+      </trans-unit>
+      <trans-unit id="++CODE++004f8760d5d76c5e1465f93ee7c48c0dd97666347f270fbbc9d31bbc56482a6d">
+        <source xml:lang="en">Import a .bacpac file to a new or empty database</source>
+        <target state="new">Import a .bacpac file to a new or empty database</target>
       </trans-unit>
       <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
         <source xml:lang="en">Importance</source>
@@ -2731,7 +2755,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++c7d299ed6b2896187b535a86fd6b04f01669a9b72528a8f2021fff2f42d9f6e3">
         <source xml:lang="en">Last Page</source>
-        <target state="new">Last Page</target>
+        <target state="translated">Dernière page</target>
       </trans-unit>
       <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
         <source xml:lang="en">Learn More</source>
@@ -2953,7 +2977,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++128f2373a3147694ff5bcaab3d428611eba44a540cb348d9d263f855c0ee2a2d">
         <source xml:lang="en">Loading table data...</source>
-        <target state="new">Loading table data...</target>
+        <target state="translated">Chargement des données de table...</target>
       </trans-unit>
       <trans-unit id="++CODE++6fdb41249bacbb3684e7217e3b3d938e36b39e8d0f4300681cba1968b3301495">
         <source xml:lang="en">Loading tenants...</source>
@@ -3039,7 +3063,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++bfb44e231009293c2b2333bb7d0e9e5c0c79294bbb1c6a42c3471892ef016229">
         <source xml:lang="en">Maximize Panel Size</source>
-        <target state="new">Maximize Panel Size</target>
+        <target state="translated">Agrandir la taille du panneau</target>
       </trans-unit>
       <trans-unit id="++CODE++1aa744e397147289dead3a2403f0826fe7b0e380f9bdcc90253477175f18632c">
         <source xml:lang="en">Maximize panel size</source>
@@ -3202,7 +3226,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++6ead5dfdc11ef7da26e4c09f348d42a8d6306b7faa54ce0a7dc6c567dab1db6f">
         <source xml:lang="en">Next Page</source>
-        <target state="new">Next Page</target>
+        <target state="translated">Page suivante</target>
       </trans-unit>
       <trans-unit id="++CODE++1ea442a134b2a184bd5d40104401f2a37fbc09ccf3f4bc9da161c6099be3691d">
         <source xml:lang="en">No</source>
@@ -3279,7 +3303,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++d2d2d48c815b0539270873e2ebf75840a4afd724b5fd066bd9dcfb2f30a8c1dd">
         <source xml:lang="en">No data available</source>
-        <target state="new">No data available</target>
+        <target state="translated">Aucune donnée n’est disponible</target>
       </trans-unit>
       <trans-unit id="++CODE++3280128c0901d1323dde9a406ee7d2d6e8e1b98fd30971fa6134b302fec41eca">
         <source xml:lang="en">No database objects found matching '{0}'</source>
@@ -3311,7 +3335,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++b4722b7d6b5e5dd7c69480a9bd436e71d151acf1a05b81fcace235ba42c83375">
         <source xml:lang="en">No pending changes. Make edits to generate a script.</source>
-        <target state="new">No pending changes. Make edits to generate a script.</target>
+        <target state="translated">Aucune modification en attente. Apportez des modifications pour générer un script.</target>
       </trans-unit>
       <trans-unit id="++CODE++a43619f321175f57a27f2a38da381fd367f6806093031b1f82960bcbf542729d">
         <source xml:lang="en">No results</source>
@@ -3335,7 +3359,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++9d7ed36dee03c4fbfff36e19d91ab5b6a57f9a5b401819b5bbc23c8afca66936">
         <source xml:lang="en">No script available. Make changes to the table data and generate a script first.</source>
-        <target state="new">No script available. Make changes to the table data and generate a script first.</target>
+        <target state="translated">Aucun script disponible. Apportez d’abord des modifications aux données de la table et générez un script.</target>
       </trans-unit>
       <trans-unit id="++CODE++548271493601de8634bf0793fb0e09522c1bcce8e1e61c9e51186c9661137729">
         <source xml:lang="en">No subscriptions available.  Adjust your subscription filters to try again.</source>
@@ -3484,7 +3508,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++f0ee00f28c5dbe68c0c0dd2a5ebab46d19dda4d81627953d3f8e32be33904842">
         <source xml:lang="en">Open in SQL Editor</source>
-        <target state="new">Open in SQL Editor</target>
+        <target state="translated">Ouvrir dans l’éditeur SQL</target>
       </trans-unit>
       <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
         <source xml:lang="en">Open in editor</source>
@@ -3621,7 +3645,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++268f2704823f66b7bf71157cbbb60e14938ed5553068335e93ee23bb6960ed47">
         <source xml:lang="en">Please select a node from Object Explorer to script.</source>
-        <target state="new">Please select a node from Object Explorer to script.</target>
+        <target state="translated">Veuillez sélectionner un nœud de Explorateur d'objets à script.</target>
       </trans-unit>
       <trans-unit id="++CODE++2e0422920bb9bd61c1c7edf3554564e5ca37f4f0bc5d5a96b0402fb3a4c00155">
         <source xml:lang="en">Please select a workspace where you have sufficient permissions (Contributor or higher)</source>
@@ -3629,7 +3653,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++56244c066a4a09fb49e716fc19de4620d586a5b4776fb08f8450b3e7800850b1">
         <source xml:lang="en">Please select only one node to script. Multiple node scripting is not supported.</source>
-        <target state="new">Please select only one node to script. Multiple node scripting is not supported.</target>
+        <target state="translated">Veuillez sélectionner un seul nœud pour générer un script. L’écriture de scripts à plusieurs nœuds n’est pas prise en charge.</target>
       </trans-unit>
       <trans-unit id="++CODE++72e9a59f5a1d6289dbacb35df897d6c007c55a27e77018455c37e7b372668475">
         <source xml:lang="en">Port</source>
@@ -3663,7 +3687,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++a163aaa22cf7ce6c4c2a634f98bef10d0fe0a0602ada2aa50d60b262dc70b2d9">
         <source xml:lang="en">Previous Page</source>
-        <target state="new">Previous Page</target>
+        <target state="translated">Page précédente</target>
       </trans-unit>
       <trans-unit id="++CODE++a89f61eb88c67866f6b2666a2e7f19b6fa1c97ca8330b81f848895bcc3594a3f">
         <source xml:lang="en">Previous pending reconnect promise for uri {0} is rejected with error {1}, will attempt to reconnect if necessary.</source>
@@ -3710,7 +3734,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++21eda41850777c46deb17245aa52751b4406410fdcc51f6644fc38b317201e71">
         <source xml:lang="en">Profile loaded but connection failed. Please connect to the server manually.</source>
-        <target state="new">Profile loaded but connection failed. Please connect to the server manually.</target>
+        <target state="translated">Profil chargé, mais échec de la connexion. Veuillez vous connecter au serveur manuellement.</target>
       </trans-unit>
       <trans-unit id="++CODE++c7b24e72fefeade2fc1706604bb5c2ee848b055ed154428128c10d5020549a7a">
         <source xml:lang="en">Profile removed successfully</source>
@@ -3740,6 +3764,10 @@ Erreur :
       <trans-unit id="++CODE++2061d7abe64ff08b697e992f6e5b0e379cae860434c608eb72552f3ce3bbcfc8">
         <source xml:lang="en">Publish Changes</source>
         <target state="translated">Publier les modifications</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cf3c1d568793b842a356b2e44265de54b7f5c9d301b8de3487afd3b1689f7215">
+        <source xml:lang="en">Publish DACPAC</source>
+        <target state="new">Publish DACPAC</target>
       </trans-unit>
       <trans-unit id="++CODE++dce49ef71e44b5c107d066069bd508af15fbffd22c8e410f76db1f120371635a">
         <source xml:lang="en">Publish Profile</source>
@@ -3916,7 +3944,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++08a1e27d6e3c46f5a5b553a82a39ac2d0e89f6b37a9f57269532ed172d6d2de8">
         <source xml:lang="en">Restore Panel Size</source>
-        <target state="new">Restore Panel Size</target>
+        <target state="translated">Restaurer la taille du panneau</target>
       </trans-unit>
       <trans-unit id="++CODE++f225a9c1cec3aeb23174520a7be45fd29e7f9de8fecba6757bb7cd215235979e">
         <source xml:lang="en">Restore panel size</source>
@@ -3953,6 +3981,10 @@ Erreur :
         <source xml:lang="en">Retry</source>
         <target state="translated">Réessayer</target>
       </trans-unit>
+      <trans-unit id="++CODE++b1d3c17e8d131616e4c9d243a6536aa7c23973e93908621d94b6b7ebf6486863">
+        <source xml:lang="en">Reveal in Explorer</source>
+        <target state="new">Reveal in Explorer</target>
+      </trans-unit>
       <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
         <source xml:lang="en">Reverse Alphabetical</source>
         <target state="translated">Ordre alphabétique inversé</target>
@@ -3963,11 +3995,11 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++289de1729d4ea9f6d9ab040fb6f260a4bb860bac27ecd4e88b968575cfc726f0">
         <source xml:lang="en">Revert Cell</source>
-        <target state="new">Revert Cell</target>
+        <target state="translated">Rétablir la cellule</target>
       </trans-unit>
       <trans-unit id="++CODE++196561ed1b886dfa24402369be0ac725998191df58790075d4c74ff0378851b5">
         <source xml:lang="en">Revert Row</source>
-        <target state="new">Revert Row</target>
+        <target state="translated">Rétablir la ligne</target>
       </trans-unit>
       <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
         <source xml:lang="en">Revert values to project defaults</source>
@@ -3979,7 +4011,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++2f34dcbb175e7163055db4c74f8da053a82783ca89ca052d216bc867598b3ef3">
         <source xml:lang="en">Row created.</source>
-        <target state="new">Row created.</target>
+        <target state="translated">Ligne créée.</target>
       </trans-unit>
       <trans-unit id="++CODE++bec1d11423719e75365ab2e2d94e69229e18d8e25440ece25c0855deac353687">
         <source xml:lang="en">Row marked for removal.</source>
@@ -3987,7 +4019,7 @@ Erreur :
       </trans-unit>
       <trans-unit id="++CODE++141b69f95916694982e525599db8205af7ecd6ced92d36c8aec6c5a9daa1e90e">
         <source xml:lang="en">Rows per page</source>
-        <target state="new">Rows per page</target>
+        <target state="translated">Lignes par page</target>
       </trans-unit>
       <trans-unit id="++CODE++7c9de4e8e989511f39c9c515352856dbfe290c6de0e123d12cc60972e8fa8bf3">
         <source xml:lang="en">Rule name</source>
@@ -4115,7 +4147,7 @@ Requête : {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++35322b5bb5a218a15401cfa54d23b16459e9e1c616977526a4b37b6c87d30c50">
         <source xml:lang="en">Save Changes</source>
-        <target state="new">Save Changes</target>
+        <target state="translated">Enregistrer les modifications</target>
       </trans-unit>
       <trans-unit id="++CODE++df2839447956141d6503caf44145db003e70b17dc128d5c4fefec188b28d6966">
         <source xml:lang="en">Save Connection Group</source>
@@ -4242,7 +4274,7 @@ Requête : {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++0fa2fcc906f37ba513ba034858611a8ca8efb5bada90e29e0c66b5679dea5b92">
         <source xml:lang="en">Script copied to clipboard.</source>
-        <target state="new">Script copied to clipboard.</target>
+        <target state="translated">Script copié dans le Presse-papiers.</target>
       </trans-unit>
       <trans-unit id="++CODE++bd74591fea2d60dc873cec192685f7b6a930d2a370d5b3c9032014bf8224529a">
         <source xml:lang="en">Search Workspaces</source>
@@ -4505,7 +4537,7 @@ Requête : {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++a069cbd94b3bf5f1823f5bf4b82de717737a0b9c646396ef1a43229edd089b8e">
         <source xml:lang="en">Show Script</source>
-        <target state="new">Show Script</target>
+        <target state="translated">Afficher le script</target>
       </trans-unit>
       <trans-unit id="++CODE++d5b86c663921b26f8c3dbd292279ef1d0a13da517c5c5bdf53097cfc17aada03">
         <source xml:lang="en">Show a random table definition</source>
@@ -4779,7 +4811,7 @@ Requête : {1}</target>
       <trans-unit id="++CODE++73c42403ef2ca9fe32cd59cfbda8110671a5d4791783f5e6687cb7379d2f07f3">
         <source xml:lang="en">Table Explorer for '{0}' has unsaved changes. Do you want to save or discard them?</source>
         <note>{0} is the table name</note>
-        <target state="new">Table Explorer for '{0}' has unsaved changes. Do you want to save or discard them?</target>
+        <target state="translated">L’Explorateur de tables pour « {0} » a des modifications non enregistrées. Voulez-vous les enregistrer ou les ignorer ?</target>
       </trans-unit>
       <trans-unit id="++CODE++529667eb9a218f074e24ec63181bb6b3bd4e5ea744e64f71262b6323251ed743">
         <source xml:lang="en">Table name</source>
@@ -5008,7 +5040,7 @@ Requête : {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++3018218f5b66be1c5027fdc1d75389f30f30ac7cfa00c77c3453790d8830dc9a">
         <source xml:lang="en">Total rows to fetch:</source>
-        <target state="new">Total rows to fetch:</target>
+        <target state="translated">Nombre total de lignes à récupérer :</target>
       </trans-unit>
       <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
         <source xml:lang="en">Type</source>
@@ -5024,7 +5056,7 @@ Requête : {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
-        <target state="new">Unable to open Table Explorer: No target node provided.</target>
+        <target state="translated">Impossible d’ouvrir l’Explorateur de tables : aucun nœud cible fourni.</target>
       </trans-unit>
       <trans-unit id="++CODE++582be79ed5a63b2569e2b21a28ab0fe1f7acc6307aaaa8e52510a647959d05fa">
         <source xml:lang="en">Unable to read proxy agent options to get tenants.</source>
@@ -5066,7 +5098,7 @@ Requête : {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++e3f20e8be1b97880a4ce91df2a3a32d86e26db6188d0b1891376e1c076af2906">
         <source xml:lang="en">Update Script</source>
-        <target state="new">Update Script</target>
+        <target state="translated">Mettre à jour le script</target>
       </trans-unit>
       <trans-unit id="++CODE++92294188e79b2a13584eb3e6120f971c94ada2a387f3199a4cd3cb17039f9d37">
         <source xml:lang="en">Updating IntelliSense...</source>
@@ -5347,7 +5379,7 @@ Requête : {1}</target>
       <trans-unit id="++CODE++fdd1e66955c2307ddc64a5e81697afacea8973b913e99714f2d5579ddecf0c2a">
         <source xml:lang="en">{0} (Preview)</source>
         <note>{0} is the table name</note>
-        <target state="new">{0} (Preview)</target>
+        <target state="translated">{0} (préversion)</target>
       </trans-unit>
       <trans-unit id="++CODE++d4781f8681d947d6d8eb589d9a93c7bd093110ab1b826da373b7e1e6b6cf080f">
         <source xml:lang="en">{0} (filtered)</source>
@@ -5708,7 +5740,7 @@ Une fois vos modifications terminées, cliquez sur le bouton « Publier » pou
       </trans-unit>
       <trans-unit id="mssql.tableExplorer">
         <source xml:lang="en">Edit Data (Preview)</source>
-        <target state="new">Edit Data (Preview)</target>
+        <target state="translated">Modifier les données (préversion)</target>
       </trans-unit>
       <trans-unit id="mssql.enableActualPlan">
         <source xml:lang="en">Enable Actual Plan</source>
@@ -5934,7 +5966,7 @@ Vous pouvez vous connecter à une base de données en entrant vos informations d
       </trans-unit>
       <trans-unit id="mssql.editTable">
         <source xml:lang="en">Modify Table</source>
-        <target state="new">Modify Table</target>
+        <target state="translated">Modifier la table</target>
       </trans-unit>
       <trans-unit id="mssql.newDeployment">
         <source xml:lang="en">New Deployment</source>
@@ -6072,7 +6104,7 @@ Commencez par cliquer sur le bouton de filtre à côté de la plupart des dossie
       </trans-unit>
       <trans-unit id="mssql.sqlScriptsSubmenu">
         <source xml:lang="en">SQL Scripts</source>
-        <target state="new">SQL Scripts</target>
+        <target state="translated">Scripts SQL</target>
       </trans-unit>
       <trans-unit id="mssql.schemaCompare">
         <source xml:lang="en">Schema Compare</source>
