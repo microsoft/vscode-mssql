@@ -1261,6 +1261,9 @@
     <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
       <source xml:lang="en">Don&apos;t Show Again</source>
     </trans-unit>
+    <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
+      <source xml:lang="en">Don&apos;t show this again</source>
+    </trans-unit>
     <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
       <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
     </trans-unit>
@@ -1914,6 +1917,9 @@
       <source xml:lang="en">Getting Fabric workspace &apos;{0}&apos;</source>
       <note>{0} is the workspace ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++d00eca1bae6742803906ab42a831e8b5396d15b6573ea13c139ec31631208ec1">
+      <source xml:lang="en">Getting Started</source>
+    </trans-unit>
     <trans-unit id="++CODE++2a8c8cd4e7c7142bffa09b893aaf7ab5886407a22a7ef9b2ee4f60f46fad7bf0">
       <source xml:lang="en">Getting connection details for connection &apos;{0}&apos;</source>
       <note>{0} is the connection ID</note>
@@ -2101,6 +2107,9 @@
     </trans-unit>
     <trans-unit id="++CODE++db1a21a0bc2ef8fbe13ac4cf044e8c9116d29137d5ed8b916ab63dcb2d4290df">
       <source xml:lang="en">JSON</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2b44a1bd7856dc8b992d4ddddf8e6987261b77c662f06651842af2d637768d5e">
+      <source xml:lang="en">Join the community</source>
     </trans-unit>
     <trans-unit id="++CODE++29b39d81b8651e8717f85c00002b2b087bafb969eb289ac991fa41b17522e775">
       <source xml:lang="en">Keep in query pane</source>
@@ -2467,6 +2476,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
       <source xml:lang="en">New column mapping</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5ce7bd2be4edd49b34350661d18fe7815ed2376cbabaacf680e5f6fc829c933b">
+      <source xml:lang="en">New to MSSQL extension? Check out our quick start guide.</source>
     </trans-unit>
     <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
       <source xml:lang="en">Next</source>
@@ -2936,8 +2948,14 @@
       <note>{0} is the query number
 {1} is the query cost</note>
     </trans-unit>
+    <trans-unit id="++CODE++1a87861144c312b1135b7e13f4da55c251e7ec3cb2d19ed06082aa132a11104e">
+      <source xml:lang="en">Read docs</source>
+    </trans-unit>
     <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
       <source xml:lang="en">Read more</source>
+    </trans-unit>
+    <trans-unit id="++CODE++88de0d15d2a8736d9ac542037e6bfa6b4f210be39df50c5b1dd790273c49f678">
+      <source xml:lang="en">Read the documentation</source>
     </trans-unit>
     <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
       <source xml:lang="en">Readying container for connections.</source>
@@ -3011,6 +3029,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
       <source xml:lang="en">Resource Group</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e89b30aa1dc30a6ad8c34610689bede83b3ef645a24c3a84a0990826687fb735">
+      <source xml:lang="en">Resources</source>
     </trans-unit>
     <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
       <source xml:lang="en">Restore</source>
@@ -3853,6 +3874,9 @@
     <trans-unit id="++CODE++3018218f5b66be1c5027fdc1d75389f30f30ac7cfa00c77c3453790d8830dc9a">
       <source xml:lang="en">Total rows to fetch:</source>
     </trans-unit>
+    <trans-unit id="++CODE++fe69511137842f6fddcfcc1e96e39bf6920b5ed00251ec6549d79463928b2e0c">
+      <source xml:lang="en">Try it</source>
+    </trans-unit>
     <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
       <source xml:lang="en">Type</source>
     </trans-unit>
@@ -3952,6 +3976,9 @@
     <trans-unit id="++CODE++15435b311c9371437109bd5323292504915507b034803118517fee44e9547a3c">
       <source xml:lang="en">View More</source>
     </trans-unit>
+    <trans-unit id="++CODE++4df1c3c1e102e435180696bd70601a6c985ccee7f47cdfe8b6bfcadaea047d87">
+      <source xml:lang="en">View keyboard shortcuts</source>
+    </trans-unit>
     <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
       <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
     </trans-unit>
@@ -3964,6 +3991,9 @@
     <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
       <source xml:lang="en">Warnings detected. Please review the changes.</source>
     </trans-unit>
+    <trans-unit id="++CODE++5c3609430896d4699ab71dbb0b34c253b69d4cd07a22b6b890a29d6b7e0728a0">
+      <source xml:lang="en">Watch demos on YouTube</source>
+    </trans-unit>
     <trans-unit id="++CODE++d054fcb4284fd66975e378de56c04bda7b8e951e8e13f66834d9510e2b5461aa">
       <source xml:lang="en">We can&apos;t find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.</source>
     </trans-unit>
@@ -3975,6 +4005,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
       <source xml:lang="en">What can we do to improve?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8b82f5fad6db0eafc4a1b0023f5350adb040f71aeb147cf6ae2366658d822ec3">
+      <source xml:lang="en">What&apos;s new in this release</source>
     </trans-unit>
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>
@@ -4002,6 +4035,10 @@
     </trans-unit>
     <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
       <source xml:lang="en">You are not connected to any database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f3181e292580fea40c15bf9a85615f13c8133a2f1ac88fc2067181c933b07177">
+      <source xml:lang="en">You are seeing this message because you updated the MSSQL extension to version {0}.</source>
+      <note>{0} is the version number of the MSSQL extension</note>
     </trans-unit>
     <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
       <source xml:lang="en">You must accept the license</source>
@@ -4733,6 +4770,9 @@
     </trans-unit>
     <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
       <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for &apos;SELECT C1, C2 FROM T1&apos; both C1 and C2 will be on separate lines</source>
+    </trans-unit>
+    <trans-unit id="mssql.showChangelogOnUpdate">
+      <source xml:lang="en">Show changelog after extension updates</source>
     </trans-unit>
     <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
       <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
