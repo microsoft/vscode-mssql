@@ -580,7 +580,7 @@
                 },
                 {
                     "command": "mssql.tableExplorer",
-                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && config.mssql.enableRichExperiences",
+                    "when": "view == objectExplorer && viewItem =~ /\\btype=(Table)\\b/ && mssql.experimentalFeaturesEnabled",
                     "group": "4_MSSQL_tableActions@1"
                 },
                 {
