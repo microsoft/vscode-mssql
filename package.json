@@ -2208,6 +2208,11 @@
                             "description": "%mssql.customEnvironment.dynamicsCrmDnsSuffix%"
                         }
                     }
+                },
+                "mssql.showChangelogOnUpdate": {
+                    "type": "boolean",
+                    "description": "%mssql.showChangelogOnUpdate%",
+                    "default": true
                 }
             }
         },

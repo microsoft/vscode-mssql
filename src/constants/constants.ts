@@ -123,6 +123,7 @@ export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
 export const cmdOpenChangelog = "mssql.openChangelog";
+export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
@@ -259,6 +260,7 @@ export const configSavePasswordsUntilRestart =
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
+export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
 
 // Built into VS Code
 export const sovereignCloudSectionName = "microsoft-sovereign-cloud";
