@@ -38,6 +38,10 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import * as Utils from "../models/utils";
 import { ProjectController } from "../controllers/projectController";
 import { UserSurvey } from "../nps/userSurvey";
+import * as dockerUtils from "../deployment/dockerUtils";
+import { DockerConnectionProfile, DockerStepOrder } from "../sharedInterfaces/localContainers";
+import MainController from "../controllers/mainController";
+import { localhost, sa, sqlAuthentication } from "../constants/constants";
 
 const SQLPROJ_PUBLISH_VIEW_ID = "publishProject";
 
@@ -56,12 +60,14 @@ export class PublishProjectWebViewController extends FormWebviewController<
     private readonly _dacFxService?: mssql.IDacFxService;
     private readonly _connectionManager: ConnectionManager;
     private readonly _projectController: ProjectController;
+    private readonly _mainController: MainController;
 
     constructor(
         context: vscode.ExtensionContext,
         _vscodeWrapper: VscodeWrapper,
         connectionManager: ConnectionManager,
         projectFilePath: string,
+        mainController: MainController,
         sqlProjectsService?: SqlProjectsService,
         dacFxService?: mssql.IDacFxService,
         deploymentOptions?: mssql.DeploymentOptions,
@@ -117,6 +123,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         this._dacFxService = dacFxService;
         this._connectionManager = connectionManager;
         this._projectController = new ProjectController();
+        this._mainController = mainController;
 
         this.registerRpcHandlers();
 
@@ -206,6 +213,13 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 );
                 // Prompt user for NPS feedback after successful publish
                 void UserSurvey.getInstance().promptUserForNPSFeedback(SQLPROJ_PUBLISH_VIEW_ID);
+            } else {
+                sendErrorEvent(
+                    TelemetryViews.SqlProjects,
+                    TelemetryActions.PublishProjectChanges,
+                    new Error(getErrorMessage(result.errorMessage)),
+                    false,
+                );
             }
         } catch (error) {
             sendErrorEvent(
@@ -309,6 +323,171 @@ export class PublishProjectWebViewController extends FormWebviewController<
         }
     }
 
+    /**
+     * Step 1: Runs Docker prerequisite checks (install, start, engine).
+     * Must pass before proceeding with container creation.
+     * @returns Success flag and optional error message if failed
+     */
+    private async runDockerPrerequisiteChecks(): Promise<{
+        success: boolean;
+        error?: string;
+    }> {
+        const dockerSteps = dockerUtils.initializeDockerSteps();
+        const dummyProfile = {} as DockerConnectionProfile;
+
+        // Run prerequisite steps up to and including checkDockerEngine
+        for (let stepIndex = 0; stepIndex <= DockerStepOrder.checkDockerEngine; stepIndex++) {
+            const currentStep = dockerSteps[stepIndex];
+            const args = currentStep.argNames.map(
+                (argName) => (dummyProfile as unknown as Record<string, unknown>)[argName],
+            );
+            const result = await currentStep.stepAction(...args);
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error,
+                };
+            }
+
+            // Show success message matching deployment UI format
+            void vscode.window.showInformationMessage(`✓ ${currentStep.headerText}`);
+        }
+
+        return { success: true };
+    }
+
+    /**
+     * Step 2: Prepares container configuration values.
+     * Form validation already ensures password, port, and EULA are valid.
+     * This step generates container name and parses port number.
+     * @param state Current publish dialog state
+     * @returns Configuration values ready for container creation
+     */
+    private async prepareContainerConfiguration(state: PublishDialogState): Promise<{
+        containerName: string;
+        port: number;
+    }> {
+        // Auto-generate unique container name
+        const containerName = await dockerUtils.validateContainerName("");
+
+        // Parse port (already validated by form)
+        const port = parseInt(state.formState.containerPort);
+
+        return { containerName, port };
+    }
+
+    /**
+     * Step 3: Creates Docker container using validated configuration.
+     * Runs steps 3-6: pull image, start container, check ready, connect.
+     * @param validatedContainerName - Validated unique container name
+     * @param validatedPort - Validated available port
+     * @param state Current publish dialog state
+     * @returns Connection URI if successful, error info if failed
+     */
+    private async createDockerContainer(
+        validatedContainerName: string,
+        validatedPort: number,
+        state: PublishDialogState,
+    ): Promise<{
+        success: boolean;
+        connectionUri?: string;
+        error?: string;
+        fullErrorText?: string;
+    }> {
+        // Build Docker profile using validated values
+        const dockerProfile = {
+            version: state.formState.containerImageTag || "",
+            password: state.formState.containerAdminPassword || "",
+            containerName: validatedContainerName,
+            port: validatedPort,
+            hostname: "",
+            profileName: validatedContainerName,
+            savePassword: true,
+            acceptEula: state.formState.acceptContainerLicense || false,
+        } as unknown as DockerConnectionProfile;
+
+        const dockerSteps = dockerUtils.initializeDockerSteps();
+
+        // Execute container creation steps: from pullImage to checkContainer
+        // Dynamic iteration ensures we don't miss any steps added in the future
+        for (
+            let stepIndex = DockerStepOrder.pullImage;
+            stepIndex <= DockerStepOrder.checkContainer;
+            stepIndex++
+        ) {
+            const currentStep = dockerSteps[stepIndex];
+            const args = currentStep.argNames.map(
+                (argName) => (dockerProfile as unknown as Record<string, unknown>)[argName],
+            );
+            const result = await currentStep.stepAction(...args);
+
+            if (!result.success) {
+                return {
+                    success: false,
+                    error: result.error,
+                    fullErrorText: result.fullErrorText,
+                };
+            }
+
+            // Show success message matching deployment UI format
+            void vscode.window.showInformationMessage(`✓ ${currentStep.headerText}`);
+        }
+
+        // Register connection gives us a real connection URI that can be used for DacFx operations
+        const connectionProfile = {
+            server: `${localhost},${validatedPort}`,
+            profileName: validatedContainerName,
+            savePassword: true,
+            emptyPasswordInput: false,
+            authenticationType: sqlAuthentication,
+            user: sa,
+            password: dockerProfile.password,
+            trustServerCertificate: true,
+        } as IConnectionProfile;
+
+        try {
+            // Save the connection profile to VS Code settings
+            const savedProfile =
+                await this._mainController.connectionManager.connectionUI.saveProfile(
+                    connectionProfile,
+                );
+
+            // Open in Object Explorer (this also establishes the connection)
+            await this._mainController.createObjectExplorerSession(savedProfile);
+
+            // Get the connection URI from the saved profile
+            const connectionUri =
+                this._mainController.connectionManager.getUriForConnection(savedProfile);
+
+            // Send telemetry for successful container creation and connection
+            sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.ConnectToContainer, {
+                containerName: validatedContainerName,
+                port: validatedPort.toString(),
+                imageTag: dockerProfile.version,
+                success: "true",
+            });
+
+            return {
+                success: true,
+                connectionUri: connectionUri,
+            };
+        } catch (error) {
+            // Send telemetry for connection failure
+            sendErrorEvent(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.ConnectToContainer,
+                error instanceof Error ? error : new Error(getErrorMessage(error)),
+                false,
+            );
+
+            return {
+                success: false,
+                error: getErrorMessage(error),
+            };
+        }
+    }
+
     private async initializeDialog(projectFilePath: string) {
         if (projectFilePath) {
             this.state.projectFilePath = projectFilePath;
@@ -401,10 +580,121 @@ export class PublishProjectWebViewController extends FormWebviewController<
         });
 
         this.registerReducer("publishNow", async (state: PublishDialogState) => {
-            this.panel?.dispose();
-            void this.executePublishAndGenerateScript(state, true);
+            // Check if publishing to local container
+            if (state.formState.publishTarget === PublishTarget.LocalContainer) {
+                // Keep panel open to show progress through all steps
+                state.inProgress = true;
+                this.updateState(state);
 
-            return state;
+                try {
+                    // STEP 1: Run Docker prerequisite checks (Docker install, start, engine)
+                    const prereqResult = await vscode.window.withProgress(
+                        {
+                            location: vscode.ProgressLocation.Notification,
+                            title: Loc.CheckingDockerPrerequisites,
+                            cancellable: false,
+                        },
+                        async () => {
+                            return await this.runDockerPrerequisiteChecks();
+                        },
+                    );
+
+                    if (!prereqResult.success) {
+                        sendErrorEvent(
+                            TelemetryViews.SqlProjects,
+                            TelemetryActions.PublishProjectChanges,
+                            new Error(prereqResult.error),
+                            false,
+                        );
+                        state.formMessage = {
+                            message: prereqResult.error,
+                            intent: "error",
+                        };
+                        state.inProgress = false;
+                        this.updateState(state);
+                        return state;
+                    }
+
+                    // STEP 2: Prepare container configuration (generate name, parse port)
+                    // Form validation already ensured password, port, and EULA are valid
+                    const config = await this.prepareContainerConfiguration(state);
+
+                    // STEP 3: Create Docker container (pull, start, check, connect)
+                    const containerResult = await vscode.window.withProgress(
+                        {
+                            location: vscode.ProgressLocation.Notification,
+                            title: Loc.CreatingSqlServerContainer,
+                            cancellable: false,
+                        },
+                        async () => {
+                            return await this.createDockerContainer(
+                                config.containerName,
+                                config.port,
+                                state,
+                            );
+                        },
+                    );
+
+                    if (!containerResult.success) {
+                        sendErrorEvent(
+                            TelemetryViews.SqlProjects,
+                            TelemetryActions.PublishProjectChanges,
+                            new Error(containerResult.fullErrorText || containerResult.error),
+                            false,
+                        );
+                        state.formMessage = {
+                            message: containerResult.fullErrorText || containerResult.error,
+                            intent: "error",
+                        };
+                        state.inProgress = false;
+                        this.updateState(state);
+                        return state;
+                    }
+
+                    // STEP 4: Store connection URI for DacFx publish
+                    this._connectionUri = containerResult.connectionUri;
+
+                    // STEP 5: Build DACPAC from project
+                    const dacpacPath = await this.buildProject(state);
+                    if (!dacpacPath) {
+                        // Note: buildProject already sends its own telemetry on failure
+                        state.inProgress = false;
+                        this.updateState(state);
+                        return state;
+                    }
+
+                    // STEP 6: Publish DACPAC to container using existing DacFx API
+                    await this.publishToDatabase(
+                        state,
+                        dacpacPath,
+                        state.formState.databaseName,
+                        false,
+                    );
+
+                    state.inProgress = false;
+                    this.panel?.dispose();
+                } catch (error) {
+                    this.logger.error("Failed during container publish:", error);
+                    sendErrorEvent(
+                        TelemetryViews.SqlProjects,
+                        TelemetryActions.PublishProjectChanges,
+                        error instanceof Error ? error : new Error(getErrorMessage(error)),
+                        false,
+                    );
+                    state.formMessage = {
+                        message: getErrorMessage(error),
+                        intent: "error",
+                    };
+                    state.inProgress = false;
+                    this.updateState(state);
+                }
+
+                return state;
+            } else {
+                this.panel?.dispose();
+                void this.executePublishAndGenerateScript(state, true);
+                return state;
+            }
         });
 
         this.registerReducer("generatePublishScript", async (state) => {
