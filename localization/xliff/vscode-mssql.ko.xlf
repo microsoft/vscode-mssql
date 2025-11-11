@@ -694,6 +694,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Checking Docker Engine Configuration</source>
         <target state="translated">Docker 엔진 구성을 확인하는 중</target>
       </trans-unit>
+      <trans-unit id="++CODE++75fa3318f66944d01336b10cbb1e3c08afc6e230d849ee6fff4f4dba7f19489c">
+        <source xml:lang="en">Checking Docker prerequisites...</source>
+        <target state="new">Checking Docker prerequisites...</target>
+      </trans-unit>
       <trans-unit id="++CODE++469663d6e6c1f487f123cf95220bce4d9ac1c98f2cd06e373ccb0baa14c343d4">
         <source xml:lang="en">Checking if Docker is installed</source>
         <target state="translated">Docker가 설치되어 있는지 확인하는 중</target>
@@ -1336,6 +1340,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Creating SQL Database for workspace {0}</source>
         <note>{0} is the workspace ID</note>
         <target state="translated">작업 영역 {0}에 대한 SQL 데이터베이스를 생성하는 중</target>
+      </trans-unit>
+      <trans-unit id="++CODE++13329d1a1f2527d959fddce415af48d6141533dbec36dd8d8e33fae7bce865df">
+        <source xml:lang="en">Creating SQL Server container...</source>
+        <target state="new">Creating SQL Server container...</target>
       </trans-unit>
       <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
         <source xml:lang="en">Creating and starting your SQL Server container</source>
