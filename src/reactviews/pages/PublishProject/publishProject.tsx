@@ -51,7 +51,7 @@ function PublishProjectDialog() {
         <form className={formStyles.formRoot} onSubmit={(e) => e.preventDefault()}>
             <div className={formStyles.formDiv} style={{ overflow: "auto" }}>
                 {formMessage && (
-                    <div style={{ marginBottom: "15px" }}>
+                    <div>
                         <DialogMessage
                             message={formMessage}
                             onMessageButtonClicked={() => {}}

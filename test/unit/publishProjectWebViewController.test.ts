@@ -17,7 +17,7 @@ import { PublishProjectWebViewController } from "../../src/publishProject/publis
 import { validateSqlServerPortNumber } from "../../src/publishProject/projectUtils";
 import { validateSqlServerPassword } from "../../src/deployment/dockerUtils";
 import { stubVscodeWrapper } from "./utils";
-import { PublishTarget } from "../../src/sharedInterfaces/publishDialog";
+import { PublishTarget, PublishDialogState } from "../../src/sharedInterfaces/publishDialog";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 import * as dockerUtils from "../../src/deployment/dockerUtils";
 import * as projectUtils from "../../src/publishProject/projectUtils";
@@ -982,131 +982,181 @@ suite("PublishProjectWebViewController Tests", () => {
         expect(newState.inProgress).to.be.false;
     });
 
-    test("publishNow with LocalContainer handles error scenarios", async () => {
-        const errorScenarios = [
-            {
-                name: "prerequisite check failure",
-                stubs: {
-                    runDockerPrerequisiteChecks: {
-                        success: false,
-                        error: "Docker is not installed",
-                    },
-                },
-                expectedError: "Docker is not installed",
-                expectContainerError: true,
-            },
-            {
-                name: "container creation failure",
-                stubs: {
-                    runDockerPrerequisiteChecks: { success: true },
-                    prepareContainerConfiguration: {
-                        containerName: "test-container-abc",
-                        port: 1433,
-                    },
-                    createDockerContainer: {
-                        success: false,
-                        error: "Port already allocated",
-                        fullErrorText:
-                            "Error response from daemon: failed to set up container networking: Bind for 0.0.0.0:1433 failed: port is already allocated",
-                    },
-                },
-                expectedError:
-                    "Error response from daemon: failed to set up container networking: Bind for 0.0.0.0:1433 failed: port is already allocated",
-                expectContainerError: true,
-            },
-            {
-                name: "build failure",
-                stubs: {
-                    runDockerPrerequisiteChecks: { success: true },
-                    prepareContainerConfiguration: {
-                        containerName: "test-container-abc",
-                        port: 1433,
-                    },
-                    createDockerContainer: {
-                        success: true,
-                        connectionUri: "mssql://publish-container-test-container-abc",
-                    },
-                    buildProject: undefined,
-                },
-                expectedError: undefined,
-                expectContainerError: false,
-            },
-            {
-                name: "unexpected exception",
-                stubs: {
-                    runDockerPrerequisiteChecks: new Error("Unexpected network failure"),
-                },
-                expectedError: "Unexpected network failure",
-                expectContainerError: true,
-                expectLogError: true,
-            },
-        ];
+    /**
+     * Helper function to create controller and set up common container publish form state
+     */
+    async function setupContainerPublishState(): Promise<PublishProjectWebViewController> {
+        const controller = createTestController();
+        await controller.initialized.promise;
 
-        for (const scenario of errorScenarios) {
-            const controller = createTestController();
-            await controller.initialized.promise;
+        controller.state.formState.publishTarget = PublishTarget.LocalContainer;
+        controller.state.formState.databaseName = "TestDB";
+        controller.state.formState.containerPort = "1433";
 
-            // Set up form state for container publish
-            controller.state.formState.publishTarget = PublishTarget.LocalContainer;
-            controller.state.formState.databaseName = "TestDB";
-            controller.state.formState.containerPort = "1433";
+        return controller;
+    }
 
-            // Set up stubs for this scenario
-            for (const [methodName, returnValue] of Object.entries(scenario.stubs)) {
-                if (returnValue instanceof Error) {
-                    sandbox
-                        .stub(controller, methodName as keyof typeof controller)
-                        .rejects(returnValue);
-                } else {
-                    sandbox
-                        .stub(controller, methodName as keyof typeof controller)
-                        .resolves(returnValue);
-                }
-            }
+    /**
+     * Helper function to validate error state after container publish failure
+     */
+    function validateContainerPublishError(
+        state: PublishDialogState,
+        updateStateSpy: sinon.SinonStub,
+        expectedError?: string,
+        loggerErrorSpy?: sinon.SinonStub,
+    ) {
+        expect(state.inProgress, "inProgress should be false after error").to.be.false;
+        expect(updateStateSpy, "updateState should be called").to.have.been.called;
 
-            // Mock logger if needed
-            const loggerErrorSpy = scenario.expectLogError
-                ? sandbox.stub(controller["logger"], "error")
-                : undefined;
-
-            // Mock updateState to capture state changes
-            const updateStateSpy = sandbox.stub(controller, "updateState");
-
-            const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
-            const publishNow = reducerHandlers.get("publishNow");
-
-            // Execute publish
-            const newState = await publishNow(controller.state, {});
-
-            // Verify common expectations
-            expect(newState.inProgress, `${scenario.name}: inProgress should be false`).to.be.false;
-            expect(updateStateSpy, `${scenario.name}: updateState should be called`).to.have.been
-                .called;
-
-            // Verify error message if expected
-            if (scenario.expectedError) {
-                expect(
-                    newState.formMessage,
-                    `${scenario.name}: formMessage should be set`,
-                ).to.deep.equal({
-                    message: scenario.expectedError,
-                    intent: "error",
-                });
-            }
-
-            // Verify logger was called if expected
-            if (loggerErrorSpy) {
-                expect(
-                    loggerErrorSpy,
-                    `${scenario.name}: logger.error should be called`,
-                ).to.have.been.calledWith(
-                    "Failed during container publish:",
-                    sinon.match.instanceOf(Error),
-                );
-            }
-
-            sandbox.restore();
+        if (expectedError) {
+            expect(state.formMessage, "formMessage should be set").to.deep.equal({
+                message: expectedError,
+                intent: "error",
+            });
         }
+
+        if (loggerErrorSpy) {
+            expect(loggerErrorSpy, "logger.error should be called").to.have.been.calledWith(
+                "Failed during container publish:",
+                sinon.match.instanceOf(Error),
+            );
+        }
+    }
+
+    test("publishNow with LocalContainer handles prerequisite check failure", async () => {
+        const controller = await setupContainerPublishState();
+
+        // Mock prerequisite check to fail
+        sandbox
+            .stub(controller, "runDockerPrerequisiteChecks" as keyof typeof controller)
+            .resolves({
+                success: false,
+                error: "Docker is not installed",
+            });
+
+        // Mock updateState to capture state changes
+        const updateStateSpy = sandbox.stub(controller, "updateState");
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const publishNow = reducerHandlers.get("publishNow");
+
+        // Execute publish
+        const newState = await publishNow(controller.state, {});
+
+        // Validate error state
+        validateContainerPublishError(newState, updateStateSpy, "Docker is not installed");
+    });
+
+    test("publishNow with LocalContainer handles container creation failure", async () => {
+        const controller = await setupContainerPublishState();
+
+        // Mock prerequisite check to succeed
+        sandbox
+            .stub(controller, "runDockerPrerequisiteChecks" as keyof typeof controller)
+            .resolves({
+                success: true,
+            });
+
+        // Mock container configuration
+        sandbox
+            .stub(controller, "prepareContainerConfiguration" as keyof typeof controller)
+            .resolves({
+                containerName: "test-container-abc",
+                port: 1433,
+            });
+
+        // Mock container creation to fail
+        sandbox.stub(controller, "createDockerContainer" as keyof typeof controller).resolves({
+            success: false,
+            error: "Port already allocated",
+            fullErrorText:
+                "Error response from daemon: failed to set up container networking: Bind for 0.0.0.0:1433 failed: port is already allocated",
+        });
+
+        // Mock updateState to capture state changes
+        const updateStateSpy = sandbox.stub(controller, "updateState");
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const publishNow = reducerHandlers.get("publishNow");
+
+        // Execute publish
+        const newState = await publishNow(controller.state, {});
+
+        // Validate error state
+        validateContainerPublishError(
+            newState,
+            updateStateSpy,
+            "Error response from daemon: failed to set up container networking: Bind for 0.0.0.0:1433 failed: port is already allocated",
+        );
+    });
+
+    test("publishNow with LocalContainer handles build failure", async () => {
+        const controller = await setupContainerPublishState();
+
+        // Mock prerequisite check to succeed
+        sandbox
+            .stub(controller, "runDockerPrerequisiteChecks" as keyof typeof controller)
+            .resolves({
+                success: true,
+            });
+
+        // Mock container configuration
+        sandbox
+            .stub(controller, "prepareContainerConfiguration" as keyof typeof controller)
+            .resolves({
+                containerName: "test-container-abc",
+                port: 1433,
+            });
+
+        // Mock container creation to succeed
+        sandbox.stub(controller, "createDockerContainer" as keyof typeof controller).resolves({
+            success: true,
+            connectionUri: "mssql://publish-container-test-container-abc",
+        });
+
+        // Mock build to fail (returns undefined)
+        sandbox.stub(controller, "buildProject" as keyof typeof controller).resolves(undefined);
+
+        // Mock updateState to capture state changes
+        const updateStateSpy = sandbox.stub(controller, "updateState");
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const publishNow = reducerHandlers.get("publishNow");
+
+        // Execute publish
+        const newState = await publishNow(controller.state, {});
+
+        // Validate error state (no formMessage expected for build failure)
+        validateContainerPublishError(newState, updateStateSpy);
+    });
+
+    test("publishNow with LocalContainer handles unexpected exception", async () => {
+        const controller = await setupContainerPublishState();
+
+        // Mock prerequisite check to throw unexpected error
+        sandbox
+            .stub(controller, "runDockerPrerequisiteChecks" as keyof typeof controller)
+            .rejects(new Error("Unexpected network failure"));
+
+        // Mock logger to capture error
+        const loggerErrorSpy = sandbox.stub(controller["logger"], "error");
+
+        // Mock updateState to capture state changes
+        const updateStateSpy = sandbox.stub(controller, "updateState");
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const publishNow = reducerHandlers.get("publishNow");
+
+        // Execute publish
+        const newState = await publishNow(controller.state, {});
+
+        // Validate error state
+        validateContainerPublishError(
+            newState,
+            updateStateSpy,
+            "Unexpected network failure",
+            loggerErrorSpy,
+        );
     });
     //#endregion
 });

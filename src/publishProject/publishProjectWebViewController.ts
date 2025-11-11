@@ -434,36 +434,58 @@ export class PublishProjectWebViewController extends FormWebviewController<
             void vscode.window.showInformationMessage(`✓ ${currentStep.headerText}`);
         }
 
-        // Register connection for DacFx
-        const fileUri = `mssql://publish-container-${validatedContainerName}`;
-        const connectionDetails = {
-            options: {
-                server: `${localhost},${validatedPort}`,
-                database: "",
-                user: sa,
-                password: dockerProfile.password,
-                authenticationType: sqlAuthentication,
-                encrypt: false,
-                trustServerCertificate: true,
-            },
-        };
+        // Register connection gives us a real connection URI that can be used for DacFx operations
+        const connectionProfile = {
+            server: `${localhost},${validatedPort}`,
+            profileName: validatedContainerName,
+            savePassword: true,
+            emptyPasswordInput: false,
+            authenticationType: sqlAuthentication,
+            user: sa,
+            password: dockerProfile.password,
+            trustServerCertificate: true,
+        } as IConnectionProfile;
 
         try {
-            const connectionInfo = ConnectionCredentials.createConnectionInfo(connectionDetails);
-            await this._mainController.connectionManager.connect(fileUri, connectionInfo, {
-                shouldHandleErrors: false,
+            // Save the connection profile to VS Code settings
+            const savedProfile =
+                await this._mainController.connectionManager.connectionUI.saveProfile(
+                    connectionProfile,
+                );
+
+            // Open in Object Explorer (this also establishes the connection)
+            await this._mainController.createObjectExplorerSession(savedProfile);
+
+            // Get the connection URI from the saved profile
+            const connectionUri =
+                this._mainController.connectionManager.getUriForConnection(savedProfile);
+
+            // Send telemetry for successful container creation and connection
+            sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.ConnectToContainer, {
+                containerName: validatedContainerName,
+                port: validatedPort.toString(),
+                imageTag: dockerProfile.version,
+                success: "true",
             });
+
+            return {
+                success: true,
+                connectionUri: connectionUri,
+            };
         } catch (error) {
+            // Send telemetry for connection failure
+            sendErrorEvent(
+                TelemetryViews.SqlProjects,
+                TelemetryActions.ConnectToContainer,
+                error instanceof Error ? error : new Error(getErrorMessage(error)),
+                false,
+            );
+
             return {
                 success: false,
-                error: error,
+                error: getErrorMessage(error),
             };
         }
-
-        return {
-            success: true,
-            connectionUri: fileUri,
-        };
     }
 
     private async initializeDialog(projectFilePath: string) {
@@ -569,7 +591,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     const prereqResult = await vscode.window.withProgress(
                         {
                             location: vscode.ProgressLocation.Notification,
-                            title: "Checking Docker prerequisites...",
+                            title: Loc.CheckingDockerPrerequisites,
                             cancellable: false,
                         },
                         async () => {
@@ -578,6 +600,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     );
 
                     if (!prereqResult.success) {
+                        sendErrorEvent(
+                            TelemetryViews.SqlProjects,
+                            TelemetryActions.PublishProjectChanges,
+                            new Error(prereqResult.error),
+                            false,
+                        );
                         state.formMessage = {
                             message: prereqResult.error,
                             intent: "error",
@@ -608,6 +636,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     );
 
                     if (!containerResult.success) {
+                        sendErrorEvent(
+                            TelemetryViews.SqlProjects,
+                            TelemetryActions.PublishProjectChanges,
+                            new Error(containerResult.fullErrorText || containerResult.error),
+                            false,
+                        );
                         state.formMessage = {
                             message: containerResult.fullErrorText || containerResult.error,
                             intent: "error",
@@ -623,6 +657,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     // STEP 5: Build DACPAC from project
                     const dacpacPath = await this.buildProject(state);
                     if (!dacpacPath) {
+                        // Note: buildProject already sends its own telemetry on failure
                         state.inProgress = false;
                         this.updateState(state);
                         return state;
@@ -640,6 +675,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     this.panel?.dispose();
                 } catch (error) {
                     this.logger.error("Failed during container publish:", error);
+                    sendErrorEvent(
+                        TelemetryViews.SqlProjects,
+                        TelemetryActions.PublishProjectChanges,
+                        error instanceof Error ? error : new Error(getErrorMessage(error)),
+                        false,
+                    );
                     state.formMessage = {
                         message: getErrorMessage(error),
                         intent: "error",
