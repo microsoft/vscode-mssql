@@ -2586,6 +2586,7 @@ export default class MainController implements vscode.Disposable {
             this._vscodeWrapper,
             this.connectionManager,
             projectFilePath,
+            this,
             this.sqlProjectsService,
             this.dacFxService,
             deploymentOptions.defaultDeploymentOptions,
