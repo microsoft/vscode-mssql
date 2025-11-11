@@ -1366,6 +1366,7 @@ export class PublishProject {
     public static SqlServerLicenseAgreement = l10n.t("Microsoft SQL Server License Agreement");
     public static ServerConnectionPlaceholder = l10n.t("Select Connection");
     public static CheckingDockerPrerequisites = l10n.t("Checking Docker prerequisites...");
+    public static CreatingSqlServerContainer = l10n.t("Creating SQL Server container...");
     // Validation messages
     public static InvalidPortMessage = l10n.t("Port must be a number between 1 and 65535");
     public static InvalidSQLPasswordMessage(name: string) {

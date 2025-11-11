@@ -372,7 +372,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         const containerName = await dockerUtils.validateContainerName("");
 
         // Parse port (already validated by form)
-        const port = parseInt(state.formState.containerPort || constants.DefaultSqlPortNumber);
+        const port = parseInt(state.formState.containerPort);
 
         return { containerName, port };
     }
@@ -623,7 +623,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     const containerResult = await vscode.window.withProgress(
                         {
                             location: vscode.ProgressLocation.Notification,
-                            title: "Creating SQL Server container...",
+                            title: Loc.CreatingSqlServerContainer,
                             cancellable: false,
                         },
                         async () => {

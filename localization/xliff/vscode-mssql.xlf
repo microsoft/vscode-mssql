@@ -1013,6 +1013,9 @@
       <source xml:lang="en">Creating SQL Database for workspace {0}</source>
       <note>{0} is the workspace ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++13329d1a1f2527d959fddce415af48d6141533dbec36dd8d8e33fae7bce865df">
+      <source xml:lang="en">Creating SQL Server container...</source>
+    </trans-unit>
     <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
       <source xml:lang="en">Creating and starting your SQL Server container</source>
     </trans-unit>
