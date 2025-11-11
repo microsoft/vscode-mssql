@@ -260,5 +260,6 @@
     "mssql.customEnvironment.fabricScopeUriBase": "Sovereign cloud equivalent for `https://analysis.windows.net/powerbi/api/`",
     "mssql.customEnvironment.fabricSqlDbDnsSuffix": "Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)",
     "mssql.customEnvironment.fabricDataWarehouseDnsSuffix": "Sovereign cloud equivalent for `.datawarehouse.fabric.microsoft.com` (including leading dot)",
-    "mssql.customEnvironment.dynamicsCrmDnsSuffix": "Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)"
+    "mssql.customEnvironment.dynamicsCrmDnsSuffix": "Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)",
+    "mssql.openChangelog": "Open Changelog"
 }

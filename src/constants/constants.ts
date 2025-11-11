@@ -122,6 +122,7 @@ export const cmdStopContainer = "mssql.stopContainer";
 export const cmdDeleteContainer = "mssql.deleteContainer";
 export const cmdStartContainer = "mssql.startContainer";
 export const cmdHandleSummaryOperation = "mssql.handleSummaryOperation";
+export const cmdOpenChangelog = "mssql.openChangelog";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
 export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";

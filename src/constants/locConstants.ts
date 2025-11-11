@@ -2294,3 +2294,7 @@ export class TableExplorer {
     public static Discard = l10n.t("Discard");
     public static Cancel = l10n.t("Cancel");
 }
+
+export class Changelog {
+    public static ChangelogDocumentTitle = l10n.t("MSSQL: Welcome & What's New");
+}

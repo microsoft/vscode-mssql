@@ -1288,6 +1288,11 @@
                 "title": "%mssql.startContainer%",
                 "when": "mssql.enableRichExperiences",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.openChangelog",
+                "title": "%mssql.openChangelog%",
+                "category": "MS SQL"
             }
         ],
         "keybindings": [
