@@ -1577,11 +1577,7 @@ export default class MainController implements vscode.Disposable {
                 );
                 if (filters) {
                     node.filters = filters;
-                    if (node.collapsibleState === vscode.TreeItemCollapsibleState.Collapsed) {
-                        await this._objectExplorerProvider.refreshNode(node);
-                    } else if (node.collapsibleState === vscode.TreeItemCollapsibleState.Expanded) {
-                        await this._objectExplorerProvider.expandNode(node, node.sessionId);
-                    }
+                    await this._objectExplorerProvider.refreshNode(node);
                     await this.objectExplorerTree.reveal(node, {
                         select: true,
                         focus: true,
