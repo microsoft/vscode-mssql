@@ -1,0 +1,1420 @@
+<ShowPlanXML xmlns="http://schemas.microsoft.com/sqlserver/2004/07/showplan"
+             Version="1.564"
+             Build="16.0.4135.4">
+    <BatchSequence>
+        <Batch>
+            <Statements>
+                <StmtSimple StatementText="select * from sys.all_views"
+                            StatementId="1"
+                            StatementCompId="1"
+                            StatementType="SELECT"
+                            RetrievedFromCache="false"
+                            StatementSubTreeCost="0.219688"
+                            StatementEstRows="763.17"
+                            SecurityPolicyApplied="false"
+                            StatementOptmLevel="FULL"
+                            QueryHash="0x5383B0560CCFBAF1"
+                            QueryPlanHash="0x4C82BD12588DEEF0"
+                            StatementOptmEarlyAbortReason="TimeOut"
+                            CardinalityEstimationModelVersion="160">
+                    <StatementSetOptions QUOTED_IDENTIFIER="true"
+                                         ARITHABORT="true"
+                                         CONCAT_NULL_YIELDS_NULL="true"
+                                         ANSI_NULLS="true"
+                                         ANSI_PADDING="true"
+                                         ANSI_WARNINGS="true"
+                                         NUMERIC_ROUNDABORT="false" />
+                    <QueryPlan NonParallelPlanReason="NonParallelizableIntrinsicFunction"
+                               CachedPlanSize="160"
+                               CompileTime="16"
+                               CompileCPU="16"
+                               CompileMemory="944">
+                        <MemoryGrantInfo SerialRequiredMemory="2048"
+                                         SerialDesiredMemory="2176"
+                                         GrantedMemory="0"
+                                         MaxUsedMemory="0" />
+                        <OptimizerHardwareDependentProperties EstimatedAvailableMemoryGrant="164224"
+                                                              EstimatedPagesCached="164224"
+                                                              EstimatedAvailableDegreeOfParallelism="8"
+                                                              MaxCompileMemory="18099064" />
+                        <OptimizerStatsUsage>
+                            <StatisticsInfo LastUpdate="2009-04-13T12:59:16.65"
+                                            ModificationCount="256"
+                                            SamplingPercent="100"
+                                            Statistics="[clst]"
+                                            Table="[syssingleobjrefs]"
+                                            Schema="[sys]"
+                                            Database="[master]" />
+                            <StatisticsInfo LastUpdate="2024-07-10T14:42:59.01"
+                                            ModificationCount="132"
+                                            SamplingPercent="100"
+                                            Statistics="[_WA_Sys_00000001_0000004A]"
+                                            Table="[syssingleobjrefs]"
+                                            Schema="[sys]"
+                                            Database="[master]" />
+                            <StatisticsInfo LastUpdate="2024-07-10T14:43:42.89"
+                                            ModificationCount="112"
+                                            SamplingPercent="100"
+                                            Statistics="[_WA_Sys_00000003_0000004A]"
+                                            Table="[syssingleobjrefs]"
+                                            Schema="[sys]"
+                                            Database="[master]" />
+                            <StatisticsInfo LastUpdate="2024-07-10T14:44:36.67"
+                                            ModificationCount="19"
+                                            SamplingPercent="100"
+                                            Statistics="[nc1]"
+                                            Table="[sysschobjs]"
+                                            Schema="[sys]"
+                                            Database="[master]" />
+                            <StatisticsInfo LastUpdate="2024-07-10T14:44:36.68"
+                                            ModificationCount="19"
+                                            SamplingPercent="100"
+                                            Statistics="[nc2]"
+                                            Table="[sysschobjs]"
+                                            Schema="[sys]"
+                                            Database="[master]" />
+                            <StatisticsInfo LastUpdate="2009-04-13T12:59:16.65"
+                                            ModificationCount="256"
+                                            SamplingPercent="100"
+                                            Statistics="[nc1]"
+                                            Table="[syssingleobjrefs]"
+                                            Schema="[sys]"
+                                            Database="[master]" />
+                            <StatisticsInfo LastUpdate="2024-07-10T14:44:36.66"
+                                            ModificationCount="19"
+                                            SamplingPercent="100"
+                                            Statistics="[_WA_Sys_00000006_00000022]"
+                                            Table="[sysschobjs]"
+                                            Schema="[sys]"
+                                            Database="[master]" />
+                            <StatisticsInfo LastUpdate="2024-07-10T14:44:36.66"
+                                            ModificationCount="19"
+                                            SamplingPercent="100"
+                                            Statistics="[clst]"
+                                            Table="[sysschobjs]"
+                                            Schema="[sys]"
+                                            Database="[master]" />
+                            <StatisticsInfo LastUpdate="2024-07-10T14:44:36.68"
+                                            ModificationCount="19"
+                                            SamplingPercent="100"
+                                            Statistics="[nc3]"
+                                            Table="[sysschobjs]"
+                                            Schema="[sys]"
+                                            Database="[master]" />
+                            <StatisticsInfo LastUpdate="2024-07-10T14:44:44.31"
+                                            ModificationCount="19"
+                                            SamplingPercent="100"
+                                            Statistics="[_WA_Sys_00000008_00000022]"
+                                            Table="[sysschobjs]"
+                                            Schema="[sys]"
+                                            Database="[master]" />
+                        </OptimizerStatsUsage>
+                        <RelOp NodeId="0"
+                               PhysicalOp="Nested Loops"
+                               LogicalOp="Left Outer Join"
+                               EstimateRows="763.17"
+                               EstimateIO="0"
+                               EstimateCPU="0.00319005"
+                               AvgRowSize="302"
+                               EstimatedTotalSubtreeCost="0.219688"
+                               Parallel="0"
+                               EstimateRebinds="0"
+                               EstimateRewinds="0"
+                               EstimatedExecutionMode="Row">
+                            <OutputList>
+                                <ColumnReference Database="[master]"
+                                                 Schema="[sys]"
+                                                 Table="[sysschobjs]"
+                                                 Alias="[o]"
+                                                 Column="id" />
+                                <ColumnReference Database="[master]"
+                                                 Schema="[sys]"
+                                                 Table="[sysschobjs]"
+                                                 Alias="[o]"
+                                                 Column="name" />
+                                <ColumnReference Database="[master]"
+                                                 Schema="[sys]"
+                                                 Table="[sysschobjs]"
+                                                 Alias="[o]"
+                                                 Column="nsid" />
+                                <ColumnReference Database="[master]"
+                                                 Schema="[sys]"
+                                                 Table="[sysschobjs]"
+                                                 Alias="[o]"
+                                                 Column="type" />
+                                <ColumnReference Database="[master]"
+                                                 Schema="[sys]"
+                                                 Table="[sysschobjs]"
+                                                 Alias="[o]"
+                                                 Column="pid" />
+                                <ColumnReference Database="[master]"
+                                                 Schema="[sys]"
+                                                 Table="[sysschobjs]"
+                                                 Alias="[o]"
+                                                 Column="created" />
+                                <ColumnReference Database="[master]"
+                                                 Schema="[sys]"
+                                                 Table="[sysschobjs]"
+                                                 Alias="[o]"
+                                                 Column="modified" />
+                                <ColumnReference Database="[master]"
+                                                 Schema="[sys]"
+                                                 Table="[syssingleobjrefs]"
+                                                 Alias="[r]"
+                                                 Column="indepid" />
+                                <ColumnReference Database="[mssqlsystemresource]"
+                                                 Schema="[sys]"
+                                                 Table="[syspalnames]"
+                                                 Alias="[n]"
+                                                 Column="name" />
+                                <ColumnReference Column="Expr1004" />
+                                <ColumnReference Column="Expr1005" />
+                                <ColumnReference Column="Expr1006" />
+                                <ColumnReference Column="Expr1007" />
+                                <ColumnReference Column="Expr1008" />
+                                <ColumnReference Column="Expr1009" />
+                                <ColumnReference Column="Expr1010" />
+                                <ColumnReference Column="Expr1011" />
+                                <ColumnReference Column="Expr1012" />
+                                <ColumnReference Column="Expr1013" />
+                                <ColumnReference Column="Expr1014" />
+                                <ColumnReference Column="Expr1015" />
+                                <ColumnReference Column="Expr1016" />
+                                <ColumnReference Column="Expr1017" />
+                            </OutputList>
+                            <NestedLoops Optimized="0">
+                                <RelOp NodeId="1"
+                                       PhysicalOp="Compute Scalar"
+                                       LogicalOp="Compute Scalar"
+                                       EstimateRows="763.17"
+                                       EstimateIO="0"
+                                       EstimateCPU="7.6317e-05"
+                                       AvgRowSize="240"
+                                       EstimatedTotalSubtreeCost="0.0927156"
+                                       Parallel="0"
+                                       EstimateRebinds="0"
+                                       EstimateRewinds="0"
+                                       EstimatedExecutionMode="Row">
+                                    <OutputList>
+                                        <ColumnReference Database="[master]"
+                                                         Schema="[sys]"
+                                                         Table="[sysschobjs]"
+                                                         Alias="[o]"
+                                                         Column="id" />
+                                        <ColumnReference Database="[master]"
+                                                         Schema="[sys]"
+                                                         Table="[sysschobjs]"
+                                                         Alias="[o]"
+                                                         Column="name" />
+                                        <ColumnReference Database="[master]"
+                                                         Schema="[sys]"
+                                                         Table="[sysschobjs]"
+                                                         Alias="[o]"
+                                                         Column="nsid" />
+                                        <ColumnReference Database="[master]"
+                                                         Schema="[sys]"
+                                                         Table="[sysschobjs]"
+                                                         Alias="[o]"
+                                                         Column="type" />
+                                        <ColumnReference Database="[master]"
+                                                         Schema="[sys]"
+                                                         Table="[sysschobjs]"
+                                                         Alias="[o]"
+                                                         Column="pid" />
+                                        <ColumnReference Database="[master]"
+                                                         Schema="[sys]"
+                                                         Table="[sysschobjs]"
+                                                         Alias="[o]"
+                                                         Column="created" />
+                                        <ColumnReference Database="[master]"
+                                                         Schema="[sys]"
+                                                         Table="[sysschobjs]"
+                                                         Alias="[o]"
+                                                         Column="modified" />
+                                        <ColumnReference Database="[master]"
+                                                         Schema="[sys]"
+                                                         Table="[syssingleobjrefs]"
+                                                         Alias="[r]"
+                                                         Column="indepid" />
+                                        <ColumnReference Column="Expr1004" />
+                                        <ColumnReference Column="Expr1005" />
+                                        <ColumnReference Column="Expr1006" />
+                                        <ColumnReference Column="Expr1007" />
+                                        <ColumnReference Column="Expr1008" />
+                                        <ColumnReference Column="Expr1009" />
+                                        <ColumnReference Column="Expr1010" />
+                                        <ColumnReference Column="Expr1011" />
+                                        <ColumnReference Column="Expr1012" />
+                                        <ColumnReference Column="Expr1013" />
+                                        <ColumnReference Column="Expr1014" />
+                                        <ColumnReference Column="Expr1015" />
+                                        <ColumnReference Column="Expr1016" />
+                                        <ColumnReference Column="Expr1017" />
+                                    </OutputList>
+                                    <ComputeScalar>
+                                        <DefinedValues>
+                                            <DefinedValue>
+                                                <ColumnReference Column="Expr1015" />
+                                                <ScalarOperator ScalarString="CONVERT(tinyint,CASE WHEN [master].[sys].[syssingleobjrefs].[depid] as [lv].[depid] IS NOT NULL THEN (1) ELSE (0) END,0)">
+                                                    <Convert DataType="tinyint"
+                                                             Style="0"
+                                                             Implicit="0">
+                                                        <ScalarOperator>
+                                                            <IF>
+                                                                <Condition>
+                                                                    <ScalarOperator>
+                                                                        <Compare CompareOp="IS NOT">
+                                                                            <ScalarOperator>
+                                                                                <Identifier>
+                                                                                    <ColumnReference Database="[master]"
+                                                                                                     Schema="[sys]"
+                                                                                                     Table="[syssingleobjrefs]"
+                                                                                                     Alias="[lv]"
+                                                                                                     Column="depid" />
+                                                                                </Identifier>
+                                                                            </ScalarOperator>
+                                                                            <ScalarOperator>
+                                                                                <Const ConstValue="NULL" />
+                                                                            </ScalarOperator>
+                                                                        </Compare>
+                                                                    </ScalarOperator>
+                                                                </Condition>
+                                                                <Then>
+                                                                    <ScalarOperator>
+                                                                        <Const ConstValue="(1)" />
+                                                                    </ScalarOperator>
+                                                                </Then>
+                                                                <Else>
+                                                                    <ScalarOperator>
+                                                                        <Const ConstValue="(0)" />
+                                                                    </ScalarOperator>
+                                                                </Else>
+                                                            </IF>
+                                                        </ScalarOperator>
+                                                    </Convert>
+                                                </ScalarOperator>
+                                            </DefinedValue>
+                                            <DefinedValue>
+                                                <ColumnReference Column="Expr1016" />
+                                                <ScalarOperator ScalarString="CONVERT(nvarchar(60),CONVERT(nvarchar(60),CASE WHEN [master].[sys].[syssingleobjrefs].[depid] as [lv].[depid] IS NOT NULL THEN 'LEDGER_VIEW' ELSE 'NON_LEDGER_VIEW' END,0),0)">
+                                                    <Convert DataType="nvarchar"
+                                                             Length="120"
+                                                             Style="0"
+                                                             Implicit="0">
+                                                        <ScalarOperator>
+                                                            <Convert DataType="nvarchar"
+                                                                     Length="120"
+                                                                     Style="0"
+                                                                     Implicit="0">
+                                                                <ScalarOperator>
+                                                                    <IF>
+                                                                        <Condition>
+                                                                            <ScalarOperator>
+                                                                                <Compare CompareOp="IS NOT">
+                                                                                    <ScalarOperator>
+                                                                                        <Identifier>
+                                                                                            <ColumnReference Database="[master]"
+                                                                                                             Schema="[sys]"
+                                                                                                             Table="[syssingleobjrefs]"
+                                                                                                             Alias="[lv]"
+                                                                                                             Column="depid" />
+                                                                                        </Identifier>
+                                                                                    </ScalarOperator>
+                                                                                    <ScalarOperator>
+                                                                                        <Const ConstValue="NULL" />
+                                                                                    </ScalarOperator>
+                                                                                </Compare>
+                                                                            </ScalarOperator>
+                                                                        </Condition>
+                                                                        <Then>
+                                                                            <ScalarOperator>
+                                                                                <Const ConstValue="'LEDGER_VIEW'" />
+                                                                            </ScalarOperator>
+                                                                        </Then>
+                                                                        <Else>
+                                                                            <ScalarOperator>
+                                                                                <Const ConstValue="'NON_LEDGER_VIEW'" />
+                                                                            </ScalarOperator>
+                                                                        </Else>
+                                                                    </IF>
+                                                                </ScalarOperator>
+                                                            </Convert>
+                                                        </ScalarOperator>
+                                                    </Convert>
+                                                </ScalarOperator>
+                                            </DefinedValue>
+                                        </DefinedValues>
+                                        <RelOp NodeId="2"
+                                               PhysicalOp="Hash Match"
+                                               LogicalOp="Right Outer Join"
+                                               EstimateRows="763.17"
+                                               EstimateIO="0"
+                                               EstimateCPU="0.0218263"
+                                               AvgRowSize="181"
+                                               EstimatedTotalSubtreeCost="0.0926392"
+                                               Parallel="0"
+                                               EstimateRebinds="0"
+                                               EstimateRewinds="0"
+                                               EstimatedExecutionMode="Row">
+                                            <OutputList>
+                                                <ColumnReference Database="[master]"
+                                                                 Schema="[sys]"
+                                                                 Table="[sysschobjs]"
+                                                                 Alias="[o]"
+                                                                 Column="id" />
+                                                <ColumnReference Database="[master]"
+                                                                 Schema="[sys]"
+                                                                 Table="[sysschobjs]"
+                                                                 Alias="[o]"
+                                                                 Column="name" />
+                                                <ColumnReference Database="[master]"
+                                                                 Schema="[sys]"
+                                                                 Table="[sysschobjs]"
+                                                                 Alias="[o]"
+                                                                 Column="nsid" />
+                                                <ColumnReference Database="[master]"
+                                                                 Schema="[sys]"
+                                                                 Table="[sysschobjs]"
+                                                                 Alias="[o]"
+                                                                 Column="type" />
+                                                <ColumnReference Database="[master]"
+                                                                 Schema="[sys]"
+                                                                 Table="[sysschobjs]"
+                                                                 Alias="[o]"
+                                                                 Column="pid" />
+                                                <ColumnReference Database="[master]"
+                                                                 Schema="[sys]"
+                                                                 Table="[sysschobjs]"
+                                                                 Alias="[o]"
+                                                                 Column="created" />
+                                                <ColumnReference Database="[master]"
+                                                                 Schema="[sys]"
+                                                                 Table="[sysschobjs]"
+                                                                 Alias="[o]"
+                                                                 Column="modified" />
+                                                <ColumnReference Database="[master]"
+                                                                 Schema="[sys]"
+                                                                 Table="[syssingleobjrefs]"
+                                                                 Alias="[r]"
+                                                                 Column="indepid" />
+                                                <ColumnReference Database="[master]"
+                                                                 Schema="[sys]"
+                                                                 Table="[syssingleobjrefs]"
+                                                                 Alias="[lv]"
+                                                                 Column="depid" />
+                                                <ColumnReference Column="Expr1004" />
+                                                <ColumnReference Column="Expr1005" />
+                                                <ColumnReference Column="Expr1006" />
+                                                <ColumnReference Column="Expr1007" />
+                                                <ColumnReference Column="Expr1008" />
+                                                <ColumnReference Column="Expr1009" />
+                                                <ColumnReference Column="Expr1010" />
+                                                <ColumnReference Column="Expr1011" />
+                                                <ColumnReference Column="Expr1012" />
+                                                <ColumnReference Column="Expr1013" />
+                                                <ColumnReference Column="Expr1014" />
+                                                <ColumnReference Column="Expr1017" />
+                                            </OutputList>
+                                            <MemoryFractions Input="0.5"
+                                                             Output="0.5" />
+                                            <Hash>
+                                                <DefinedValues />
+                                                <HashKeysBuild>
+                                                    <ColumnReference Database="[master]"
+                                                                     Schema="[sys]"
+                                                                     Table="[syssingleobjrefs]"
+                                                                     Alias="[lv]"
+                                                                     Column="depid" />
+                                                </HashKeysBuild>
+                                                <HashKeysProbe>
+                                                    <ColumnReference Database="[master]"
+                                                                     Schema="[sys]"
+                                                                     Table="[sysschobjs]"
+                                                                     Alias="[o]"
+                                                                     Column="id" />
+                                                </HashKeysProbe>
+                                                <RelOp NodeId="3"
+                                                       PhysicalOp="Index Scan"
+                                                       LogicalOp="Index Scan"
+                                                       EstimateRows="1"
+                                                       EstimatedRowsRead="251"
+                                                       EstimateIO="0.003125"
+                                                       EstimateCPU="0.0004331"
+                                                       AvgRowSize="12"
+                                                       EstimatedTotalSubtreeCost="0.0035581"
+                                                       TableCardinality="251"
+                                                       Parallel="0"
+                                                       EstimateRebinds="0"
+                                                       EstimateRewinds="0"
+                                                       EstimatedExecutionMode="Row">
+                                                    <OutputList>
+                                                        <ColumnReference Database="[master]"
+                                                                         Schema="[sys]"
+                                                                         Table="[syssingleobjrefs]"
+                                                                         Alias="[lv]"
+                                                                         Column="depid" />
+                                                    </OutputList>
+                                                    <IndexScan Ordered="0"
+                                                               ForcedIndex="0"
+                                                               ForceSeek="0"
+                                                               ForceScan="0"
+                                                               NoExpandHint="0"
+                                                               Storage="RowStore">
+                                                        <DefinedValues>
+                                                            <DefinedValue>
+                                                                <ColumnReference Database="[master]"
+                                                                                 Schema="[sys]"
+                                                                                 Table="[syssingleobjrefs]"
+                                                                                 Alias="[lv]"
+                                                                                 Column="depid" />
+                                                            </DefinedValue>
+                                                        </DefinedValues>
+                                                        <Object Database="[master]"
+                                                                Schema="[sys]"
+                                                                Table="[syssingleobjrefs]"
+                                                                Index="[nc1]"
+                                                                Alias="[lv]"
+                                                                IndexKind="NonClustered"
+                                                                Storage="RowStore" />
+                                                        <Predicate>
+                                                            <ScalarOperator ScalarString="[master].[sys].[syssingleobjrefs].[class] as [lv].[class]=(91)">
+                                                                <Compare CompareOp="EQ">
+                                                                    <ScalarOperator>
+                                                                        <Identifier>
+                                                                            <ColumnReference Database="[master]"
+                                                                                             Schema="[sys]"
+                                                                                             Table="[syssingleobjrefs]"
+                                                                                             Alias="[lv]"
+                                                                                             Column="class" />
+                                                                        </Identifier>
+                                                                    </ScalarOperator>
+                                                                    <ScalarOperator>
+                                                                        <Const ConstValue="(91)" />
+                                                                    </ScalarOperator>
+                                                                </Compare>
+                                                            </ScalarOperator>
+                                                        </Predicate>
+                                                    </IndexScan>
+                                                </RelOp>
+                                                <RelOp NodeId="4"
+                                                       PhysicalOp="Hash Match"
+                                                       LogicalOp="Right Outer Join"
+                                                       EstimateRows="760.994"
+                                                       EstimateIO="0"
+                                                       EstimateCPU="0.0218261"
+                                                       AvgRowSize="177"
+                                                       EstimatedTotalSubtreeCost="0.0671314"
+                                                       Parallel="0"
+                                                       EstimateRebinds="0"
+                                                       EstimateRewinds="0"
+                                                       EstimatedExecutionMode="Row">
+                                                    <OutputList>
+                                                        <ColumnReference Database="[master]"
+                                                                         Schema="[sys]"
+                                                                         Table="[sysschobjs]"
+                                                                         Alias="[o]"
+                                                                         Column="id" />
+                                                        <ColumnReference Database="[master]"
+                                                                         Schema="[sys]"
+                                                                         Table="[sysschobjs]"
+                                                                         Alias="[o]"
+                                                                         Column="name" />
+                                                        <ColumnReference Database="[master]"
+                                                                         Schema="[sys]"
+                                                                         Table="[sysschobjs]"
+                                                                         Alias="[o]"
+                                                                         Column="nsid" />
+                                                        <ColumnReference Database="[master]"
+                                                                         Schema="[sys]"
+                                                                         Table="[sysschobjs]"
+                                                                         Alias="[o]"
+                                                                         Column="type" />
+                                                        <ColumnReference Database="[master]"
+                                                                         Schema="[sys]"
+                                                                         Table="[sysschobjs]"
+                                                                         Alias="[o]"
+                                                                         Column="pid" />
+                                                        <ColumnReference Database="[master]"
+                                                                         Schema="[sys]"
+                                                                         Table="[sysschobjs]"
+                                                                         Alias="[o]"
+                                                                         Column="created" />
+                                                        <ColumnReference Database="[master]"
+                                                                         Schema="[sys]"
+                                                                         Table="[sysschobjs]"
+                                                                         Alias="[o]"
+                                                                         Column="modified" />
+                                                        <ColumnReference Database="[master]"
+                                                                         Schema="[sys]"
+                                                                         Table="[syssingleobjrefs]"
+                                                                         Alias="[r]"
+                                                                         Column="indepid" />
+                                                        <ColumnReference Column="Expr1004" />
+                                                        <ColumnReference Column="Expr1005" />
+                                                        <ColumnReference Column="Expr1006" />
+                                                        <ColumnReference Column="Expr1007" />
+                                                        <ColumnReference Column="Expr1008" />
+                                                        <ColumnReference Column="Expr1009" />
+                                                        <ColumnReference Column="Expr1010" />
+                                                        <ColumnReference Column="Expr1011" />
+                                                        <ColumnReference Column="Expr1012" />
+                                                        <ColumnReference Column="Expr1013" />
+                                                        <ColumnReference Column="Expr1014" />
+                                                        <ColumnReference Column="Expr1017" />
+                                                    </OutputList>
+                                                    <MemoryFractions Input="0.5"
+                                                                     Output="0.5" />
+                                                    <Hash>
+                                                        <DefinedValues />
+                                                        <HashKeysBuild>
+                                                            <ColumnReference Database="[master]"
+                                                                             Schema="[sys]"
+                                                                             Table="[syssingleobjrefs]"
+                                                                             Alias="[r]"
+                                                                             Column="depid" />
+                                                        </HashKeysBuild>
+                                                        <HashKeysProbe>
+                                                            <ColumnReference Database="[master]"
+                                                                             Schema="[sys]"
+                                                                             Table="[sysschobjs]"
+                                                                             Alias="[o]"
+                                                                             Column="id" />
+                                                        </HashKeysProbe>
+                                                        <RelOp NodeId="5"
+                                                               PhysicalOp="Index Scan"
+                                                               LogicalOp="Index Scan"
+                                                               EstimateRows="1"
+                                                               EstimatedRowsRead="251"
+                                                               EstimateIO="0.003125"
+                                                               EstimateCPU="0.0004331"
+                                                               AvgRowSize="20"
+                                                               EstimatedTotalSubtreeCost="0.0035581"
+                                                               TableCardinality="251"
+                                                               Parallel="0"
+                                                               EstimateRebinds="0"
+                                                               EstimateRewinds="0"
+                                                               EstimatedExecutionMode="Row">
+                                                            <OutputList>
+                                                                <ColumnReference Database="[master]"
+                                                                                 Schema="[sys]"
+                                                                                 Table="[syssingleobjrefs]"
+                                                                                 Alias="[r]"
+                                                                                 Column="depid" />
+                                                                <ColumnReference Database="[master]"
+                                                                                 Schema="[sys]"
+                                                                                 Table="[syssingleobjrefs]"
+                                                                                 Alias="[r]"
+                                                                                 Column="indepid" />
+                                                            </OutputList>
+                                                            <IndexScan Ordered="0"
+                                                                       ForcedIndex="0"
+                                                                       ForceSeek="0"
+                                                                       ForceScan="0"
+                                                                       NoExpandHint="0"
+                                                                       Storage="RowStore">
+                                                                <DefinedValues>
+                                                                    <DefinedValue>
+                                                                        <ColumnReference Database="[master]"
+                                                                                         Schema="[sys]"
+                                                                                         Table="[syssingleobjrefs]"
+                                                                                         Alias="[r]"
+                                                                                         Column="depid" />
+                                                                    </DefinedValue>
+                                                                    <DefinedValue>
+                                                                        <ColumnReference Database="[master]"
+                                                                                         Schema="[sys]"
+                                                                                         Table="[syssingleobjrefs]"
+                                                                                         Alias="[r]"
+                                                                                         Column="indepid" />
+                                                                    </DefinedValue>
+                                                                </DefinedValues>
+                                                                <Object Database="[master]"
+                                                                        Schema="[sys]"
+                                                                        Table="[syssingleobjrefs]"
+                                                                        Index="[nc1]"
+                                                                        Alias="[r]"
+                                                                        IndexKind="NonClustered"
+                                                                        Storage="RowStore" />
+                                                                <Predicate>
+                                                                    <ScalarOperator ScalarString="[master].[sys].[syssingleobjrefs].[class] as [r].[class]=(97) AND [master].[sys].[syssingleobjrefs].[depsubid] as [r].[depsubid]=(0)">
+                                                                        <Logical Operation="AND">
+                                                                            <ScalarOperator>
+                                                                                <Compare CompareOp="EQ">
+                                                                                    <ScalarOperator>
+                                                                                        <Identifier>
+                                                                                            <ColumnReference Database="[master]"
+                                                                                                             Schema="[sys]"
+                                                                                                             Table="[syssingleobjrefs]"
+                                                                                                             Alias="[r]"
+                                                                                                             Column="class" />
+                                                                                        </Identifier>
+                                                                                    </ScalarOperator>
+                                                                                    <ScalarOperator>
+                                                                                        <Const ConstValue="(97)" />
+                                                                                    </ScalarOperator>
+                                                                                </Compare>
+                                                                            </ScalarOperator>
+                                                                            <ScalarOperator>
+                                                                                <Compare CompareOp="EQ">
+                                                                                    <ScalarOperator>
+                                                                                        <Identifier>
+                                                                                            <ColumnReference Database="[master]"
+                                                                                                             Schema="[sys]"
+                                                                                                             Table="[syssingleobjrefs]"
+                                                                                                             Alias="[r]"
+                                                                                                             Column="depsubid" />
+                                                                                        </Identifier>
+                                                                                    </ScalarOperator>
+                                                                                    <ScalarOperator>
+                                                                                        <Const ConstValue="(0)" />
+                                                                                    </ScalarOperator>
+                                                                                </Compare>
+                                                                            </ScalarOperator>
+                                                                        </Logical>
+                                                                    </ScalarOperator>
+                                                                </Predicate>
+                                                            </IndexScan>
+                                                        </RelOp>
+                                                        <RelOp NodeId="6"
+                                                               PhysicalOp="Filter"
+                                                               LogicalOp="Filter"
+                                                               EstimateRows="760.994"
+                                                               EstimateIO="0"
+                                                               EstimateCPU="0.00525648"
+                                                               AvgRowSize="173"
+                                                               EstimatedTotalSubtreeCost="0.0415233"
+                                                               Parallel="0"
+                                                               EstimateRebinds="0"
+                                                               EstimateRewinds="0"
+                                                               EstimatedExecutionMode="Row">
+                                                            <OutputList>
+                                                                <ColumnReference Database="[master]"
+                                                                                 Schema="[sys]"
+                                                                                 Table="[sysschobjs]"
+                                                                                 Alias="[o]"
+                                                                                 Column="id" />
+                                                                <ColumnReference Database="[master]"
+                                                                                 Schema="[sys]"
+                                                                                 Table="[sysschobjs]"
+                                                                                 Alias="[o]"
+                                                                                 Column="name" />
+                                                                <ColumnReference Database="[master]"
+                                                                                 Schema="[sys]"
+                                                                                 Table="[sysschobjs]"
+                                                                                 Alias="[o]"
+                                                                                 Column="nsid" />
+                                                                <ColumnReference Database="[master]"
+                                                                                 Schema="[sys]"
+                                                                                 Table="[sysschobjs]"
+                                                                                 Alias="[o]"
+                                                                                 Column="type" />
+                                                                <ColumnReference Database="[master]"
+                                                                                 Schema="[sys]"
+                                                                                 Table="[sysschobjs]"
+                                                                                 Alias="[o]"
+                                                                                 Column="pid" />
+                                                                <ColumnReference Database="[master]"
+                                                                                 Schema="[sys]"
+                                                                                 Table="[sysschobjs]"
+                                                                                 Alias="[o]"
+                                                                                 Column="created" />
+                                                                <ColumnReference Database="[master]"
+                                                                                 Schema="[sys]"
+                                                                                 Table="[sysschobjs]"
+                                                                                 Alias="[o]"
+                                                                                 Column="modified" />
+                                                                <ColumnReference Column="Expr1004" />
+                                                                <ColumnReference Column="Expr1005" />
+                                                                <ColumnReference Column="Expr1006" />
+                                                                <ColumnReference Column="Expr1007" />
+                                                                <ColumnReference Column="Expr1008" />
+                                                                <ColumnReference Column="Expr1009" />
+                                                                <ColumnReference Column="Expr1010" />
+                                                                <ColumnReference Column="Expr1011" />
+                                                                <ColumnReference Column="Expr1012" />
+                                                                <ColumnReference Column="Expr1013" />
+                                                                <ColumnReference Column="Expr1014" />
+                                                                <ColumnReference Column="Expr1017" />
+                                                            </OutputList>
+                                                            <Filter StartupExpression="0">
+                                                                <RelOp NodeId="7"
+                                                                       PhysicalOp="Compute Scalar"
+                                                                       LogicalOp="Compute Scalar"
+                                                                       EstimateRows="760.994"
+                                                                       EstimateIO="0"
+                                                                       EstimateCPU="0.0002796"
+                                                                       AvgRowSize="175"
+                                                                       EstimatedTotalSubtreeCost="0.0362668"
+                                                                       Parallel="0"
+                                                                       EstimateRebinds="0"
+                                                                       EstimateRewinds="0"
+                                                                       EstimatedExecutionMode="Row">
+                                                                    <OutputList>
+                                                                        <ColumnReference Database="[master]"
+                                                                                         Schema="[sys]"
+                                                                                         Table="[sysschobjs]"
+                                                                                         Alias="[o]"
+                                                                                         Column="id" />
+                                                                        <ColumnReference Database="[master]"
+                                                                                         Schema="[sys]"
+                                                                                         Table="[sysschobjs]"
+                                                                                         Alias="[o]"
+                                                                                         Column="name" />
+                                                                        <ColumnReference Database="[master]"
+                                                                                         Schema="[sys]"
+                                                                                         Table="[sysschobjs]"
+                                                                                         Alias="[o]"
+                                                                                         Column="nsid" />
+                                                                        <ColumnReference Database="[master]"
+                                                                                         Schema="[sys]"
+                                                                                         Table="[sysschobjs]"
+                                                                                         Alias="[o]"
+                                                                                         Column="type" />
+                                                                        <ColumnReference Database="[master]"
+                                                                                         Schema="[sys]"
+                                                                                         Table="[sysschobjs]"
+                                                                                         Alias="[o]"
+                                                                                         Column="pid" />
+                                                                        <ColumnReference Database="[master]"
+                                                                                         Schema="[sys]"
+                                                                                         Table="[sysschobjs]"
+                                                                                         Alias="[o]"
+                                                                                         Column="created" />
+                                                                        <ColumnReference Database="[master]"
+                                                                                         Schema="[sys]"
+                                                                                         Table="[sysschobjs]"
+                                                                                         Alias="[o]"
+                                                                                         Column="modified" />
+                                                                        <ColumnReference Column="Expr1004" />
+                                                                        <ColumnReference Column="Expr1005" />
+                                                                        <ColumnReference Column="Expr1006" />
+                                                                        <ColumnReference Column="Expr1007" />
+                                                                        <ColumnReference Column="Expr1008" />
+                                                                        <ColumnReference Column="Expr1009" />
+                                                                        <ColumnReference Column="Expr1010" />
+                                                                        <ColumnReference Column="Expr1011" />
+                                                                        <ColumnReference Column="Expr1012" />
+                                                                        <ColumnReference Column="Expr1013" />
+                                                                        <ColumnReference Column="Expr1014" />
+                                                                        <ColumnReference Column="Expr1017" />
+                                                                    </OutputList>
+                                                                    <ComputeScalar>
+                                                                        <DefinedValues>
+                                                                            <DefinedValue>
+                                                                                <ColumnReference Column="Expr1004" />
+                                                                                <ScalarOperator ScalarString="CONVERT(bit,[master].[sys].[sysschobjs].[status] as [o].[status]&amp;(1),0)">
+                                                                                    <Convert DataType="bit"
+                                                                                             Style="0"
+                                                                                             Implicit="0">
+                                                                                        <ScalarOperator>
+                                                                                            <Arithmetic Operation="BIT_AND">
+                                                                                                <ScalarOperator>
+                                                                                                    <Identifier>
+                                                                                                        <ColumnReference Database="[master]"
+                                                                                                                         Schema="[sys]"
+                                                                                                                         Table="[sysschobjs]"
+                                                                                                                         Alias="[o]"
+                                                                                                                         Column="status" />
+                                                                                                    </Identifier>
+                                                                                                </ScalarOperator>
+                                                                                                <ScalarOperator>
+                                                                                                    <Const ConstValue="(1)" />
+                                                                                                </ScalarOperator>
+                                                                                            </Arithmetic>
+                                                                                        </ScalarOperator>
+                                                                                    </Convert>
+                                                                                </ScalarOperator>
+                                                                            </DefinedValue>
+                                                                            <DefinedValue>
+                                                                                <ColumnReference Column="Expr1005" />
+                                                                                <ScalarOperator ScalarString="CONVERT(bit,[master].[sys].[sysschobjs].[status] as [o].[status]&amp;(16),0)">
+                                                                                    <Convert DataType="bit"
+                                                                                             Style="0"
+                                                                                             Implicit="0">
+                                                                                        <ScalarOperator>
+                                                                                            <Arithmetic Operation="BIT_AND">
+                                                                                                <ScalarOperator>
+                                                                                                    <Identifier>
+                                                                                                        <ColumnReference Database="[master]"
+                                                                                                                         Schema="[sys]"
+                                                                                                                         Table="[sysschobjs]"
+                                                                                                                         Alias="[o]"
+                                                                                                                         Column="status" />
+                                                                                                    </Identifier>
+                                                                                                </ScalarOperator>
+                                                                                                <ScalarOperator>
+                                                                                                    <Const ConstValue="(16)" />
+                                                                                                </ScalarOperator>
+                                                                                            </Arithmetic>
+                                                                                        </ScalarOperator>
+                                                                                    </Convert>
+                                                                                </ScalarOperator>
+                                                                            </DefinedValue>
+                                                                            <DefinedValue>
+                                                                                <ColumnReference Column="Expr1006" />
+                                                                                <ScalarOperator ScalarString="CONVERT(bit,[master].[sys].[sysschobjs].[status] as [o].[status]&amp;(64),0)">
+                                                                                    <Convert DataType="bit"
+                                                                                             Style="0"
+                                                                                             Implicit="0">
+                                                                                        <ScalarOperator>
+                                                                                            <Arithmetic Operation="BIT_AND">
+                                                                                                <ScalarOperator>
+                                                                                                    <Identifier>
+                                                                                                        <ColumnReference Database="[master]"
+                                                                                                                         Schema="[sys]"
+                                                                                                                         Table="[sysschobjs]"
+                                                                                                                         Alias="[o]"
+                                                                                                                         Column="status" />
+                                                                                                    </Identifier>
+                                                                                                </ScalarOperator>
+                                                                                                <ScalarOperator>
+                                                                                                    <Const ConstValue="(64)" />
+                                                                                                </ScalarOperator>
+                                                                                            </Arithmetic>
+                                                                                        </ScalarOperator>
+                                                                                    </Convert>
+                                                                                </ScalarOperator>
+                                                                            </DefinedValue>
+                                                                            <DefinedValue>
+                                                                                <ColumnReference Column="Expr1007" />
+                                                                                <ScalarOperator ScalarString="CONVERT(bit,[master].[sys].[sysschobjs].[status] as [o].[status]&amp;(4096),0)">
+                                                                                    <Convert DataType="bit"
+                                                                                             Style="0"
+                                                                                             Implicit="0">
+                                                                                        <ScalarOperator>
+                                                                                            <Arithmetic Operation="BIT_AND">
+                                                                                                <ScalarOperator>
+                                                                                                    <Identifier>
+                                                                                                        <ColumnReference Database="[master]"
+                                                                                                                         Schema="[sys]"
+                                                                                                                         Table="[sysschobjs]"
+                                                                                                                         Alias="[o]"
+                                                                                                                         Column="status" />
+                                                                                                    </Identifier>
+                                                                                                </ScalarOperator>
+                                                                                                <ScalarOperator>
+                                                                                                    <Const ConstValue="(4096)" />
+                                                                                                </ScalarOperator>
+                                                                                            </Arithmetic>
+                                                                                        </ScalarOperator>
+                                                                                    </Convert>
+                                                                                </ScalarOperator>
+                                                                            </DefinedValue>
+                                                                            <DefinedValue>
+                                                                                <ColumnReference Column="Expr1008" />
+                                                                                <ScalarOperator ScalarString="CONVERT(bit,[master].[sys].[sysschobjs].[status] as [o].[status]&amp;(8192),0)">
+                                                                                    <Convert DataType="bit"
+                                                                                             Style="0"
+                                                                                             Implicit="0">
+                                                                                        <ScalarOperator>
+                                                                                            <Arithmetic Operation="BIT_AND">
+                                                                                                <ScalarOperator>
+                                                                                                    <Identifier>
+                                                                                                        <ColumnReference Database="[master]"
+                                                                                                                         Schema="[sys]"
+                                                                                                                         Table="[sysschobjs]"
+                                                                                                                         Alias="[o]"
+                                                                                                                         Column="status" />
+                                                                                                    </Identifier>
+                                                                                                </ScalarOperator>
+                                                                                                <ScalarOperator>
+                                                                                                    <Const ConstValue="(8192)" />
+                                                                                                </ScalarOperator>
+                                                                                            </Arithmetic>
+                                                                                        </ScalarOperator>
+                                                                                    </Convert>
+                                                                                </ScalarOperator>
+                                                                            </DefinedValue>
+                                                                            <DefinedValue>
+                                                                                <ColumnReference Column="Expr1009" />
+                                                                                <ScalarOperator ScalarString="CONVERT(bit,[master].[sys].[sysschobjs].[status] as [o].[status]&amp;(512),0)">
+                                                                                    <Convert DataType="bit"
+                                                                                             Style="0"
+                                                                                             Implicit="0">
+                                                                                        <ScalarOperator>
+                                                                                            <Arithmetic Operation="BIT_AND">
+                                                                                                <ScalarOperator>
+                                                                                                    <Identifier>
+                                                                                                        <ColumnReference Database="[master]"
+                                                                                                                         Schema="[sys]"
+                                                                                                                         Table="[sysschobjs]"
+                                                                                                                         Alias="[o]"
+                                                                                                                         Column="status" />
+                                                                                                    </Identifier>
+                                                                                                </ScalarOperator>
+                                                                                                <ScalarOperator>
+                                                                                                    <Const ConstValue="(512)" />
+                                                                                                </ScalarOperator>
+                                                                                            </Arithmetic>
+                                                                                        </ScalarOperator>
+                                                                                    </Convert>
+                                                                                </ScalarOperator>
+                                                                            </DefinedValue>
+                                                                            <DefinedValue>
+                                                                                <ColumnReference Column="Expr1010" />
+                                                                                <ScalarOperator ScalarString="CONVERT(bit,[master].[sys].[sysschobjs].[status] as [o].[status]&amp;(2048),0)">
+                                                                                    <Convert DataType="bit"
+                                                                                             Style="0"
+                                                                                             Implicit="0">
+                                                                                        <ScalarOperator>
+                                                                                            <Arithmetic Operation="BIT_AND">
+                                                                                                <ScalarOperator>
+                                                                                                    <Identifier>
+                                                                                                        <ColumnReference Database="[master]"
+                                                                                                                         Schema="[sys]"
+                                                                                                                         Table="[sysschobjs]"
+                                                                                                                         Alias="[o]"
+                                                                                                                         Column="status" />
+                                                                                                    </Identifier>
+                                                                                                </ScalarOperator>
+                                                                                                <ScalarOperator>
+                                                                                                    <Const ConstValue="(2048)" />
+                                                                                                </ScalarOperator>
+                                                                                            </Arithmetic>
+                                                                                        </ScalarOperator>
+                                                                                    </Convert>
+                                                                                </ScalarOperator>
+                                                                            </DefinedValue>
+                                                                            <DefinedValue>
+                                                                                <ColumnReference Column="Expr1011" />
+                                                                                <ScalarOperator ScalarString="CONVERT(bit,[master].[sys].[sysschobjs].[status] as [o].[status]&amp;(1024),0)">
+                                                                                    <Convert DataType="bit"
+                                                                                             Style="0"
+                                                                                             Implicit="0">
+                                                                                        <ScalarOperator>
+                                                                                            <Arithmetic Operation="BIT_AND">
+                                                                                                <ScalarOperator>
+                                                                                                    <Identifier>
+                                                                                                        <ColumnReference Database="[master]"
+                                                                                                                         Schema="[sys]"
+                                                                                                                         Table="[sysschobjs]"
+                                                                                                                         Alias="[o]"
+                                                                                                                         Column="status" />
+                                                                                                    </Identifier>
+                                                                                                </ScalarOperator>
+                                                                                                <ScalarOperator>
+                                                                                                    <Const ConstValue="(1024)" />
+                                                                                                </ScalarOperator>
+                                                                                            </Arithmetic>
+                                                                                        </ScalarOperator>
+                                                                                    </Convert>
+                                                                                </ScalarOperator>
+                                                                            </DefinedValue>
+                                                                            <DefinedValue>
+                                                                                <ColumnReference Column="Expr1012" />
+                                                                                <ScalarOperator ScalarString="CONVERT(bit,[master].[sys].[sysschobjs].[status] as [o].[status]&amp;(2),0)">
+                                                                                    <Convert DataType="bit"
+                                                                                             Style="0"
+                                                                                             Implicit="0">
+                                                                                        <ScalarOperator>
+                                                                                            <Arithmetic Operation="BIT_AND">
+                                                                                                <ScalarOperator>
+                                                                                                    <Identifier>
+                                                                                                        <ColumnReference Database="[master]"
+                                                                                                                         Schema="[sys]"
+                                                                                                                         Table="[sysschobjs]"
+                                                                                                                         Alias="[o]"
+                                                                                                                         Column="status" />
+                                                                                                    </Identifier>
+                                                                                                </ScalarOperator>
+                                                                                                <ScalarOperator>
+                                                                                                    <Const ConstValue="(2)" />
+                                                                                                </ScalarOperator>
+                                                                                            </Arithmetic>
+                                                                                        </ScalarOperator>
+                                                                                    </Convert>
+                                                                                </ScalarOperator>
+                                                                            </DefinedValue>
+                                                                            <DefinedValue>
+                                                                                <ColumnReference Column="Expr1013" />
+                                                                                <ScalarOperator ScalarString="CONVERT(bit,[master].[sys].[sysschobjs].[status] as [o].[status]&amp;(16777216),0)">
+                                                                                    <Convert DataType="bit"
+                                                                                             Style="0"
+                                                                                             Implicit="0">
+                                                                                        <ScalarOperator>
+                                                                                            <Arithmetic Operation="BIT_AND">
+                                                                                                <ScalarOperator>
+                                                                                                    <Identifier>
+                                                                                                        <ColumnReference Database="[master]"
+                                                                                                                         Schema="[sys]"
+                                                                                                                         Table="[sysschobjs]"
+                                                                                                                         Alias="[o]"
+                                                                                                                         Column="status" />
+                                                                                                    </Identifier>
+                                                                                                </ScalarOperator>
+                                                                                                <ScalarOperator>
+                                                                                                    <Const ConstValue="(16777216)" />
+                                                                                                </ScalarOperator>
+                                                                                            </Arithmetic>
+                                                                                        </ScalarOperator>
+                                                                                    </Convert>
+                                                                                </ScalarOperator>
+                                                                            </DefinedValue>
+                                                                            <DefinedValue>
+                                                                                <ColumnReference Column="Expr1014" />
+                                                                                <ScalarOperator ScalarString="CONVERT(bit,[master].[sys].[sysschobjs].[status2] as [o].[status2]&amp;(4096),0)">
+                                                                                    <Convert DataType="bit"
+                                                                                             Style="0"
+                                                                                             Implicit="0">
+                                                                                        <ScalarOperator>
+                                                                                            <Arithmetic Operation="BIT_AND">
+                                                                                                <ScalarOperator>
+                                                                                                    <Identifier>
+                                                                                                        <ColumnReference Database="[master]"
+                                                                                                                         Schema="[sys]"
+                                                                                                                         Table="[sysschobjs]"
+                                                                                                                         Alias="[o]"
+                                                                                                                         Column="status2" />
+                                                                                                    </Identifier>
+                                                                                                </ScalarOperator>
+                                                                                                <ScalarOperator>
+                                                                                                    <Const ConstValue="(4096)" />
+                                                                                                </ScalarOperator>
+                                                                                            </Arithmetic>
+                                                                                        </ScalarOperator>
+                                                                                    </Convert>
+                                                                                </ScalarOperator>
+                                                                            </DefinedValue>
+                                                                            <DefinedValue>
+                                                                                <ColumnReference Column="Expr1017" />
+                                                                                <ScalarOperator ScalarString="CONVERT(bit,[master].[sys].[sysschobjs].[status2] as [o].[status2]&amp;(16777216),0)">
+                                                                                    <Convert DataType="bit"
+                                                                                             Style="0"
+                                                                                             Implicit="0">
+                                                                                        <ScalarOperator>
+                                                                                            <Arithmetic Operation="BIT_AND">
+                                                                                                <ScalarOperator>
+                                                                                                    <Identifier>
+                                                                                                        <ColumnReference Database="[master]"
+                                                                                                                         Schema="[sys]"
+                                                                                                                         Table="[sysschobjs]"
+                                                                                                                         Alias="[o]"
+                                                                                                                         Column="status2" />
+                                                                                                    </Identifier>
+                                                                                                </ScalarOperator>
+                                                                                                <ScalarOperator>
+                                                                                                    <Const ConstValue="(16777216)" />
+                                                                                                </ScalarOperator>
+                                                                                            </Arithmetic>
+                                                                                        </ScalarOperator>
+                                                                                    </Convert>
+                                                                                </ScalarOperator>
+                                                                            </DefinedValue>
+                                                                        </DefinedValues>
+                                                                        <RelOp NodeId="8"
+                                                                               PhysicalOp="Clustered Index Scan"
+                                                                               LogicalOp="Clustered Index Scan"
+                                                                               EstimateRows="760.994"
+                                                                               EstimatedRowsRead="2796"
+                                                                               EstimateIO="0.0327546"
+                                                                               EstimateCPU="0.0032326"
+                                                                               AvgRowSize="180"
+                                                                               EstimatedTotalSubtreeCost="0.0359872"
+                                                                               TableCardinality="2796"
+                                                                               Parallel="0"
+                                                                               EstimateRebinds="0"
+                                                                               EstimateRewinds="0"
+                                                                               EstimatedExecutionMode="Row">
+                                                                            <OutputList>
+                                                                                <ColumnReference Database="[master]"
+                                                                                                 Schema="[sys]"
+                                                                                                 Table="[sysschobjs]"
+                                                                                                 Alias="[o]"
+                                                                                                 Column="id" />
+                                                                                <ColumnReference Database="[master]"
+                                                                                                 Schema="[sys]"
+                                                                                                 Table="[sysschobjs]"
+                                                                                                 Alias="[o]"
+                                                                                                 Column="name" />
+                                                                                <ColumnReference Database="[master]"
+                                                                                                 Schema="[sys]"
+                                                                                                 Table="[sysschobjs]"
+                                                                                                 Alias="[o]"
+                                                                                                 Column="nsid" />
+                                                                                <ColumnReference Database="[master]"
+                                                                                                 Schema="[sys]"
+                                                                                                 Table="[sysschobjs]"
+                                                                                                 Alias="[o]"
+                                                                                                 Column="status" />
+                                                                                <ColumnReference Database="[master]"
+                                                                                                 Schema="[sys]"
+                                                                                                 Table="[sysschobjs]"
+                                                                                                 Alias="[o]"
+                                                                                                 Column="type" />
+                                                                                <ColumnReference Database="[master]"
+                                                                                                 Schema="[sys]"
+                                                                                                 Table="[sysschobjs]"
+                                                                                                 Alias="[o]"
+                                                                                                 Column="pid" />
+                                                                                <ColumnReference Database="[master]"
+                                                                                                 Schema="[sys]"
+                                                                                                 Table="[sysschobjs]"
+                                                                                                 Alias="[o]"
+                                                                                                 Column="created" />
+                                                                                <ColumnReference Database="[master]"
+                                                                                                 Schema="[sys]"
+                                                                                                 Table="[sysschobjs]"
+                                                                                                 Alias="[o]"
+                                                                                                 Column="modified" />
+                                                                                <ColumnReference Database="[master]"
+                                                                                                 Schema="[sys]"
+                                                                                                 Table="[sysschobjs]"
+                                                                                                 Alias="[o]"
+                                                                                                 Column="status2" />
+                                                                            </OutputList>
+                                                                            <IndexScan Ordered="0"
+                                                                                       ForcedIndex="0"
+                                                                                       ForceScan="0"
+                                                                                       NoExpandHint="0"
+                                                                                       Storage="RowStore">
+                                                                                <DefinedValues>
+                                                                                    <DefinedValue>
+                                                                                        <ColumnReference Database="[master]"
+                                                                                                         Schema="[sys]"
+                                                                                                         Table="[sysschobjs]"
+                                                                                                         Alias="[o]"
+                                                                                                         Column="id" />
+                                                                                    </DefinedValue>
+                                                                                    <DefinedValue>
+                                                                                        <ColumnReference Database="[master]"
+                                                                                                         Schema="[sys]"
+                                                                                                         Table="[sysschobjs]"
+                                                                                                         Alias="[o]"
+                                                                                                         Column="name" />
+                                                                                    </DefinedValue>
+                                                                                    <DefinedValue>
+                                                                                        <ColumnReference Database="[master]"
+                                                                                                         Schema="[sys]"
+                                                                                                         Table="[sysschobjs]"
+                                                                                                         Alias="[o]"
+                                                                                                         Column="nsid" />
+                                                                                    </DefinedValue>
+                                                                                    <DefinedValue>
+                                                                                        <ColumnReference Database="[master]"
+                                                                                                         Schema="[sys]"
+                                                                                                         Table="[sysschobjs]"
+                                                                                                         Alias="[o]"
+                                                                                                         Column="status" />
+                                                                                    </DefinedValue>
+                                                                                    <DefinedValue>
+                                                                                        <ColumnReference Database="[master]"
+                                                                                                         Schema="[sys]"
+                                                                                                         Table="[sysschobjs]"
+                                                                                                         Alias="[o]"
+                                                                                                         Column="type" />
+                                                                                    </DefinedValue>
+                                                                                    <DefinedValue>
+                                                                                        <ColumnReference Database="[master]"
+                                                                                                         Schema="[sys]"
+                                                                                                         Table="[sysschobjs]"
+                                                                                                         Alias="[o]"
+                                                                                                         Column="pid" />
+                                                                                    </DefinedValue>
+                                                                                    <DefinedValue>
+                                                                                        <ColumnReference Database="[master]"
+                                                                                                         Schema="[sys]"
+                                                                                                         Table="[sysschobjs]"
+                                                                                                         Alias="[o]"
+                                                                                                         Column="created" />
+                                                                                    </DefinedValue>
+                                                                                    <DefinedValue>
+                                                                                        <ColumnReference Database="[master]"
+                                                                                                         Schema="[sys]"
+                                                                                                         Table="[sysschobjs]"
+                                                                                                         Alias="[o]"
+                                                                                                         Column="modified" />
+                                                                                    </DefinedValue>
+                                                                                    <DefinedValue>
+                                                                                        <ColumnReference Database="[master]"
+                                                                                                         Schema="[sys]"
+                                                                                                         Table="[sysschobjs]"
+                                                                                                         Alias="[o]"
+                                                                                                         Column="status2" />
+                                                                                    </DefinedValue>
+                                                                                </DefinedValues>
+                                                                                <Object Database="[master]"
+                                                                                        Schema="[sys]"
+                                                                                        Table="[sysschobjs]"
+                                                                                        Index="[clst]"
+                                                                                        Alias="[o]"
+                                                                                        IndexKind="Clustered"
+                                                                                        Storage="RowStore" />
+                                                                                <Predicate>
+                                                                                    <ScalarOperator ScalarString="[master].[sys].[sysschobjs].[nsclass] as [o].[nsclass]=(0) AND [master].[sys].[sysschobjs].[pclass] as [o].[pclass]=(1) AND [master].[sys].[sysschobjs].[type] as [o].[type]='V'">
+                                                                                        <Logical Operation="AND">
+                                                                                            <ScalarOperator>
+                                                                                                <Compare CompareOp="EQ">
+                                                                                                    <ScalarOperator>
+                                                                                                        <Identifier>
+                                                                                                            <ColumnReference Database="[master]"
+                                                                                                                             Schema="[sys]"
+                                                                                                                             Table="[sysschobjs]"
+                                                                                                                             Alias="[o]"
+                                                                                                                             Column="nsclass" />
+                                                                                                        </Identifier>
+                                                                                                    </ScalarOperator>
+                                                                                                    <ScalarOperator>
+                                                                                                        <Const ConstValue="(0)" />
+                                                                                                    </ScalarOperator>
+                                                                                                </Compare>
+                                                                                            </ScalarOperator>
+                                                                                            <ScalarOperator>
+                                                                                                <Compare CompareOp="EQ">
+                                                                                                    <ScalarOperator>
+                                                                                                        <Identifier>
+                                                                                                            <ColumnReference Database="[master]"
+                                                                                                                             Schema="[sys]"
+                                                                                                                             Table="[sysschobjs]"
+                                                                                                                             Alias="[o]"
+                                                                                                                             Column="pclass" />
+                                                                                                        </Identifier>
+                                                                                                    </ScalarOperator>
+                                                                                                    <ScalarOperator>
+                                                                                                        <Const ConstValue="(1)" />
+                                                                                                    </ScalarOperator>
+                                                                                                </Compare>
+                                                                                            </ScalarOperator>
+                                                                                            <ScalarOperator>
+                                                                                                <Compare CompareOp="EQ">
+                                                                                                    <ScalarOperator>
+                                                                                                        <Identifier>
+                                                                                                            <ColumnReference Database="[master]"
+                                                                                                                             Schema="[sys]"
+                                                                                                                             Table="[sysschobjs]"
+                                                                                                                             Alias="[o]"
+                                                                                                                             Column="type" />
+                                                                                                        </Identifier>
+                                                                                                    </ScalarOperator>
+                                                                                                    <ScalarOperator>
+                                                                                                        <Const ConstValue="'V'" />
+                                                                                                    </ScalarOperator>
+                                                                                                </Compare>
+                                                                                            </ScalarOperator>
+                                                                                        </Logical>
+                                                                                    </ScalarOperator>
+                                                                                </Predicate>
+                                                                            </IndexScan>
+                                                                        </RelOp>
+                                                                    </ComputeScalar>
+                                                                </RelOp>
+                                                                <Predicate>
+                                                                    <ScalarOperator ScalarString="has_access('AO',[master].[sys].[sysschobjs].[id] as [o].[id])=(1)">
+                                                                        <Compare CompareOp="EQ">
+                                                                            <ScalarOperator>
+                                                                                <Intrinsic FunctionName="has_access">
+                                                                                    <ScalarOperator>
+                                                                                        <Const ConstValue="'AO'" />
+                                                                                    </ScalarOperator>
+                                                                                    <ScalarOperator>
+                                                                                        <Identifier>
+                                                                                            <ColumnReference Database="[master]"
+                                                                                                             Schema="[sys]"
+                                                                                                             Table="[sysschobjs]"
+                                                                                                             Alias="[o]"
+                                                                                                             Column="id" />
+                                                                                        </Identifier>
+                                                                                    </ScalarOperator>
+                                                                                    <ScalarOperator>
+                                                                                        <Const ConstValue="" />
+                                                                                    </ScalarOperator>
+                                                                                    <ScalarOperator>
+                                                                                        <Const ConstValue="" />
+                                                                                    </ScalarOperator>
+                                                                                </Intrinsic>
+                                                                            </ScalarOperator>
+                                                                            <ScalarOperator>
+                                                                                <Const ConstValue="(1)" />
+                                                                            </ScalarOperator>
+                                                                        </Compare>
+                                                                    </ScalarOperator>
+                                                                </Predicate>
+                                                            </Filter>
+                                                        </RelOp>
+                                                    </Hash>
+                                                </RelOp>
+                                            </Hash>
+                                        </RelOp>
+                                    </ComputeScalar>
+                                </RelOp>
+                                <RelOp NodeId="9"
+                                       PhysicalOp="Clustered Index Seek"
+                                       LogicalOp="Clustered Index Seek"
+                                       EstimateRows="1"
+                                       EstimatedRowsRead="1"
+                                       EstimateIO="0.003125"
+                                       EstimateCPU="0.0001581"
+                                       AvgRowSize="71"
+                                       EstimatedTotalSubtreeCost="0.123782"
+                                       TableCardinality="163"
+                                       Parallel="0"
+                                       EstimateRebinds="0"
+                                       EstimateRewinds="762.17"
+                                       EstimatedExecutionMode="Row">
+                                    <OutputList>
+                                        <ColumnReference Database="[mssqlsystemresource]"
+                                                         Schema="[sys]"
+                                                         Table="[syspalnames]"
+                                                         Alias="[n]"
+                                                         Column="name" />
+                                    </OutputList>
+                                    <IndexScan Ordered="1"
+                                               ScanDirection="FORWARD"
+                                               ForcedIndex="0"
+                                               ForceSeek="0"
+                                               ForceScan="0"
+                                               NoExpandHint="0"
+                                               Storage="RowStore">
+                                        <DefinedValues>
+                                            <DefinedValue>
+                                                <ColumnReference Database="[mssqlsystemresource]"
+                                                                 Schema="[sys]"
+                                                                 Table="[syspalnames]"
+                                                                 Alias="[n]"
+                                                                 Column="name" />
+                                            </DefinedValue>
+                                        </DefinedValues>
+                                        <Object Database="[mssqlsystemresource]"
+                                                Schema="[sys]"
+                                                Table="[syspalnames]"
+                                                Index="[cl]"
+                                                Alias="[n]"
+                                                IndexKind="Clustered"
+                                                Storage="RowStore" />
+                                        <SeekPredicates>
+                                            <SeekPredicateNew>
+                                                <SeekKeys>
+                                                    <Prefix ScanType="EQ">
+                                                        <RangeColumns>
+                                                            <ColumnReference Database="[mssqlsystemresource]"
+                                                                             Schema="[sys]"
+                                                                             Table="[syspalnames]"
+                                                                             Alias="[n]"
+                                                                             Column="class" />
+                                                            <ColumnReference Database="[mssqlsystemresource]"
+                                                                             Schema="[sys]"
+                                                                             Table="[syspalnames]"
+                                                                             Alias="[n]"
+                                                                             Column="value" />
+                                                        </RangeColumns>
+                                                        <RangeExpressions>
+                                                            <ScalarOperator ScalarString="'OBTY'">
+                                                                <Const ConstValue="'OBTY'" />
+                                                            </ScalarOperator>
+                                                            <ScalarOperator ScalarString="'V'">
+                                                                <Const ConstValue="'V'" />
+                                                            </ScalarOperator>
+                                                        </RangeExpressions>
+                                                    </Prefix>
+                                                </SeekKeys>
+                                            </SeekPredicateNew>
+                                        </SeekPredicates>
+                                    </IndexScan>
+                                </RelOp>
+                            </NestedLoops>
+                        </RelOp>
+                    </QueryPlan>
+                </StmtSimple>
+            </Statements>
+        </Batch>
+    </BatchSequence>
+</ShowPlanXML>
