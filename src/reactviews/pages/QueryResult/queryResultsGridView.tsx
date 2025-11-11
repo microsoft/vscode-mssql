@@ -42,7 +42,7 @@ type GridItem = { batchId: number; resultId: number; index: number };
 const ROW_HEIGHT = 26;
 const HEADER = 30;
 export const MARGIN_BOTTOM = 10;
-export const MAXIMUMG_GRID_HEIGHT_PX = 300;
+const DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS = 8;
 
 export const QueryResultsGridView = () => {
     const classes = useStyles();
@@ -80,7 +80,11 @@ export const QueryResultsGridView = () => {
     }, [resultSetSummaries]);
 
     function naturalHeight(rowCount: number): number {
-        return HEADER + rowCount * ROW_HEIGHT + MARGIN_BOTTOM;
+        let visibleRows = rowCount === 0 ? 1 : rowCount;
+        if (visibleRows > DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS) {
+            visibleRows = DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS;
+        }
+        return visibleRows * ROW_HEIGHT + HEADER + MARGIN_BOTTOM;
     }
 
     const gridHeights: number[] = useMemo(() => {
@@ -88,18 +92,28 @@ export const QueryResultsGridView = () => {
             return [];
         }
 
-        const naturalHeights = gridList.map((it) =>
+        const numGrids = gridList.length;
+
+        // If only one grid, use available space
+        if (numGrids === 1) {
+            return [gridViewContainerHeight];
+        }
+
+        const preferredHeights = gridList.map((it) =>
             naturalHeight(resultSetSummaries?.[it.batchId]?.[it.resultId]?.rowCount ?? 0),
         );
 
-        const equalHeights = gridViewContainerHeight / gridList.length;
+        // Calculate total minimum height needed.
+        const totalMinHeight = preferredHeights.reduce((sum, h) => sum + h, 0);
 
-        return gridList.map((_, i) =>
-            Math.min(
-                naturalHeights[i],
-                Math.max(equalHeights, Math.min(gridViewContainerHeight, MAXIMUMG_GRID_HEIGHT_PX)),
-            ),
-        );
+        // Calculate height adjustment if we have extra space to distribute evenly
+        const heightAdjustment =
+            gridViewContainerHeight > totalMinHeight
+                ? (gridViewContainerHeight - totalMinHeight) / numGrids
+                : 0;
+
+        // Distribute heights: preferred + proportional share of extra space
+        return preferredHeights.map((preferredHeight) => preferredHeight + heightAdjustment);
     }, [gridList, gridViewContainerHeight]);
 
     // Restore grid view container scroll position on mount
