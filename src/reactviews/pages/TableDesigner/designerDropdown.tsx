@@ -52,7 +52,10 @@ export const DesignerDropdown = ({
                 showLabel
                     ? {
                           children: (
-                              <InfoLabel size="small" info={component.description}>
+                              <InfoLabel
+                                  size="small"
+                                  info={component.description}
+                                  aria-hidden="true">
                                   {component.componentProperties.title}
                               </InfoLabel>
                           ),
