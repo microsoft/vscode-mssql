@@ -669,6 +669,50 @@ suite("PublishProjectWebViewController Tests", () => {
             newState.deploymentOptions.booleanOptionsDictionary.allowDropBlockingAssemblies.value,
         ).to.be.true;
     });
+
+    test("deployment options reset restores default values", async () => {
+        const controller = createTestController();
+        await controller.initialized.promise;
+
+        const reducerHandlers = controller["_reducerHandlers"] as Map<string, Function>;
+        const updateDeploymentOptions = reducerHandlers.get("updateDeploymentOptions");
+
+        // Set up default deployment options
+        const defaultOptions = {
+            excludeObjectTypes: { value: [], description: "", displayName: "" },
+            booleanOptionsDictionary: {
+                ignoreTableOptions: {
+                    value: false,
+                    description: "Ignore table options",
+                    displayName: "Ignore Table Options",
+                },
+            },
+            objectTypesDictionary: {},
+        };
+
+        controller.state.defaultDeploymentOptions = defaultOptions;
+
+        // User makes changes
+        const modifiedOptions = structuredClone(defaultOptions);
+        modifiedOptions.booleanOptionsDictionary.ignoreTableOptions.value = true;
+
+        let state = await updateDeploymentOptions(controller.state, {
+            deploymentOptions: modifiedOptions,
+        });
+
+        // Verify change is applied
+        expect(state.deploymentOptions.booleanOptionsDictionary.ignoreTableOptions.value).to.be
+            .true;
+
+        // Reset should restore defaults
+        state = await updateDeploymentOptions(state, {
+            deploymentOptions: state.defaultDeploymentOptions,
+        });
+
+        // Verify reset to default value
+        expect(state.deploymentOptions.booleanOptionsDictionary.ignoreTableOptions.value).to.be
+            .false;
+    });
     //#endregion
 
     //#region Generate Script Tests
