@@ -1621,6 +1621,7 @@
     "Image tag": "Image tag",
     "Microsoft SQL Server License Agreement": "Microsoft SQL Server License Agreement",
     "Select Connection": "Select Connection",
+    "Checking Docker prerequisites...": "Checking Docker prerequisites...",
     "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
     "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy": "Invalid SQL Server password for {0}. Password must be 8–128 characters long and meet the complexity requirements.  For more information see https://docs.microsoft.com/sql/relational-databases/security/password-policy",
     "{0} password doesn't match the confirmation password": "{0} password doesn't match the confirmation password",
