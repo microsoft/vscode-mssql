@@ -19,7 +19,7 @@ import stylistic from "@stylistic/eslint-plugin";
 
 export default [
     {
-        ignores: ["out/**/*"],
+        ignores: ["out/**/*", "dist/**/*"],
     },
     {
         files: ["src/**/*.ts", "src/**/*.tsx", "test/**/*.ts"],
