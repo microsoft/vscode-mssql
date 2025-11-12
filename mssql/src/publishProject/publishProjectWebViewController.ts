@@ -27,11 +27,11 @@ import {
     parsePublishProfileXml,
     readProjectProperties,
     validateSqlCmdVariables,
+    getSqlServerContainerTagsForTargetVersion,
 } from "./projectUtils";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { Deferred } from "../protocol";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
-import { getSqlServerContainerTagsForTargetVersion } from "./projectUtils";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { hasAnyMissingRequiredValues, getErrorMessage } from "../utils/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
