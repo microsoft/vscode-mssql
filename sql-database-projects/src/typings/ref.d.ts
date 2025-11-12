@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/// <reference path='../../../../src/vscode-dts/vscode.d.ts'/>
-/// <reference path='../../../../src/sql/azdata.d.ts'/>
-/// <reference path='../../../../src/sql/azdata.proposed.d.ts'/>
-/// <reference path='../../../data-workspace/src/dataworkspace.d.ts'/>
-/// <reference path='../../../mssql/src/mssql.d.ts'/>
-/// <reference path='../../../types/vscode-mssql.d.ts'/>
+// /// <reference path='../../../../src/vscode-dts/vscode.d.ts'/>
+// /// <reference path='../../../../src/sql/azdata.d.ts'/>
+// /// <reference path='../../../../src/sql/azdata.proposed.d.ts'/>
+/// <reference path='../../../typings/dataworkspace.d.ts'/>
+/// <reference path='../../../typings/mssql.d.ts'/>
+/// <reference path='../../../mssql/typings/vscode-mssql.d.ts'/>
+// /// <reference path='../../../types/vscode-mssql.d.ts'/>
 /// <reference types='@types/node'/>
