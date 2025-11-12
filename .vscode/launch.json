@@ -1,0 +1,36 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Run MSSQL extension",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}/mssql"
+			],
+			"outFiles": [
+				"${workspaceFolder}/mssql/out/**/*.js"
+			]
+		},
+		{
+			"name": "Run SQL Database Projects extension",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceFolder}/sql-database-projects"
+			],
+			"outFiles": [
+				"${workspaceFolder}/sql-database-projects/out/**/*.js"
+			]
+		}
+	],
+	"compounds": [
+		{
+			"name": "Run Both Extensions",
+			"configurations": [
+				"Run MSSQL extension",
+				"Run SQL Database Projects extension"
+			]
+		}
+	]
+}
