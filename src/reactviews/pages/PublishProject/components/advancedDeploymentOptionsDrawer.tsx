@@ -71,11 +71,14 @@ export const AdvancedDeploymentOptionsDrawer = ({
     const [localChanges, setLocalChanges] = useState<Array<{ optionName: string; value: boolean }>>(
         [],
     );
+    // Snapshot of localChanges when drawer opens (for cancel functionality)
+    const [localChangesSnapshot, setLocalChangesSnapshot] = useState(localChanges);
 
-    // Clear local changes when deploymentOptions change (e.g., from profile loading)
     useEffect(() => {
-        setLocalChanges([]);
-    }, [state.deploymentOptions]);
+        if (isAdvancedDrawerOpen) {
+            setLocalChangesSnapshot([...localChanges]);
+        }
+    }, [isAdvancedDrawerOpen]);
 
     const getCurrentValue = useCallback(
         (optionName: string, baseValue: boolean): boolean => {
@@ -185,6 +188,9 @@ export const AdvancedDeploymentOptionsDrawer = ({
 
     // Options reset handler, clears all local changes (reset to base deployment options)
     const handleReset = () => {
+        if (state.defaultDeploymentOptions) {
+            context?.updateDeploymentOptions(state.defaultDeploymentOptions);
+        }
         setLocalChanges([]);
     };
 
@@ -247,9 +253,9 @@ export const AdvancedDeploymentOptionsDrawer = ({
         }
     };
 
-    // Clear local changes and close drawer
+    // Cancel: restore snapshot from when drawer opened (discard current session changes)
     const handleCancel = () => {
-        setLocalChanges([]);
+        setLocalChanges(localChangesSnapshot);
         setIsAdvancedDrawerOpen(false);
     };
 
