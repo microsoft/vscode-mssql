@@ -33,12 +33,16 @@ const useStyles = makeStyles({
         paddingRight: "8px", // Space for scrollbar
         boxSizing: "border-box",
         borderBottom: "1px solid var(--vscode-editorWidget-border)",
+        flex: "0 0 auto",
     },
 });
 
 type GridItem = { batchId: number; resultId: number; index: number };
 
-const MIN_GRID_HEIGHT_PX = 200;
+const ROW_HEIGHT = 26;
+const HEADER = 30;
+export const MARGIN_BOTTOM = 10;
+const DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS = 8;
 
 export const QueryResultsGridView = () => {
     const classes = useStyles();
@@ -55,6 +59,7 @@ export const QueryResultsGridView = () => {
     const tabStates = useQueryResultSelector((state) => state.tabStates);
 
     const gridViewContainerRef = useRef<HTMLDivElement>(null);
+    const [gridViewContainerHeight, setGridViewContainerHeight] = useState<number>(0);
     const gridContainerRefs = useRef<Map<string, React.RefObject<HTMLDivElement>>>(new Map());
     const [maximizedGridKey, setMaximizedGridKey] = useState<string | undefined>(undefined);
     const gridRefs = useRef<Array<ResultGridHandle | undefined>>([]);
@@ -73,6 +78,43 @@ export const QueryResultsGridView = () => {
         }
         return items;
     }, [resultSetSummaries]);
+
+    function naturalHeight(rowCount: number): number {
+        let visibleRows = rowCount === 0 ? 1 : rowCount;
+        if (visibleRows > DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS) {
+            visibleRows = DEFAULT_INITIAL_MIN_NUMBER_OF_VISIBLE_ROWS;
+        }
+        return visibleRows * ROW_HEIGHT + HEADER + MARGIN_BOTTOM;
+    }
+
+    const gridHeights: number[] = useMemo(() => {
+        if (!gridViewContainerHeight || gridList?.length === 0) {
+            return [];
+        }
+
+        const numGrids = gridList.length;
+
+        // If only one grid, use available space
+        if (numGrids === 1) {
+            return [gridViewContainerHeight];
+        }
+
+        const preferredHeights = gridList.map((it) =>
+            naturalHeight(resultSetSummaries?.[it.batchId]?.[it.resultId]?.rowCount ?? 0),
+        );
+
+        // Calculate total minimum height needed.
+        const totalMinHeight = preferredHeights.reduce((sum, h) => sum + h, 0);
+
+        // Calculate height adjustment if we have extra space to distribute evenly
+        const heightAdjustment =
+            gridViewContainerHeight > totalMinHeight
+                ? (gridViewContainerHeight - totalMinHeight) / numGrids
+                : 0;
+
+        // Distribute heights: preferred + proportional share of extra space
+        return preferredHeights.map((preferredHeight) => preferredHeight + heightAdjustment);
+    }, [gridList, gridViewContainerHeight]);
 
     // Restore grid view container scroll position on mount
     useEffect(() => {
@@ -133,6 +175,7 @@ export const QueryResultsGridView = () => {
         return undefined;
     }, [gridList, gridContainerRefs, gridRefs]);
 
+    // Keyboard shortcuts
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {
             let handled = false;
@@ -237,13 +280,23 @@ export const QueryResultsGridView = () => {
         });
     };
 
-    // Calculate height for each grid based on total count
-    const getGridHeight = () => {
-        const totalGrids = gridList.length;
-        const percentage = 100 / totalGrids;
-        // Ensure a minimum height
-        return `max(${MIN_GRID_HEIGHT_PX}px, ${percentage}%)`;
-    };
+    // Observe container height
+    useEffect(() => {
+        const observer = new ResizeObserver((entries) => {
+            for (let entry of entries) {
+                if (entry.target === gridViewContainerRef.current) {
+                    const newHeight = entry.contentRect.height;
+                    setGridViewContainerHeight(newHeight);
+                }
+            }
+        });
+        if (gridViewContainerRef.current) {
+            observer.observe(gridViewContainerRef.current);
+        }
+        return () => {
+            observer.disconnect();
+        };
+    }, [gridViewContainerRef]);
 
     return (
         <div
@@ -289,7 +342,7 @@ export const QueryResultsGridView = () => {
                                 ? fontSettings.fontFamily
                                 : "var(--vscode-font-family)",
                             fontSize: `${fontSettings.fontSize ?? 12}px`,
-                            height: isMaximized ? "100%" : getGridHeight(),
+                            height: `${maximizedGridKey === gridKey ? `100%` : `${gridHeights[index]}px`}`,
                         }}>
                         <div style={{ flex: 1, minWidth: 0, overflow: "auto" }} ref={containerRef}>
                             <ResultGrid

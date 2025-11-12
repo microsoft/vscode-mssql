@@ -250,7 +250,6 @@ export class Table<T extends Slick.SlickData> implements IThemable {
         );
 
         this._isColumnWidthRestored = true;
-        console.log("restored column widths: ", columnWidthArray);
 
         if (!columnWidthArray) {
             return;
