@@ -29,6 +29,7 @@ import {
 } from "../models/utils";
 import { PlatformInformation } from "../models/platform";
 import { UserSurvey } from "../nps/userSurvey";
+import { getErrorMessage } from "../utils/utils";
 
 // File extension constants
 export const DACPAC_EXTENSION = ".dacpac";
@@ -36,6 +37,9 @@ export const BACPAC_EXTENSION = ".bacpac";
 
 // VS Code command constants
 const REVEAL_FILE_IN_OS_COMMAND = "revealFileInOS";
+
+// View ID constant for NPS survey
+const DACPAC_DIALOG_VIEW_ID = "dacpacDialog";
 
 /**
  * Gets the OS-specific localized text for the "Reveal/Open" file button
@@ -73,7 +77,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
         initialState: dacpacDialog.DacpacDialogWebviewState,
         ownerUri: string,
     ) {
-        super(context, vscodeWrapper, "dacpacDialog", "dacpacDialog", initialState, {
+        super(context, vscodeWrapper, DACPAC_DIALOG_VIEW_ID, DACPAC_DIALOG_VIEW_ID, initialState, {
             title: LocConstants.DacpacDialog.Title,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {
@@ -353,7 +357,9 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                     LocConstants.DacpacDialog.DeploySuccessWithDatabase(params.databaseName),
                 );
                 // Prompt user for NPS survey feedback
-                UserSurvey.getInstance().promptUserForNPSFeedback("deployDacpac");
+                UserSurvey.getInstance().promptUserForNPSFeedback(
+                    `${DACPAC_DIALOG_VIEW_ID}_deploy`,
+                );
                 this.dialogResult.resolve(appResult);
             } else {
                 this.logger.error("Deploy DACPAC operation failed");
@@ -368,7 +374,9 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             const errorType = error instanceof Error ? error.constructor.name : typeof error;
-            this.logger.error(`Deploy DACPAC operation threw exception: ${errorType}`);
+            this.logger.error(
+                `Deploy DACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
+            );
             activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
             return {
                 success: false,
@@ -426,7 +434,9 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                         }
                     });
                 // Prompt user for NPS survey feedback
-                UserSurvey.getInstance().promptUserForNPSFeedback("extractDacpac");
+                UserSurvey.getInstance().promptUserForNPSFeedback(
+                    `${DACPAC_DIALOG_VIEW_ID}_extract`,
+                );
                 this.dialogResult.resolve(appResult);
             } else {
                 this.logger.error("Extract DACPAC operation failed");
@@ -441,7 +451,9 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             const errorType = error instanceof Error ? error.constructor.name : typeof error;
-            this.logger.error(`Extract DACPAC operation threw exception: ${errorType}`);
+            this.logger.error(
+                `Extract DACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
+            );
             activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
             return {
                 success: false,
@@ -485,7 +497,9 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                     LocConstants.DacpacDialog.ImportSuccessWithDatabase(params.databaseName),
                 );
                 // Prompt user for NPS survey feedback
-                UserSurvey.getInstance().promptUserForNPSFeedback("importBacpac");
+                UserSurvey.getInstance().promptUserForNPSFeedback(
+                    `${DACPAC_DIALOG_VIEW_ID}_import`,
+                );
                 this.dialogResult.resolve(appResult);
             } else {
                 this.logger.error("Import BACPAC operation failed");
@@ -500,7 +514,9 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             const errorType = error instanceof Error ? error.constructor.name : typeof error;
-            this.logger.error(`Import BACPAC operation threw exception: ${errorType}`);
+            this.logger.error(
+                `Import BACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
+            );
             activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
             return {
                 success: false,
@@ -556,7 +572,9 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                         }
                     });
                 // Prompt user for NPS survey feedback
-                UserSurvey.getInstance().promptUserForNPSFeedback("exportBacpac");
+                UserSurvey.getInstance().promptUserForNPSFeedback(
+                    `${DACPAC_DIALOG_VIEW_ID}_export`,
+                );
                 this.dialogResult.resolve(appResult);
             } else {
                 this.logger.error("Export BACPAC operation failed");
@@ -571,7 +589,9 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             const errorType = error instanceof Error ? error.constructor.name : typeof error;
-            this.logger.error(`Export BACPAC operation threw exception: ${errorType}`);
+            this.logger.error(
+                `Export BACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
+            );
             activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
             return {
                 success: false,
