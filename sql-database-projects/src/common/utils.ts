@@ -379,12 +379,32 @@ export interface IPackageInfo {
 	aiKey: string;
 }
 
-export function getPackageInfo(packageJson?: any): IPackageInfo | undefined {
-	if (!packageJson) {
-		packageJson = require('../../package.json');
+const extensionRootCandidates = Array.from(new Set([
+	path.resolve(__dirname, '..', '..'),
+	path.resolve(__dirname, '..', '..', '..')
+]));
+
+function readJsonFromExtensionRoot(relativePath: string): any {
+	for (const candidateRoot of extensionRootCandidates) {
+		const candidate = path.join(candidateRoot, relativePath);
+		if (fse.pathExistsSync(candidate)) {
+			try {
+				return fse.readJSONSync(candidate);
+			} catch {
+				// ignore and continue to next candidate
+			}
+		}
 	}
 
-	const vscodePackageJson = require('../../package.vscode.json');
+	return undefined;
+}
+
+export function getPackageInfo(packageJson?: any): IPackageInfo | undefined {
+	if (!packageJson) {
+		packageJson = readJsonFromExtensionRoot('package.ads.json');
+	}
+
+	const vscodePackageJson = readJsonFromExtensionRoot('package.json');
 	const azdataApi = getAzdataApi();
 
 	if (!packageJson || !azdataApi && !vscodePackageJson) {

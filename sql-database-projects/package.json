@@ -21,7 +21,7 @@
     "workspaceContains:**/*.sqlproj",
     "onView:dataworkspace.views.main"
   ],
-  "main": "./out/extension",
+  "main": "./out/src/extension.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/Microsoft/azuredatastudio.git"
