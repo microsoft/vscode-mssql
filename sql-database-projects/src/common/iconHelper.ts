@@ -4,12 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+import { IconPath } from 'vscode';
 import type * as azdataType from 'azdata';
 
-export interface IconPath {
-	dark: string;
-	light: string;
-}
+// export interface IconPath {
+// 	dark: string;
+// 	light: string;
+// }
 
 export class IconPathHelper {
 	private static extensionContext: vscode.ExtensionContext;
@@ -88,13 +89,13 @@ export class IconPathHelper {
 
 		if (sameIcon) {
 			return {
-				dark: IconPathHelper.extensionContext.asAbsolutePath(`${folder}/${name}.svg`),
-				light: IconPathHelper.extensionContext.asAbsolutePath(`${folder}/${name}.svg`)
+				dark: vscode.Uri.parse(IconPathHelper.extensionContext.asAbsolutePath(`${folder}/${name}.svg`)),
+				light: vscode.Uri.parse(IconPathHelper.extensionContext.asAbsolutePath(`${folder}/${name}.svg`))
 			};
 		} else {
 			return {
-				dark: IconPathHelper.extensionContext.asAbsolutePath(`${folder}/dark/${name}.svg`),
-				light: IconPathHelper.extensionContext.asAbsolutePath(`${folder}/light/${name}.svg`)
+				dark: vscode.Uri.parse(IconPathHelper.extensionContext.asAbsolutePath(`${folder}/dark/${name}.svg`)),
+				light: vscode.Uri.parse(IconPathHelper.extensionContext.asAbsolutePath(`${folder}/light/${name}.svg`))
 			};
 		}
 	}

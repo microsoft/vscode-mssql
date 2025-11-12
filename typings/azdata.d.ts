@@ -3597,7 +3597,7 @@ declare module 'azdata' {
 	export interface ContainerProperties extends ComponentProperties { }
 
 	export type ThemedIconPath = { light: string | vscode.Uri; dark: string | vscode.Uri };
-	export type IconPath = string | vscode.Uri | ThemedIconPath;
+	export type IconPath = string | vscode.Uri | ThemedIconPath | vscode.IconPath;
 
 	export interface ComponentWithIcon extends Component, ComponentWithIconProperties { }
 
