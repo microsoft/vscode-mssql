@@ -6,7 +6,7 @@
 	"publisher": "ms-mssql",
   "preview": false,
   "engines": {
-    "vscode": "^1.30.1",
+    "vscode": "^1.98.0",
     "azdata": ">=1.47.0"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
@@ -596,6 +596,7 @@
     "@types/request": "^2.48.8",
     "@types/semver": "^7.3.1",
     "@types/sinon": "^9.0.4",
+    "@vscode/vsce": "^3.1.1",
     "@types/vscode": "1.98.0",
     "@types/which": "^2.0.1",
     "@types/xml-formatter": "^1.1.0",
