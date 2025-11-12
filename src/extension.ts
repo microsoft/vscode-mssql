@@ -72,7 +72,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
 
     context.subscriptions.push(controller, participant, receiveFeedbackDisposable);
 
-    await ChangelogWebviewController.showChangelogIfNeeded(context);
+    await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
 
     return {
         sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,

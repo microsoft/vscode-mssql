@@ -60,7 +60,7 @@ export const changelogConfig: ChangelogWebviewState = {
         },
         {
             label: locConstants.Changelog.viewKeyboardShortcuts,
-            url: "https://aka.ms/vscode-mssql-shortcuts",
+            url: "https://aka.ms/vscode-mssql-keyboard-shortcuts",
         },
         {
             label: locConstants.Changelog.readTheDocumentation,

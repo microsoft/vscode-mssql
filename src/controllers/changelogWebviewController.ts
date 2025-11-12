@@ -83,7 +83,7 @@ export class ChangelogWebviewController extends ReactWebviewPanelController<
         });
     }
 
-    public static async showChangelogIfNeeded(context: vscode.ExtensionContext) {
+    public static async showChangelogOnExtensionUpdate(context: vscode.ExtensionContext) {
         const globalState = context?.globalState;
         if (!globalState) {
             return;
