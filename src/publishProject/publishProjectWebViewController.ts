@@ -37,6 +37,7 @@ import { hasAnyMissingRequiredValues, getErrorMessage } from "../utils/utils";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import * as Utils from "../models/utils";
 import { ProjectController } from "../controllers/projectController";
+import { generateOperationId } from "../schemaCompare/schemaCompareUtils";
 import { UserSurvey } from "../nps/userSurvey";
 import * as dockerUtils from "../deployment/dockerUtils";
 import { DockerConnectionProfile, DockerStepOrder } from "../sharedInterfaces/localContainers";
@@ -61,6 +62,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
     private readonly _connectionManager: ConnectionManager;
     private readonly _projectController: ProjectController;
     private readonly _mainController: MainController;
+    private readonly _operationId: string;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -124,6 +126,12 @@ export class PublishProjectWebViewController extends FormWebviewController<
         this._connectionManager = connectionManager;
         this._projectController = new ProjectController();
         this._mainController = mainController;
+        this._operationId = generateOperationId();
+
+        // Send telemetry for dialog opened
+        sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishDialogOpened, {
+            operationId: this._operationId,
+        });
 
         this.registerRpcHandlers();
 
@@ -185,10 +193,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
         const sqlCmdVariables = new Map(Object.entries(state.formState.sqlCmdVariables || {}));
 
         // Send telemetry
-        sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProjectChanges, {
-            projectFilePath: state.projectFilePath!,
-            publishTarget: state.formState.publishTarget || "",
-            upgradeExisting: upgradeExisting.toString(),
+        sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
+            operationId: this._operationId,
         });
 
         try {
@@ -203,20 +209,16 @@ export class PublishProjectWebViewController extends FormWebviewController<
             );
 
             if (result.success) {
-                sendActionEvent(
-                    TelemetryViews.SqlProjects,
-                    TelemetryActions.PublishProjectChanges,
-                    {
-                        databaseName: databaseName,
-                        success: "true",
-                    },
-                );
+                sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.PublishProject, {
+                    operationId: this._operationId,
+                    success: "true",
+                });
                 // Prompt user for NPS feedback after successful publish
                 void UserSurvey.getInstance().promptUserForNPSFeedback(SQLPROJ_PUBLISH_VIEW_ID);
             } else {
                 sendErrorEvent(
                     TelemetryViews.SqlProjects,
-                    TelemetryActions.PublishProjectChanges,
+                    TelemetryActions.PublishProject,
                     new Error(getErrorMessage(result.errorMessage)),
                     false,
                 );
@@ -224,7 +226,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
         } catch (error) {
             sendErrorEvent(
                 TelemetryViews.SqlProjects,
-                TelemetryActions.PublishProjectChanges,
+                TelemetryActions.PublishProject,
                 error instanceof Error ? error : new Error(getErrorMessage(error)),
                 false,
             );
@@ -247,8 +249,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
         // Send telemetry
         sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
-            projectFilePath: state.projectFilePath!,
-            publishTarget: state.formState.publishTarget || "",
+            operationId: this._operationId,
         });
 
         try {
@@ -263,7 +264,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             if (result.success) {
                 sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.GenerateScript, {
-                    databaseName: databaseName,
+                    operationId: this._operationId,
                     success: "true",
                 });
             }
@@ -462,9 +463,8 @@ export class PublishProjectWebViewController extends FormWebviewController<
 
             // Send telemetry for successful container creation and connection
             sendActionEvent(TelemetryViews.SqlProjects, TelemetryActions.ConnectToContainer, {
-                containerName: validatedContainerName,
-                port: validatedPort.toString(),
-                imageTag: dockerProfile.version,
+                operationId: this._operationId,
+                publishTarget: PublishTarget.LocalContainer,
                 success: "true",
             });
 
@@ -528,7 +528,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
             this.logger.error("Failed to read project properties:", error);
             sendErrorEvent(
                 TelemetryViews.SqlProjects,
-                TelemetryActions.PublishProjectChanges,
+                TelemetryActions.PublishProjectProperties,
                 error instanceof Error ? error : new Error(String(error)),
                 false,
             );
@@ -602,7 +602,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     if (!prereqResult.success) {
                         sendErrorEvent(
                             TelemetryViews.SqlProjects,
-                            TelemetryActions.PublishProjectChanges,
+                            TelemetryActions.PublishDialogLocalContainersPrerequisites,
                             new Error(prereqResult.error),
                             false,
                         );
@@ -638,7 +638,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     if (!containerResult.success) {
                         sendErrorEvent(
                             TelemetryViews.SqlProjects,
-                            TelemetryActions.PublishProjectChanges,
+                            TelemetryActions.PublishDialogCreateLocalContainers,
                             new Error(containerResult.fullErrorText || containerResult.error),
                             false,
                         );
@@ -677,7 +677,7 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     this.logger.error("Failed during container publish:", error);
                     sendErrorEvent(
                         TelemetryViews.SqlProjects,
-                        TelemetryActions.PublishProjectChanges,
+                        TelemetryActions.PublishProject,
                         error instanceof Error ? error : new Error(getErrorMessage(error)),
                         false,
                     );
@@ -752,6 +752,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     sendActionEvent(
                         TelemetryViews.SqlProjects,
                         TelemetryActions.PublishProfileLoaded,
+                        {
+                            operationId: this._operationId,
+                        },
                     );
 
                     // Merge SQLCMD variables: start with current values, then overlay profile variables
@@ -924,6 +927,9 @@ export class PublishProjectWebViewController extends FormWebviewController<
                     sendActionEvent(
                         TelemetryViews.SqlProjects,
                         TelemetryActions.PublishProfileSaved,
+                        {
+                            operationId: this._operationId,
+                        },
                     );
 
                     return {
@@ -1038,18 +1044,22 @@ export class PublishProjectWebViewController extends FormWebviewController<
                 sendActionEvent(
                     TelemetryViews.SqlProjects,
                     TelemetryActions.PublishProjectConnectionError,
-                    { error: dbError instanceof Error ? dbError.message : String(dbError) },
+                    {
+                        operationId: this._operationId,
+                    },
                 );
             }
 
             // Validate form to update button state after connection
             await this.validateForm(this.state.formState, undefined, false);
-        } catch (err) {
+        } catch {
             // Log the error for diagnostics
             sendActionEvent(
                 TelemetryViews.SqlProjects,
                 TelemetryActions.PublishProjectConnectionError,
-                { error: err instanceof Error ? err.message : String(err) },
+                {
+                    operationId: this._operationId,
+                },
             );
         } finally {
             // Reset the waiting state
