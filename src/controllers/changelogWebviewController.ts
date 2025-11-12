@@ -31,9 +31,9 @@ export class ChangelogWebviewController extends ReactWebviewPanelController<
     constructor(
         context: vscode.ExtensionContext,
         vscodeWrapper: VscodeWrapper,
-        intialState: ChangelogWebviewState = changelogConfig,
+        initialState: ChangelogWebviewState = changelogConfig,
     ) {
-        super(context, vscodeWrapper, "changelog", "changelog", intialState, {
+        super(context, vscodeWrapper, "changelog", "changelog", initialState, {
             title: Changelog.ChangelogDocumentTitle,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {
@@ -96,7 +96,7 @@ export class ChangelogWebviewController extends ReactWebviewPanelController<
 
         const isShownOnCurrentVersion = lastChangeLogVersion === currentVersion;
 
-        if (!isShownOnCurrentVersion && this.shouldShowChangelongOnUpdate()) {
+        if (!isShownOnCurrentVersion && this.shouldShowChangelogOnUpdate()) {
             await vscode.commands.executeCommand(constants.cmdOpenChangelog);
             await globalState.update(GLOBAL_STATE_LAST_CHANGELOG_VERSION_KEY, currentVersion);
         }
@@ -106,7 +106,7 @@ export class ChangelogWebviewController extends ReactWebviewPanelController<
      * Determines whether to show the changelog on update based on user settings.
      * @returns A promise that resolves to true if the changelog should be shown, false otherwise.
      */
-    public static shouldShowChangelongOnUpdate() {
+    public static shouldShowChangelogOnUpdate() {
         return vscode.workspace.getConfiguration().inspect(constants.configShowChangelogOnUpdate)
             .globalValue;
     }

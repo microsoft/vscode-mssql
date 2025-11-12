@@ -244,11 +244,11 @@ export const ChangelogPage = () => {
                     </div>
                     <div className={classes.bannerDescription}>
                         <Text>
-                            Discover how SQL database in Fabric, Azure SQL and SQL Server are
+                            Discover how SQL Database in Fabric, Azure SQL, and SQL Server are
                             redefining modern app development.
                         </Text>
                         <Text>
-                            Join engineers and peers pushing the limits of performance, AI
+                            Join engineers and peers who are pushing the limits of performance, AI
                             integration, and developer productivity.
                         </Text>
                         <Text>

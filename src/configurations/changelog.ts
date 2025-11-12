@@ -11,7 +11,7 @@ import * as locConstants from "../constants/locConstants";
 export const changelogConfig: ChangelogWebviewState = {
     changes: [
         {
-            title: "GitHub Copilot integration - GA",
+            title: "GitHub Copilot integration (GA)",
             description:
                 "Get AI-powered query suggestions and explanations directly in your editor. Write SQL faster with intelligent completions.",
             actions: [
@@ -41,7 +41,7 @@ export const changelogConfig: ChangelogWebviewState = {
             ],
         },
         {
-            title: "DACPAC / BACPAC - Import | Export",
+            title: "DACPAC/BACPAC import and export",
             description:
                 "Deploy and extract database schemas and data using DACPAC and BACPAC files directly from the extension.",
             actions: [

@@ -1316,7 +1316,7 @@ export class LocConstants {
             resourcesSectionTitle: l10n.t("Resources"),
             gettingStartedSectionTitle: l10n.t("Getting Started"),
             gettingStartedDescription: l10n.t(
-                "New to MSSQL extension? Check out our quick start guide.",
+                "New to MSSQL extension? Check out our quick-start guide.",
             ),
             footerText: (version: string) =>
                 l10n.t({
