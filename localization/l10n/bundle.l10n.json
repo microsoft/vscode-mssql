@@ -882,7 +882,7 @@
     "What's new in this release": "What's new in this release",
     "Resources": "Resources",
     "Getting Started": "Getting Started",
-    "New to MSSQL extension? Check out our quick start guide.": "New to MSSQL extension? Check out our quick start guide.",
+    "New to MSSQL extension? Check out our quick-start guide.": "New to MSSQL extension? Check out our quick-start guide.",
     "You are seeing this message because you updated the MSSQL extension to version {0}./{0} is the version number of the MSSQL extension": {
         "message": "You are seeing this message because you updated the MSSQL extension to version {0}.",
         "comment": ["{0} is the version number of the MSSQL extension"]
