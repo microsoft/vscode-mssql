@@ -87,16 +87,19 @@ export class IconPathHelper {
 	private static makeIcon(name: string, sameIcon: boolean = false) {
 		const folder = 'images';
 
+		const toIconUri = (relativePath: string) => vscode.Uri.file(IconPathHelper.extensionContext.asAbsolutePath(relativePath));
+
 		if (sameIcon) {
+			const iconPath = `${folder}/${name}.svg`;
 			return {
-				dark: vscode.Uri.parse(IconPathHelper.extensionContext.asAbsolutePath(`${folder}/${name}.svg`)),
-				light: vscode.Uri.parse(IconPathHelper.extensionContext.asAbsolutePath(`${folder}/${name}.svg`))
-			};
-		} else {
-			return {
-				dark: vscode.Uri.parse(IconPathHelper.extensionContext.asAbsolutePath(`${folder}/dark/${name}.svg`)),
-				light: vscode.Uri.parse(IconPathHelper.extensionContext.asAbsolutePath(`${folder}/light/${name}.svg`))
+				dark: toIconUri(iconPath),
+				light: toIconUri(iconPath)
 			};
 		}
+
+		return {
+			dark: toIconUri(`${folder}/dark/${name}.svg`),
+			light: toIconUri(`${folder}/light/${name}.svg`)
+		};
 	}
 }
