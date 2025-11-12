@@ -13,7 +13,7 @@ import { AppSettingType, IDeployAppIntegrationProfile, ISqlDbDeployProfile } fro
 import { Project } from '../models/project';
 import { getPublishDatabaseSettings } from './publishDatabaseQuickpick';
 import { AzureSqlClient } from '../models/deploy/azureSqlClient';
-import { IAccount } from 'vscode-mssql';
+import { IAccount, azure } from 'vscode-mssql';
 import { ISqlProjectPublishSettings } from '../models/deploy/publishSettings';
 
 /**
@@ -117,7 +117,7 @@ export async function launchCreateAzureServerQuickPick(project: Project, azureSq
 		return undefined;
 	}
 
-	const resourceGroups = await azureSqlClient.getResourceGroups(session);
+	const resourceGroups: azure.resources.ResourceGroup[] = await azureSqlClient.getResourceGroups(session);
 	const resourceGroupName = await vscode.window.showQuickPick(
 		resourceGroups.map(x => x.name || ''),
 		{ title: constants.resourceGroup, ignoreFocusOut: true });

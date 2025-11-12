@@ -43,8 +43,11 @@ export function createContext(): TestContext {
 						id: '',
 						resource: '',
 						endpoint: ''
-					}
-				}
+					},
+				},
+				settings: {},
+				fabric: {},
+				dataverse: {}
 			},
 			isMsAccount: false,
 			owningTenant: {

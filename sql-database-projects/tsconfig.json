@@ -2,12 +2,9 @@
 	"extends": "../tsconfig.base.json",
 	"compileOnSave": true,
 	"compilerOptions": {
-		"outDir": "./out",
-		"lib": [
-			"es6",
-			"es2015.promise",
-			"dom"
-		]
+		"outDir": "./out",   
+		"target": "ES2024",
+        "lib": ["ES2024", "dom"],
 	},
 	"exclude": [
 		"node_modules"
