@@ -21,6 +21,7 @@ import { PublishTarget, PublishDialogState } from "../../src/sharedInterfaces/pu
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
 import * as dockerUtils from "../../src/deployment/dockerUtils";
 import * as projectUtils from "../../src/publishProject/projectUtils";
+import { generateUUID } from "../e2e/baseFixtures";
 
 chai.use(sinonChai);
 
@@ -955,7 +956,7 @@ suite("PublishProjectWebViewController Tests", () => {
         controller.state.formState.publishTarget = PublishTarget.LocalContainer;
         controller.state.formState.databaseName = "TestDB";
         controller.state.formState.containerPort = "1433";
-        controller.state.formState.containerAdminPassword = "MyP@ssw0rd123";
+        controller.state.formState.containerAdminPassword = generateUUID();
         controller.state.formState.containerImageTag = "2022-latest";
         controller.state.formState.acceptContainerLicense = true;
 
