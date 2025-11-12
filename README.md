@@ -102,6 +102,11 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
 -   **Data-tier Application Export/Import (`Preview`)**: Easy-to-use wizard experience to deploy and extract dacpac files and import and export bacpac files
     -   Deploy dacpac files to SQL Server instances, extract instances to dacpac files, and create databases or export schema and data to bacpac files
     -   Simplifies development and deployment workflows for data-tier applications supporting your application
+-   **SQL Database Projects Publish Dialog (`Preview`)**: Streamlined deployment workflow for SQL Database Projects
+    -   Streamlined Deployment Flow – Redesigned to guide users through connection setup, script generation, and deployment in fewer steps.
+    -   Consistent Experience – Unified UI for SQL Server and Azure SQL projects, reducing confusion and improving discoverability.
+    -   Preview and Validate – Easily review generated scripts before deployment to ensure accuracy and control.
+    -   Integrated in VS Code – Manage the full build-and-publish workflow within the SQL Database Projects extension, without switching tools.
 
 ![Demo](https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif)
 
@@ -155,7 +160,7 @@ Configure the MSSQL extension using these settings. Set them in user preferences
 ```javascript
 // General Settings
 {
-  "mssql.enableExperimentalFeatures": true,                // Enable experimental features for early testing
+  "mssql.enableExperimentalFeatures": false,                // Enable experimental features for early testing
   "mssql.enableRichExperiences": true,                     // Enable rich UI experiences (tables, schema designer)
   "mssql.logDebugInfo": false,                             // Enable debug logging for troubleshooting
   "mssql.messagesDefaultOpen": true,                       // Show messages panel by default after query execution
