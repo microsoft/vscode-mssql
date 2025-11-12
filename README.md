@@ -74,25 +74,34 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
     -   Filter and exclude specific differences before syncing
     -   Apply changes directly or generate a deployment script for later use
     -   Save comparisons to rerun or audit schema changes
--   **Customizable Extension Options**: Configure command shortcuts, appearance, and other settings to personalize your development experience.
 -   **GitHub Copilot Integration**: Boost your productivity with AI‑assisted SQL development
-    -   Intelligent T‑SQL completions and natural‑language prompts
-    -   Explain objects and generate schema or test data
-    -   Identify risky patterns and improve SQL security practices
--   **GitHub Copilot Agent Mode** Let Copilot perform database tasks on your behalf
+    -   Chat with `@mssql` using natural language to generate queries, explain stored procedures, scaffold schemas, and debug SQL issues with database-aware context
+    -   Intelligent code completions and inline suggestions while coding, with support for popular ORMs and T-SQL
+    -   Query optimization with AI recommendations to refactor slow queries, fine-tune indexes, and understand execution plans
+    -   Generate mock and test data automatically with sample data and seeding scripts
+    -   Identify risky patterns such as SQL injection and over-permissive roles, with suggestions for safer alternatives
+    -   Explain complex stored procedures, views, and functions in plain language—perfect for onboarding and code reviews
+-   **GitHub Copilot Agent Mode**: Let Copilot perform database tasks on your behalf
     -   Securely executes actions like connecting, switching databases, or running queries directly from chat
     -   Surfaces schema details and connection info without manual navigation
     -   Provides a confirmable, AI-driven assistant for common database workflows
     -   Access all approved Agent tools from the Tools panel
 -   **GitHub Copilot Slash Commands**: Quick, discoverable shortcuts in chat
-    -   Type `/` to see commands like `/connect`, `/changeDatabase`, `/runQuery`, `/explain`, `/fix`, `/optimize`
+    -   Type `/` to see commands like `/connect`, `/changeDatabase`, `/runQuery`, `/explain`, `/fix`, `/optimize`, and more
     -   Connection commands open the MSSQL connection panel; query commands accept input and return results in chat
+-   **Customizable Extension Options**: Configure command shortcuts, appearance, and other settings to personalize your development experience.
 
 ## Public Preview Features
 
 -   **Fabric Integration (`Preview`)**: Browse workspaces and provision SQL databases in Fabric directly from VS Code
     -   Sign in with Microsoft Entra ID, browse workspaces, search, and connect to SQL databases or SQL analytics endpoints from the Connection dialog (includes **Open in MSSQL** from the Fabric extension)
     -   Create a SQL database from the Deployments page; capacity‑aware and **auto‑connects** when complete
+-   **View & Edit Data (`Preview`)**: Browse and modify table data directly within the editor without writing Transact-SQL data manipulation language (DML) statements
+    -   Inline editing with real-time validation that highlights errors and displays helpful messages for incorrect inputs
+    -   Add and delete rows, navigate large datasets with pagination controls, and save all changes together with a read-only DML script preview
+-   **Data-tier Application Export/Import (`Preview`)**: Easy-to-use wizard experience to deploy and extract dacpac files and import and export bacpac files
+    -   Deploy dacpac files to SQL Server instances, extract instances to dacpac files, and create databases or export schema and data to bacpac files
+    -   Simplifies development and deployment workflows for data-tier applications supporting your application
 
 ![Demo](https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif)
 
@@ -124,71 +133,122 @@ Follow these steps to get started with the MSSQL extension:
 
 The extension provides several commands in the Command Palette for working with `.sql` files. Here are some of the most commonly used commands:
 
--   **MS SQL: Connect** to SQL Server, Azure SQL Database or SQL Data Warehouse using connection profiles or recent connections.
-    -   **Create Connection Profile** to create a new connection profile and connect.
--   **MS SQL: Disconnect** from SQL Server, Azure SQL Database or SQL Data Warehouse in the editor session.
+-   **MS SQL: Connect** to Azure SQL, SQL database in Fabric or SQL Server using connection profiles or recent connections.
+-   **MS SQL: Create Container Group** to set up a new SQL Server container locally with customizable settings (name, port, version).
+-   **MS SQL: Disconnect** from Azure SQL, SQL database in Fabric or SQL Server in the editor session.
+-   **MS SQL: New Query** to open a new SQL query file with your selected connection.
 -   **MS SQL: Use Database** to switch the database connection to another database within the same connected server in the editor session.
 -   **MS SQL: Execute Query** script, T-SQL statements or batches in the editor.
+-   **MS SQL: Run Current Statement** to execute only the current T-SQL statement or batch under the cursor.
 -   **MS SQL: Cancel Query** execution in progress in the editor session.
 -   **MS SQL: Manage Connection Profiles**
     -   **Create** a new connection profile using command palette's step-by-step UI guide.
     -   **Edit** user settings file (settings.json) in the editor to manually create, edit or remove connection profiles.
     -   **Remove** an existing connection profile using command palette's step-by-step UI guide.
     -   **Clear Recent Connection List** to clear the history of recent connections.
+-   **MS SQL: Show Estimated Execution Plan** to view the estimated query execution plan without running the query.
 
 ## Extension Settings
 
-The following Visual Studio Code settings are available for the mssql extension. These can be set in user preferences (cmd+,) or workspace settings `(.vscode/settings.json)`.
+Configure the MSSQL extension using these settings. Set them in user preferences (cmd+,) or workspace settings `(.vscode/settings.json)`.
 
 ```javascript
 // General Settings
 {
-  "mssql.maxRecentConnections": 5,
-  "mssql.enableRichExperiences": true,
-  "mssql.openQueryResultsInTabByDefault": false,
-  "mssql.logDebugInfo": false,
-  "mssql.messagesDefaultOpen": true,
-  "mssql.connectionManagement.rememberPasswordsUntilRestart": true
+  "mssql.enableExperimentalFeatures": true,                // Enable experimental features for early testing
+  "mssql.enableRichExperiences": true,                     // Enable rich UI experiences (tables, schema designer)
+  "mssql.logDebugInfo": false,                             // Enable debug logging for troubleshooting
+  "mssql.messagesDefaultOpen": true,                       // Show messages panel by default after query execution
+  "mssql.autoRevealResultsPanel": false,                    // Auto-reveal results panel when queries execute
+  "mssql.statusBar.connectionInfoMaxLength": -1,           // Max characters to display in status bar (-1 = unlimited)
+  "mssql.statusBar.enableConnectionColor": true,            // Color-code status bar by connection group
+  "mssql.schemaDesigner.enableExpandCollapseButtons": true  // Show expand/collapse buttons in Schema Designer UI for entity relationships
 }
 
-// IntelliSense
+// Connectivity
 {
-  "mssql.intelliSense.enableIntelliSense": true,
-  "mssql.intelliSense.enableErrorChecking": true,
-  "mssql.intelliSense.enableSuggestions": true,
-  "mssql.intelliSense.enableQuickInfo": true,
-  "mssql.intelliSense.lowerCaseSuggestions": false
-}
-
-// Results and Grid
-{
-  "mssql.resultsFontFamily": null,
-  "mssql.resultsFontSize": null,
-  "mssql.copyIncludeHeaders": false,
-  "mssql.copyRemoveNewLine": true,
-  "mssql.saveAsCsv.includeHeaders": true,
-  "mssql.saveAsCsv.delimiter": ",",    // Options: ",", "\t", ";", "|"
-  "mssql.saveAsCsv.lineSeparator": null,
-  "mssql.saveAsCsv.textIdentifier": "\"",
-  "mssql.saveAsCsv.encoding": "utf-8", // Options: "utf-8", "utf-16le", "utf-16be", "ascii", "latin1", "iso-8859-1"
-  "mssql.splitPaneSelection": "next",
-  "mssql.persistQueryResultTabs": false
+  "mssql.maxRecentConnections": 5,                         // Number of recent connections to display (0-50)
+  "mssql.connectionManagement.rememberPasswordsUntilRestart": true,  // Keep passwords in memory until VS Code restarts
+  "mssql.enableConnectionPooling": false,                  // Enable connection pooling for improved performance
+  "mssql.enableSqlAuthenticationProvider": true,           // Enable SQL authentication support
+  "mssql.azureActiveDirectory": "AuthCodeGrant"            // Azure AD auth method: "AuthCodeGrant" or "DeviceCode"
 }
 
 // Query Formatting
 {
-  "mssql.format.alignColumnDefinitionsInColumns": false,
-  "mssql.format.datatypeCasing": "none",
-  "mssql.format.keywordCasing": "none",
-  "mssql.format.placeCommasBeforeNextStatement": false,
-  "mssql.format.placeSelectStatementReferencesOnNewLine": false
+  "mssql.format.alignColumnDefinitionsInColumns": false,   // Align column definitions in CREATE TABLE statements
+  "mssql.format.datatypeCasing": "none",                   // Datatype casing: "none" | "uppercase" | "lowercase"
+  "mssql.format.keywordCasing": "none",                    // SQL keyword casing: "none" | "uppercase" | "lowercase"
+  "mssql.format.placeCommasBeforeNextStatement": false,    // Place commas before next item (procedural style)
+  "mssql.format.placeSelectStatementReferencesOnNewLine": false  // Put SELECT references on new lines
+}
+
+// IntelliSense
+{
+  "mssql.intelliSense.enableIntelliSense": true,           // Enable IntelliSense for T-SQL code completion
+  "mssql.intelliSense.enableErrorChecking": true,          // Enable real-time syntax and semantic error checking
+  "mssql.intelliSense.enableSuggestions": true,            // Enable code suggestions and autocompletion
+  "mssql.intelliSense.enableQuickInfo": true,              // Show quick info tooltips on hover
+  "mssql.intelliSense.lowerCaseSuggestions": false         // Display suggestions in lowercase (false = match case)
 }
 
 // Query Execution
 {
-  "mssql.query.displayBitAsNumber": true
+  "mssql.query.displayBitAsNumber": true,                  // Display bit values as 0/1 instead of false/true
+  "mssql.query.preventAutoExecuteScript": false,           // Prevent auto-execution of scripts on file open
+  "mssql.query.maxCharsToStore": 65535,                    // Maximum characters to store per result cell
+  "mssql.query.maxXmlCharsToStore": 2097152,               // Maximum characters for XML data in results
+  "mssql.query.rowCount": 0,                               // SET ROWCOUNT value (0 = unlimited rows returned)
+  "mssql.query.textSize": 2147483647,                       // SET TEXTSIZE for text/ntext columns (bytes)
+  "mssql.query.executionTimeout": 0,                       // Query timeout in seconds (0 = no timeout)
+  "mssql.query.noCount": false,                            // Execute SET NOCOUNT ON (suppresses row count message)
+  "mssql.query.noExec": false                              // Parse only without executing (SET NOEXEC ON)
 }
 
+// Query Results & Grid
+{
+  "mssql.openQueryResultsInTabByDefault": false,           // Open query results in a tab instead of side panel
+  "mssql.resultsFontFamily": null,                         // Font family for results grid (null = VS Code default)
+  "mssql.resultsFontSize": null,                           // Font size for results grid in pixels (null = VS Code default)
+  "mssql.defaultQueryResultsViewMode": "Grid",             // Default results view: "Grid" or "Text"
+  "mssql.showBatchTime": false,                            // Show batch execution time in results pane
+  "mssql.resultsGrid.autoSizeColumns": true,               // Auto-size result grid columns to fit content
+  "mssql.resultsGrid.inMemoryDataProcessingThreshold": 5000, // Rows threshold for in-memory processing
+  "mssql.splitPaneSelection": "next",                      // Focus after split pane: "next" | "current" | "end"
+  "mssql.persistQueryResultTabs": false,                   // Keep result tabs open after closing query file
+  "mssql.copyIncludeHeaders": false,                       // Include column headers when copying results
+  "mssql.copyRemoveNewLine": true,                         // Remove newline characters when copying
+  "mssql.saveAsCsv.includeHeaders": true,                  // Include column headers when saving as CSV
+  "mssql.saveAsCsv.delimiter": ",",                        // CSV delimiter: "," | "\\t" | ";" | "|"
+  "mssql.saveAsCsv.lineSeparator": null,                   // CSV line separator (null = OS default)
+  "mssql.saveAsCsv.textIdentifier": "\"",                  // CSV text identifier/quote character
+  "mssql.saveAsCsv.encoding": "utf-8",                     // CSV encoding: "utf-8" | "utf-16le" | "ascii" etc.
+  "mssql.enableQueryHistoryCapture": true,                 // Automatically capture all executed queries in history
+  "mssql.enableQueryHistoryFeature": true,                 // Enable the Query History feature and UI
+  "mssql.queryHistoryLimit": 20                            // Maximum number of queries to retain in history
+}
+
+// Object Explorer
+{
+  "mssql.objectExplorer.groupBySchema": false,             // Group database objects by schema (tables, views, etc.)
+  "mssql.objectExplorer.collapseConnectionGroupsOnStartup": false,  // Auto-collapse connection groups on extension startup
+  "mssql.objectExplorer.expandTimeout": 45                 // Timeout in seconds for expanding object explorer node children
+}
+
+// Diagnostics & Logging
+{
+  "mssql.tracingLevel": "Critical",                        // Logging level: "All" | "Off" | "Critical" | "Error" | "Warning" | "Information" | "Verbose"
+  "mssql.logRetentionMinutes": 10080,                      // Log retention period in minutes (10080 = 7 days)
+  "mssql.logFilesRemovalLimit": 100                        // Maximum number of log files to keep before cleanup
+}
+
+```
+
+### Keyboard Shortcuts
+
+Customize keyboard shortcuts for query results, grid operations, and other actions:
+
+```javascript
 // Shortcuts
 {
   "mssql.shortcuts": {
@@ -223,12 +283,6 @@ The following Visual Studio Code settings are available for the mssql extension.
     "event.resultGrid.selectRow": "shift+space",
     "event.resultGrid.toggleSort": "alt+shift+o"
   }
-}
-
-// Status bar
-{
-  "mssql.statusBar.connectionInfoMaxLength": -1,
-  "mssql.enableConnectionColor": true,
 }
 ```
 
