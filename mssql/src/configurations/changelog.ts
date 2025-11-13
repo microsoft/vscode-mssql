@@ -13,7 +13,8 @@ export const changelogConfig: ChangelogWebviewState = {
         {
             title: "GitHub Copilot integration (GA)",
             description:
-                "Get AI-powered query suggestions and explanations directly in your editor. Write SQL faster with intelligent completions.",
+                "Al-assisted SQL development with schema-aware query generation, ORM support, and natural language chat with {code-snippet-0} in Ask or Agent Mode.",
+            codeSnippets: ["@mssql"],
             actions: [
                 {
                     label: locConstants.Changelog.tryIt,
@@ -24,14 +25,14 @@ export const changelogConfig: ChangelogWebviewState = {
                 {
                     label: locConstants.Changelog.readDocs,
                     type: "link",
-                    value: "https://aka.ms/vscode-mssql-copilot-docs",
+                    value: "https://aka.ms/vscode-mssql-copilot",
                 },
             ],
         },
         {
             title: "Edit data",
             description:
-                "Edit table data directly in the results grid with a streamlined interface. Save changes with a single click.",
+                "View, edit, add, and delete table rows in an interactive grid with real-time validation and live DML script previews.",
             actions: [
                 {
                     label: locConstants.Changelog.readDocs,
@@ -43,12 +44,13 @@ export const changelogConfig: ChangelogWebviewState = {
         {
             title: "DACPAC/BACPAC import and export",
             description:
-                "Deploy and extract database schemas and data using DACPAC and BACPAC files directly from the extension.",
+                "Deploy and extract {code-snippet-0} files or import/export {code-snippet-1} packages using an integrated, streamlined workflow in VS Code.",
+            codeSnippets: [".dacpac", ".bacpac"],
             actions: [
                 {
                     label: locConstants.Changelog.readDocs,
                     type: "link",
-                    value: "https://aka.ms/vscode-mssql-dacpac-docs",
+                    value: "https://aka.ms/vscode-mssql-dacpac",
                 },
             ],
         },
@@ -56,19 +58,19 @@ export const changelogConfig: ChangelogWebviewState = {
     resources: [
         {
             label: locConstants.Changelog.watchDemosOnYoutube,
-            url: "https://aka.ms/vscode-mssql-youtube",
+            url: "https://aka.ms/vscode-mssql-demos",
         },
         {
-            label: locConstants.Changelog.viewKeyboardShortcuts,
-            url: "https://aka.ms/vscode-mssql-keyboard-shortcuts",
+            label: locConstants.Changelog.viewRoadmap,
+            url: "https://aka.ms/vscode-mssql-roadmap",
         },
         {
             label: locConstants.Changelog.readTheDocumentation,
             url: "https://aka.ms/vscode-mssql-docs",
         },
         {
-            label: locConstants.Changelog.joinTheCommunity,
-            url: "https://aka.ms/vscode-mssql-community",
+            label: locConstants.Changelog.joinTheDiscussions,
+            url: "https://aka.ms/vscode-mssql-discussions",
         },
     ],
     walkthroughs: [
@@ -79,6 +81,10 @@ export const changelogConfig: ChangelogWebviewState = {
         {
             label: "GitHub Copilot - VS Code walkthrough",
             walkthroughId: `GitHub.copilot-chat#copilotWelcome`,
+        },
+        {
+            label: locConstants.Changelog.customizeKeyboardShortcuts,
+            url: "https://aka.ms/vscode-mssql-keyboard-shortcuts",
         },
     ],
     version: vscode.extensions.getExtension(constants.extensionId).packageJSON.version || "unknown",
