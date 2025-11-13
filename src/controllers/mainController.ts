@@ -2234,7 +2234,7 @@ export default class MainController implements vscode.Disposable {
             }
 
             let editor = self._vscodeWrapper.activeTextEditor;
-            let uri = self._vscodeWrapper.activeTextEditorUri;
+            let editorInstanceKey = self._vscodeWrapper.activeTextEditorInstanceKey;
             let title = path.basename(editor.document.fileName);
 
             // return early if the document does contain any text
@@ -2250,9 +2250,10 @@ export default class MainController implements vscode.Disposable {
                 endColumn: 0,
             };
 
+            // Run query using editor instance key so each editor has its own execution context
             await self._outputContentProvider.runCurrentStatement(
                 self._statusview,
-                uri,
+                editorInstanceKey,
                 querySelection,
                 title,
             );
@@ -2277,6 +2278,7 @@ export default class MainController implements vscode.Disposable {
 
             let editor = this._vscodeWrapper.activeTextEditor;
             let uri = this._vscodeWrapper.activeTextEditorUri;
+            let editorInstanceKey = this._vscodeWrapper.activeTextEditorInstanceKey;
 
             // Do not execute when there are multiple selections in the editor until it can be properly handled.
             // Otherwise only the first selection will be executed and cause unexpected issues.
@@ -2308,7 +2310,7 @@ export default class MainController implements vscode.Disposable {
                 };
             }
 
-            // create new connection
+            // create new connection - connections are shared per document URI
             if (!this.connectionManager.isConnected(uri)) {
                 await this.onNewConnection();
                 sendActionEvent(TelemetryViews.QueryEditor, TelemetryActions.CreateConnection);
@@ -2317,11 +2319,12 @@ export default class MainController implements vscode.Disposable {
             await this._connectionMgr.refreshAzureAccountToken(uri);
 
             // Delete stored filters and dimension states for result grid when a new query is executed
-            store.deleteUriState(uri);
+            store.deleteUriState(editorInstanceKey);
 
+            // Run query using editor instance key so each editor has its own execution context
             await this._outputContentProvider.runQuery(
                 this._statusview,
-                uri,
+                editorInstanceKey,
                 querySelection,
                 title,
                 executionPlanOptions,

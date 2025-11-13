@@ -156,6 +156,7 @@ export default class QueryRunner {
         private _client?: SqlToolsServerClient,
         private _notificationHandler?: QueryNotificationHandler,
         private _vscodeWrapper?: VscodeWrapper,
+        private _editorInstanceKey?: string,
     ) {
         if (!_client) {
             this._client = SqlToolsServerClient.instance;
@@ -167,6 +168,11 @@ export default class QueryRunner {
 
         if (!_vscodeWrapper) {
             this._vscodeWrapper = new VscodeWrapper();
+        }
+
+        // If no editor instance key provided, use the owner URI
+        if (!_editorInstanceKey) {
+            this._editorInstanceKey = _ownerUri;
         }
 
         // Store the state
@@ -183,6 +189,14 @@ export default class QueryRunner {
 
     set uri(uri: string) {
         this._ownerUri = uri;
+    }
+
+    get editorInstanceKey(): string {
+        return this._editorInstanceKey;
+    }
+
+    set editorInstanceKey(key: string) {
+        this._editorInstanceKey = key;
     }
 
     get title(): string {
@@ -352,7 +366,7 @@ export default class QueryRunner {
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
         // Update the status view to show that we're executing
-        this._statusView.executingQuery(this.uri);
+        this._statusView.executingQuery(this._editorInstanceKey);
 
         QueryRunner.addRunningQuery(this._ownerUri);
 
@@ -383,9 +397,9 @@ export default class QueryRunner {
             promise.resolve();
             this._uriToQueryPromiseMap.delete(result.ownerUri);
         }
-        this._statusView.executedQuery(result.ownerUri);
+        this._statusView.executedQuery(this._editorInstanceKey);
         this._statusView.setExecutionTime(
-            result.ownerUri,
+            this._editorInstanceKey,
             Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
         );
         let hasError = this._batchSets.some((batch) => batch.hasError === true);
@@ -495,9 +509,9 @@ export default class QueryRunner {
 
         // Set row count on status bar if there are no errors
         if (!obj.message.isError) {
-            this._statusView.showRowCount(obj.ownerUri, obj.message.message);
+            this._statusView.showRowCount(this._editorInstanceKey, obj.message.message);
         } else {
-            this._statusView.hideRowCount(obj.ownerUri, true);
+            this._statusView.hideRowCount(this._editorInstanceKey, true);
         }
     }
 
@@ -542,7 +556,7 @@ export default class QueryRunner {
             totalMilliseconds: Utils.parseNumAsTimeString(this._totalElapsedMilliseconds),
             hasError: !!error,
         });
-        this._statusView.executedQuery(this._ownerUri);
+        this._statusView.executedQuery(this._editorInstanceKey);
 
         this._notificationHandler.unregisterRunner(this._ownerUri);
 
