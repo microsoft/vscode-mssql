@@ -68,29 +68,35 @@ jobs:
           echo "Installing VSCE"
           npm install --global vsce@2.9.2
 
-      - name: Install dependencies and build target MSSQL extension
+      - name: MSSQL - Install dependencies and build target branch
         uses: ./pr/.github/actions/build-mssql
         with:
           source-dir: "./target/mssql"
 
-      - name: Install dependencies and build target SQL Projects extension
+      - name: SqlProj - Install dependencies and build target branch
         uses: ./pr/.github/actions/build-sqlproj
         with:
           source-dir: "./target/sql-database-projects"
 
-      - name: Install dependencies and build PR MSSQL extension
+      - name: MSSQL - Install dependencies and build PR branch
         uses: ./pr/.github/actions/build-mssql
         with:
           source-dir: "./pr/mssql"
 
-      - name: Install dependencies and build PR SQL Projects extension
+      - name: SqlProj - Install dependencies and build PR branch
         uses: ./pr/.github/actions/build-sqlproj
         with:
           source-dir: "./pr/sql-database-projects"
 
-      - name: Run lint
+      - name: MSSQL - Run lint
         run: |
           cd ./pr/mssql
+          yarn lint src/ test/
+
+      - name: SqlProj - Run lint
+        continue-on-error: true
+        run: |
+          cd ./pr/sql-database-projects
           yarn lint src/ test/
 
       # Calculate sizes and package before testing;
@@ -111,13 +117,13 @@ jobs:
       - name: MSSQL - Upload PR VSIX files
         uses: actions/upload-artifact@v4
         with:
-          name: vsix-files
+          name: mssql-vsix
           path: ./pr/mssql/*.vsix
 
       - name: SqlProj - Upload PR VSIX files
         uses: actions/upload-artifact@v4
         with:
-          name: vsix-files
+          name: sql-database-projects-vsix
           path: ./pr/sql-database-projects/*.vsix
 
       - name: Setting up change icons
