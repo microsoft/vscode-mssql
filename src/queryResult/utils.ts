@@ -19,6 +19,7 @@ import * as qr from "../sharedInterfaces/queryResult";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
 import store, { QueryResultSingletonStore } from "./singletonStore";
+import { JsonFormattingEditProvider } from "../utils/jsonFormatter";
 import * as LocalizedConstants from "../constants/locConstants";
 import { formatXml } from "../utils/utils";
 
@@ -337,24 +338,22 @@ export function registerCommonRequestHandlers(
             return state;
         } else if (payload.type === Constants.xml) {
             formattedText = formatXml(payload.content);
-        } else if (payload.type === Constants.json) {
-            try {
-                // Parse and format the JSON string directly
-                const parsed = JSON.parse(formattedText);
-                formattedText = JSON.stringify(parsed, undefined, 2);
-            } catch {
-                // If parsing fails, use the original text
-            }
         }
-        // Generate a unique but meaningful name
-        let docName = `query-${Date.now()}`;
-        // Create URI with the dynamic name in the path part (this is what shows in tabs!)
-        const uri = vscode.Uri.parse(
-            `query-result-link:${docName}.${payload.type}?${Date.now()}#${encodeURIComponent(formattedText)}`,
-        );
 
-        const doc = await vscode.workspace.openTextDocument(uri);
-        await vscode.window.showTextDocument(doc);
+        const newDoc = await vscode.workspace.openTextDocument({
+            content: formattedText,
+            language: payload.type,
+        });
+
+        if (payload.type === Constants.json) {
+            const formatter = new JsonFormattingEditProvider();
+            const edits = await formatter.provideDocumentFormattingEdits(newDoc);
+            const workspaceEdit = new vscode.WorkspaceEdit();
+            workspaceEdit.set(newDoc.uri, edits);
+            await vscode.workspace.applyEdit(workspaceEdit);
+        }
+
+        void vscode.window.showTextDocument(newDoc);
 
         return state;
     });
