@@ -378,15 +378,15 @@ jobs:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           edit-mode: replace
 
-      - name: Generate xliff files in PR branch
+      - name: MSSQL - Generate xliff files in PR branch
         run: |
-          cd pr
+          cd pr/mssql
           yarn localization
 
       # Check if there are git changes in english xlf files
-      - name: Check for changes in english xlf files
+      - name: MSSQL - Check for changes in english xlf files
         run: |
-          cd pr
+          cd pr/mssql
           if git diff --quiet --exit-code ./localization/xliff/vscode-mssql.xlf; then
             echo "Changes not found in english xlf files"
             echo "loc_update_required=false" >> $GITHUB_ENV
