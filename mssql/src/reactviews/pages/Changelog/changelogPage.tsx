@@ -209,6 +209,43 @@ export const ChangelogPage = () => {
         return currentDate > sqlConEndDate;
     };
 
+    const renderDescription = (index: number, description: string, codeSnippets?: string[]) => {
+        if (!codeSnippets || codeSnippets.length === 0) {
+            return description;
+        }
+
+        const parts: (string | JSX.Element)[] = [];
+        let lastIndex = 0;
+        const regex = /\{code-snippet-(\d+)\}/g;
+        let match;
+
+        while ((match = regex.exec(description)) !== null) {
+            // Add text before the match
+            if (match.index > lastIndex) {
+                parts.push(description.slice(lastIndex, match.index));
+            }
+
+            // Add the code snippet
+            const snippetIndex = parseInt(match[1], 10);
+            if (snippetIndex < codeSnippets.length) {
+                parts.push(
+                    <span key={`snippet-${index}-${snippetIndex}`} className={classes.codeSnippet}>
+                        {codeSnippets[snippetIndex]}
+                    </span>,
+                );
+            }
+
+            lastIndex = regex.lastIndex;
+        }
+
+        // Add remaining text
+        if (lastIndex < description.length) {
+            parts.push(description.slice(lastIndex));
+        }
+
+        return parts;
+    };
+
     return (
         <div className={classes.root}>
             <div className={classes.page}>
@@ -276,55 +313,17 @@ export const ChangelogPage = () => {
                 <div className={classes.mainGrid}>
                     <div className={classes.changesColumn}>
                         {changes.map((change, index) => {
-                            const renderDescription = (
-                                description: string,
-                                codeSnippets?: string[],
-                            ) => {
-                                if (!codeSnippets || codeSnippets.length === 0) {
-                                    return description;
-                                }
-
-                                const parts: (string | JSX.Element)[] = [];
-                                let lastIndex = 0;
-                                const regex = /\{code-snippet-(\d+)\}/g;
-                                let match;
-
-                                while ((match = regex.exec(description)) !== null) {
-                                    // Add text before the match
-                                    if (match.index > lastIndex) {
-                                        parts.push(description.slice(lastIndex, match.index));
-                                    }
-
-                                    // Add the code snippet
-                                    const snippetIndex = parseInt(match[1], 10);
-                                    if (snippetIndex < codeSnippets.length) {
-                                        parts.push(
-                                            <span
-                                                key={`snippet-${index}-${snippetIndex}`}
-                                                className={classes.codeSnippet}>
-                                                {codeSnippets[snippetIndex]}
-                                            </span>,
-                                        );
-                                    }
-
-                                    lastIndex = regex.lastIndex;
-                                }
-
-                                // Add remaining text
-                                if (lastIndex < description.length) {
-                                    parts.push(description.slice(lastIndex));
-                                }
-
-                                return parts;
-                            };
-
                             return (
                                 <Card
                                     key={`${change.title}-${index}`}
                                     className={classes.changeCard}>
                                     <h3 className={classes.changeTitle}>{change.title}</h3>
                                     <Text className={classes.changeDescription}>
-                                        {renderDescription(change.description, change.codeSnippets)}
+                                        {renderDescription(
+                                            index,
+                                            change.description,
+                                            change.codeSnippets,
+                                        )}
                                     </Text>
                                     {change.actions && change.actions.length > 0 && (
                                         <div className={classes.changeActions}>
