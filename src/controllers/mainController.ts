@@ -614,6 +614,14 @@ export default class MainController implements vscode.Disposable {
             };
             vscode.window.registerUriHandler(uriHandler);
 
+            // Register a virtual document provider once during extension activation
+            vscode.workspace.registerTextDocumentContentProvider("query-result-link", {
+                provideTextDocumentContent: (uri) => {
+                    // The content is stored in the URI fragment
+                    return decodeURIComponent(uri.fragment);
+                },
+            });
+
             // Add handlers for VS Code generated commands
             this._vscodeWrapper.onDidChangeConfiguration((params) =>
                 this.onDidChangeConfiguration(params),
