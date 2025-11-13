@@ -43,15 +43,26 @@ const useStyles = makeStyles({
         height: "100%",
         boxSizing: "border-box",
     },
+    bannerContainer: {
+        position: "relative",
+        borderRadius: "8px",
+        maxHeight: "200px",
+        overflowY: "auto",
+        overflowX: "hidden",
+        backgroundColor: "transparent",
+    },
     banner: {
         position: "relative",
         padding: "15px",
-        borderRadius: "8px",
-        display: "flex",
+        display: "grid",
+        gridTemplateColumns: "200px 1fr",
+        gap: "24px",
         width: "100%",
         boxSizing: "border-box",
         backgroundColor: "transparent",
-        overflow: "hidden",
+        "@media (max-width: 900px)": {
+            gridTemplateColumns: "1fr",
+        },
         "::before": {
             content: '""',
             position: "absolute",
@@ -63,13 +74,11 @@ const useStyles = makeStyles({
         },
     },
     bannerTitle: {
-        flex: `0 0 200px`,
         fontSize: "14px",
         fontWeight: 600,
         color: "var(--vscode-editor-foreground)",
         display: "flex",
         flexDirection: "column",
-        width: "200px",
         position: "relative",
         zIndex: 1,
     },
@@ -83,7 +92,6 @@ const useStyles = makeStyles({
     bannerDescription: {
         display: "flex",
         flexDirection: "column",
-        marginLeft: "16px",
         gap: "6px",
         justifyContent: "center",
         position: "relative",
@@ -95,6 +103,7 @@ const useStyles = makeStyles({
         borderRadius: "4px",
         fontFamily: "var(--vscode-editor-font-family)",
         fontSize: "var(--vscode-editor-font-size)",
+        color: "var(--vscode-symbolIcon-classForeground)",
     },
     mainGrid: {
         display: "grid",
@@ -208,114 +217,159 @@ export const ChangelogPage = () => {
         return currentDate > sqlConEndDate;
     };
 
+    const renderDescription = (index: number, description: string, codeSnippets?: string[]) => {
+        if (!codeSnippets || codeSnippets.length === 0) {
+            return description;
+        }
+
+        const parts: (string | JSX.Element)[] = [];
+        let lastIndex = 0;
+        const regex = /\{code-snippet-(\d+)\}/g;
+        let match;
+
+        while ((match = regex.exec(description)) !== null) {
+            // Add text before the match
+            if (match.index > lastIndex) {
+                parts.push(description.slice(lastIndex, match.index));
+            }
+
+            // Add the code snippet
+            const snippetIndex = parseInt(match[1], 10);
+            if (snippetIndex < codeSnippets.length) {
+                parts.push(
+                    <span key={`snippet-${index}-${snippetIndex}`} className={classes.codeSnippet}>
+                        {codeSnippets[snippetIndex]}
+                    </span>,
+                );
+            }
+
+            lastIndex = regex.lastIndex;
+        }
+
+        // Add remaining text
+        if (lastIndex < description.length) {
+            parts.push(description.slice(lastIndex));
+        }
+
+        return parts;
+    };
+
     return (
         <div className={classes.root}>
             <div className={classes.page}>
                 {showBanner && !isSqlConOver() && (
-                    <div className={classes.banner}>
-                        <div className={classes.bannerTitle}>
-                            <Text
-                                size={600}
-                                weight="bold"
-                                style={{
-                                    backgroundImage:
-                                        "linear-gradient(to right in oklab, var(--vscode-button-hoverBackground, var(--vscode-contrastBorder)) 0%, var(--vscode-button-background, var(--vscode-editor-background)) 100%)",
-                                    backgroundClip: "text",
-                                    WebkitBackgroundClip: "text",
-                                    color: "transparent",
-                                }}>
-                                SQLCON
-                            </Text>
-                            <Text
-                                size={300}
-                                weight="semibold"
-                                style={{
-                                    marginTop: "5px",
-                                }}>
-                                Microsoft SQL
-                            </Text>
-                            <Text size={300} weight="semibold">
-                                COMMUNITY CONFERENCE
-                            </Text>
-                            <Text size={200} weight="regular" style={{ marginTop: "5px" }}>
-                                March 16-20, 2026 | ATLANTA
-                            </Text>
+                    <div className={classes.bannerContainer}>
+                        <div className={classes.banner}>
+                            <div className={classes.bannerTitle}>
+                                <Text
+                                    size={600}
+                                    weight="bold"
+                                    style={{
+                                        backgroundImage:
+                                            "linear-gradient(to right in oklab, var(--vscode-button-hoverBackground, var(--vscode-contrastBorder)) 0%, var(--vscode-button-background, var(--vscode-editor-background)) 100%)",
+                                        backgroundClip: "text",
+                                        WebkitBackgroundClip: "text",
+                                        color: "transparent",
+                                    }}>
+                                    SQLCON
+                                </Text>
+                                <Text
+                                    size={300}
+                                    weight="semibold"
+                                    style={{
+                                        marginTop: "5px",
+                                    }}>
+                                    Microsoft SQL
+                                </Text>
+                                <Text size={300} weight="semibold">
+                                    COMMUNITY CONFERENCE
+                                </Text>
+                                <Text size={200} weight="regular" style={{ marginTop: "5px" }}>
+                                    March 16-20, 2026 | ATLANTA
+                                </Text>
+                                <Button
+                                    style={{
+                                        marginTop: "10px",
+                                        width: "100px",
+                                    }}
+                                    onClick={() => openLink("https://aka.ms/sqlcon")}
+                                    appearance="primary">
+                                    Register
+                                </Button>
+                            </div>
+                            <div className={classes.bannerDescription}>
+                                <Text>
+                                    Discover how SQL database in Fabric, Azure SQL and SQL Server
+                                    are redefining modern app development.
+                                    <br /> Join engineers and peers pushing the limits of
+                                    performance, Al integration, and developer productivity.
+                                </Text>
+                                <Text>
+                                    Use code <span className={classes.codeSnippet}>VSCODE-200</span>
+                                    to get your exclusive VS Code discount
+                                </Text>
+                            </div>
                             <Button
-                                style={{
-                                    marginTop: "10px",
-                                    width: "100px",
-                                }}
-                                onClick={() => openLink("https://aka.ms/vscode-mssql-sqlcon")}
-                                appearance="primary">
-                                Register
-                            </Button>
+                                appearance="transparent"
+                                icon={<Dismiss12Filled />}
+                                className={classes.bannerDismiss}
+                                onClick={() => {
+                                    setShowBanner(false);
+                                }}></Button>
                         </div>
-                        <div className={classes.bannerDescription}>
-                            <Text>
-                                Discover how SQL Database in Fabric, Azure SQL, and SQL Server are
-                                redefining modern app development.
-                            </Text>
-                            <Text>
-                                Join engineers and peers who are pushing the limits of performance,
-                                AI integration, and developer productivity.
-                            </Text>
-                            <Text>
-                                Use code <span className={classes.codeSnippet}>VSCODE-SQLCON</span>
-                                to get your exclusive VS Code discount
-                            </Text>
-                        </div>
-                        <Button
-                            appearance="transparent"
-                            icon={<Dismiss12Filled />}
-                            className={classes.bannerDismiss}
-                            onClick={() => {
-                                setShowBanner(false);
-                            }}></Button>
                     </div>
                 )}
                 <Title3 as="h2">{sectionTitles.whatsNewSectionTitle}</Title3>
                 <div className={classes.mainGrid}>
                     <div className={classes.changesColumn}>
-                        {changes.map((change, index) => (
-                            <Card key={`${change.title}-${index}`} className={classes.changeCard}>
-                                <h3 className={classes.changeTitle}>{change.title}</h3>
-                                <Text className={classes.changeDescription}>
-                                    {change.description}
-                                </Text>
-                                {change.actions && change.actions.length > 0 && (
-                                    <div className={classes.changeActions}>
-                                        {change.actions.map((action, idx) => {
-                                            if (action.type === "link") {
-                                                return (
-                                                    <Link
-                                                        key={`${action.label}-${idx}`}
-                                                        className={classes.actionLink}
-                                                        onClick={() => openLink(action.value)}>
-                                                        {action.label}
-                                                        <ArrowRight12Regular />
-                                                    </Link>
-                                                );
-                                            } else if (action.type === "command") {
-                                                return (
-                                                    <Link
-                                                        key={`${action.label}-${idx}`}
-                                                        className={classes.actionLink}
-                                                        onClick={() =>
-                                                            handleAction({
-                                                                commandId: action.value,
-                                                                args: action.args,
-                                                            })
-                                                        }>
-                                                        {action.label}
-                                                        <ArrowRight12Regular />
-                                                    </Link>
-                                                );
-                                            }
-                                        })}
-                                    </div>
-                                )}
-                            </Card>
-                        ))}
+                        {changes.map((change, index) => {
+                            return (
+                                <Card
+                                    key={`${change.title}-${index}`}
+                                    className={classes.changeCard}>
+                                    <h3 className={classes.changeTitle}>{change.title}</h3>
+                                    <Text className={classes.changeDescription}>
+                                        {renderDescription(
+                                            index,
+                                            change.description,
+                                            change.codeSnippets,
+                                        )}
+                                    </Text>
+                                    {change.actions && change.actions.length > 0 && (
+                                        <div className={classes.changeActions}>
+                                            {change.actions.map((action, idx) => {
+                                                if (action.type === "link") {
+                                                    return (
+                                                        <Link
+                                                            key={`${action.label}-${idx}`}
+                                                            className={classes.actionLink}
+                                                            onClick={() => openLink(action.value)}>
+                                                            {action.label}
+                                                            <ArrowRight12Regular />
+                                                        </Link>
+                                                    );
+                                                } else if (action.type === "command") {
+                                                    return (
+                                                        <Link
+                                                            key={`${action.label}-${idx}`}
+                                                            className={classes.actionLink}
+                                                            onClick={() =>
+                                                                handleAction({
+                                                                    commandId: action.value,
+                                                                    args: action.args,
+                                                                })
+                                                            }>
+                                                            {action.label}
+                                                            <ArrowRight12Regular />
+                                                        </Link>
+                                                    );
+                                                }
+                                            })}
+                                        </div>
+                                    )}
+                                </Card>
+                            );
+                        })}
                     </div>
 
                     <div className={classes.sidebarStack}>
@@ -341,17 +395,22 @@ export const ChangelogPage = () => {
                             <h3 className={classes.changeTitle}>
                                 {sectionTitles.gettingStartedSectionTitle}
                             </h3>
+                            <Text>{locConstants.changelog.gettingStartedDescription}</Text>
                             <div className={classes.list}>
                                 {walkthroughs.map((walkthrough, index) => (
                                     <Link
                                         key={`${walkthrough.label}-${index}`}
                                         className={classes.listItem}
-                                        onClick={() =>
-                                            openWalkthrough(
-                                                walkthrough.walkthroughId,
-                                                walkthrough.stepId,
-                                            )
-                                        }>
+                                        onClick={async () => {
+                                            if (walkthrough.url) {
+                                                await openLink(walkthrough.url);
+                                            } else if (walkthrough.walkthroughId) {
+                                                await openWalkthrough(
+                                                    walkthrough.walkthroughId,
+                                                    walkthrough.stepId,
+                                                );
+                                            }
+                                        }}>
                                         <Open16Regular />
                                         {walkthrough.label}
                                     </Link>
