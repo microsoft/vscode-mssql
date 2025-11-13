@@ -95,6 +95,7 @@ const useStyles = makeStyles({
         borderRadius: "4px",
         fontFamily: "var(--vscode-editor-font-family)",
         fontSize: "var(--vscode-editor-font-size)",
+        color: "var(--vscode-symbolIcon-classForeground)",
     },
     mainGrid: {
         display: "grid",
@@ -245,22 +246,20 @@ export const ChangelogPage = () => {
                                     marginTop: "10px",
                                     width: "100px",
                                 }}
-                                onClick={() => openLink("https://aka.ms/vscode-mssql-sqlcon")}
+                                onClick={() => openLink("https://aka.ms/sqlcon")}
                                 appearance="primary">
                                 Register
                             </Button>
                         </div>
                         <div className={classes.bannerDescription}>
                             <Text>
-                                Discover how SQL Database in Fabric, Azure SQL, and SQL Server are
+                                Discover how SQL database in Fabric, Azure SQL and SQL Server are
                                 redefining modern app development.
+                                <br /> Join engineers and peers pushing the limits of performance,
+                                Al integration, and developer productivity.
                             </Text>
                             <Text>
-                                Join engineers and peers who are pushing the limits of performance,
-                                AI integration, and developer productivity.
-                            </Text>
-                            <Text>
-                                Use code <span className={classes.codeSnippet}>VSCODE-SQLCON</span>
+                                Use code <span className={classes.codeSnippet}>VSCODE-200</span>
                                 to get your exclusive VS Code discount
                             </Text>
                         </div>
@@ -276,46 +275,92 @@ export const ChangelogPage = () => {
                 <Title3 as="h2">{sectionTitles.whatsNewSectionTitle}</Title3>
                 <div className={classes.mainGrid}>
                     <div className={classes.changesColumn}>
-                        {changes.map((change, index) => (
-                            <Card key={`${change.title}-${index}`} className={classes.changeCard}>
-                                <h3 className={classes.changeTitle}>{change.title}</h3>
-                                <Text className={classes.changeDescription}>
-                                    {change.description}
-                                </Text>
-                                {change.actions && change.actions.length > 0 && (
-                                    <div className={classes.changeActions}>
-                                        {change.actions.map((action, idx) => {
-                                            if (action.type === "link") {
-                                                return (
-                                                    <Link
-                                                        key={`${action.label}-${idx}`}
-                                                        className={classes.actionLink}
-                                                        onClick={() => openLink(action.value)}>
-                                                        {action.label}
-                                                        <ArrowRight12Regular />
-                                                    </Link>
-                                                );
-                                            } else if (action.type === "command") {
-                                                return (
-                                                    <Link
-                                                        key={`${action.label}-${idx}`}
-                                                        className={classes.actionLink}
-                                                        onClick={() =>
-                                                            handleAction({
-                                                                commandId: action.value,
-                                                                args: action.args,
-                                                            })
-                                                        }>
-                                                        {action.label}
-                                                        <ArrowRight12Regular />
-                                                    </Link>
-                                                );
-                                            }
-                                        })}
-                                    </div>
-                                )}
-                            </Card>
-                        ))}
+                        {changes.map((change, index) => {
+                            const renderDescription = (
+                                description: string,
+                                codeSnippets?: string[],
+                            ) => {
+                                if (!codeSnippets || codeSnippets.length === 0) {
+                                    return description;
+                                }
+
+                                const parts: (string | JSX.Element)[] = [];
+                                let lastIndex = 0;
+                                const regex = /\{code-snippet-(\d+)\}/g;
+                                let match;
+
+                                while ((match = regex.exec(description)) !== null) {
+                                    // Add text before the match
+                                    if (match.index > lastIndex) {
+                                        parts.push(description.slice(lastIndex, match.index));
+                                    }
+
+                                    // Add the code snippet
+                                    const snippetIndex = parseInt(match[1], 10);
+                                    if (snippetIndex < codeSnippets.length) {
+                                        parts.push(
+                                            <span
+                                                key={`snippet-${index}-${snippetIndex}`}
+                                                className={classes.codeSnippet}>
+                                                {codeSnippets[snippetIndex]}
+                                            </span>,
+                                        );
+                                    }
+
+                                    lastIndex = regex.lastIndex;
+                                }
+
+                                // Add remaining text
+                                if (lastIndex < description.length) {
+                                    parts.push(description.slice(lastIndex));
+                                }
+
+                                return parts;
+                            };
+
+                            return (
+                                <Card
+                                    key={`${change.title}-${index}`}
+                                    className={classes.changeCard}>
+                                    <h3 className={classes.changeTitle}>{change.title}</h3>
+                                    <Text className={classes.changeDescription}>
+                                        {renderDescription(change.description, change.codeSnippets)}
+                                    </Text>
+                                    {change.actions && change.actions.length > 0 && (
+                                        <div className={classes.changeActions}>
+                                            {change.actions.map((action, idx) => {
+                                                if (action.type === "link") {
+                                                    return (
+                                                        <Link
+                                                            key={`${action.label}-${idx}`}
+                                                            className={classes.actionLink}
+                                                            onClick={() => openLink(action.value)}>
+                                                            {action.label}
+                                                            <ArrowRight12Regular />
+                                                        </Link>
+                                                    );
+                                                } else if (action.type === "command") {
+                                                    return (
+                                                        <Link
+                                                            key={`${action.label}-${idx}`}
+                                                            className={classes.actionLink}
+                                                            onClick={() =>
+                                                                handleAction({
+                                                                    commandId: action.value,
+                                                                    args: action.args,
+                                                                })
+                                                            }>
+                                                            {action.label}
+                                                            <ArrowRight12Regular />
+                                                        </Link>
+                                                    );
+                                                }
+                                            })}
+                                        </div>
+                                    )}
+                                </Card>
+                            );
+                        })}
                     </div>
 
                     <div className={classes.sidebarStack}>
@@ -341,17 +386,22 @@ export const ChangelogPage = () => {
                             <h3 className={classes.changeTitle}>
                                 {sectionTitles.gettingStartedSectionTitle}
                             </h3>
+                            <Text>{locConstants.changelog.gettingStartedDescription}</Text>
                             <div className={classes.list}>
                                 {walkthroughs.map((walkthrough, index) => (
                                     <Link
                                         key={`${walkthrough.label}-${index}`}
                                         className={classes.listItem}
-                                        onClick={() =>
-                                            openWalkthrough(
-                                                walkthrough.walkthroughId,
-                                                walkthrough.stepId,
-                                            )
-                                        }>
+                                        onClick={async () => {
+                                            if (walkthrough.url) {
+                                                await openLink(walkthrough.url);
+                                            } else if (walkthrough.walkthroughId) {
+                                                await openWalkthrough(
+                                                    walkthrough.walkthroughId,
+                                                    walkthrough.stepId,
+                                                );
+                                            }
+                                        }}>
                                         <Open16Regular />
                                         {walkthrough.label}
                                     </Link>

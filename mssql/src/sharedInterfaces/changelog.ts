@@ -29,13 +29,15 @@ export interface ChangelogResource {
 
 export interface ChangelogWalkthrough {
     label: string;
-    walkthroughId: string;
+    walkthroughId?: string;
     stepId?: string;
+    url?: string;
 }
 
 export interface ChangelogChangeItem {
     title: string;
     description: string;
+    codeSnippets?: string[];
     actions?: ChangelogAction[];
 }
 
