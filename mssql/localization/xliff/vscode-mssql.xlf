@@ -2483,8 +2483,8 @@
     <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
       <source xml:lang="en">New column mapping</source>
     </trans-unit>
-    <trans-unit id="++CODE++5ce7bd2be4edd49b34350661d18fe7815ed2376cbabaacf680e5f6fc829c933b">
-      <source xml:lang="en">New to MSSQL extension? Check out our quick start guide.</source>
+    <trans-unit id="++CODE++0850ea0cc273586f20d521ce50115a6fc5e53ed6fc2e0b9bd698bd7631d6e2e3">
+      <source xml:lang="en">New to MSSQL extension? Check out our quick-start guide.</source>
     </trans-unit>
     <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
       <source xml:lang="en">Next</source>
