@@ -521,6 +521,7 @@ export class LocConstants {
                 }
                 return l10n.t("Save as INSERT INTO");
             },
+            moreQueryActions: l10n.t("More Query Actions"),
             clickHereToHideThisPanel: l10n.t("Hide this panel"),
             queryPlan: (count: number) => {
                 return l10n.t({
@@ -1307,6 +1308,26 @@ export class LocConstants {
             noDataAvailable: l10n.t("No data available"),
             noPendingChanges: l10n.t("No pending changes. Make edits to generate a script."),
             closeScriptPane: l10n.t("Close Script Pane"),
+        };
+    }
+
+    public get changelog() {
+        return {
+            whatsNewSectionTitle: l10n.t("What's new in this release"),
+            resourcesSectionTitle: l10n.t("Resources"),
+            gettingStartedSectionTitle: l10n.t("Getting Started"),
+            gettingStartedDescription: l10n.t(
+                "New to MSSQL extension? Check out our quick-start guide.",
+            ),
+            footerText: (version: string) =>
+                l10n.t({
+                    message:
+                        "You are seeing this message because you updated the MSSQL extension to version {0}.",
+                    args: [version],
+                    comment: ["{0} is the version number of the MSSQL extension"],
+                }),
+            dontShowAgain: l10n.t("Don't show this again"),
+            close: l10n.t("Close"),
         };
     }
 }

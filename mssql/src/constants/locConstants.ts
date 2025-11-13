@@ -2294,3 +2294,13 @@ export class TableExplorer {
     public static Discard = l10n.t("Discard");
     public static Cancel = l10n.t("Cancel");
 }
+
+export class Changelog {
+    public static ChangelogDocumentTitle = l10n.t("MSSQL: Welcome & What's New");
+    public static tryIt = l10n.t("Try it");
+    public static readDocs = l10n.t("Read docs");
+    public static watchDemosOnYoutube = l10n.t("Watch demos on YouTube");
+    public static viewKeyboardShortcuts = l10n.t("View keyboard shortcuts");
+    public static readTheDocumentation = l10n.t("Read the documentation");
+    public static joinTheCommunity = l10n.t("Join the community");
+}

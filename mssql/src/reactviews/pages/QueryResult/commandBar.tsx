@@ -3,8 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, makeStyles, Toolbar, Tooltip } from "@fluentui/react-components";
-import { useContext } from "react";
+import {
+    makeStyles,
+    Menu,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
+    Overflow,
+    OverflowItem,
+    Toolbar,
+    ToolbarButton,
+    ToolbarButtonProps,
+    useIsOverflowItemVisible,
+    useOverflowMenu,
+} from "@fluentui/react-components";
+import { ReactElement, useContext } from "react";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { useQueryResultSelector } from "./queryResultSelector";
@@ -21,18 +35,38 @@ import {
     ArrowMaximize16Filled,
     ArrowMinimize16Filled,
     DocumentTextRegular,
+    MoreVertical20Filled,
     TableRegular,
 } from "@fluentui/react-icons";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
+import { ACTIONBAR_WIDTH_PX } from "./table/table";
 
 const useStyles = makeStyles({
+    commandBarContainer: {
+        width: `${ACTIONBAR_WIDTH_PX}px`,
+        flexShrink: 0,
+        overflow: "hidden",
+        display: "flex",
+        paddingRight: "10px",
+    },
     commandBar: {
-        width: "16px",
+        width: "100%",
     },
     buttonImg: {
         display: "block",
         height: "16px",
         width: "16px",
+    },
+    toolbarButton: {
+        width: "32px",
+        height: "32px",
+        minWidth: "32px",
+        minHeight: "32px",
+        padding: "4px",
+        display: "inline-flex",
+        justifyContent: "center",
+        alignItems: "center",
+        flexShrink: 0,
     },
 });
 
@@ -43,6 +77,75 @@ export interface CommandBarProps {
     onToggleMaximize?: () => void;
     isMaximized?: boolean;
 }
+
+type ToolbarOverflowButtonProps = {
+    overflowId: string;
+    overflowGroupId?: string;
+} & ToolbarButtonProps;
+
+type CommandBarAction = {
+    id: string;
+    groupId?: string;
+    icon: ReactElement;
+    menuIcon?: ReactElement;
+    ariaLabel: string;
+    title: string;
+    menuLabel: string;
+    onClick: () => void;
+    disabled?: boolean;
+    className?: string;
+};
+
+const ToolbarOverflowButton = ({
+    overflowId,
+    overflowGroupId,
+    className,
+    ...props
+}: ToolbarOverflowButtonProps & { className?: string }) => {
+    const classes = useStyles();
+    const mergedClassName = [classes.toolbarButton, className].filter(Boolean).join(" ");
+    return (
+        <OverflowItem id={overflowId} groupId={overflowGroupId}>
+            <ToolbarButton appearance="subtle" {...props} className={mergedClassName} />
+        </OverflowItem>
+    );
+};
+
+const CommandBarOverflowMenuItem = ({ action }: { action: CommandBarAction }) => {
+    const isVisible = useIsOverflowItemVisible(action.id);
+    if (isVisible) {
+        return null;
+    }
+    return <MenuItem onClick={action.onClick}>{action.menuLabel}</MenuItem>;
+};
+
+const CommandBarOverflowMenu = ({ actions }: { actions: CommandBarAction[] }) => {
+    const { ref, isOverflowing } = useOverflowMenu<HTMLButtonElement>();
+    if (!isOverflowing) {
+        return null;
+    }
+
+    return (
+        <Menu>
+            <MenuTrigger disableButtonEnhancement>
+                <ToolbarButton
+                    ref={ref}
+                    appearance="subtle"
+                    icon={<MoreVertical20Filled />}
+                    aria-label={locConstants.queryResult.moreQueryActions}
+                    title={locConstants.queryResult.moreQueryActions}
+                />
+            </MenuTrigger>
+            <MenuPopover>
+                <MenuList>
+                    {actions.map((action) => (
+                        <CommandBarOverflowMenuItem key={action.id} action={action} />
+                    ))}
+                </MenuList>
+            </MenuPopover>
+        </Menu>
+    );
+};
 
 const CommandBar = (props: CommandBarProps) => {
     const classes = useStyles();
@@ -115,114 +218,104 @@ const CommandBar = (props: CommandBarProps) => {
     const saveAsExcelTooltip = locConstants.queryResult.saveAsExcel(saveAsExcelShortcut?.label);
     const saveAsInsertTooltip = locConstants.queryResult.saveAsInsert(saveAsInsertShortcut?.label);
 
-    if (props.viewMode === qr.QueryResultViewMode.Text) {
-        return (
-            <div className={classes.commandBar}>
-                <Tooltip content={toggleToGridViewTooltip} relationship="label">
-                    <Button
-                        appearance="subtle"
-                        onClick={toggleViewMode}
-                        icon={<TableRegular />}
-                        title={toggleToGridViewTooltip}
-                    />
-                </Tooltip>
-            </div>
+    const isGridView = props.viewMode === qr.QueryResultViewMode.Grid;
+    const hasAdditionalResults = hasMultipleResults();
+    const toggleToGrid = props.viewMode === qr.QueryResultViewMode.Text;
+
+    const actions: CommandBarAction[] = [
+        {
+            id: "toggleViewMode",
+            groupId: "viewMode",
+            icon: toggleToGrid ? <TableRegular /> : <DocumentTextRegular />,
+            ariaLabel: toggleToGrid ? toggleToGridViewTooltip : toggleToTextViewTooltip,
+            title: toggleToGrid ? toggleToGridViewTooltip : toggleToTextViewTooltip,
+            menuLabel: toggleToGrid ? toggleToGridViewTooltip : toggleToTextViewTooltip,
+            onClick: toggleViewMode,
+        },
+    ];
+
+    if (isGridView && hasAdditionalResults) {
+        actions.push({
+            id: "toggleMaximize",
+            groupId: "viewMode",
+            icon: props.isMaximized ? (
+                <ArrowMinimize16Filled className={classes.buttonImg} />
+            ) : (
+                <ArrowMaximize16Filled className={classes.buttonImg} />
+            ),
+            ariaLabel: isMaximized ? restoreTooltip : maximizeTooltip,
+            title: isMaximized ? restoreTooltip : maximizeTooltip,
+            menuLabel: isMaximized ? restoreTooltip : maximizeTooltip,
+            onClick: () => props.onToggleMaximize?.(),
+        });
+    }
+
+    if (isGridView) {
+        actions.push(
+            {
+                id: "saveAsCsv",
+                groupId: "export",
+                icon: <img className={classes.buttonImg} src={saveAsCsvIcon(themeKind)} />,
+                menuLabel: saveAsCsvTooltip,
+                ariaLabel: saveAsCsvTooltip,
+                title: saveAsCsvTooltip,
+                onClick: () => saveResults("csv"),
+                className: "codicon saveCsv",
+            },
+            {
+                id: "saveAsJson",
+                groupId: "export",
+                icon: <img className={classes.buttonImg} src={saveAsJsonIcon(themeKind)} />,
+                menuLabel: saveAsJsonTooltip,
+                ariaLabel: saveAsJsonTooltip,
+                title: saveAsJsonTooltip,
+                onClick: () => saveResults("json"),
+                className: "codicon saveJson",
+            },
+            {
+                id: "saveAsExcel",
+                groupId: "export",
+                icon: <img className={classes.buttonImg} src={saveAsExcelIcon(themeKind)} />,
+                menuLabel: saveAsExcelTooltip,
+                ariaLabel: saveAsExcelTooltip,
+                title: saveAsExcelTooltip,
+                onClick: () => saveResults("excel"),
+                className: "codicon saveExcel",
+            },
+            {
+                id: "saveAsInsert",
+                groupId: "export",
+                icon: <img className={classes.buttonImg} src={saveAsInsertIcon(themeKind)} />,
+                menuLabel: saveAsInsertTooltip,
+                ariaLabel: saveAsInsertTooltip,
+                title: saveAsInsertTooltip,
+                onClick: () => saveResults("insert"),
+                className: "codicon saveInsert",
+            },
         );
     }
 
     return (
-        <Toolbar vertical className={classes.commandBar}>
-            {/* View Mode Toggle */}
-            <Tooltip
-                content={
-                    props.viewMode === qr.QueryResultViewMode.Grid
-                        ? toggleToTextViewTooltip
-                        : toggleToGridViewTooltip
-                }
-                relationship="label">
-                <Button
-                    appearance="subtle"
-                    onClick={toggleViewMode}
-                    icon={
-                        props.viewMode === qr.QueryResultViewMode.Grid ? (
-                            <DocumentTextRegular />
-                        ) : (
-                            <TableRegular />
-                        )
-                    }
-                    title={
-                        props.viewMode === qr.QueryResultViewMode.Grid
-                            ? toggleToTextViewTooltip
-                            : toggleToGridViewTooltip
-                    }
-                />
-            </Tooltip>
-
-            {hasMultipleResults() && props.viewMode === qr.QueryResultViewMode.Grid && (
-                <Tooltip
-                    content={isMaximized ? restoreTooltip : maximizeTooltip}
-                    relationship="label">
-                    <Button
-                        appearance="subtle"
-                        onClick={() => {
-                            props.onToggleMaximize?.();
-                        }}
-                        icon={
-                            isMaximized ? (
-                                <ArrowMinimize16Filled className={classes.buttonImg} />
-                            ) : (
-                                <ArrowMaximize16Filled className={classes.buttonImg} />
-                            )
-                        }
-                        title={isMaximized ? restoreTooltip : maximizeTooltip}></Button>
-                </Tooltip>
-            )}
-
-            <Tooltip content={saveAsCsvTooltip} relationship="label">
-                <Button
-                    appearance="subtle"
-                    onClick={(_event) => {
-                        saveResults("csv");
-                    }}
-                    icon={<img className={classes.buttonImg} src={saveAsCsvIcon(themeKind)} />}
-                    className="codicon saveCsv"
-                    title={saveAsCsvTooltip}
-                />
-            </Tooltip>
-            <Tooltip content={saveAsJsonTooltip} relationship="label">
-                <Button
-                    appearance="subtle"
-                    onClick={(_event) => {
-                        saveResults("json");
-                    }}
-                    icon={<img className={classes.buttonImg} src={saveAsJsonIcon(themeKind)} />}
-                    className="codicon saveJson"
-                    title={saveAsJsonTooltip}
-                />
-            </Tooltip>
-            <Tooltip content={saveAsExcelTooltip} relationship="label">
-                <Button
-                    appearance="subtle"
-                    onClick={(_event) => {
-                        saveResults("excel");
-                    }}
-                    icon={<img className={classes.buttonImg} src={saveAsExcelIcon(themeKind)} />}
-                    className="codicon saveExcel"
-                    title={saveAsExcelTooltip}
-                />
-            </Tooltip>
-            <Tooltip content={saveAsInsertTooltip} relationship="label">
-                <Button
-                    appearance="subtle"
-                    onClick={(_event) => {
-                        saveResults("insert");
-                    }}
-                    icon={<img className={classes.buttonImg} src={saveAsInsertIcon(themeKind)} />}
-                    className="codicon saveInsert"
-                    title={saveAsInsertTooltip}
-                />
-            </Tooltip>
-        </Toolbar>
+        <div className={classes.commandBarContainer}>
+            <Overflow overflowAxis="vertical" overflowDirection="end">
+                <Toolbar vertical className={classes.commandBar} aria-label="Query result commands">
+                    {actions.map((action) => (
+                        <ToolbarOverflowButton
+                            key={action.id}
+                            overflowId={action.id}
+                            overflowGroupId={action.groupId}
+                            icon={action.icon}
+                            aria-label={action.ariaLabel}
+                            title={action.title}
+                            onClick={action.onClick}
+                            disabled={action.disabled}
+                            className={action.className}
+                        />
+                    ))}
+                    <CommandBarOverflowMenu actions={actions} />
+                </Toolbar>
+            </Overflow>
+        </div>
     );
 };
 

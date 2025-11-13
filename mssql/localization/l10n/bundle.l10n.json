@@ -397,6 +397,7 @@
         "comment": ["{0} is the keyboard shortcut for saving as INSERT INTO"]
     },
     "Save as INSERT INTO": "Save as INSERT INTO",
+    "More Query Actions": "More Query Actions",
     "Hide this panel": "Hide this panel",
     "Query Plan ({0})/{0} is the number of query plans": {
         "message": "Query Plan ({0})",
@@ -879,6 +880,15 @@
     "No data available": "No data available",
     "No pending changes. Make edits to generate a script.": "No pending changes. Make edits to generate a script.",
     "Close Script Pane": "Close Script Pane",
+    "What's new in this release": "What's new in this release",
+    "Resources": "Resources",
+    "Getting Started": "Getting Started",
+    "New to MSSQL extension? Check out our quick-start guide.": "New to MSSQL extension? Check out our quick-start guide.",
+    "You are seeing this message because you updated the MSSQL extension to version {0}./{0} is the version number of the MSSQL extension": {
+        "message": "You are seeing this message because you updated the MSSQL extension to version {0}.",
+        "comment": ["{0} is the version number of the MSSQL extension"]
+    },
+    "Don't show this again": "Don't show this again",
     "Object Explorer Filter": "Object Explorer Filter",
     "Azure MFA": "Azure MFA",
     "Windows Authentication": "Windows Authentication",
@@ -2060,6 +2070,13 @@
         "comment": ["{0} is the table name"]
     },
     "Discard": "Discard",
+    "MSSQL: Welcome & What's New": "MSSQL: Welcome & What's New",
+    "Try it": "Try it",
+    "Read docs": "Read docs",
+    "Watch demos on YouTube": "Watch demos on YouTube",
+    "View keyboard shortcuts": "View keyboard shortcuts",
+    "Read the documentation": "Read the documentation",
+    "Join the community": "Join the community",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

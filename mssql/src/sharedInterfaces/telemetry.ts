@@ -35,6 +35,7 @@ export enum TelemetryViews {
     DacpacDialog = "DacpacDialog",
     ScriptingService = "ScriptingService",
     TableExplorer = "TableExplorer",
+    ChangelogPage = "ChangelogPage",
 }
 
 export enum TelemetryActions {
@@ -60,6 +61,11 @@ export enum TelemetryActions {
     GenerateScript = "GenerateScript",
     Refresh = "Refresh",
     CreateProject = "CreateProject",
+    PublishDialogOpened = "PublishDialogOpened",
+    PublishProject = "PublishProject",
+    PublishProjectProperties = "PublishProjectProperties",
+    PublishDialogLocalContainersPrerequisites = "PublishDialogLocalContainersPrerequisites",
+    PublishDialogCreateLocalContainers = "PublishDialogCreateLocalContainers",
     RemoveConnection = "RemoveConnection",
     Disconnect = "Disconnect",
     NewQuery = "NewQuery",
@@ -174,6 +180,10 @@ export enum TelemetryActions {
     RevertCell = "RevertCell",
     RevertRow = "RevertRow",
     LoadSubset = "LoadSubset",
+    OpenLink = "OpenLink",
+    ExecuteCommand = "ExecuteCommand",
+    ChangelogDontShowAgain = "ChangelogDontShowAgain",
+    CloseChangelog = "CloseChangelog",
 }
 
 /**
