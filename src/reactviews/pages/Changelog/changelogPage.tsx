@@ -27,12 +27,19 @@ import { useChangelogSelector } from "./changelogSelector";
 import { locConstants, LocConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
+    root: {
+        height: "100%",
+        maxWidth: "1200px",
+        margin: "0 auto",
+        display: "flex",
+        flexDirection: "column",
+    },
     page: {
         flex: "1 0 auto", // grow and take available space above footer
         display: "flex",
         flexDirection: "column",
         gap: "10px",
-        ...shorthands.padding("24px", "32px", "10px", "32px"),
+        ...shorthands.padding("12px", "16px", "5px", "16px"),
         height: "100%",
         boxSizing: "border-box",
     },
@@ -109,7 +116,7 @@ const useStyles = makeStyles({
         backgroundColor: "var(--vscode-sideBar-background)",
         borderRadius: "12px",
         border: "1px solid var(--vscode-editorWidget-border)",
-        ...shorthands.padding("20px", "24px"),
+        padding: "15px",
     },
     changeTitle: {
         margin: 0,
@@ -134,7 +141,7 @@ const useStyles = makeStyles({
         borderRadius: "12px",
         border: "1px solid var(--vscode-editorWidget-border)",
         backgroundColor: "var(--vscode-sideBar-background)",
-        ...shorthands.padding("20px", "24px"),
+        padding: "15px",
         overflowY: "auto",
     },
     list: {
@@ -156,12 +163,12 @@ const useStyles = makeStyles({
     footer: {
         borderTop: "1px solid var(--vscode-editorWidget-border)",
         flex: 0,
-        padding: "10px 16px",
+        padding: "5px",
         fontSize: "12px",
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
-        gap: "8px",
+        gap: "10px",
     },
 });
 
@@ -202,175 +209,179 @@ export const ChangelogPage = () => {
     };
 
     return (
-        <div className={classes.page}>
-            {showBanner && !isSqlConOver() && (
-                <div className={classes.banner}>
-                    <div className={classes.bannerTitle}>
-                        <Text
-                            size={600}
-                            weight="bold"
-                            style={{
-                                backgroundImage:
-                                    "linear-gradient(to right in oklab, var(--vscode-button-hoverBackground, var(--vscode-contrastBorder)) 0%, var(--vscode-button-background, var(--vscode-editor-background)) 100%)",
-                                backgroundClip: "text",
-                                WebkitBackgroundClip: "text",
-                                color: "transparent",
-                            }}>
-                            SQLCON
-                        </Text>
-                        <Text
-                            size={300}
-                            weight="semibold"
-                            style={{
-                                marginTop: "5px",
-                            }}>
-                            Microsoft SQL
-                        </Text>
-                        <Text size={300} weight="semibold">
-                            COMMUNITY CONFERENCE
-                        </Text>
-                        <Text size={200} weight="regular" style={{ marginTop: "5px" }}>
-                            March 16-20, 2026 | ATLANTA
-                        </Text>
+        <div className={classes.root}>
+            <div className={classes.page}>
+                {showBanner && !isSqlConOver() && (
+                    <div className={classes.banner}>
+                        <div className={classes.bannerTitle}>
+                            <Text
+                                size={600}
+                                weight="bold"
+                                style={{
+                                    backgroundImage:
+                                        "linear-gradient(to right in oklab, var(--vscode-button-hoverBackground, var(--vscode-contrastBorder)) 0%, var(--vscode-button-background, var(--vscode-editor-background)) 100%)",
+                                    backgroundClip: "text",
+                                    WebkitBackgroundClip: "text",
+                                    color: "transparent",
+                                }}>
+                                SQLCON
+                            </Text>
+                            <Text
+                                size={300}
+                                weight="semibold"
+                                style={{
+                                    marginTop: "5px",
+                                }}>
+                                Microsoft SQL
+                            </Text>
+                            <Text size={300} weight="semibold">
+                                COMMUNITY CONFERENCE
+                            </Text>
+                            <Text size={200} weight="regular" style={{ marginTop: "5px" }}>
+                                March 16-20, 2026 | ATLANTA
+                            </Text>
+                            <Button
+                                style={{
+                                    marginTop: "10px",
+                                    width: "100px",
+                                }}
+                                onClick={() => openLink("https://aka.ms/vscode-mssql-sqlcon")}
+                                appearance="primary">
+                                Register
+                            </Button>
+                        </div>
+                        <div className={classes.bannerDescription}>
+                            <Text>
+                                Discover how SQL Database in Fabric, Azure SQL, and SQL Server are
+                                redefining modern app development.
+                            </Text>
+                            <Text>
+                                Join engineers and peers who are pushing the limits of performance,
+                                AI integration, and developer productivity.
+                            </Text>
+                            <Text>
+                                Use code <span className={classes.codeSnippet}>VSCODE-SQLCON</span>
+                                to get your exclusive VS Code discount
+                            </Text>
+                        </div>
                         <Button
-                            style={{
-                                marginTop: "10px",
-                                width: "100px",
-                            }}
-                            onClick={() => openLink("https://aka.ms/vscode-mssql-sqlcon")}
-                            appearance="primary">
-                            Register
-                        </Button>
+                            appearance="transparent"
+                            icon={<Dismiss12Filled />}
+                            className={classes.bannerDismiss}
+                            onClick={() => {
+                                setShowBanner(false);
+                            }}></Button>
                     </div>
-                    <div className={classes.bannerDescription}>
-                        <Text>
-                            Discover how SQL Database in Fabric, Azure SQL, and SQL Server are
-                            redefining modern app development.
-                        </Text>
-                        <Text>
-                            Join engineers and peers who are pushing the limits of performance, AI
-                            integration, and developer productivity.
-                        </Text>
-                        <Text>
-                            Use code <span className={classes.codeSnippet}>VSCODE-SQLCON</span>
-                            to get your exclusive VS Code discount
-                        </Text>
+                )}
+                <Title3 as="h2">{sectionTitles.whatsNewSectionTitle}</Title3>
+                <div className={classes.mainGrid}>
+                    <div className={classes.changesColumn}>
+                        {changes.map((change, index) => (
+                            <Card key={`${change.title}-${index}`} className={classes.changeCard}>
+                                <h3 className={classes.changeTitle}>{change.title}</h3>
+                                <Text className={classes.changeDescription}>
+                                    {change.description}
+                                </Text>
+                                {change.actions && change.actions.length > 0 && (
+                                    <div className={classes.changeActions}>
+                                        {change.actions.map((action, idx) => {
+                                            if (action.type === "link") {
+                                                return (
+                                                    <Link
+                                                        key={`${action.label}-${idx}`}
+                                                        className={classes.actionLink}
+                                                        onClick={() => openLink(action.value)}>
+                                                        {action.label}
+                                                        <ArrowRight12Regular />
+                                                    </Link>
+                                                );
+                                            } else if (action.type === "command") {
+                                                return (
+                                                    <Link
+                                                        key={`${action.label}-${idx}`}
+                                                        className={classes.actionLink}
+                                                        onClick={() =>
+                                                            handleAction({
+                                                                commandId: action.value,
+                                                                args: action.args,
+                                                            })
+                                                        }>
+                                                        {action.label}
+                                                        <ArrowRight12Regular />
+                                                    </Link>
+                                                );
+                                            }
+                                        })}
+                                    </div>
+                                )}
+                            </Card>
+                        ))}
                     </div>
-                    <Button
-                        appearance="transparent"
-                        icon={<Dismiss12Filled />}
-                        className={classes.bannerDismiss}
-                        onClick={() => {
-                            setShowBanner(false);
-                        }}></Button>
-                </div>
-            )}
-            <Title3 as="h2">{sectionTitles.whatsNewSectionTitle}</Title3>
-            <div className={classes.mainGrid}>
-                <div className={classes.changesColumn}>
-                    {changes.map((change, index) => (
-                        <Card key={`${change.title}-${index}`} className={classes.changeCard}>
-                            <h3 className={classes.changeTitle}>{change.title}</h3>
-                            <Text className={classes.changeDescription}>{change.description}</Text>
-                            {change.actions && change.actions.length > 0 && (
-                                <div className={classes.changeActions}>
-                                    {change.actions.map((action, idx) => {
-                                        if (action.type === "link") {
-                                            return (
-                                                <Link
-                                                    key={`${action.label}-${idx}`}
-                                                    className={classes.actionLink}
-                                                    onClick={() => openLink(action.value)}>
-                                                    {action.label}
-                                                    <ArrowRight12Regular />
-                                                </Link>
-                                            );
-                                        } else if (action.type === "command") {
-                                            return (
-                                                <Link
-                                                    key={`${action.label}-${idx}`}
-                                                    className={classes.actionLink}
-                                                    onClick={() =>
-                                                        handleAction({
-                                                            commandId: action.value,
-                                                            args: action.args,
-                                                        })
-                                                    }>
-                                                    {action.label}
-                                                    <ArrowRight12Regular />
-                                                </Link>
-                                            );
-                                        }
-                                    })}
-                                </div>
-                            )}
+
+                    <div className={classes.sidebarStack}>
+                        <Card className={classes.sidebarCard}>
+                            <h3 className={classes.changeTitle}>
+                                {sectionTitles.resourcesSectionTitle}
+                            </h3>
+
+                            <div className={classes.list}>
+                                {resources.map((resource, index) => (
+                                    <Link
+                                        key={`${resource.label}-${index}`}
+                                        className={classes.listItem}
+                                        onClick={() => openLink(resource.url)}>
+                                        <Open16Regular />
+                                        {resource.label}
+                                    </Link>
+                                ))}
+                            </div>
                         </Card>
-                    ))}
+
+                        <Card className={classes.sidebarCard}>
+                            <h3 className={classes.changeTitle}>
+                                {sectionTitles.gettingStartedSectionTitle}
+                            </h3>
+                            <div className={classes.list}>
+                                {walkthroughs.map((walkthrough, index) => (
+                                    <Link
+                                        key={`${walkthrough.label}-${index}`}
+                                        className={classes.listItem}
+                                        onClick={() =>
+                                            openWalkthrough(
+                                                walkthrough.walkthroughId,
+                                                walkthrough.stepId,
+                                            )
+                                        }>
+                                        <Open16Regular />
+                                        {walkthrough.label}
+                                    </Link>
+                                ))}
+                            </div>
+                        </Card>
+                    </div>
                 </div>
-
-                <div className={classes.sidebarStack}>
-                    <Card className={classes.sidebarCard}>
-                        <h3 className={classes.changeTitle}>
-                            {sectionTitles.resourcesSectionTitle}
-                        </h3>
-
-                        <div className={classes.list}>
-                            {resources.map((resource, index) => (
-                                <Link
-                                    key={`${resource.label}-${index}`}
-                                    className={classes.listItem}
-                                    onClick={() => openLink(resource.url)}>
-                                    <Open16Regular />
-                                    {resource.label}
-                                </Link>
-                            ))}
-                        </div>
-                    </Card>
-
-                    <Card className={classes.sidebarCard}>
-                        <h3 className={classes.changeTitle}>
-                            {sectionTitles.gettingStartedSectionTitle}
-                        </h3>
-                        <div className={classes.list}>
-                            {walkthroughs.map((walkthrough, index) => (
-                                <Link
-                                    key={`${walkthrough.label}-${index}`}
-                                    className={classes.listItem}
-                                    onClick={() =>
-                                        openWalkthrough(
-                                            walkthrough.walkthroughId,
-                                            walkthrough.stepId,
-                                        )
-                                    }>
-                                    <Open16Regular />
-                                    {walkthrough.label}
-                                </Link>
-                            ))}
-                        </div>
-                    </Card>
-                </div>
-            </div>
-            <div className={classes.footer}>
-                <Text>{locConstants.changelog.footerText(state.version)}</Text>
-                <div
-                    style={{
-                        display: "flex",
-                        gap: "20px",
-                    }}>
-                    <Link
-                        type="button"
-                        onClick={async () => {
-                            await extensionRpc.sendRequest(CloseChangelogRequest.type);
+                <div className={classes.footer}>
+                    <Text>{locConstants.changelog.footerText(state.version)}</Text>
+                    <div
+                        style={{
+                            display: "flex",
+                            gap: "20px",
                         }}>
-                        {locConstants.changelog.close}
-                    </Link>
-                    <Link
-                        type="button"
-                        onClick={async () => {
-                            await extensionRpc.sendRequest(ChangelogDontShowAgainRequest.type);
-                        }}>
-                        {locConstants.changelog.dontShowAgain}
-                    </Link>
+                        <Link
+                            type="button"
+                            onClick={async () => {
+                                await extensionRpc.sendRequest(CloseChangelogRequest.type);
+                            }}>
+                            {locConstants.changelog.close}
+                        </Link>
+                        <Link
+                            type="button"
+                            onClick={async () => {
+                                await extensionRpc.sendRequest(ChangelogDontShowAgainRequest.type);
+                            }}>
+                            {locConstants.changelog.dontShowAgain}
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
