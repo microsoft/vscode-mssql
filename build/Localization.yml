@@ -21,7 +21,7 @@ jobs:
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         inputs:
-          locProj: "localization/LocProject.json"
+          locProj: "mssql/localization/LocProject.json"
           outDir: "$(Build.ArtifactStagingDirectory)"
           dependencyPackageSource: "https://pkgs.dev.azure.com/msdata/_packaging/SQLDS_SSMS/nuget/v3/index.json"
           packageSourceAuth: patAuth
