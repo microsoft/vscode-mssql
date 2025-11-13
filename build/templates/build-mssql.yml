@@ -1,0 +1,69 @@
+parameters:
+  - name: packageOffline
+    type: boolean
+    default: true
+
+steps:
+  - task: UseNode@1
+    displayName: "Use Node 22.x"
+    inputs:
+      version: 22.x
+
+  - pwsh: |
+      Write-Host "Installing Yarn"
+      npm install --global yarn@1.22.19
+      Write-Host "Installing VSCE"
+      npm install --global vsce@2.9.2
+    displayName: Install toolchain
+
+  - pwsh: |
+      yarn --frozen-lockfile
+    displayName: MSSQL - Install extension depedencies
+    workingDirectory: "$(Build.SourcesDirectory)/mssql"
+
+  - pwsh: |
+      yarn run build --prod
+    displayName: MSSQL - Build extension
+    workingDirectory: "$(Build.SourcesDirectory)/mssql"
+
+  - pwsh: |
+      yarn lint
+    displayName: MSSQL - Lint code
+    workingDirectory: "$(Build.SourcesDirectory)/mssql"
+
+  - pwsh: |
+      yarn test
+    displayName: MSSQL - Run tests
+    workingDirectory: "$(Build.SourcesDirectory)/mssql"
+
+  - task: PublishTestResults@2
+    displayName: MSSQL - Publish test results
+    inputs:
+      testResultsFormat: "JUnit"
+      testResultsFiles: "$(Build.SourcesDirectory)/mssql/test-reports/test-results-ext.xml"
+    condition: succeededOrFailed()
+
+  - task: PublishCodeCoverageResults@2
+    displayName: MSSQL - Publish code coverage
+    inputs:
+      summaryFileLocation: "$(Build.SourcesDirectory)/mssql/coverage/cobertura-coverage.xml"
+    condition: succeededOrFailed()
+
+  - pwsh: |
+      yarn package --online
+    displayName: MSSQL - Package extension (online)
+    workingDirectory: "$(Build.SourcesDirectory)/mssql"
+
+  - pwsh: |
+      yarn package --offline
+    displayName: MSSQL - Package extension (offline)
+    workingDirectory: "$(Build.SourcesDirectory)/mssql"
+    condition: eq( ${{ parameters.packageOffline }}, 'true')
+
+  # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact can't use wildcards
+  - task: CopyFiles@2
+    displayName: MSSQL - Copy VSIXs to clean folder
+    inputs:
+      SourceFolder: "$(Build.SourcesDirectory)/mssql"
+      Contents: "*.vsix"
+      TargetFolder: "$(Build.ArtifactStagingDirectory)/vsix"
