@@ -261,11 +261,17 @@ export async function promptForAzureSubscriptionFilter(
             return false;
         }
 
-        await vscode.workspace.getConfiguration().update(
-            configSelectedAzureSubscriptions,
-            selectedSubs.map((s) => `${s.tenantId}/${s.subscriptionId}`),
-            vscode.ConfigurationTarget.Global,
+        const filterConfig = selectedSubs.map(
+            (s) => `${s.group}/${s.tenantId}/${s.subscriptionId}`,
         );
+
+        await vscode.workspace
+            .getConfiguration()
+            .update(
+                configSelectedAzureSubscriptions,
+                filterConfig,
+                vscode.ConfigurationTarget.Global,
+            );
 
         return true;
     } catch (error) {
@@ -287,19 +293,21 @@ export async function getSubscriptionQuickPickItems(
         false /* don't use the current filter, 'cause we're gonna set it */,
     );
 
+    // Get previously selected subscriptions as "account/tenantId/subscriptionId" strings
     const prevSelectedSubs = vscode.workspace
         .getConfiguration()
-        .get<string[] | undefined>(configSelectedAzureSubscriptions)
-        ?.map((entry) => entry.split("/")[1]);
+        .get<string[] | undefined>(configSelectedAzureSubscriptions);
 
     const quickPickItems: SubscriptionPickItem[] = allSubs
         .map((sub) => {
+            const compositeKey = `${sub.account.label}/${sub.tenantId}/${sub.subscriptionId}`;
+            const isPicked = prevSelectedSubs ? prevSelectedSubs.includes(compositeKey) : true;
             return {
                 label: sub.name,
-                description: sub.subscriptionId,
+                description: `${sub.subscriptionId} (${sub.account.label})`,
                 tenantId: sub.tenantId,
                 subscriptionId: sub.subscriptionId,
-                picked: prevSelectedSubs ? prevSelectedSubs.includes(sub.subscriptionId) : true,
+                picked: isPicked,
                 group: sub.account.label,
             };
         })

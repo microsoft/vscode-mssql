@@ -640,6 +640,70 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(controller.state.dialog).to.be.undefined;
             });
         });
+
+        suite("loadAzureServers", () => {
+            test("loads Azure servers for a specific subscription", async () => {
+                const testSubscriptionId = "test-sub-id";
+                const testTenantId = "test-tenant-id";
+
+                // Setup state with subscription
+                controller.state.azureSubscriptions = [
+                    {
+                        id: testSubscriptionId,
+                        name: "Test Subscription",
+                        tenantId: testTenantId,
+                        loaded: false,
+                    },
+                ];
+
+                // Stub the loadAzureServersForSubscription method
+                const loadServersStub = sandbox
+                    .stub(
+                        controller as unknown as { loadAzureServersForSubscription: () => void },
+                        "loadAzureServersForSubscription",
+                    )
+                    .resolves();
+
+                await controller["_reducerHandlers"].get("loadAzureServers")(controller.state, {
+                    subscriptionId: testSubscriptionId,
+                });
+
+                expect(loadServersStub).to.have.been.calledOnceWith(
+                    controller.state,
+                    testTenantId,
+                    testSubscriptionId,
+                );
+            });
+
+            test("does nothing when subscription is not found", async () => {
+                const nonExistentSubscriptionId = "non-existent-sub-id";
+
+                // Setup state with no matching subscription
+                controller.state.azureSubscriptions = [
+                    {
+                        id: "different-sub-id",
+                        name: "Different Subscription",
+                        tenantId: "different-tenant-id",
+                        loaded: false,
+                    },
+                ];
+
+                // Stub the loadAzureServersForSubscription method
+                const loadServersStub = sandbox
+                    .stub(
+                        controller as unknown as { loadAzureServersForSubscription: () => void },
+                        "loadAzureServersForSubscription",
+                    )
+                    .resolves();
+
+                await controller["_reducerHandlers"].get("loadAzureServers")(controller.state, {
+                    subscriptionId: nonExistentSubscriptionId,
+                });
+
+                // Should not call loadAzureServersForSubscription when subscription not found
+                expect(loadServersStub).to.not.have.been.called;
+            });
+        });
     });
 
     test("getAzureActionButtons", async () => {

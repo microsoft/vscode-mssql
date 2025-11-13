@@ -193,7 +193,7 @@ export const AzureBrowsePage = () => {
                 setSelectedServerWithFormState,
                 setServerValue,
                 srvs,
-                DefaultSelectionMode.SelectFirstIfAny,
+                DefaultSelectionMode.AlwaysSelectNone,
             );
         }
     }, [locations, selectedLocation, context.state.azureServers]);
@@ -201,6 +201,9 @@ export const AzureBrowsePage = () => {
     // databases
     useEffect(() => {
         if (!selectedServer) {
+            setDatabases([]);
+            setSelectedDatabase(undefined);
+            setDatabaseValue("");
             return; // should not be visible if no server is selected
         }
 
@@ -209,6 +212,9 @@ export const AzureBrowsePage = () => {
         );
 
         if (!server) {
+            setDatabases([]);
+            setSelectedDatabase(undefined);
+            setDatabaseValue("");
             return;
         }
 

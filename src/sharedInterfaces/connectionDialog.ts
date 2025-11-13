@@ -119,6 +119,7 @@ export interface CreateConnectionGroupDialogProps extends IDialogProps {
 export interface AzureSubscriptionInfo {
     name: string;
     id: string;
+    tenantId: string;
     loaded: boolean;
 }
 
