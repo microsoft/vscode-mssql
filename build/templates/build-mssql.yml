@@ -18,51 +18,51 @@ steps:
 
   - pwsh: |
       yarn --frozen-lockfile
-    displayName: Install extension depedencies
+    displayName: MSSQL - Install extension depedencies
     workingDirectory: "$(Build.SourcesDirectory)/mssql"
 
   - pwsh: |
       yarn run build --prod
-    displayName: Build extension
+    displayName: MSSQL - Build extension
     workingDirectory: "$(Build.SourcesDirectory)/mssql"
 
   - pwsh: |
       yarn lint
-    displayName: Lint code
+    displayName: MSSQL - Lint code
     workingDirectory: "$(Build.SourcesDirectory)/mssql"
 
   - pwsh: |
       yarn test
-    displayName: Run tests
-    workingDirectory: "$(Build.SourcesDirectory/mssql)"
+    displayName: MSSQL - Run tests
+    workingDirectory: "$(Build.SourcesDirectory)/mssql"
 
   - task: PublishTestResults@2
-    displayName: Publish test results
+    displayName: MSSQL - Publish test results
     inputs:
       testResultsFormat: "JUnit"
       testResultsFiles: "$(Build.SourcesDirectory)/mssql/test-reports/test-results-ext.xml"
     condition: succeededOrFailed()
 
   - task: PublishCodeCoverageResults@2
-    displayName: Publish code coverage
+    displayName: MSSQL - Publish code coverage
     inputs:
       summaryFileLocation: "$(Build.SourcesDirectory)/mssql/coverage/cobertura-coverage.xml"
     condition: succeededOrFailed()
 
   - pwsh: |
       yarn package --online
-    displayName: Package extension (online)
+    displayName: MSSQL - Package extension (online)
     workingDirectory: "$(Build.SourcesDirectory)/mssql"
 
   - pwsh: |
       yarn package --offline
-    displayName: Package extension (offline)
+    displayName: MSSQL - Package extension (offline)
     workingDirectory: "$(Build.SourcesDirectory)/mssql"
     condition: eq( ${{ parameters.packageOffline }}, 'true')
 
   # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact can't use wildcards
   - task: CopyFiles@2
-    displayName: "Copy VSIXs to clean folder"
+    displayName: MSSQL - Copy VSIXs to clean folder
     inputs:
       SourceFolder: "$(Build.SourcesDirectory)/mssql"
       Contents: "*.vsix"
