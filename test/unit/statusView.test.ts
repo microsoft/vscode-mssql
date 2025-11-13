@@ -193,5 +193,17 @@ suite("Status View Tests", () => {
                 testGroup.color,
             );
         });
+
+        test("should include database name in change database tooltip", async () => {
+            mockVscodeWrapper.getConfiguration.returns({ get: () => false } as any);
+
+            const statusView = new StatusView(mockVscodeWrapper);
+            await statusView.connectSuccess(testFileUri, testConn, testServerInfo);
+
+            const tooltip = statusView["getStatusBar"](testFileUri).statusChangeDatabase.tooltip;
+            expect(tooltip).to.include("Change Database");
+            expect(tooltip).to.include("Current:");
+            expect(tooltip).to.include(testConn.database);
+        });
     });
 });
