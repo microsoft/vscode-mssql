@@ -35,6 +35,7 @@ export enum TelemetryViews {
     DacpacDialog = "DacpacDialog",
     ScriptingService = "ScriptingService",
     TableExplorer = "TableExplorer",
+    ChangelogPage = "ChangelogPage",
 }
 
 export enum TelemetryActions {
@@ -179,6 +180,10 @@ export enum TelemetryActions {
     RevertCell = "RevertCell",
     RevertRow = "RevertRow",
     LoadSubset = "LoadSubset",
+    OpenLink = "OpenLink",
+    ExecuteCommand = "ExecuteCommand",
+    ChangelogDontShowAgain = "ChangelogDontShowAgain",
+    CloseChangelog = "CloseChangelog",
 }
 
 /**

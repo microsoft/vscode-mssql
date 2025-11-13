@@ -1288,6 +1288,11 @@
                 "title": "%mssql.startContainer%",
                 "when": "mssql.enableRichExperiences",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.openChangelog",
+                "title": "%mssql.openChangelog%",
+                "category": "MS SQL"
             }
         ],
         "keybindings": [
@@ -2203,6 +2208,11 @@
                             "description": "%mssql.customEnvironment.dynamicsCrmDnsSuffix%"
                         }
                     }
+                },
+                "mssql.showChangelogOnUpdate": {
+                    "type": "boolean",
+                    "description": "%mssql.showChangelogOnUpdate%",
+                    "default": true
                 }
             }
         },
