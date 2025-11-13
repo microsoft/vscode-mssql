@@ -1653,6 +1653,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Don't Show Again</source>
         <target state="translated">再表示しない</target>
       </trans-unit>
+      <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
+        <source xml:lang="en">Don't show this again</source>
+        <target state="new">Don't show this again</target>
+      </trans-unit>
       <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
         <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
         <target state="translated">VS Code 拡張機能から離れることなくローカル SQL Server を簡単に設定できます。数回クリックするだけで、サーバーを簡単にインストール、構成、管理できます。</target>
@@ -2505,6 +2509,10 @@ Error:
         <note>{0} is the workspace ID</note>
         <target state="translated">Fabric ワークスペース '{0}' を取得しています</target>
       </trans-unit>
+      <trans-unit id="++CODE++d00eca1bae6742803906ab42a831e8b5396d15b6573ea13c139ec31631208ec1">
+        <source xml:lang="en">Getting Started</source>
+        <target state="new">Getting Started</target>
+      </trans-unit>
       <trans-unit id="++CODE++2a8c8cd4e7c7142bffa09b893aaf7ab5886407a22a7ef9b2ee4f60f46fad7bf0">
         <source xml:lang="en">Getting connection details for connection '{0}'</source>
         <note>{0} is the connection ID</note>
@@ -2752,6 +2760,10 @@ Error:
       <trans-unit id="++CODE++db1a21a0bc2ef8fbe13ac4cf044e8c9116d29137d5ed8b916ab63dcb2d4290df">
         <source xml:lang="en">JSON</source>
         <target state="translated">JSON</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2b44a1bd7856dc8b992d4ddddf8e6987261b77c662f06651842af2d637768d5e">
+        <source xml:lang="en">Join the community</source>
+        <target state="new">Join the community</target>
       </trans-unit>
       <trans-unit id="++CODE++29b39d81b8651e8717f85c00002b2b087bafb969eb289ac991fa41b17522e775">
         <source xml:lang="en">Keep in query pane</source>
@@ -3031,6 +3043,10 @@ Error:
         <source xml:lang="en">MSSQL Feedback</source>
         <target state="translated">MSSQL フィードバック</target>
       </trans-unit>
+      <trans-unit id="++CODE++845cd20358ee1964f66ca8b28c6df89c00d0f59d43a3e8e3f3d65a515194a1da">
+        <source xml:lang="en">MSSQL: Welcome &amp; What's New</source>
+        <target state="new">MSSQL: Welcome &amp; What's New</target>
+      </trans-unit>
       <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
         <source xml:lang="en">Manage Connection Profiles</source>
         <target state="translated">接続プロファイルの管理</target>
@@ -3231,6 +3247,10 @@ Error:
       <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
         <source xml:lang="en">New column mapping</source>
         <target state="translated">新しい列マッピング</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0850ea0cc273586f20d521ce50115a6fc5e53ed6fc2e0b9bd698bd7631d6e2e3">
+        <source xml:lang="en">New to MSSQL extension? Check out our quick-start guide.</source>
+        <target state="new">New to MSSQL extension? Check out our quick-start guide.</target>
       </trans-unit>
       <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
         <source xml:lang="en">Next</source>
@@ -3849,9 +3869,17 @@ Error:
 {1} is the query cost</note>
         <target state="translated">クエリ {0}: クエリ コスト (スクリプトに対する相対): {1}%</target>
       </trans-unit>
+      <trans-unit id="++CODE++1a87861144c312b1135b7e13f4da55c251e7ec3cb2d19ed06082aa132a11104e">
+        <source xml:lang="en">Read docs</source>
+        <target state="new">Read docs</target>
+      </trans-unit>
       <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
         <source xml:lang="en">Read more</source>
         <target state="translated">詳細情報</target>
+      </trans-unit>
+      <trans-unit id="++CODE++88de0d15d2a8736d9ac542037e6bfa6b4f210be39df50c5b1dd790273c49f678">
+        <source xml:lang="en">Read the documentation</source>
+        <target state="new">Read the documentation</target>
       </trans-unit>
       <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
         <source xml:lang="en">Readying container for connections.</source>
@@ -3948,6 +3976,10 @@ Error:
       <trans-unit id="++CODE++ae6d9c313ef115d3be932d158acd74f5ab4db5c068cdc2c10ade081168b185d5">
         <source xml:lang="en">Resource Group</source>
         <target state="translated">リソース グループ</target>
+      </trans-unit>
+      <trans-unit id="++CODE++e89b30aa1dc30a6ad8c34610689bede83b3ef645a24c3a84a0990826687fb735">
+        <source xml:lang="en">Resources</source>
+        <target state="new">Resources</target>
       </trans-unit>
       <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
         <source xml:lang="en">Restore</source>
@@ -5062,6 +5094,10 @@ Query: {1}</source>
         <source xml:lang="en">Total rows to fetch:</source>
         <target state="translated">取得する行の合計数:</target>
       </trans-unit>
+      <trans-unit id="++CODE++fe69511137842f6fddcfcc1e96e39bf6920b5ed00251ec6549d79463928b2e0c">
+        <source xml:lang="en">Try it</source>
+        <target state="new">Try it</target>
+      </trans-unit>
       <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
         <source xml:lang="en">Type</source>
         <target state="translated">種類</target>
@@ -5192,6 +5228,10 @@ Query: {1}</source>
         <source xml:lang="en">View More</source>
         <target state="translated">表示数を増やす</target>
       </trans-unit>
+      <trans-unit id="++CODE++4df1c3c1e102e435180696bd70601a6c985ccee7f47cdfe8b6bfcadaea047d87">
+        <source xml:lang="en">View keyboard shortcuts</source>
+        <target state="new">View keyboard shortcuts</target>
+      </trans-unit>
       <trans-unit id="++CODE++ff01d2362e483ddaca44f0e7f02d280bef382c1a3209776e5a11ca21acf2cea4">
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
         <target state="translated">mssql for Visual Studio Code リリース ノートを表示しますか?</target>
@@ -5208,6 +5248,10 @@ Query: {1}</source>
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
         <target state="translated">警告が検出されました。変更点をレビューしてください。</target>
       </trans-unit>
+      <trans-unit id="++CODE++5c3609430896d4699ab71dbb0b34c253b69d4cd07a22b6b890a29d6b7e0728a0">
+        <source xml:lang="en">Watch demos on YouTube</source>
+        <target state="new">Watch demos on YouTube</target>
+      </trans-unit>
       <trans-unit id="++CODE++d054fcb4284fd66975e378de56c04bda7b8e951e8e13f66834d9510e2b5461aa">
         <source xml:lang="en">We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.</source>
         <target state="translated">お使いのマシン上に Docker Desktop の場所が見つかりません。Docker Desktop を手動で起動して、もう一度お試しください。</target>
@@ -5223,6 +5267,10 @@ Query: {1}</source>
       <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
         <source xml:lang="en">What can we do to improve?</source>
         <target state="translated">改善するにはどうすればよいですか?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8b82f5fad6db0eafc4a1b0023f5350adb040f71aeb147cf6ae2366658d822ec3">
+        <source xml:lang="en">What's new in this release</source>
+        <target state="new">What's new in this release</target>
       </trans-unit>
       <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
         <source xml:lang="en">Width cannot be 0 or negative</source>
@@ -5259,6 +5307,11 @@ Query: {1}</source>
       <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
         <source xml:lang="en">You are not connected to any database.</source>
         <target state="translated">どのデータベースにも接続されていません。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f3181e292580fea40c15bf9a85615f13c8133a2f1ac88fc2067181c933b07177">
+        <source xml:lang="en">You are seeing this message because you updated the MSSQL extension to version {0}.</source>
+        <note>{0} is the version number of the MSSQL extension</note>
+        <target state="new">You are seeing this message because you updated the MSSQL extension to version {0}.</target>
       </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
@@ -6026,6 +6079,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">オブジェクト エクスプローラー ツリーにフィルターを適用して、最も重要なデータベース オブジェクトのみを表示します。
 まず、[接続] ビューのほとんどのフォルダーの横にあるフィルター ボタンをクリックします。</target>
       </trans-unit>
+      <trans-unit id="mssql.openChangelog">
+        <source xml:lang="en">Open Changelog</source>
+        <target state="new">Open Changelog</target>
+      </trans-unit>
       <trans-unit id="mssql.openExecutionPlanFile">
         <source xml:lang="en">Open Execution Plan File</source>
         <target state="translated">実行プラン ファイルを開く</target>
@@ -6229,6 +6286,10 @@ Start by clicking the filter button next to most folders in the Connections view
       <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
         <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines</source>
         <target state="translated">select ステートメント内のオブジェクトへの参照は別々の行に分割する必要がありますか?例: 'SELECT C1, C2 FROM T1' の場合、C1 と C2 の両方が別々の行に配置されます</target>
+      </trans-unit>
+      <trans-unit id="mssql.showChangelogOnUpdate">
+        <source xml:lang="en">Show changelog after extension updates</source>
+        <target state="new">Show changelog after extension updates</target>
       </trans-unit>
       <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
         <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
