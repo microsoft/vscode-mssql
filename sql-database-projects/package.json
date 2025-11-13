@@ -31,9 +31,10 @@
 		"ms-mssql.data-workspace-vscode"
   ],
   "scripts": {
+        "build:runtime-localization": "node scripts/generate-localization.js",
         "build:extension": "tsc -p tsconfig.extension.json",
-        "build:prepare": "yarn build:extension",
-        "build": "yarn build:extension",
+        "build:prepare": "yarn build:runtime-localization",
+        "build": "node scripts/build.js",
         "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
         "watch": "yarn build:prepare && run-p -l watch:extension",
         "lint": "eslint ./src",
