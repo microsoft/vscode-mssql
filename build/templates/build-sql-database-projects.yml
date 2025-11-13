@@ -1,7 +1,3 @@
-parameters:
-  - name: publishArtifactName # artifact name for publish task
-    type: string
-
 steps:
   - task: UseNode@1
     displayName: "Use Node 22.x"

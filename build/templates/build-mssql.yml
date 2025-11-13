@@ -1,6 +1,4 @@
 parameters:
-  - name: publishArtifactName # artifact name for publish task
-    type: string
   - name: packageOffline
     type: boolean
     default: true

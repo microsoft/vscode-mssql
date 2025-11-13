@@ -9,15 +9,12 @@ pool:
 steps:
   - template: ./templates/build-mssql.yml@self
     parameters:
-      publishArtifactName: drop # artifact name for publish task
       packageOffline: false # don't build offline packages for PR builds to speed runs up
 
   - template: ./templates/build-sql-database-projects.yml@self
-    parameters:
-      publishArtifactName: drop # artifact name for publish task
 
   - task: PublishPipelineArtifact@1
     displayName: Publish artifacts
     inputs:
       targetPath: "$(Build.ArtifactStagingDirectory)/vsix"
-      artifact: ${{ parameters.publishArtifactName }}
+      artifact: drop
