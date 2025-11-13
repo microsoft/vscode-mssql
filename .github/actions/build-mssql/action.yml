@@ -1,10 +1,9 @@
-name: Build Extension.
-
-description: Assumes extension is already checked out and cwd is the root of the extension.
+name: Build MSSQL Extension
+description: Builds the MSSQL VS Code extension.
 runs:
   using: "composite"
   steps:
-    - name: Set up xvfb
+    - name: MSSQL - Set up xvfb
       shell: bash
       run: |
         cd ${{ inputs.source-dir }}
@@ -15,7 +14,7 @@ runs:
         sudo update-rc.d xvfb defaults
         sudo service xvfb start
 
-    - name: Install tools
+    - name: MSSQL - Install tools
       shell: bash
       run: |
         echo "Installing Yarn"
@@ -23,19 +22,19 @@ runs:
         echo "Installing VSCE"
         npm install --global vsce@2.9.2
 
-    - name: Install extension dependencies
+    - name: MSSQL - Install extension dependencies
       shell: bash
       run: |
         cd ${{ inputs.source-dir }}
         yarn --frozen-lockfile
 
-    - name: Install playwright dependencies
+    - name: MSSQL - Install playwright dependencies
       shell: bash
       run: |
         cd ${{ inputs.source-dir }}
         npx playwright install --with-deps
 
-    - name: Build extension
+    - name: MSSQL - Build extension
       shell: bash
       run: |
         cd ${{ inputs.source-dir }}
