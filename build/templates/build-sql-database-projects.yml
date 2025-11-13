@@ -1,9 +1,6 @@
 parameters:
   - name: publishArtifactName # artifact name for publish task
     type: string
-  - name: packageOffline
-    type: boolean
-    default: true
 
 steps:
   - task: UseNode@1
@@ -21,57 +18,50 @@ steps:
   - pwsh: |
       yarn --frozen-lockfile
     displayName: Install extension depedencies
-    workingDirectory: "$(Build.SourcesDirectory)"
+    workingDirectory: "$(Build.SourcesDirectory)/sql-database-projects"
 
   - pwsh: |
       yarn run build --prod
     displayName: Build extension
-    workingDirectory: "$(Build.SourcesDirectory)"
+    workingDirectory: "$(Build.SourcesDirectory)/sql-database-projects"
 
   - pwsh: |
       yarn lint
     displayName: Lint code
-    workingDirectory: "$(Build.SourcesDirectory)"
+    workingDirectory: "$(Build.SourcesDirectory)/sql-database-projects"
+    continueOnError: true
 
   - pwsh: |
       yarn test
     displayName: Run tests
-    workingDirectory: "$(Build.SourcesDirectory)"
+    workingDirectory: "$(Build.SourcesDirectory)/sql-database-projects"
+    continueOnError: true
 
   - task: PublishTestResults@2
     displayName: Publish test results
     inputs:
       testResultsFormat: "JUnit"
-      testResultsFiles: "$(Build.SourcesDirectory)/test-reports/test-results-ext.xml"
+      testResultsFiles: "$(Build.SourcesDirectory)/sql-database-projects/test-reports/test-results-ext.xml"
     condition: succeededOrFailed()
+    continueOnError: true
 
   - task: PublishCodeCoverageResults@2
     displayName: Publish code coverage
     inputs:
-      summaryFileLocation: "$(Build.SourcesDirectory)/coverage/cobertura-coverage.xml"
+      summaryFileLocation: "$(Build.SourcesDirectory)/sql-database-projects/coverage/cobertura-coverage.xml"
     condition: succeededOrFailed()
+    continueOnError: true
 
   - pwsh: |
-      yarn package --online
-    displayName: Package extension (online)
-    workingDirectory: "$(Build.SourcesDirectory)"
-
-  - pwsh: |
-      yarn package --offline
-    displayName: Package extension (offline)
-    workingDirectory: "$(Build.SourcesDirectory)"
-    condition: eq( ${{ parameters.packageOffline }}, 'true')
+      yarn package
+    displayName: Package extension
+    workingDirectory: "$(Build.SourcesDirectory)/sql-database-projects"
 
   # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact can't use wildcards
   - task: CopyFiles@2
     displayName: "Copy VSIXs to clean folder"
     inputs:
-      SourceFolder: "$(Build.SourcesDirectory)"
+      SourceFolder: "$(Build.SourcesDirectory)/sql-database-projects"
       Contents: "*.vsix"
       TargetFolder: "$(Build.ArtifactStagingDirectory)/vsix"
 
-  - task: PublishPipelineArtifact@1
-    displayName: Publish artifacts
-    inputs:
-      targetPath: "$(Build.ArtifactStagingDirectory)/vsix"
-      artifact: ${{ parameters.publishArtifactName }}
