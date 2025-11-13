@@ -43,15 +43,26 @@ const useStyles = makeStyles({
         height: "100%",
         boxSizing: "border-box",
     },
+    bannerContainer: {
+        position: "relative",
+        borderRadius: "8px",
+        maxHeight: "200px",
+        overflowY: "auto",
+        overflowX: "hidden",
+        backgroundColor: "transparent",
+    },
     banner: {
         position: "relative",
         padding: "15px",
-        borderRadius: "8px",
-        display: "flex",
+        display: "grid",
+        gridTemplateColumns: "200px 1fr",
+        gap: "24px",
         width: "100%",
         boxSizing: "border-box",
         backgroundColor: "transparent",
-        overflow: "hidden",
+        "@media (max-width: 900px)": {
+            gridTemplateColumns: "1fr",
+        },
         "::before": {
             content: '""',
             position: "absolute",
@@ -63,13 +74,11 @@ const useStyles = makeStyles({
         },
     },
     bannerTitle: {
-        flex: `0 0 200px`,
         fontSize: "14px",
         fontWeight: 600,
         color: "var(--vscode-editor-foreground)",
         display: "flex",
         flexDirection: "column",
-        width: "200px",
         position: "relative",
         zIndex: 1,
     },
@@ -83,7 +92,6 @@ const useStyles = makeStyles({
     bannerDescription: {
         display: "flex",
         flexDirection: "column",
-        marginLeft: "16px",
         gap: "6px",
         justifyContent: "center",
         position: "relative",
@@ -250,63 +258,65 @@ export const ChangelogPage = () => {
         <div className={classes.root}>
             <div className={classes.page}>
                 {showBanner && !isSqlConOver() && (
-                    <div className={classes.banner}>
-                        <div className={classes.bannerTitle}>
-                            <Text
-                                size={600}
-                                weight="bold"
-                                style={{
-                                    backgroundImage:
-                                        "linear-gradient(to right in oklab, var(--vscode-button-hoverBackground, var(--vscode-contrastBorder)) 0%, var(--vscode-button-background, var(--vscode-editor-background)) 100%)",
-                                    backgroundClip: "text",
-                                    WebkitBackgroundClip: "text",
-                                    color: "transparent",
-                                }}>
-                                SQLCON
-                            </Text>
-                            <Text
-                                size={300}
-                                weight="semibold"
-                                style={{
-                                    marginTop: "5px",
-                                }}>
-                                Microsoft SQL
-                            </Text>
-                            <Text size={300} weight="semibold">
-                                COMMUNITY CONFERENCE
-                            </Text>
-                            <Text size={200} weight="regular" style={{ marginTop: "5px" }}>
-                                March 16-20, 2026 | ATLANTA
-                            </Text>
+                    <div className={classes.bannerContainer}>
+                        <div className={classes.banner}>
+                            <div className={classes.bannerTitle}>
+                                <Text
+                                    size={600}
+                                    weight="bold"
+                                    style={{
+                                        backgroundImage:
+                                            "linear-gradient(to right in oklab, var(--vscode-button-hoverBackground, var(--vscode-contrastBorder)) 0%, var(--vscode-button-background, var(--vscode-editor-background)) 100%)",
+                                        backgroundClip: "text",
+                                        WebkitBackgroundClip: "text",
+                                        color: "transparent",
+                                    }}>
+                                    SQLCON
+                                </Text>
+                                <Text
+                                    size={300}
+                                    weight="semibold"
+                                    style={{
+                                        marginTop: "5px",
+                                    }}>
+                                    Microsoft SQL
+                                </Text>
+                                <Text size={300} weight="semibold">
+                                    COMMUNITY CONFERENCE
+                                </Text>
+                                <Text size={200} weight="regular" style={{ marginTop: "5px" }}>
+                                    March 16-20, 2026 | ATLANTA
+                                </Text>
+                                <Button
+                                    style={{
+                                        marginTop: "10px",
+                                        width: "100px",
+                                    }}
+                                    onClick={() => openLink("https://aka.ms/sqlcon")}
+                                    appearance="primary">
+                                    Register
+                                </Button>
+                            </div>
+                            <div className={classes.bannerDescription}>
+                                <Text>
+                                    Discover how SQL database in Fabric, Azure SQL and SQL Server
+                                    are redefining modern app development.
+                                    <br /> Join engineers and peers pushing the limits of
+                                    performance, Al integration, and developer productivity.
+                                </Text>
+                                <Text>
+                                    Use code <span className={classes.codeSnippet}>VSCODE-200</span>
+                                    to get your exclusive VS Code discount
+                                </Text>
+                            </div>
                             <Button
-                                style={{
-                                    marginTop: "10px",
-                                    width: "100px",
-                                }}
-                                onClick={() => openLink("https://aka.ms/sqlcon")}
-                                appearance="primary">
-                                Register
-                            </Button>
+                                appearance="transparent"
+                                icon={<Dismiss12Filled />}
+                                className={classes.bannerDismiss}
+                                onClick={() => {
+                                    setShowBanner(false);
+                                }}></Button>
                         </div>
-                        <div className={classes.bannerDescription}>
-                            <Text>
-                                Discover how SQL database in Fabric, Azure SQL and SQL Server are
-                                redefining modern app development.
-                                <br /> Join engineers and peers pushing the limits of performance,
-                                Al integration, and developer productivity.
-                            </Text>
-                            <Text>
-                                Use code <span className={classes.codeSnippet}>VSCODE-200</span>
-                                to get your exclusive VS Code discount
-                            </Text>
-                        </div>
-                        <Button
-                            appearance="transparent"
-                            icon={<Dismiss12Filled />}
-                            className={classes.bannerDismiss}
-                            onClick={() => {
-                                setShowBanner(false);
-                            }}></Button>
                     </div>
                 )}
                 <Title3 as="h2">{sectionTitles.whatsNewSectionTitle}</Title3>
