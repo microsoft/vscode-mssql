@@ -2120,7 +2120,7 @@ export class ConnectionGroup {
 }
 
 export class DacpacDialog {
-    public static Title = l10n.t("Data-tier Application");
+    public static Title = l10n.t("Data-tier Application (Preview)");
     public static FilePathRequired = l10n.t("File path is required");
     public static FileNotFound = l10n.t("File not found");
     public static InvalidFileExtension = l10n.t(

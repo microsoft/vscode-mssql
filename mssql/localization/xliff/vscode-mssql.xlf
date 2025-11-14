@@ -1079,8 +1079,8 @@
 {2} is target data type
 {3} is target column</note>
     </trans-unit>
-    <trans-unit id="++CODE++9fe8b6ce85d7df821be2184783b65a4e054c966f5cd52cf7abb3b7ada2c67e21">
-      <source xml:lang="en">Data-tier Application</source>
+    <trans-unit id="++CODE++775a3b4289d195d3cf2e85c782aab780c673c834c23bf5b90f54e1d87dfcf4ee">
+      <source xml:lang="en">Data-tier Application (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++2c9656ff01800f0250595c53f2b5010179b7f3759334fa473f89c10725e0b0bd">
       <source xml:lang="en">Data-tier Application File (.dacpac)</source>
@@ -4373,7 +4373,7 @@
       <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.&#10;Once you&apos;re done making your changes, click the &apos;Publish&apos; button to send the changes to your database.</source>
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.launch">
-      <source xml:lang="en">Data-tier Application</source>
+      <source xml:lang="en">Data-tier Application (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.description">
       <source xml:lang="en">Default view mode for query results display.</source>
