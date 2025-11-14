@@ -99,6 +99,7 @@ import { getCloudId } from "../azure/providerSettings";
 import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
+import { ChangelogWebviewController } from "./changelogWebviewController";
 
 /**
  * The main controller class that initializes the extension
@@ -309,6 +310,14 @@ export default class MainController implements vscode.Disposable {
                 void this.onRunQuery({
                     includeEstimatedExecutionPlanXml: true,
                 });
+            });
+            this.registerCommand(Constants.cmdOpenChangelog);
+            this._event.on(Constants.cmdOpenChangelog, async () => {
+                const changelogController = new ChangelogWebviewController(
+                    this._context,
+                    this._vscodeWrapper,
+                );
+                await changelogController.revealToForeground();
             });
 
             this._context.subscriptions.push(
