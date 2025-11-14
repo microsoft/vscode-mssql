@@ -110,6 +110,6 @@ export class ChangelogWebviewController extends ReactWebviewPanelController<
         const vscodeConfig = vscode.workspace.getConfiguration();
         const configValues = vscodeConfig.inspect<boolean>(constants.configShowChangelogOnUpdate);
 
-        return configValues?.globalValue || configValues?.defaultValue || true;
+        return configValues?.globalValue ?? configValues?.defaultValue ?? true;
     }
 }
