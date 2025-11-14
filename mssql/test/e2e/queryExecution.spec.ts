@@ -35,10 +35,7 @@ test.describe("MSSQL Extension - Query Execution", async () => {
     let profileName: string;
 
     test.beforeAll(async () => {
-        // Launch with new UI off
-        const { electronApp, page } = await launchVsCodeWithMssqlExtension({
-            useNewUI: true,
-        });
+        const { electronApp, page } = await launchVsCodeWithMssqlExtension();
         vsCodeApp = electronApp;
         vsCodePage = page;
 
