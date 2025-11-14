@@ -1210,7 +1210,7 @@ export class LocConstants {
 
     public get dacpacDialog() {
         return {
-            title: l10n.t("Data-tier Application"),
+            title: l10n.t("Data-tier Application (Preview)"),
             subtitle: l10n.t(
                 "Deploy, extract, import, or export data-tier applications on the selected database",
             ),
