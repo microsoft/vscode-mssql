@@ -4618,6 +4618,9 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.description">
       <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.&#10;Start by clicking the filter button next to most folders in the Connections view.</source>
     </trans-unit>
+    <trans-unit id="mssql.openChangelog">
+      <source xml:lang="en">Open Changelog</source>
+    </trans-unit>
     <trans-unit id="mssql.openExecutionPlanFile">
       <source xml:lang="en">Open Execution Plan File</source>
     </trans-unit>
@@ -4770,6 +4773,9 @@
     </trans-unit>
     <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
       <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for &apos;SELECT C1, C2 FROM T1&apos; both C1 and C2 will be on separate lines</source>
+    </trans-unit>
+    <trans-unit id="mssql.showChangelogOnUpdate">
+      <source xml:lang="en">Show changelog after extension updates</source>
     </trans-unit>
     <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
       <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
