@@ -21,6 +21,7 @@ import { sendActionEvent } from "./telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
 import { IconUtils } from "./utils/iconUtils";
+import { ChangelogWebviewController } from "./controllers/changelogWebviewController";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -70,6 +71,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     );
 
     context.subscriptions.push(controller, participant, receiveFeedbackDisposable);
+
+    await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
 
     return {
         sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
