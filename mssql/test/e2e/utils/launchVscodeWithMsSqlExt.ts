@@ -16,8 +16,13 @@ import { getVsCodeVersionName } from "./envConfigReader";
 import * as os from "os";
 
 export type mssqlExtensionLaunchConfig = {
-    useNewUI?: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    initialConfig?: any;
     useVsix?: boolean;
+};
+
+export const DEFAULT_USER_CONFIG = {
+    "mssql.showChangelogOnUpdate": false,
 };
 
 export async function launchVsCodeWithMssqlExtension(
@@ -29,7 +34,11 @@ export async function launchVsCodeWithMssqlExtension(
     extensionsDir: string;
     nodePathDir?: string;
 }> {
-    const config = { useNewUI: true, useVsix: false, ...options };
+    const config: mssqlExtensionLaunchConfig = {
+        initialConfig: DEFAULT_USER_CONFIG,
+        useVsix: false,
+        ...options,
+    };
 
     const vsCodeVersion = getVsCodeVersionName();
     const vscodePath = await downloadAndUnzipVSCode(vsCodeVersion);
@@ -37,13 +46,16 @@ export async function launchVsCodeWithMssqlExtension(
     const devExtensionPath = path.resolve(__dirname, "../../../");
 
     const tmpRoot = path.join(os.tmpdir(), `vscode-mssql-test-${Date.now()}`);
-    const userDataDir = !options.useNewUI
-        ? `${path.join(process.cwd(), "test", "resources", "launchDir")}`
-        : path.join(tmpRoot, "user-data");
+    const userDataDir = path.join(tmpRoot, "user-data");
     const extensionsDir = path.join(tmpRoot, "extensions");
 
     fs.mkdirSync(userDataDir, { recursive: true });
     fs.mkdirSync(extensionsDir, { recursive: true });
+
+    // Create initial settings.json
+    const settingsPath = path.join(userDataDir, "User", "settings.json");
+    fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+    fs.writeFileSync(settingsPath, JSON.stringify(config.initialConfig, undefined, 4));
 
     const launchArgs: string[] = [
         "--disable-gpu-sandbox",

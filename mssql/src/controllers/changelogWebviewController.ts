@@ -107,7 +107,9 @@ export class ChangelogWebviewController extends ReactWebviewPanelController<
      * @returns A promise that resolves to true if the changelog should be shown, false otherwise.
      */
     public static shouldShowChangelogOnUpdate() {
-        return vscode.workspace.getConfiguration().inspect(constants.configShowChangelogOnUpdate)
-            .globalValue;
+        const vscodeConfig = vscode.workspace.getConfiguration();
+        const configValues = vscodeConfig.inspect<boolean>(constants.configShowChangelogOnUpdate);
+
+        return configValues?.globalValue ?? configValues?.defaultValue ?? true;
     }
 }
