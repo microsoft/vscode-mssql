@@ -560,7 +560,7 @@
                 },
                 {
                     "command": "mssql.schemaDesigner",
-                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences",
+                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database|DockerContainerDatabase)\\b/ && config.mssql.enableRichExperiences",
                     "group": "2_MSSQL_serverDbActions@1"
                 },
                 {
@@ -731,15 +731,15 @@
                 },
                 {
                     "command": "mssql.stopContainer",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|DockerContainerDatabase)\\b/"
                 },
                 {
                     "command": "mssql.deleteContainer",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|disconnectedDockerContainer)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(DockerContainer|disconnectedDockerContainer|DockerContainerDatabase)\\b/"
                 },
                 {
                     "command": "mssql.startContainer",
-                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer)\\b/"
+                    "when": "view == objectExplorer && viewItem =~ /\\bsubType=(disconnectedDockerContainer|DockerContainerDatabase)\\b/"
                 }
             ],
             "commandPalette": [
@@ -809,7 +809,7 @@
                 },
                 {
                     "command": "mssql.schemaDesigner",
-                    "when": "view === objectExplorer && viewItem =~ /\\btype=(Database|Server)\\b.*\\bsubType=(Database)\\b/ && config.mssql.enableRichExperiences"
+                    "when": "false"
                 },
                 {
                     "command": "mssql.dacpacDialog.launch",
