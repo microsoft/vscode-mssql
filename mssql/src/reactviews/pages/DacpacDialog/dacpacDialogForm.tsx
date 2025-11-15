@@ -67,6 +67,7 @@ export const DacpacDialogForm = () => {
     );
     const [ownerUri, setOwnerUri] = useState<string>(initialOwnerUri || "");
     const [isConnecting, setIsConnecting] = useState(false);
+    const [isFabric, setIsFabric] = useState(false);
 
     // Load available connections when component mounts
     useEffect(() => {
@@ -86,11 +87,12 @@ export const DacpacDialogForm = () => {
             ownerUri &&
             (operationType === dacpacDialog.DacPacDialogOperationType.Deploy ||
                 operationType === dacpacDialog.DacPacDialogOperationType.Extract ||
-                operationType === dacpacDialog.DacPacDialogOperationType.Export)
+                operationType === dacpacDialog.DacPacDialogOperationType.Export ||
+                (operationType === dacpacDialog.DacPacDialogOperationType.Import && isFabric))
         ) {
             void loadDatabases();
         }
-    }, [operationType, ownerUri]);
+    }, [operationType, ownerUri, isFabric]);
 
     // Update file path suggestion when database or operation type changes for Export/Extract
     useEffect(() => {
@@ -116,6 +118,19 @@ export const DacpacDialogForm = () => {
         void updateSuggestedPath();
     }, [databaseName, operationType, context]);
 
+    // Clear state when switching operations (Deploy <-> Extract <-> Export <-> Import)
+    useEffect(() => {
+        setDatabaseName("");
+        setFilePath("");
+        setApplicationName("");
+        setApplicationVersion(DEFAULT_APPLICATION_VERSION);
+    }, [operationType]);
+
+    // Clear the selected database if the server is changed
+    useEffect(() => {
+        setDatabaseName("");
+    }, [selectedProfileId]);
+
     const loadConnections = async () => {
         try {
             setIsConnecting(true);
@@ -138,6 +153,13 @@ export const DacpacDialogForm = () => {
                     // If we have an ownerUri (either provided or from auto-connect)
                     if (result.ownerUri) {
                         setOwnerUri(result.ownerUri);
+                    }
+
+                    // Check if this is a Fabric connection
+                    if (result.isFabric) {
+                        setIsFabric(true);
+                        // For Fabric, default to existing database
+                        setIsNewDatabase(false);
                     }
 
                     // Show error if auto-connect failed
@@ -184,12 +206,21 @@ export const DacpacDialogForm = () => {
 
             if (result?.isConnected && result.ownerUri) {
                 setOwnerUri(result.ownerUri);
+                // Check if this is a Fabric connection
+                if (result.isFabric) {
+                    setIsFabric(true);
+                    // For Fabric, default to existing database
+                    setIsNewDatabase(false);
+                } else {
+                    setIsFabric(false);
+                }
                 // Databases will be loaded automatically via useEffect
             } else {
                 // Connection failed - clear state
                 setOwnerUri("");
                 setAvailableDatabases([]);
                 setDatabaseName("");
+                setIsFabric(false);
                 // Show error message to user
                 const errorMsg = result?.errorMessage || locConstants.dacpacDialog.connectionFailed;
                 setValidationMessages({
@@ -217,6 +248,13 @@ export const DacpacDialogForm = () => {
             const result = await context?.listDatabases({ ownerUri: ownerUri || "" });
             if (result?.databases) {
                 setAvailableDatabases(result.databases);
+                
+                // Auto-select database if:
+                // 1. Fabric connection (always select first database)
+                if (isFabric && result.databases.length > 0) {
+                    // For Fabric, always select the first database
+                    setDatabaseName(result.databases[0]);
+                }
             }
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
@@ -556,13 +594,19 @@ export const DacpacDialogForm = () => {
             await validateFilePath(result.filePath, requiresInputFile);
 
             // For Deploy/Import operations, suggest database name from the selected file
-            // Only auto-suggest if the dialog was NOT launched with a specific database context
-            if (
+            // Only auto-suggest if:
+            // 1. For Import operations (which always create new database) and database is not set, OR
+            // 2. For Deploy with "New Database" option selected AND no database name is already set
+            const shouldSuggestName =
                 requiresInputFile &&
                 context &&
-                (operationType === dacpacDialog.DacPacDialogOperationType.Deploy ||
-                    operationType === dacpacDialog.DacPacDialogOperationType.Import)
-            ) {
+                ((operationType === dacpacDialog.DacPacDialogOperationType.Import &&
+                        !databaseName) ||
+                    (operationType === dacpacDialog.DacPacDialogOperationType.Deploy &&
+                        isNewDatabase &&
+                        !databaseName));
+
+            if (shouldSuggestName) {
                 const nameResult = await context.getSuggestedDatabaseName({
                     filePath: result.filePath,
                 });
@@ -644,6 +688,7 @@ export const DacpacDialogForm = () => {
                     isOperationInProgress={isOperationInProgress}
                     validationMessages={validationMessages}
                     onServerChange={(profileId) => void handleServerChange(profileId)}
+                    isFabric={isFabric}
                 />
 
                 {/* For Extract/Export: Show database selection BEFORE file path */}
@@ -657,6 +702,7 @@ export const DacpacDialogForm = () => {
                         validationMessages={validationMessages}
                         showDatabaseSource={showDatabaseSource}
                         showNewDatabase={false}
+                        isFabric={isFabric}
                     />
                 )}
 
@@ -681,6 +727,7 @@ export const DacpacDialogForm = () => {
                         isOperationInProgress={isOperationInProgress}
                         ownerUri={ownerUri}
                         validationMessages={validationMessages}
+                        isFabric={isFabric}
                     />
                 )}
 
@@ -695,6 +742,7 @@ export const DacpacDialogForm = () => {
                         validationMessages={validationMessages}
                         showDatabaseSource={false}
                         showNewDatabase={showNewDatabase}
+                        isFabric={isFabric}
                     />
                 )}
 
@@ -739,8 +787,6 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         width: "100%",
-        maxHeight: "100vh",
-        overflowY: "auto",
         padding: "10px",
     },
     formContainer: {

@@ -855,6 +855,8 @@
     "A database with this name already exists on the server": "A database with this name already exists on the server",
     "Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)": "Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)",
     "Learn More": "Learn More",
+    "Fabric targets are currently not supported in this preview, and we are working to improve the experience.": "Fabric targets are currently not supported in this preview, and we are working to improve the experience.",
+    "Learn more about this issue.": "Learn more about this issue.",
     "Save Changes": "Save Changes",
     "Add Row": "Add Row",
     "Show Script": "Show Script",

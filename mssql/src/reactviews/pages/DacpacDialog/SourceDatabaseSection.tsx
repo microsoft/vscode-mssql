@@ -23,6 +23,7 @@ interface SourceDatabaseSectionProps {
     validationMessages: Record<string, ValidationMessage>;
     showDatabaseSource: boolean;
     showNewDatabase: boolean;
+    isFabric?: boolean;
 }
 
 const useStyles = makeStyles({
@@ -42,6 +43,7 @@ export const SourceDatabaseSection = ({
     validationMessages,
     showDatabaseSource,
     showNewDatabase,
+    isFabric = false,
 }: SourceDatabaseSectionProps) => {
     const classes = useStyles();
 
@@ -66,7 +68,7 @@ export const SourceDatabaseSection = ({
                         value={databaseName}
                         selectedOptions={[databaseName]}
                         onOptionSelect={(_, data) => setDatabaseName(data.optionText || "")}
-                        disabled={isOperationInProgress || !ownerUri}
+                        disabled={isOperationInProgress || !ownerUri || isFabric}
                         aria-label={locConstants.dacpacDialog.sourceDatabaseLabel}>
                         {availableDatabases.map((db) => (
                             <Option key={db} value={db}>
@@ -88,7 +90,7 @@ export const SourceDatabaseSection = ({
                             value={databaseName}
                             onChange={(_, data) => setDatabaseName(data.value)}
                             placeholder={locConstants.dacpacDialog.enterDatabaseName}
-                            disabled={isOperationInProgress}
+                            disabled={isOperationInProgress || isFabric}
                             aria-label={locConstants.dacpacDialog.databaseNameLabel}
                         />
                     </Field>

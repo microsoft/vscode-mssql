@@ -21,7 +21,7 @@ import * as dacpacDialog from "../sharedInterfaces/dacpacDialog";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { ListDatabasesRequest } from "../models/contracts/connection";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
-import { getConnectionDisplayName } from "../models/connectionInfo";
+import { getConnectionDisplayName, getServerTypes, ServerType } from "../models/connectionInfo";
 import {
     validateDatabaseNameFormat,
     DatabaseNameValidationError,
@@ -716,6 +716,19 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
     }
 
     /**
+     * Checks if a connection profile is connected to a Fabric server
+     */
+    private isFabricConnection(profile: IConnectionDialogProfile): boolean {
+        try {
+            const serverTypes = getServerTypes(profile as vscodeMssql.IConnectionInfo);
+            return serverTypes.includes(ServerType.Fabric);
+        } catch (error) {
+            this.logger.error(`Failed to determine server type: ${error}`);
+            return false;
+        }
+    }
+
+    /**
      * Initializes connection based on initial state from Object Explorer or previous session
      * Handles auto-matching and auto-connecting to provide seamless user experience
      */
@@ -730,6 +743,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
         ownerUri?: string;
         autoConnected: boolean;
         errorMessage?: string;
+        isFabric?: boolean;
     }> {
         try {
             // Get all connections
@@ -755,18 +769,21 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                 };
             }
 
+            // Check if this is a Fabric connection
+            const isFabric = this.isFabricConnection(matchingConnection.profile);
+
             // Handle existing connection from Object Explorer
             if (params.initialOwnerUri) {
                 const existingConnResult = this.useExistingConnection(
                     matchingConnection.profile,
                     params.initialOwnerUri,
                 );
-                return { ...existingConnResult, connections };
+                return { ...existingConnResult, connections, isFabric };
             }
 
             // Attempt to connect to the matched profile
             const connectResult = await this.connectToMatchedProfile(matchingConnection.profile);
-            return { ...connectResult, connections };
+            return { ...connectResult, connections, isFabric };
         } catch (error) {
             this.logger.error(`Failed to initialize connection: ${error}`);
             // Fallback: return empty state
@@ -842,9 +859,12 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
     /**
      * Connects to a server using the specified profile ID
      */
-    private async connectToServer(
-        profileId: string,
-    ): Promise<{ ownerUri: string; isConnected: boolean; errorMessage?: string }> {
+    private async connectToServer(profileId: string): Promise<{
+        ownerUri: string;
+        isConnected: boolean;
+        errorMessage?: string;
+        isFabric?: boolean;
+    }> {
         try {
             // Find the profile in saved connections
             const savedConnections =
@@ -863,6 +883,9 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                 };
             }
 
+            // Check if this is a Fabric connection
+            const isFabric = this.isFabricConnection(profile as IConnectionDialogProfile);
+
             // Check if already connected and the connection is valid
             let ownerUri = this.connectionManager.getUriForConnection(profile);
             if (ownerUri && this.connectionManager.isConnected(ownerUri)) {
@@ -870,6 +893,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                 return {
                     ownerUri,
                     isConnected: true,
+                    isFabric,
                 };
             }
 
@@ -884,6 +908,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                 return {
                     ownerUri,
                     isConnected: true,
+                    isFabric,
                 };
             } else {
                 // Check if connection failed due to error or if it was never initiated
@@ -897,6 +922,7 @@ export class DacpacDialogWebviewController extends ReactWebviewPanelController<
                     ownerUri: "",
                     isConnected: false,
                     errorMessage,
+                    isFabric,
                 };
             }
         } catch (error) {
