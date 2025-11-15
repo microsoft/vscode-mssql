@@ -248,7 +248,6 @@ export const DacpacDialogForm = () => {
             const result = await context?.listDatabases({ ownerUri: ownerUri || "" });
             if (result?.databases) {
                 setAvailableDatabases(result.databases);
-                
                 // Auto-select database if:
                 // 1. Fabric connection (always select first database)
                 if (isFabric && result.databases.length > 0) {
@@ -601,7 +600,7 @@ export const DacpacDialogForm = () => {
                 requiresInputFile &&
                 context &&
                 ((operationType === dacpacDialog.DacPacDialogOperationType.Import &&
-                        !databaseName) ||
+                    !databaseName) ||
                     (operationType === dacpacDialog.DacPacDialogOperationType.Deploy &&
                         isNewDatabase &&
                         !databaseName));

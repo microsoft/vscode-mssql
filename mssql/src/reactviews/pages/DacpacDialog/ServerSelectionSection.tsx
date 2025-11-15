@@ -54,9 +54,7 @@ export const ServerSelectionSection = ({
             <Field
                 label={locConstants.dacpacDialog.serverLabel}
                 required
-                validationMessage={
-                    isFabric ? undefined : validationMessages.connection?.message
-                }
+                validationMessage={isFabric ? undefined : validationMessages.connection?.message}
                 validationState={
                     !isFabric && validationMessages.connection?.severity === "error"
                         ? "error"
