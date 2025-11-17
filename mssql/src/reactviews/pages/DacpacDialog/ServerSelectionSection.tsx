@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Dropdown, Field, makeStyles, Option, Spinner } from "@fluentui/react-components";
+import { Dropdown, Field, Link, makeStyles, Option, Spinner } from "@fluentui/react-components";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { locConstants } from "../../common/locConstants";
 
@@ -22,6 +22,7 @@ interface ServerSelectionSectionProps {
     isOperationInProgress: boolean;
     validationMessages: Record<string, ValidationMessage>;
     onServerChange: (profileId: string) => void;
+    isFabric?: boolean;
 }
 
 const useStyles = makeStyles({
@@ -29,6 +30,11 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "12px",
+    },
+    fabricWarning: {
+        marginTop: "4px",
+        fontSize: "12px",
+        color: "var(--vscode-descriptionForeground)",
     },
 });
 
@@ -39,6 +45,7 @@ export const ServerSelectionSection = ({
     isOperationInProgress,
     validationMessages,
     onServerChange,
+    isFabric = false,
 }: ServerSelectionSectionProps) => {
     const classes = useStyles();
 
@@ -47,9 +54,11 @@ export const ServerSelectionSection = ({
             <Field
                 label={locConstants.dacpacDialog.serverLabel}
                 required
-                validationMessage={validationMessages.connection?.message}
+                validationMessage={isFabric ? undefined : validationMessages.connection?.message}
                 validationState={
-                    validationMessages.connection?.severity === "error" ? "error" : "none"
+                    !isFabric && validationMessages.connection?.severity === "error"
+                        ? "error"
+                        : "none"
                 }>
                 {isConnecting ? (
                     <Spinner size="tiny" label={locConstants.dacpacDialog.connectingToServer} />
@@ -89,6 +98,16 @@ export const ServerSelectionSection = ({
                     </Dropdown>
                 )}
             </Field>
+            {isFabric && (
+                <div className={classes.fabricWarning}>
+                    {locConstants.dacpacDialog.fabricWarning}{" "}
+                    <Link
+                        href="https://github.com/microsoft/vscode-mssql/issues/20568"
+                        target="_blank">
+                        {locConstants.dacpacDialog.fabricWarningLearnMore}
+                    </Link>
+                </div>
+            )}
         </div>
     );
 };

@@ -32,6 +32,7 @@ interface TargetDatabaseSectionProps {
     isOperationInProgress: boolean;
     ownerUri: string;
     validationMessages: Record<string, ValidationMessage>;
+    isFabric?: boolean;
 }
 
 const useStyles = makeStyles({
@@ -56,6 +57,7 @@ export const TargetDatabaseSection = ({
     isOperationInProgress,
     ownerUri,
     validationMessages,
+    isFabric = false,
 }: TargetDatabaseSectionProps) => {
     const classes = useStyles();
 
@@ -70,7 +72,7 @@ export const TargetDatabaseSection = ({
                 <Radio
                     value="new"
                     label={locConstants.dacpacDialog.newDatabase}
-                    disabled={isOperationInProgress}
+                    disabled={isOperationInProgress || isFabric}
                     aria-label={locConstants.dacpacDialog.newDatabase}
                 />
                 <Radio

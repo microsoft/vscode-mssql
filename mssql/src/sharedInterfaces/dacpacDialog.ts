@@ -225,6 +225,7 @@ export namespace InitializeConnectionWebviewRequest {
             ownerUri?: string;
             autoConnected: boolean;
             errorMessage?: string;
+            isFabric?: boolean;
         },
         void
     >("dacpacDialog/initializeConnection");
@@ -236,7 +237,7 @@ export namespace InitializeConnectionWebviewRequest {
 export namespace ConnectToServerWebviewRequest {
     export const type = new RequestType<
         { profileId: string },
-        { ownerUri: string; isConnected: boolean; errorMessage?: string },
+        { ownerUri: string; isConnected: boolean; errorMessage?: string; isFabric?: boolean },
         void
     >("dacpacDialog/connectToServer");
 }
