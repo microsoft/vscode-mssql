@@ -52,12 +52,16 @@ export interface DacpacDialogRpcMethods {
               ownerUri?: string;
               autoConnected: boolean;
               errorMessage?: string;
+              isFabric?: boolean;
           }
         | undefined
     >;
     connectToServer: (params: {
         profileId: string;
-    }) => Promise<{ ownerUri: string; isConnected: boolean; errorMessage?: string } | undefined>;
+    }) => Promise<
+        | { ownerUri: string; isConnected: boolean; errorMessage?: string; isFabric?: boolean }
+        | undefined
+    >;
     listDatabases: (params: { ownerUri: string }) => Promise<{ databases: string[] } | undefined>;
 
     // File browsing methods
