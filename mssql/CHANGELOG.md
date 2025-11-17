@@ -1,5 +1,24 @@
 # Change Log
 
+## Version 1.37.0
+
+-   Release date: November 18, 2025
+-   Release status: GA
+
+### What's new in 1.37.0
+
+- Released general availability of GitHub Copilot integration, including Ask Mode, Agent Mode, Slash Commands, and a new onboarding experience, providing schema-aware exploration and scaffolding, query generation, explanations, optimization guidance, and contextual assistance based on your active database connection.
+- Introduced Edit Data (Public Preview), an interactive grid for browsing, editing, adding, and deleting table data directly in the editor with real-time validation and script previews. Set `mssql.enableExperimentalFeatures: true` to enable.
+- Introduced Data-tier Application dialog (Public Preview) to deploy and extract `.dacpac` files and import or export `.bacpac` packages through a modernized workflow inside VS Code. Set `mssql.enableExperimentalFeatures: true` to enable.
+- Introduced Publish SQL Project dialog (Public Preview) to assist users in deploying a SQL Database project (`.sqlproj`) to existing database or to a new local SQL development container. Set `mssql.enableExperimentalFeatures: true` to enable.
+- Added a "What's New" panel to highlight major updates, new features, learning resources, and onboarding tips.
+- Added support for Microsoft Entra ID authentication to and browsing resources in Sovereign and Government clouds
+- Fixed an issue where users may be prompted for reauthentication continually after a Microsoft Entra ID token has expired
+- Fixed an issue where long-running queries could not be cancelled
+- Fixed an issue where query result aggregations (count, sum, average) were not displaying when selecting rows or columns
+- Improved rendering and stability of query results grid
+- Improved keyboard accessibility for query results grid
+
 ## Version 1.36.0
 
 -   Release date: September 11, 2025
