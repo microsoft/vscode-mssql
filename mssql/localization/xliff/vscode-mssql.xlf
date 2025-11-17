@@ -1570,6 +1570,9 @@
       <note>{0} is the error code
 {1} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++c85fb96bbfbe33bde4a67a8e9223c63dc3a3f817428e22ff8357a1ae30f6f4eb">
+      <source xml:lang="en">Fabric targets are currently not supported in this preview, and we are working to improve the experience.</source>
+    </trans-unit>
     <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
       <source xml:lang="en">Failed</source>
     </trans-unit>
@@ -2128,6 +2131,9 @@
     </trans-unit>
     <trans-unit id="++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3">
       <source xml:lang="en">Learn more about SQL Server 2025 features</source>
+    </trans-unit>
+    <trans-unit id="++CODE++11c56d1016670369a74f4b7d2d2ec8959e8098b44e778fd4e3a3548bd846826b">
+      <source xml:lang="en">Learn more about this issue.</source>
     </trans-unit>
     <trans-unit id="++CODE++adc95605a1b30c73959fbaf21e60f9723efe855c482fa336a957924d4ea0a08b">
       <source xml:lang="en">Length</source>
