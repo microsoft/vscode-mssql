@@ -13,7 +13,6 @@
 - Introduced Publish SQL Project dialog (Public Preview) to assist users in deploying a SQL Database project (`.sqlproj`) to existing database or to a new local SQL development container. Set `mssql.enableExperimentalFeatures: true` to enable.
 - Added a "What's New" panel to highlight major updates, new features, learning resources, and onboarding tips.
 - Added support for Microsoft Entra ID authentication to and browsing resources in Sovereign and Government clouds
-- Fixed an issue where Dynamics CRM databases could not be connected to
 - Fixed an issue where users may be prompted for reauthentication continually after a Microsoft Entra ID token has expired
 - Fixed an issue where long-running queries could not be cancelled
 - Fixed an issue where query result aggregations (count, sum, average) were not displaying when selecting rows or columns
