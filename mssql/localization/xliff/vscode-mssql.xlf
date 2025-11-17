@@ -1079,8 +1079,8 @@
 {2} is target data type
 {3} is target column</note>
     </trans-unit>
-    <trans-unit id="++CODE++9fe8b6ce85d7df821be2184783b65a4e054c966f5cd52cf7abb3b7ada2c67e21">
-      <source xml:lang="en">Data-tier Application</source>
+    <trans-unit id="++CODE++775a3b4289d195d3cf2e85c782aab780c673c834c23bf5b90f54e1d87dfcf4ee">
+      <source xml:lang="en">Data-tier Application (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++2c9656ff01800f0250595c53f2b5010179b7f3759334fa473f89c10725e0b0bd">
       <source xml:lang="en">Data-tier Application File (.dacpac)</source>
@@ -2905,8 +2905,8 @@
     <trans-unit id="++CODE++dce49ef71e44b5c107d066069bd508af15fbffd22c8e410f76db1f120371635a">
       <source xml:lang="en">Publish Profile</source>
     </trans-unit>
-    <trans-unit id="++CODE++42b341b8072aa3adcb1b6f83353574f79b03c073faeb2c64253cdb6248c011c1">
-      <source xml:lang="en">Publish Project</source>
+    <trans-unit id="++CODE++e800f91c86916c398645bf581043fd3d6a275d1199cb474019114e6f2195f8b1">
+      <source xml:lang="en">Publish Project (Preview)</source>
     </trans-unit>
     <trans-unit id="++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f">
       <source xml:lang="en">Publish Settings File</source>
@@ -4373,7 +4373,7 @@
       <source xml:lang="en">Create a new table in your database, or edit existing tables with the table designer.&#10;Once you&apos;re done making your changes, click the &apos;Publish&apos; button to send the changes to your database.</source>
     </trans-unit>
     <trans-unit id="mssql.dacpacDialog.launch">
-      <source xml:lang="en">Data-tier Application</source>
+      <source xml:lang="en">Data-tier Application (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.defaultQueryResultsViewMode.description">
       <source xml:lang="en">Default view mode for query results display.</source>
@@ -4618,6 +4618,9 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.objectExplorerFilters.description">
       <source xml:lang="en">Only see the database objects that matter most to you by applying filters to the Object Explorer tree.&#10;Start by clicking the filter button next to most folders in the Connections view.</source>
     </trans-unit>
+    <trans-unit id="mssql.openChangelog">
+      <source xml:lang="en">Open Changelog</source>
+    </trans-unit>
     <trans-unit id="mssql.openExecutionPlanFile">
       <source xml:lang="en">Open Execution Plan File</source>
     </trans-unit>
@@ -4770,6 +4773,9 @@
     </trans-unit>
     <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
       <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for &apos;SELECT C1, C2 FROM T1&apos; both C1 and C2 will be on separate lines</source>
+    </trans-unit>
+    <trans-unit id="mssql.showChangelogOnUpdate">
+      <source xml:lang="en">Show changelog after extension updates</source>
     </trans-unit>
     <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
       <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
