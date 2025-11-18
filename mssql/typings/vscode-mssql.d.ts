@@ -53,6 +53,11 @@ declare module "vscode-mssql" {
         readonly azureResourceService: IAzureResourceService;
 
         /**
+         * Service for accessing Restore functionality
+         */
+        readonly restore: IRestoreService;
+
+        /**
          * Prompts the user to select an existing connection or create a new one, and then returns the result
          * @param ignoreFocusOut Whether the quickpick prompt ignores focus out (default false)
          */
@@ -541,6 +546,100 @@ declare module "vscode-mssql" {
             sqlCommandVariableValues?: Map<string, string>,
             deploymentOptions?: DeploymentOptions,
         ): Thenable<ResultStatus>;
+    }
+
+    export interface IRestoreService {
+        /**
+         * Restore a database from backup files
+         * @param ownerUri Connection URI
+         * @param options Restore options
+         * @param taskExecutionMode Execution mode (execute or script)
+         * @returns Restore response with task ID
+         */
+        restore(
+            ownerUri: string,
+            options: { [key: string]: any },
+            taskExecutionMode: TaskExecutionMode,
+        ): Thenable<RestoreResponse>;
+
+        /**
+         * Create a restore plan from backup files
+         * @param ownerUri Connection URI
+         * @param options Restore plan options
+         * @param taskExecutionMode Execution mode
+         * @returns Restore plan response
+         */
+        getRestorePlan(
+            ownerUri: string,
+            options: { [key: string]: any },
+            taskExecutionMode: TaskExecutionMode,
+        ): Thenable<RestorePlanResponse>;
+
+        /**
+         * Cancel an active restore plan
+         * @param ownerUri Connection URI
+         * @param options Restore options with session ID
+         * @param taskExecutionMode Execution mode
+         * @returns True if cancelled successfully
+         */
+        cancelRestorePlan(
+            ownerUri: string,
+            options: { [key: string]: any },
+            taskExecutionMode: TaskExecutionMode,
+        ): Thenable<boolean>;
+
+        /**
+         * Get restore configuration information
+         * @param ownerUri Connection URI
+         * @returns Restore configuration info
+         */
+        getRestoreConfigInfo(ownerUri: string): Thenable<RestoreConfigInfoResponse>;
+    }
+
+    export interface RestoreResponse {
+        result: boolean;
+        taskId: string;
+        errorMessage?: string;
+    }
+
+    export interface RestorePlanResponse {
+        sessionId: string;
+        backupSetsToRestore: DatabaseFileInfo[];
+        canRestore: boolean;
+        errorMessage?: string;
+        dbFiles: RestoreDatabaseFileInfo[];
+        databaseNamesFromBackupSets: string[];
+        planDetails: { [key: string]: RestorePlanDetailInfo };
+    }
+
+    export interface RestoreDatabaseFileInfo {
+        fileType: string;
+        logicalFileName: string;
+        originalFileName: string;
+        restoreAsFileName: string;
+    }
+
+    export interface RestorePlanDetailInfo {
+        name: string;
+        currentValue: any;
+        isReadOnly: boolean;
+        isVisible: boolean;
+        defaultValue: any;
+    }
+
+    export interface RestoreConfigInfoResponse {
+        configInfo: { [key: string]: any };
+        errorMessage?: string;
+    }
+
+    export interface RestoreParams {
+        ownerUri: string;
+        options: { [key: string]: any };
+        taskExecutionMode: TaskExecutionMode;
+    }
+
+    export interface RestoreConfigInfoRequestParams {
+        ownerUri: string;
     }
 
     /**

@@ -36,6 +36,7 @@ import { DacFxService } from "../services/dacFxService";
 import { SqlProjectsService } from "../services/sqlProjectsService";
 import { SchemaCompareService } from "../services/schemaCompareService";
 import { SqlTasksService } from "../services/sqlTasksService";
+import { RestoreService } from "../services/restoreService";
 import StatusView from "../views/statusView";
 import { IConnectionGroup, IConnectionProfile, ISelectionData } from "../models/interfaces";
 import ConnectionManager from "./connectionManager";
@@ -127,6 +128,7 @@ export default class MainController implements vscode.Disposable {
     public azureAccountService: AzureAccountService;
     public azureResourceService: AzureResourceService;
     public tableDesignerService: TableDesignerService;
+    public restoreService: RestoreService;
     public copilotService: CopilotService;
     public configuration: vscode.WorkspaceConfiguration;
     public objectExplorerTree: vscode.TreeView<TreeNodeInfo>;
@@ -569,6 +571,7 @@ export default class MainController implements vscode.Disposable {
             this.sqlProjectsService = new SqlProjectsService(SqlToolsServerClient.instance);
             this.schemaCompareService = new SchemaCompareService(SqlToolsServerClient.instance);
             this.tableExplorerService = new TableExplorerService(SqlToolsServerClient.instance);
+            this.restoreService = new RestoreService(SqlToolsServerClient.instance);
             const azureResourceController = new AzureResourceController();
             this.azureAccountService = new AzureAccountService(
                 this._connectionMgr.azureController,
