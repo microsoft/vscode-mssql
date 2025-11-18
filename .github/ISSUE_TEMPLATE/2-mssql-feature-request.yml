@@ -45,15 +45,18 @@ body:
       description: Select all areas this feature would enhance.
       options:
         - label: Connection dialog (SQL Server | Azure browse/Fabric browse)
-        - label: Query results panel
         - label: Query editor
+        - label: Query results panel
         - label: Object Explorer
+        - label: GitHub Copilot integration
+        - label: Preview/Edit data
         - label: Table Designer
-        - label: Schema Compare
         - label: Schema Designer
+        - label: Schema Compare
         - label: Local SQL Server Container provisioning
         - label: SQL database in Fabric provisioning
-        - label: GitHub Copilot integration
+        - label: DACPAC/BACPAC export/import
+        - label: SQL Database projects
         - label: Query Plan Visualizer
         - label: Other (please describe below)
 
