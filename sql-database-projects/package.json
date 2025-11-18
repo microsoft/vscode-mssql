@@ -586,7 +586,7 @@
     "@microsoft/ads-extension-telemetry": "^3.0.1",
     "@xmldom/xmldom": "0.8.4",
     "ajv": "^6.12.6",
-    "axios": "^1.8.2",
+    "axios": "^1.12.0",
     "extract-zip": "^2.0.1",
     "fast-glob": "^3.2.7",
     "fs-extra": "^5.0.0",
