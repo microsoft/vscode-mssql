@@ -617,7 +617,7 @@ export class LocConstants {
             },
             resultSet: (batchNumber: number, queryNumber: number) =>
                 l10n.t({
-                    message: "Result Set Batch {0} – Query {1}",
+                    message: "Result Set Batch {0} - Query {1}",
                     args: [batchNumber, queryNumber],
                     comment: ["{0} is the batch number", "{1} is the query number"],
                 }),
