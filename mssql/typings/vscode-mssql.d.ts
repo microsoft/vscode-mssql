@@ -543,6 +543,130 @@ declare module "vscode-mssql" {
         ): Thenable<ResultStatus>;
     }
 
+    // ========== SQL Server Profiler Types and Interface ==========
+
+    export const enum ProfilingSessionType {
+        LocalFile = 0,
+        RemoteSession = 1,
+    }
+
+    export interface ProfilerSessionTemplate {
+        name: string;
+        defaultView: string;
+        createStatement: string;
+    }
+
+    export interface ProfilerEvent {
+        name: string;
+        timestamp: string;
+        values: { [key: string]: unknown };
+    }
+
+    export interface CreateXEventSessionParams {
+        ownerUri: string;
+        sessionName: string;
+        template: ProfilerSessionTemplate;
+    }
+
+    export interface CreateXEventSessionResponse {
+        succeeded: boolean;
+        errorMessage?: string;
+    }
+
+    export interface StartProfilingParams {
+        ownerUri: string;
+        sessionName: string;
+        sessionType: ProfilingSessionType;
+    }
+
+    export interface StartProfilingResponse {
+        succeeded: boolean;
+        errorMessage?: string;
+    }
+
+    export interface StopProfilingParams {
+        ownerUri: string;
+    }
+
+    export interface StopProfilingResponse {
+        succeeded: boolean;
+        errorMessage?: string;
+    }
+
+    export interface PauseProfilingParams {
+        ownerUri: string;
+    }
+
+    export interface PauseProfilingResponse {
+        succeeded: boolean;
+        errorMessage?: string;
+    }
+
+    export interface GetXEventSessionsParams {
+        ownerUri: string;
+    }
+
+    export interface GetXEventSessionsResponse {
+        sessions: string[];
+    }
+
+    export interface DisconnectSessionParams {
+        ownerUri: string;
+    }
+
+    export interface DisconnectSessionResponse {
+        succeeded: boolean;
+        errorMessage?: string;
+    }
+
+    export interface ProfilerEventsAvailableParams {
+        ownerUri: string;
+        events: ProfilerEvent[];
+        eventsLost: boolean;
+    }
+
+    export interface ProfilerSessionStoppedParams {
+        ownerUri: string;
+        sessionId: number;
+    }
+
+    export interface ProfilerSessionCreatedParams {
+        ownerUri: string;
+        sessionName: string;
+        templateName: string;
+    }
+
+    export interface ProfilerSessionEvents {
+        sessionId: string;
+        events: ProfilerEvent[];
+        eventsLost: boolean;
+    }
+
+    export interface IProfilerService {
+        createSession(
+            ownerUri: string,
+            sessionName: string,
+            template: ProfilerSessionTemplate,
+        ): Thenable<boolean>;
+        startSession(
+            ownerUri: string,
+            sessionName: string,
+            sessionType?: ProfilingSessionType,
+        ): Thenable<boolean>;
+        stopSession(ownerUri: string): Thenable<boolean>;
+        pauseSession(ownerUri: string): Thenable<boolean>;
+        getXEventSessions(ownerUri: string): Thenable<string[]>;
+        connectSession(sessionId: string): Thenable<boolean>;
+        disconnectSession(ownerUri: string): Thenable<boolean>;
+        registerOnSessionEventsAvailable(handler: (response: ProfilerSessionEvents) => void): void;
+        registerOnSessionStopped(handler: (response: ProfilerSessionStoppedParams) => void): void;
+        registerOnProfilerSessionCreated(
+            handler: (response: ProfilerSessionCreatedParams) => void,
+        ): void;
+    }
+
+    // ========== End SQL Server Profiler Types and Interface ==========
+
     /**
      * Error that connect method throws if connection fails because of a fire wall rule error.
      */
