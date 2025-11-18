@@ -8,7 +8,7 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
 
 ## Explore and Learn
 
-[![MSSQL Extension Demo Playlist](images/yt-thumbnail.png)](https://aka.ms/vscode-mssql-demos)
+[![MSSQL Extension Demo Playlist](https://github.com/Microsoft/vscode-mssql/raw/main/mssql/images/yt-thumbnail.png)](https://aka.ms/vscode-mssql-demos)
 
 -   [Watch the demos](https://aka.ms/vscode-mssql-demos): Explore key features through our YouTube playlist
 -   [Read our blog posts](https://aka.ms/vscode-mssql-blogs): Learn from use cases, walkthroughs, and product updates
@@ -108,7 +108,7 @@ The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql
     -   Preview and Validate – Easily review generated scripts before deployment to ensure accuracy and control.
     -   Integrated in VS Code – Manage the full build-and-publish workflow within the SQL Database Projects extension, without switching tools.
 
-![Demo](https://github.com/Microsoft/vscode-mssql/raw/main/images/mssql-demo.gif)
+![Demo](https://github.com/Microsoft/vscode-mssql/raw/main/mssql/images/mssql-demo.gif)
 
 ## Resources
 
@@ -301,7 +301,7 @@ See [customize options](https://github.com/Microsoft/vscode-mssql/wiki/customize
 
 ## Change Log
 
-See the [change log](https://github.com/Microsoft/vscode-mssql/blob/main/CHANGELOG.md) for a detailed list of changes in each version.
+See the [change log](https://github.com/Microsoft/vscode-mssql/blob/main/mssql/CHANGELOG.md) for a detailed list of changes in each version.
 
 ## Supported Operating Systems
 
@@ -346,4 +346,4 @@ The [Microsoft Enterprise and Developer Privacy Statement](https://go.microsoft.
 
 ## License
 
-This extension is [licensed under the MIT License](https://github.com/Microsoft/vscode-mssql/blob/main/LICENSE.txt). Please see the [third-party notices](https://github.com/Microsoft/vscode-mssql/blob/main/ThirdPartyNotices.txt) file for additional copyright notices and license terms applicable to portions of the software.
+This extension is [licensed under the MIT License](https://github.com/Microsoft/vscode-mssql/blob/main/mssql/LICENSE.txt). Please see the [third-party notices](https://github.com/Microsoft/vscode-mssql/blob/main/mssql/ThirdPartyNotices.txt) file for additional copyright notices and license terms applicable to portions of the software.
