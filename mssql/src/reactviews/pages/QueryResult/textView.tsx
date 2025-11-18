@@ -96,9 +96,11 @@ export const TextView = () => {
 
                         let formattedRows: string[] = [];
 
-                        const resultIdentifier = `${batchId}-${resultId}`;
+                        // Convert 0-based indices to 1-based numbers for display
+                        const batchNumber = batchId + 1;
+                        const queryNumber = resultId + 1;
 
-                        content += `${locConstants.queryResult.resultSet(resultIdentifier)}${EOL}`;
+                        content += `${locConstants.queryResult.resultSet(batchNumber, queryNumber)}${EOL}`;
                         content += "=".repeat(40) + `${EOL}${EOL}`;
 
                         // Get all rows for this result set first to calculate proper column widths

@@ -615,11 +615,11 @@ export class LocConstants {
                         });
                 }
             },
-            resultSet: (index: string) =>
+            resultSet: (batchNumber: number, queryNumber: number) =>
                 l10n.t({
-                    message: "Result Set {0}",
-                    args: [index],
-                    comment: ["{0} is the index of the result set"],
+                    message: "Result Set Batch {0} – Query {1}",
+                    args: [batchNumber, queryNumber],
+                    comment: ["{0} is the batch number", "{1} is the query number"],
                 }),
             loadingTextView: l10n.t("Loading text view..."),
             loadingResultsMessage: l10n.t("Loading results..."),
