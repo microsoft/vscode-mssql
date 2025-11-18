@@ -5,6 +5,7 @@
   "version": "1.5.5",
 	"publisher": "ms-mssql",
   "preview": false,
+  "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/sql-database-projects/README.md",
   "engines": {
     "vscode": "^1.98.0",
     "azdata": ">=1.47.0"
@@ -24,7 +25,10 @@
   "main": "./out/src/extension.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Microsoft/azuredatastudio.git"
+    "url": "https://github.com/Microsoft/vscode-mssql.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Microsoft/vscode-mssql/issues"
   },
   "extensionDependencies": [
 		"ms-mssql.mssql",
