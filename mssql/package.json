@@ -19,7 +19,7 @@
     "bugs": {
         "url": "https://github.com/Microsoft/vscode-mssql/issues"
     },
-    "homepage": "https://github.com/Microsoft/vscode-mssql/blob/master/README.md",
+    "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/mssql/README.md",
     "engines": {
         "vscode": "^1.98.0"
     },
