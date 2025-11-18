@@ -252,15 +252,19 @@ export class ConnectionNode extends TreeNodeInfo {
         connectionProfile: ConnectionProfile;
     }) {
         const { nodeInfo, sessionId, parentNode, connectionProfile } = options;
+        let subType;
+        if (connectionProfile.containerName && connectionProfile.database) {
+            subType = `${Constants.dockerContainerDatabase}`;
+        } else if (connectionProfile.containerName) {
+            subType = dockerContainer;
+        } else if (connectionProfile.database) {
+            subType = DATABASE_SUBTYPE;
+        }
         this.context = {
             type: SERVER_NODE_CONNECTED,
             filterable: nodeInfo.filterableProperties?.length > 0,
             hasFilters: false,
-            subType: connectionProfile.containerName
-                ? dockerContainer
-                : connectionProfile.database
-                  ? DATABASE_SUBTYPE
-                  : "",
+            subType: subType ?? "",
         };
         this.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
         this.nodePath = nodeInfo.nodePath;
