@@ -53,11 +53,6 @@ declare module "vscode-mssql" {
         readonly azureResourceService: IAzureResourceService;
 
         /**
-         * Service for accessing Restore functionality
-         */
-        readonly restore: IRestoreService;
-
-        /**
          * Prompts the user to select an existing connection or create a new one, and then returns the result
          * @param ignoreFocusOut Whether the quickpick prompt ignores focus out (default false)
          */

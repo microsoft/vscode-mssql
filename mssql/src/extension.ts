@@ -107,7 +107,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
         dacFx: controller.dacFxService,
         schemaCompare: controller.schemaCompareService,
         sqlProjects: controller.sqlProjectsService,
-        restore: controller.restoreService,
         getConnectionString: (
             connectionUriOrDetails: string | ConnectionDetails,
             includePassword?: boolean,
