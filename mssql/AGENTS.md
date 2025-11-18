@@ -219,4 +219,14 @@ yarn package --online      # Ensure extension can be packaged
 -   Build and package extension to test full integration
 -   Extension can be debugged by installing VSIX in VS Code
 
+### Porting Services from Azure Data Studio
+
+For agents tasked with porting RPC-based functionality from Azure Data Studio to VS Code MSSQL, refer to the comprehensive guide:
+
+-   **[RPC_PORTING_GUIDE.md](./RPC_PORTING_GUIDE.md)**: Step-by-step instructions for:
+    -   Discovering and analyzing services in Azure Data Studio
+    -   Generating type definitions, contracts, and service implementations
+    -   Integrating ported services into the extension
+    -   Following established patterns (e.g., DacFx service)
+
 **Remember**: NEVER CANCEL long-running build or test commands. Always set appropriate timeouts and wait for completion.
