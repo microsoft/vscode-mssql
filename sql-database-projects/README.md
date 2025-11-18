@@ -76,7 +76,7 @@ To learn more about our Privacy Statement visit [this link](https://go.microsoft
 
 ## Feedback
 
-Please report issues and feature requests [here.](https://github.com/microsoft/azuredatastudio/issues)
+Please report issues and feature requests [here.](https://github.com/microsoft/vscode-mssql/issues)
 
 ## License
 
