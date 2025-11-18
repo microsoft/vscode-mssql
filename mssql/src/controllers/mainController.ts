@@ -1729,7 +1729,7 @@ export default class MainController implements vscode.Disposable {
                     );
                     const connectionString = await this.connectionManager.getConnectionString(
                         connectionDetails,
-                        false, // Do not include password for security
+                        false, // Do not include password to match portal's behavior
                         false, // Do not include application name
                     );
                     if (connectionString) {
