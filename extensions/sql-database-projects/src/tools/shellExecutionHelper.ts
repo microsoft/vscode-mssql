@@ -5,8 +5,7 @@
 
 import * as cp from 'promisify-child-process';
 import * as vscode from 'vscode';
-import * as nls from 'vscode-nls';
-const localize = nls.loadMessageBundle();
+import { l10n } from 'vscode';
 
 export interface ShellCommandOptions {
 	workingDirectory?: string;
@@ -50,19 +49,19 @@ export class ShellExecutionHelper {
 			// Add listeners to print stdout and stderr and exit code
 			void child.on('exit', (code: number | null, signal: string | null) => {
 				if (code !== null) {
-					this._outputChannel.appendLine(localize('sqlDatabaseProjects.RunStreamedCommand.ExitedWithCode', "    >>> {0}    … exited with code: {1}", cmdOutputMessage, code));
+					this._outputChannel.appendLine(l10n.t("    >>> {0}    … exited with code: {1}", cmdOutputMessage, code));
 				} else {
-					this._outputChannel.appendLine(localize('sqlDatabaseProjects.RunStreamedCommand.ExitedWithSignal', "    >>> {0}   … exited with signal: {1}", cmdOutputMessage, signal));
+					this._outputChannel.appendLine(l10n.t("    >>> {0}   … exited with signal: {1}", cmdOutputMessage, signal));
 				}
 			});
 
 			child.stdout!.on('data', (data: string | Buffer) => {
 				stdoutData.push(data.toString());
-				ShellExecutionHelper.outputDataChunk(this._outputChannel, data, localize('sqlDatabaseProjects.RunCommand.stdout', "    stdout: "));
+				ShellExecutionHelper.outputDataChunk(this._outputChannel, data, l10n.t("    stdout: "));
 			});
 
 			child.stderr!.on('data', (data: string | Buffer) => {
-				ShellExecutionHelper.outputDataChunk(this._outputChannel, data, localize('sqlDatabaseProjects.RunCommand.stderr', "    stderr: "));
+				ShellExecutionHelper.outputDataChunk(this._outputChannel, data, l10n.t("    stderr: "));
 			});
 
 			await child;

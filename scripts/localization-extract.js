@@ -10,15 +10,26 @@ const logger = require("./terminal-logger");
 const { writeJsonAndFormat, writeAndFormat } = require("./file-utils");
 
 /**
- * Scans the src directory for TypeScript files and extracts their content
+ * Extension configuration mapping
+ * Maps extension directory names to their XLIFF file names
+ */
+const EXTENSION_CONFIG = {
+    mssql: "vscode-mssql",
+    "sql-database-projects": "sql-database-projects",
+};
+
+/**
+ * Scans the src directory of an extension for TypeScript files and extracts their content
+ * @param {string} extensionPath - Path to the extension directory
  * @returns {Promise<Object>} L10n JSON object containing localization data
  */
-async function getL10nJson() {
+async function getL10nJson(extensionPath) {
     logger.step("Scanning source files for localization strings...");
 
     try {
+        const srcPath = path.join(extensionPath, "src");
         // Read all files in src directory recursively
-        const srcFiles = await fs.readdir("./src", { recursive: true });
+        const srcFiles = await fs.readdir(srcPath, { recursive: true });
         const tsFiles = srcFiles.filter((f) => f.endsWith(".ts") || f.endsWith(".tsx"));
 
         logger.info(`Found ${tsFiles.length} TypeScript files to process`);
@@ -29,7 +40,7 @@ async function getL10nJson() {
         // Process each TypeScript file
         for (const file of tsFiles) {
             try {
-                const filePath = path.resolve("./src", file);
+                const filePath = path.resolve(srcPath, file);
                 const content = await fs.readFile(filePath, "utf8");
 
                 if (content) {
@@ -66,16 +77,18 @@ async function getL10nJson() {
 }
 
 /**
- * Extracts localization strings from both extension and webview code
- * Generates English language l10n and XLIFF files for translation
+ * Extracts localization strings for a single extension
+ * @param {string} extensionDir - Extension directory name
+ * @param {string} xliffName - Name for the XLIFF file
  */
-async function extractLocalizationStrings() {
-    logger.header("Localization String Extraction");
-    logger.step("Starting localization string extraction process");
+async function extractLocalizationForExtension(extensionDir, xliffName) {
+    logger.header(`Processing Extension: ${extensionDir}`);
+
+    const extensionPath = path.resolve("extensions", extensionDir);
 
     try {
         // Get localization data from source files
-        const bundleJSON = await getL10nJson();
+        const bundleJSON = await getL10nJson(extensionPath);
 
         logger.step("Loading package localization data...");
 
@@ -83,7 +96,8 @@ async function extractLocalizationStrings() {
         const map = new Map();
 
         try {
-            const packageNlsContent = await fs.readFile(path.resolve("package.nls.json"), "utf8");
+            const packageNlsPath = path.join(extensionPath, "package.nls.json");
+            const packageNlsContent = await fs.readFile(packageNlsPath, "utf8");
             map.set("package", JSON.parse(packageNlsContent));
             logger.success("Loaded package.nls.json");
         } catch (error) {
@@ -93,33 +107,64 @@ async function extractLocalizationStrings() {
 
         map.set("bundle", bundleJSON);
 
-        // Write bundle L10n JSON file
+        // Ensure output directories exist
+        const extensionL10nDir = path.join(extensionPath, "l10n");
+        await fs.mkdir(extensionL10nDir, { recursive: true });
+        await fs.mkdir("localization/xliff", { recursive: true });
+
+        // Write bundle L10n JSON file to extension's l10n directory
         logger.step("Writing bundle localization file...");
-        const formatted1 = await writeJsonAndFormat(
-            "./localization/l10n/bundle.l10n.json",
-            bundleJSON,
-        );
+        const bundlePath = path.join(extensionL10nDir, "bundle.l10n.json");
+        const formatted1 = await writeJsonAndFormat(bundlePath, bundleJSON);
         if (formatted1) {
-            logger.success("Created and formatted ./localization/l10n/bundle.l10n.json");
+            logger.success(`Created and formatted ${bundlePath}`);
         } else {
-            logger.warning("Created ./localization/l10n/bundle.l10n.json (formatting failed)");
+            logger.warning(`Created ${bundlePath} (formatting failed)`);
         }
 
         // Generate XLIFF file for translators
         logger.step("Generating XLIFF file for translation...");
         const stringXLIFF = vscodel10n.getL10nXlf(map);
+        const xliffPath = `localization/xliff/${xliffName}.xlf`;
         const formatted2 = await writeAndFormat(
-            "./localization/xliff/vscode-mssql.xlf",
+            xliffPath,
             stringXLIFF,
             false, // We don't want to run prettier on XLIFF files
         );
         if (formatted2) {
-            logger.success("Created and formatted ./localization/xliff/vscode-mssql.xlf");
+            logger.success(`Created ${xliffPath}`);
         } else {
-            logger.warning("Created ./localization/xliff/vscode-mssql.xlf (formatting failed)");
+            logger.warning(`Created ${xliffPath} (formatting failed)`);
         }
 
-        logger.success("Localization string extraction completed successfully!");
+        logger.success(`Localization extraction for ${extensionDir} completed successfully!`);
+        logger.newline();
+    } catch (error) {
+        logger.error(`Localization extraction for ${extensionDir} failed: ${error.message}`);
+        throw error;
+    }
+}
+
+/**
+ * Extracts localization strings from all configured extensions
+ * Generates English language l10n and XLIFF files for translation in the root localization directory
+ */
+async function extractLocalizationStrings() {
+    logger.header("Localization String Extraction - All Extensions");
+    logger.step("Starting localization string extraction process");
+    logger.newline();
+
+    try {
+        const extensions = Object.entries(EXTENSION_CONFIG);
+
+        for (const [extensionDir, xliffName] of extensions) {
+            await extractLocalizationForExtension(extensionDir, xliffName);
+        }
+
+        logger.header("All Extensions Processed Successfully");
+        logger.success(
+            `Extracted localization for ${extensions.length} extension(s) to root localization/`,
+        );
     } catch (error) {
         logger.error(`Localization extraction failed: ${error.message}`);
         throw error;
@@ -128,6 +173,7 @@ async function extractLocalizationStrings() {
 
 module.exports = {
     extractLocalizationStrings,
+    extractLocalizationForExtension,
     getL10nJson,
 };
 

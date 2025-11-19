@@ -10,31 +10,58 @@ const logger = require("./terminal-logger");
 const { writeJsonAndFormat } = require("./file-utils");
 
 /**
- * Generates runtime localization files for the extension
- * Processes XLIFF files from the localization team and creates:
- * - l10n files for bundle strings
- * - package.nls files for package strings
- * Supports all configured languages
+ * Generates runtime localization files for a single extension from root localization directory
+ * @param {string} xliffPrefix - Prefix for XLIFF files (e.g., 'vscode-mssql', 'sql-database-projects')
+ * @param {string} extensionPath - Path to extension directory (relative to root or absolute)
  */
-async function generateRuntimeLocalizationFiles() {
-    logger.header("Runtime Localization Generation");
-    logger.step("Starting runtime localization file generation");
+async function generateRuntimeLocalizationForExtension(xliffPrefix, extensionPath) {
+    logger.header(`Generating Runtime Localization: ${xliffPrefix}`);
+
+    // Resolve paths - support both relative and absolute extension paths
+    const resolvedExtensionPath = path.isAbsolute(extensionPath)
+        ? extensionPath
+        : path.resolve(process.cwd(), extensionPath);
+
+    // Read from root localization directory
+    const rootPath = path.resolve(__dirname, "..");
+    const xliffDir = path.join(rootPath, "localization", "xliff");
 
     try {
-        // Read all XLIFF files from localization directory
-        const xliffFiles = (await fs.readdir("./localization/xliff")).filter((f) =>
-            f.endsWith(".xlf"),
+        // Read all XLIFF files from root localization directory that match this extension's prefix
+        let allXliffFiles;
+        try {
+            allXliffFiles = await fs.readdir(xliffDir);
+        } catch (error) {
+            logger.error(`No root localization directory found: ${xliffDir}`);
+            return { processed: 0, generated: 0 };
+        }
+
+        // Filter for files matching this extension's prefix
+        const xliffFiles = allXliffFiles.filter(
+            (f) => f.startsWith(xliffPrefix) && f.endsWith(".xlf"),
         );
 
-        logger.info(`Found ${xliffFiles.length} XLIFF files to process`);
+        if (xliffFiles.length === 0) {
+            logger.warning(`No XLIFF files found for prefix: ${xliffPrefix}`);
+            return { processed: 0, generated: 0 };
+        }
+
+        logger.info(`Found ${xliffFiles.length} XLIFF files to process for ${xliffPrefix}`);
 
         let processedLanguages = 0;
         let generatedFiles = 0;
 
+        // Set up output directories in extension
+        const l10nDir = path.join(resolvedExtensionPath, "l10n");
+        const packageDir = resolvedExtensionPath;
+
+        // Ensure output directories exist
+        await fs.mkdir(l10nDir, { recursive: true });
+
         // Process each XLIFF file (except the source file)
         for (const xliffFile of xliffFiles) {
             // Skip the source XLIFF file (English template)
-            if (xliffFile === "vscode-mssql.xlf") {
+            if (xliffFile === `${xliffPrefix}.xlf`) {
                 logger.debug(`Skipping source file: ${xliffFile}`);
                 continue;
             }
@@ -43,12 +70,8 @@ async function generateRuntimeLocalizationFiles() {
 
             try {
                 // Read XLIFF file content
-                const xliffFilePath = path.resolve("./localization/xliff", xliffFile);
+                const xliffFilePath = path.join(xliffDir, xliffFile);
                 const xliffFileContents = await fs.readFile(xliffFilePath, "utf8");
-
-                // Set up output directories
-                const l10nDir = path.resolve(__dirname, "..", "localization", "l10n");
-                const packageDir = path.resolve(__dirname, "..");
 
                 // Parse XLIFF and extract localization data
                 const l10nDetailsArrayFromXlf =
@@ -65,7 +88,7 @@ async function generateRuntimeLocalizationFiles() {
                             fileName = "bundle.l10n.json";
                         }
 
-                        const filePath = path.resolve(l10nDir, fileName);
+                        const filePath = path.join(l10nDir, fileName);
                         const formatted = await writeJsonAndFormat(filePath, fileContent.messages);
                         if (formatted) {
                             logger.success(`Created and formatted bundle file: ${fileName}`);
@@ -82,7 +105,7 @@ async function generateRuntimeLocalizationFiles() {
 
                         // Generate package localization file
                         const fileName = `package.nls.${fileContent.language}.json`;
-                        const filePath = path.resolve(packageDir, fileName);
+                        const filePath = path.join(packageDir, fileName);
                         const formatted = await writeJsonAndFormat(filePath, fileContent.messages);
                         if (formatted) {
                             logger.success(`Created and formatted package file: ${fileName}`);
@@ -99,10 +122,12 @@ async function generateRuntimeLocalizationFiles() {
             }
         }
 
-        logger.success(`Runtime localization generation completed!`);
+        logger.success(`Runtime localization generation for ${xliffPrefix} completed!`);
         logger.info(
             `Summary: Processed ${processedLanguages} languages, generated ${generatedFiles} files`,
         );
+
+        return { processed: processedLanguages, generated: generatedFiles };
     } catch (error) {
         logger.error(`Runtime localization generation failed: ${error.message}`);
         throw error;
@@ -110,11 +135,21 @@ async function generateRuntimeLocalizationFiles() {
 }
 
 module.exports = {
-    generateRuntimeLocalizationFiles,
+    generateRuntimeLocalizationForExtension,
 };
 
 if (require.main === module) {
-    generateRuntimeLocalizationFiles()
+    // Require xliffPrefix and extensionPath as command line arguments
+    const xliffPrefix = process.argv[2];
+    const extensionPath = process.argv[3] || ".";
+
+    if (!xliffPrefix) {
+        logger.error("Usage: node localization-generate.js <xliffPrefix> [extensionPath]");
+        logger.error("Example: node localization-generate.js vscode-mssql ./extensions/mssql");
+        process.exit(1);
+    }
+
+    generateRuntimeLocalizationForExtension(xliffPrefix, extensionPath)
         .then(() => {
             logger.success("Script completed successfully!");
             process.exit(0);

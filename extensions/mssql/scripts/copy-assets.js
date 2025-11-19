@@ -5,7 +5,7 @@
 
 const fs = require("fs").promises;
 const path = require("path");
-const logger = require("./terminal-logger");
+const logger = require("../../../scripts/terminal-logger");
 
 const COPY_TASKS = [
     {

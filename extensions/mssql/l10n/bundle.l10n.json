@@ -449,9 +449,9 @@
         "message": "({0} rows affected)",
         "comment": ["{0} is the number of rows affected"]
     },
-    "Result Set {0}/{0} is the index of the result set": {
-        "message": "Result Set {0}",
-        "comment": ["{0} is the index of the result set"]
+    "Result Set Batch {0} - Query {1}/{0} is the batch number{1} is the query number": {
+        "message": "Result Set Batch {0} - Query {1}",
+        "comment": ["{0} is the batch number", "{1} is the query number"]
     },
     "Loading text view...": "Loading text view...",
     "Loading results...": "Loading results...",

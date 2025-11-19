@@ -35,7 +35,7 @@
 		"ms-mssql.data-workspace-vscode"
   ],
   "scripts": {
-        "build:runtime-localization": "node scripts/generate-localization.js",
+        "build:runtime-localization": "node ../../scripts/localization-generate.js sql-database-projects .",
         "build:extension": "tsc -p tsconfig.extension.json",
         "build:prepare": "yarn build:runtime-localization",
         "build": "node scripts/build.js",
@@ -595,7 +595,6 @@
     "semver": "^7.5.2",
     "vscode-jsonrpc": "^8.2.1",
     "vscode-languageclient": "5.2.1",
-    "vscode-nls": "^4.1.2",
     "which": "^2.0.2",
     "xml-formatter": "2.1.0"
   },

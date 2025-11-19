@@ -1,0 +1,13 @@
+{
+  "name": "vscode-mssql",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo for SQL Server extensions for Visual Studio Code",
+  "scripts": {
+    "localization": "node scripts/localization-extract.js"
+  },
+  "devDependencies": {
+    "@vscode/l10n-dev": "^0.0.35",
+    "prettier": "^3.3.3"
+  }
+}

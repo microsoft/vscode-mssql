@@ -21,16 +21,14 @@ jobs:
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         inputs:
-          locProj: "mssql/localization/LocProject.json"
+          locProj: "localization/LocProject.json"
           outDir: "$(Build.ArtifactStagingDirectory)"
           dependencyPackageSource: "https://pkgs.dev.azure.com/msdata/_packaging/SQLDS_SSMS/nuget/v3/index.json"
           packageSourceAuth: patAuth
           repoType: gitHub
           isCreatePrSelected: True
           prSourceBranchPrefix: "locfiles"
-          isAutoCompletePrSelected: true
-          gitHubPrMergeMethod: squash
-          isDeletePrSourceBranchSelected: false
+          isAutoCompletePrSelected: false
 
       - task: PublishBuildArtifacts@1
         displayName: "Publish Artifact: drop"
