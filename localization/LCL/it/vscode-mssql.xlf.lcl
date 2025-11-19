@@ -13253,7 +13253,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Pause Query History Capture]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Sospendi acquisizione della cronologia delle query]]></Val>
+            <Val><![CDATA[Sospendi acquisizione cronologia delle query]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -13850,7 +13850,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Start Query History Capture]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Avvia acquisizione della cronologia delle query]]></Val>
+            <Val><![CDATA[Avvia acquisizione cronologia delle query]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
