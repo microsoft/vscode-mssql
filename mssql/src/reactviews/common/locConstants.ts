@@ -1301,7 +1301,6 @@ export class LocConstants {
             deleteRow: l10n.t("Delete Row"),
             revertCell: l10n.t("Revert Cell"),
             revertRow: l10n.t("Revert Row"),
-            restoreRow: l10n.t("Restore Row"),
             totalRowsToFetch: l10n.t("Total rows to fetch:"),
             rowsPerPage: l10n.t("Rows per page"),
             fetchRows: l10n.t("Fetch rows"),

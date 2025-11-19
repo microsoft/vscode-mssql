@@ -541,31 +541,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     // Deletion count is now tracked by parent via deletedRows prop
                     break;
 
-                case "restore-row":
-                    // Restore a deleted row (same as revert-row)
-                    if (onRevertRow) {
-                        onRevertRow(rowId);
-                    }
-
-                    // Remove tracked changes and failed cells for this row
-                    const keysToDeleteForRestore: string[] = [];
-                    cellChangesRef.current.forEach((_, key) => {
-                        if (key.startsWith(`${rowId}-`)) {
-                            keysToDeleteForRestore.push(key);
-                        }
-                    });
-                    keysToDeleteForRestore.forEach((key) => {
-                        cellChangesRef.current.delete(key);
-                        failedCellsRef.current.delete(key);
-                    });
-                    console.log(`Restored row with ID ${rowId}`);
-
-                    // Notify parent of change count update
-                    if (onCellChangeCountChanged) {
-                        onCellChangeCountChanged(cellChangesRef.current.size);
-                    }
-                    break;
-
                 case "revert-cell":
                     const cellIndex = args.cell;
                     const columnIndex = cellIndex;
@@ -630,32 +605,16 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         },
                     },
                     {
-                        command: "restore-row",
-                        title: loc.tableExplorer.restoreRow,
-                        iconCssClass: "mdi mdi-restore",
-                        positionOrder: 2,
-                        itemVisibilityOverride: (args: any) => {
-                            // Only show "Restore Row" if row is deleted
-                            const rowId = args.dataContext?.id;
-                            return deletedRowsRef.current.has(rowId);
-                        },
-                    },
-                    {
                         command: "revert-cell",
                         title: loc.tableExplorer.revertCell,
                         iconCssClass: "mdi mdi-undo",
-                        positionOrder: 3,
+                        positionOrder: 2,
                     },
                     {
                         command: "revert-row",
                         title: loc.tableExplorer.revertRow,
                         iconCssClass: "mdi mdi-undo",
-                        positionOrder: 4,
-                        itemVisibilityOverride: (args: any) => {
-                            // Hide "Revert Row" if row is deleted (use "Restore Row" instead)
-                            const rowId = args.dataContext?.id;
-                            return !deletedRowsRef.current.has(rowId);
-                        },
+                        positionOrder: 3,
                     },
                 ],
                 onCommand: (e, args) => handleContextMenuCommand(e, args),
