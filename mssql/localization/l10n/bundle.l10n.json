@@ -449,9 +449,9 @@
         "message": "({0} rows affected)",
         "comment": ["{0} is the number of rows affected"]
     },
-    "Result Set {0}/{0} is the index of the result set": {
-        "message": "Result Set {0}",
-        "comment": ["{0} is the index of the result set"]
+    "Result Set Batch {0} - Query {1}/{0} is the batch number{1} is the query number": {
+        "message": "Result Set Batch {0} - Query {1}",
+        "comment": ["{0} is the batch number", "{1} is the query number"]
     },
     "Loading text view...": "Loading text view...",
     "Loading results...": "Loading results...",
@@ -1329,6 +1329,10 @@
     "Clear cache and refresh token": "Clear cache and refresh token",
     "Clear token cache": "Clear token cache",
     "No workspaces found. Please change Fabric account or tenant to view available workspaces.": "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
+    "Unable to enforce default User Connections group: {0}/{0} is the error message": {
+        "message": "Unable to enforce default User Connections group: {0}",
+        "comment": ["{0} is the error message"]
+    },
     "Add Firewall Rule to {0}/{0} is the server name": {
         "message": "Add Firewall Rule to {0}",
         "comment": ["{0} is the server name"]

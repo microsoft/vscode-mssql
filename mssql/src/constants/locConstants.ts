@@ -746,6 +746,14 @@ export class ConnectionDialog {
     public static noWorkspacesFound = l10n.t(
         "No workspaces found. Please change Fabric account or tenant to view available workspaces.",
     );
+
+    public static unableToEnforceDefaultUserConnectionsGroup(error: string) {
+        return l10n.t({
+            message: "Unable to enforce default User Connections group: {0}",
+            args: [error],
+            comment: ["{0} is the error message"],
+        });
+    }
 }
 
 export class FirewallRule {

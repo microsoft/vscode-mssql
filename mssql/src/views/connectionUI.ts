@@ -20,6 +20,7 @@ import { Timer } from "../models/utils";
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { CREATE_NEW_GROUP_ID, IConnectionGroup } from "../sharedInterfaces/connectionGroup";
 import { FormItemOptions } from "../sharedInterfaces/form";
+import { ConfigurationTarget } from "../connectionconfig/connectionconfig";
 
 /**
  * The different tasks for managing connection profiles.
@@ -438,19 +439,26 @@ export class ConnectionUI {
      */
     public async getConnectionGroupOptions(): Promise<FormItemOptions[]> {
         const rootId = this._connectionManager.connectionStore.rootGroupId;
-        let connectionGroups =
-            await this._connectionManager.connectionStore.readAllConnectionGroups();
-        connectionGroups = connectionGroups.filter((g) => g.id !== rootId);
+        // Fetch user and workspace groups separately
+        const userGroups = await this._connectionManager.connectionStore.connectionConfig.getGroups(
+            ConfigurationTarget.Global,
+        );
+        const workspaceGroups =
+            await this._connectionManager.connectionStore.connectionConfig.getGroups(
+                ConfigurationTarget.Workspace,
+            );
+        // Merge and filter out the root group
+        let allGroups = [...userGroups, ...workspaceGroups].filter((g) => g.id !== rootId);
 
         // Count occurrences of group names to handle naming conflicts
         const nameOccurrences = new Map<string, number>();
-        for (const group of connectionGroups) {
+        for (const group of allGroups) {
             const count = nameOccurrences.get(group.name) || 0;
             nameOccurrences.set(group.name, count + 1);
         }
 
         // Create a map of group IDs to their full paths
-        const groupById = new Map(connectionGroups.map((g) => [g.id, g]));
+        const groupById = new Map(allGroups.map((g) => [g.id, g]));
 
         // Helper function to get parent path
         const getParentPath = (group: IConnectionGroup): string => {
@@ -464,7 +472,7 @@ export class ConnectionUI {
             return `${getParentPath(parent)} > ${group.name}`;
         };
 
-        const result = connectionGroups
+        const result = allGroups
             .map((g) => {
                 // If there are naming conflicts, use the full path
                 const displayName = nameOccurrences.get(g.name) > 1 ? getParentPath(g) : g.name;
@@ -476,11 +484,10 @@ export class ConnectionUI {
             })
             .sort((a, b) => a.displayName.localeCompare(b.displayName));
 
+        // Always put the create option first, then list existing groups. Root is intentionally excluded so
+        // users cannot place new connections at the implicit ROOT level. "User Connections" will always
+        // exist (created during initialization) and will appear in the sorted list.
         return [
-            {
-                displayName: LocalizedConstants.ConnectionDialog.default,
-                value: rootId,
-            },
             {
                 displayName: LocalizedConstants.ConnectionDialog.createConnectionGroup,
                 value: CREATE_NEW_GROUP_ID,
@@ -493,6 +500,18 @@ export class ConnectionUI {
      * Save a connection profile using the connection store
      */
     public async saveProfile(profile: IConnectionProfile): Promise<IConnectionProfile> {
+        // Prevent saving a profile directly under ROOT; remap to User Connections if necessary
+        const rootId = this._connectionStore.rootGroupId;
+        if (profile.groupId === rootId) {
+            const userGroupId = this._connectionStore.connectionConfig.getUserConnectionsGroupId();
+            if (userGroupId) {
+                profile.groupId = userGroupId;
+            }
+        }
+
+        // Set scope based on (possibly updated) group
+        const group = this._connectionStore.connectionConfig.getGroupById(profile.groupId);
+        profile.scope = group?.scope || "user";
         return await this._connectionStore.saveProfile(profile);
     }
 

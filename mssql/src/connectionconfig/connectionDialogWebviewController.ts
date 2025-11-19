@@ -252,6 +252,23 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.state.connectionProfile.groupId = initialConnectionGroup.id;
         }
 
+        // Enforce default group selection: if groupId is missing or points to ROOT, set to User Connections
+        try {
+            const rootGroupId = this._mainController.connectionManager.connectionStore.rootGroupId;
+            if (
+                !this.state.connectionProfile.groupId ||
+                this.state.connectionProfile.groupId === rootGroupId
+            ) {
+                const userGroupId =
+                    this._mainController.connectionManager.connectionStore.connectionConfig.getUserConnectionsGroupId();
+                if (userGroupId) {
+                    this.state.connectionProfile.groupId = userGroupId;
+                }
+            }
+        } catch (err) {
+            this.logger.error(Loc.unableToEnforceDefaultUserConnectionsGroup(getErrorMessage(err)));
+        }
+
         await this.updateItemVisibility();
     }
 
@@ -1080,6 +1097,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     cleanedConnection as any,
                 );
+                // Refresh the Object Explorer tree to include new connections/groups
+                if (self._objectExplorerProvider?.objectExplorerService?.refreshTree) {
+                    await self._objectExplorerProvider.objectExplorerService.refreshTree();
+                }
                 const node =
                     await self._mainController.createObjectExplorerSession(cleanedConnection);
                 await self.updateLoadedConnections(state);
