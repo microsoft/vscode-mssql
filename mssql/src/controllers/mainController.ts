@@ -1666,7 +1666,7 @@ export default class MainController implements vscode.Disposable {
                     const databaseName = node ? ObjectExplorerUtils.getDatabaseName(node) : "";
                     const profileId = connectionProfile
                         ? connectionProfile.id ||
-                          `${connectionProfile.server}_${connectionProfile.database || ""}`
+                        `${connectionProfile.server}_${connectionProfile.database || ""}`
                         : undefined;
 
                     const initialState: DacpacDialogWebviewState = {
@@ -1707,6 +1707,32 @@ export default class MainController implements vscode.Disposable {
                     const name = ObjectExplorerUtils.getQualifiedName(node);
                     if (name) {
                         await this._vscodeWrapper.clipboardWriteText(name);
+                    }
+                },
+            ),
+        );
+
+        // Copy connection string command
+        this._context.subscriptions.push(
+            vscode.commands.registerCommand(
+                Constants.cmdCopyConnectionString,
+                async (node: TreeNodeInfo) => {
+                    if (!node || !node.connectionProfile) {
+                        return;
+                    }
+                    const connectionDetails = this.connectionManager.createConnectionDetails(
+                        node.connectionProfile,
+                    );
+                    const connectionString = await this.connectionManager.getConnectionString(
+                        connectionDetails,
+                        false, // Do not include password to match portal's behavior
+                        false, // Do not include application name
+                    );
+                    if (connectionString) {
+                        await vscode.env.clipboard.writeText(connectionString);
+                        await vscode.window.showInformationMessage(
+                            LocalizedConstants.ObjectExplorer.ConnectionStringCopied,
+                        );
                     }
                 },
             ),
@@ -1786,11 +1812,11 @@ export default class MainController implements vscode.Disposable {
                         vscode.window.showInformationMessage(
                             stoppedSuccessfully
                                 ? LocalizedConstants.LocalContainers.stoppedContainerSucessfully(
-                                      containerName,
-                                  )
+                                    containerName,
+                                )
                                 : LocalizedConstants.LocalContainers.failStopContainer(
-                                      containerName,
-                                  ),
+                                    containerName,
+                                ),
                         );
                     });
                 },
@@ -1828,11 +1854,11 @@ export default class MainController implements vscode.Disposable {
                         vscode.window.showInformationMessage(
                             deletedSuccessfully
                                 ? LocalizedConstants.LocalContainers.deletedContainerSucessfully(
-                                      containerName,
-                                  )
+                                    containerName,
+                                )
                                 : LocalizedConstants.LocalContainers.failDeleteContainer(
-                                      containerName,
-                                  ),
+                                    containerName,
+                                ),
                         );
                         node.loadingLabel =
                             LocalizedConstants.LocalContainers.startingContainerLoadingLabel;

@@ -96,6 +96,7 @@ export const cmdScriptExecute = "mssql.scriptExecute";
 export const cmdScriptAlter = "mssql.scriptAlter";
 export const cmdToggleSqlCmd = "mssql.toggleSqlCmd";
 export const cmdCopyObjectName = "mssql.copyObjectName";
+export const cmdCopyConnectionString = "mssql.copyConnectionString";
 export const cmdFilterNode = "mssql.filterNode";
 export const cmdFilterNodeWithExistingFilters = "mssql.filterNodeWithExistingFilters";
 export const cmdClearFilters = "mssql.clearFilters";
