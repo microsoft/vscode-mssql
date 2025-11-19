@@ -4,10 +4,12 @@
   "private": true,
   "description": "Monorepo for SQL Server extensions for Visual Studio Code",
   "scripts": {
-    "localization": "node scripts/localization-extract.js"
+    "localization": "node scripts/localization-extract.js",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@vscode/l10n-dev": "^0.0.35",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "husky": "^9.0.11"
   }
 }
