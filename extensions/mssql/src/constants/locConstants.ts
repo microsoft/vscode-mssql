@@ -22,6 +22,8 @@ export class Common {
         });
     public static accept = l10n.t("Accept");
     public static error = l10n.t("Error");
+    public static public = l10n.t("Public");
+    public static private = l10n.t("Private");
 }
 
 export let viewMore = l10n.t("View More");

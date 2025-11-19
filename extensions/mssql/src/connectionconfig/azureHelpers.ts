@@ -12,7 +12,7 @@ import {
 } from "@microsoft/vscode-azext-azureauth";
 import { GenericResourceExpanded, ResourceManagementClient } from "@azure/arm-resources";
 
-import { Azure as Loc } from "../constants/locConstants";
+import { Azure as Loc, Common as LocCommon } from "../constants/locConstants";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { IAccount, ITenant } from "../models/contracts/azure";
 import { FormItemOptions } from "../sharedInterfaces/form";
@@ -29,6 +29,13 @@ import { configSelectedAzureSubscriptions } from "../constants/constants";
 import { Logger } from "../models/logger";
 import { IMssqlAzureSubscription } from "../sharedInterfaces/azureAccountManagement";
 import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
+import {
+    Database,
+    ManagedDatabase,
+    ManagedInstance,
+    Server,
+    SqlManagementClient,
+} from "@azure/arm-sql";
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 
@@ -192,44 +199,173 @@ export class VsCodeAzureHelper {
         const client = new ResourceManagementClient(sub.credential, sub.subscriptionId, {
             endpoint: getCloudProviderSettings().settings.armResource.endpoint,
         });
+
         const resources = await listAllIterator<GenericResourceExpanded>(client.resources.list());
         return resources;
     }
 
+    public static async fetchSqlDbResourcesForSubscription(
+        sub: AzureSubscription,
+    ): Promise<{ servers: Server[]; databases: (Database & { server: string })[] }> {
+        const sql = new SqlManagementClient(sub.credential, sub.subscriptionId, {
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+        });
+
+        const servers = await listAllIterator(sql.servers.list());
+        const databases = [];
+
+        for (const server of servers) {
+            const newDbs = await listAllIterator(
+                sql.databases.listByServer(
+                    extractFromResourceId(server.id, "resourceGroups"),
+                    server.name,
+                ),
+            );
+
+            databases.push(
+                ...newDbs.map((db) => {
+                    return {
+                        ...db,
+                        server: server.name, // add server name to database for later use
+                    };
+                }),
+            );
+        }
+
+        return { servers, databases };
+    }
+
+    public static async fetchManagedInstanceResourcesForSubscription(
+        sub: AzureSubscription,
+    ): Promise<{
+        servers: ManagedInstance[];
+        databases: (ManagedDatabase & { server: string })[];
+    }> {
+        const sql = new SqlManagementClient(sub.credential, sub.subscriptionId, {
+            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+        });
+
+        const servers = await listAllIterator(sql.managedInstances.list());
+        const databases: (ManagedDatabase & { server: string })[] = [];
+
+        for (const server of servers) {
+            const newDbs = await listAllIterator(
+                sql.managedDatabases.listByInstance(
+                    extractFromResourceId(server.id, "resourceGroups"),
+                    server.name,
+                ),
+            );
+
+            databases.push(
+                ...newDbs.map((db) => {
+                    return {
+                        ...db,
+                        server: server.name, // add server name to database for later use
+                    };
+                }),
+            );
+        }
+
+        return { servers, databases };
+    }
+
+    /**
+     * Fetches the Azure SQL servers and databases (including Managed Instances) for a given subscription.
+     * Managed Instances with public endpoints enabled have separate entries for public and private endpoints.
+     */
     public static async fetchServersFromAzure(
         sub: AzureSubscription,
     ): Promise<AzureSqlServerInfo[]> {
-        const result: AzureSqlServerInfo[] = [];
+        const sqlDbResources = await this.fetchSqlDbResourcesForSubscription(sub);
+        const miResources = await this.fetchManagedInstanceResourcesForSubscription(sub);
 
-        const resources = await this.fetchResourcesForSubscription(sub);
+        const sqlDbMap = this.populateServerMap(
+            sub,
+            sqlDbResources.servers,
+            sqlDbResources.databases,
+        );
 
-        // for some subscriptions, supplying a `resourceType eq 'Microsoft.Sql/servers/databases'` filter to list() causes an error:
-        // > invalid filter in query string 'resourceType eq "Microsoft.Sql/servers/databases"'
-        // no idea why, so we're fetching all resources and filtering them ourselves
+        const miMap = this.populateManagedInstanceMap(
+            sub,
+            miResources.servers,
+            miResources.databases,
+        );
 
-        const servers = resources.filter((r) => r.type === serverResourceType);
-        const databases = resources.filter((r) => r.type === databaseResourceType);
+        return Array.from(sqlDbMap.values()).concat(Array.from(miMap.values()));
+    }
+
+    private static populateManagedInstanceMap(
+        subscription: AzureSubscription,
+        servers: ManagedInstance[],
+        databases: (ManagedDatabase & { server: string })[],
+    ): Map<string, AzureSqlServerInfo> {
+        const serverMap = this.populateServerMap(subscription, servers, databases);
+
+        // Managed Instances may need to be split into public and private endpoints.
+        // Split and label them only if the public endpoint is enabled
 
         for (const server of servers) {
-            result.push({
+            const serverEntry = serverMap.get(server.name.toLowerCase());
+            if (serverEntry) {
+                const publicEndpointEnabled =
+                    (server.publicDataEndpointEnabled as boolean) ?? false;
+
+                if (publicEndpointEnabled) {
+                    // Create a separate entry for the public endpoint
+
+                    // Public endpoint URI is the private FQDN, but with ".public" inserted after the server name and on port 3342
+                    const publicServerUri =
+                        serverEntry.uri?.replace(`${server.name}.`, `${server.name}.public.`) +
+                        ",3342";
+
+                    const publicServerEntry: AzureSqlServerInfo = {
+                        ...serverEntry,
+                        server: `${serverEntry.server} (${LocCommon.public})`,
+                        uri: publicServerUri,
+                    };
+                    serverMap.set(publicServerEntry.server.toLowerCase(), publicServerEntry);
+
+                    // Label the existing endpoint as private
+                    serverEntry.server = `${serverEntry.server} (${LocCommon.private})`;
+                }
+            }
+        }
+
+        return serverMap;
+    }
+
+    private static populateServerMap(
+        subscription: AzureSubscription,
+        servers: Server[],
+        databases: (Database & { server: string })[],
+    ): Map<string, AzureSqlServerInfo> {
+        const serverMap = new Map<string, AzureSqlServerInfo>();
+
+        for (const server of servers) {
+            serverMap.set(server.name.toLowerCase(), {
                 server: server.name,
                 databases: [],
                 location: server.location,
                 resourceGroup: extractFromResourceId(server.id, "resourceGroups"),
-                subscription: `${sub.name} (${sub.subscriptionId})`,
-                uri: buildServerUri(server),
+                subscription: `${subscription.name} (${subscription.subscriptionId})`,
+                uri: server.fullyQualifiedDomainName,
             });
         }
 
         for (const database of databases) {
-            const serverName = extractFromResourceId(database.id, "servers");
-            const server = result.find((s) => s.server === serverName);
+            const serverName = database.server;
+            const server = serverMap.get(serverName.toLowerCase());
+
             if (server) {
-                server.databases.push(database.name.substring(serverName.length + 1)); // database.name is in the form 'serverName/databaseName', so we need to remove the server name and slash
+                const databaseName = database.name;
+
+                if (databaseName) {
+                    server.databases.push(databaseName);
+                }
             }
         }
 
-        return result;
+        return serverMap;
     }
 }
 
@@ -307,9 +443,6 @@ export async function getSubscriptionQuickPickItems(
 
     return groupQuickPickItems(quickPickItems);
 }
-
-const serverResourceType = "Microsoft.Sql/servers";
-const databaseResourceType = "Microsoft.Sql/servers/databases";
 
 //#endregion
 
@@ -501,15 +634,6 @@ export function extractFromResourceId(resourceId: string, property: string): str
     }
 
     return resourceId.substring(startIndex, endIndex);
-}
-
-export function buildServerUri(serverResource: GenericResourceExpanded): string {
-    const suffix = serverResource.kind.includes("analytics")
-        ? getCloudProviderSettings().settings.sqlResource.analyticsDnsSuffix
-        : getCloudProviderSettings().settings.sqlResource.dnsSuffix;
-
-    // Construct the URI based on the server kind
-    return `${serverResource.name}${suffix}`;
 }
 
 //#endregion

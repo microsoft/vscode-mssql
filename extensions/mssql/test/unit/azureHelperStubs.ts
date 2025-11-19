@@ -57,6 +57,7 @@ export const mockAccounts = [
 ] as vscode.AuthenticationSessionAccountInformation[];
 
 export const mockServerName = "testServer";
+export const mockManagedInstanceName = "testManagedInstance";
 export const mockUserName = "testUser";
 
 export const mockAzureResources = {
@@ -90,6 +91,22 @@ export const mockAzureResources = {
         location: "eastus2",
         kind: "v12.0,analytics",
     } as GenericResourceExpanded,
+    azureManagedInstance: {
+        id: `/subscriptions/${mockSubscriptions[0].subscriptionId}/resourceGroups/DefaultResourceGroup/providers/Microsoft.Sql/managedInstances/${mockManagedInstanceName}`,
+        name: mockManagedInstanceName,
+        type: "Microsoft.Sql/managedInstances",
+        location: "eastus2",
+        properties: {
+            fullyQualifiedDomainName: `${mockManagedInstanceName}.public.database.windows.net`,
+        },
+    } as GenericResourceExpanded,
+    azureManagedInstanceDatabase: {
+        id: `/subscriptions/${mockSubscriptions[0].subscriptionId}/resourceGroups/DefaultResourceGroup/providers/Microsoft.Sql/managedInstances/${mockManagedInstanceName}/databases/managedInstanceDb`,
+        name: `${mockManagedInstanceName}/managedInstanceDb`,
+        type: "Microsoft.Sql/managedInstances/databases",
+        location: "eastus2",
+        kind: "v12.0,user",
+    } as GenericResourceExpanded,
     nonDatabaseResource: {
         id: `/subscriptions/${mockSubscriptions[0].subscriptionId}/resourceGroups/DefaultResourceGroup/providers/Microsoft.Storage/storageAccounts/testStorage`,
         name: `testStorage`,
@@ -104,6 +121,8 @@ export const mockAzureResourceList = [
     mockAzureResources.azureSqlDbDatabase1,
     mockAzureResources.azureSqlDbDatabase2,
     mockAzureResources.azureSynapseAnalyticsServer,
+    mockAzureResources.azureManagedInstance,
+    mockAzureResources.azureManagedInstanceDatabase,
     mockAzureResources.nonDatabaseResource,
 ];
 
