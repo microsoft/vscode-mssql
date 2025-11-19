@@ -3061,9 +3061,10 @@
     <trans-unit id="++CODE++26b4293018ea72418733109f2e245387d9dfcfe7d4083c0c1f29eb1155c98365">
       <source xml:lang="en">Restore properties pane</source>
     </trans-unit>
-    <trans-unit id="++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c">
-      <source xml:lang="en">Result Set {0}</source>
-      <note>{0} is the index of the result set</note>
+    <trans-unit id="++CODE++a1519957e8b397de6037c8e8a9a1af37009bf6d89fa0f388b1e4b3dc76179e64">
+      <source xml:lang="en">Result Set Batch {0} - Query {1}</source>
+      <note>{0} is the batch number
+{1} is the query number</note>
     </trans-unit>
     <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
       <source xml:lang="en">Results</source>
