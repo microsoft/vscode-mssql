@@ -71,32 +71,32 @@ jobs:
       - name: MSSQL - Install dependencies and build target branch
         uses: ./pr/.github/actions/build-mssql
         with:
-          source-dir: "./target/mssql"
+          source-dir: "./target/extensions/mssql"
 
       - name: SqlProj - Install dependencies and build target branch
         uses: ./pr/.github/actions/build-sqlproj
         with:
-          source-dir: "./target/sql-database-projects"
+          source-dir: "./target/extensions/sql-database-projects"
 
       - name: MSSQL - Install dependencies and build PR branch
         uses: ./pr/.github/actions/build-mssql
         with:
-          source-dir: "./pr/mssql"
+          source-dir: "./pr/extensions/mssql"
 
       - name: SqlProj - Install dependencies and build PR branch
         uses: ./pr/.github/actions/build-sqlproj
         with:
-          source-dir: "./pr/sql-database-projects"
+          source-dir: "./pr/extensions/sql-database-projects"
 
       - name: MSSQL - Run lint
         run: |
-          cd ./pr/mssql
+          cd ./pr/extensions/mssql
           yarn lint src/ test/
 
       - name: SqlProj - Run lint
         continue-on-error: true
         run: |
-          cd ./pr/sql-database-projects
+          cd ./pr/extensions/sql-database-projects
           yarn lint src/ test/
 
       # Calculate sizes and package before testing;
@@ -105,26 +105,26 @@ jobs:
       - name: MSSQL - Package both branches
         continue-on-error: true
         run: |
-          (cd target/mssql && vsce package)
-          (cd pr/mssql && vsce package)
+          (cd target/extensions/mssql && vsce package)
+          (cd pr/extensions/mssql && vsce package)
 
       - name: SqlProj - Package both branches
         continue-on-error: true
         run: |
-          (cd target/sql-database-projects && vsce package)
-          (cd pr/sql-database-projects && vsce package)
+          (cd target/extensions/sql-database-projects && vsce package)
+          (cd pr/extensions/sql-database-projects && vsce package)
 
       - name: MSSQL - Upload PR VSIX files
         uses: actions/upload-artifact@v4
         with:
           name: mssql-vsix
-          path: ./pr/mssql/*.vsix
+          path: ./pr/extensions/mssql/*.vsix
 
       - name: SqlProj - Upload PR VSIX files
         uses: actions/upload-artifact@v4
         with:
           name: sql-database-projects-vsix
-          path: ./pr/sql-database-projects/*.vsix
+          path: ./pr/extensions/sql-database-projects/*.vsix
 
       - name: Setting up change icons
         run: |
@@ -134,8 +134,8 @@ jobs:
 
       - name: Calculate webview bundle sizes
         run: |
-          target_file=$(du -sk ./target/mssql/dist/views | cut -f1)
-          pr_file=$(du -sk ./pr/mssql/dist/views | cut -f1)
+          target_file=$(du -sk ./target/extensions/mssql/dist/views | cut -f1)
+          pr_file=$(du -sk ./pr/extensions/mssql/dist/views | cut -f1)
           echo "Target branch bundle size: $target_file KB"
           echo "PR branch bundle size: $pr_file KB"
           size_diff=$((pr_file - target_file))
@@ -156,8 +156,8 @@ jobs:
 
       - name: Calculate vsix file sizes
         run: |
-          target_vsix=$(find ./target/mssql -name "*.vsix")
-          pr_vsix=$(find ./pr/mssql -name "*.vsix")
+          target_vsix=$(find ./target/extensions/mssql -name "*.vsix")
+          pr_vsix=$(find ./pr/extensions/mssql -name "*.vsix")
           target_size=$(stat -c%s "$target_vsix")
           pr_size=$(stat -c%s "$pr_vsix")
           target_size=$((target_size / 1024))
@@ -184,7 +184,7 @@ jobs:
         continue-on-error: true
         run: |
           set +e  # Don't exit on errors
-          cd pr/mssql
+          cd pr/extensions/mssql
           DISPLAY=:10 yarn test
           UNIT_EXIT_CODE=$?
           echo "unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
@@ -196,21 +196,21 @@ jobs:
           name: "Unit Test Report"
           path: ./test-reports/**/*.xml
           reporter: jest-junit
-          working-directory: ./pr/mssql
+          working-directory: ./pr/extensions/mssql
           badge-title: "unit-tests"
           fail-on-error: false
 
       - name: Run unit tests for target branch # for calculating coverage comparison
         continue-on-error: true
         run: |
-          cd target/mssql
+          cd target/extensions/mssql
           DISPLAY=:10 yarn test
 
       - name: Build mappings for Webviews
         continue-on-error: true
         run: |
-          (cd ./pr/mssql && yarn build:webviews-bundle)
-          (cd ./target/mssql && yarn build:webviews-bundle)
+          (cd ./pr/extensions/mssql && yarn build:webviews-bundle)
+          (cd ./target/extensions/mssql && yarn build:webviews-bundle)
 
       - name: Setup environment for smoke tests
         run: |
@@ -234,7 +234,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mssql-tools
           /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "$PASSWORD" -Q "SELECT @@VERSION"
-        working-directory: ./pr/mssql
+        working-directory: ./pr/extensions/mssql
 
       - name: Run smoke tests for PR branch
         continue-on-error: true
@@ -247,7 +247,7 @@ jobs:
           export PASSWORD=${{ env.PASSWORD }}
           export SAVE_PASSWORD=No
           export PROFILE_NAME=test-server
-          cd pr/mssql
+          cd pr/extensions/mssql
           export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
           DISPLAY=:10 yarn smoketest
           SMOKE_EXIT_CODE=$?
@@ -257,7 +257,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: smoke-test-failure-screenshots
-          path: ./pr/mssql/test-results/**/
+          path: ./pr/extensions/mssql/test-results/**/
           retention-days: 7
 
       - name: PR Smoke Test Report
@@ -267,7 +267,7 @@ jobs:
           name: "Smoke Test Report"
           path: ./test-reports/**/smoke-results.xml
           reporter: jest-junit
-          working-directory: ./pr/mssql
+          working-directory: ./pr/extensions/mssql
           badge-title: "smoke-tests"
           fail-on-error: false
 
@@ -281,28 +281,28 @@ jobs:
           export PASSWORD=${{ env.PASSWORD }}
           export SAVE_PASSWORD=No
           export PROFILE_NAME=test-server
-          cd target/mssql
+          cd target/extensions/mssql
           export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" | head -n 1)
           DISPLAY=:10 yarn smoketest
 
       - name: Merge Smoke and Unit Test Coverage Reports
         run: |
-          if [ -f target/mssql/test/resources/mergeReports.js ]; then
-            node target/mssql/test/resources/mergeReports.js target/mssql/coverage/coverage-e2e/cobertura-coverage.xml target/mssql/coverage/cobertura-coverage.xml
+          if [ -f target/extensions/mssql/test/resources/mergeReports.js ]; then
+            node target/extensions/mssql/test/resources/mergeReports.js target/extensions/mssql/coverage/coverage-e2e/cobertura-coverage.xml target/extensions/mssql/coverage/cobertura-coverage.xml
           else
-            echo "mergeReports.js not found in ./target/mssql, skipping..."
+            echo "mergeReports.js not found in ./target/extensions/mssql, skipping..."
           fi
 
-          if [ -f pr/mssql/test/resources/mergeReports.js ]; then
-            node pr/mssql/test/resources/mergeReports.js pr/mssql/coverage/coverage-e2e/cobertura-coverage.xml pr/mssql/coverage/cobertura-coverage.xml
+          if [ -f pr/extensions/mssql/test/resources/mergeReports.js ]; then
+            node pr/extensions/mssql/test/resources/mergeReports.js pr/extensions/mssql/coverage/coverage-e2e/cobertura-coverage.xml pr/extensions/mssql/coverage/cobertura-coverage.xml
           else
-            echo "mergeReports.js not found in ./pr/mssql, skipping..."
+            echo "mergeReports.js not found in ./pr/extensions/mssql, skipping..."
           fi
 
       - name: Generate Coverage Report
         uses: danielpalme/ReportGenerator-GitHub-Action@5.4.4
         with:
-          reports: "./pr/mssql/coverage/cobertura-coverage.xml"
+          reports: "./pr/extensions/mssql/coverage/cobertura-coverage.xml"
           targetdir: "coveragereport"
           reporttypes: "Html"
           toolpath: "reportgeneratortool"
@@ -317,19 +317,19 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: "./pr/mssql/coverage"
+          directory: "./pr/extensions/mssql/coverage"
           exclude: "coverage-e2e" # coverage for smoke tests is already merged above
 
       - name: Code coverage
         run: |
-          cd target/mssql
+          cd target/extensions/mssql
           xml_coverage_target="./coverage/cobertura-coverage.xml"
           # Pull out the line rate coverage from the target branch's cobertura report
           line_rate_target=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_target" | sed 's/line-rate="\([0-9.]*\)"/\1/')
           line_rate_target=$(printf "%.2f" $(echo "$line_rate_target * 100" | bc))
           # Save formatted line rate in env variable
           echo "line_rate_target=$line_rate_target" >> $GITHUB_ENV
-          cd ../../pr/mssql
+          cd ../../../pr/extensions/mssql
           xml_coverage_pr="./coverage/cobertura-coverage.xml"
           # Pull out the line rate coverage from the pr branch's cobertura report
           line_rate_pr=$(grep -m 1 -o 'line-rate="[0-9.]\+"' "$xml_coverage_pr" | sed 's/line-rate="\([0-9.]*\)"/\1/')
@@ -380,13 +380,13 @@ jobs:
 
       - name: MSSQL - Generate xliff files in PR branch
         run: |
-          cd pr/mssql
+          cd pr/extensions/mssql
           yarn localization
 
       # Check if there are git changes in english xlf files
       - name: MSSQL - Check for changes in english xlf files
         run: |
-          cd pr/mssql
+          cd pr/extensions/mssql
           if git diff --quiet --exit-code ./localization/xliff/vscode-mssql.xlf; then
             echo "Changes not found in english xlf files"
             echo "loc_update_required=false" >> $GITHUB_ENV
