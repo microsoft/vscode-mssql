@@ -12,16 +12,16 @@ import * as plist from "plist";
 const unknown = "unknown";
 
 export enum Runtime {
-    Unknown = 'Unknown',
+    Unknown = "Unknown",
     // Windows
-    Windows_64 = 'Windows_64',
+    Windows_64 = "Windows_64",
     Windows_ARM64 = "Windows_ARM64",
     // macOS
-    OSX = 'OSX',
-    OSX_ARM64 = 'OSX_ARM64',
-    // Linux distributions  
-    Linux = 'Linux',
-    Linux_ARM64 = 'Linux_ARM64'
+    OSX = "OSX",
+    OSX_ARM64 = "OSX_ARM64",
+    // Linux distributions
+    Linux = "Linux",
+    Linux_ARM64 = "Linux_ARM64",
 }
 
 export function getRuntimeDisplayName(runtime: Runtime): string {
