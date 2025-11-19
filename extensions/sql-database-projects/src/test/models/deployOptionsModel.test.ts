@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as should from 'should';
-import * as testUtils from '../../test/testContext';
+import * as testUtils from '../testContext';
 import { DeployOptionsModel } from '../../models/options/deployOptionsModel';
 
 describe('Publish Dialog Deploy Options Model', () => {

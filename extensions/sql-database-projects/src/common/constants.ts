@@ -6,7 +6,7 @@
 import * as nls from 'vscode-nls';
 import * as path from 'path';
 import { SqlTargetPlatform } from 'sqldbproj';
-import * as utils from '../common/utils';
+import * as utils from './utils';
 
 const localize = nls.loadMessageBundle();
 

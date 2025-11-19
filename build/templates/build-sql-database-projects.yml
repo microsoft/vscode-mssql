@@ -14,50 +14,50 @@ steps:
   - pwsh: |
       yarn --frozen-lockfile
     displayName: SqlProj - Install extension depedencies
-    workingDirectory: "$(Build.SourcesDirectory)/sql-database-projects"
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
 
   - pwsh: |
       yarn run build --prod
     displayName: SqlProj - Build extension
-    workingDirectory: "$(Build.SourcesDirectory)/sql-database-projects"
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
 
   - pwsh: |
       yarn lint
     displayName: SqlProj - Lint code
-    workingDirectory: "$(Build.SourcesDirectory)/sql-database-projects"
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
     continueOnError: true
 
   - pwsh: |
       yarn test
     displayName: SqlProj - Run tests
-    workingDirectory: "$(Build.SourcesDirectory)/sql-database-projects"
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
     continueOnError: true
 
   - task: PublishTestResults@2
     displayName: SqlProj - Publish test results
     inputs:
       testResultsFormat: "JUnit"
-      testResultsFiles: "$(Build.SourcesDirectory)/sql-database-projects/test-reports/test-results-ext.xml"
+      testResultsFiles: "$(Build.SourcesDirectory)/extensions/sql-database-projects/test-reports/test-results-ext.xml"
     condition: succeededOrFailed()
     continueOnError: true
 
   - task: PublishCodeCoverageResults@2
     displayName: SqlProj - Publish code coverage
     inputs:
-      summaryFileLocation: "$(Build.SourcesDirectory)/sql-database-projects/coverage/cobertura-coverage.xml"
+      summaryFileLocation: "$(Build.SourcesDirectory)/extensions/sql-database-projects/coverage/cobertura-coverage.xml"
     condition: succeededOrFailed()
     continueOnError: true
 
   - pwsh: |
       yarn package
     displayName: SqlProj - Package extension
-    workingDirectory: "$(Build.SourcesDirectory)/sql-database-projects"
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
 
   # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact can't use wildcards
   - task: CopyFiles@2
     displayName: SqlProj - Copy VSIXs to clean folder
     inputs:
-      SourceFolder: "$(Build.SourcesDirectory)/sql-database-projects"
+      SourceFolder: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
       Contents: "*.vsix"
       TargetFolder: "$(Build.ArtifactStagingDirectory)/vsix"
 
