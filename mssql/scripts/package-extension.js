@@ -16,17 +16,10 @@ const isOffline = args.includes("--offline");
 // Platform configurations for offline packaging
 const OFFLINE_PLATFORMS = [
     { rid: "win-x64", runtime: "Windows_64" },
-    { rid: "win-x86", runtime: "Windows_86" },
     { rid: "win-arm64", runtime: "Windows_ARM64" },
-    { rid: "osx.10.11-x64", runtime: "OSX_10_11_64" },
+    { rid: "osx", runtime: "OSX" },
     { rid: "osx-arm64", runtime: "OSX_ARM64" },
-    { rid: "centos.7-x64", runtime: "CentOS_7" },
-    { rid: "debian.8-x64", runtime: "Debian_8" },
-    { rid: "fedora.23-x64", runtime: "Fedora_23" },
-    { rid: "opensuse.13.2-x64", runtime: "OpenSUSE_13_2" },
-    { rid: "rhel.7.2-x64", runtime: "RHEL_7" },
-    { rid: "ubuntu.14.04-x64", runtime: "Ubuntu_14" },
-    { rid: "ubuntu.16.04-x64", runtime: "Ubuntu_16" },
+    { rid: "linux-x64", runtime: "Linux" },
     { rid: "linux-arm64", runtime: "Linux_ARM64" },
 ];
 

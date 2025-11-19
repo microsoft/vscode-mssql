@@ -12,48 +12,27 @@ import * as plist from "plist";
 const unknown = "unknown";
 
 export enum Runtime {
-    UnknownRuntime = "Unknown",
-    Windows_86 = "Windows_86",
-    Windows_64 = "Windows_64",
+    Unknown = 'Unknown',
+    // Windows
+    Windows_64 = 'Windows_64',
     Windows_ARM64 = "Windows_ARM64",
-    OSX_10_11_64 = "OSX_10_11_64",
-    OSX_ARM64 = "OSX_ARM64",
-    CentOS_7 = "CentOS_7",
-    Debian_8 = "Debian_8",
-    Fedora_23 = "Fedora_23",
-    OpenSUSE_13_2 = "OpenSUSE_13_2",
-    SLES_12_2 = "SLES_12_2",
-    RHEL_7 = "RHEL_7",
-    Ubuntu_14 = "Ubuntu_14",
-    Ubuntu_16 = "Ubuntu_16",
-    Linux_ARM64 = "Linux_ARM64",
+    // macOS
+    OSX = 'OSX',
+    OSX_ARM64 = 'OSX_ARM64',
+    // Linux distributions  
+    Linux = 'Linux',
+    Linux_ARM64 = 'Linux_ARM64'
 }
 
 export function getRuntimeDisplayName(runtime: Runtime): string {
     switch (runtime) {
         case Runtime.Windows_64:
-        case Runtime.Windows_86:
         case Runtime.Windows_ARM64:
             return "Windows";
-        case Runtime.OSX_10_11_64:
+        case Runtime.OSX:
         case Runtime.OSX_ARM64:
             return "OSX";
-        case Runtime.CentOS_7:
-            return "CentOS";
-        case Runtime.Debian_8:
-            return "Debian";
-        case Runtime.Fedora_23:
-            return "Fedora";
-        case Runtime.OpenSUSE_13_2:
-            return "OpenSUSE";
-        case Runtime.SLES_12_2:
-            return "SLES";
-        case Runtime.RHEL_7:
-            return "RHEL";
-        case Runtime.Ubuntu_14:
-            return "Ubuntu14";
-        case Runtime.Ubuntu_16:
-            return "Ubuntu16";
+        case Runtime.Linux:
         case Runtime.Linux_ARM64:
             return "Linux";
         default:
@@ -164,7 +143,7 @@ export class PlatformInformation {
     }
 
     public get isValidRuntime(): boolean {
-        return this.runtimeId !== undefined && this.runtimeId !== Runtime.UnknownRuntime;
+        return this.runtimeId !== undefined && this.runtimeId !== Runtime.Unknown;
     }
 
     public getRuntimeDisplayName(): string {
@@ -307,8 +286,6 @@ export class PlatformInformation {
         switch (platform) {
             case "win32":
                 switch (architecture) {
-                    case "x86":
-                        return Runtime.Windows_86;
                     case "x86_64":
                         return Runtime.Windows_64;
                     case "arm64":
@@ -322,7 +299,7 @@ export class PlatformInformation {
                 switch (architecture) {
                     // Note: We return the El Capitan RID for Sierra
                     case "x86_64":
-                        return Runtime.OSX_10_11_64;
+                        return Runtime.OSX;
                     case "arm64":
                         return Runtime.OSX_ARM64;
                     default:
@@ -332,35 +309,7 @@ export class PlatformInformation {
 
             case "linux":
                 if (architecture === "x86_64") {
-                    // First try the distribution name
-                    let runtimeId = PlatformInformation.getRuntimeIdHelper(
-                        distribution.name,
-                        distribution.version,
-                    );
-
-                    // If the distribution isn't one that we understand, but the 'ID_LIKE' field has something that we understand, use that
-                    //
-                    // NOTE: 'ID_LIKE' doesn't specify the version of the 'like' OS. So we will use the 'VERSION_ID' value. This will restrict
-                    // how useful ID_LIKE will be since it requires the version numbers to match up, but it is the best we can do.
-                    if (
-                        runtimeId === Runtime.UnknownRuntime &&
-                        distribution.idLike &&
-                        distribution.idLike.length > 0
-                    ) {
-                        for (let id of distribution.idLike) {
-                            runtimeId = PlatformInformation.getRuntimeIdHelper(
-                                id,
-                                distribution.version,
-                            );
-                            if (runtimeId !== Runtime.UnknownRuntime) {
-                                break;
-                            }
-                        }
-                    }
-
-                    if (runtimeId !== Runtime.UnknownRuntime) {
-                        return runtimeId;
-                    }
+                    return Runtime.Linux;
                 } else if (architecture === "aarch64") {
                     return Runtime.Linux_ARM64;
                 }
@@ -374,69 +323,5 @@ export class PlatformInformation {
                 // Chances are, VS Code doesn't support these platforms either.
                 throw Error("Unsupported platform " + platform);
         }
-    }
-
-    private static getRuntimeIdHelper(
-        distributionName: string,
-        distributionVersion: string,
-    ): Runtime {
-        switch (distributionName) {
-            case "arch":
-            case "antergos":
-                // NOTE: currently Arch Linux seems to be compatible enough with Ubuntu 16 that this works,
-                // though in the future this may need to change as Arch follows a rolling release model.
-                return Runtime.Ubuntu_16;
-            case "ubuntu":
-                if (distributionVersion.startsWith("14")) {
-                    // This also works for Linux Mint
-                    return Runtime.Ubuntu_14;
-                } else if (distributionVersion.startsWith("16")) {
-                    return Runtime.Ubuntu_16;
-                }
-
-                break;
-            case "elementary":
-            case "elementary OS":
-                if (distributionVersion.startsWith("0.3")) {
-                    // Elementary OS 0.3 Freya is binary compatible with Ubuntu 14.04
-                    return Runtime.Ubuntu_14;
-                } else if (distributionVersion.startsWith("0.4")) {
-                    // Elementary OS 0.4 Loki is binary compatible with Ubuntu 16.04
-                    return Runtime.Ubuntu_16;
-                }
-
-                break;
-            case "linuxmint":
-                if (distributionVersion.startsWith("18") || distributionVersion.startsWith("19")) {
-                    // Linux Mint 18 is binary compatible with Ubuntu 16.04
-                    return Runtime.Ubuntu_16;
-                }
-
-                break;
-            case "centos":
-            case "ol":
-                // Oracle Linux is binary compatible with CentOS
-                return Runtime.CentOS_7;
-            case "fedora":
-                return Runtime.Fedora_23;
-            case "opensuse":
-                return Runtime.OpenSUSE_13_2;
-            case "sles":
-                return Runtime.SLES_12_2;
-            case "rhel":
-                return Runtime.RHEL_7;
-            case "debian":
-            case "deepin":
-                return Runtime.Debian_8;
-            case "galliumos":
-                if (distributionVersion.startsWith("2.0")) {
-                    return Runtime.Ubuntu_16;
-                }
-                break;
-            default:
-                return Runtime.Ubuntu_16;
-        }
-
-        return Runtime.Ubuntu_16;
     }
 }
