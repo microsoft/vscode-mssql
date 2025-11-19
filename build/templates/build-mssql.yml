@@ -19,51 +19,51 @@ steps:
   - pwsh: |
       yarn --frozen-lockfile
     displayName: MSSQL - Install extension depedencies
-    workingDirectory: "$(Build.SourcesDirectory)/mssql"
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"
 
   - pwsh: |
       yarn run build --prod
     displayName: MSSQL - Build extension
-    workingDirectory: "$(Build.SourcesDirectory)/mssql"
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"
 
   - pwsh: |
       yarn lint
     displayName: MSSQL - Lint code
-    workingDirectory: "$(Build.SourcesDirectory)/mssql"
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"
 
   - pwsh: |
       yarn test
     displayName: MSSQL - Run tests
-    workingDirectory: "$(Build.SourcesDirectory)/mssql"
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"
 
   - task: PublishTestResults@2
     displayName: MSSQL - Publish test results
     inputs:
       testResultsFormat: "JUnit"
-      testResultsFiles: "$(Build.SourcesDirectory)/mssql/test-reports/test-results-ext.xml"
+      testResultsFiles: "$(Build.SourcesDirectory)/extensions/mssql/test-reports/test-results-ext.xml"
     condition: succeededOrFailed()
 
   - task: PublishCodeCoverageResults@2
     displayName: MSSQL - Publish code coverage
     inputs:
-      summaryFileLocation: "$(Build.SourcesDirectory)/mssql/coverage/cobertura-coverage.xml"
+      summaryFileLocation: "$(Build.SourcesDirectory)/extensions/mssql/coverage/cobertura-coverage.xml"
     condition: succeededOrFailed()
 
   - pwsh: |
       yarn package --online
     displayName: MSSQL - Package extension (online)
-    workingDirectory: "$(Build.SourcesDirectory)/mssql"
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"
 
   - pwsh: |
       yarn package --offline
     displayName: MSSQL - Package extension (offline)
-    workingDirectory: "$(Build.SourcesDirectory)/mssql"
+    workingDirectory: "$(Build.SourcesDirectory)/extensions/mssql"
     condition: eq( ${{ parameters.packageOffline }}, 'true')
 
   # using CopyFiles to isolate all .vsix packages because PublishPipelineArtifact can't use wildcards
   - task: CopyFiles@2
     displayName: MSSQL - Copy VSIXs to clean folder
     inputs:
-      SourceFolder: "$(Build.SourcesDirectory)/mssql"
+      SourceFolder: "$(Build.SourcesDirectory)/extensions/mssql"
       Contents: "*.vsix"
       TargetFolder: "$(Build.ArtifactStagingDirectory)/vsix"

@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import * as request from 'request';
 import * as vscode from 'vscode';
 import axios, { AxiosRequestConfig } from 'axios';
-import * as constants from '../common/constants';
+import * as constants from './constants';
 
 const DownloadTimeoutMs = 20000;
 
