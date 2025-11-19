@@ -59,6 +59,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 resultSet: undefined,
                 currentRowCount: 100, // Default row count for data loading
                 newRows: [], // Track newly created rows
+                deletedRows: [], // Track rows marked for deletion
                 updateScript: undefined, // No script initially
                 showScriptPane: false, // Script pane hidden by default
                 currentPage: 1, // Start on page 1
@@ -270,11 +271,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 // Clear tracking state after successful commit
                 state.newRows = [];
+                state.deletedRows = [];
                 state.failedCells = [];
                 this.showRestorePromptAfterClose = false;
 
                 this.logger.info(
-                    `Cleared new rows and failed cells after successful commit - OperationId: ${this.operationId}`,
+                    `Cleared new rows, deleted rows, and failed cells after successful commit - OperationId: ${this.operationId}`,
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
@@ -485,6 +487,11 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 // Remove from newRows tracking if it was a new row
                 state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
 
+                // Add to deletedRows tracking (keep row visible but marked as deleted)
+                if (!state.deletedRows.includes(payload.rowId)) {
+                    state.deletedRows = [...state.deletedRows, payload.rowId];
+                }
+
                 // Remove all failed cells for this row
                 if (state.failedCells) {
                     state.failedCells = state.failedCells.filter(
@@ -494,23 +501,12 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 this.showRestorePromptAfterClose = true;
 
-                // Update result set
-                if (state.resultSet) {
-                    const updatedSubset = state.resultSet.subset.filter(
-                        (row) => row.id !== payload.rowId,
-                    );
-                    state.resultSet = {
-                        ...state.resultSet,
-                        subset: updatedSubset,
-                        rowCount: updatedSubset.length,
-                    };
+                // Update state to trigger re-render with deleted row styling
+                this.updateState();
 
-                    this.updateState();
-
-                    this.logger.info(
-                        `Updated result set, now has ${updatedSubset.length} rows (${state.newRows.length} new)`,
-                    );
-                }
+                this.logger.info(
+                    `Marked row ${payload.rowId} for deletion (${state.deletedRows.length} total deleted)`,
+                );
 
                 await this.regenerateScriptIfVisible(state);
 
@@ -751,6 +747,9 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     state.ownerUri,
                     payload.rowId,
                 );
+
+                // Remove from deletedRows if it was marked for deletion
+                state.deletedRows = state.deletedRows.filter((id) => id !== payload.rowId);
 
                 // Remove all failed cells for this row
                 if (state.failedCells) {
