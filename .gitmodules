@@ -1,3 +1,0 @@
-[submodule "packages/ads-extension-telemetry"]
-	path = packages/ads-extension-telemetry
-	url = https://github.com/microsoft/ads-extension-telemetry.git
