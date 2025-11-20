@@ -260,6 +260,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             if (deletedRows !== undefined) {
                 deletedRowsRef.current = new Set(deletedRows);
 
+                // Notify parent of deletion count update
+                if (onDeletionCountChanged) {
+                    onDeletionCountChanged(deletedRows.length);
+                }
+
                 // Set up row metadata to apply CSS class to deleted rows
                 if (reactGridRef.current?.dataView) {
                     const dataView = reactGridRef.current.dataView;
@@ -291,7 +296,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     }
                 }
             }
-        }, [deletedRows]);
+        }, [deletedRows, onDeletionCountChanged]);
 
         // Handle theme changes - just update state to trigger re-render
         useEffect(() => {
