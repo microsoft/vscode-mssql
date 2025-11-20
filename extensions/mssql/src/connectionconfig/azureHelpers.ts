@@ -38,6 +38,7 @@ import {
 } from "@azure/arm-sql";
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
+export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
 
 //#region VS Code integration
 
@@ -316,7 +317,7 @@ export class VsCodeAzureHelper {
                     // Public endpoint URI is the private FQDN, but with ".public" inserted after the server name and on port 3342
                     const publicServerUri =
                         serverEntry.uri?.replace(`${server.name}.`, `${server.name}.public.`) +
-                        ",3342";
+                        `,${MANAGED_INSTANCE_PUBLIC_PORT}`;
 
                     const publicServerEntry: AzureSqlServerInfo = {
                         ...serverEntry,

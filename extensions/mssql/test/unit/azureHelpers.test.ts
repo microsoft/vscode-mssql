@@ -12,8 +12,9 @@ import { IAccount } from "vscode-mssql";
 import * as vscode from "vscode";
 import {
     mockAccounts,
-    mockAzureResourceList,
+    mockSqlDbList,
     mockAzureResources,
+    mockManagedInstanceList,
     mockSubscriptions,
     mockTenants,
 } from "./azureHelperStubs";
@@ -196,28 +197,40 @@ suite("Azure Helpers", () => {
 
     test("fetchServersFromAzure", async () => {
         sandbox
-            .stub(azureHelpers.VsCodeAzureHelper, "fetchResourcesForSubscription")
-            .resolves(mockAzureResourceList);
+            .stub(azureHelpers.VsCodeAzureHelper, "fetchSqlDbResourcesForSubscription")
+            .resolves(mockSqlDbList);
+
+        sandbox
+            .stub(azureHelpers.VsCodeAzureHelper, "fetchManagedInstanceResourcesForSubscription")
+            .resolves(mockManagedInstanceList);
 
         const servers = await azureHelpers.VsCodeAzureHelper.fetchServersFromAzure(
             mockSubscriptions[0],
         );
 
-        expect(servers).to.have.lengthOf(3);
+        expect(servers).to.have.lengthOf(4); // 1 SQL DB servers + 1 Synapse + 2 MI servers (public and private endpoints)
         expect(servers[0].server).to.equal(mockAzureResources.azureSqlDbServer.name);
         expect(servers[0].databases).to.deep.equal(["master", "testDatabase"]);
         expect(servers[1].server).to.equal(mockAzureResources.azureSynapseAnalyticsServer.name);
-        const managedInstance = servers.find(
-            (s) => s.server === mockAzureResources.azureManagedInstance.name,
+        const managedInstances = servers.filter((s) =>
+            s.server.startsWith(mockAzureResources.azureManagedInstance.name),
         );
-        expect(managedInstance, "Managed Instance should be included in browse results").to.exist;
-        expect(managedInstance!.databases).to.deep.equal(["managedInstanceDb"]);
-        expect(managedInstance!.uri).to.equal(
-            (
-                mockAzureResources.azureManagedInstance.properties as {
-                    fullyQualifiedDomainName: string;
-                }
-            ).fullyQualifiedDomainName,
+
+        expect(managedInstances).to.have.lengthOf(2);
+        expect(managedInstances[0].server).to.equal(
+            `${mockAzureResources.azureManagedInstance.name} (Private)`,
+        );
+        expect(managedInstances[0].databases).to.deep.equal(["managedInstanceDb"]);
+        expect(managedInstances[0].uri).to.equal(
+            `${mockAzureResources.azureManagedInstance.name}.${mockAzureResources.azureManagedInstance.dnsZone}.database.windows.net`,
+        );
+
+        expect(managedInstances[1].server).to.equal(
+            `${mockAzureResources.azureManagedInstance.name} (Public)`,
+        );
+        expect(managedInstances[1].databases).to.deep.equal(["managedInstanceDb"]);
+        expect(managedInstances[1].uri).to.equal(
+            `${mockAzureResources.azureManagedInstance.name}.public.${mockAzureResources.azureManagedInstance.dnsZone}.database.windows.net,${azureHelpers.MANAGED_INSTANCE_PUBLIC_PORT}`,
         );
     });
 });
