@@ -32,6 +32,7 @@ interface TableDataGridProps {
     pageSize?: number;
     currentRowCount?: number;
     failedCells?: string[];
+    deletedRows?: number[];
     onDeleteRow?: (rowId: number) => void;
     onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
     onRevertCell?: (rowId: number, columnId: number) => void;
@@ -55,6 +56,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             themeKind,
             pageSize = 100,
             failedCells,
+            deletedRows,
             onDeleteRow,
             onUpdateCell,
             onRevertCell,
@@ -113,9 +115,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             cellChangesRef.current.clear();
             deletedRowsRef.current.clear();
             failedCellsRef.current.clear();
+
             // Force grid to re-render to remove all colored backgrounds
             if (reactGridRef.current?.slickGrid) {
                 reactGridRef.current.slickGrid.invalidate();
+                reactGridRef.current.slickGrid.render();
             }
 
             // Notify parent of change count update
@@ -250,6 +254,44 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 }
             }
         }, [failedCells]);
+
+        // Sync deleted rows from props to ref and apply CSS classes
+        useEffect(() => {
+            if (deletedRows !== undefined) {
+                deletedRowsRef.current = new Set(deletedRows);
+
+                // Set up row metadata to apply CSS class to deleted rows
+                if (reactGridRef.current?.dataView) {
+                    const dataView = reactGridRef.current.dataView;
+
+                    // Store the original getItemMetadata if it exists
+                    const originalGetItemMetadata = dataView.getItemMetadata;
+
+                    // Override getItemMetadata to add CSS class for deleted rows
+                    dataView.getItemMetadata = function (row: number) {
+                        // Call original metadata function if it exists
+                        const item = dataView.getItem(row);
+                        let metadata = originalGetItemMetadata ? originalGetItemMetadata.call(this, row) : null;
+
+                        // Check if this row is deleted
+                        if (item && deletedRowsRef.current.has(item.id)) {
+                            metadata = metadata || {};
+                            metadata.cssClasses = metadata.cssClasses
+                                ? `${metadata.cssClasses} deleted-row`
+                                : 'deleted-row';
+                        }
+
+                        return metadata;
+                    };
+
+                    // Force grid to re-render with new metadata
+                    if (reactGridRef.current?.slickGrid) {
+                        reactGridRef.current.slickGrid.invalidate();
+                        reactGridRef.current.slickGrid.render();
+                    }
+                }
+            }
+        }, [deletedRows]);
 
         // Handle theme changes - just update state to trigger re-render
         useEffect(() => {
@@ -480,9 +522,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         onDeleteRow(rowId);
                     }
 
-                    // Track the deletion
-                    deletedRowsRef.current.add(rowId);
-
                     // Remove tracked changes and failed cells for this row
                     const keysToDelete: string[] = [];
                     cellChangesRef.current.forEach((_, key) => {
@@ -499,9 +538,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     if (onCellChangeCountChanged) {
                         onCellChangeCountChanged(cellChangesRef.current.size);
                     }
-                    if (onDeletionCountChanged) {
-                        onDeletionCountChanged(deletedRowsRef.current.size);
-                    }
+                    // Deletion count is now tracked by parent via deletedRows prop
                     break;
 
                 case "revert-cell":
@@ -561,6 +598,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         cssClass: "red",
                         textCssClass: "bold",
                         positionOrder: 1,
+                        itemVisibilityOverride: (args: any) => {
+                            // Hide "Delete Row" if row is already deleted
+                            const rowId = args.dataContext?.id;
+                            return !deletedRowsRef.current.has(rowId);
+                        },
                     },
                     {
                         command: "revert-cell",
