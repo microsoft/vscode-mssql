@@ -83,26 +83,17 @@ export const TableExplorerPage: React.FC = () => {
     const currentRowCount = useTableExplorerSelector((s) => s.currentRowCount);
     const failedCells = useTableExplorerSelector((s) => s.failedCells);
     const deletedRows = useTableExplorerSelector((s) => s.deletedRows);
+    const pendingChangesCount = useTableExplorerSelector((s) => s.pendingChangesCount);
     const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
     const updateScript = useTableExplorerSelector((s) => s.updateScript);
 
     const isLoading = loadStatus === ApiStatus.Loading;
 
     const gridRef = useRef<TableDataGridRef>(null);
-    const [cellChangeCount, setCellChangeCount] = React.useState(0);
-    const [deletionCount, setDeletionCount] = React.useState(0);
 
     const handleSaveComplete = () => {
         // Clear the change tracking in the grid after successful save
         gridRef.current?.clearAllChangeTracking();
-    };
-
-    const handleCellChangeCountChanged = (count: number) => {
-        setCellChangeCount(count);
-    };
-
-    const handleDeletionCountChanged = (count: number) => {
-        setDeletionCount(count);
     };
 
     return (
@@ -117,8 +108,7 @@ export const TableExplorerPage: React.FC = () => {
                         <div className={classes.contentArea}>
                             <TableExplorerToolbar
                                 onSaveComplete={handleSaveComplete}
-                                cellChangeCount={cellChangeCount}
-                                deletionCount={deletionCount}
+                                pendingChangesCount={pendingChangesCount}
                                 currentRowCount={currentRowCount}
                                 onLoadSubset={context?.loadSubset}
                             />
@@ -145,8 +135,6 @@ export const TableExplorerPage: React.FC = () => {
                                             onRevertCell={context?.revertCell}
                                             onRevertRow={context?.revertRow}
                                             onLoadSubset={context?.loadSubset}
-                                            onCellChangeCountChanged={handleCellChangeCountChanged}
-                                            onDeletionCountChanged={handleDeletionCountChanged}
                                         />
                                     )}
                                 </div>

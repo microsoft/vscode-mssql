@@ -13,16 +13,14 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
 
 interface TableExplorerToolbarProps {
     onSaveComplete?: () => void;
-    cellChangeCount: number;
-    deletionCount: number;
+    pendingChangesCount: number;
     currentRowCount?: number;
     onLoadSubset?: (rowCount: number) => void;
 }
 
 export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     onSaveComplete,
-    cellChangeCount,
-    deletionCount,
+    pendingChangesCount,
     currentRowCount,
     onLoadSubset,
 }) => {
@@ -81,12 +79,9 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
         }
     }, [currentRowCount]);
 
-    // Total changes includes both cell edits and row deletions
-    const changeCount = cellChangeCount + deletionCount;
-
     const saveButtonText =
-        changeCount > 0
-            ? `${loc.tableExplorer.saveChanges} (${changeCount})`
+        pendingChangesCount > 0
+            ? `${loc.tableExplorer.saveChanges} (${pendingChangesCount})`
             : loc.tableExplorer.saveChanges;
 
     return (
@@ -96,7 +91,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 title={saveButtonText}
                 icon={<SaveRegular />}
                 onClick={handleSave}
-                disabled={changeCount === 0 || isLoading}>
+                disabled={pendingChangesCount === 0 || isLoading}>
                 {saveButtonText}
             </ToolbarButton>
             <ToolbarButton

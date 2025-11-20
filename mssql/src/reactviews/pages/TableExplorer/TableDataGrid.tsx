@@ -38,8 +38,6 @@ interface TableDataGridProps {
     onRevertCell?: (rowId: number, columnId: number) => void;
     onRevertRow?: (rowId: number) => void;
     onLoadSubset?: (rowCount: number) => void;
-    onCellChangeCountChanged?: (count: number) => void;
-    onDeletionCountChanged?: (count: number) => void;
 }
 
 export interface TableDataGridRef {
@@ -61,8 +59,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             onUpdateCell,
             onRevertCell,
             onRevertRow,
-            onCellChangeCountChanged,
-            onDeletionCountChanged,
         },
         ref,
     ) => {
@@ -120,14 +116,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             if (reactGridRef.current?.slickGrid) {
                 reactGridRef.current.slickGrid.invalidate();
                 reactGridRef.current.slickGrid.render();
-            }
-
-            // Notify parent of change count update
-            if (onCellChangeCountChanged) {
-                onCellChangeCountChanged(0);
-            }
-            if (onDeletionCountChanged) {
-                onDeletionCountChanged(0);
             }
         }
 
@@ -488,11 +476,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
             console.log(`Total changes tracked: ${cellChangesRef.current.size}`);
 
-            // Notify parent of change count update
-            if (onCellChangeCountChanged) {
-                onCellChangeCountChanged(cellChangesRef.current.size);
-            }
-
             // Notify parent
             if (onUpdateCell) {
                 const newValue = args.item[column?.field];
@@ -533,12 +516,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         cellChangesRef.current.delete(key);
                         failedCellsRef.current.delete(key);
                     });
-
-                    // Notify parent of change count update
-                    if (onCellChangeCountChanged) {
-                        onCellChangeCountChanged(cellChangesRef.current.size);
-                    }
-                    // Deletion count is now tracked by parent via deletedRows prop
                     break;
 
                 case "revert-cell":
@@ -553,11 +530,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     cellChangesRef.current.delete(changeKey);
                     failedCellsRef.current.delete(changeKey);
                     console.log(`Reverted cell for row ID ${rowId}, column ${columnIndex}`);
-
-                    // Notify parent of change count update
-                    if (onCellChangeCountChanged) {
-                        onCellChangeCountChanged(cellChangesRef.current.size);
-                    }
                     break;
 
                 case "revert-row":
@@ -577,11 +549,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         failedCellsRef.current.delete(key);
                     });
                     console.log(`Reverted row with ID ${rowId}`);
-
-                    // Notify parent of change count update
-                    if (onCellChangeCountChanged) {
-                        onCellChangeCountChanged(cellChangesRef.current.size);
-                    }
                     break;
             }
         }

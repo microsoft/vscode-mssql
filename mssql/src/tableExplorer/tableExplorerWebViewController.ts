@@ -60,6 +60,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 currentRowCount: 100, // Default row count for data loading
                 newRows: [], // Track newly created rows
                 deletedRows: [], // Track rows marked for deletion
+                pendingChangesCount: 0, // No pending changes initially
                 updateScript: undefined, // No script initially
                 showScriptPane: false, // Script pane hidden by default
                 currentPage: 1, // Start on page 1
@@ -265,6 +266,11 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
             try {
                 await this._tableExplorerService.commit(state.ownerUri);
+
+                // Get the actual pending changes count from backend after commit
+                const pendingChangesResult = await this._tableExplorerService.getPendingChangesCount(state.ownerUri);
+                state.pendingChangesCount = pendingChangesResult.pendingChangesCount;
+
                 vscode.window.showInformationMessage(
                     LocConstants.TableExplorer.changesSavedSuccessfully,
                 );
@@ -276,7 +282,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 this.showRestorePromptAfterClose = false;
 
                 this.logger.info(
-                    `Cleared new rows, deleted rows, and failed cells after successful commit - OperationId: ${this.operationId}`,
+                    `Cleared new rows, deleted rows, and failed cells after successful commit. Pending changes count: ${state.pendingChangesCount} - OperationId: ${this.operationId}`,
                 );
 
                 endActivity.end(ActivityStatus.Succeeded, {
@@ -414,6 +420,13 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 // Track new row and mark unsaved changes
                 state.newRows = [...state.newRows, result.row];
+                if (result.pendingChangesCount !== undefined) {
+                    state.pendingChangesCount = result.pendingChangesCount;
+                } else {
+                    // Fallback: explicitly fetch pending changes count if not returned
+                    const pendingChangesResult = await this._tableExplorerService.getPendingChangesCount(state.ownerUri);
+                    state.pendingChangesCount = pendingChangesResult.pendingChangesCount;
+                }
                 this.showRestorePromptAfterClose = true;
 
                 // Update result set with new row
@@ -479,7 +492,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             );
 
             try {
-                await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
+                const result = await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
                 vscode.window.showInformationMessage(
                     LocConstants.TableExplorer.rowMarkedForRemoval,
                 );
@@ -490,6 +503,16 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 // Add to deletedRows tracking (keep row visible but marked as deleted)
                 if (!state.deletedRows.includes(payload.rowId)) {
                     state.deletedRows = [...state.deletedRows, payload.rowId];
+                }
+
+                debugger;
+                // Update pending changes count from backend
+                if (result.pendingChangesCount !== undefined) {
+                    state.pendingChangesCount = result.pendingChangesCount;
+                } else {
+                    // Fallback: explicitly fetch pending changes count if not returned
+                    const pendingChangesResult = await this._tableExplorerService.getPendingChangesCount(state.ownerUri);
+                    state.pendingChangesCount = pendingChangesResult.pendingChangesCount;
                 }
 
                 // Remove all failed cells for this row
@@ -563,6 +586,15 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
 
                 this.showRestorePromptAfterClose = true;
+
+                // Update pending changes count from backend
+                if (updateCellResult.pendingChangesCount !== undefined) {
+                    state.pendingChangesCount = updateCellResult.pendingChangesCount;
+                } else {
+                    // Fallback: explicitly fetch pending changes count if not returned
+                    const pendingChangesResult = await this._tableExplorerService.getPendingChangesCount(state.ownerUri);
+                    state.pendingChangesCount = pendingChangesResult.pendingChangesCount;
+                }
 
                 // Remove from failed cells tracking if it was previously failed
                 if (state.failedCells) {
@@ -657,6 +689,15 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     payload.columnId,
                 );
 
+                // Update pending changes count from backend
+                if (revertCellResult.pendingChangesCount !== undefined) {
+                    state.pendingChangesCount = revertCellResult.pendingChangesCount;
+                } else {
+                    // Fallback: explicitly fetch pending changes count if not returned
+                    const pendingChangesResult = await this._tableExplorerService.getPendingChangesCount(state.ownerUri);
+                    state.pendingChangesCount = pendingChangesResult.pendingChangesCount;
+                }
+
                 // Remove from failed cells tracking
                 if (state.failedCells) {
                     const failedKey = `${payload.rowId}-${payload.columnId}`;
@@ -747,6 +788,15 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     state.ownerUri,
                     payload.rowId,
                 );
+
+                // Update pending changes count from backend
+                if (revertRowResult.pendingChangesCount !== undefined) {
+                    state.pendingChangesCount = revertRowResult.pendingChangesCount;
+                } else {
+                    // Fallback: explicitly fetch pending changes count if not returned
+                    const pendingChangesResult = await this._tableExplorerService.getPendingChangesCount(state.ownerUri);
+                    state.pendingChangesCount = pendingChangesResult.pendingChangesCount;
+                }
 
                 // Remove from deletedRows if it was marked for deletion
                 state.deletedRows = state.deletedRows.filter((id) => id !== payload.rowId);
