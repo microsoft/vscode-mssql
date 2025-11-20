@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 const fs = require("fs").promises;
-const logger = require("./terminal-logger");
+const logger = require("../../../scripts/terminal-logger");
 const getL10nJson = require("./extract-localization").getL10nJson;
 const vscodel10n = require("@vscode/l10n-dev");
 const path = require("path");

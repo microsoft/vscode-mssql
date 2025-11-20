@@ -322,9 +322,10 @@ See the [developer documentation](https://github.com/Microsoft/vscode-mssql/wiki
 
 ## Repository Layout
 
-- `mssql/` – Primary MSSQL extension that provides connection management, editors, Copilot integration, notebooks, dashboards, and packaging tooling.
-- `sql-database-projects/` – SQL Database Projects extension focused on SQL project authoring, build, publish, and schema comparison experiences.
-- `typings/` – Shared `.d.ts` shims for first-party dependencies (azdata, dataworkspace, mssql, vscode-mssql).
+- `extensions/` - all of the individual VS Code extensions
+- `extensions/mssql/` - Primary MSSQL extension that provides connection management, editors, and Copilot integration
+- `extensions/sql-database-projects/` - SQL Database Projects extension focused on SQL project authoring, build, and publish experiences
+- `typings/` - Shared `.d.ts` shims for first-party dependencies (azdata, dataworkspace, mssql, vscode-mssql)
 
 ## Prerequisites
 
@@ -336,10 +337,10 @@ All commands below should be executed from the extension’s folder unless noted
 
 ## Development
 
-### MSSQL Extension (`mssql/`)
+### MSSQL Extension (`extensions/mssql/`)
 
 ```bash
-cd mssql
+cd extensions/mssql
 
 # Development
 yarn                                # install extension dependencies
@@ -352,10 +353,10 @@ yarn test                           # run unit tests
 yarn smoketest                      # run end-to-end tests (requires SQL instance)
 ```
 
-### SQL Database Projects Extension (`sql-database-projects/`)
+### SQL Database Projects Extension (`extensions/sql-database-projects/`)
 
 ```bash
-cd sql-database-projects
+cd extensions/sql-database-projects
 
 # Development
 yarn                      # install extension dependencies
@@ -370,11 +371,9 @@ yarn test                 # run unit tests; NOT CURRENTLY WORKING
 ## Debugging From The Root Workspace
 
 1. Open the repository root in VS Code.
-2. Run `yarn watch` from either or both extension subfolders
-3. Execute a VS Code launch configuration:
-   - `Run MSSQL Extension`
-   - `Run SQL Database Projects Extension`
-   - `Run Both Extensions` (launches two Extension Host windows, one per extension)
+2. Run `yarn watch` from any or all extension subfolders
+3. Launch a run configuration from VS Code:
+   - `Run All Extensions`
 
 ## Contributing Tips
 

@@ -15,20 +15,11 @@ suite("Localization Tests", () => {
             "..",
             "..",
             "..",
-            "localization",
             "l10n",
             `bundle.l10n.${lang}.json`,
         );
         if (lang === "en") {
-            filePath = path.resolve(
-                __dirname,
-                "..",
-                "..",
-                "..",
-                "localization",
-                "l10n",
-                "bundle.l10n.json",
-            );
+            filePath = path.resolve(__dirname, "..", "..", "..", "l10n", "bundle.l10n.json");
         }
         const fileContent = await fs.readFile(filePath, "utf8");
         await l10n.config({
