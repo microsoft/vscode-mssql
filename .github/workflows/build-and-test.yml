@@ -218,7 +218,7 @@ jobs:
           cd extensions/mssql
           DISPLAY=:10 yarn test
           UNIT_EXIT_CODE=$?
-          echo "unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
+          echo "mssql_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
       - name: MSSQL - Unit Test Report
         uses: dorny/test-reporter@v2
@@ -276,7 +276,7 @@ jobs:
           export BUILT_VSIX_PATH=$(find ./ -name "*.vsix" -exec realpath {} \; | head -n 1)
           DISPLAY=:10 yarn smoketest
           SMOKE_EXIT_CODE=$?
-          echo "smoke_tests_pr_exit_code=$SMOKE_EXIT_CODE" >> $GITHUB_ENV
+          echo "mssql_smoke_tests_pr_exit_code=$SMOKE_EXIT_CODE" >> $GITHUB_ENV
 
       - name: Upload Smoke Test Screenshots
         uses: actions/upload-artifact@v4
@@ -353,6 +353,15 @@ jobs:
           body-path: ./results.md
           comment-id: ${{ steps.fc.outputs.comment-id }}
           edit-mode: replace
+
+      - name: SqlProj - Run unit tests
+        continue-on-error: true
+        run: |
+          set +e  # Don't exit on errors
+          cd extensions/sql-database-projects
+          DISPLAY=:10 yarn test
+          UNIT_EXIT_CODE=$?
+          echo "sqlproj_unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
       - name: Generate xliff files
         run: |
@@ -434,15 +443,21 @@ jobs:
 
           echo "Checking pipeline results..."
 
-          # Check unit tests
-          if [ "${{ env.unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.unit_tests_pr_exit_code }}" != "" ]; then
-            echo "  ❌ Unit tests failed with exit code ${{ env.unit_tests_pr_exit_code }}"
+          # Check MSSQL unit tests
+          if [ "${{ env.mssql_unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.mssql_unit_tests_pr_exit_code }}" != "" ]; then
+            echo "  ❌ MSSQL unit tests failed with exit code ${{ env.mssql_unit_tests_pr_exit_code }}"
             PIPELINE_FAILED=true
           fi
 
-          # Check smoke tests
-          if [ "${{ env.smoke_tests_pr_exit_code }}" != "0" ] && [ "${{ env.smoke_tests_pr_exit_code }}" != "" ]; then
-            echo "  ❌ Smoke tests failed with exit code ${{ env.smoke_tests_pr_exit_code }}"
+          # Check SqlProj unit tests
+          if [ "${{ env.sqlproj_unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.sqlproj_unit_tests_pr_exit_code }}" != "" ]; then
+            echo "  ⚠️ SqlProj unit tests failed with exit code ${{ env.sqlproj_unit_tests_pr_exit_code }}"
+            # PIPELINE_FAILED=true # Don't fail for sqlproj unit tests yet; they aren't stable
+          fi
+
+          # Check MSSQL smoke tests
+          if [ "${{ env.mssql_smoke_tests_pr_exit_code }}" != "0" ] && [ "${{ env.mssql_smoke_tests_pr_exit_code }}" != "" ]; then
+            echo "  ❌ MSSQL smoke tests failed with exit code ${{ env.mssql_smoke_tests_pr_exit_code }}"
             PIPELINE_FAILED=true
           fi
 
@@ -452,9 +467,9 @@ jobs:
             PIPELINE_FAILED=true
           fi
 
-          # Check sql-database-projects VSIX percentage change (if variables exist)
+          # Check SqlProj VSIX percentage change (if variables exist)
           if [ "${{ env.sqlproj_vsix_percentage_change }}" != "" ] && [ $(echo "${{ env.sqlproj_vsix_percentage_change }} > 5" | bc -l) -eq 1 ]; then
-            echo "  ❌ sql-database-projects VSIX size increased by more than 5% (${{ env.sqlproj_vsix_percentage_change }}%)"
+            echo "  ❌ SqlProj VSIX size increased by more than 5% (${{ env.sqlproj_vsix_percentage_change }}%)"
             PIPELINE_FAILED=true
           fi
 
