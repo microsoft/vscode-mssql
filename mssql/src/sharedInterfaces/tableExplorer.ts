@@ -43,6 +43,7 @@ export interface EditCell extends DbCellValue {
 export interface EditCellResult {
     cell: EditCell;
     isRowDirty: boolean;
+    pendingChangesCount: number;
 }
 
 export interface EditReferencedTableInfo {
@@ -114,6 +115,7 @@ export interface EditCreateRowResult {
     defaultValues: string[];
     newRowId: number;
     row: EditRow;
+    pendingChangesCount: number;
 }
 
 //#endregion
@@ -122,7 +124,19 @@ export interface EditCreateRowResult {
 
 export interface EditDeleteRowParams extends IEditRowOperationParams {}
 
-export interface EditDeleteRowResult {}
+export interface EditDeleteRowResult {
+    pendingChangesCount: number;
+}
+
+//#endregion
+
+//#region edit/getPendingChangesCount
+
+export interface EditGetPendingChangesCountParams extends IEditSessionOperationParams {}
+
+export interface EditGetPendingChangesCountResult {
+    pendingChangesCount: number;
+}
 
 //#endregion
 
@@ -132,6 +146,7 @@ export interface EditRevertRowParams extends IEditRowOperationParams {}
 
 export interface EditRevertRowResult {
     row: EditRow;
+    pendingChangesCount: number;
 }
 
 //#endregion

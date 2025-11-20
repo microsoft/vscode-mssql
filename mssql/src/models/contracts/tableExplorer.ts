@@ -144,3 +144,16 @@ export namespace EditScriptRequest {
 }
 
 //#endregion
+
+//#region edit/getPendingChangesCount
+
+export namespace EditGetPendingChangesCountRequest {
+    export const type = new RequestType<
+        tableExplorer.EditGetPendingChangesCountParams,
+        tableExplorer.EditGetPendingChangesCountResult,
+        void,
+        void
+    >("edit/getPendingChangesCount");
+}
+
+//#endregion

@@ -9,6 +9,7 @@ import {
     EditCreateRowRequest,
     EditDeleteRowRequest,
     EditDisposeRequest,
+    EditGetPendingChangesCountRequest,
     EditInitializeRequest,
     EditRevertCellRequest,
     EditRevertRowRequest,
@@ -25,6 +26,8 @@ import {
     EditDeleteRowResult,
     EditDisposeParams,
     EditDisposeResult,
+    EditGetPendingChangesCountParams,
+    EditGetPendingChangesCountResult,
     EditInitializeFiltering,
     EditInitializeParams,
     EditInitializeResult,
@@ -156,6 +159,14 @@ export interface ITableExplorerService {
      * @returns A promise that resolves to an EditScriptResult containing the generated scripts
      */
     generateScripts(ownerUri: string): Promise<EditScriptResult>;
+
+    /**
+     * Gets the count of pending changes for the specified owner URI.
+     *
+     * @param ownerUri - The URI identifying the owner for which to get the pending changes count
+     * @returns A promise that resolves to an EditGetPendingChangesCountResult containing the count
+     */
+    getPendingChangesCount(ownerUri: string): Promise<EditGetPendingChangesCountResult>;
 }
 
 export class TableExplorerService implements ITableExplorerService {
@@ -434,6 +445,28 @@ export class TableExplorerService implements ITableExplorerService {
             };
 
             const result = await this._client.sendRequest(EditScriptRequest.type, params);
+
+            return result;
+        } catch (error) {
+            this._client.logger.error(getErrorMessage(error));
+            throw error;
+        }
+    }
+
+    /**
+     * Gets the count of pending changes for the specified owner URI.
+     *
+     * @param ownerUri - The URI identifying the owner for which to get the pending changes count
+     * @returns A promise that resolves to an EditGetPendingChangesCountResult containing the count
+     * @throws Will throw an error if the get pending changes count request fails
+     */
+    public async getPendingChangesCount(ownerUri: string): Promise<EditGetPendingChangesCountResult> {
+        try {
+            const params: EditGetPendingChangesCountParams = {
+                ownerUri: ownerUri,
+            };
+
+            const result = await this._client.sendRequest(EditGetPendingChangesCountRequest.type, params);
 
             return result;
         } catch (error) {

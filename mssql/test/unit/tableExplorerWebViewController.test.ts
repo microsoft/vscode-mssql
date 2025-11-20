@@ -308,6 +308,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 newRowId: 100,
                 row: newRow,
                 defaultValues: ["", "", ""],
+                pendingChangesCount: 1,
             };
             mockTableExplorerService.createRow.resolves(createRowResult);
 
@@ -336,6 +337,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 newRowId: 100,
                 row: newRow,
                 defaultValues: ["", "", ""],
+                pendingChangesCount: 1,
             };
             mockTableExplorerService.createRow.resolves(createRowResult);
             mockTableExplorerService.generateScripts.resolves({
@@ -371,7 +373,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
             controller.state.resultSet = createMockSubsetResult(2);
-            mockTableExplorerService.deleteRow.resolves({});
+            mockTableExplorerService.deleteRow.resolves({ pendingChangesCount: 1 });
 
             // Act
             await controller["_reducerHandlers"].get("deleteRow")(controller.state, { rowId: 0 });
@@ -398,7 +400,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 subset: [...createMockSubsetResult(2).subset, newRow],
                 rowCount: 3,
             };
-            mockTableExplorerService.deleteRow.resolves({});
+            mockTableExplorerService.deleteRow.resolves({ pendingChangesCount: 0 });
 
             // Act
             await controller["_reducerHandlers"].get("deleteRow")(controller.state, { rowId: 100 });
@@ -413,7 +415,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             controller.state.ownerUri = "test-owner-uri";
             controller.state.resultSet = createMockSubsetResult(2);
             controller.state.showScriptPane = true;
-            mockTableExplorerService.deleteRow.resolves({});
+            mockTableExplorerService.deleteRow.resolves({ pendingChangesCount: 1 });
             mockTableExplorerService.generateScripts.resolves({
                 scripts: ["DELETE FROM TestTable WHERE id = 1"],
             });
@@ -453,6 +455,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                     isDirty: true,
                 },
                 isRowDirty: true,
+                pendingChangesCount: 1,
             };
             mockTableExplorerService.updateCell.resolves(updatedCell);
 
@@ -488,6 +491,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                     isDirty: true,
                 },
                 isRowDirty: true,
+                pendingChangesCount: 1,
             };
             mockTableExplorerService.updateCell.resolves(updatedCell);
             mockTableExplorerService.generateScripts.resolves({
@@ -537,6 +541,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                     isDirty: false,
                 },
                 isRowDirty: false,
+                pendingChangesCount: 0,
             };
             mockTableExplorerService.revertCell.resolves(revertedCell);
 
@@ -565,6 +570,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                     isDirty: false,
                 },
                 isRowDirty: false,
+                pendingChangesCount: 0,
             };
             mockTableExplorerService.revertCell.resolves(revertedCell);
             mockTableExplorerService.generateScripts.resolves({ scripts: [] });
@@ -604,6 +610,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             controller.state.resultSet = createMockSubsetResult(2);
             const revertedRow: EditRevertRowResult = {
                 row: createMockRow(0, ["1", "John", "Doe"]),
+                pendingChangesCount: 0,
             };
             mockTableExplorerService.revertRow.resolves(revertedRow);
 
@@ -623,6 +630,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             controller.state.showScriptPane = true;
             const revertedRow: EditRevertRowResult = {
                 row: createMockRow(0, ["1", "John", "Doe"]),
+                pendingChangesCount: 0,
             };
             mockTableExplorerService.revertRow.resolves(revertedRow);
             mockTableExplorerService.generateScripts.resolves({ scripts: [] });

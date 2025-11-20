@@ -12,6 +12,7 @@ import {
     EditCreateRowRequest,
     EditDeleteRowRequest,
     EditDisposeRequest,
+    EditGetPendingChangesCountRequest,
     EditInitializeRequest,
     EditRevertCellRequest,
     EditRevertRowRequest,
@@ -24,6 +25,7 @@ import {
     EditCreateRowResult,
     EditDeleteRowResult,
     EditDisposeResult,
+    EditGetPendingChangesCountResult,
     EditInitializeResult,
     EditRevertCellResult,
     EditRevertRowResult,
@@ -317,6 +319,7 @@ suite("TableExplorerService Tests", () => {
                     isDirty: true,
                     state: EditRowState.dirtyInsert,
                 },
+                pendingChangesCount: 1,
             };
 
             mockClient.sendRequest
@@ -357,7 +360,9 @@ suite("TableExplorerService Tests", () => {
         const rowId = 5;
 
         test("should successfully delete a row", async () => {
-            const mockResult: EditDeleteRowResult = {};
+            const mockResult: EditDeleteRowResult = {
+                pendingChangesCount: 1,
+            };
 
             mockClient.sendRequest
                 .withArgs(EditDeleteRowRequest.type, sinon.match.any)
@@ -377,7 +382,9 @@ suite("TableExplorerService Tests", () => {
         });
 
         test("should handle deleteRow with different row IDs", async () => {
-            const mockResult: EditDeleteRowResult = {};
+            const mockResult: EditDeleteRowResult = {
+                pendingChangesCount: 1,
+            };
             mockClient.sendRequest
                 .withArgs(EditDeleteRowRequest.type, sinon.match.any)
                 .resolves(mockResult);
@@ -423,6 +430,7 @@ suite("TableExplorerService Tests", () => {
                     isDirty: false,
                     state: EditRowState.clean,
                 },
+                pendingChangesCount: 0,
             };
 
             mockClient.sendRequest
@@ -474,6 +482,7 @@ suite("TableExplorerService Tests", () => {
                     isDirty: true,
                 },
                 isRowDirty: true,
+                pendingChangesCount: 1,
             };
 
             mockClient.sendRequest
@@ -509,6 +518,7 @@ suite("TableExplorerService Tests", () => {
                     isDirty: true,
                 },
                 isRowDirty: true,
+                pendingChangesCount: 1,
             };
 
             mockClient.sendRequest
@@ -554,6 +564,7 @@ suite("TableExplorerService Tests", () => {
                     isDirty: false,
                 },
                 isRowDirty: false,
+                pendingChangesCount: 0,
             };
 
             mockClient.sendRequest
@@ -583,6 +594,7 @@ suite("TableExplorerService Tests", () => {
                     isDirty: false,
                 },
                 isRowDirty: true,
+                pendingChangesCount: 0,
             };
 
             mockClient.sendRequest
@@ -705,6 +717,64 @@ suite("TableExplorerService Tests", () => {
         });
     });
 
+    suite("getPendingChangesCount", () => {
+        const ownerUri = "test-owner-uri";
+
+        test("should successfully get pending changes count", async () => {
+            const mockResult: EditGetPendingChangesCountResult = {
+                pendingChangesCount: 5,
+            };
+
+            mockClient.sendRequest
+                .withArgs(EditGetPendingChangesCountRequest.type, sinon.match.any)
+                .resolves(mockResult);
+
+            const result = await tableExplorerService.getPendingChangesCount(ownerUri);
+
+            expect(result).to.equal(mockResult);
+            expect(result.pendingChangesCount).to.equal(5);
+            expect(mockClient.sendRequest.calledOnce).to.be.true;
+
+            const callArgs = mockClient.sendRequest.firstCall.args;
+            expect(callArgs[0]).to.equal(EditGetPendingChangesCountRequest.type);
+            expect(callArgs[1]).to.deep.equal({
+                ownerUri: ownerUri,
+            });
+        });
+
+        test("should return zero when no pending changes exist", async () => {
+            const mockResult: EditGetPendingChangesCountResult = {
+                pendingChangesCount: 0,
+            };
+
+            mockClient.sendRequest
+                .withArgs(EditGetPendingChangesCountRequest.type, sinon.match.any)
+                .resolves(mockResult);
+
+            const result = await tableExplorerService.getPendingChangesCount(ownerUri);
+
+            expect(result.pendingChangesCount).to.equal(0);
+        });
+
+        test("should handle getPendingChangesCount error and log it", async () => {
+            const error = new Error("Get pending changes count failed");
+            mockClient.sendRequest
+                .withArgs(EditGetPendingChangesCountRequest.type, sinon.match.any)
+                .rejects(error);
+
+            try {
+                await tableExplorerService.getPendingChangesCount(ownerUri);
+                expect.fail("Should have thrown an error");
+            } catch (err) {
+                expect(err).to.equal(error);
+                expect(mockLogger.error.calledOnce).to.be.true;
+                expect(mockLogger.error.firstCall.args[0]).to.equal(
+                    "Get pending changes count failed",
+                );
+            }
+        });
+    });
+
     suite("error handling", () => {
         test("should log error with proper message format", async () => {
             const errorMessage = "Connection timeout";
@@ -767,6 +837,7 @@ suite("TableExplorerService Tests", () => {
                     isDirty: true,
                 },
                 isRowDirty: true,
+                pendingChangesCount: 1,
             };
             mockClient.sendRequest
                 .withArgs(EditUpdateCellRequest.type, sinon.match.any)
@@ -803,6 +874,7 @@ suite("TableExplorerService Tests", () => {
                     isDirty: true,
                     state: EditRowState.dirtyInsert,
                 },
+                pendingChangesCount: 1,
             };
             mockClient.sendRequest
                 .withArgs(EditCreateRowRequest.type, sinon.match.any)
@@ -818,6 +890,7 @@ suite("TableExplorerService Tests", () => {
                     isDirty: true,
                 },
                 isRowDirty: true,
+                pendingChangesCount: 1,
             };
             mockClient.sendRequest
                 .withArgs(EditUpdateCellRequest.type, sinon.match.any)
@@ -827,6 +900,7 @@ suite("TableExplorerService Tests", () => {
             // Revert row
             const revertResult: EditRevertRowResult = {
                 row: { cells: [], id: 1, isDirty: false, state: EditRowState.clean },
+                pendingChangesCount: 0,
             };
             mockClient.sendRequest
                 .withArgs(EditRevertRowRequest.type, sinon.match.any)
