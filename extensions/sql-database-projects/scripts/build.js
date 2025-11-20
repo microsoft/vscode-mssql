@@ -6,7 +6,6 @@ const prodArg = isProd ? "--prod" : "";
 try {
     execSync("yarn build:prepare", { stdio: "inherit" });
     execSync("yarn build:extension", { stdio: "inherit" });
-    // execSync(`yarn build:extension-bundle ${prodArg}`, { stdio: "inherit" });
 } catch (error) {
     process.exit(1);
 }
