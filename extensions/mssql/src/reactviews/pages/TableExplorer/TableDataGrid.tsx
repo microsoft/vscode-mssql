@@ -271,14 +271,16 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     dataView.getItemMetadata = function (row: number) {
                         // Call original metadata function if it exists
                         const item = dataView.getItem(row);
-                        let metadata = originalGetItemMetadata ? originalGetItemMetadata.call(this, row) : null;
+                        let metadata = originalGetItemMetadata
+                            ? originalGetItemMetadata.call(this, row)
+                            : null;
 
                         // Check if this row is deleted
                         if (item && deletedRowsRef.current.has(item.id)) {
                             metadata = metadata || {};
                             metadata.cssClasses = metadata.cssClasses
                                 ? `${metadata.cssClasses} deleted-row`
-                                : 'deleted-row';
+                                : "deleted-row";
                         }
 
                         return metadata;
