@@ -194,17 +194,6 @@ export class VsCodeAzureHelper {
         }));
     }
 
-    public static async fetchResourcesForSubscription(
-        sub: AzureSubscription,
-    ): Promise<GenericResourceExpanded[]> {
-        const client = new ResourceManagementClient(sub.credential, sub.subscriptionId, {
-            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
-        });
-
-        const resources = await listAllIterator<GenericResourceExpanded>(client.resources.list());
-        return resources;
-    }
-
     public static async fetchSqlDbResourcesForSubscription(
         sub: AzureSubscription,
     ): Promise<{ servers: Server[]; databases: (Database & { server: string })[] }> {
