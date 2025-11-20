@@ -68,6 +68,11 @@ jobs:
           echo "Installing VSCE"
           npm install --global vsce@2.9.2
 
+      - name: Install root dependencies for PR branch
+        run: |
+          cd ./pr
+          yarn install --frozen-lockfile
+
       - name: MSSQL - Install dependencies and build target branch
         uses: ./pr/.github/actions/build-mssql
         with:
@@ -378,21 +383,42 @@ jobs:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           edit-mode: replace
 
-      - name: MSSQL - Generate xliff files in PR branch
+      - name: Generate xliff files in PR branch
         run: |
-          cd pr/extensions/mssql
+          cd pr
           yarn localization
 
       # Check if there are git changes in english xlf files
-      - name: MSSQL - Check for changes in english xlf files
+      - name: Check for changes in english xlf files
         run: |
-          cd pr/extensions/mssql
-          if git diff --quiet --exit-code ./localization/xliff/vscode-mssql.xlf; then
-            echo "Changes not found in english xlf files"
-            echo "loc_update_required=false" >> $GITHUB_ENV
-          else
-            echo "Changes found in english xlf files"
+          cd pr
+          CHANGES_FOUND=false
+
+          if ! git diff --quiet --exit-code ./localization/xliff/vscode-mssql.xlf; then
+            echo "Changes found in vscode-mssql.xlf"
+            CHANGES_FOUND=true
+          fi
+
+          if ! git diff --quiet --exit-code ./localization/xliff/sql-database-projects.xlf; then
+            echo "Changes found in sql-database-projects.xlf"
+            CHANGES_FOUND=true
+          fi
+
+          if ! git diff --quiet --exit-code ./extensions/mssql/l10n/bundle.l10n.json; then
+            echo "Changes found in mssql bundle.l10n.json"
+            CHANGES_FOUND=true
+          fi
+
+          if ! git diff --quiet --exit-code ./extensions/sql-database-projects/l10n/bundle.l10n.json; then
+            echo "Changes found in sql-database-projects bundle.l10n.json"
+            CHANGES_FOUND=true
+          fi
+
+          if [ "$CHANGES_FOUND" = "true" ]; then
             echo "loc_update_required=true" >> $GITHUB_ENV
+          else
+            echo "Changes not found in any localization files"
+            echo "loc_update_required=false" >> $GITHUB_ENV
           fi
 
       - name: Find comment
@@ -415,10 +441,12 @@ jobs:
           body: |
             # Updates to localized strings required
               Please update the localized strings in the PR with following steps:
-              1. Run `yarn localization` in the PR branch.
-              1. Based on the changes,
-                  * If there are changes in localized strings in source code, make sure that `src/localization/xliff/vscode-mssql.xlf` and `src/l10n/bundle.l10n.json` files are updated.
-                  * If there are changes in localized strings in `package.nls.json`, make sure that `src/localization/xliff/vscode-mssql.xlf` is updated.
+              1. Run `yarn localization` from the root directory of the PR branch.
+              2. Commit the updated localization files:
+                  * XLIFF files: `localization/xliff/*.xlf`
+                  * Bundle files: `extensions/mssql/l10n/bundle.l10n.json` and `extensions/sql-database-projects/l10n/bundle.l10n.json`
+
+              The localization system extracts strings from both extensions to a centralized location.
           edit-mode: replace
 
       - name: Delete comment

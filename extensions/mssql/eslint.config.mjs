@@ -14,7 +14,7 @@ import customRules from "eslint-plugin-custom-eslint-rules";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const gitignorePath = path.resolve(__dirname, ".gitignore");
+const gitignorePath = path.resolve(__dirname, "../../.gitignore");
 import stylistic from "@stylistic/eslint-plugin";
 
 export default [

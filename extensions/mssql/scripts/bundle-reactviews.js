@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const logger = require("./terminal-logger");
+const logger = require("../../../scripts/terminal-logger");
 const { esbuildProblemMatcherPlugin, build, watch } = require("./esbuild-utils");
 
 // Parse arguments

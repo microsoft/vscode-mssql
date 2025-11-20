@@ -10,11 +10,10 @@ import * as path from 'path';
 import * as semver from 'semver';
 import { isNullOrUndefined } from 'util';
 import * as vscode from 'vscode';
-import * as nls from 'vscode-nls';
+import { l10n } from 'vscode';
 import { DoNotAskAgain, Install, DotnetInstallationConfirmation, NetCoreSupportedVersionInstallationConfirmation, UpdateDotnetLocation } from '../common/constants';
 import * as utils from '../common/utils';
 import { ShellCommandOptions, ShellExecutionHelper } from './shellExecutionHelper';
-const localize = nls.loadMessageBundle();
 
 export const DBProjectConfigurationKey: string = 'sqlDatabaseProjects';
 export const NetCoreInstallLocationKey: string = 'netCoreSDKLocation';
@@ -208,7 +207,7 @@ export class NetCoreTool extends ShellExecutionHelper {
 		try {
 			return await this.runStreamedCommand(command, options);
 		} catch (error) {
-			this._outputChannel.append(localize('sqlDatabaseProject.RunCommand.ErroredOut', "\t>>> {0}   … errored out: {1}", command, utils.getErrorMessage(error))); //errors are localized in our code where emitted, other errors are pass through from external components that are not easily localized
+			this._outputChannel.append(l10n.t("\t>>> {0}   … errored out: {1}", command, utils.getErrorMessage(error))); //errors are localized in our code where emitted, other errors are pass through from external components that are not easily localized
 			throw error;
 		}
 	}
