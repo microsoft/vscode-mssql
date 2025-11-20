@@ -68,9 +68,9 @@ jobs:
           echo "Installing VSCE"
           npm install --global vsce@2.9.2
 
-      - name: Install root dependencies for target branch
+      - name: Install root dependencies for PR branch
         run: |
-          cd ./target
+          cd ./pr
           yarn install --frozen-lockfile
 
       - name: MSSQL - Install dependencies and build target branch
