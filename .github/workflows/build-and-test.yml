@@ -43,14 +43,14 @@ jobs:
             echo "should_compare_baseline=false" >> $GITHUB_ENV
           fi
 
-      - name: Download baseline artifacts from main
+      - name: Download baseline sizes
         if: env.should_compare_baseline == 'true'
         continue-on-error: true
         uses: dawidd6/action-download-artifact@v6
         with:
           workflow: publish-baseline.yml
           branch: ${{ github.event.pull_request.base.ref }}
-          name: baseline-artifacts
+          name: baseline-sizes
           path: ./baseline
           if_no_artifact_found: warn
 

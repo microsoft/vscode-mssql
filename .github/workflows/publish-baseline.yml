@@ -1,6 +1,6 @@
 name: Publish Baseline Artifacts
 
-# Runs on every push to main to create baseline artifacts for PR comparisons
+# Creates baseline artifacts for PR comparisons. See workflows/README.md for details.
 on:
   push:
     branches:
@@ -34,15 +34,6 @@ jobs:
         run: |
           yarn install --frozen-lockfile
 
-      - name: Setup xvfb for tests
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libxkbfile-dev pkg-config libsecret-1-dev libkrb5-dev libxss1 dbus xvfb libgtk-3-0 libgbm1
-          sudo cp ./extensions/mssql/build/xvfb.init /etc/init.d/xvfb
-          sudo chmod +x /etc/init.d/xvfb
-          sudo update-rc.d xvfb defaults
-          sudo service xvfb start
-
       - name: MSSQL - Install dependencies and build
         uses: ./.github/actions/build-mssql
         with:
@@ -52,12 +43,6 @@ jobs:
         uses: ./.github/actions/build-sqlproj
         with:
           source-dir: "./extensions/sql-database-projects"
-
-      - name: MSSQL - Run tests for baseline coverage
-        continue-on-error: true
-        run: |
-          cd extensions/mssql
-          DISPLAY=:10 yarn test || true
 
       - name: MSSQL - Package extension
         run: |
@@ -97,20 +82,7 @@ jobs:
 
           cat baseline-sizes.json
 
-      - name: Upload baseline artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: baseline-artifacts
-          path: |
-            extensions/mssql/dist/views
-            extensions/mssql/*.vsix
-            extensions/mssql/coverage/cobertura-coverage.xml
-            extensions/sql-database-projects/*.vsix
-            baseline-sizes.json
-          retention-days: 90
-          compression-level: 6
-
-      - name: Upload baseline sizes (lightweight)
+      - name: Upload baseline sizes
         uses: actions/upload-artifact@v4
         with:
           name: baseline-sizes
