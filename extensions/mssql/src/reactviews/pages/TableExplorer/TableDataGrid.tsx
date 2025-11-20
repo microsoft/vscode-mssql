@@ -260,11 +260,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             if (deletedRows !== undefined) {
                 deletedRowsRef.current = new Set(deletedRows);
 
-                // Notify parent of deletion count update
-                if (onDeletionCountChanged) {
-                    onDeletionCountChanged(deletedRows.length);
-                }
-
                 // Set up row metadata to apply CSS class to deleted rows
                 if (reactGridRef.current?.dataView) {
                     const dataView = reactGridRef.current.dataView;
@@ -296,7 +291,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     }
                 }
             }
-        }, [deletedRows, onDeletionCountChanged]);
+        }, [deletedRows]);
 
         // Handle theme changes - just update state to trigger re-render
         useEffect(() => {
@@ -527,6 +522,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         onDeleteRow(rowId);
                     }
 
+                    // Track the deletion
+                    deletedRowsRef.current.add(rowId);
+
                     // Remove tracked changes and failed cells for this row
                     const keysToDelete: string[] = [];
                     cellChangesRef.current.forEach((_, key) => {
@@ -543,7 +541,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     if (onCellChangeCountChanged) {
                         onCellChangeCountChanged(cellChangesRef.current.size);
                     }
-                    // Deletion count is now tracked by parent via deletedRows prop
+                    if (onDeletionCountChanged) {
+                        onDeletionCountChanged(deletedRowsRef.current.size);
+                    }
                     break;
 
                 case "revert-cell":
@@ -570,6 +570,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         onRevertRow(rowId);
                     }
 
+                    // Remove from deletion tracking if it was deleted
+                    deletedRowsRef.current.delete(rowId);
+
                     // Remove tracked changes and failed cells for this row
                     const keysToDeleteForRevert: string[] = [];
                     cellChangesRef.current.forEach((_, key) => {
@@ -586,6 +589,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     // Notify parent of change count update
                     if (onCellChangeCountChanged) {
                         onCellChangeCountChanged(cellChangesRef.current.size);
+                    }
+                    if (onDeletionCountChanged) {
+                        onDeletionCountChanged(deletedRowsRef.current.size);
                     }
                     break;
             }
