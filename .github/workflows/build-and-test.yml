@@ -34,13 +34,22 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
+      - name: Check if baseline comparison needed
+        if: github.event_name == 'pull_request'
+        run: |
+          if [[ "${{ github.event.pull_request.base.ref }}" == "main" ]] || [[ "${{ github.event.pull_request.base.ref }}" == release/* ]]; then
+            echo "should_compare_baseline=true" >> $GITHUB_ENV
+          else
+            echo "should_compare_baseline=false" >> $GITHUB_ENV
+          fi
+
       - name: Download baseline artifacts from main
-        if: github.event.pull_request.base.ref == 'main'
+        if: env.should_compare_baseline == 'true'
         continue-on-error: true
         uses: dawidd6/action-download-artifact@v6
         with:
           workflow: publish-baseline.yml
-          branch: main
+          branch: ${{ github.event.pull_request.base.ref }}
           name: baseline-artifacts
           path: ./baseline
           if_no_artifact_found: warn
@@ -116,14 +125,14 @@ jobs:
           path: ./extensions/sql-database-projects/*.vsix
 
       - name: Setting up change icons
-        if: github.event.pull_request.base.ref == 'main'
+        if: env.should_compare_baseline == 'true'
         run: |
           echo "better_change_icon=🟢" >> $GITHUB_ENV
           echo "worse_change_icon=🔴" >> $GITHUB_ENV
           echo "no_change_icon=⚪" >> $GITHUB_ENV
 
       - name: Calculate vsix file sizes
-        if: github.event.pull_request.base.ref == 'main'
+        if: env.should_compare_baseline == 'true'
         run: |
           # Get baseline size from downloaded artifact or default to 0
           if [ -f ./baseline/baseline-sizes.json ]; then
@@ -163,7 +172,7 @@ jobs:
           fi
 
       - name: Calculate sql-database-projects vsix file sizes
-        if: github.event.pull_request.base.ref == 'main'
+        if: env.should_compare_baseline == 'true'
         run: |
           # Get baseline size from downloaded artifact or default to 0
           if [ -f ./baseline/baseline-sizes.json ]; then
@@ -317,7 +326,7 @@ jobs:
           exclude: "coverage-e2e"
 
       - name: Write PR results to markdown
-        if: github.event.pull_request.base.ref == 'main'
+        if: env.should_compare_baseline == 'true'
         run: |
           echo "### PR Changes" >> results.md
           echo "| Category                      | Target Branch        | PR Branch         | Difference           |" >> results.md
@@ -327,7 +336,7 @@ jobs:
 
       - name: Find comment
         uses: peter-evans/find-comment@v3
-        if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main'
+        if: env.should_compare_baseline == 'true'
         id: fc
         with:
           issue-number: ${{ github.event.pull_request.number }}
@@ -337,7 +346,7 @@ jobs:
 
       - name: Create or update comment
         uses: peter-evans/create-or-update-comment@v4
-        if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main'
+        if: env.should_compare_baseline == 'true'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
