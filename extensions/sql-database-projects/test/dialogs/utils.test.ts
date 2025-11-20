@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as should from 'should';
-import * as constants from '../../common/constants';
+import should = require('should/as-function');
+import * as constants from '../../src/common/constants';
 import { SqlTargetPlatform } from 'sqldbproj';
-import { getDefaultDockerImageWithTag, getDockerBaseImage } from '../../dialogs/utils';
+import { getDefaultDockerImageWithTag, getDockerBaseImage } from '../../src/dialogs/utils';
 
-describe('Tests to verify dialog utils functions', function (): void {
-	it('getDefaultDockerImageWithTag should return correct image', () => {
+suite('Tests to verify dialog utils functions', function (): void {
+	test('getDefaultDockerImageWithTag should return correct image', () => {
 		const sqlServerImageInfo = getDockerBaseImage(constants.targetPlatformToVersion.get(SqlTargetPlatform.sqlServer2022)!);
 
 		should(getDefaultDockerImageWithTag('160', 'mcr.microsoft.com/mssql/server', sqlServerImageInfo)).equals(`${sqlServerImageInfo?.name}:2022-latest`, 'Unexpected docker image returned for target platform SQL Server 2022 and SQL Server base image');
@@ -23,3 +23,5 @@ describe('Tests to verify dialog utils functions', function (): void {
 		should(getDefaultDockerImageWithTag('AzureV12', 'mcr.microsoft.com/mssql/server', azureFullImageInfo)).equals(`${azureFullImageInfo?.name}`, 'Unexpected docker image returned for target platform Azure and Azure full base image');
 	});
 });
+
+

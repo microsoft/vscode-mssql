@@ -3,19 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as should from 'should';
+import should = require('should/as-function');
 import * as vscode from 'vscode';
 import * as os from 'os';
 import * as path from 'path';
 
-import { Project } from '../models/project';
-import { FolderNode, FileNode, sortFileFolderNodes, SqlObjectFileNode } from '../models/tree/fileFolderTreeItem';
-import { ProjectRootTreeItem } from '../models/tree/projectTreeItem';
-import { DatabaseProjectItemType } from '../common/constants';
+import { Project } from '../src/models/project';
+import { FolderNode, FileNode, sortFileFolderNodes, SqlObjectFileNode } from '../src/models/tree/fileFolderTreeItem';
+import { ProjectRootTreeItem } from '../src/models/tree/projectTreeItem';
+import { DatabaseProjectItemType } from '../src/common/constants';
 import { EntryType } from 'sqldbproj';
 
-describe('Project Tree tests', function (): void {
-	it('Should correctly order tree nodes by type, then by name', function (): void {
+suite('Project Tree tests', function (): void {
+	test('Should correctly order tree nodes by type, then by name', function (): void {
 		const root = os.platform() === 'win32' ? 'Z:\\' : '/';
 
 		const sqlprojUri = vscode.Uri.file(`${root}Fake.sqlproj`);
@@ -47,7 +47,7 @@ describe('Project Tree tests', function (): void {
 		should(inputNodes.map(n => n.relativeProjectUri.path)).deepEqual(expectedNodes.map(n => n.relativeProjectUri.path));
 	});
 
-	it('Should build tree from Project file correctly', function (): void {
+	test('Should build tree from Project file correctly', function (): void {
 		const root = os.platform() === 'win32' ? 'Z:\\' : '/';
 		const proj = new Project(vscode.Uri.file(`${root}TestProj.sqlproj`).fsPath);
 
@@ -95,7 +95,7 @@ describe('Project Tree tests', function (): void {
 			DatabaseProjectItemType.sqlObjectScript]);
 	});
 
-	it('Should be able to parse windows relative path as platform safe path', function (): void {
+	test('Should be able to parse windows relative path as platform safe path', function (): void {
 		const root = os.platform() === 'win32' ? 'Z:\\' : '/';
 		const proj = new Project(vscode.Uri.file(`${root}TestProj.sqlproj`).fsPath);
 
@@ -119,7 +119,7 @@ describe('Project Tree tests', function (): void {
 			'/TestProj/someFolder1/MyFile2.sql']);
 	});
 
-	it('Should be able to parse and include relative paths outside project folder', function (): void {
+	test('Should be able to parse and include relative paths outside project folder', function (): void {
 		const root = os.platform() === 'win32' ? 'Z:\\Level1\\Level2\\' : '/Root/Level1/Level2/';
 		const proj = new Project(vscode.Uri.file(`${root}TestProj.sqlproj`).fsPath);
 
@@ -137,3 +137,5 @@ describe('Project Tree tests', function (): void {
 			'/TestProj/MyFile2.sql']);
 	});
 });
+
+

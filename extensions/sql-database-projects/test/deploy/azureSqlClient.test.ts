@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as should from 'should';
-import { AzureSqlClient } from '../../models/deploy/azureSqlClient';
+import should = require('should/as-function');
+import { AzureSqlClient } from '../../src/models/deploy/azureSqlClient';
 import { IAccount, IAzureAccountService, IAzureAccountSession, IAzureResourceService, azure } from 'vscode-mssql';
 
 
@@ -99,37 +99,37 @@ export function createContext(): TestContext {
 	};
 }
 
-describe('Azure SQL client', function (): void {
+suite('Azure SQL client', function (): void {
 
-	it('Should return accounts successfully', async function (): Promise<void> {
+	test('Should return accounts successfully', async function (): Promise<void> {
 		const testContext = createContext();
 		const azureSqlClient = new AzureSqlClient(() => Promise.resolve(testContext.azureAccountService));
 		const accounts = await azureSqlClient.getAccounts();
 		should(accounts.length).equal(testContext.accounts.length);
 	});
 
-	it('Should create and return new account successfully', async function (): Promise<void> {
+	test('Should create and return new account successfully', async function (): Promise<void> {
 		const testContext = createContext();
 		const azureSqlClient = new AzureSqlClient(() => Promise.resolve(testContext.azureAccountService));
 		const account = await azureSqlClient.getAccount();
 		should(account.key).equal(testContext.accounts[0].key);
 	});
 
-	it('Should return subscriptions successfully', async function (): Promise<void> {
+	test('Should return subscriptions successfully', async function (): Promise<void> {
 		const testContext = createContext();
 		const azureSqlClient = new AzureSqlClient(() => Promise.resolve(testContext.azureAccountService));
 		const result = await azureSqlClient.getSessions(testContext.accounts[0]);
 		should(result[0].subscription.id).deepEqual(testContext.subscriptions[0].id);
 	});
 
-	it('Should return locations successfully', async function (): Promise<void> {
+	test('Should return locations successfully', async function (): Promise<void> {
 		const testContext = createContext();
 		const azureSqlClient = new AzureSqlClient(() => Promise.resolve(testContext.azureAccountService), () => Promise.resolve(testContext.azureResourceService));
 		const result = await azureSqlClient.getLocations(testContext.session);
 		should(result.length).deepEqual(testContext.locations.length);
 	});
 
-	it('Should return resource groups successfully', async function (): Promise<void> {
+	test('Should return resource groups successfully', async function (): Promise<void> {
 		const testContext = createContext();
 		const azureSqlClient = new AzureSqlClient(() => Promise.resolve(testContext.azureAccountService), () => Promise.resolve(testContext.azureResourceService));
 		const result = await azureSqlClient.getResourceGroups(testContext.session);
@@ -137,3 +137,5 @@ describe('Azure SQL client', function (): void {
 		should(result[0].location).deepEqual(testContext.groups[0].location);
 	});
 });
+
+

@@ -3,39 +3,41 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as should from 'should';
-import * as path from 'path';
+import should = require('should/as-function');
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as TypeMoq from 'typemoq';
 import * as dataworkspace from 'dataworkspace';
 import * as baselines from '../baselines/baselines';
-import * as templates from '../../templates/templates';
+import * as templates from '../../src/templates/templates';
 import * as testUtils from '../testUtils';
-import * as constants from '../../common/constants';
-import { AddDatabaseReferenceDialog, ReferencedDatabaseType } from '../../dialogs/addDatabaseReferenceDialog';
+import * as constants from '../../src/common/constants';
+import { AddDatabaseReferenceDialog, ReferencedDatabaseType } from '../../src/dialogs/addDatabaseReferenceDialog';
 
-describe('Add Database Reference Dialog', () => {
-	before(async function (): Promise<void> {
-		await templates.loadTemplates(path.join(__dirname, '..', '..', '..', 'resources', 'templates'));
+const templatesPath = testUtils.getTemplatesRootPath();
+
+// Skipping ADS-specific tests
+suite.skip('Add Database Reference Dialog', () => {
+	suiteSetup(async function (): Promise<void> {
+		await templates.loadTemplates(templatesPath);
 		await baselines.loadBaselines();
 	});
 
-	beforeEach(function (): void {
+	setup(function (): void {
 		// const dataWorkspaceMock = TypeMoq.Mock.ofType<dataworkspace.IExtension>();
 		// dataWorkspaceMock.setup(x => x.getProjectsInWorkspace(TypeMoq.It.isAny(), TypeMoq.It.isAny())).returns(() => Promise.resolve([]));
 		// sinon.stub(vscode.extensions, 'getExtension').withArgs('Microsoft.data-workspace').returns(<any>{ exports: dataWorkspaceMock.object });
 	});
 
-	afterEach(function (): void {
+	teardown(function (): void {
 		sinon.restore();
 	});
 
-	after(async function (): Promise<void> {
+	suiteTeardown(async function (): Promise<void> {
 		await testUtils.deleteGeneratedTestFolder();
 	});
 
-	it('Should open dialog successfully', async function (): Promise<void> {
+	test('Should open dialog successfully', async function (): Promise<void> {
 		const project = await testUtils.createTestProject(this.test, baselines.newProjectFileBaseline);
 
 		const dataWorkspaceMock = TypeMoq.Mock.ofType<dataworkspace.IExtension>();
@@ -47,7 +49,7 @@ describe('Add Database Reference Dialog', () => {
 		should.notEqual(dialog.addDatabaseReferenceTab, undefined);
 	});
 
-	it('Should enable ok button correctly', async function (): Promise<void> {
+	test('Should enable ok button correctly', async function (): Promise<void> {
 		const project = await testUtils.createTestProject(this.test, baselines.newProjectFileBaseline);
 
 		const dataWorkspaceMock = TypeMoq.Mock.ofType<dataworkspace.IExtension>();
@@ -106,7 +108,7 @@ describe('Add Database Reference Dialog', () => {
 		should(dialog.dialog.okButton.enabled).equal(true, 'Ok button should be enabled because database name is filled');
 	});
 
-	it('Should enable and disable input boxes depending on the reference type', async function (): Promise<void> {
+	test('Should enable and disable input boxes depending on the reference type', async function (): Promise<void> {
 		const project = await testUtils.createTestProject(this.test, baselines.newProjectFileBaseline);
 
 		const dataWorkspaceMock = TypeMoq.Mock.ofType<dataworkspace.IExtension>();
@@ -157,3 +159,5 @@ function validateInputBoxEnabledStates(dialog: AddDatabaseReferenceDialog, expec
 	should(dialog.serverNameTextbox?.enabled).equal(expectedStates.serverNameEnabled, `Server name text box should be ${expectedStates.serverNameEnabled}. Actual: ${dialog.serverNameTextbox?.enabled}`);
 	should(dialog.serverVariableTextbox?.enabled).equal(expectedStates.serverVariabledEnabled, `Server variable text box should be ${expectedStates.serverVariabledEnabled}. Actual: ${dialog.serverVariableTextbox?.enabled}`);
 }
+
+

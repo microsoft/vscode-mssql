@@ -5,12 +5,12 @@
 
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
-import * as should from 'should';
+import should = require('should/as-function');
 import * as path from 'path';
 import * as vscodeMssql from 'vscode-mssql';
-import { SqlDatabaseProjectTaskProvider } from '../../tasks/sqlDatabaseProjectTaskProvider';
+import { SqlDatabaseProjectTaskProvider } from '../../src/tasks/sqlDatabaseProjectTaskProvider';
 
-describe('Sql Database Projects Task Provider', function (): void {
+suite('Sql Database Projects Task Provider', function (): void {
 	let sandbox: sinon.SinonSandbox;
 	let taskProvider: SqlDatabaseProjectTaskProvider;
 
@@ -41,25 +41,25 @@ describe('Sql Database Projects Task Provider', function (): void {
 			readProjFile: sandbox.stub().resolves()
 		};
 
-		const projectModule = require('../../models/project');
+		const projectModule = require('../../src/models/project');
 		sandbox.stub(projectModule.Project, 'openProject').resolves(mockProject);
 
 		return mockProject;
 	}
 
-	beforeEach(() => {
+	setup(() => {
 		// Create a new Sinon sandbox before each test
 		sandbox = sinon.createSandbox();
 		// Instantiate the task provider
 		taskProvider = new SqlDatabaseProjectTaskProvider();
 	});
 
-	afterEach(() => {
+	teardown(() => {
 		// Restore the Sinon sandbox and any stubs after each test
 		sandbox.restore();
 	});
 
-	it('Should create build and buildWithCodeAnalysis tasks for .sqlproj file with correct properties for SDK style project', async function (): Promise<void> {
+	test('Should create build and buildWithCodeAnalysis tasks for .sqlproj file with correct properties for SDK style project', async function (): Promise<void> {
 		// Define mock .sqlproj file URIs for testing
 		stubWorkspaceAndFiles([sqlProjUris[0]]);
 
@@ -118,7 +118,7 @@ describe('Sql Database Projects Task Provider', function (): void {
 		}
 	});
 
-	it('Should not create any tasks when no .sqlproj files are present in the workspace', async function (): Promise<void> {
+	test('Should not create any tasks when no .sqlproj files are present in the workspace', async function (): Promise<void> {
 		// Define mock .sqlproj file URIs for testing
 		stubWorkspaceAndFiles([]);
 
@@ -133,7 +133,7 @@ describe('Sql Database Projects Task Provider', function (): void {
 		should(tasks).be.Array().and.have.length(0);
 	});
 
-	it('Should create build and buildWithCodeAnalysis tasks for multiple .sqlproj files with correct properties', async function (): Promise<void> {
+	test('Should create build and buildWithCodeAnalysis tasks for multiple .sqlproj files with correct properties', async function (): Promise<void> {
 		// Define mock .sqlproj file URIs for testing
 		stubWorkspaceAndFiles(sqlProjUris);
 
@@ -189,7 +189,7 @@ describe('Sql Database Projects Task Provider', function (): void {
 		}
 	});
 
-	it('Should create tasks with correct build arguments for legacy-style project', async function (): Promise<void> {
+	test('Should create tasks with correct build arguments for legacy-style project', async function (): Promise<void> {
 		// Define mock .sqlproj file URIs for testing
 		stubWorkspaceAndFiles([sqlProjUris[0]]);
 
@@ -227,3 +227,5 @@ describe('Sql Database Projects Task Provider', function (): void {
 		}
 	});
 });
+
+

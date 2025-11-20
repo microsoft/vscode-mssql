@@ -3,33 +3,33 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as should from 'should';
+import should = require('should/as-function');
 import * as os from 'os';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
-import { NetCoreTool, DBProjectConfigurationKey, DotnetInstallLocationKey } from '../tools/netcoreTool';
-import { getQuotedPath } from '../common/utils';
+import { NetCoreTool, DBProjectConfigurationKey, DotnetInstallLocationKey } from '../src/tools/netcoreTool';
+import { getQuotedPath } from '../src/common/utils';
 import { deleteGeneratedTestFolder, generateTestFolderPath } from './testUtils';
 import { createContext, TestContext } from './testContext';
 
 let testContext: TestContext;
 
-describe('NetCoreTool: Net core tests', function (): void {
-	afterEach(function (): void {
+suite('NetCoreTool: Net core tests', function (): void {
+	teardown(function (): void {
 		sinon.restore();
 	});
 
-	beforeEach(function (): void {
+	setup(function (): void {
 		testContext = createContext();
 	});
 
-	after(async function (): Promise<void> {
+	suiteTeardown(async function (): Promise<void> {
 		await deleteGeneratedTestFolder();
 	});
 
-	it('Should override dotnet default value with settings', async function (): Promise<void> {
+	test('Should override dotnet default value with settings', async function (): Promise<void> {
 		try {
 			// update settings and validate
 			await vscode.workspace.getConfiguration(DBProjectConfigurationKey).update(DotnetInstallLocationKey, 'test value path', true);
@@ -44,7 +44,7 @@ describe('NetCoreTool: Net core tests', function (): void {
 		}
 	});
 
-	it('Should find right dotnet default paths', async function (): Promise<void> {
+	test('Should find right dotnet default paths', async function (): Promise<void> {
 		const netcoreTool = new NetCoreTool(testContext.outputChannel);
 		sinon.stub(netcoreTool, 'showInstallDialog').returns(Promise.resolve());
 		await netcoreTool.findOrInstallNetCore();
@@ -68,7 +68,7 @@ describe('NetCoreTool: Net core tests', function (): void {
 		}
 	});
 
-	it('should run a command successfully', async function (): Promise<void> {
+	test('should run a command successfully', async function (): Promise<void> {
 		const netcoreTool = new NetCoreTool(testContext.outputChannel);
 		const dummyFile = path.join(await generateTestFolderPath(this.test), 'dummy.dacpac');
 
@@ -86,3 +86,5 @@ describe('NetCoreTool: Net core tests', function (): void {
 		}
 	});
 });
+
+

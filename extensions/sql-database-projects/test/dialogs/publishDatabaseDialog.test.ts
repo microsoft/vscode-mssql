@@ -3,34 +3,36 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as should from 'should';
-import * as path from 'path';
+import should = require('should/as-function');
 import * as vscode from 'vscode';
 import * as baselines from '../baselines/baselines';
-import * as templates from '../../templates/templates';
+import * as templates from '../../src/templates/templates';
 import * as testUtils from '../testUtils';
 import * as TypeMoq from 'typemoq';
 
-import { PublishDatabaseDialog } from '../../dialogs/publishDatabaseDialog';
-import { Project } from '../../models/project';
-import { ProjectsController } from '../../controllers/projectController';
-import { emptySqlDatabaseProjectTypeId } from '../../common/constants';
+import { PublishDatabaseDialog } from '../../src/dialogs/publishDatabaseDialog';
+import { Project } from '../../src/models/project';
+import { ProjectsController } from '../../src/controllers/projectController';
+import { emptySqlDatabaseProjectTypeId } from '../../src/common/constants';
 import { createContext, mockDacFxOptionsResult, TestContext } from '../testContext';
-import { IPublishToDockerSettings, ISqlProjectPublishSettings } from '../../models/deploy/publishSettings';
+import { IPublishToDockerSettings, ISqlProjectPublishSettings } from '../../src/models/deploy/publishSettings';
 
 let testContext: TestContext;
-describe('Publish Database Dialog', () => {
-	before(async function (): Promise<void> {
-		await templates.loadTemplates(path.join(__dirname, '..', '..', '..', 'resources', 'templates'));
+const templatesPath = testUtils.getTemplatesRootPath();
+
+// Skipping ADS-specific tests (VsCode handles publish/deploy on its own)
+suite.skip('Publish Database Dialog', () => {
+	suiteSetup(async function (): Promise<void> {
+		await templates.loadTemplates(templatesPath);
 		await baselines.loadBaselines();
 		testContext = createContext();
 	});
 
-	after(async function (): Promise<void> {
+	suiteTeardown(async function (): Promise<void> {
 		await testUtils.deleteGeneratedTestFolder();
 	});
 
-	it('Should open dialog successfully ', async function (): Promise<void> {
+	test('Should open dialog successfully ', async function (): Promise<void> {
 		const projController = new ProjectsController(testContext.outputChannel);
 		const projFileDir = await testUtils.generateTestFolderPath(this.test);
 
@@ -49,7 +51,7 @@ describe('Publish Database Dialog', () => {
 		should.notEqual(publishDatabaseDialog.publishTab, undefined);
 	});
 
-	it('Should create default database name correctly ', async function (): Promise<void> {
+	test('Should create default database name correctly ', async function (): Promise<void> {
 		const projController = new ProjectsController(testContext.outputChannel);
 		const projFileDir = await testUtils.generateTestFolderPath(this.test);
 
@@ -68,7 +70,7 @@ describe('Publish Database Dialog', () => {
 		should.equal(publishDatabaseDialog.getDefaultDatabaseName(), project.projectFileName);
 	});
 
-	it('Should include all info in publish profile', async function (): Promise<void> {
+	test('Should include all info in publish profile', async function (): Promise<void> {
 		const proj = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
 		const dialog = TypeMoq.Mock.ofType(PublishDatabaseDialog, undefined, undefined, proj);
 		dialog.setup(x => x.getConnectionUri()).returns(() => { return Promise.resolve('Mock|Connection|Uri'); });
@@ -146,3 +148,5 @@ describe('Publish Database Dialog', () => {
 		should(deployProfile).deepEqual(expectedContainerPublishProfile);
 	});
 });
+
+

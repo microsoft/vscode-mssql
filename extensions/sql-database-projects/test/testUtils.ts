@@ -5,16 +5,18 @@
 
 import * as path from 'path';
 import * as os from 'os';
-import * as constants from '../common/constants';
-import * as templates from '../templates/templates';
+import * as constants from '../src/common/constants';
+import * as templates from '../src/templates/templates';
+import * as vscode from 'vscode';
+import * as sqldbproj from 'sqldbproj';
+import * as utils from '../src/common/utils';
 
 import { promises as fs } from 'fs';
-import should = require('should');
+import should = require('should/as-function');
 import { AssertionError } from 'assert';
-import { Project } from '../models/project';
+import { Project } from '../src/models/project';
 import { Uri } from 'vscode';
-import { exists, getSqlProjectsService } from '../common/utils';
-import * as mssql from 'mssql';
+import { exists } from '../src/common/utils';
 
 export async function shouldThrowSpecificError(block: Function, expectedMessage: string, details?: string) {
 	let succeeded = false;
@@ -31,10 +33,18 @@ export async function shouldThrowSpecificError(block: Function, expectedMessage:
 	}
 }
 
+export function getExtensionResourcePath(...segments: string[]): string {
+	const extName = utils.getAzdataApi() ? sqldbproj.extension.name : sqldbproj.extension.vsCodeName;
+	const extensionPath = vscode.extensions.getExtension(extName)?.extensionPath ?? '';
+	return path.join(extensionPath, ...segments);
+}
+
+export function getTemplatesRootPath(): string {
+	return getExtensionResourcePath('resources', 'templates');
+}
+
 export async function createTestSqlProject(test: Mocha.Runnable | undefined): Promise<Project> {
-	const projPath = await getTestProjectPath(test);
-	await (await getSqlProjectsService() as mssql.ISqlProjectsService).createProject(projPath, mssql.ProjectType.SdkStyle);
-	return await Project.openProject(projPath);
+	return await createTestProject(test, templates.newSqlProjectTemplate);
 }
 
 export async function getTestProjectPath(test: Mocha.Runnable | undefined): Promise<string> {
@@ -278,3 +288,5 @@ export async function deleteGeneratedTestFolder(): Promise<void> {
 		await fs.rm(testFolderPath, { recursive: true }); // cleanup folder
 	}
 }
+
+

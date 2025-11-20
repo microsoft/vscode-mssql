@@ -32,7 +32,7 @@ export let openSdkStyleSqlProjectWithGlobsSpecifiedBaseline: string;
 export let sqlProjPropertyReadBaseline: string;
 export let databaseReferencesReadBaseline: string;
 
-const baselineFolderPath = __dirname;
+const baselineFolderPath = path.join(__dirname, "..", "..", "..", "test", "baselines");
 
 export async function loadBaselines() {
 	newProjectFileBaseline = await loadBaseline(baselineFolderPath, 'newSqlProjectBaseline.xml');
@@ -64,3 +64,5 @@ export async function loadBaselines() {
 async function loadBaseline(baselineFolderPath: string, fileName: string): Promise<string> {
 	return (await fs.readFile(path.join(baselineFolderPath, fileName))).toString();
 }
+
+

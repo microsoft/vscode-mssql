@@ -3,27 +3,28 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as should from 'should';
+import should = require('should/as-function');
 import * as testUtils from '../testUtils';
 import * as testData from '../testContext';
 import * as baselines from '../baselines/baselines';
 import * as TypeMoq from 'typemoq';
 
-import { PublishOptionsDialog } from '../../dialogs/publishOptionsDialog';
-import { PublishDatabaseDialog } from '../../dialogs/publishDatabaseDialog';
-import { Project } from '../../models/project';
+import { PublishOptionsDialog } from '../../src/dialogs/publishOptionsDialog';
+import { PublishDatabaseDialog } from '../../src/dialogs/publishDatabaseDialog';
+import { Project } from '../../src/models/project';
 import sinon = require('sinon');
 
-describe('Publish Database Options Dialog', () => {
-	before(async function (): Promise<void> {
+// Skipping ADS-specific tests (VsCode handles publish/deploy on its own)
+suite.skip('Publish Database Options Dialog', () => {
+	suiteSetup(async function (): Promise<void> {
 		await baselines.loadBaselines();
 	});
 
-	after(async function (): Promise<void> {
+	suiteTeardown(async function (): Promise<void> {
 		await testUtils.deleteGeneratedTestFolder();
 	});
 
-	it('Should open dialog successfully ', async function (): Promise<void> {
+	test('Should open dialog successfully ', async function (): Promise<void> {
 		const proj = new Project('');
 		sinon.stub(proj, 'getProjectTargetVersion').returns('150');
 		const publishDatabaseDialog = new PublishDatabaseDialog(new Project(''));
@@ -34,7 +35,7 @@ describe('Publish Database Options Dialog', () => {
 		should.notEqual(optionsDialog.dialog, undefined);
 	});
 
-	it('Should deployment options gets initialized correctly with sample test project', async function (): Promise<void> {
+	test('Should deployment options gets initialized correctly with sample test project', async function (): Promise<void> {
 		// Create new sample test project
 		const project = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
 		const dialog = TypeMoq.Mock.ofType(PublishDatabaseDialog, undefined, undefined, project);
@@ -57,3 +58,5 @@ describe('Publish Database Options Dialog', () => {
 		});
 	});
 });
+
+

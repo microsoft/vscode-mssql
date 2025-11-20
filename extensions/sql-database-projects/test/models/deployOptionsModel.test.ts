@@ -3,19 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as should from 'should';
-import * as testUtils from '../testContext';
-import { DeployOptionsModel } from '../../models/options/deployOptionsModel';
+import should = require('should/as-function');
+import * as testUtils from '../../test/testContext';
+import { DeployOptionsModel } from '../../src/models/options/deployOptionsModel';
 
-describe('Publish Dialog Deploy Options Model', () => {
-	it('Should create model and set options successfully', function (): void {
+suite('Publish Dialog Deploy Options Model', () => {
+	test('Should create model and set options successfully', function (): void {
 		const model = new DeployOptionsModel(testUtils.getDeploymentOptions());
 		should.notEqual(model.getOptionsData(), undefined, 'Options shouldn\'t be undefined');
 
 		should.doesNotThrow(() => model.setDeploymentOptions());
 	});
 
-	it('Should get description', function (): void {
+	test('Should get description', function (): void {
 		const model = new DeployOptionsModel(testUtils.getDeploymentOptions());
 		Object.entries(model.deploymentOptions.booleanOptionsDictionary).forEach(option => {
 			// option[1] contains the value, description and displayName
@@ -23,13 +23,13 @@ describe('Publish Dialog Deploy Options Model', () => {
 		});
 	});
 
-	it('Should return empty string for null option ', function (): void {
+	test('Should return empty string for null option ', function (): void {
 		const model = new DeployOptionsModel(testUtils.getDeploymentOptions());
 		should(model.getOptionDescription('')).equal('');
 	});
 
 
-	it('Should have no default exclude object types', function (): void {
+	test('Should have no default exclude object types', function (): void {
 		const model = new DeployOptionsModel(testUtils.getDeploymentOptions());
 		should(model.deploymentOptions.excludeObjectTypes.value.length).be.equal(0, 'There should be no object types excluded from excludeObjectTypes');
 
@@ -39,7 +39,7 @@ describe('Publish Dialog Deploy Options Model', () => {
 		});
 	});
 
-	it('Should have atleast one default exclude object types', function (): void {
+	test('Should have atleast one default exclude object types', function (): void {
 		const model = new DeployOptionsModel(testUtils.getDeploymentOptions());
 		model.deploymentOptions.excludeObjectTypes.value = ['SampleProperty1'];
 
@@ -55,3 +55,5 @@ describe('Publish Dialog Deploy Options Model', () => {
 		});
 	});
 });
+
+

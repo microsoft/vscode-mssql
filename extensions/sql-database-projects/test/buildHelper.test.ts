@@ -3,16 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as should from 'should';
+import should = require('should/as-function');
 import * as os from 'os';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { BuildHelper } from '../tools/buildHelper';
+import { BuildHelper } from '../src/tools/buildHelper';
 import { TestContext, createContext } from './testContext';
 import { ProjectType } from 'mssql';
+import * as sqldbproj from 'sqldbproj';
+import * as utils from '../src/common/utils';
 
-describe('BuildHelper: Build Helper tests', function (): void {
-	it('Should get correct build arguments for legacy-style projects', function (): void {
+suite('BuildHelper: Build Helper tests', function (): void {
+	test('Should get correct build arguments for legacy-style projects', function (): void {
 		// update settings and validate
 		const buildHelper = new BuildHelper();
 		const resultArgs = buildHelper.constructBuildArguments('dummy\\dll path', ProjectType.LegacyStyle);
@@ -33,7 +35,7 @@ describe('BuildHelper: Build Helper tests', function (): void {
 		}
 	});
 
-	it('Should get correct build arguments for SDK-style projects', function (): void {
+	test('Should get correct build arguments for SDK-style projects', function (): void {
 		// update settings and validate
 		const buildHelper = new BuildHelper();
 		const resultArgs = buildHelper.constructBuildArguments('dummy\\dll path', ProjectType.SdkStyle);
@@ -52,15 +54,17 @@ describe('BuildHelper: Build Helper tests', function (): void {
 		}
 	});
 
-	it('Should get correct build folder', async function (): Promise<void> {
+	test('Should get correct build folder', async function (): Promise<void> {
 		const testContext: TestContext = createContext();
 		const buildHelper = new BuildHelper();
 		await buildHelper.createBuildDirFolder(testContext.outputChannel);
 
 		// get expected path for build
-		let expectedPath = vscode.extensions.getExtension('Microsoft.sql-database-projects')?.extensionPath ?? 'EmptyPath';
-		expectedPath = path.join(expectedPath, 'BuildDirectory');
-		should(buildHelper.extensionBuildDirPath).equal(expectedPath);
+		const extName = utils.getAzdataApi() ? sqldbproj.extension.name : sqldbproj.extension.vsCodeName;
+		const extensionPath = vscode.extensions.getExtension(extName)?.extensionPath ?? '';
+		should(buildHelper.extensionBuildDirPath).equal(path.join(extensionPath, 'BuildDirectory'));
 	});
 });
+
+
 

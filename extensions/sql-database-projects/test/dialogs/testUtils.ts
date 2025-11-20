@@ -100,3 +100,5 @@ export const mockConnectionInfo: vscodeMssql.IConnectionInfo = {
 	connectionString: '',
 	commandTimeout: undefined,
 };
+
+

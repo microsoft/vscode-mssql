@@ -4,31 +4,31 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import * as should from 'should';
+import should = require('should/as-function');
 import * as sinon from 'sinon';
 import * as mssqlVscode from 'vscode-mssql';
 import * as baselines from '../baselines/baselines';
 import * as testUtils from '../testUtils';
-import * as utils from '../../common/utils';
-import * as constants from '../../common/constants';
+import * as utils from '../../src/common/utils';
+import * as constants from '../../src/common/constants';
 
-import { UpdateProjectFromDatabaseWithQuickpick } from '../../dialogs/updateProjectFromDatabaseQuickpick';
-import { UpdateProjectAction } from '../../models/api/updateProject';
+import { UpdateProjectFromDatabaseWithQuickpick } from '../../src/dialogs/updateProjectFromDatabaseQuickpick';
+import { UpdateProjectAction } from '../../src/models/api/updateProject';
 
-describe('Update Project From Database Quickpicks', () => {
-	before(async function (): Promise<void> {
+suite('Update Project From Database Quickpicks', () => {
+	suiteSetup(async function (): Promise<void> {
 		await baselines.loadBaselines();
 	});
 
-	afterEach(function (): void {
+	teardown(function (): void {
 		sinon.restore();
 	});
 
-	after(async function (): Promise<void> {
+	suiteTeardown(async function (): Promise<void> {
 		await testUtils.deleteGeneratedTestFolder();
 	});
 
-	it('Should build UpdateProjectDataModel when user selects workspace project and Update action', async function (): Promise<void> {
+	test('Should build UpdateProjectDataModel when user selects workspace project and Update action', async function (): Promise<void> {
 		// Arrange - create a test project and stub utils & quickpicks
 		const project = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
 		const projectFilePath = project.projectFilePath.toLowerCase();
@@ -74,7 +74,7 @@ describe('Update Project From Database Quickpicks', () => {
 		should.equal(capturedModel.action, UpdateProjectAction.Update, 'Action should be Update');
 	});
 
-	it('Should not invoke callback when user cancels project selection', async function (): Promise<void> {
+	test('Should not invoke callback when user cancels project selection', async function (): Promise<void> {
 		// Arrange - stub getVscodeMssqlApi to return a profile with a database (so no DB pick)
 		const connectionProfile: any = {
 			user: 'user',
@@ -107,7 +107,7 @@ describe('Update Project From Database Quickpicks', () => {
 		should(spyCb.notCalled).be.true();
 	});
 
-	it('Should use provided project file path without prompting when passed as parameter', async function (): Promise<void> {
+	test('Should use provided project file path without prompting when passed as parameter', async function (): Promise<void> {
 		// Arrange - create a test project
 		const project = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
 		const providedProjectPath = project.projectFilePath.toLowerCase();
@@ -153,7 +153,7 @@ describe('Update Project From Database Quickpicks', () => {
 		should.equal(showQP.callCount, 1, 'QuickPick should only be shown once (for action), not for project selection');
 	});
 
-	it('Should prompt for project when no project file path is provided as parameter', async function (): Promise<void> {
+	test('Should prompt for project when no project file path is provided as parameter', async function (): Promise<void> {
 		// Arrange - create a test project
 		const project = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
 		const workspaceProjectPath = project.projectFilePath.toLowerCase();
@@ -197,3 +197,4 @@ describe('Update Project From Database Quickpicks', () => {
 		should.equal(showQP.callCount, 2, 'QuickPick should be shown twice (project and action selection)');
 	});
 });
+

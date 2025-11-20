@@ -192,3 +192,5 @@ export const mockDatabaseEndpointInfo: mssql.SchemaCompareEndpointInfo = {
 	packageFilePath: '',
 	connectionName: 'My Connection Name'
 };
+
+

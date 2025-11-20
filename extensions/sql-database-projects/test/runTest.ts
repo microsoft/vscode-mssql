@@ -26,8 +26,9 @@ function parsePatternArg(argv: string[]): string | undefined {
 
 async function main(): Promise<void> {
 	try {
-		const extensionDevelopmentPath = path.resolve(__dirname, '../../');
+		const extensionDevelopmentPath = path.resolve(__dirname, '../..');
 		const extensionTestsPath = path.resolve(__dirname, './index');
+		process.env.SQLPROJ_TEST_MODE = '1';
 
 		const cliPattern = parsePatternArg(process.argv.slice(2));
 		const envPattern = process.env.TEST_PATTERN;
@@ -50,3 +51,5 @@ async function main(): Promise<void> {
 }
 
 void main();
+
+

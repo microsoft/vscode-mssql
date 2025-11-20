@@ -3,22 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as should from 'should';
+import should = require('should/as-function');
 import * as sinon from 'sinon';
 import * as baselines from '../baselines/baselines';
 import * as testUtils from '../testUtils';
-import { DeployService, getDockerImageSpec } from '../../models/deploy/deployService';
-import { Project } from '../../models/project';
+import { DeployService, getDockerImageSpec } from '../../src/models/deploy/deployService';
+import { Project } from '../../src/models/project';
 import * as vscode from 'vscode';
 import * as azdata from 'azdata';
-import { ISqlDbDeployProfile } from '../../models/deploy/deployProfile';
+import { ISqlDbDeployProfile } from '../../src/models/deploy/deployProfile';
 import * as UUID from 'vscode-languageclient/lib/utils/uuid';
-import * as constants from '../../common/constants';
-import { ShellExecutionHelper } from '../../tools/shellExecutionHelper';
+import * as constants from '../../src/common/constants';
+import { ShellExecutionHelper } from '../../src/tools/shellExecutionHelper';
 import * as TypeMoq from 'typemoq';
-import { AzureSqlClient } from '../../models/deploy/azureSqlClient';
-import { ConnectionService } from '../../models/connections/connectionService';
-import { IPublishToDockerSettings } from '../../models/deploy/publishSettings';
+import { AzureSqlClient } from '../../src/models/deploy/azureSqlClient';
+import { ConnectionService } from '../../src/models/connections/connectionService';
+import { IPublishToDockerSettings } from '../../src/models/deploy/publishSettings';
 
 export interface TestContext {
 	outputChannel: vscode.OutputChannel;
@@ -57,24 +57,25 @@ export function createContext(): TestContext {
 
 let sandbox: sinon.SinonSandbox;
 
-describe('deploy service', function (): void {
-	before(async function (): Promise<void> {
+// Skipping ADS-specific tests (VsCode handles publish/deploy on its own)
+suite.skip('deploy service', function (): void {
+	suiteSetup(async function (): Promise<void> {
 		await baselines.loadBaselines();
 	});
-	afterEach(function () {
+	teardown(function () {
 		sandbox.restore();
 		sinon.restore();
 	});
 
-	beforeEach(() => {
+	setup(() => {
 		sandbox = sinon.createSandbox();
 	});
 
-	after(async function (): Promise<void> {
+	suiteTeardown(async function (): Promise<void> {
 		await testUtils.deleteGeneratedTestFolder();
 	});
 
-	it('Should deploy a database to docker container successfully', async function (): Promise<void> {
+	test('Should deploy a database to docker container successfully', async function (): Promise<void> {
 		const testContext = createContext();
 		const deployProfile: IPublishToDockerSettings = {
 			sqlProjectPublishSettings: {
@@ -109,7 +110,7 @@ describe('deploy service', function (): void {
 
 	});
 
-	it('Should fail the deploy if docker is not running', async function (): Promise<void> {
+	test('Should fail the deploy if docker is not running', async function (): Promise<void> {
 		const testContext = createContext();
 		const deployProfile: IPublishToDockerSettings = {
 			sqlProjectPublishSettings: {
@@ -139,7 +140,7 @@ describe('deploy service', function (): void {
 		await should(deployService.deployToContainer(deployProfile, project1)).rejected();
 	});
 
-	it('Should retry connecting to the server', async function (): Promise<void> {
+	test('Should retry connecting to the server', async function (): Promise<void> {
 		const testContext = createContext();
 		const localDbSettings = {
 			dbName: 'test',
@@ -166,7 +167,7 @@ describe('deploy service', function (): void {
 		should(connection).equals('connection');
 	});
 
-	it('Should clean a list of docker images successfully', async function (): Promise<void> {
+	test('Should clean a list of docker images successfully', async function (): Promise<void> {
 		const testContext = createContext();
 		const shellExecutionHelper = TypeMoq.Mock.ofType(ShellExecutionHelper);
 		shellExecutionHelper.setup(x => x.runStreamedCommand(TypeMoq.It.isAny(),
@@ -179,7 +180,7 @@ describe('deploy service', function (): void {
 		shellExecutionHelper.verify(x => x.runStreamedCommand(TypeMoq.It.isAny(), undefined, TypeMoq.It.isAny(), TypeMoq.It.isAny()), TypeMoq.Times.exactly(7));
 	});
 
-	it('Should create docker image info correctly', () => {
+	test('Should create docker image info correctly', () => {
 		const id = UUID.generateUuid().toLocaleLowerCase();
 		const baseImage = 'baseImage:latest';
 		const tag = baseImage.replace(':', '-').replace(constants.sqlServerDockerRegistry, '').replace(/[^a-zA-Z0-9_,\-]/g, '').toLocaleLowerCase();
@@ -220,7 +221,7 @@ describe('deploy service', function (): void {
 		});
 	});
 
-	it('Should create a new Azure SQL server successfully', async function (): Promise<void> {
+	test('Should create a new Azure SQL server successfully', async function (): Promise<void> {
 		const testContext = createContext();
 		const deployProfile: ISqlDbDeployProfile = {
 			sqlDbSetting: {
@@ -269,3 +270,5 @@ describe('deploy service', function (): void {
 		should(connection).equals('connection');
 	});
 });
+
+

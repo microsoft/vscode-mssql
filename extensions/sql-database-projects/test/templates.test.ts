@@ -3,23 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as should from 'should';
-import * as path from 'path';
-import * as templates from '../templates/templates';
-import { shouldThrowSpecificError } from './testUtils';
+import should = require('should/as-function');
+import * as templates from '../src/templates/templates';
+import { shouldThrowSpecificError, getTemplatesRootPath } from './testUtils';
 
-describe('Templates: loading templates from disk', function (): void {
-	beforeEach(() => {
+const templatesPath = getTemplatesRootPath();
+
+suite('Templates: loading templates from disk', function (): void {
+	setup(() => {
 		templates.reset();
 	});
 
-	it('Should throw error when attempting to use templates before loaded from file', async function (): Promise<void> {
+	test('Should throw error when attempting to use templates before loaded from file', async function (): Promise<void> {
 		await shouldThrowSpecificError(() => templates.get('foobar'), 'Templates must be loaded from file before attempting to use.');
 		await shouldThrowSpecificError(() => templates.get('foobar'), 'Templates must be loaded from file before attempting to use.');
 	});
 
-	it('Should load all templates from files', async function (): Promise<void> {
-		await templates.loadTemplates(path.join(__dirname, '..', '..', 'resources', 'templates'));
+	test('Should load all templates from files', async function (): Promise<void> {
+		await templates.loadTemplates(templatesPath);
 
 		// check expected counts
 
@@ -37,3 +38,5 @@ describe('Templates: loading templates from disk', function (): void {
 		}
 	});
 });
+
+

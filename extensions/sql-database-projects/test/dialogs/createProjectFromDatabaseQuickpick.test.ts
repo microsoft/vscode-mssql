@@ -3,27 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as should from 'should';
+import should = require('should/as-function');
 import * as mssql from 'mssql';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import * as constants from '../../common/constants';
-import * as utils from '../../common/utils'
-import * as quickpickHelper from '../../dialogs/quickpickHelper'
-import * as createProjectFromDatabaseQuickpick from '../../dialogs/createProjectFromDatabaseQuickpick';
-import * as newProjectTool from '../../tools/newProjectTool';
+import * as constants from '../../src/common/constants';
+import * as utils from '../../src/common/utils'
+import * as quickpickHelper from '../../src/dialogs/quickpickHelper'
+import * as createProjectFromDatabaseQuickpick from '../../src/dialogs/createProjectFromDatabaseQuickpick';
+import * as newProjectTool from '../../src/tools/newProjectTool';
 import { createTestUtils, mockConnectionInfo, TestUtils } from './testUtils';
 import { promises as fs } from 'fs';
-import { ImportDataModel } from '../../models/api/import';
+import { ImportDataModel } from '../../src/models/api/import';
 import { createTestFile, deleteGeneratedTestFolder, generateTestFolderPath } from '../testUtils';
 
 let testUtils: TestUtils;
 const projectFilePath = 'test';
 const dbList: string[] = constants.systemDbs.concat(['OtherDatabase', 'Database', 'OtherDatabase2']);
 
-describe('Create Project From Database Quickpick', () => {
-	beforeEach(function (): void {
+suite('Create Project From Database Quickpick', () => {
+	setup(function (): void {
 		testUtils = createTestUtils();
 		sinon.stub(utils, 'getVscodeMssqlApi').resolves(testUtils.vscodeMssqlIExtension.object);	//set vscode mssql extension api
 		sinon.stub(newProjectTool, 'defaultProjectSaveLocation').returns(undefined);
@@ -31,12 +31,12 @@ describe('Create Project From Database Quickpick', () => {
 		sinon.stub(utils, 'sanitizeStringForFilename').returns('TestProject');
 	});
 
-	afterEach(async function (): Promise<void> {
+	teardown(async function (): Promise<void> {
 		sinon.restore();
 		await deleteGeneratedTestFolder();
 	});
 
-	it('Should prompt for connection and exit when connection is not selected', async function (): Promise<void> {
+	test('Should prompt for connection and exit when connection is not selected', async function (): Promise<void> {
 		//promptForConnection spy to verify test
 		const promptForConnectionSpy = sinon.stub(testUtils.vscodeMssqlIExtension.object, 'promptForConnection').withArgs(sinon.match.any).resolves(undefined);
 
@@ -52,7 +52,7 @@ describe('Create Project From Database Quickpick', () => {
 		should(createProjectFromDatabaseCallbackSpy.notCalled).be.true('createProjectFromDatabaseCallback should not have been called');
 	});
 
-	it('Should not prompt for connection when connectionInfo is provided and exit when db is not selected', async function (): Promise<void> {
+	test('Should not prompt for connection when connectionInfo is provided and exit when db is not selected', async function (): Promise<void> {
 		//promptForConnection spy to verify test
 		const promptForConnectionSpy = sinon.stub(testUtils.vscodeMssqlIExtension.object, 'promptForConnection').withArgs(sinon.match.any).resolves(undefined);
 
@@ -74,7 +74,7 @@ describe('Create Project From Database Quickpick', () => {
 		should(createProjectFromDatabaseCallbackSpy.notCalled).be.true('createProjectFromDatabaseCallback should not have been called');
 	});
 
-	it('Should exit when project name is not selected', async function (): Promise<void> {
+	test('Should exit when project name is not selected', async function (): Promise<void> {
 		//createProjectFromDatabaseQuickpick spy to verify test
 		const createProjectFromDatabaseCallbackSpy = sinon.stub().resolves();
 
@@ -93,7 +93,7 @@ describe('Create Project From Database Quickpick', () => {
 		should(createProjectFromDatabaseCallbackSpy.notCalled).be.true('createProjectFromDatabaseCallback should not have been called');
 	});
 
-	it('Should exit when project location is not selected', async function (): Promise<void> {
+	test('Should exit when project location is not selected', async function (): Promise<void> {
 		//createProjectFromDatabaseQuickpick spy to verify test
 		const createProjectFromDatabaseCallbackSpy = sinon.stub().resolves();
 
@@ -112,7 +112,7 @@ describe('Create Project From Database Quickpick', () => {
 		should(createProjectFromDatabaseCallbackSpy.notCalled).be.true('createProjectFromDatabaseCallback should not have been called');
 	});
 
-	it('Should exit when project location is not selected (test repeatedness for project location)', async function (): Promise<void> {
+	test('Should exit when project location is not selected (test repeatedness for project location)', async function (): Promise<void> {
 		//createProjectFromDatabaseQuickpick spy to verify test
 		const createProjectFromDatabaseCallbackSpy = sinon.stub().resolves();
 
@@ -143,7 +143,7 @@ describe('Create Project From Database Quickpick', () => {
 		should(createProjectFromDatabaseCallbackSpy.notCalled).be.true('createProjectFromDatabaseCallback should not have been called');
 	});
 
-	it('Should exit when folder structure is not selected and folder is selected through browsing (test repeatedness for project location)', async function (): Promise<void> {
+	test('Should exit when folder structure is not selected and folder is selected through browsing (test repeatedness for project location)', async function (): Promise<void> {
 		//createProjectFromDatabaseQuickpick spy to verify test
 		const createProjectFromDatabaseCallbackSpy = sinon.stub().resolves();
 
@@ -170,7 +170,7 @@ describe('Create Project From Database Quickpick', () => {
 		should(createProjectFromDatabaseCallbackSpy.notCalled).be.true('createProjectFromDatabaseCallback should not have been called');
 	});
 
-	it('Should exit when folder structure is not selected and existing folder/file location is selected', async function (): Promise<void> {
+	test('Should exit when folder structure is not selected and existing folder/file location is selected', async function (): Promise<void> {
 		//createProjectFromDatabaseQuickpick spy to verify test
 		const createProjectFromDatabaseCallbackSpy = sinon.stub().resolves();
 
@@ -201,7 +201,7 @@ describe('Create Project From Database Quickpick', () => {
 		should(createProjectFromDatabaseCallbackSpy.notCalled).be.true('createProjectFromDatabaseCallback should not have been called');
 	});
 
-	it('Should exit when include permissions is not selected', async function (): Promise<void> {
+	test('Should exit when include permissions is not selected', async function (): Promise<void> {
 		//createProjectFromDatabaseQuickpick spy to verify test
 		const createProjectFromDatabaseCallbackSpy = sinon.stub().resolves();
 
@@ -224,7 +224,7 @@ describe('Create Project From Database Quickpick', () => {
 		should(createProjectFromDatabaseCallbackSpy.notCalled).be.true('createProjectFromDatabaseCallback should not have been called');
 	});
 
-	it('Should exit when sdk style project is not selected', async function (): Promise<void> {
+	test('Should exit when sdk style project is not selected', async function (): Promise<void> {
 		//createProjectFromDatabaseQuickpick spy to verify test
 		const createProjectFromDatabaseCallbackSpy = sinon.stub().resolves();
 
@@ -249,7 +249,7 @@ describe('Create Project From Database Quickpick', () => {
 		should(createProjectFromDatabaseCallbackSpy.notCalled).be.true('createProjectFromDatabaseCallback should not have been called');
 	});
 
-	it('Should create project when all the information is provided', async function (): Promise<void> {
+	test('Should create project when all the information is provided', async function (): Promise<void> {
 		//createProjectFromDatabaseQuickpick spy to verify test
 		const createProjectFromDatabaseCallbackSpy = sinon.stub().resolves();
 
@@ -286,3 +286,5 @@ describe('Create Project From Database Quickpick', () => {
 		should(createProjectFromDatabaseCallbackSpy.calledWithMatch(expectedImportDataModel)).be.true('createProjectFromDatabaseCallback should have been called with the correct model');
 	});
 });
+
+

@@ -4,31 +4,32 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as azdata from 'azdata';
-import * as should from 'should';
+import should = require('should/as-function');
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as mssql from 'mssql';
 import * as baselines from '../baselines/baselines';
 import * as testUtils from '../testUtils';
 
-import { UpdateProjectFromDatabaseDialog } from '../../dialogs/updateProjectFromDatabaseDialog';
+import { UpdateProjectFromDatabaseDialog } from '../../src/dialogs/updateProjectFromDatabaseDialog';
 import { mockConnectionProfile, mockDatabaseEndpointInfo, mockProjectEndpointInfo, mockURIList } from '../testContext';
-import { UpdateProjectDataModel } from '../../models/api/updateProject';
+import { UpdateProjectDataModel } from '../../src/models/api/updateProject';
 
-describe('Update Project From Database Dialog', () => {
-	before(async function (): Promise<void> {
+// Skipping ADS-specific tests
+suite.skip('Update Project From Database Dialog', () => {
+	suiteSetup(async function (): Promise<void> {
 		await baselines.loadBaselines();
 	});
 
-	afterEach(function (): void {
+	teardown(function (): void {
 		sinon.restore();
 	});
 
-	after(async function (): Promise<void> {
+	suiteTeardown(async function (): Promise<void> {
 		await testUtils.deleteGeneratedTestFolder();
 	});
 
-	it('Should populate endpoints correctly when no context passed', async function (): Promise<void> {
+	test('Should populate endpoints correctly when no context passed', async function (): Promise<void> {
 		const dialog = new UpdateProjectFromDatabaseDialog(undefined, undefined, []);
 		await dialog.openDialog();
 
@@ -38,7 +39,7 @@ describe('Update Project From Database Dialog', () => {
 		should.equal(dialog.dialog.okButton.enabled, false, 'Okay button should be disabled.');
 	});
 
-	it('Should populate endpoints correctly when Project context is passed', async function (): Promise<void> {
+	test('Should populate endpoints correctly when Project context is passed', async function (): Promise<void> {
 		const project = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
 		const dialog = new UpdateProjectFromDatabaseDialog(undefined, project, mockURIList);
 		await dialog.openDialog();
@@ -49,7 +50,7 @@ describe('Update Project From Database Dialog', () => {
 		should.equal(dialog.dialog.okButton.enabled, false, 'Okay button should be disabled.');
 	});
 
-	it('Should populate endpoints correctly when Connection context is passed', async function (): Promise<void> {
+	test('Should populate endpoints correctly when Connection context is passed', async function (): Promise<void> {
 		sinon.stub(azdata.connection, 'getConnections').resolves([<azdata.connection.ConnectionProfile><unknown>mockConnectionProfile]);
 		sinon.stub(azdata.connection, 'listDatabases').resolves([mockConnectionProfile.databaseName!]);
 
@@ -64,7 +65,7 @@ describe('Update Project From Database Dialog', () => {
 		should.equal(dialog.dialog.okButton.enabled, false, 'Okay button should be disabled.');
 	});
 
-	it('Should populate endpoints correctly when context is complete', async function (): Promise<void> {
+	test('Should populate endpoints correctly when context is complete', async function (): Promise<void> {
 		const project = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
 		sinon.stub(azdata.connection, 'getConnections').resolves([<azdata.connection.ConnectionProfile><unknown>mockConnectionProfile]);
 		sinon.stub(azdata.connection, 'listDatabases').resolves([mockConnectionProfile.databaseName!]);
@@ -86,7 +87,7 @@ describe('Update Project From Database Dialog', () => {
 		should.equal(dialog.dialog.okButton.enabled, true, 'Okay button should be enabled when dialog is complete.');
 	});
 
-	it('Should populate endpoints correctly when Connection context and workspace with projects is provided', async function (): Promise<void> {
+	test('Should populate endpoints correctly when Connection context and workspace with projects is provided', async function (): Promise<void> {
 		sinon.stub(azdata.connection, 'getConnections').resolves([<azdata.connection.ConnectionProfile><unknown>mockConnectionProfile]);
 		sinon.stub(azdata.connection, 'listDatabases').resolves([mockConnectionProfile.databaseName!]);
 
@@ -107,7 +108,7 @@ describe('Update Project From Database Dialog', () => {
 		should.equal(dialog.dialog.okButton.enabled, true, 'Okay button should be enabled when dialog is complete.');
 	});
 
-	it('Should successfully complete the handleUpdateButtonClick method call and connect to appropriate call back properties when Connection context and workspace with projects is provided', async function (): Promise<void> {
+	test('Should successfully complete the handleUpdateButtonClick method call and connect to appropriate call back properties when Connection context and workspace with projects is provided', async function (): Promise<void> {
 		const project = await testUtils.createTestProject(this.test, baselines.openProjectFileBaseline);
 		sinon.stub(azdata.connection, 'getConnections').resolves([<azdata.connection.ConnectionProfile><unknown>mockConnectionProfile]);
 		sinon.stub(azdata.connection, 'listDatabases').resolves([mockConnectionProfile.databaseName!]);
@@ -141,3 +142,5 @@ describe('Update Project From Database Dialog', () => {
 		should(model!).deepEqual(expectedUpdateProjectDataModel);
 	});
 });
+
+

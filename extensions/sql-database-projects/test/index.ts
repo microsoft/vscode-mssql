@@ -18,7 +18,7 @@ try {
 }
 
 const testsRoot = path.resolve(__dirname);
-const repoRoot = path.resolve(__dirname, '..', '..', '..');
+const repoRoot = path.resolve(__dirname, '..', '..');
 
 function parsePattern(): { pattern?: string; invert?: boolean } {
 	const envPattern = process.env.TEST_PATTERN || process.env.MOCHA_GREP;
@@ -46,7 +46,7 @@ export async function run(): Promise<void> {
 			hookRunInContext: true,
 			hookRunInThisContext: true,
 			include: ['out/src/**/*.js'],
-			exclude: ['out/src/test/**', '**/node_modules/**'],
+			exclude: ['out/test/**', '**/node_modules/**'],
 			tempDir: path.join(repoRoot, 'coverage', '.nyc_output')
 		})
 		: undefined;
@@ -57,7 +57,7 @@ export async function run(): Promise<void> {
 	}
 
 	const mocha = new Mocha({
-		ui: 'bdd',
+		ui: 'tdd',
 		timeout: 30 * 1000,
 		color: true,
 		reporter: 'spec'
@@ -94,3 +94,5 @@ export async function run(): Promise<void> {
 		});
 	});
 }
+
+

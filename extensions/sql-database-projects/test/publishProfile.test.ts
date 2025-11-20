@@ -3,37 +3,37 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as should from 'should';
+import should = require('should/as-function');
 import * as azdata from 'azdata';
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
 import * as TypeMoq from 'typemoq';
 import * as baselines from './baselines/baselines';
 import * as testUtils from './testUtils';
-import * as constants from '../common/constants';
+import * as constants from '../src/common/constants';
 import { TestContext, createContext, mockDacFxOptionsResult } from './testContext';
-import { load, readPublishProfile } from '../models/publishProfile/publishProfile';
+import { load, readPublishProfile } from '../src/models/publishProfile/publishProfile';
 
 let testContext: TestContext;
 
-describe('Publish profile tests', function (): void {
-	before(async function (): Promise<void> {
+suite('Publish profile tests', function (): void {
+	suiteSetup(async function (): Promise<void> {
 		await baselines.loadBaselines();
 	});
 
-	beforeEach(function (): void {
+	setup(function (): void {
 		testContext = createContext();
 	});
 
-	afterEach(function (): void {
+	teardown(function (): void {
 		sinon.restore();
 	});
 
-	after(async function (): Promise<void> {
+	suiteTeardown(async function (): Promise<void> {
 		await testUtils.deleteGeneratedTestFolder();
 	});
 
-	it('Should read database name, integrated security connection string, and SQLCMD variables from publish profile', async function (): Promise<void> {
+	test('Should read database name, integrated security connection string, and SQLCMD variables from publish profile', async function (): Promise<void> {
 		await baselines.loadBaselines();
 		const profilePath = await testUtils.createTestFile(this.test, baselines.publishProfileIntegratedSecurityBaseline, 'publishProfile.publish.xml');
 		const connectionResult = {
@@ -56,7 +56,7 @@ describe('Publish profile tests', function (): void {
 		should(result.options).equal(mockDacFxOptionsResult.deploymentOptions);
 	});
 
-	it('Should read database name, SQL login connection string, and SQLCMD variables from publish profile', async function (): Promise<void> {
+	test('Should read database name, SQL login connection string, and SQLCMD variables from publish profile', async function (): Promise<void> {
 		await baselines.loadBaselines();
 		const profilePath = await testUtils.createTestFile(this.test, baselines.publishProfileSqlLoginBaseline, 'publishProfile.publish.xml');
 		const connectionResult = {
@@ -81,7 +81,7 @@ describe('Publish profile tests', function (): void {
 		should(result.options).equal(mockDacFxOptionsResult.deploymentOptions);
 	});
 
-	it('Should read SQLCMD variables correctly from publish profile even if DefaultValue is used', async function (): Promise<void> {
+	test('Should read SQLCMD variables correctly from publish profile even if DefaultValue is used', async function (): Promise<void> {
 		await baselines.loadBaselines();
 		const profilePath = await testUtils.createTestFile(this.test, baselines.publishProfileDefaultValueBaseline, 'publishProfile.publish.xml');
 		testContext.dacFxService.setup(x => x.getOptionsFromProfile(TypeMoq.It.isAny())).returns(async () => {
@@ -95,7 +95,7 @@ describe('Publish profile tests', function (): void {
 		should(result.sqlCmdVariables.get('ProdDatabaseName')).equal('MyProdDatabase');
 	});
 
-	it('Should throw error when connecting does not work', async function (): Promise<void> {
+	test('Should throw error when connecting does not work', async function (): Promise<void> {
 		await baselines.loadBaselines();
 		const profilePath = await testUtils.createTestFile(this.test, baselines.publishProfileIntegratedSecurityBaseline, 'publishProfile.publish.xml');
 
@@ -104,3 +104,5 @@ describe('Publish profile tests', function (): void {
 		await testUtils.shouldThrowSpecificError(async () => await readPublishProfile(vscode.Uri.file(profilePath)), constants.unableToCreatePublishConnection('Could not connect'));
 	});
 });
+
+

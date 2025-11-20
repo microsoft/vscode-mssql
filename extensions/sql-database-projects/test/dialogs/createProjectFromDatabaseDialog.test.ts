@@ -3,23 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as should from 'should';
+import should = require('should/as-function');
 import * as azdata from 'azdata';
 import * as mssql from 'mssql';
 import * as sinon from 'sinon';
-import * as utils from '../../common/utils'
-import * as newProjectTool from '../../tools/newProjectTool';
+import * as utils from '../../src/common/utils'
+import * as newProjectTool from '../../src/tools/newProjectTool';
 
-import { CreateProjectFromDatabaseDialog } from '../../dialogs/createProjectFromDatabaseDialog';
+import { CreateProjectFromDatabaseDialog } from '../../src/dialogs/createProjectFromDatabaseDialog';
 import { mockConnectionProfile } from '../testContext';
-import { ImportDataModel } from '../../models/api/import';
+import { ImportDataModel } from '../../src/models/api/import';
 
-describe('Create Project From Database Dialog', () => {
-	afterEach(function (): void {
+// Skipping ADS-specific tests
+suite.skip('Create Project From Database Dialog', () => {
+	teardown(function (): void {
 		sinon.restore();
 	});
 
-	it('Should open dialog successfully', async function (): Promise<void> {
+	test('Should open dialog successfully', async function (): Promise<void> {
 		sinon.stub(azdata.connection, 'getConnections').resolves([]);
 		sinon.stub(azdata.connection, 'connect').resolves({ connected: true, connectionId: '0', errorMessage: '', errorCode: 0 });
 		sinon.stub(azdata.connection, 'listDatabases').resolves([]);
@@ -28,7 +29,7 @@ describe('Create Project From Database Dialog', () => {
 		should.notEqual(dialog.createProjectFromDatabaseTab, undefined);
 	});
 
-	it('Should enable ok button correctly with a connection profile', async function (): Promise<void> {
+	test('Should enable ok button correctly with a connection profile', async function (): Promise<void> {
 		sinon.stub(azdata.connection, 'getConnections').resolves([]);
 		sinon.stub(azdata.connection, 'connect').resolves({ connected: true, connectionId: '0', errorMessage: '', errorCode: 0 });
 		sinon.stub(azdata.connection, 'listDatabases').resolves([]);
@@ -48,7 +49,7 @@ describe('Create Project From Database Dialog', () => {
 		should(dialog.dialog.okButton.enabled).equal(true, 'Ok button should be enabled since all the required fields are filled');
 	});
 
-	it('Should enable ok button correctly without a connection profile', async function (): Promise<void> {
+	test('Should enable ok button correctly without a connection profile', async function (): Promise<void> {
 		const dialog = new CreateProjectFromDatabaseDialog(undefined);
 		await dialog.openDialog();
 
@@ -80,7 +81,7 @@ describe('Create Project From Database Dialog', () => {
 		should(dialog.dialog.okButton.enabled).equal(true, 'Ok button should be enabled since all the required fields are filled');
 	});
 
-	it('Should create default project name correctly when database information is populated', async function (): Promise<void> {
+	test('Should create default project name correctly when database information is populated', async function (): Promise<void> {
 		sinon.stub(azdata.connection, 'getConnections').resolves([]);
 		sinon.stub(azdata.connection, 'connect').resolves({ connected: true, connectionId: '0', errorMessage: '', errorCode: 0 });
 		sinon.stub(azdata.connection, 'listDatabases').resolves(['My Database']);
@@ -93,7 +94,7 @@ describe('Create Project From Database Dialog', () => {
 		should.equal(dialog.projectNameTextBox!.value, 'DatabaseProjectMy Database');
 	});
 
-	it('Should include all info in import data model and connect to appropriate call back properties', async function (): Promise<void> {
+	test('Should include all info in import data model and connect to appropriate call back properties', async function (): Promise<void> {
 		const stubUri = 'My URI';
 		const dialog = new CreateProjectFromDatabaseDialog(mockConnectionProfile);
 		sinon.stub(azdata.connection, 'getConnections').resolves([]);
@@ -124,3 +125,5 @@ describe('Create Project From Database Dialog', () => {
 		should(model!).deepEqual(expectedImportDataModel);
 	});
 });
+
+
