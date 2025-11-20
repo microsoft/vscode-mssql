@@ -291,6 +291,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     const ROW_HEIGHT = 26;
 
                     setOptions({
+                        alwaysShowVerticalScroll: false,
                         enableColumnPicker: false,
                         enableGridMenu: false,
                         autoEdit: false,
