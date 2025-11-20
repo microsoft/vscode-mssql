@@ -23,7 +23,7 @@ jobs:
         inputs:
           locProj: "localization/LocProject.json"
           outDir: "$(Build.ArtifactStagingDirectory)"
-          dependencyPackageSource: "https://pkgs.dev.azure.com/msdata/_packaging/SQLDS_SSMS/nuget/v3/index.json"
+          dependencyPackageSource: 'https://ceapex.pkgs.visualstudio.com/_packaging/LocTools/nuget/v3/index.json'
           packageSourceAuth: patAuth
           repoType: gitHub
           isCreatePrSelected: True
