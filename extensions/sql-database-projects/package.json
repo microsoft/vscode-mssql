@@ -42,7 +42,7 @@
         "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
         "watch": "yarn build:prepare && run-p -l watch:extension",
         "lint": "eslint ./src",
-        "test": "yarn build && node ./out/src/test/runTest.js",
+        "test": "yarn build && node ./out/test/runTest.js",
         "package": "yarn build && vsce package --no-yarn"
   },
   "capabilities": {
