@@ -1,0 +1,90 @@
+name: Publish Baseline Artifacts
+
+# Creates baseline artifacts for PR comparisons. See workflows/README.md for details.
+on:
+  push:
+    branches:
+      - main
+      - release/*
+  workflow_dispatch:
+
+jobs:
+  publish-baseline:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install tools
+        run: |
+          echo "Installing Yarn"
+          npm install --global yarn@1.22.19
+          echo "Installing VSCE"
+          npm install --global vsce@2.9.2
+
+      - name: Install root dependencies
+        run: |
+          yarn install --frozen-lockfile
+
+      - name: MSSQL - Install dependencies and build
+        uses: ./.github/actions/build-mssql
+        with:
+          source-dir: "./extensions/mssql"
+
+      - name: SqlProj - Install dependencies and build
+        uses: ./.github/actions/build-sqlproj
+        with:
+          source-dir: "./extensions/sql-database-projects"
+
+      - name: MSSQL - Package extension
+        run: |
+          cd extensions/mssql
+          vsce package
+
+      - name: SqlProj - Package extension
+        run: |
+          cd extensions/sql-database-projects
+          vsce package
+
+      - name: Calculate and save sizes
+        run: |
+          # Calculate MSSQL sizes
+          mssql_vsix=$(find ./extensions/mssql -name "*.vsix")
+          mssql_vsix_size=$(stat -c%s "$mssql_vsix")
+          mssql_vsix_size=$((mssql_vsix_size / 1024))
+
+          # Calculate SqlProj sizes
+          sqlproj_vsix=$(find ./extensions/sql-database-projects -name "*.vsix")
+          sqlproj_vsix_size=$(stat -c%s "$sqlproj_vsix")
+          sqlproj_vsix_size=$((sqlproj_vsix_size / 1024))
+
+          # Create baseline metadata file
+          cat > baseline-sizes.json <<EOF
+          {
+            "mssql": {
+              "vsix_kb": $mssql_vsix_size
+            },
+            "sql_database_projects": {
+              "vsix_kb": $sqlproj_vsix_size
+            },
+            "commit": "${{ github.sha }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+
+          cat baseline-sizes.json
+
+      - name: Upload baseline sizes
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline-sizes
+          path: baseline-sizes.json
+          retention-days: 90
