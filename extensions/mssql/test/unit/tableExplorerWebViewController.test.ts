@@ -367,7 +367,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
     });
 
     suite("deleteRow reducer", () => {
-        test("should delete a row from resultSet", async () => {
+        test("should flag row for delete, but not remove from resultSet", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
             controller.state.resultSet = createMockSubsetResult(2);
@@ -384,8 +384,12 @@ suite("TableExplorerWebViewController - Reducers", () => {
                     LocConstants.TableExplorer.rowMarkedForRemoval,
                 ),
             ).to.be.true;
-            expect(controller.state.resultSet?.rowCount).to.equal(1);
-            expect(controller.state.resultSet?.subset.length).to.equal(1);
+            // Row should still be in resultSet (not physically removed, just marked for deletion)
+            expect(controller.state.resultSet?.rowCount).to.equal(2);
+            expect(controller.state.resultSet?.subset.length).to.equal(2);
+            // Row should be tracked in deletedRows array
+            expect(controller.state.deletedRows).to.include(0);
+            expect(controller.state.deletedRows.length).to.equal(1);
         });
 
         test("should remove row from newRows array if it's a new row", async () => {
@@ -404,8 +408,14 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("deleteRow")(controller.state, { rowId: 100 });
 
             // Assert
+            // New row should be removed from newRows tracking array
             expect(controller.state.newRows.length).to.equal(0);
-            expect(controller.state.resultSet?.rowCount).to.equal(2);
+            // Row should still be in resultSet (just marked for deletion)
+            expect(controller.state.resultSet?.rowCount).to.equal(3);
+            expect(controller.state.resultSet?.subset.length).to.equal(3);
+            // Row should be tracked in deletedRows array
+            expect(controller.state.deletedRows).to.include(100);
+            expect(controller.state.deletedRows.length).to.equal(1);
         });
 
         test("should regenerate script if script pane is visible", async () => {
