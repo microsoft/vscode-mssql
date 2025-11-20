@@ -2,7 +2,7 @@
 ![GitHub Discussions](https://img.shields.io/github/discussions/microsoft/vscode-mssql)
 [![codecov](https://codecov.io/github/microsoft/vscode-mssql/graph/badge.svg?token=NXLNAwJgRB)](https://codecov.io/github/microsoft/vscode-mssql)
 
-# MSSQL extension for Visual Studio Code
+# MSSQL extension for Visual Studio Code (Test)
 
 The [**MSSQL Extension for Visual Studio Code**](https://www.aka.ms/vscode-mssql) is designed to empower developers by providing a seamless and modern database development experience. Our goal is to make SQL development more productive and intuitive by integrating essential features such as schema management, query execution, and AI-powered assistance.
 
