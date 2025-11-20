@@ -61,7 +61,7 @@ suite("ServiceDownloadProvider Tests", () => {
             testHttpClient,
             testDecompressProvider,
         );
-        const actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
+        const actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX);
         expect(actual).to.equal(expected);
     });
 
@@ -78,7 +78,7 @@ suite("ServiceDownloadProvider Tests", () => {
             testHttpClient,
             testDecompressProvider,
         );
-        const actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
+        const actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX);
         expect(actual).to.equal(expected);
     });
 
@@ -96,7 +96,7 @@ suite("ServiceDownloadProvider Tests", () => {
             testHttpClient,
             testDecompressProvider,
         );
-        const actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX_10_11_64);
+        const actual = await downloadProvider.getOrMakeInstallDirectory(Runtime.OSX);
         expect(actual).to.equal(expected);
     });
 
