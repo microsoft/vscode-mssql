@@ -451,7 +451,7 @@ jobs:
 
           # Check SqlProj unit tests
           if [ "${{ env.sqlproj_unit_tests_pr_exit_code }}" != "0" ] && [ "${{ env.sqlproj_unit_tests_pr_exit_code }}" != "" ]; then
-            echo "  ⚠️ SqlProj unit tests failed with exit code ${{ env.sqlproj_unit_tests_pr_exit_code }}"
+            echo "  ⚠️ SqlProj unit tests failed with exit code ${{ env.sqlproj_unit_tests_pr_exit_code }} (warning because tests not yet stablized)"
             # PIPELINE_FAILED=true # Don't fail for sqlproj unit tests yet; they aren't stable
           fi
 
