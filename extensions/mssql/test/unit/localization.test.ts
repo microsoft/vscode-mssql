@@ -15,7 +15,6 @@ suite("Localization Tests", () => {
             "..",
             "..",
             "..",
-            "localization",
             "l10n",
             `bundle.l10n.${lang}.json`,
         );
@@ -25,7 +24,6 @@ suite("Localization Tests", () => {
                 "..",
                 "..",
                 "..",
-                "localization",
                 "l10n",
                 "bundle.l10n.json",
             );
