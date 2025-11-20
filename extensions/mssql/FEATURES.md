@@ -69,7 +69,7 @@ The Table Designer offers a new UI for creating and managing tables for your dat
 
 ![table designer](images/ux/table-designer.png)
 
-Within the designer, the **Script As Create** panel provides an automatically generated T-SQL script that reflects your table design. You have the following options:
+Within the designer, the **Script as Create** panel provides an automatically generated T-SQL script that reflects your table design. You have the following options:
 
 -   **Publish the Script**: Apply your changes directly to the database by selecting **Publish**. This action is powered by DacFX (Data-tier Application Framework), ensuring smooth and reliable deployment of your schema updates.
 -   **Copy script**: You can either copy the generated T-SQL script from the preview panel for manual execution or open it directly in the editor for further adjustments and modifications as needed.

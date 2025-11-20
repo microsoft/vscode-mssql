@@ -142,7 +142,7 @@ export class LocConstants {
             errorLoadingDesigner: l10n.t("Error loading designer"),
             severity: l10n.t("Severity"),
             description: l10n.t("Description"),
-            scriptAsCreate: l10n.t("Script As Create"),
+            scriptAsCreate: l10n.t("Script as Create"),
             designerPreviewConfirmation: l10n.t(
                 "I have read the summary and understand the potential risks.",
             ),
@@ -708,7 +708,7 @@ export class LocConstants {
             editTable: l10n.t("Edit Table"),
             openInEditor: l10n.t("Open in Editor"),
             changedTables: l10n.t("Changed Tables"),
-            createAsScript: l10n.t("Create As Script"),
+            createAsScript: l10n.t("Create as Script"),
             details: l10n.t("Details"),
             script: l10n.t("Script"),
             newColumnMapping: l10n.t("New column mapping"),
