@@ -211,7 +211,7 @@ jobs:
             echo "sqlproj_vsix_change_icon=$no_change_icon" >> $GITHUB_ENV
           fi
 
-      - name: Run unit tests
+      - name: MSSQL - Run unit tests
         continue-on-error: true
         run: |
           set +e  # Don't exit on errors
@@ -220,7 +220,7 @@ jobs:
           UNIT_EXIT_CODE=$?
           echo "unit_tests_pr_exit_code=$UNIT_EXIT_CODE" >> $GITHUB_ENV
 
-      - name: Unit Test Report
+      - name: MSSQL - Unit Test Report
         uses: dorny/test-reporter@v2
         if: success() || failure()
         with:
