@@ -6,7 +6,7 @@
 const vscodel10n = require("@vscode/l10n-dev");
 const fs = require("fs").promises;
 const path = require("path");
-const logger = equire("../../../scripts/terminal-logger");
+const logger = require("./terminal-logger");
 const { writeJsonAndFormat, writeAndFormat } = require("./file-utils");
 
 /**

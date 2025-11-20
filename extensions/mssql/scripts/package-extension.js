@@ -7,7 +7,7 @@ const fs = require("fs");
 const { execSync } = require("child_process");
 const { promisify } = require("util");
 const del = require("del");
-const logger = equire("../../../scripts/terminal-logger");
+const logger = require("../../../scripts/terminal-logger");
 
 const args = process.argv.slice(2);
 let isOnline = args.includes("--online");
