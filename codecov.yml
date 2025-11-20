@@ -15,4 +15,4 @@ parsers:
 fixes:
   - "pr/::" #remove the pr root directory from test file paths
 ignore:
-  - "dist/views" #ignore the coverage for bundled webviews
+  - "extensions/mssql/dist/views" #ignore the coverage for bundled webviews
