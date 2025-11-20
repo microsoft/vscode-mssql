@@ -23,6 +23,7 @@
     "onView:dataworkspace.views.main"
   ],
   "main": "./out/src/extension.js",
+  "l10n": "./l10n",
   "repository": {
     "type": "git",
     "url": "https://github.com/Microsoft/vscode-mssql.git"
