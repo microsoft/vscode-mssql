@@ -301,11 +301,11 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++3bce900ec4939301dbcf9f9199be4416b9c310a90af78e6a083fcbb7c517696e">
         <source xml:lang="en">Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)</source>
-        <target state="new">Application version must be in format n.n.n or n.n.n.n where n is a number (e.g., 1.0.0.0)</target>
+        <target state="translated">Die Anwendungsversion muss das Format n.n.n oder n.n.n.n aufweisen, wobei n eine Zahl ist (z. B. 1.0.0.0)</target>
       </trans-unit>
       <trans-unit id="++CODE++70e9cc5a50f7eb5ba95c18dffd367c22caeef8814be8188d6af4f5654a8fc728">
         <source xml:lang="en">Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)</source>
-        <target state="new">Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)</target>
+        <target state="translated">Die Anwendungsversion muss das Format n.n.n.n aufweisen, wobei n eine Zahl ist (z. B. 1.0.0.0)</target>
       </trans-unit>
       <trans-unit id="++CODE++31e392d1c0378beca611de66c0f4c71cba29159905cc54242d9bddee5b23d851">
         <source xml:lang="en">Apply</source>
@@ -475,7 +475,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++c77ba6ce31916c226def02930b4f3867d3bba2e1814b5528c12d5b3b62828eca">
         <source xml:lang="en">BACPAC exported successfully to '{0}'</source>
         <note>{0} is the file path</note>
-        <target state="new">BACPAC exported successfully to '{0}'</target>
+        <target state="translated">Die BACPAC-Datei wurde erfolgreich nach „{0}“ exportiert</target>
       </trans-unit>
       <trans-unit id="++CODE++2ba87440799be3f6c8b0aa29316cf97584087cc46962e689c375699adb392137">
         <source xml:lang="en">BACPAC imported successfully</source>
@@ -484,7 +484,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++98dbbe35459fbe282206441874ff66bc527f1c735eb99367c073ac68f713c396">
         <source xml:lang="en">BACPAC imported successfully to database '{0}'</source>
         <note>{0} is the database name</note>
-        <target state="new">BACPAC imported successfully to database '{0}'</target>
+        <target state="translated">BACPAC-Datei wurde erfolgreich in die Datenbank „{0}“ importiert</target>
       </trans-unit>
       <trans-unit id="++CODE++76900f1bfd16c8d4dd3d25e6f46638d7165aee23883ccea6bfe071c514421769">
         <source xml:lang="en">Back</source>
@@ -696,7 +696,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++75fa3318f66944d01336b10cbb1e3c08afc6e230d849ee6fff4f4dba7f19489c">
         <source xml:lang="en">Checking Docker prerequisites...</source>
-        <target state="new">Checking Docker prerequisites...</target>
+        <target state="translated">Docker-Voraussetzungen werden überprüft...</target>
       </trans-unit>
       <trans-unit id="++CODE++469663d6e6c1f487f123cf95220bce4d9ac1c98f2cd06e373ccb0baa14c343d4">
         <source xml:lang="en">Checking if Docker is installed</source>
@@ -1279,10 +1279,6 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Create</source>
         <target state="translated">Erstellen</target>
       </trans-unit>
-      <trans-unit id="++CODE++7aa0a3ede22306a6fe14f159fb12acfbb63bad17edf71486aa552c2cd757e5cd">
-        <source xml:lang="en">Create As Script</source>
-        <target state="translated">Als Skript erstellen</target>
-      </trans-unit>
       <trans-unit id="++CODE++48d1f93834dfc421237288d07022d5dc4c61f90e5cc91494cee4960abc481d1d">
         <source xml:lang="en">Create Connection Group</source>
         <target state="translated">Verbindungsgruppe erstellen</target>
@@ -1327,6 +1323,10 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Create a new firewall rule</source>
         <target state="translated">Neue Firewallregel erstellen</target>
       </trans-unit>
+      <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
+        <source xml:lang="en">Create as Script</source>
+        <target state="new">Create as Script</target>
+      </trans-unit>
       <trans-unit id="++CODE++7ec04ea2bc2ba275e7471e9e6ec9ed4764f7c069d84e751a4652cb5bd3cba6b7">
         <source xml:lang="en">Create new firewall rule for {0}</source>
         <note>{0} is the server name that the firewall rule will be created for</note>
@@ -1343,7 +1343,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++13329d1a1f2527d959fddce415af48d6141533dbec36dd8d8e33fae7bce865df">
         <source xml:lang="en">Creating SQL Server container...</source>
-        <target state="new">Creating SQL Server container...</target>
+        <target state="translated">SQL Server-Container wird erstellt...</target>
       </trans-unit>
       <trans-unit id="++CODE++9c37c64c878515cc2b5cd8ce05b7513d90d2134a1a2c36469aaa548d6fdfa6e9">
         <source xml:lang="en">Creating and starting your SQL Server container</source>
@@ -1366,6 +1366,10 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Custom Zoom</source>
         <target state="translated">Vergrößern/Verkleinern</target>
       </trans-unit>
+      <trans-unit id="++CODE++c525ed2944e05f661b7bc658ddccb355cd47a8daab5629ce4310c575aa58e2a1">
+        <source xml:lang="en">Customize keyboard shortcuts</source>
+        <target state="new">Customize keyboard shortcuts</target>
+      </trans-unit>
       <trans-unit id="++CODE++8f56b52b4f497c14810f52351db46c7f638c38f1a321f5bdfb38a3fb817f0ad9">
         <source xml:lang="en">DACPAC deployed successfully</source>
         <target state="translated">DACPAC erfolgreich bereitgestellt</target>
@@ -1373,7 +1377,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++c013d84f45a8e17f8b3f0bfea676174416117e054fa2315d1e3f1daeac57af36">
         <source xml:lang="en">DACPAC deployed successfully to database '{0}'</source>
         <note>{0} is the database name</note>
-        <target state="new">DACPAC deployed successfully to database '{0}'</target>
+        <target state="translated">DACPAC wurde erfolgreich in der Datenbank „{0}“ bereitgestellt</target>
       </trans-unit>
       <trans-unit id="++CODE++fec6ccad8071c66a146f4f9bab40620ba0279984c3c35763ac115ac3825fa6fd">
         <source xml:lang="en">DACPAC extracted successfully</source>
@@ -1382,7 +1386,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++efa7e304910e512aeaeb6c9dc608a6f993bd69b672cd3de63dba56475ed3e244">
         <source xml:lang="en">DACPAC extracted successfully to '{0}'</source>
         <note>{0} is the file path</note>
-        <target state="new">DACPAC extracted successfully to '{0}'</target>
+        <target state="translated">DACPAC wurde erfolgreich extrahiert nach „{0}“</target>
       </trans-unit>
       <trans-unit id="++CODE++02b435f9a4c73633bef7d3b2b6548de6bb7ec5414c63e0bb6db520a4ca4d1004">
         <source xml:lang="en">DacFx service is not available. Profile loaded without deployment options. Publish and generate script operations cannot be performed.</source>
@@ -1408,9 +1412,9 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
 {3} is target column</note>
         <target state="translated">Datentypkonflikt: "{0}" in Spalte "{1}" ist nicht kompatibel mit "{2}" in "{3}"</target>
       </trans-unit>
-      <trans-unit id="++CODE++9fe8b6ce85d7df821be2184783b65a4e054c966f5cd52cf7abb3b7ada2c67e21">
-        <source xml:lang="en">Data-tier Application</source>
-        <target state="translated">Datenschichtanwendung</target>
+      <trans-unit id="++CODE++775a3b4289d195d3cf2e85c782aab780c673c834c23bf5b90f54e1d87dfcf4ee">
+        <source xml:lang="en">Data-tier Application (Preview)</source>
+        <target state="new">Data-tier Application (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++2c9656ff01800f0250595c53f2b5010179b7f3759334fa473f89c10725e0b0bd">
         <source xml:lang="en">Data-tier Application File (.dacpac)</source>
@@ -1523,7 +1527,7 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       </trans-unit>
       <trans-unit id="++CODE++796590e031547b420cb30aea63caa00543f57651e3244a8823b769a5f1a1a74e">
         <source xml:lang="en">Deploy a .dacpac file to a new or existing SQL database</source>
-        <target state="new">Deploy a .dacpac file to a new or existing SQL database</target>
+        <target state="translated">Bereitstellen einer DACPAC-Datei in einer neuen oder vorhandenen SQL-Datenbank</target>
       </trans-unit>
       <trans-unit id="++CODE++97dc38d5949112e250523663a3556643b30754a83c8305adb6e79d88b13b200d">
         <source xml:lang="en">Deploy to Existing Database</source>
@@ -1652,6 +1656,10 @@ Wählen Sie „{0}“ aus, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
         <source xml:lang="en">Don't Show Again</source>
         <target state="translated">Nicht mehr anzeigen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
+        <source xml:lang="en">Don't show this again</source>
+        <target state="new">Don't show this again</target>
       </trans-unit>
       <trans-unit id="++CODE++8cbb7c26112408cd60a1c8ac0daff1b020815ad01c94df751ab7145dea824881">
         <source xml:lang="en">Easily set up a local SQL Server without leaving VS Code extension. Just a few clicks to install, configure, and manage your server effortlessly!</source>
@@ -1997,7 +2005,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++db58c9165373339af3f704ec69490c93458bb6a0c870a7dca79c243948cc02e1">
         <source xml:lang="en">Export the schema and data from a SQL database to a .bacpac file</source>
-        <target state="new">Export the schema and data from a SQL database to a .bacpac file</target>
+        <target state="translated">Exportieren des Schemas und der Daten aus einer SQL-Datenbank in eine BACPAC-Datei</target>
       </trans-unit>
       <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
         <source xml:lang="en">Exporting BACPAC...</source>
@@ -2013,7 +2021,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++ae978d30fd899796154f535e3b3c547d46b2bd0c5e738928c553ce1e1e426fc8">
         <source xml:lang="en">Extract the schema from a SQL database to a .dacpac file</source>
-        <target state="new">Extract the schema from a SQL database to a .dacpac file</target>
+        <target state="translated">Extrahieren des Schemas aus einer SQL-Datenbank in eine DACPAC-Datei</target>
       </trans-unit>
       <trans-unit id="++CODE++e4c61f0d341293c441bab44693218614d6045d574d51221cd6a65d43ec0e04d4">
         <source xml:lang="en">Extracting DACPAC...</source>
@@ -2052,6 +2060,10 @@ Fehler:
         <note>{0} is the error code
 {1} is the error message</note>
         <target state="translated">Fabric-API-Fehler mit langer Ausführungszeit mit Fehlercode „{0}“: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c85fb96bbfbe33bde4a67a8e9223c63dc3a3f817428e22ff8357a1ae30f6f4eb">
+        <source xml:lang="en">Fabric targets are currently not supported in this preview, and we are working to improve the experience.</source>
+        <target state="new">Fabric targets are currently not supported in this preview, and we are working to improve the experience.</target>
       </trans-unit>
       <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
         <source xml:lang="en">Failed</source>
@@ -2505,6 +2517,10 @@ Fehler:
         <note>{0} is the workspace ID</note>
         <target state="translated">Fabric-Arbeitsbereich „{0}“ wird abgerufen.</target>
       </trans-unit>
+      <trans-unit id="++CODE++d00eca1bae6742803906ab42a831e8b5396d15b6573ea13c139ec31631208ec1">
+        <source xml:lang="en">Getting Started</source>
+        <target state="new">Getting Started</target>
+      </trans-unit>
       <trans-unit id="++CODE++2a8c8cd4e7c7142bffa09b893aaf7ab5886407a22a7ef9b2ee4f60f46fad7bf0">
         <source xml:lang="en">Getting connection details for connection '{0}'</source>
         <note>{0} is the connection ID</note>
@@ -2621,7 +2637,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++004f8760d5d76c5e1465f93ee7c48c0dd97666347f270fbbc9d31bbc56482a6d">
         <source xml:lang="en">Import a .bacpac file to a new or empty database</source>
-        <target state="new">Import a .bacpac file to a new or empty database</target>
+        <target state="translated">Importieren einer BACPAC-Datei in eine neue oder leere Datenbank</target>
       </trans-unit>
       <trans-unit id="++CODE++3fc78b5e12952afa58a49beceabae7348dd0a44be1b9104b998dc1efc2967de4">
         <source xml:lang="en">Importance</source>
@@ -2753,6 +2769,10 @@ Fehler:
         <source xml:lang="en">JSON</source>
         <target state="translated">JSON</target>
       </trans-unit>
+      <trans-unit id="++CODE++b91185f63fbbc17c093e3d2b7a50b755ba38d0e3a2bf1c82e079236e0624c673">
+        <source xml:lang="en">Join the discussions</source>
+        <target state="new">Join the discussions</target>
+      </trans-unit>
       <trans-unit id="++CODE++29b39d81b8651e8717f85c00002b2b087bafb969eb289ac991fa41b17522e775">
         <source xml:lang="en">Keep in query pane</source>
         <target state="translated">Im Abfragebereich beibehalten</target>
@@ -2772,6 +2792,10 @@ Fehler:
       <trans-unit id="++CODE++51da53a813a79b97741fb115a94a72fe1629a0b0e9018767157ca28d863c53e3">
         <source xml:lang="en">Learn more about SQL Server 2025 features</source>
         <target state="translated">Weitere Informationen zu SQL Server 2025-Funktionen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++11c56d1016670369a74f4b7d2d2ec8959e8098b44e778fd4e3a3548bd846826b">
+        <source xml:lang="en">Learn more about this issue.</source>
+        <target state="new">Learn more about this issue.</target>
       </trans-unit>
       <trans-unit id="++CODE++adc95605a1b30c73959fbaf21e60f9723efe855c482fa336a957924d4ea0a08b">
         <source xml:lang="en">Length</source>
@@ -3031,6 +3055,10 @@ Fehler:
         <source xml:lang="en">MSSQL Feedback</source>
         <target state="translated">MSSQL-Feedback</target>
       </trans-unit>
+      <trans-unit id="++CODE++845cd20358ee1964f66ca8b28c6df89c00d0f59d43a3e8e3f3d65a515194a1da">
+        <source xml:lang="en">MSSQL: Welcome &amp; What's New</source>
+        <target state="new">MSSQL: Welcome &amp; What's New</target>
+      </trans-unit>
       <trans-unit id="++CODE++614e5389e87ce465fe548a0665aeaa67a52a06ff792f2f791615cd37fb610178">
         <source xml:lang="en">Manage Connection Profiles</source>
         <target state="translated">Verbindungsprofile verwalten</target>
@@ -3231,6 +3259,10 @@ Fehler:
       <trans-unit id="++CODE++d9c78424d66905fdeabfc255d8900ff5c10df41268f883660b400d4dad09cfbd">
         <source xml:lang="en">New column mapping</source>
         <target state="translated">Neue Spaltenzuordnung</target>
+      </trans-unit>
+      <trans-unit id="++CODE++0850ea0cc273586f20d521ce50115a6fc5e53ed6fc2e0b9bd698bd7631d6e2e3">
+        <source xml:lang="en">New to MSSQL extension? Check out our quick-start guide.</source>
+        <target state="new">New to MSSQL extension? Check out our quick-start guide.</target>
       </trans-unit>
       <trans-unit id="++CODE++1ff57a29d7c9d11bdf61c1b80f2b289b44c1ea844824d4b94a0d52b6ba5fc858">
         <source xml:lang="en">Next</source>
@@ -3492,7 +3524,7 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++2f51d650687c9201f9367014fa093415a3b9612e4ae2738e50210ef39ed0253e">
         <source xml:lang="en">Open Containing Folder</source>
-        <target state="new">Open Containing Folder</target>
+        <target state="translated">Enthaltenen Ordner öffnen</target>
       </trans-unit>
       <trans-unit id="++CODE++82b7be031f380379c3136f863b234cc6ddbddb19fbbae4654585d10506a2e1e6">
         <source xml:lang="en">Open Publish Script</source>
@@ -3783,15 +3815,15 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++cf3c1d568793b842a356b2e44265de54b7f5c9d301b8de3487afd3b1689f7215">
         <source xml:lang="en">Publish DACPAC</source>
-        <target state="new">Publish DACPAC</target>
+        <target state="translated">DACPAC veröffentlichen</target>
       </trans-unit>
       <trans-unit id="++CODE++dce49ef71e44b5c107d066069bd508af15fbffd22c8e410f76db1f120371635a">
         <source xml:lang="en">Publish Profile</source>
         <target state="translated">Profil veröffentlichen</target>
       </trans-unit>
-      <trans-unit id="++CODE++42b341b8072aa3adcb1b6f83353574f79b03c073faeb2c64253cdb6248c011c1">
-        <source xml:lang="en">Publish Project</source>
-        <target state="translated">Projekt veröffentlichen</target>
+      <trans-unit id="++CODE++e800f91c86916c398645bf581043fd3d6a275d1199cb474019114e6f2195f8b1">
+        <source xml:lang="en">Publish Project (Preview)</source>
+        <target state="new">Publish Project (Preview)</target>
       </trans-unit>
       <trans-unit id="++CODE++a2ca822b9abcd933ac2e91d9b212646bfa3bf125e734e4bf1e1d1d6b9235925f">
         <source xml:lang="en">Publish Settings File</source>
@@ -3849,9 +3881,17 @@ Fehler:
 {1} is the query cost</note>
         <target state="translated">Abfrage {0}:  Abfragekosten (in Relation zum Skript):  {1}%</target>
       </trans-unit>
+      <trans-unit id="++CODE++1a87861144c312b1135b7e13f4da55c251e7ec3cb2d19ed06082aa132a11104e">
+        <source xml:lang="en">Read docs</source>
+        <target state="new">Read docs</target>
+      </trans-unit>
       <trans-unit id="++CODE++83b794145c0cc3f560cb6dfb6b5bcf7afac4dba15e5c6dbc54d103dae029fec6">
         <source xml:lang="en">Read more</source>
         <target state="translated">Weitere Informationen</target>
+      </trans-unit>
+      <trans-unit id="++CODE++88de0d15d2a8736d9ac542037e6bfa6b4f210be39df50c5b1dd790273c49f678">
+        <source xml:lang="en">Read the documentation</source>
+        <target state="new">Read the documentation</target>
       </trans-unit>
       <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
         <source xml:lang="en">Readying container for connections.</source>
@@ -3949,6 +3989,10 @@ Fehler:
         <source xml:lang="en">Resource Group</source>
         <target state="translated">Ressourcengruppe</target>
       </trans-unit>
+      <trans-unit id="++CODE++e89b30aa1dc30a6ad8c34610689bede83b3ef645a24c3a84a0990826687fb735">
+        <source xml:lang="en">Resources</source>
+        <target state="new">Resources</target>
+      </trans-unit>
       <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
         <source xml:lang="en">Restore</source>
         <target state="translated">Wiederherstellen</target>
@@ -3970,10 +4014,11 @@ Fehler:
         <source xml:lang="en">Restore properties pane</source>
         <target state="translated">Eigenschaftenbereich wiederherstellen</target>
       </trans-unit>
-      <trans-unit id="++CODE++5d7e64a2598658aaaf1674a1b6222a0f6ab5bb588831a51d0936879cbf88670c">
-        <source xml:lang="en">Result Set {0}</source>
-        <note>{0} is the index of the result set</note>
-        <target state="translated">Resultset {0}</target>
+      <trans-unit id="++CODE++a1519957e8b397de6037c8e8a9a1af37009bf6d89fa0f388b1e4b3dc76179e64">
+        <source xml:lang="en">Result Set Batch {0} - Query {1}</source>
+        <note>{0} is the batch number
+{1} is the query number</note>
+        <target state="new">Result Set Batch {0} - Query {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++219c4a6c86a716e99d5dc9611b61e584deb11b57e972d87d4b773387ebc3cadd">
         <source xml:lang="en">Results</source>
@@ -3999,11 +4044,11 @@ Fehler:
       </trans-unit>
       <trans-unit id="++CODE++b1d3c17e8d131616e4c9d243a6536aa7c23973e93908621d94b6b7ebf6486863">
         <source xml:lang="en">Reveal in Explorer</source>
-        <target state="new">Reveal in Explorer</target>
+        <target state="translated">Im Explorer anzeigen</target>
       </trans-unit>
       <trans-unit id="++CODE++cc849385646ba0d67a8687fb561eec23fadf51b144242cf6a41dd5b594bb4180">
         <source xml:lang="en">Reveal in Finder</source>
-        <target state="new">Reveal in Finder</target>
+        <target state="translated">Im Finder anzeigen</target>
       </trans-unit>
       <trans-unit id="++CODE++ed5c65311daf9e46eb0f5ac74221d4405dabfe18cca554232363495a3a268ca5">
         <source xml:lang="en">Reverse Alphabetical</source>
@@ -4284,9 +4329,9 @@ Abfrage: {1}</target>
         <source xml:lang="en">Script</source>
         <target state="translated">Skript</target>
       </trans-unit>
-      <trans-unit id="++CODE++cce7c24ebb0a14bc98b7d6a3f18ddfe9c893e65adb1a599321b3e0eca3515490">
-        <source xml:lang="en">Script As Create</source>
-        <target state="translated">Skript als Erstellen</target>
+      <trans-unit id="++CODE++b0c3c04a510b1ec97731ab7984cca0594c8cd6e4da0f283bd510502ef217306f">
+        <source xml:lang="en">Script as Create</source>
+        <target state="new">Script as Create</target>
       </trans-unit>
       <trans-unit id="++CODE++f6a9305d2a22223e43e016e6ed4d342a8a4a249c1202322338ee3e0d5f26e596">
         <source xml:lang="en">Script copied to clipboard</source>
@@ -5062,6 +5107,10 @@ Abfrage: {1}</target>
         <source xml:lang="en">Total rows to fetch:</source>
         <target state="translated">Gesamtzahl der abzurufenden Zeilen:</target>
       </trans-unit>
+      <trans-unit id="++CODE++fe69511137842f6fddcfcc1e96e39bf6920b5ed00251ec6549d79463928b2e0c">
+        <source xml:lang="en">Try it</source>
+        <target state="new">Try it</target>
+      </trans-unit>
       <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
         <source xml:lang="en">Type</source>
         <target state="translated">Typ</target>
@@ -5196,6 +5245,10 @@ Abfrage: {1}</target>
         <source xml:lang="en">View mssql for Visual Studio Code release notes?</source>
         <target state="translated">Versionshinweise für mssql for Visual Studio Code anzeigen?</target>
       </trans-unit>
+      <trans-unit id="++CODE++7b5b2bbcd1ff04bd807888af5196f4956355d5d4c3b7d23c190f98c572c80099">
+        <source xml:lang="en">View roadmap</source>
+        <target state="new">View roadmap</target>
+      </trans-unit>
       <trans-unit id="++CODE++0bfe6420924cc39134e0b79804ed823f99cc19ccd8e65477319db3139c1e3368">
         <source xml:lang="en">Visual Studio Code must be relaunched for this setting to come into effect.  Please reload Visual Studio Code.</source>
         <target state="translated">Visual Studio Code muss neu gestartet werden, damit diese Einstellung wirksam wird.  Laden Sie Visual Studio Code neu.</target>
@@ -5207,6 +5260,10 @@ Abfrage: {1}</target>
       <trans-unit id="++CODE++4d7371c8931fdd0178f7cbdabd1fd8260039a824a5c0912e880840b4d841f41e">
         <source xml:lang="en">Warnings detected. Please review the changes.</source>
         <target state="translated">Warnungen erkannt. Überprüfen Sie die Änderungen.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++5c3609430896d4699ab71dbb0b34c253b69d4cd07a22b6b890a29d6b7e0728a0">
+        <source xml:lang="en">Watch demos on YouTube</source>
+        <target state="new">Watch demos on YouTube</target>
       </trans-unit>
       <trans-unit id="++CODE++d054fcb4284fd66975e378de56c04bda7b8e951e8e13f66834d9510e2b5461aa">
         <source xml:lang="en">We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.</source>
@@ -5223,6 +5280,10 @@ Abfrage: {1}</target>
       <trans-unit id="++CODE++bf3cd82434efadb9ea501ff44c7d52b0dd98b3d11c0097ba88a10b7fd14d9b54">
         <source xml:lang="en">What can we do to improve?</source>
         <target state="translated">Was können wir zur Verbesserung tun?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++8b82f5fad6db0eafc4a1b0023f5350adb040f71aeb147cf6ae2366658d822ec3">
+        <source xml:lang="en">What's new in this release</source>
+        <target state="new">What's new in this release</target>
       </trans-unit>
       <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
         <source xml:lang="en">Width cannot be 0 or negative</source>
@@ -5259,6 +5320,11 @@ Abfrage: {1}</target>
       <trans-unit id="++CODE++867d2664362bce58e979ee3de5b436d12ab50da730929367290fd6b9043b2a90">
         <source xml:lang="en">You are not connected to any database.</source>
         <target state="translated">Sie sind mit keiner Datenbank verbunden.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f3181e292580fea40c15bf9a85615f13c8133a2f1ac88fc2067181c933b07177">
+        <source xml:lang="en">You are seeing this message because you updated the MSSQL extension to version {0}.</source>
+        <note>{0} is the version number of the MSSQL extension</note>
+        <target state="new">You are seeing this message because you updated the MSSQL extension to version {0}.</target>
       </trans-unit>
       <trans-unit id="++CODE++097471b0cd0d44493ae5b1f66494581a1b7847b2293eb7d71f0dee6cf6c53a54">
         <source xml:lang="en">You must accept the license</source>
@@ -5691,8 +5757,8 @@ Once you're done making your changes, click the 'Publish' button to send the cha
 Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläche „Veröffentlichen“, um die Änderungen an Ihre Datenbank zu senden.</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.launch">
-        <source xml:lang="en">Data-tier Application</source>
-        <target state="new">Data-tier Application</target>
+        <source xml:lang="en">Data-tier Application (Preview)</source>
+        <target state="new">Data-tier Application (Preview)</target>
       </trans-unit>
       <trans-unit id="mssql.defaultQueryResultsViewMode.description">
         <source xml:lang="en">Default view mode for query results display.</source>
@@ -5712,7 +5778,7 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.deploy">
         <source xml:lang="en">Deploy DACPAC</source>
-        <target state="new">Deploy DACPAC</target>
+        <target state="translated">DACPAC bereitstellen</target>
       </trans-unit>
       <trans-unit id="mssql.disableActualPlan">
         <source xml:lang="en">Disable Actual Plan</source>
@@ -5784,7 +5850,7 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
       </trans-unit>
       <trans-unit id="mssql.enableQueryHistoryCapture">
         <source xml:lang="en">Enable Query History Capture</source>
-        <target state="translated">Erfassung des Abfrageverlaufs aktivieren</target>
+        <target state="translated">Abfrageverlauf-Capture aktivieren</target>
       </trans-unit>
       <trans-unit id="mssql.query.ansiDefaults">
         <source xml:lang="en">Enable SET ANSI_DEFAULTS</source>
@@ -5914,11 +5980,11 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.export">
         <source xml:lang="en">Export BACPAC</source>
-        <target state="new">Export BACPAC</target>
+        <target state="translated">BACPAC-Datei exportieren</target>
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.extract">
         <source xml:lang="en">Extract DACPAC</source>
-        <target state="new">Extract DACPAC</target>
+        <target state="translated">DACPAC extrahieren</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.nextSteps.description">
         <source xml:lang="en">Familiarize yourself with more features of the MSSQL extension that can help you be more productive.</source>
@@ -5942,7 +6008,7 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
       </trans-unit>
       <trans-unit id="mssql.dacpacDialog.import">
         <source xml:lang="en">Import BACPAC</source>
-        <target state="new">Import BACPAC</target>
+        <target state="translated">BACPAC-Datei importieren</target>
       </trans-unit>
       <trans-unit id="mssql.copilot.editorSubmenu">
         <source xml:lang="en">MSSQL Copilot</source>
@@ -6026,6 +6092,10 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">Zeigen Sie nur die Datenbankobjekte an, die für Sie am wichtigsten sind, indem Sie Filter auf die Objekt-Explorer-Struktur anwenden.
 Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in der Ansicht „Verbindungen“.</target>
       </trans-unit>
+      <trans-unit id="mssql.openChangelog">
+        <source xml:lang="en">Open Changelog</source>
+        <target state="new">Open Changelog</target>
+      </trans-unit>
       <trans-unit id="mssql.openExecutionPlanFile">
         <source xml:lang="en">Open Execution Plan File</source>
         <target state="translated">Ausführungsplandatei öffnen</target>
@@ -6052,7 +6122,7 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
-        <target state="translated">Erfassung des Abfrageverlaufs anhalten</target>
+        <target state="translated">Abfrageverlauf-Capture anhalten</target>
       </trans-unit>
       <trans-unit id="mssql.preventAutoExecuteScript">
         <source xml:lang="en">Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.</source>
@@ -6136,19 +6206,19 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
-        <target state="translated">Skript als Ändern</target>
+        <target state="translated">Skript als Alter</target>
       </trans-unit>
       <trans-unit id="mssql.scriptCreate">
         <source xml:lang="en">Script as Create</source>
-        <target state="translated">Skript als Erstellen</target>
+        <target state="translated">Skript als Create</target>
       </trans-unit>
       <trans-unit id="mssql.scriptDelete">
         <source xml:lang="en">Script as Drop</source>
-        <target state="translated">Skript als Ablegen</target>
+        <target state="translated">Skript als Drop</target>
       </trans-unit>
       <trans-unit id="mssql.scriptExecute">
         <source xml:lang="en">Script as Execute</source>
-        <target state="translated">Skript als Ausführen</target>
+        <target state="translated">Skript als Execute</target>
       </trans-unit>
       <trans-unit id="mssql.scriptSelect">
         <source xml:lang="en">Select Top 1000</source>
@@ -6230,6 +6300,10 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
         <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines</source>
         <target state="translated">Sollen Verweise auf Objekte in einer SELECT-Anweisung in separaten Zeilen angezeigt werden? Beispielsweise werden bei "SELECT C1, C2 FROM T1" C1 und C2 jeweils in separaten Zeilen angezeigt.</target>
       </trans-unit>
+      <trans-unit id="mssql.showChangelogOnUpdate">
+        <source xml:lang="en">Show changelog after extension updates</source>
+        <target state="new">Show changelog after extension updates</target>
+      </trans-unit>
       <trans-unit id="mssql.query.showActiveConnectionAsCodeLensSuggestion">
         <source xml:lang="en">Show the active SQL connection details as a CodeLens suggestion at the top of the editor for quick visibility.</source>
         <target state="translated">Zeigen Sie die aktiven SQL-Verbindungsdetails als CodeLens-Vorschlag oben im Editor an, um eine schnelle Übersicht zu erhalten.</target>
@@ -6248,7 +6322,7 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.dynamicsCrmDnsSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)</source>
-        <target state="new">Sovereign cloud equivalent for `.crm.dynamics.com` (including leading dot)</target>
+        <target state="translated">Sovereign Cloud-Entsprechung für „.crm.dynamics.com“ (einschließlich führendem Punkt)</target>
       </trans-unit>
       <trans-unit id="mssql.customEnvironment.fabricSqlDbDnsSuffix">
         <source xml:lang="en">Sovereign cloud equivalent for `.database.fabric.microsoft.com` (including leading dot)</source>
@@ -6288,7 +6362,7 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       </trans-unit>
       <trans-unit id="mssql.startQueryHistoryCapture">
         <source xml:lang="en">Start Query History Capture</source>
-        <target state="translated">Erfassung des Abfrageverlaufs starten</target>
+        <target state="translated">Abfrageverlauf-Capture starten</target>
       </trans-unit>
       <trans-unit id="mssql.stopContainer">
         <source xml:lang="en">Stop Container</source>
@@ -6608,4 +6682,4 @@ Sie können auch auf die Schaltfläche „In neuer Registerkarte öffnen“ klic
       </trans-unit>
     </body>
   </file>
-</xliff>
+</xliff>
