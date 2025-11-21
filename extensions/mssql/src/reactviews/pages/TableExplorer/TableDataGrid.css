@@ -215,3 +215,45 @@
     color: var(--vscode-foreground);
     padding-left: 8px;
 }
+
+/* Deleted row styles */
+#tableExplorerGrid .slick-row.deleted-row {
+    background-color: #ffb3d9 !important; /* Light pink for light theme */
+}
+
+#tableExplorerGrid .slick-row.deleted-row:hover {
+    background-color: #ff99cc !important; /* Darker pink on hover */
+}
+
+#tableExplorerGrid .slick-row.deleted-row.selected {
+    background-color: #ff80bf !important; /* Even darker pink when selected */
+}
+
+#tableExplorerGrid .slick-row.deleted-row .slick-cell {
+    text-decoration: line-through;
+    color: #666 !important;
+    opacity: 0.7;
+}
+
+/* Dark mode deleted row styles */
+#tableExplorerGrid.dark-mode .slick-row.deleted-row,
+.table-explorer-grid-container.dark-mode #tableExplorerGrid .slick-row.deleted-row {
+    background-color: #4d1f3a !important; /* Dark pink for dark theme */
+}
+
+#tableExplorerGrid.dark-mode .slick-row.deleted-row:hover,
+.table-explorer-grid-container.dark-mode #tableExplorerGrid .slick-row.deleted-row:hover {
+    background-color: #662952 !important; /* Lighter dark pink on hover */
+}
+
+#tableExplorerGrid.dark-mode .slick-row.deleted-row.selected,
+.table-explorer-grid-container.dark-mode #tableExplorerGrid .slick-row.deleted-row.selected {
+    background-color: #803366 !important; /* Even lighter dark pink when selected */
+}
+
+#tableExplorerGrid.dark-mode .slick-row.deleted-row .slick-cell,
+.table-explorer-grid-container.dark-mode #tableExplorerGrid .slick-row.deleted-row .slick-cell {
+    text-decoration: line-through;
+    color: #aaa !important;
+    opacity: 0.7;
+}
