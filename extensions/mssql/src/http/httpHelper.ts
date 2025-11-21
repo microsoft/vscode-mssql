@@ -13,6 +13,7 @@ import { Url } from "url";
 
 import * as LocalizedConstants from "../constants/locConstants";
 import { Logger } from "../models/logger";
+import { getErrorMessage } from "../utils/utils";
 
 export class HttpHelper {
     constructor(private logger?: Logger) {}
@@ -59,6 +60,33 @@ export class HttpHelper {
         return response;
     }
 
+    public async warnOnInvalidProxySettings(): Promise<void> {
+        const proxy = this.loadProxyConfig();
+
+        let message = undefined;
+        let localizedMessage = undefined;
+
+        if (proxy) {
+            try {
+                if (!vscode.Uri.parse(proxy).scheme) {
+                    message = `Proxy settings found, but without a protocol (e.g. http://): '${proxy}'.  You may encounter connection issues while using the MSSQL extension.`;
+                    localizedMessage = LocalizedConstants.Proxy.missingProtocolWarning(proxy);
+                }
+            } catch (err) {
+                message = `Proxy settings found, but encountered an error while parsing the URL: '${proxy}'.  You may encounter connection issues while using the MSSQL extension.  Error: ${getErrorMessage(err)}`;
+                localizedMessage = LocalizedConstants.Proxy.unparseableWarning(
+                    proxy,
+                    getErrorMessage(err),
+                );
+            }
+
+            if (message) {
+                vscode.window.showWarningMessage(localizedMessage);
+                this.logger?.warn(message);
+            }
+        }
+    }
+
     /**
      * Builds an Axios request config with headers, auth token, and proxy/agent settings.
      *
@@ -81,15 +109,7 @@ export class HttpHelper {
             validateStatus: () => true, // Never throw
         };
 
-        const httpConfig = vscode.workspace.getConfiguration("http");
-        let proxy: string | undefined = httpConfig["proxy"] as string;
-        if (!proxy) {
-            this.logger?.verbose(
-                "Workspace HTTP config didn't contain a proxy endpoint. Checking environment variables.",
-            );
-
-            proxy = this.loadEnvironmentProxyValue();
-        }
+        const proxy = this.loadProxyConfig();
 
         if (proxy) {
             this.logger?.verbose(
@@ -100,6 +120,7 @@ export class HttpHelper {
             // https://github.com/axios/axios/blob/bad6d8b97b52c0c15311c92dd596fc0bff122651/lib/adapters/http.js#L85
             config.proxy = false;
 
+            const httpConfig = vscode.workspace.getConfiguration("http");
             const agent = this.createProxyAgent(requestUrl, proxy, httpConfig["proxyStrictSSL"]);
             if (agent.isHttps) {
                 config.httpsAgent = agent.agent;
@@ -108,6 +129,27 @@ export class HttpHelper {
             }
         }
         return config;
+    }
+
+    /**
+     * Attempts to read proxy configuration in priority order:
+     * 1. VS Code settings (http.proxy config key)
+     * 2. environment variables (HTTP_PROXY, then HTTPS_PROXY)
+     * @returns found proxy information
+     */
+    private loadProxyConfig(): string | undefined {
+        const httpConfig = vscode.workspace.getConfiguration("http");
+        let proxy: string | undefined = httpConfig["proxy"] as string;
+
+        if (!proxy) {
+            this.logger?.verbose(
+                "Workspace HTTP config didn't contain a proxy endpoint. Checking environment variables.",
+            );
+
+            proxy = this.loadEnvironmentProxyValue();
+        }
+
+        return proxy;
     }
 
     /**
