@@ -28,10 +28,12 @@ async function formatWithPrettier(filePaths) {
  * @param {string} filePath - Path to the file to write
  * @param {string} content - Content to write
  * @param {boolean} [prettier=true] - Whether to format the file with Prettier
+ * @param {boolean} [crlf=false] - Whether to use CRLF line endings
  * @returns {Promise<boolean>} True if formatting succeeded, false otherwise
  */
-async function writeAndFormat(filePath, content, prettier = true) {
-    await fs.writeFile(filePath, content);
+async function writeAndFormat(filePath, content, prettier = true, crlf = false) {
+    const finalContent = crlf ? content.replace(/\r?\n/g, "\r\n") : content;
+    await fs.writeFile(filePath, finalContent);
     return prettier ? await formatWithPrettier(filePath) : true;
 }
 
