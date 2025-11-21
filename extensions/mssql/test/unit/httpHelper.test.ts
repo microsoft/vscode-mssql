@@ -33,7 +33,7 @@ suite("HttpHelper tests", () => {
         const envProxy = "env-proxy";
         const configProxy = "config-proxy";
 
-        test("warns when proxy lacks protocol", async () => {
+        test("warns when proxy lacks protocol", () => {
             const invalidProxyValue = "localhost:1234";
 
             httpHelper["loadProxyConfig"] = sandbox.stub().returns(invalidProxyValue);
@@ -54,7 +54,7 @@ suite("HttpHelper tests", () => {
             );
         });
 
-        test("warns when proxy parsing throws", async () => {
+        test("warns when proxy parsing throws", () => {
             const invalidProxyValue = "env-proxy.example";
 
             httpHelper["loadProxyConfig"] = sandbox.stub().returns(invalidProxyValue);
@@ -71,6 +71,27 @@ suite("HttpHelper tests", () => {
             expect(warningMessageStub).to.have.been.calledOnceWithExactly(
                 LocalizedConstants.Proxy.unparseableWarning(invalidProxyValue, uriError.message),
             );
+        });
+
+        test("Does not warn when proxy is valid", () => {
+            const validProxyValues = [
+                "http://valid-proxy.test:8080",
+                "https://valid-proxy.example",
+                "socks5://valid-proxy.subdomain.domain.com:1080",
+            ];
+
+            const proxyConfigStub = sandbox.stub();
+            const warningMessageSpy = sandbox.stub(vscode.window, "showWarningMessage");
+
+            for (const validProxyValue of validProxyValues) {
+                proxyConfigStub.reset();
+                httpHelper["loadProxyConfig"] = proxyConfigStub.returns(validProxyValue);
+
+                httpHelper.warnOnInvalidProxySettings();
+
+                expect(warningMessageSpy, `Should not warn for valid proxy: ${validProxyValue}`).to
+                    .not.have.been.called;
+            }
         });
 
         test("loadProxyConfig prefers VS Code configuration over environment variables", () => {
