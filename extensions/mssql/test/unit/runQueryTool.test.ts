@@ -67,10 +67,7 @@ suite("RunQueryTool Tests", () => {
         mockToken = {} as vscode.CancellationToken;
 
         // Create the tool instance
-        runQueryTool = new RunQueryTool(
-            mockConnectionManager as unknown as ConnectionManager,
-            mockServiceClient as unknown as SqlToolsServiceClient,
-        );
+        runQueryTool = new RunQueryTool(mockConnectionManager, mockServiceClient);
     });
 
     teardown(() => {
@@ -142,10 +139,7 @@ suite("RunQueryTool Tests", () => {
             const noConnectionMock = sandbox.createStubInstance(ConnectionManager);
             noConnectionMock.getConnectionInfo.returns(undefined as any);
 
-            const toolWithNoConnection = new RunQueryTool(
-                noConnectionMock as unknown as ConnectionManager,
-                mockServiceClient as unknown as SqlToolsServiceClient,
-            );
+            const toolWithNoConnection = new RunQueryTool(noConnectionMock, mockServiceClient);
 
             const options = {
                 input: {
@@ -317,10 +311,7 @@ suite("RunQueryTool Tests", () => {
             const noConnectionMock = sandbox.createStubInstance(ConnectionManager);
             noConnectionMock.getConnectionInfo.returns(undefined as any);
 
-            const toolWithNoConnection = new RunQueryTool(
-                noConnectionMock as unknown as ConnectionManager,
-                mockServiceClient as unknown as SqlToolsServiceClient,
-            );
+            const toolWithNoConnection = new RunQueryTool(noConnectionMock, mockServiceClient);
 
             const options = {
                 input: {

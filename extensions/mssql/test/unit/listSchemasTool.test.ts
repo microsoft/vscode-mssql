@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import * as vscode from "vscode";
 import { expect } from "chai";
 import * as sinon from "sinon";
@@ -45,10 +43,7 @@ suite("ListSchemasTool Tests", () => {
 
         mockToken = {} as vscode.CancellationToken;
 
-        listSchemasTool = new ListSchemasTool(
-            mockConnectionManager as unknown as ConnectionManager,
-            mockServiceClient as unknown as SqlToolsServiceClient,
-        );
+        listSchemasTool = new ListSchemasTool(mockConnectionManager, mockServiceClient);
     });
 
     teardown(() => {
@@ -106,12 +101,10 @@ suite("ListSchemasTool Tests", () => {
 
         test("should fall back to connection ID when connection info is not found", async () => {
             const noConnectionMock = sandbox.createStubInstance(ConnectionManager);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             noConnectionMock.getConnectionInfo.returns(undefined as any);
 
-            const toolWithNoConnection = new ListSchemasTool(
-                noConnectionMock as unknown as ConnectionManager,
-                mockServiceClient as unknown as SqlToolsServiceClient,
-            );
+            const toolWithNoConnection = new ListSchemasTool(noConnectionMock, mockServiceClient);
 
             const options = {
                 input: {

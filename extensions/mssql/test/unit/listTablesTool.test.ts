@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import * as vscode from "vscode";
 import { expect } from "chai";
 import * as sinon from "sinon";
@@ -52,10 +50,7 @@ suite("ListTablesTool Tests", () => {
         mockToken = {} as vscode.CancellationToken;
 
         // Create the tool instance
-        listTablesTool = new ListTablesTool(
-            mockConnectionManager as unknown as ConnectionManager,
-            mockServiceClient as unknown as SqlToolsServiceClient,
-        );
+        listTablesTool = new ListTablesTool(mockConnectionManager, mockServiceClient);
     });
 
     teardown(() => {
@@ -92,12 +87,10 @@ suite("ListTablesTool Tests", () => {
 
         test("should return error when connection is not found", async () => {
             const noConnectionMock = sandbox.createStubInstance(ConnectionManager);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             noConnectionMock.getConnectionInfo.returns(undefined as any);
 
-            const toolWithNoConnection = new ListTablesTool(
-                noConnectionMock as unknown as ConnectionManager,
-                mockServiceClient as unknown as SqlToolsServiceClient,
-            );
+            const toolWithNoConnection = new ListTablesTool(noConnectionMock, mockServiceClient);
 
             const options = {
                 input: {
@@ -164,12 +157,10 @@ suite("ListTablesTool Tests", () => {
 
         test("should fall back to connection ID when connection info is not found", async () => {
             const noConnectionMock = sandbox.createStubInstance(ConnectionManager);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             noConnectionMock.getConnectionInfo.returns(undefined as any);
 
-            const toolWithNoConnection = new ListTablesTool(
-                noConnectionMock as unknown as ConnectionManager,
-                mockServiceClient as unknown as SqlToolsServiceClient,
-            );
+            const toolWithNoConnection = new ListTablesTool(noConnectionMock, mockServiceClient);
 
             const options = {
                 input: {

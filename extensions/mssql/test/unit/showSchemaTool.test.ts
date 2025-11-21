@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import * as vscode from "vscode";
 import { expect } from "chai";
 import * as sinon from "sinon";
@@ -47,10 +45,7 @@ suite("ShowSchemaTool Tests", () => {
 
         // Create the tool instance
         const mockShowSchemaFunction = sandbox.stub().resolves();
-        showSchemaTool = new ShowSchemaTool(
-            mockConnectionManager as unknown as ConnectionManager,
-            mockShowSchemaFunction,
-        );
+        showSchemaTool = new ShowSchemaTool(mockConnectionManager, mockShowSchemaFunction);
     });
 
     teardown(() => {
@@ -113,11 +108,12 @@ suite("ShowSchemaTool Tests", () => {
         test("should fall back to connection ID when connection info is not found", async () => {
             // Create a mock that returns undefined connection info
             const noConnectionMock = sandbox.createStubInstance(ConnectionManager);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             noConnectionMock.getConnectionInfo.returns(undefined as any);
 
             const mockShowSchemaFunction = sandbox.stub().resolves();
             const toolWithNoConnection = new ShowSchemaTool(
-                noConnectionMock as unknown as ConnectionManager,
+                noConnectionMock,
                 mockShowSchemaFunction,
             );
 
