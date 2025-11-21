@@ -703,8 +703,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
         });
 
         this.registerReducer("revertCell", async (state, payload) => {
-            console.log("=== REVERT CELL START ===");
-            console.log("Payload:", payload);
             this.logger.info(
                 `Reverting cell: row ${payload.rowId}, column ${payload.columnId} - OperationId: ${this.operationId}`,
             );
@@ -721,26 +719,20 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
             );
 
             const cacheKey = `${payload.rowId}-${payload.columnId}`;
-            console.log("Cache key:", cacheKey);
 
             try {
                 // Always call the service to revert to ensure backend state is properly cleaned up
                 this.logger.info(
                     `Calling service to revert cell ${cacheKey}`,
                 );
-                console.log("Calling tableExplorerService.revertCell...");
                 const revertCellResult = await this._tableExplorerService.revertCell(
                     state.ownerUri,
                     payload.rowId,
                     payload.columnId,
                 );
-                console.log("Service revertCell result:", JSON.stringify(revertCellResult, null, 2));
-                console.log("Service revertCell.cell:", JSON.stringify(revertCellResult.cell, null, 2));
 
                 // Check if we have a cached original value
                 const cachedOriginalValue = state.originalCellValues?.get(cacheKey);
-                console.log("Cached original value:", JSON.stringify(cachedOriginalValue, null, 2));
-                console.log("All cached values:", state.originalCellValues ? Array.from(state.originalCellValues.keys()) : "No cache");
 
                 // Use cached value if available to ensure correct display, otherwise use service result
                 // Creating a new object ensures React detects the change
@@ -753,7 +745,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                         ...revertCellResult.cell,
                         isDirty: false,
                     };
-                console.log("Reverted cell to use:", JSON.stringify(revertedCell, null, 2));
 
                 if (cachedOriginalValue) {
                     this.logger.info(
@@ -763,21 +754,16 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
                 // Remove from cache after successful revert
                 if (state.originalCellValues?.has(cacheKey)) {
-                    console.log("Removing cache entry for:", cacheKey);
                     state.originalCellValues.delete(cacheKey);
                     this.logger.info(
                         `Removed cached value for cell ${cacheKey} after successful revert`,
                     );
-                } else {
-                    console.log("Cache entry not found for:", cacheKey);
                 }
 
                 // Remove from failed cells tracking
                 if (state.failedCells) {
                     const failedKey = `${payload.rowId}-${payload.columnId}`;
-                    console.log("Removing from failed cells:", failedKey);
                     state.failedCells = state.failedCells.filter((key) => key !== failedKey);
-                    console.log("Remaining failed cells:", state.failedCells);
                 }
 
                 // Update the cell value in the result set
@@ -785,14 +771,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     const rowIndex = state.resultSet.subset.findIndex(
                         (row) => row.id === payload.rowId,
                     );
-                    console.log("Row index found:", rowIndex);
 
                     if (rowIndex !== -1) {
-                        const currentCell = state.resultSet.subset[rowIndex].cells[payload.columnId];
-                        console.log("Current cell before revert:", JSON.stringify(currentCell, null, 2));
-                        console.log("Current cell displayValue:", currentCell.displayValue);
-                        console.log("Current cell isDirty:", (currentCell as any).isDirty);
-
                         // Create a completely new subset array with new row objects
                         const newSubset = state.resultSet.subset.map((row, idx) => {
                             if (idx === rowIndex) {
@@ -814,24 +794,13 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                             subset: newSubset,
                         };
 
-                        const updatedCell = state.resultSet.subset[rowIndex].cells[payload.columnId];
-                        console.log("Updated cell after revert:", JSON.stringify(updatedCell, null, 2));
-                        console.log("Updated cell displayValue:", updatedCell.displayValue);
-                        console.log("Cell isDirty after revert:", (updatedCell as any).isDirty);
-                        console.log("Are cells the same object?", currentCell === updatedCell);                        this.logger.info(
+                        this.logger.info(
                             `Reverted cell in result set at row ${rowIndex}, column ${payload.columnId}`,
                         );
 
                         this.updateState();
-                    } else {
-                        console.log("Row index not found!");
                     }
-                } else {
-                    console.log("state.resultSet:", state.resultSet ? "exists" : "null");
-                    console.log("revertedCell:", revertedCell ? "exists" : "null");
                 }
-
-                console.log("=== REVERT CELL SUCCESS ===");
                 this.logger.info(`Cell reverted successfully - OperationId: ${this.operationId}`);
 
                 await this.regenerateScriptIfVisible(state);
@@ -841,8 +810,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     operationId: this.operationId,
                 });
             } catch (error) {
-                console.log("=== REVERT CELL ERROR ===");
-                console.log("Error:", error);
                 this.logger.error(
                     `Error reverting cell: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
@@ -863,8 +830,6 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 );
             }
 
-            console.log("=== REVERT CELL END ===");
-            console.log("Final state.originalCellValues:", state.originalCellValues ? Array.from(state.originalCellValues.keys()) : "No cache");
             return state;
         });
 
