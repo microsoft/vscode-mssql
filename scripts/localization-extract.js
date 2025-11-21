@@ -130,6 +130,7 @@ async function extractLocalizationForExtension(extensionDir, xliffName) {
             xliffPath,
             stringXLIFF,
             false, // We don't want to run prettier on XLIFF files
+            true, // Use CRLF line endings to match .gitattributes
         );
         if (formatted2) {
             logger.success(`Created ${xliffPath}`);
@@ -178,13 +179,39 @@ module.exports = {
 };
 
 if (require.main === module) {
-    extractLocalizationStrings()
-        .then(() => {
-            logger.success("Script completed successfully!");
-            process.exit(0);
-        })
-        .catch((error) => {
-            logger.error(`Script failed: ${error.message}`);
+    // Check if a specific extension is requested via command line args
+    const args = process.argv.slice(2);
+    const specificExtension = args[0];
+
+    if (specificExtension) {
+        // Extract for specific extension
+        const xliffName = EXTENSION_CONFIG[specificExtension];
+        if (!xliffName) {
+            logger.error(
+                `Unknown extension: ${specificExtension}. Available extensions: ${Object.keys(EXTENSION_CONFIG).join(", ")}`,
+            );
             process.exit(1);
-        });
+        }
+
+        extractLocalizationForExtension(specificExtension, xliffName)
+            .then(() => {
+                logger.success("Script completed successfully!");
+                process.exit(0);
+            })
+            .catch((error) => {
+                logger.error(`Script failed: ${error.message}`);
+                process.exit(1);
+            });
+    } else {
+        // Extract for all extensions
+        extractLocalizationStrings()
+            .then(() => {
+                logger.success("Script completed successfully!");
+                process.exit(0);
+            })
+            .catch((error) => {
+                logger.error(`Script failed: ${error.message}`);
+                process.exit(1);
+            });
+    }
 }

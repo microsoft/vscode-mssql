@@ -181,7 +181,7 @@ export class FabricHelper {
                         id: endpoint.id,
                         server: undefined, // requires a second Fabric API call to populate; fill later to avoid rate-limiting (50/API/user/minute)
                         displayName: endpoint.displayName,
-                        database: "TO VALIDATE", // TODO: validate that warehouses don't have a database
+                        database: undefined,
                         workspaceName: resolvedWorkspace.displayName,
                         type: endpoint.type,
                     } as FabricSqlDbInfo;

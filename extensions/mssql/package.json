@@ -64,7 +64,7 @@
         "watch:webviews-bundle": "node scripts/bundle-reactviews.js --watch",
         "watch": "yarn build:prepare && run-p -l watch:extension watch:extension-bundle watch:webviews watch:webviews-bundle",
         "lint": "eslint --quiet --cache",
-        "localization": "node ../../scripts/localization-extract.js",
+        "localization": "node ../../scripts/localization-extract.js mssql",
         "localization:generate-pseudoloc": "node scripts/generate-pseudoloc.js",
         "smoketest": "yarn instrument && yarn e2eTest",
         "test": "node ./out/test/unit/runTest.js",
