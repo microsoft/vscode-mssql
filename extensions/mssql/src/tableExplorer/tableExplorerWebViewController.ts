@@ -666,7 +666,8 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                     );
 
                     if (rowIndex !== -1) {
-                        const currentCell = state.resultSet.subset[rowIndex].cells[payload.columnId];
+                        const currentCell =
+                            state.resultSet.subset[rowIndex].cells[payload.columnId];
                         const failedCell = {
                             ...currentCell,
                             displayValue: payload.newValue,
@@ -722,9 +723,7 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
 
             try {
                 // Always call the service to revert to ensure backend state is properly cleaned up
-                this.logger.info(
-                    `Calling service to revert cell ${cacheKey}`,
-                );
+                this.logger.info(`Calling service to revert cell ${cacheKey}`);
                 const revertCellResult = await this._tableExplorerService.revertCell(
                     state.ownerUri,
                     payload.rowId,
@@ -738,13 +737,13 @@ export class TableExplorerWebViewController extends ReactWebviewPanelController<
                 // Creating a new object ensures React detects the change
                 const revertedCell = cachedOriginalValue
                     ? {
-                        ...cachedOriginalValue,
-                        isDirty: false,
-                    }
+                          ...cachedOriginalValue,
+                          isDirty: false,
+                      }
                     : {
-                        ...revertCellResult.cell,
-                        isDirty: false,
-                    };
+                          ...revertCellResult.cell,
+                          isDirty: false,
+                      };
 
                 if (cachedOriginalValue) {
                     this.logger.info(
