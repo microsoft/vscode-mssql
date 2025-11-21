@@ -146,9 +146,10 @@ export function stubExtensionContext(sandbox?: sinon.SinonSandbox): vscode.Exten
 
     const context = {
         globalState: globalState,
-        extensionUri: vscode.Uri.parse("file://testPath"),
-        extensionPath: "testPath",
+        extensionUri: vscode.Uri.parse("file://testExtensionPath"),
+        extensionPath: "testExtensionPath",
         subscriptions: [],
+        logUri: vscode.Uri.parse("file://testLogPath"),
     } as unknown as vscode.ExtensionContext;
 
     return context;

@@ -16,6 +16,7 @@ import { activateExtension, stubExtensionContext, stubVscodeWrapper } from "./ut
 import { SchemaCompareEndpointInfo } from "vscode-mssql";
 import * as Constants from "../../src/constants/constants";
 import { UserSurvey } from "../../src/nps/userSurvey";
+import { HttpHelper } from "../../src/http/httpHelper";
 
 chai.use(sinonChai);
 
@@ -179,6 +180,17 @@ suite("MainController Tests", function () {
             // restore original handler so the test doesn't leak state
             mainController.onPublishDatabaseProject = originalHandler;
         }
+    });
+
+    test("Proxy settings are checked on initialization", async () => {
+        const httpHelperWarnSpy = sandbox.spy(HttpHelper.prototype, "warnOnInvalidProxySettings");
+
+        new MainController(context, connectionManager, vscodeWrapper);
+
+        expect(
+            httpHelperWarnSpy.calledOnce,
+            "Expected warnOnInvalidProxySettings to be called once during initialization",
+        ).to.be.true;
     });
 
     suite("onNewQueryWithConnection Tests", () => {
