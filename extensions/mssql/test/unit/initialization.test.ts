@@ -11,10 +11,10 @@ import { activateExtension } from "./utils";
 import ConnectionManager from "../../src/controllers/connectionManager";
 
 suite("Initialization Tests", () => {
-    test("Connection manager is initialized properly", async () => {
-        await activateExtension();
-        let controller: MainController = await Extension.getController();
-        let connectionManager: ConnectionManager = controller.connectionManager;
-        assert.notStrictEqual(undefined, connectionManager);
-    });
+  test("Connection manager is initialized properly", async () => {
+    await activateExtension();
+    let controller: MainController = await Extension.getController();
+    let connectionManager: ConnectionManager = controller.connectionManager;
+    assert.notStrictEqual(undefined, connectionManager);
+  });
 });

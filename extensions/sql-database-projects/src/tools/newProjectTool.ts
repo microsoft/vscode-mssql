@@ -3,19 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import * as constants from '../common/constants';
-import * as utils from '../common/utils';
+import * as vscode from "vscode";
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
+import * as constants from "../common/constants";
+import * as utils from "../common/utils";
 
 /**
  * Returns the default location to save a new database project
  */
 export function defaultProjectSaveLocation(): vscode.Uri | undefined {
-	const workspaceApi = utils.getDataWorkspaceExtensionApi();
-	return workspaceApi.defaultProjectSaveLocation;
+  const workspaceApi = utils.getDataWorkspaceExtensionApi();
+  return workspaceApi.defaultProjectSaveLocation;
 }
 
 /**
@@ -23,7 +23,7 @@ export function defaultProjectSaveLocation(): vscode.Uri | undefined {
  * the suggestion if a project of that name already exists in the default save location
  */
 export function defaultProjectNameNewProj(): string {
-	return defaultProjectName(constants.defaultProjectNameStarter, 1);
+  return defaultProjectName(constants.defaultProjectNameStarter, 1);
 }
 
 /**
@@ -33,18 +33,22 @@ export function defaultProjectNameNewProj(): string {
  * @param dbName the database name to base the default project name off of
  */
 export function defaultProjectNameFromDb(dbName: string | undefined): string {
-	if (!dbName) {
-		return '';
-	}
+  if (!dbName) {
+    return "";
+  }
 
-	const projectNameStarter = constants.defaultProjectNameStarter + dbName;
-	const defaultLocation = defaultProjectSaveLocation() ?? vscode.Uri.file(os.homedir());
-	const projectPath: string = path.join(defaultLocation.fsPath, projectNameStarter);
-	if (!fs.existsSync(projectPath)) {
-		return projectNameStarter;
-	}
+  const projectNameStarter = constants.defaultProjectNameStarter + dbName;
+  const defaultLocation =
+    defaultProjectSaveLocation() ?? vscode.Uri.file(os.homedir());
+  const projectPath: string = path.join(
+    defaultLocation.fsPath,
+    projectNameStarter,
+  );
+  if (!fs.existsSync(projectPath)) {
+    return projectNameStarter;
+  }
 
-	return defaultProjectName(projectNameStarter, 2);
+  return defaultProjectName(projectNameStarter, 2);
 }
 
 /**
@@ -56,14 +60,15 @@ export function defaultProjectNameFromDb(dbName: string | undefined): string {
  * @param counter the starting value of of the number appended to the nameStarter
  */
 function defaultProjectName(nameStarter: string, counter: number): string {
-	while (counter < Number.MAX_SAFE_INTEGER) {
-		const name: string = nameStarter + counter;
-		const defaultLocation = defaultProjectSaveLocation() ?? vscode.Uri.file(os.homedir());
-		const projectPath: string = path.join(defaultLocation.fsPath, name);
-		if (!fs.existsSync(projectPath)) {
-			return name;
-		}
-		counter++;
-	}
-	return constants.defaultProjectNameStarter + counter;
+  while (counter < Number.MAX_SAFE_INTEGER) {
+    const name: string = nameStarter + counter;
+    const defaultLocation =
+      defaultProjectSaveLocation() ?? vscode.Uri.file(os.homedir());
+    const projectPath: string = path.join(defaultLocation.fsPath, name);
+    if (!fs.existsSync(projectPath)) {
+      return name;
+    }
+    counter++;
+  }
+  return constants.defaultProjectNameStarter + counter;
 }

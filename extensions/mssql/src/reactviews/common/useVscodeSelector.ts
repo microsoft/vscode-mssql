@@ -4,7 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { useCallback, useContext, useRef, useSyncExternalStore } from "react";
-import { VscodeWebviewContext2, VscodeWebviewContext2Props } from "./vscodeWebviewProvider2";
+import {
+  VscodeWebviewContext2,
+  VscodeWebviewContext2Props,
+} from "./vscodeWebviewProvider2";
 
 /**
  * Read a tiny slice of the webview state without causing whole-app re-renders.
@@ -12,31 +15,37 @@ import { VscodeWebviewContext2, VscodeWebviewContext2Props } from "./vscodeWebvi
  *   const propValue = useVscodeSelector<MyState, MyReducers, string|undefined>(s => s.prop);
  */
 export function useVscodeSelector<State, Reducers, T>(
-    selector: (s: State) => T,
-    equals: (a: T, b: T) => boolean = Object.is,
+  selector: (s: State) => T,
+  equals: (a: T, b: T) => boolean = Object.is,
 ) {
-    const ctx = useContext(VscodeWebviewContext2) as unknown as VscodeWebviewContext2Props<
-        State,
-        Reducers
-    >;
-    if (!ctx) throw new Error("useVscodeSelector must be used within a VscodeWebviewProvider");
+  const ctx = useContext(
+    VscodeWebviewContext2,
+  ) as unknown as VscodeWebviewContext2Props<State, Reducers>;
+  if (!ctx)
+    throw new Error(
+      "useVscodeSelector must be used within a VscodeWebviewProvider",
+    );
 
-    // Use a server snapshot function that handles undefined state gracefully
-    const getServerSnapshot = useCallback(() => {
-        const snapshot = ctx.getSnapshot();
-        return snapshot || ({} as State);
-    }, [ctx]);
+  // Use a server snapshot function that handles undefined state gracefully
+  const getServerSnapshot = useCallback(() => {
+    const snapshot = ctx.getSnapshot();
+    return snapshot || ({} as State);
+  }, [ctx]);
 
-    const snap = useSyncExternalStore(ctx.subscribe, ctx.getSnapshot, getServerSnapshot);
+  const snap = useSyncExternalStore(
+    ctx.subscribe,
+    ctx.getSnapshot,
+    getServerSnapshot,
+  );
 
-    // Safely handle selection when state might be uninitialized
-    const selected = snap ? selector(snap) : (undefined as T);
-    const ref = useRef(selected);
+  // Safely handle selection when state might be uninitialized
+  const selected = snap ? selector(snap) : (undefined as T);
+  const ref = useRef(selected);
 
-    // Update whenever the selected slice changes
-    if (!equals(ref.current as T, selected as T)) {
-        ref.current = selected;
-    }
+  // Update whenever the selected slice changes
+  if (!equals(ref.current as T, selected as T)) {
+    ref.current = selected;
+  }
 
-    return ref.current;
+  return ref.current;
 }

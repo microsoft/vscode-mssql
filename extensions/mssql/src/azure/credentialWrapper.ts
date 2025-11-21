@@ -13,15 +13,15 @@ import { IToken } from "../models/contracts/azure";
  * that token value
  */
 export class TokenCredentialWrapper implements coreAuth.TokenCredential {
-    constructor(private _token: IToken) {}
+  constructor(private _token: IToken) {}
 
-    public getToken(
-        _: string | string[],
-        __?: coreAuth.GetTokenOptions,
-    ): Promise<coreAuth.AccessToken | null> {
-        return Promise.resolve({
-            token: this._token.token,
-            expiresOnTimestamp: this._token.expiresOn || 0,
-        });
-    }
+  public getToken(
+    _: string | string[],
+    __?: coreAuth.GetTokenOptions,
+  ): Promise<coreAuth.AccessToken | null> {
+    return Promise.resolve({
+      token: this._token.token,
+      expiresOnTimestamp: this._token.expiresOn || 0,
+    });
+  }
 }

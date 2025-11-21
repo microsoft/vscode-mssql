@@ -15,61 +15,61 @@ chai.use(sinonChai);
 
 // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
 suite("Test Checkbox prompt", () => {
-    let sandbox: sinon.SinonSandbox;
+  let sandbox: sinon.SinonSandbox;
 
-    setup(() => {
-        sandbox = sinon.createSandbox();
-    });
+  setup(() => {
+    sandbox = sinon.createSandbox();
+  });
 
-    teardown(() => {
-        sandbox.restore();
-    });
+  teardown(() => {
+    sandbox.restore();
+  });
 
-    test("Test checkbox prompt with simple question", async () => {
-        const question = {
-            choices: [
-                { name: "test1", checked: true },
-                { name: "test2", checked: false },
-            ],
-        };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPickStrings.resolves(figures.tick);
+  test("Test checkbox prompt with simple question", async () => {
+    const question = {
+      choices: [
+        { name: "test1", checked: true },
+        { name: "test2", checked: false },
+      ],
+    };
+    const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+    vscodeWrapper.showQuickPickStrings.resolves(figures.tick);
 
-        const checkbox = new CheckboxPrompt(question, vscodeWrapper);
-        await checkbox.render();
+    const checkbox = new CheckboxPrompt(question, vscodeWrapper);
+    await checkbox.render();
 
-        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
-    });
+    expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+  });
 
-    test("Test Checkbox prompt with error", async () => {
-        const question = {
-            choices: [
-                { name: "test1", checked: true },
-                { name: "test2", checked: false },
-            ],
-        };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPickStrings.resolves(undefined);
+  test("Test Checkbox prompt with error", async () => {
+    const question = {
+      choices: [
+        { name: "test1", checked: true },
+        { name: "test2", checked: false },
+      ],
+    };
+    const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+    vscodeWrapper.showQuickPickStrings.resolves(undefined);
 
-        const checkbox = new CheckboxPrompt(question, vscodeWrapper);
-        await checkbox.render().catch(() => undefined);
+    const checkbox = new CheckboxPrompt(question, vscodeWrapper);
+    await checkbox.render().catch(() => undefined);
 
-        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
-    });
+    expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+  });
 
-    test("Test Checkbox prompt with checked answer", async () => {
-        const question = {
-            choices: [
-                { name: "test1", checked: true },
-                { name: "test2", checked: false },
-            ],
-        };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPickStrings.resolves(figures.tick);
+  test("Test Checkbox prompt with checked answer", async () => {
+    const question = {
+      choices: [
+        { name: "test1", checked: true },
+        { name: "test2", checked: false },
+      ],
+    };
+    const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+    vscodeWrapper.showQuickPickStrings.resolves(figures.tick);
 
-        const checkbox = new CheckboxPrompt(question, vscodeWrapper);
-        await checkbox.render();
+    const checkbox = new CheckboxPrompt(question, vscodeWrapper);
+    await checkbox.render();
 
-        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
-    });
+    expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+  });
 });

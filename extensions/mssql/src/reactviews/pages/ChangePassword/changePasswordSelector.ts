@@ -7,8 +7,11 @@ import { ChangePasswordWebviewState } from "../../../sharedInterfaces/changePass
 import { useVscodeSelector } from "../../common/useVscodeSelector";
 
 export function useChangePasswordSelector<T>(
-    selector: (state: ChangePasswordWebviewState) => T,
-    equals?: (a: T, b: T) => boolean,
+  selector: (state: ChangePasswordWebviewState) => T,
+  equals?: (a: T, b: T) => boolean,
 ) {
-    return useVscodeSelector<ChangePasswordWebviewState, void, T>(selector, equals);
+  return useVscodeSelector<ChangePasswordWebviewState, void, T>(
+    selector,
+    equals,
+  );
 }

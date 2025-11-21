@@ -132,418 +132,434 @@ const criticalWarning = require("./icons/badge_critical_warning.svg");
 const parallelismBadge = require("./icons/overlay-parallelism.svg");
 
 export function getIconPaths() {
-    return {
-        // generic icons
-        iteratorCatchAll: iterator_catch_all,
+  return {
+    // generic icons
+    iteratorCatchAll: iterator_catch_all,
 
-        cursorCatchAll: cursor_catch_all,
+    cursorCatchAll: cursor_catch_all,
 
-        languageConstructCatchAll: language_construct_catch_all,
+    languageConstructCatchAll: language_construct_catch_all,
 
-        // operator icons
-        adaptiveJoin: adaptive_join,
+    // operator icons
+    adaptiveJoin: adaptive_join,
 
-        assert: assert,
+    assert: assert,
 
-        bitmap: bitmap,
+    bitmap: bitmap,
 
-        clusteredIndexDelete: clustered_index_delete,
+    clusteredIndexDelete: clustered_index_delete,
 
-        clusteredIndexInsert: clustered_index_insert,
+    clusteredIndexInsert: clustered_index_insert,
 
-        clusteredIndexScan: clustered_index_scan,
+    clusteredIndexScan: clustered_index_scan,
 
-        clusteredIndexSeek: clustered_index_seek,
+    clusteredIndexSeek: clustered_index_seek,
 
-        clusteredIndexUpdate: clustered_index_update,
+    clusteredIndexUpdate: clustered_index_update,
 
-        clusteredIndexMerge: clustered_index_merge,
+    clusteredIndexMerge: clustered_index_merge,
 
-        clusteredUpdate: clustered_update,
+    clusteredUpdate: clustered_update,
 
-        collapse: collapse,
+    collapse: collapse,
 
-        computeScalar: compute_scalar,
+    computeScalar: compute_scalar,
 
-        concatenation: concatenation,
+    concatenation: concatenation,
 
-        constantScan: constant_scan,
+    constantScan: constant_scan,
 
-        deletedScan: deleted_scan,
+    deletedScan: deleted_scan,
 
-        filter: filter,
+    filter: filter,
 
-        hashMatch: hash_match,
+    hashMatch: hash_match,
 
-        indexDelete: index_delete,
+    indexDelete: index_delete,
 
-        indexInsert: index_insert,
+    indexInsert: index_insert,
 
-        indexScan: index_scan,
+    indexScan: index_scan,
 
-        columnstoreIndexDelete: columnstore_index_delete,
+    columnstoreIndexDelete: columnstore_index_delete,
 
-        columnstoreIndexInsert: columnstore_index_insert,
+    columnstoreIndexInsert: columnstore_index_insert,
 
-        columnstoreIndexMerge: columnstore_index_merge,
+    columnstoreIndexMerge: columnstore_index_merge,
 
-        columnstoreIndexScan: columnstore_index_scan,
+    columnstoreIndexScan: columnstore_index_scan,
 
-        columnstoreIndexUpdate: columnstore_index_update,
+    columnstoreIndexUpdate: columnstore_index_update,
 
-        indexSeek: index_seek,
+    indexSeek: index_seek,
 
-        indexSpool: index_spool,
+    indexSpool: index_spool,
 
-        indexUpdate: index_update,
+    indexUpdate: index_update,
 
-        insertedScan: inserted_scan,
+    insertedScan: inserted_scan,
 
-        logRowScan: log_row_scan,
+    logRowScan: log_row_scan,
 
-        mergeInterval: merge_interval,
+    mergeInterval: merge_interval,
 
-        mergeJoin: merge_join,
+    mergeJoin: merge_join,
 
-        nestedLoops: nested_loops,
+    nestedLoops: nested_loops,
 
-        parallelism: parallelism,
+    parallelism: parallelism,
 
-        parameterTableScan: parameter_table_scan,
+    parameterTableScan: parameter_table_scan,
 
-        print: print,
+    print: print,
 
-        rank: rank,
+    rank: rank,
 
-        foreignKeyReferencesCheck: foreign_key_references_check,
+    foreignKeyReferencesCheck: foreign_key_references_check,
 
-        remoteDelete: remote_delete,
+    remoteDelete: remote_delete,
 
-        remoteIndexScan: remote_index_scan,
+    remoteIndexScan: remote_index_scan,
 
-        remoteIndexSeek: remote_index_seek,
+    remoteIndexSeek: remote_index_seek,
 
-        remoteInsert: remote_insert,
+    remoteInsert: remote_insert,
 
-        remoteQuery: remote_query,
+    remoteQuery: remote_query,
 
-        remoteScan: remote_scan,
+    remoteScan: remote_scan,
 
-        remoteUpdate: remote_update,
+    remoteUpdate: remote_update,
 
-        ridLookup: rid_lookup,
+    ridLookup: rid_lookup,
 
-        rowCountSpool: row_count_spool,
+    rowCountSpool: row_count_spool,
 
-        segment: segment,
+    segment: segment,
 
-        sequence: sequence,
+    sequence: sequence,
 
-        sequenceProject: sequence_project,
+    sequenceProject: sequence_project,
 
-        sort: sort,
+    sort: sort,
 
-        split: split,
+    split: split,
 
-        streamAggregate: stream_aggregate,
+    streamAggregate: stream_aggregate,
 
-        switchStatement: switchStatement,
+    switchStatement: switchStatement,
 
-        tableValuedFunction: table_valued_function,
+    tableValuedFunction: table_valued_function,
 
-        tableDelete: table_delete,
+    tableDelete: table_delete,
 
-        tableInsert: table_insert,
+    tableInsert: table_insert,
 
-        tableScan: table_scan,
+    tableScan: table_scan,
 
-        tableSpool: table_spool,
+    tableSpool: table_spool,
 
-        tableUpdate: table_update,
+    tableUpdate: table_update,
 
-        tableMerge: table_merge,
+    tableMerge: table_merge,
 
-        tfp: tfp,
+    tfp: tfp,
 
-        top: top,
+    top: top,
 
-        udx: udx,
+    udx: udx,
 
-        batchHashTableBuild: batch_hash_table_build,
+    batchHashTableBuild: batch_hash_table_build,
 
-        windowSpool: window_spool,
+    windowSpool: window_spool,
 
-        windowAggregate: window_aggregate,
+    windowAggregate: window_aggregate,
 
-        // cursor operators
-        fetchQuery: fetch_query,
+    // cursor operators
+    fetchQuery: fetch_query,
 
-        populateQuery: populate_query,
+    populateQuery: populate_query,
 
-        refreshQuery: refresh_query,
+    refreshQuery: refresh_query,
 
-        // shiloh operators
-        result: result,
+    // shiloh operators
+    result: result,
 
-        aggregate: aggregate,
+    aggregate: aggregate,
 
-        assign: assign,
+    assign: assign,
 
-        arithmeticExpression: arithmetic_expression,
+    arithmeticExpression: arithmetic_expression,
 
-        bookmarkLookup: bookmark_lookup,
+    bookmarkLookup: bookmark_lookup,
 
-        convert: convert,
+    convert: convert,
 
-        declare: declare,
+    declare: declare,
 
-        deleteOperator: deleteOperator,
+    deleteOperator: deleteOperator,
 
-        dynamic: dynamic,
+    dynamic: dynamic,
 
-        hashMatchRoot: hash_match_root,
+    hashMatchRoot: hash_match_root,
 
-        hashMatchTeam: hash_match_team,
+    hashMatchTeam: hash_match_team,
 
-        ifOperator: ifOperator,
+    ifOperator: ifOperator,
 
-        insert: insert,
+    insert: insert,
 
-        intrinsic: intrinsic,
+    intrinsic: intrinsic,
 
-        keyset: keyset,
+    keyset: keyset,
 
-        locate: locate,
+    locate: locate,
 
-        populationQuery: populationQuery,
+    populationQuery: populationQuery,
 
-        setFunction: setFunction,
+    setFunction: setFunction,
 
-        snapshot: snapshot,
+    snapshot: snapshot,
 
-        spool: spool,
+    spool: spool,
 
-        tsql: tsql,
+    tsql: tsql,
 
-        update: update,
+    update: update,
 
-        // fake operators
-        keyLookup: keyLookup,
+    // fake operators
+    keyLookup: keyLookup,
 
-        // PDW operators
-        apply: apply,
+    // PDW operators
+    apply: apply,
 
-        broadcast: broadcast,
+    broadcast: broadcast,
 
-        computeToControlNode: computeToControlNode,
+    computeToControlNode: computeToControlNode,
 
-        constTableGet: constTableGet,
+    constTableGet: constTableGet,
 
-        controlToComputeNodes: controlToComputeNodes,
+    controlToComputeNodes: controlToComputeNodes,
 
-        externalBroadcast: externalBroadcast,
+    externalBroadcast: externalBroadcast,
 
-        externalExport: externalExport,
+    externalExport: externalExport,
 
-        externalLocalStreaming: externalLocalStreaming,
+    externalLocalStreaming: externalLocalStreaming,
 
-        externalRoundRobin: externalRoundRobin,
+    externalRoundRobin: externalRoundRobin,
 
-        externalShuffle: externalShuffle,
+    externalShuffle: externalShuffle,
 
-        get: get,
+    get: get,
 
-        groupByApply: groupByApply,
+    groupByApply: groupByApply,
 
-        groupByAggregate: groupByAggregate,
+    groupByAggregate: groupByAggregate,
 
-        join: join,
+    join: join,
 
-        localCube: localCube,
+    localCube: localCube,
 
-        project: project,
+    project: project,
 
-        shuffle: shuffle,
+    shuffle: shuffle,
 
-        singleSourceRoundRobin: singleSourceRoundRobin,
+    singleSourceRoundRobin: singleSourceRoundRobin,
 
-        singleSourceShuffle: singleSourceShuffle,
+    singleSourceShuffle: singleSourceShuffle,
 
-        trim: trim,
+    trim: trim,
 
-        union: union,
+    union: union,
 
-        unionAll: unionAll,
-    };
+    unionAll: unionAll,
+  };
 }
 
 export function getBadgePaths() {
-    return {
-        warning: warning,
+  return {
+    warning: warning,
 
-        criticalWarning: criticalWarning,
+    criticalWarning: criticalWarning,
 
-        parallelism: parallelismBadge,
-    };
+    parallelism: parallelismBadge,
+  };
 }
 
 export function getCollapseExpandPaths(colorTheme: ColorThemeKind) {
-    const theme = themeType(colorTheme);
-    return {
-        expand:
-            theme === "light"
-                ? require("./icons/expand_light.svg")
-                : require("./icons/expand_dark.svg"),
+  const theme = themeType(colorTheme);
+  return {
+    expand:
+      theme === "light"
+        ? require("./icons/expand_light.svg")
+        : require("./icons/expand_dark.svg"),
 
-        collapse:
-            theme === "light"
-                ? require("./icons/collapse_light.svg")
-                : require("./icons/collapse_dark.svg"),
-    };
+    collapse:
+      theme === "light"
+        ? require("./icons/collapse_light.svg")
+        : require("./icons/collapse_dark.svg"),
+  };
 }
 
 export const save = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const saveIcon =
-        theme === "dark" ? require("./icons/saveDark.svg") : require("./icons/save.svg");
-    return saveIcon;
+  const theme = themeType(colorTheme);
+  const saveIcon =
+    theme === "dark"
+      ? require("./icons/saveDark.svg")
+      : require("./icons/save.svg");
+  return saveIcon;
 };
 
 export const openPlanFile = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const openPlanFileIcon =
-        theme === "dark"
-            ? require("./icons/openPlanFileDark.svg")
-            : require("./icons/openPlanFile.svg");
-    return openPlanFileIcon;
+  const theme = themeType(colorTheme);
+  const openPlanFileIcon =
+    theme === "dark"
+      ? require("./icons/openPlanFileDark.svg")
+      : require("./icons/openPlanFile.svg");
+  return openPlanFileIcon;
 };
 
 export const openQuery = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const openQueryIcon =
-        theme === "dark" ? require("./icons/openQueryDark.svg") : require("./icons/openQuery.svg");
-    return openQueryIcon;
+  const theme = themeType(colorTheme);
+  const openQueryIcon =
+    theme === "dark"
+      ? require("./icons/openQueryDark.svg")
+      : require("./icons/openQuery.svg");
+  return openQueryIcon;
 };
 
 export const zoomIn = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const zoomInIcon =
-        theme === "dark" ? require("./icons/zoomInDark.svg") : require("./icons/zoomIn.svg");
-    return zoomInIcon;
+  const theme = themeType(colorTheme);
+  const zoomInIcon =
+    theme === "dark"
+      ? require("./icons/zoomInDark.svg")
+      : require("./icons/zoomIn.svg");
+  return zoomInIcon;
 };
 
 export const zoomOut = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const zoomOutIcon =
-        theme === "dark" ? require("./icons/zoomOutDark.svg") : require("./icons/zoomOut.svg");
-    return zoomOutIcon;
+  const theme = themeType(colorTheme);
+  const zoomOutIcon =
+    theme === "dark"
+      ? require("./icons/zoomOutDark.svg")
+      : require("./icons/zoomOut.svg");
+  return zoomOutIcon;
 };
 
 export const zoomToFit = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const zoomToFitIcon =
-        theme === "dark" ? require("./icons/zoomToFitDark.svg") : require("./icons/zoomToFit.svg");
-    return zoomToFitIcon;
+  const theme = themeType(colorTheme);
+  const zoomToFitIcon =
+    theme === "dark"
+      ? require("./icons/zoomToFitDark.svg")
+      : require("./icons/zoomToFit.svg");
+  return zoomToFitIcon;
 };
 
 export const customZoom = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const customZoomIcon =
-        theme === "dark"
-            ? require("./icons/customZoomDark.svg")
-            : require("./icons/customZoom.svg");
-    return customZoomIcon;
+  const theme = themeType(colorTheme);
+  const customZoomIcon =
+    theme === "dark"
+      ? require("./icons/customZoomDark.svg")
+      : require("./icons/customZoom.svg");
+  return customZoomIcon;
 };
 
 export const search = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const searchIcon =
-        theme === "dark" ? require("./icons/searchDark.svg") : require("./icons/search.svg");
-    return searchIcon;
+  const theme = themeType(colorTheme);
+  const searchIcon =
+    theme === "dark"
+      ? require("./icons/searchDark.svg")
+      : require("./icons/search.svg");
+  return searchIcon;
 };
 
 export const properties = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const propertiesIcon =
-        theme === "dark"
-            ? require("./icons/openPropertiesDark.svg")
-            : require("./icons/openProperties.svg");
-    return propertiesIcon;
+  const theme = themeType(colorTheme);
+  const propertiesIcon =
+    theme === "dark"
+      ? require("./icons/openPropertiesDark.svg")
+      : require("./icons/openProperties.svg");
+  return propertiesIcon;
 };
 
 export const highlightOps = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const highlightOpsIcon =
-        theme === "dark"
-            ? require("./icons/highlightExpensiveOperationDark.svg")
-            : require("./icons/highlightExpensiveOperation.svg");
-    return highlightOpsIcon;
+  const theme = themeType(colorTheme);
+  const highlightOpsIcon =
+    theme === "dark"
+      ? require("./icons/highlightExpensiveOperationDark.svg")
+      : require("./icons/highlightExpensiveOperation.svg");
+  return highlightOpsIcon;
 };
 
 export const enableTooltip = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const enableTooltipIcon =
-        theme === "dark"
-            ? require("./icons/enableTooltipDark.svg")
-            : require("./icons/enableTooltip.svg");
-    return enableTooltipIcon;
+  const theme = themeType(colorTheme);
+  const enableTooltipIcon =
+    theme === "dark"
+      ? require("./icons/enableTooltipDark.svg")
+      : require("./icons/enableTooltip.svg");
+  return enableTooltipIcon;
 };
 
 export const disableTooltip = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const disableTooltipIcon =
-        theme === "dark"
-            ? require("./icons/disableTooltipDark.svg")
-            : require("./icons/disableTooltip.svg");
-    return disableTooltipIcon;
+  const theme = themeType(colorTheme);
+  const disableTooltipIcon =
+    theme === "dark"
+      ? require("./icons/disableTooltipDark.svg")
+      : require("./icons/disableTooltip.svg");
+  return disableTooltipIcon;
 };
 
 export const sortByImportance = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const sortByImportanceIcon =
-        theme === "dark"
-            ? require("./icons/sortByDisplayOrderDark.svg")
-            : require("./icons/sortByDisplayOrder.svg");
-    return sortByImportanceIcon;
+  const theme = themeType(colorTheme);
+  const sortByImportanceIcon =
+    theme === "dark"
+      ? require("./icons/sortByDisplayOrderDark.svg")
+      : require("./icons/sortByDisplayOrder.svg");
+  return sortByImportanceIcon;
 };
 
 export const sortAlphabetically = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const sortAlphabeticallyIcon =
-        theme === "dark"
-            ? require("./icons/sortAlphabeticallyDark.svg")
-            : require("./icons/sortAlphabetically.svg");
-    return sortAlphabeticallyIcon;
+  const theme = themeType(colorTheme);
+  const sortAlphabeticallyIcon =
+    theme === "dark"
+      ? require("./icons/sortAlphabeticallyDark.svg")
+      : require("./icons/sortAlphabetically.svg");
+  return sortAlphabeticallyIcon;
 };
 
 export const sortReverseAlphabetically = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const sortReverseAlphabeticallyIcon =
-        theme === "dark"
-            ? require("./icons/sortReverseAlphabeticallyDark.svg")
-            : require("./icons/sortReverseAlphabetically.svg");
-    return sortReverseAlphabeticallyIcon;
+  const theme = themeType(colorTheme);
+  const sortReverseAlphabeticallyIcon =
+    theme === "dark"
+      ? require("./icons/sortReverseAlphabeticallyDark.svg")
+      : require("./icons/sortReverseAlphabetically.svg");
+  return sortReverseAlphabeticallyIcon;
 };
 
 export const filterIcon = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const filterIcon =
-        theme === "dark" ? require("./icons/filterDark.svg") : require("./icons/filter.svg");
-    return filterIcon;
+  const theme = themeType(colorTheme);
+  const filterIcon =
+    theme === "dark"
+      ? require("./icons/filterDark.svg")
+      : require("./icons/filter.svg");
+  return filterIcon;
 };
 
 export const expandAll = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const expandAllIcon =
-        theme === "dark" ? require("./icons/expandAllDark.svg") : require("./icons/expandAll.svg");
-    return expandAllIcon;
+  const theme = themeType(colorTheme);
+  const expandAllIcon =
+    theme === "dark"
+      ? require("./icons/expandAllDark.svg")
+      : require("./icons/expandAll.svg");
+  return expandAllIcon;
 };
 
 export const collapseAll = (colorTheme: ColorThemeKind) => {
-    const theme = themeType(colorTheme);
-    const collapseAllIcon =
-        theme === "dark"
-            ? require("./icons/collapseAllDark.svg")
-            : require("./icons/collapseAll.svg");
-    return collapseAllIcon;
+  const theme = themeType(colorTheme);
+  const collapseAllIcon =
+    theme === "dark"
+      ? require("./icons/collapseAllDark.svg")
+      : require("./icons/collapseAll.svg");
+  return collapseAllIcon;
 };

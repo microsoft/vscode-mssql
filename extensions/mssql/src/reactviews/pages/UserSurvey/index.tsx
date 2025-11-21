@@ -10,9 +10,9 @@ import { UserSurveyPage } from "./userSurveyPage";
 import "../../index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider>
-        <UserSurveyStateProvider>
-            <UserSurveyPage />
-        </UserSurveyStateProvider>
-    </VscodeWebviewProvider>,
+  <VscodeWebviewProvider>
+    <UserSurveyStateProvider>
+      <UserSurveyPage />
+    </UserSurveyStateProvider>
+  </VscodeWebviewProvider>,
 );

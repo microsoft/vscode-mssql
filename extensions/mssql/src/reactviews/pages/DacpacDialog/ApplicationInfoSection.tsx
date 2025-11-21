@@ -15,68 +15,69 @@ const DEFAULT_APPLICATION_VERSION = "1.0.0";
  * Validation message with severity level
  */
 interface ValidationMessage {
-    message: string;
-    severity: "error" | "warning";
+  message: string;
+  severity: "error" | "warning";
 }
 
 interface ApplicationInfoSectionProps {
-    applicationName: string;
-    setApplicationName: (value: string) => void;
-    applicationVersion: string;
-    setApplicationVersion: (value: string) => void;
-    isOperationInProgress: boolean;
-    validationMessages: Record<string, ValidationMessage>;
-    onApplicationVersionChange: (value: string) => Promise<void>;
+  applicationName: string;
+  setApplicationName: (value: string) => void;
+  applicationVersion: string;
+  setApplicationVersion: (value: string) => void;
+  isOperationInProgress: boolean;
+  validationMessages: Record<string, ValidationMessage>;
+  onApplicationVersionChange: (value: string) => Promise<void>;
 }
 
 const useStyles = makeStyles({
-    section: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "12px",
-    },
+  section: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  },
 });
 
 export const ApplicationInfoSection = ({
-    applicationName,
-    setApplicationName,
-    applicationVersion,
-    setApplicationVersion,
-    isOperationInProgress,
-    validationMessages,
-    onApplicationVersionChange,
+  applicationName,
+  setApplicationName,
+  applicationVersion,
+  setApplicationVersion,
+  isOperationInProgress,
+  validationMessages,
+  onApplicationVersionChange,
 }: ApplicationInfoSectionProps) => {
-    const classes = useStyles();
+  const classes = useStyles();
 
-    const versionValidation = validationMessages.applicationVersion;
+  const versionValidation = validationMessages.applicationVersion;
 
-    return (
-        <div className={classes.section}>
-            <Field label={locConstants.dacpacDialog.applicationNameLabel}>
-                <Input
-                    value={applicationName}
-                    onChange={(_, data) => setApplicationName(data.value)}
-                    placeholder={locConstants.dacpacDialog.enterApplicationName}
-                    disabled={isOperationInProgress}
-                    aria-label={locConstants.dacpacDialog.applicationNameLabel}
-                />
-            </Field>
+  return (
+    <div className={classes.section}>
+      <Field label={locConstants.dacpacDialog.applicationNameLabel}>
+        <Input
+          value={applicationName}
+          onChange={(_, data) => setApplicationName(data.value)}
+          placeholder={locConstants.dacpacDialog.enterApplicationName}
+          disabled={isOperationInProgress}
+          aria-label={locConstants.dacpacDialog.applicationNameLabel}
+        />
+      </Field>
 
-            <Field
-                label={locConstants.dacpacDialog.applicationVersionLabel}
-                validationMessage={versionValidation?.message}
-                validationState={versionValidation?.severity}>
-                <Input
-                    value={applicationVersion}
-                    onChange={(_, data) => {
-                        setApplicationVersion(data.value);
-                        void onApplicationVersionChange(data.value);
-                    }}
-                    placeholder={DEFAULT_APPLICATION_VERSION}
-                    disabled={isOperationInProgress}
-                    aria-label={locConstants.dacpacDialog.applicationVersionLabel}
-                />
-            </Field>
-        </div>
-    );
+      <Field
+        label={locConstants.dacpacDialog.applicationVersionLabel}
+        validationMessage={versionValidation?.message}
+        validationState={versionValidation?.severity}
+      >
+        <Input
+          value={applicationVersion}
+          onChange={(_, data) => {
+            setApplicationVersion(data.value);
+            void onApplicationVersionChange(data.value);
+          }}
+          placeholder={DEFAULT_APPLICATION_VERSION}
+          disabled={isOperationInProgress}
+          aria-label={locConstants.dacpacDialog.applicationVersionLabel}
+        />
+      </Field>
+    </div>
+  );
 };

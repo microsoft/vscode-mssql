@@ -5,94 +5,102 @@
 
 import * as assert from "assert";
 import { expect } from "chai";
-import { Runtime, PlatformInformation, LinuxDistribution } from "../../src/models/platform";
+import {
+  Runtime,
+  PlatformInformation,
+  LinuxDistribution,
+} from "../../src/models/platform";
 
 function getPlatform(): Promise<Runtime> {
-    return PlatformInformation.getCurrent().then((platformInfo) => {
-        return platformInfo.runtimeId;
-    });
+  return PlatformInformation.getCurrent().then((platformInfo) => {
+    return platformInfo.runtimeId;
+  });
 }
 
 suite("Platform Tests", () => {
-    test("getCurrentPlatform should return valid value", (done) => {
-        void getPlatform().then((platform) => {
-            assert.notEqual(platform, Runtime.Unknown);
-            done();
-        });
+  test("getCurrentPlatform should return valid value", (done) => {
+    void getPlatform().then((platform) => {
+      assert.notEqual(platform, Runtime.Unknown);
+      done();
     });
+  });
 
-    test("Retrieve correct information for Ubuntu 14.04 with quotes", () => {
-        const dist = distro_ubuntu_14_04_with_quotes();
-        expect(dist.name).to.equal("ubuntu");
-        expect(dist.version).to.equal("14.04");
-    });
+  test("Retrieve correct information for Ubuntu 14.04 with quotes", () => {
+    const dist = distro_ubuntu_14_04_with_quotes();
+    expect(dist.name).to.equal("ubuntu");
+    expect(dist.version).to.equal("14.04");
+  });
 
-    test("Retrieve correct information for Fedora 23", () => {
-        const dist = distro_fedora_23();
-        expect(dist.name).to.equal("fedora");
-        expect(dist.version).to.equal("23");
-    });
+  test("Retrieve correct information for Fedora 23", () => {
+    const dist = distro_fedora_23();
+    expect(dist.name).to.equal("fedora");
+    expect(dist.version).to.equal("23");
+  });
 
-    test("Retrieve correct information for Debian 8", () => {
-        const dist = distro_debian_8();
+  test("Retrieve correct information for Debian 8", () => {
+    const dist = distro_debian_8();
 
-        expect(dist.name).to.equal("debian");
-        expect(dist.version).to.equal("8");
-    });
+    expect(dist.name).to.equal("debian");
+    expect(dist.version).to.equal("8");
+  });
 
-    test("Retrieve correct information for CentOS 7", () => {
-        const dist = distro_centos_7();
+  test("Retrieve correct information for CentOS 7", () => {
+    const dist = distro_centos_7();
 
-        expect(dist.name).to.equal("centos");
-        expect(dist.version).to.equal("7");
-    });
+    expect(dist.name).to.equal("centos");
+    expect(dist.version).to.equal("7");
+  });
 
-    test("Compute correct RID for Windows 64-bit", () => {
-        const platformInfo = new PlatformInformation("win32", "x86_64");
+  test("Compute correct RID for Windows 64-bit", () => {
+    const platformInfo = new PlatformInformation("win32", "x86_64");
 
-        expect(platformInfo.runtimeId).to.equal(Runtime.Windows_64.toString());
-    });
+    expect(platformInfo.runtimeId).to.equal(Runtime.Windows_64.toString());
+  });
 
-    test("Compute correct RID for Windows ARM 64-bit", () => {
-        const platformInfo = new PlatformInformation("win32", "arm64");
+  test("Compute correct RID for Windows ARM 64-bit", () => {
+    const platformInfo = new PlatformInformation("win32", "arm64");
 
-        expect(platformInfo.runtimeId).to.equal(Runtime.Windows_ARM64.toString());
-    });
+    expect(platformInfo.runtimeId).to.equal(Runtime.Windows_ARM64.toString());
+  });
 
-    test("Compute no RID for Windows with bad architecture", () => {
-        const platformInfo = new PlatformInformation("win32", "bad");
+  test("Compute no RID for Windows with bad architecture", () => {
+    const platformInfo = new PlatformInformation("win32", "bad");
 
-        expect(platformInfo.runtimeId).to.equal(undefined);
-    });
+    expect(platformInfo.runtimeId).to.equal(undefined);
+  });
 
-    test("Compute correct RID for MacOS Intel", () => {
-        const platformInfo = new PlatformInformation("darwin", "x86_64");
+  test("Compute correct RID for MacOS Intel", () => {
+    const platformInfo = new PlatformInformation("darwin", "x86_64");
 
-        expect(platformInfo.runtimeId).to.equal(Runtime.OSX.toString());
-    });
+    expect(platformInfo.runtimeId).to.equal(Runtime.OSX.toString());
+  });
 
-    test("Compute correct RID for MacOS ARM", () => {
-        const platformInfo = new PlatformInformation("darwin", "arm64");
+  test("Compute correct RID for MacOS ARM", () => {
+    const platformInfo = new PlatformInformation("darwin", "arm64");
 
-        expect(platformInfo.runtimeId).to.equal(Runtime.OSX_ARM64.toString());
-    });
+    expect(platformInfo.runtimeId).to.equal(Runtime.OSX_ARM64.toString());
+  });
 
-    test("Compute no RID for OSX with 32-bit architecture", () => {
-        const platformInfo = new PlatformInformation("darwin", "x86");
+  test("Compute no RID for OSX with 32-bit architecture", () => {
+    const platformInfo = new PlatformInformation("darwin", "x86");
 
-        expect(platformInfo.runtimeId, undefined);
-    });
+    expect(platformInfo.runtimeId, undefined);
+  });
 
-    test("Compute default RID for linux distro with no ID_LIKE", () => {
-        const platformInfo = new PlatformInformation("linux", "x86_64", distro_linux());
+  test("Compute default RID for linux distro with no ID_LIKE", () => {
+    const platformInfo = new PlatformInformation(
+      "linux",
+      "x86_64",
+      distro_linux(),
+    );
 
-        expect(platformInfo.runtimeId).to.equal(Runtime.Linux.toString());
-    });
+    expect(platformInfo.runtimeId).to.equal(Runtime.Linux.toString());
+  });
 });
 
 function distro_linux(): LinuxDistribution {
-    // Copied from /etc/os-release on Ubuntu 14.04
-    const input = `
+  // Copied from /etc/os-release on Ubuntu 14.04
+  const input = `
 NAME="Ubuntu"
 VERSION="14.04.5 LTS, Trusty Tahr"
 ID=ubuntu
@@ -103,12 +111,12 @@ HOME_URL="http://www.ubuntu.com/"
 SUPPORT_URL="http://help.ubuntu.com/"
 BUG_REPORT_URL="http://bugs.launchpad.net/ubuntu/"`;
 
-    return LinuxDistribution.fromReleaseInfo(input, "\n");
+  return LinuxDistribution.fromReleaseInfo(input, "\n");
 }
 
 function distro_ubuntu_14_04_with_quotes(): LinuxDistribution {
-    // Copied from /etc/os-release on Ubuntu 14.04
-    const input = `
+  // Copied from /etc/os-release on Ubuntu 14.04
+  const input = `
 NAME='Ubuntu'
 VERSION='14.04.5 LTS, Trusty Tahr'
 ID=ubuntu
@@ -119,12 +127,12 @@ HOME_URL='http://www.ubuntu.com/'
 SUPPORT_URL='http://help.ubuntu.com/'
 BUG_REPORT_URL='http://bugs.launchpad.net/ubuntu/'`;
 
-    return LinuxDistribution.fromReleaseInfo(input, "\n");
+  return LinuxDistribution.fromReleaseInfo(input, "\n");
 }
 
 function distro_fedora_23(): LinuxDistribution {
-    // Copied from /etc/os-release on Fedora 23
-    const input = `
+  // Copied from /etc/os-release on Fedora 23
+  const input = `
 NAME=Fedora
 VERSION="23 (Workstation Edition)"
 ID=fedora
@@ -142,12 +150,12 @@ PRIVACY_POLICY_URL=https://fedoraproject.org/wiki/Legal:PrivacyPolicy
 VARIANT="Workstation Edition"
 VARIANT_ID=workstation`;
 
-    return LinuxDistribution.fromReleaseInfo(input, "\n");
+  return LinuxDistribution.fromReleaseInfo(input, "\n");
 }
 
 function distro_debian_8(): LinuxDistribution {
-    // Copied from /etc/os-release on Debian 8
-    const input = `
+  // Copied from /etc/os-release on Debian 8
+  const input = `
 PRETTY_NAME="Debian GNU/Linux 8 (jessie)"
 NAME="Debian GNU/Linux"
 VERSION_ID="8"
@@ -157,12 +165,12 @@ HOME_URL="http://www.debian.org/"
 SUPPORT_URL="http://www.debian.org/support"
 BUG_REPORT_URL="https://bugs.debian.org/"`;
 
-    return LinuxDistribution.fromReleaseInfo(input, "\n");
+  return LinuxDistribution.fromReleaseInfo(input, "\n");
 }
 
 function distro_centos_7(): LinuxDistribution {
-    // Copied from /etc/os-release on CentOS 7
-    const input = `
+  // Copied from /etc/os-release on CentOS 7
+  const input = `
 NAME="CentOS Linux"
 VERSION="7 (Core)"
 ID="centos"
@@ -179,5 +187,5 @@ CENTOS_MANTISBT_PROJECT_VERSION="7"
 REDHAT_SUPPORT_PRODUCT="centos"
 REDHAT_SUPPORT_PRODUCT_VERSION="7"`;
 
-    return LinuxDistribution.fromReleaseInfo(input, "\n");
+  return LinuxDistribution.fromReleaseInfo(input, "\n");
 }

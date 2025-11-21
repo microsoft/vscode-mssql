@@ -7,11 +7,12 @@ import * as qr from "../../../sharedInterfaces/queryResult";
 import { useVscodeSelector } from "../../common/useVscodeSelector";
 
 export function useQueryResultSelector<T>(
-    selector: (state: qr.QueryResultWebviewState) => T,
-    equals: (a: T, b: T) => boolean = Object.is,
+  selector: (state: qr.QueryResultWebviewState) => T,
+  equals: (a: T, b: T) => boolean = Object.is,
 ) {
-    return useVscodeSelector<qr.QueryResultWebviewState, qr.QueryResultReducers, T>(
-        selector,
-        equals,
-    );
+  return useVscodeSelector<
+    qr.QueryResultWebviewState,
+    qr.QueryResultReducers,
+    T
+  >(selector, equals);
 }

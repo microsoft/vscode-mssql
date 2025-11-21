@@ -10,9 +10,9 @@ import { DeploymentStateProvider } from "./deploymentStateProvider";
 import { DeploymentStartPage } from "./deploymentStartPage";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider>
-        <DeploymentStateProvider>
-            <DeploymentStartPage />
-        </DeploymentStateProvider>
-    </VscodeWebviewProvider>,
+  <VscodeWebviewProvider>
+    <DeploymentStateProvider>
+      <DeploymentStartPage />
+    </DeploymentStateProvider>
+  </VscodeWebviewProvider>,
 );

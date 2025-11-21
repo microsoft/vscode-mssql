@@ -11,11 +11,11 @@ import { SchemaDesignerPage } from "./schemaDesignerPage";
 import { ReactFlowProvider } from "@xyflow/react";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider>
-        <ReactFlowProvider>
-            <SchemaDesignerStateProvider>
-                <SchemaDesignerPage />
-            </SchemaDesignerStateProvider>
-        </ReactFlowProvider>
-    </VscodeWebviewProvider>,
+  <VscodeWebviewProvider>
+    <ReactFlowProvider>
+      <SchemaDesignerStateProvider>
+        <SchemaDesignerPage />
+      </SchemaDesignerStateProvider>
+    </ReactFlowProvider>
+  </VscodeWebviewProvider>,
 );

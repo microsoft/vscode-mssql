@@ -4,9 +4,13 @@ import InputPrompt from "./input";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
 export default class PasswordPrompt extends InputPrompt {
-    constructor(question: any, vscodeWrapper: VscodeWrapper, ignoreFocusOut?: boolean) {
-        super(question, vscodeWrapper, ignoreFocusOut);
+  constructor(
+    question: any,
+    vscodeWrapper: VscodeWrapper,
+    ignoreFocusOut?: boolean,
+  ) {
+    super(question, vscodeWrapper, ignoreFocusOut);
 
-        this._options.password = true;
-    }
+    this._options.password = true;
+  }
 }

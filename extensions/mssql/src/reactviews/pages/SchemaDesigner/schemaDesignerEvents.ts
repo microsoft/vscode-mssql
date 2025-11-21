@@ -7,19 +7,19 @@ import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
 import { TypedEventEmitter } from "../../common/eventEmitter";
 
 export type MyEvents = {
-    getScript: () => void;
-    openCodeDrawer: () => void;
-    editTable: (
-        table: SchemaDesigner.Table,
-        schema: SchemaDesigner.Schema,
-        showForeignKeys?: boolean,
-    ) => void;
-    newTable: (schema: SchemaDesigner.Schema) => void;
-    onFindWidgetValueChange: (searchText: string) => void;
-    pushState: () => void;
-    undo: () => void;
-    redo: () => void;
-    updateUndoRedoState: (undoEnabled: boolean, redoEnabled: boolean) => void;
+  getScript: () => void;
+  openCodeDrawer: () => void;
+  editTable: (
+    table: SchemaDesigner.Table,
+    schema: SchemaDesigner.Schema,
+    showForeignKeys?: boolean,
+  ) => void;
+  newTable: (schema: SchemaDesigner.Schema) => void;
+  onFindWidgetValueChange: (searchText: string) => void;
+  pushState: () => void;
+  undo: () => void;
+  redo: () => void;
+  updateUndoRedoState: (undoEnabled: boolean, redoEnabled: boolean) => void;
 };
 
 const eventBus = new TypedEventEmitter<MyEvents>();

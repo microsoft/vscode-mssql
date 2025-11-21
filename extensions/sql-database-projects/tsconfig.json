@@ -1,13 +1,11 @@
 {
-	//"extends": "../tsconfig.base.json",
-	"compileOnSave": true,
-	"compilerOptions": {
-		"module": "nodenext",
-		"outDir": "./out",   
-		"target": "ES2024",
-        "lib": ["ES2024", "dom"],
-	},
-	"exclude": [
-		"node_modules"
-	]
+  //"extends": "../tsconfig.base.json",
+  "compileOnSave": true,
+  "compilerOptions": {
+    "module": "nodenext",
+    "outDir": "./out",
+    "target": "ES2024",
+    "lib": ["ES2024", "dom"]
+  },
+  "exclude": ["node_modules"]
 }

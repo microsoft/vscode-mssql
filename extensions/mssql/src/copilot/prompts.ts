@@ -45,15 +45,15 @@ export const USE_TOOLS_PREFIX = "Use tools to ";
 
 // Prompt templates for chat commands
 export const CHAT_COMMAND_PROMPTS = {
-    runQuery: `${USE_TOOLS_PREFIX}run query: `,
-    explain: `${USE_TOOLS_PREFIX}explain this query. ${EXPLAIN_QUERY_INSTRUCTIONS}`,
-    fix: `${USE_TOOLS_PREFIX}fix this SQL query: `,
-    optimize: `${USE_TOOLS_PREFIX}optimize this SQL query for better performance: `,
-    showDefinition: `${USE_TOOLS_PREFIX}show the definition and structure of the specified database object: `,
-    listDatabases: `${USE_TOOLS_PREFIX}list all databases available on the current server. `,
-    listSchemas: `${USE_TOOLS_PREFIX}list all schemas in the current database. `,
-    listTables: `${USE_TOOLS_PREFIX}list all tables in the current database. `,
-    listViews: `${USE_TOOLS_PREFIX}list all views in the current database. `,
-    listFunctions: `${USE_TOOLS_PREFIX}list all functions in the current database. `,
-    listProcedures: `${USE_TOOLS_PREFIX}list all stored procedures in the current database. `,
+  runQuery: `${USE_TOOLS_PREFIX}run query: `,
+  explain: `${USE_TOOLS_PREFIX}explain this query. ${EXPLAIN_QUERY_INSTRUCTIONS}`,
+  fix: `${USE_TOOLS_PREFIX}fix this SQL query: `,
+  optimize: `${USE_TOOLS_PREFIX}optimize this SQL query for better performance: `,
+  showDefinition: `${USE_TOOLS_PREFIX}show the definition and structure of the specified database object: `,
+  listDatabases: `${USE_TOOLS_PREFIX}list all databases available on the current server. `,
+  listSchemas: `${USE_TOOLS_PREFIX}list all schemas in the current database. `,
+  listTables: `${USE_TOOLS_PREFIX}list all tables in the current database. `,
+  listViews: `${USE_TOOLS_PREFIX}list all views in the current database. `,
+  listFunctions: `${USE_TOOLS_PREFIX}list all functions in the current database. `,
+  listProcedures: `${USE_TOOLS_PREFIX}list all stored procedures in the current database. `,
 } as const;

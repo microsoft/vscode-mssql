@@ -11,48 +11,57 @@ import { getCoreRPCs2 } from "../../common/utils";
 
 export interface ExecutionPlanContextProps extends ep.ExecutionPlanProvider {}
 
-const ExecutionPlanContext = createContext<ExecutionPlanContextProps | undefined>(undefined);
+const ExecutionPlanContext = createContext<
+  ExecutionPlanContextProps | undefined
+>(undefined);
 
 interface ExecutionPlanProviderProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
-const ExecutionPlanStateProvider: React.FC<ExecutionPlanProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<ep.ExecutionPlanState, ep.ExecutionPlanReducers>();
+const ExecutionPlanStateProvider: React.FC<ExecutionPlanProviderProps> = ({
+  children,
+}) => {
+  const { extensionRpc } = useVscodeWebview2<
+    ep.ExecutionPlanState,
+    ep.ExecutionPlanReducers
+  >();
 
-    const commands = useMemo<ExecutionPlanContextProps>(
-        () => ({
-            ...getCoreRPCs2(extensionRpc),
-            getExecutionPlan: function (): void {
-                extensionRpc.action("getExecutionPlan", {});
-            },
-            saveExecutionPlan: function (sqlPlanContent: string): void {
-                extensionRpc.action("saveExecutionPlan", {
-                    sqlPlanContent: sqlPlanContent,
-                });
-            },
-            showPlanXml: function (sqlPlanContent: string): void {
-                extensionRpc.action("showPlanXml", {
-                    sqlPlanContent: sqlPlanContent,
-                });
-            },
-            showQuery: function (query: string): void {
-                extensionRpc.action("showQuery", {
-                    query: query,
-                });
-            },
-            updateTotalCost: function (addedCost: number): void {
-                extensionRpc.action("updateTotalCost", {
-                    addedCost: addedCost,
-                });
-            },
-        }),
-        [extensionRpc],
-    );
+  const commands = useMemo<ExecutionPlanContextProps>(
+    () => ({
+      ...getCoreRPCs2(extensionRpc),
+      getExecutionPlan: function (): void {
+        extensionRpc.action("getExecutionPlan", {});
+      },
+      saveExecutionPlan: function (sqlPlanContent: string): void {
+        extensionRpc.action("saveExecutionPlan", {
+          sqlPlanContent: sqlPlanContent,
+        });
+      },
+      showPlanXml: function (sqlPlanContent: string): void {
+        extensionRpc.action("showPlanXml", {
+          sqlPlanContent: sqlPlanContent,
+        });
+      },
+      showQuery: function (query: string): void {
+        extensionRpc.action("showQuery", {
+          query: query,
+        });
+      },
+      updateTotalCost: function (addedCost: number): void {
+        extensionRpc.action("updateTotalCost", {
+          addedCost: addedCost,
+        });
+      },
+    }),
+    [extensionRpc],
+  );
 
-    return (
-        <ExecutionPlanContext.Provider value={commands}>{children}</ExecutionPlanContext.Provider>
-    );
+  return (
+    <ExecutionPlanContext.Provider value={commands}>
+      {children}
+    </ExecutionPlanContext.Provider>
+  );
 };
 
 export { ExecutionPlanContext, ExecutionPlanStateProvider };

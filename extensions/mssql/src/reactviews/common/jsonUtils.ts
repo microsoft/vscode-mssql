@@ -9,12 +9,12 @@
  * @returns true if the value has the shape of a JSON object or array, false otherwise
  */
 function isJsonShape(value: string): boolean {
-    const trimmedValue = value?.trim();
-    return (
-        !!trimmedValue &&
-        ((trimmedValue.startsWith("{") && trimmedValue.endsWith("}")) ||
-            (trimmedValue.startsWith("[") && trimmedValue.endsWith("]")))
-    );
+  const trimmedValue = value?.trim();
+  return (
+    !!trimmedValue &&
+    ((trimmedValue.startsWith("{") && trimmedValue.endsWith("}")) ||
+      (trimmedValue.startsWith("[") && trimmedValue.endsWith("]")))
+  );
 }
 
 /**
@@ -24,13 +24,13 @@ function isJsonShape(value: string): boolean {
  * @returns true if the value contains valid JSON, false otherwise
  */
 export function isJson(value: string): boolean {
-    if (isJsonShape(value)) {
-        try {
-            JSON.parse(value);
-            return true;
-        } catch {
-            return false;
-        }
+  if (isJsonShape(value)) {
+    try {
+      JSON.parse(value);
+      return true;
+    } catch {
+      return false;
     }
-    return false;
+  }
+  return false;
 }

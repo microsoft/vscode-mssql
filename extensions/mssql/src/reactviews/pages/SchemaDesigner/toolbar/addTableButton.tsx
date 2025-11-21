@@ -11,21 +11,22 @@ import { locConstants } from "../../../common/locConstants";
 import eventBus from "../schemaDesignerEvents";
 
 export function AddTableButton() {
-    const context = useContext(SchemaDesignerContext);
-    if (!context) {
-        return undefined;
-    }
+  const context = useContext(SchemaDesignerContext);
+  if (!context) {
+    return undefined;
+  }
 
-    return (
-        <Button
-            appearance="subtle"
-            icon={<FluentIcons.TableAdd16Regular />}
-            onClick={() => {
-                eventBus.emit("newTable", context.extractSchema());
-            }}
-            size="small"
-            title={locConstants.schemaDesigner.addTable}>
-            {locConstants.schemaDesigner.addTable}
-        </Button>
-    );
+  return (
+    <Button
+      appearance="subtle"
+      icon={<FluentIcons.TableAdd16Regular />}
+      onClick={() => {
+        eventBus.emit("newTable", context.extractSchema());
+      }}
+      size="small"
+      title={locConstants.schemaDesigner.addTable}
+    >
+      {locConstants.schemaDesigner.addTable}
+    </Button>
+  );
 }

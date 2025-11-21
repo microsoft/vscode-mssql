@@ -9,15 +9,18 @@ import { TreeNodeInfo } from "./treeNodeInfo";
 import { ObjectExplorerUtils } from "../objectExplorerUtils";
 
 export class NoItemsNode extends vscode.TreeItem {
-    constructor(private _parentNode: TreeNodeInfo) {
-        super(LocalizedConstants.ObjectExplorer.NoItems, vscode.TreeItemCollapsibleState.None);
-        this.iconPath = {
-            light: ObjectExplorerUtils.iconPath("NoItems_light"),
-            dark: ObjectExplorerUtils.iconPath("NoItems_dark"),
-        };
-    }
+  constructor(private _parentNode: TreeNodeInfo) {
+    super(
+      LocalizedConstants.ObjectExplorer.NoItems,
+      vscode.TreeItemCollapsibleState.None,
+    );
+    this.iconPath = {
+      light: ObjectExplorerUtils.iconPath("NoItems_light"),
+      dark: ObjectExplorerUtils.iconPath("NoItems_dark"),
+    };
+  }
 
-    public get parentNode(): TreeNodeInfo {
-        return this._parentNode;
-    }
+  public get parentNode(): TreeNodeInfo {
+    return this._parentNode;
+  }
 }

@@ -10,9 +10,9 @@ import { ObjectExplorerFilterStateProvider } from "./ObjectExplorerFilterStatePr
 import { ObjectExplorerFilterPage } from "./ObjectExplorerFilterPage";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider>
-        <ObjectExplorerFilterStateProvider>
-            <ObjectExplorerFilterPage />
-        </ObjectExplorerFilterStateProvider>
-    </VscodeWebviewProvider>,
+  <VscodeWebviewProvider>
+    <ObjectExplorerFilterStateProvider>
+      <ObjectExplorerFilterPage />
+    </ObjectExplorerFilterStateProvider>
+  </VscodeWebviewProvider>,
 );

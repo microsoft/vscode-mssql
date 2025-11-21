@@ -1,20 +1,12 @@
 {
-	"enabled": true,
-	"relativeSourcePath": "..",
-	"relativeCoverageDir": "../../coverage",
-	"ignorePatterns": [
-		"**/node_modules/**",
-		"**/test/**",
-		"extension.js"
-	],
-	"reports": [
-		"cobertura",
-		"lcov",
-		"json"
-	],
-	"verbose": false,
-	"remapOptions": {
-		"basePath": "..",
-		"useAbsolutePaths": true
-	}
+  "enabled": true,
+  "relativeSourcePath": "..",
+  "relativeCoverageDir": "../../coverage",
+  "ignorePatterns": ["**/node_modules/**", "**/test/**", "extension.js"],
+  "reports": ["cobertura", "lcov", "json"],
+  "verbose": false,
+  "remapOptions": {
+    "basePath": "..",
+    "useAbsolutePaths": true
+  }
 }

@@ -10,9 +10,9 @@ import { AddFirewallRulePage } from "./addFirewallRulePage";
 import "../../index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider>
-        <AddFirewallRuleStateProvider>
-            <AddFirewallRulePage />
-        </AddFirewallRuleStateProvider>
-    </VscodeWebviewProvider>,
+  <VscodeWebviewProvider>
+    <AddFirewallRuleStateProvider>
+      <AddFirewallRulePage />
+    </AddFirewallRuleStateProvider>
+  </VscodeWebviewProvider>,
 );

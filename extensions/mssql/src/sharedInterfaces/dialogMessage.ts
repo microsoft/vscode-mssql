@@ -6,12 +6,12 @@
 import { MessageBarIntent } from "@fluentui/react-components";
 
 export interface DialogMessageSpec {
-    message: string;
-    intent?: MessageBarIntent;
-    buttons?: DialogMessageButtonSpec[];
+  message: string;
+  intent?: MessageBarIntent;
+  buttons?: DialogMessageButtonSpec[];
 }
 
 export interface DialogMessageButtonSpec {
-    label: string;
-    id: string;
+  label: string;
+  id: string;
 }

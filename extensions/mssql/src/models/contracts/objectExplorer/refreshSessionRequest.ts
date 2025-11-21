@@ -14,10 +14,10 @@ export class RefreshParams extends ExpandParams {}
 // ------------------------------- < Refresh Session Request > ----------------------------------------------
 
 export namespace RefreshRequest {
-    /**
-     * Returns children of a given node as a NodeInfo array.
-     */
-    export const type = new RequestType<RefreshParams, boolean, void, void>(
-        "objectexplorer/refresh",
-    );
+  /**
+   * Returns children of a given node as a NodeInfo array.
+   */
+  export const type = new RequestType<RefreshParams, boolean, void, void>(
+    "objectexplorer/refresh",
+  );
 }

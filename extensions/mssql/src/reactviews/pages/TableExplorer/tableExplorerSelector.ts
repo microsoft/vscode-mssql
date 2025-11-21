@@ -4,14 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    TableExplorerReducers,
-    TableExplorerWebViewState,
+  TableExplorerReducers,
+  TableExplorerWebViewState,
 } from "../../../sharedInterfaces/tableExplorer";
 import { useVscodeSelector } from "../../common/useVscodeSelector";
 
 export function useTableExplorerSelector<T>(
-    selector: (state: TableExplorerWebViewState) => T,
-    equals: (a: T, b: T) => boolean = Object.is,
+  selector: (state: TableExplorerWebViewState) => T,
+  equals: (a: T, b: T) => boolean = Object.is,
 ) {
-    return useVscodeSelector<TableExplorerWebViewState, TableExplorerReducers, T>(selector, equals);
+  return useVscodeSelector<TableExplorerWebViewState, TableExplorerReducers, T>(
+    selector,
+    equals,
+  );
 }

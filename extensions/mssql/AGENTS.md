@@ -126,31 +126,31 @@ yarn package --online      # Ensure extension can be packaged
 
 ### Code Quality Validation
 
--   Always run `yarn lint src/ test/` before committing
--   Check for TypeScript compilation errors: `yarn build:extension` and `yarn build:webviews`
--   Verify no new warnings are introduced during build
+- Always run `yarn lint src/ test/` before committing
+- Check for TypeScript compilation errors: `yarn build:extension` and `yarn build:webviews`
+- Verify no new warnings are introduced during build
 
 ## Project Structure
 
 ### Key Directories
 
--   `src/` - Main extension source code (TypeScript)
-    -   `copilot/` - GitHub Copilot integration features
-    -   `controllers/` - Extension controllers and logic
-    -   `reactviews/` - React components for webviews
-    -   `services/` - Core business logic services
--   `test/` - Unit and E2E tests
--   `scripts/` - Build and utility scripts
--   `dist/` - Build output (not in repository)
--   `localization/` - Multi-language support files
+- `src/` - Main extension source code (TypeScript)
+  - `copilot/` - GitHub Copilot integration features
+  - `controllers/` - Extension controllers and logic
+  - `reactviews/` - React components for webviews
+  - `services/` - Core business logic services
+- `test/` - Unit and E2E tests
+- `scripts/` - Build and utility scripts
+- `dist/` - Build output (not in repository)
+- `localization/` - Multi-language support files
 
 ### Important Files
 
--   `package.json` - Extension manifest and build scripts
--   `tsconfig.extension.json` - TypeScript config for extension code
--   `tsconfig.react.json` - TypeScript config for React webviews
--   `eslint.config.mjs` - Linting configuration
--   `prettier.config.mjs` - Code formatting rules
+- `package.json` - Extension manifest and build scripts
+- `tsconfig.extension.json` - TypeScript config for extension code
+- `tsconfig.react.json` - TypeScript config for React webviews
+- `eslint.config.mjs` - Linting configuration
+- `prettier.config.mjs` - Code formatting rules
 
 ## Common Commands and Expected Times
 
@@ -170,40 +170,40 @@ yarn package --online      # Ensure extension can be packaged
 
 #### Lint Failures
 
--   **Issue**: `yarn lint` fails with "Definition for rule not found"
--   **Solution**: Use `yarn lint src/ test/` to lint source files only, not build output
+- **Issue**: `yarn lint` fails with "Definition for rule not found"
+- **Solution**: Use `yarn lint src/ test/` to lint source files only, not build output
 
 #### VS Code Tests Failing
 
--   **Issue**: Tests fail with "ENOTFOUND update.code.visualstudio.com"
--   **Solution**: Expected in sandboxed environments. Tests require internet access to download VS Code.
+- **Issue**: Tests fail with "ENOTFOUND update.code.visualstudio.com"
+- **Solution**: Expected in sandboxed environments. Tests require internet access to download VS Code.
 
 #### Build Warnings
 
--   **Issue**: Engine warnings: "The engine 'vscode' appears to be invalid"
--   **Solution**: These are harmless warnings and can be ignored.
+- **Issue**: Engine warnings: "The engine 'vscode' appears to be invalid"
+- **Solution**: These are harmless warnings and can be ignored.
 
 #### Watch Mode Issues
 
--   **Issue**: Watch mode not detecting changes
--   **Solution**: Stop watch mode (Ctrl+C) and restart: `yarn watch`
+- **Issue**: Watch mode not detecting changes
+- **Solution**: Stop watch mode (Ctrl+C) and restart: `yarn watch`
 
 ### CI/CD Expectations
 
--   The GitHub Actions workflow expects all these commands to work
--   Build must complete in under 60 seconds
--   Linting must pass with zero errors
--   VSIX package size should be under 25MB
--   No localization updates should be required unless strings changed
+- The GitHub Actions workflow expects all these commands to work
+- Build must complete in under 60 seconds
+- Linting must pass with zero errors
+- VSIX package size should be under 25MB
+- No localization updates should be required unless strings changed
 
 ## Architecture Notes
 
 ### Extension Components
 
--   **Main Extension**: Entry point in `src/extension.ts`
--   **Webview Controllers**: React-based UI components for database management
--   **Services**: SQL Tools Service integration, connection management, query execution
--   **AI Integration**: GitHub Copilot features for SQL assistance and agent mode
+- **Main Extension**: Entry point in `src/extension.ts`
+- **Webview Controllers**: React-based UI components for database management
+- **Services**: SQL Tools Service integration, connection management, query execution
+- **AI Integration**: GitHub Copilot features for SQL assistance and agent mode
 
 ### Build Pipeline
 
@@ -214,9 +214,9 @@ yarn package --online      # Ensure extension can be packaged
 
 ### Development Patterns
 
--   Use `yarn watch` during development for live compilation
--   Always run linting before committing changes
--   Build and package extension to test full integration
--   Extension can be debugged by installing VSIX in VS Code
+- Use `yarn watch` during development for live compilation
+- Always run linting before committing changes
+- Build and package extension to test full integration
+- Extension can be debugged by installing VSIX in VS Code
 
 **Remember**: NEVER CANCEL long-running build or test commands. Always set appropriate timeouts and wait for completion.

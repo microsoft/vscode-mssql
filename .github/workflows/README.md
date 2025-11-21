@@ -3,9 +3,11 @@
 ## Publish Baseline Artifacts (`publish-baseline.yml`)
 
 ### Purpose
+
 Creates baseline artifacts (VSIX packages size metrics) that PRs can compare against to detect regressions in vsix size.
 
 ### How it works
+
 1. **Triggered automatically** on push to `main` or `release/*` branches
 2. **Can be triggered manually** via workflow_dispatch for testing without pushing code
 3. **Builds both extensions**: `mssql` and `sql-database-projects`
@@ -29,7 +31,9 @@ Creates baseline artifacts (VSIX packages size metrics) that PRs can compare aga
 4. **Coverage comparison** (implicit): Baseline coverage is used by Codecov to show coverage changes
 
 ### When baseline comparison runs
+
 The workflow only performs baseline comparisons when:
+
 - The PR targets `main` branch, OR
 - The PR targets a `release/*` branch
 

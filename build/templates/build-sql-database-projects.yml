@@ -60,4 +60,3 @@ steps:
       SourceFolder: "$(Build.SourcesDirectory)/extensions/sql-database-projects"
       Contents: "*.vsix"
       TargetFolder: "$(Build.ArtifactStagingDirectory)/vsix"
-

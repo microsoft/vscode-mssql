@@ -50,11 +50,13 @@ export const cmdStartQueryHistory = "mssql.startQueryHistoryCapture";
 export const cmdPauseQueryHistory = "mssql.pauseQueryHistoryCapture";
 export const cmdCommandPaletteQueryHistory = "mssql.commandPaletteQueryHistory";
 export const cmdNewQuery = "mssql.newQuery";
-export const cmdCopilotNewQueryWithConnection = "mssql.copilot.newQueryWithConnection";
+export const cmdCopilotNewQueryWithConnection =
+  "mssql.copilot.newQueryWithConnection";
 export const cmdSchemaCompare = "mssql.schemaCompare";
 export const cmdTableExplorer = "mssql.tableExplorer";
 export const cmdTableNodeAction = "mssql.tableNodeAction";
-export const cmdSchemaCompareOpenFromCommandPalette = "mssql.schemaCompareOpenFromCommandPalette";
+export const cmdSchemaCompareOpenFromCommandPalette =
+  "mssql.schemaCompareOpenFromCommandPalette";
 export const cmdDacpacDialog = "mssql.dacpacDialog.launch";
 export const cmdDeployDacpac = "mssql.dacpacDialog.deploy";
 export const cmdExtractDacpac = "mssql.dacpacDialog.extract";
@@ -70,24 +72,30 @@ export const cmdConnectionGroupEdit = "mssql.connectionGroups.edit";
 export const cmdConnectionGroupDelete = "mssql.connectionGroups.delete";
 export const cmdObjectExplorerNewQuery = "mssql.objectExplorerNewQuery";
 export const cmdChatWithDatabase = "mssql.objectExplorerChatWithDatabase";
-export const cmdChatWithDatabaseInAgentMode = "mssql.objectExplorerChatWithDatabaseInAgentMode";
+export const cmdChatWithDatabaseInAgentMode =
+  "mssql.objectExplorerChatWithDatabaseInAgentMode";
 export const cmdExplainQuery = "mssql.copilot.explainQuery";
 export const cmdRewriteQuery = "mssql.copilot.rewriteQuery";
-export const cmdAnalyzeQueryPerformance = "mssql.copilot.analyzeQueryPerformance";
+export const cmdAnalyzeQueryPerformance =
+  "mssql.copilot.analyzeQueryPerformance";
 export const cmdRemoveObjectExplorerNode = "mssql.removeObjectExplorerNode";
 export const cmdRefreshObjectExplorerNode = "mssql.refreshObjectExplorerNode";
-export const cmdDisconnectObjectExplorerNode = "mssql.disconnectObjectExplorerNode";
+export const cmdDisconnectObjectExplorerNode =
+  "mssql.disconnectObjectExplorerNode";
 export const cmdObjectExplorerNodeSignIn = "mssql.objectExplorerNodeSignIn";
 export const cmdConnectObjectExplorerNode = "mssql.connectObjectExplorerNode";
-export const cmdConnectObjectExplorerProfile = "mssql.connectObjectExplorerProfile";
-export const cmdOpenObjectExplorerCommand = "workbench.view.extension.objectExplorer";
-export const cmdObjectExplorerGroupBySchemaFlagName = "mssql.objectExplorer.groupBySchema";
+export const cmdConnectObjectExplorerProfile =
+  "mssql.connectObjectExplorerProfile";
+export const cmdOpenObjectExplorerCommand =
+  "workbench.view.extension.objectExplorer";
+export const cmdObjectExplorerGroupBySchemaFlagName =
+  "mssql.objectExplorer.groupBySchema";
 export const cmdObjectExplorerEnableGroupBySchemaCommand =
-    "mssql.objectExplorer.enableGroupBySchema";
+  "mssql.objectExplorer.enableGroupBySchema";
 export const cmdObjectExplorerDisableGroupBySchemaCommand =
-    "mssql.objectExplorer.disableGroupBySchema";
+  "mssql.objectExplorer.disableGroupBySchema";
 export const cmdObjectExplorerCollapseOrExpandByDefault =
-    "objectExplorer.collapseConnectionGroupsOnStartup";
+  "objectExplorer.collapseConnectionGroupsOnStartup";
 export const cmdEnableRichExperiencesCommand = "mssql.enableRichExperiences";
 export const cmdScriptSelect = "mssql.scriptSelect";
 export const cmdScriptCreate = "mssql.scriptCreate";
@@ -97,7 +105,8 @@ export const cmdScriptAlter = "mssql.scriptAlter";
 export const cmdToggleSqlCmd = "mssql.toggleSqlCmd";
 export const cmdCopyObjectName = "mssql.copyObjectName";
 export const cmdFilterNode = "mssql.filterNode";
-export const cmdFilterNodeWithExistingFilters = "mssql.filterNodeWithExistingFilters";
+export const cmdFilterNodeWithExistingFilters =
+  "mssql.filterNodeWithExistingFilters";
 export const cmdClearFilters = "mssql.clearFilters";
 export const cmdSearchObjects = "mssql.searchObjects";
 export const cmdOpenExtension = "extension.open";
@@ -109,7 +118,8 @@ export const cmdAadRemoveAccount = "mssql.removeAadAccount";
 export const cmdAadAddAccount = "mssql.addAadAccount";
 export const cmdClearAzureTokenCache = "mssql.clearAzureAccountTokenCache";
 export const vscodeWorkbenchChatOpenAgent = "workbench.action.chat.openagent";
-export const vscodeWorkbenchChatOpenAgentLegacy = "workbench.action.chat.openAgent";
+export const vscodeWorkbenchChatOpenAgentLegacy =
+  "workbench.action.chat.openAgent";
 export const cmdShowEstimatedPlan = "mssql.showEstimatedPlan";
 export const cmdEnableActualPlan = "mssql.enableActualPlan";
 export const cmdDisableActualPlan = "mssql.disableActualPlan";
@@ -127,7 +137,8 @@ export const cmdOpenChangelog = "mssql.openChangelog";
 export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const piiLogging = "piiLogging";
 export const mssqlPiiLogging = "mssql.piiLogging";
-export const enableSqlAuthenticationProvider = "mssql.enableSqlAuthenticationProvider";
+export const enableSqlAuthenticationProvider =
+  "mssql.enableSqlAuthenticationProvider";
 export const enableConnectionPooling = "mssql.enableConnectionPooling";
 export const sqlDbSuffix = ".database.windows.net";
 export const defaultConnectionTimeout = 15;
@@ -169,14 +180,15 @@ export const timeToWaitForLanguageModeChange = 10000.0;
 export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
-export const integratedAuthHelpLink = "https://aka.ms/vscode-mssql-integratedauth";
+export const integratedAuthHelpLink =
+  "https://aka.ms/vscode-mssql-integratedauth";
 export const sqlToolsServiceCrashLink =
-    "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
+  "https://github.com/Microsoft/vscode-mssql/wiki/SqlToolsService-Known-Issues";
 export const azureAccountExtensionId = "ms-vscode.azure-account";
 export const databaseString = "Database";
 export const localizedTexts = "localizedTexts";
 export const ipAddressRegex =
-    /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
+  /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/;
 export const xml = "xml";
 export const json = "json";
 export const queryPlan = "Query Plan";
@@ -194,7 +206,8 @@ export const queryPlanXmlStart = "<ShowPlanXML";
  */
 export const ruleNameRegex = /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]?$/;
 export const configAzureAccount = "azureAccount";
-export const azureAccountProviderCredentials = "azureAccountProviderCredentials";
+export const azureAccountProviderCredentials =
+  "azureAccountProviderCredentials";
 export const msalCacheFileName = "accessTokenCache";
 export const copilotConnectToolName = "mssql_connect";
 export const copilotDisconnectToolName = "mssql_disconnect";
@@ -207,7 +220,8 @@ export const copilotListFunctionsToolName = "mssql_list_functions";
 export const copilotRunQueryToolName = "mssql_run_query";
 export const copilotChangeDatabaseToolName = "mssql_change_database";
 export const copilotShowSchemaToolName = "mssql_show_schema";
-export const copilotGetConnectionDetailsToolName = "mssql_get_connection_details";
+export const copilotGetConnectionDetailsToolName =
+  "mssql_get_connection_details";
 
 // Configuration Constants
 export const copyIncludeHeaders = "mssql.copyIncludeHeaders";
@@ -221,12 +235,13 @@ export const configMaxRecentConnections = "maxRecentConnections";
 export const configCopyRemoveNewLine = "copyRemoveNewLine";
 export const configSplitPaneSelection = "splitPaneSelection";
 export const configShowBatchTime = "showBatchTime";
-export const configPreventAutoExecuteScript = "mssql.query.preventAutoExecuteScript";
+export const configPreventAutoExecuteScript =
+  "mssql.query.preventAutoExecuteScript";
 export enum extConfigResultKeys {
-    Shortcuts = "shortcuts",
-    MessagesDefaultOpen = "messagesDefaultOpen",
-    ResultsFontSize = "resultsFontSize",
-    ResultsFontFamily = "resultsFontFamily",
+  Shortcuts = "shortcuts",
+  MessagesDefaultOpen = "messagesDefaultOpen",
+  ResultsFontSize = "resultsFontSize",
+  ResultsFontFamily = "resultsFontFamily",
 }
 export const sqlToolsServiceInstallDirConfigKey = "installDir";
 export const sqlToolsServiceExecutableFilesConfigKey = "executableFiles";
@@ -237,27 +252,34 @@ export const configPersistQueryResultTabs = "persistQueryResultTabs";
 export const configQueryHistoryLimit = "queryHistoryLimit";
 export const configEnableQueryHistoryCapture = "enableQueryHistoryCapture";
 export const configEnableQueryHistoryFeature = "enableQueryHistoryFeature";
-export const configEnableExperimentalFeatures = "mssql.enableExperimentalFeatures";
+export const configEnableExperimentalFeatures =
+  "mssql.enableExperimentalFeatures";
 export const configEnableRichExperiences = "mssql.enableRichExperiences";
 export const configEnableRichExperiencesDoNotShowPrompt =
-    "mssql.enableRichExperiencesDoNotShowPrompt";
+  "mssql.enableRichExperiencesDoNotShowPrompt";
 export const richFeaturesLearnMoreLink = "https://aka.ms/mssql-rich-features";
-export const configOpenQueryResultsInTabByDefault = "mssql.openQueryResultsInTabByDefault";
+export const configOpenQueryResultsInTabByDefault =
+  "mssql.openQueryResultsInTabByDefault";
 export const configOpenQueryResultsInTabByDefaultDoNotShowPrompt =
-    "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
+  "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt";
 export const configAutoColumnSizing = "resultsGrid.autoSizeColumns";
-export const configInMemoryDataProcessingThreshold = "resultsGrid.inMemoryDataProcessingThreshold";
-export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSqlLanguageService";
+export const configInMemoryDataProcessingThreshold =
+  "resultsGrid.inMemoryDataProcessingThreshold";
+export const configAutoDisableNonTSqlLanguageService =
+  "mssql.autoDisableNonTSqlLanguageService";
 export const copilotDebugLogging = "mssql.copilotDebugLogging";
-export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
+export const configSelectedAzureSubscriptions =
+  "mssql.selectedAzureSubscriptions";
 export const configShowActiveConnectionAsCodeLensSuggestion =
-    "mssql.query.showActiveConnectionAsCodeLensSuggestion";
-export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";
-export const configStatusBarEnableConnectionColor = "mssql.statusBar.enableConnectionColor";
+  "mssql.query.showActiveConnectionAsCodeLensSuggestion";
+export const configStatusBarConnectionInfoMaxLength =
+  "statusBar.connectionInfoMaxLength";
+export const configStatusBarEnableConnectionColor =
+  "mssql.statusBar.enableConnectionColor";
 export const configSchemaDesignerEnableExpandCollapseButtons =
-    "mssql.schemaDesigner.enableExpandCollapseButtons";
+  "mssql.schemaDesigner.enableExpandCollapseButtons";
 export const configSavePasswordsUntilRestart =
-    "mssql.connectionManagement.rememberPasswordsUntilRestart";
+  "mssql.connectionManagement.rememberPasswordsUntilRestart";
 export const configAutoRevealResultsPanel = "mssql.autoRevealResultsPanel";
 export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
@@ -276,12 +298,15 @@ export const serviceInstalling = "Installing";
 export const serviceDownloading = "Downloading";
 export const serviceInstalled = "Sql Tools Service installed";
 export const serviceInstallationFailed = "Failed to install Sql Tools Service";
-export const sqlToolsServiceCrashMessage = "SQL Tools Service component could not start.";
+export const sqlToolsServiceCrashMessage =
+  "SQL Tools Service component could not start.";
 export const sqlToolsServiceCrashButton = "View Known Issues";
-export const serviceInitializingOutputChannelName = "SqlToolsService Initialization";
-export const serviceInitializing = "Initializing SQL tools service for the mssql extension.";
+export const serviceInitializingOutputChannelName =
+  "SqlToolsService Initialization";
+export const serviceInitializing =
+  "Initializing SQL tools service for the mssql extension.";
 export const commandsNotAvailableWhileInstallingTheService =
-    "Note: mssql commands will be available after installing the service.";
+  "Note: mssql commands will be available after installing the service.";
 export const unsupportedPlatformErrorMessage = "The platform is not supported";
 export const serviceLoadingFailed = "Failed to load Sql Tools Service";
 export const invalidServiceFilePath = "Invalid file path for Sql Tools Service";
@@ -294,13 +319,14 @@ export const scriptSelectText = "SELECT TOP (1000) * FROM ";
 export const tenantDisplayName = "Microsoft";
 export const windowsResourceClientPath = "SqlToolsResourceProviderService.exe";
 export const unixResourceClientPath = "SqlToolsResourceProviderService";
-export const microsoftPrivacyStatementUrl = "https://go.microsoft.com/fwlink/?LinkId=521839";
+export const microsoftPrivacyStatementUrl =
+  "https://go.microsoft.com/fwlink/?LinkId=521839";
 export const sqlPlanLanguageId = "sqlplan";
 export const showPlanXmlColumnName = "Microsoft SQL Server 2005 XML Showplan";
 export enum Platform {
-    Windows = "win32",
-    Mac = "darwin",
-    Linux = "linux",
+  Windows = "win32",
+  Mac = "darwin",
+  Linux = "linux",
 }
 export const isRichExperiencesEnabledDefault = true;
 export const sa = "SA";
@@ -316,9 +342,10 @@ export const sqlServerDockerRegistry = "mcr.microsoft.com";
 export const sqlServerDockerRepository = "mssql/server";
 export const sqlServerEulaLink = "https://aka.ms/mssql-container-license";
 export const licenseAgreementUrl =
-    "https://github.com/microsoft/containerregistry/blob/main/legal/Container-Images-Legal-Notice.md";
+  "https://github.com/microsoft/containerregistry/blob/main/legal/Container-Images-Legal-Notice.md";
 export const dockerImageDefaultTag = "latest";
-export const AzureSqlDbFullDockerImageName = "Azure SQL Database (Edge emulation)";
+export const AzureSqlDbFullDockerImageName =
+  "Azure SQL Database (Edge emulation)";
 export const SqlServerDockerImageName = "SQL Server";
 export const MAX_PORT_NUMBER = 65535;
 export const SqlServerName = "SQL server";
@@ -326,7 +353,8 @@ export const AzureSqlServerName = "Azure SQL server";
 export const DefaultSqlPortNumber = "1433";
 export const DefaultAdminUsername = "sa";
 export const DBProjectConfigurationKey = "sqlDatabaseProjects";
-export const sqlDatabaseProjectsExtensionId = "ms-mssql.sql-database-projects-vscode";
+export const sqlDatabaseProjectsExtensionId =
+  "ms-mssql.sql-database-projects-vscode";
 export const enableSqlProjPreviewFeaturesKey = "enablePreviewFeatures";
 export const AzureSqlV12 = "AzureV12";
 export const PublishProfileExtension = "publish.xml";

@@ -1,8 +1,8 @@
 [
-    {
-        "messageText": "Command(s) completed successfully."
-    },
-    {
-        "messageText": "(5 row(s) affected)"
-    }
+  {
+    "messageText": "Command(s) completed successfully."
+  },
+  {
+    "messageText": "(5 row(s) affected)"
+  }
 ]

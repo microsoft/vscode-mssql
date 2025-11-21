@@ -8,105 +8,110 @@ import { FormContextProps, FormItemSpec, FormState } from "./form";
 import { IConnectionDialogProfile, IDialogProps } from "./connectionDialog";
 
 export class LocalContainersState
-    implements
-        FormState<DockerConnectionProfile, LocalContainersState, LocalContainersFormItemSpec>
+  implements
+    FormState<
+      DockerConnectionProfile,
+      LocalContainersState,
+      LocalContainersFormItemSpec
+    >
 {
-    loadState: ApiStatus = ApiStatus.Loading;
-    errorMessage?: string;
-    public dockerSteps: DockerStep[] = [];
-    // @ts-ignore
-    formState: DockerConnectionProfile = undefined;
-    formComponents: Partial<Record<keyof DockerConnectionProfile, LocalContainersFormItemSpec>> =
-        {};
-    formErrors: string[] = [];
-    dialog: IDialogProps | undefined;
-    /** Used for container name validation within the form */
-    isValidContainerName: boolean = false;
-    /** Used for port number validation within the form */
-    isValidPortNumber: boolean = false;
-    /** Used to check whether docker container creation can proceed */
-    isDockerProfileValid: boolean = false;
-    /** Used to track the form validation state */
-    formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
-    /** Used to track the current step in the Docker deployment process */
-    currentDockerStep: DockerStepOrder = DockerStepOrder.dockerInstallation;
-    constructor(params?: Partial<LocalContainersState>) {
-        for (const key in params) {
-            if (key in this) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any -- safe due to key in this check being a Partial of the class
-                (this as any)[key as keyof LocalContainersState] =
-                    params[key as keyof LocalContainersState]!;
-            }
-        }
+  loadState: ApiStatus = ApiStatus.Loading;
+  errorMessage?: string;
+  public dockerSteps: DockerStep[] = [];
+  // @ts-ignore
+  formState: DockerConnectionProfile = undefined;
+  formComponents: Partial<
+    Record<keyof DockerConnectionProfile, LocalContainersFormItemSpec>
+  > = {};
+  formErrors: string[] = [];
+  dialog: IDialogProps | undefined;
+  /** Used for container name validation within the form */
+  isValidContainerName: boolean = false;
+  /** Used for port number validation within the form */
+  isValidPortNumber: boolean = false;
+  /** Used to check whether docker container creation can proceed */
+  isDockerProfileValid: boolean = false;
+  /** Used to track the form validation state */
+  formValidationLoadState: ApiStatus = ApiStatus.NotStarted;
+  /** Used to track the current step in the Docker deployment process */
+  currentDockerStep: DockerStepOrder = DockerStepOrder.dockerInstallation;
+  constructor(params?: Partial<LocalContainersState>) {
+    for (const key in params) {
+      if (key in this) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- safe due to key in this check being a Partial of the class
+        (this as any)[key as keyof LocalContainersState] =
+          params[key as keyof LocalContainersState]!;
+      }
     }
+  }
 }
 
 export interface DockerConnectionProfile extends IConnectionDialogProfile {
-    version: string;
-    hostname: string;
-    profileName: string;
-    savePassword: boolean;
-    acceptEula: boolean;
+  version: string;
+  hostname: string;
+  profileName: string;
+  savePassword: boolean;
+  acceptEula: boolean;
 }
 
 export interface LocalContainersFormItemSpec
-    extends FormItemSpec<
-        DockerConnectionProfile,
-        LocalContainersState,
-        LocalContainersFormItemSpec
-    > {
-    componentWidth: string;
-    isAdvancedOption: boolean;
+  extends FormItemSpec<
+    DockerConnectionProfile,
+    LocalContainersState,
+    LocalContainersFormItemSpec
+  > {
+  componentWidth: string;
+  isAdvancedOption: boolean;
 }
 
 export interface LocalContainersContextProps
-    extends FormContextProps<
-        DockerConnectionProfile,
-        LocalContainersState,
-        LocalContainersFormItemSpec
-    > {
-    /**
-     * Checks the selected Docker profile's availability and configuration.
-     */
-    checkDockerProfile(): void;
+  extends FormContextProps<
+    DockerConnectionProfile,
+    LocalContainersState,
+    LocalContainersFormItemSpec
+  > {
+  /**
+   * Checks the selected Docker profile's availability and configuration.
+   */
+  checkDockerProfile(): void;
 
-    /**
-     * Runs the current docker step
-     */
-    completeDockerStep(dockerStep: number): void;
+  /**
+   * Runs the current docker step
+   */
+  completeDockerStep(dockerStep: number): void;
 
-    /**
-     * Resets the states of the current Docker step to NotStarted.
-     */
-    resetDockerStepState(): void;
+  /**
+   * Resets the states of the current Docker step to NotStarted.
+   */
+  resetDockerStepState(): void;
 
-    /**
-     * Closes the ARM SQL 2025 error dialog.
-     */
-    closeArmSql2025ErrorDialog(): void;
+  /**
+   * Closes the ARM SQL 2025 error dialog.
+   */
+  closeArmSql2025ErrorDialog(): void;
 }
 
 export interface LocalContainersReducers {
-    /**
-     * Reducer for completing the current Docker step.
-     */
-    completeDockerStep: { dockerStep: number };
+  /**
+   * Reducer for completing the current Docker step.
+   */
+  completeDockerStep: { dockerStep: number };
 
-    /**
-     * Reducer for resetting the current Docker step state.
-     * Resets the current Docker step to NotStarted.
-     */
-    resetDockerStepState: {};
+  /**
+   * Reducer for resetting the current Docker step state.
+   * Resets the current Docker step to NotStarted.
+   */
+  resetDockerStepState: {};
 
-    /**
-     * Reducer for Docker profile validation.
-     */
-    checkDockerProfile: {};
+  /**
+   * Reducer for Docker profile validation.
+   */
+  checkDockerProfile: {};
 
-    /**
-     * Reducer for closing the ARM SQL 2025 error dialog.
-     */
-    closeArmSql2025ErrorDialog: {};
+  /**
+   * Reducer for closing the ARM SQL 2025 error dialog.
+   */
+  closeArmSql2025ErrorDialog: {};
 }
 
 /**
@@ -114,16 +119,16 @@ export interface LocalContainersReducers {
  * Each step includes metadata about its state, error handling, and the action to perform.
  */
 export interface DockerStep {
-    loadState: ApiStatus;
-    errorMessage?: string;
-    fullErrorText?: string;
-    errorLink?: string;
-    errorLinkText?: string;
-    argNames: string[];
-    headerText: string;
-    bodyText: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    stepAction: (...args: any[]) => Promise<DockerCommandParams>;
+  loadState: ApiStatus;
+  errorMessage?: string;
+  fullErrorText?: string;
+  errorLink?: string;
+  errorLinkText?: string;
+  argNames: string[];
+  headerText: string;
+  bodyText: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  stepAction: (...args: any[]) => Promise<DockerCommandParams>;
 }
 
 /**
@@ -132,21 +137,21 @@ export interface DockerStep {
  * optional error messages, port information, and full error text.
  */
 export type DockerCommandParams = {
-    success: boolean;
-    error?: string;
-    port?: number;
-    fullErrorText?: string;
+  success: boolean;
+  error?: string;
+  port?: number;
+  fullErrorText?: string;
 };
 
 /**
  * Enumeration representing the order of Docker steps in the deployment process.
  */
 export enum DockerStepOrder {
-    dockerInstallation = 0,
-    startDockerDesktop = 1,
-    checkDockerEngine = 2,
-    pullImage = 3,
-    startContainer = 4,
-    checkContainer = 5,
-    connectToContainer = 6,
+  dockerInstallation = 0,
+  startDockerDesktop = 1,
+  checkDockerEngine = 2,
+  pullImage = 3,
+  startContainer = 4,
+  checkContainer = 5,
+  connectToContainer = 6,
 }

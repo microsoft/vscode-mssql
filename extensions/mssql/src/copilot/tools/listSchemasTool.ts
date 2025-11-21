@@ -15,99 +15,100 @@ import { SimpleExecuteResult } from "vscode-mssql";
 import { listSchemasQuery } from "../queries";
 
 export interface ListSchemasToolParams {
-    connectionId: string;
+  connectionId: string;
 }
 
 export interface ListSchemasToolResult {
-    success: boolean;
-    message?: string;
-    schemas: string[];
+  success: boolean;
+  message?: string;
+  schemas: string[];
 }
 
 export class ListSchemasTool extends ToolBase<ListSchemasToolParams> {
-    public readonly toolName = Constants.copilotListSchemasToolName;
+  public readonly toolName = Constants.copilotListSchemasToolName;
 
-    constructor(
-        private _connectionManager: ConnectionManager,
-        private _client: SqlToolsServiceClient,
-    ) {
-        super();
+  constructor(
+    private _connectionManager: ConnectionManager,
+    private _client: SqlToolsServiceClient,
+  ) {
+    super();
+  }
+
+  async call(
+    options: vscode.LanguageModelToolInvocationOptions<ListSchemasToolParams>,
+    _token: vscode.CancellationToken,
+  ) {
+    const { connectionId } = options.input;
+    try {
+      const connInfo = this._connectionManager.getConnectionInfo(connectionId);
+      const connCreds = connInfo?.credentials;
+      if (!connCreds) {
+        return JSON.stringify({
+          success: false,
+          message: loc.noConnectionError(connectionId),
+        });
+      }
+
+      const result = await this._client.sendRequest(
+        new RequestType<
+          { ownerUri: string; queryString: string },
+          SimpleExecuteResult,
+          void,
+          void
+        >("query/simpleexecute"),
+        {
+          ownerUri: connectionId,
+          queryString: listSchemasQuery,
+        },
+      );
+      const schemas = this.getSchemaNamesFromResult(result);
+
+      return JSON.stringify({
+        success: true,
+        schemas,
+      });
+    } catch (err) {
+      return JSON.stringify({
+        success: false,
+        message: getErrorMessage(err),
+      });
+    }
+  }
+
+  private getSchemaNamesFromResult(result: SimpleExecuteResult): string[] {
+    if (!result || !result.rows || result.rows.length === 0) {
+      return [];
     }
 
-    async call(
-        options: vscode.LanguageModelToolInvocationOptions<ListSchemasToolParams>,
-        _token: vscode.CancellationToken,
-    ) {
-        const { connectionId } = options.input;
-        try {
-            const connInfo = this._connectionManager.getConnectionInfo(connectionId);
-            const connCreds = connInfo?.credentials;
-            if (!connCreds) {
-                return JSON.stringify({
-                    success: false,
-                    message: loc.noConnectionError(connectionId),
-                });
-            }
+    const schemaNames: string[] = [];
 
-            const result = await this._client.sendRequest(
-                new RequestType<
-                    { ownerUri: string; queryString: string },
-                    SimpleExecuteResult,
-                    void,
-                    void
-                >("query/simpleexecute"),
-                {
-                    ownerUri: connectionId,
-                    queryString: listSchemasQuery,
-                },
-            );
-            const schemas = this.getSchemaNamesFromResult(result);
-
-            return JSON.stringify({
-                success: true,
-                schemas,
-            });
-        } catch (err) {
-            return JSON.stringify({
-                success: false,
-                message: getErrorMessage(err),
-            });
+    // Extract schema names from each row
+    // Assuming the query returns schema names in the first column
+    for (const row of result.rows) {
+      if (row && row.length > 0 && row[0] && !row[0].isNull) {
+        const schemaName = row[0].displayValue.trim();
+        if (schemaName) {
+          schemaNames.push(schemaName);
         }
+      }
     }
 
-    private getSchemaNamesFromResult(result: SimpleExecuteResult): string[] {
-        if (!result || !result.rows || result.rows.length === 0) {
-            return [];
-        }
+    return schemaNames;
+  }
 
-        const schemaNames: string[] = [];
-
-        // Extract schema names from each row
-        // Assuming the query returns schema names in the first column
-        for (const row of result.rows) {
-            if (row && row.length > 0 && row[0] && !row[0].isNull) {
-                const schemaName = row[0].displayValue.trim();
-                if (schemaName) {
-                    schemaNames.push(schemaName);
-                }
-            }
-        }
-
-        return schemaNames;
-    }
-
-    async prepareInvocation(
-        options: vscode.LanguageModelToolInvocationPrepareOptions<ListSchemasToolParams>,
-        _token: vscode.CancellationToken,
-    ) {
-        const { connectionId } = options.input;
-        const confirmationMessages = {
-            title: `${Constants.extensionName}: ${loc.ListSchemasToolConfirmationTitle}`,
-            message: new vscode.MarkdownString(
-                loc.ListSchemasToolConfirmationMessage(connectionId),
-            ),
-        };
-        const invocationMessage = loc.ListSchemasToolInvocationMessage(connectionId);
-        return { invocationMessage, confirmationMessages };
-    }
+  async prepareInvocation(
+    options: vscode.LanguageModelToolInvocationPrepareOptions<ListSchemasToolParams>,
+    _token: vscode.CancellationToken,
+  ) {
+    const { connectionId } = options.input;
+    const confirmationMessages = {
+      title: `${Constants.extensionName}: ${loc.ListSchemasToolConfirmationTitle}`,
+      message: new vscode.MarkdownString(
+        loc.ListSchemasToolConfirmationMessage(connectionId),
+      ),
+    };
+    const invocationMessage =
+      loc.ListSchemasToolInvocationMessage(connectionId);
+    return { invocationMessage, confirmationMessages };
+  }
 }

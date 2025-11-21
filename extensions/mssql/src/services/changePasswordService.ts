@@ -15,51 +15,54 @@ import { generateGuid } from "../models/utils";
 import { getErrorMessage } from "../utils/utils";
 
 export class ChangePasswordService {
-    constructor(
-        private _client: SqlToolsServiceClient,
-        private _context?: vscode.ExtensionContext,
-        private _vscodeWrapper?: VscodeWrapper,
-    ) {}
+  constructor(
+    private _client: SqlToolsServiceClient,
+    private _context?: vscode.ExtensionContext,
+    private _vscodeWrapper?: VscodeWrapper,
+  ) {}
 
-    /**
-     * Handles the change password operation. To be used in case of non UI based connection
-     * flows where the password change prompt needs to be shown.
-     * @param credentials The connection credentials.
-     * @param error The error that triggered the password change prompt.
-     * @returns A promise that resolves to the new password or undefined if the operation was canceled.
-     */
-    public async handleChangePassword(credentials: IConnectionInfo): Promise<string | undefined> {
-        const webview = new ChangePasswordWebviewController(
-            this._context,
-            this._vscodeWrapper,
-            credentials,
-            this,
-        );
+  /**
+   * Handles the change password operation. To be used in case of non UI based connection
+   * flows where the password change prompt needs to be shown.
+   * @param credentials The connection credentials.
+   * @param error The error that triggered the password change prompt.
+   * @returns A promise that resolves to the new password or undefined if the operation was canceled.
+   */
+  public async handleChangePassword(
+    credentials: IConnectionInfo,
+  ): Promise<string | undefined> {
+    const webview = new ChangePasswordWebviewController(
+      this._context,
+      this._vscodeWrapper,
+      credentials,
+      this,
+    );
 
-        await webview.whenWebviewReady();
-        webview.revealToForeground();
-        return await webview.dialogResult.promise;
+    await webview.whenWebviewReady();
+    webview.revealToForeground();
+    return await webview.dialogResult.promise;
+  }
+
+  /**
+   * Calls the change password request on the service client.
+   * @param credentials The connection credentials.
+   * @param newPassword The new password.
+   * @returns A promise that resolves to the result of the change password operation.
+   */
+  public async changePassword(
+    credentials: IConnectionInfo,
+    newPassword: string,
+  ): Promise<ChangePasswordResult> {
+    const connectionDetails =
+      ConnectionCredentials.createConnectionDetails(credentials);
+    try {
+      return await this._client.sendRequest(ChangePasswordRequest.type, {
+        ownerUri: `changePassword:${generateGuid()}`,
+        connection: connectionDetails,
+        newPassword: newPassword,
+      });
+    } catch (error) {
+      return { result: false, errorMessage: getErrorMessage(error) };
     }
-
-    /**
-     * Calls the change password request on the service client.
-     * @param credentials The connection credentials.
-     * @param newPassword The new password.
-     * @returns A promise that resolves to the result of the change password operation.
-     */
-    public async changePassword(
-        credentials: IConnectionInfo,
-        newPassword: string,
-    ): Promise<ChangePasswordResult> {
-        const connectionDetails = ConnectionCredentials.createConnectionDetails(credentials);
-        try {
-            return await this._client.sendRequest(ChangePasswordRequest.type, {
-                ownerUri: `changePassword:${generateGuid()}`,
-                connection: connectionDetails,
-                newPassword: newPassword,
-            });
-        } catch (error) {
-            return { result: false, errorMessage: getErrorMessage(error) };
-        }
-    }
+  }
 }

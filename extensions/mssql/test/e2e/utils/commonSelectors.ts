@@ -4,6 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 export const mssqlActivityBarButton =
-    'a[class^="action-label activity-workbench-view-extension-objectExplorer"]';
+  'a[class^="action-label activity-workbench-view-extension-objectExplorer"]';
 
 export const addConnectionButton = 'div[aria-label="Add Connection"]';

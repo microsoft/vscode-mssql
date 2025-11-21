@@ -12,53 +12,53 @@ import { DeploymentContext } from "../deploymentStateProvider";
 import { LocalContainersPrereqPage } from "./localContainersPrereqPage";
 
 const useStyles = makeStyles({
-    outerDiv: {
-        height: "100%",
-        position: "relative",
-        overflowY: "auto",
-        overflowX: "unset",
-    },
-    spinnerDiv: {
-        height: "100%",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        flexDirection: "column",
-        padding: "20px",
-    },
-    errorIcon: {
-        fontSize: "100px",
-        opacity: 0.5,
-    },
+  outerDiv: {
+    height: "100%",
+    position: "relative",
+    overflowY: "auto",
+    overflowX: "unset",
+  },
+  spinnerDiv: {
+    height: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "column",
+    padding: "20px",
+  },
+  errorIcon: {
+    fontSize: "100px",
+    opacity: 0.5,
+  },
 });
 
 export const LocalContainersStartPage = () => {
-    const classes = useStyles();
-    const context = useContext(DeploymentContext);
-    const localContainersState = context?.state.deploymentTypeState;
+  const classes = useStyles();
+  const context = useContext(DeploymentContext);
+  const localContainersState = context?.state.deploymentTypeState;
 
-    const renderMainContent = () => {
-        switch (localContainersState?.loadState) {
-            case ApiStatus.Loading:
-                return (
-                    <div className={classes.spinnerDiv}>
-                        <Spinner
-                            label={locConstants.localContainers.loadingLocalContainers}
-                            labelPosition="below"
-                        />
-                    </div>
-                );
-            case ApiStatus.Loaded:
-                return <LocalContainersPrereqPage />;
-            case ApiStatus.Error:
-                return (
-                    <div className={classes.spinnerDiv}>
-                        <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>{localContainersState?.errorMessage ?? ""}</Text>
-                    </div>
-                );
-        }
-    };
+  const renderMainContent = () => {
+    switch (localContainersState?.loadState) {
+      case ApiStatus.Loading:
+        return (
+          <div className={classes.spinnerDiv}>
+            <Spinner
+              label={locConstants.localContainers.loadingLocalContainers}
+              labelPosition="below"
+            />
+          </div>
+        );
+      case ApiStatus.Loaded:
+        return <LocalContainersPrereqPage />;
+      case ApiStatus.Error:
+        return (
+          <div className={classes.spinnerDiv}>
+            <ErrorCircleRegular className={classes.errorIcon} />
+            <Text size={400}>{localContainersState?.errorMessage ?? ""}</Text>
+          </div>
+        );
+    }
+  };
 
-    return <div className={classes.outerDiv}>{renderMainContent()}</div>;
+  return <div className={classes.outerDiv}>{renderMainContent()}</div>;
 };

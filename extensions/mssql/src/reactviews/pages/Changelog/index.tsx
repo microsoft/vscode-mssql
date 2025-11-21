@@ -10,9 +10,9 @@ import { ChangelogStateProvider } from "./changelogStateProvider";
 import { ChangelogPage } from "./changelogPage";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider2>
-        <ChangelogStateProvider>
-            <ChangelogPage />
-        </ChangelogStateProvider>
-    </VscodeWebviewProvider2>,
+  <VscodeWebviewProvider2>
+    <ChangelogStateProvider>
+      <ChangelogPage />
+    </ChangelogStateProvider>
+  </VscodeWebviewProvider2>,
 );

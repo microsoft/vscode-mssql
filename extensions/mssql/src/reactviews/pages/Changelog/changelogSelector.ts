@@ -7,8 +7,8 @@ import { ChangelogWebviewState } from "../../../sharedInterfaces/changelog";
 import { useVscodeSelector } from "../../common/useVscodeSelector";
 
 export function useChangelogSelector<T>(
-    selector: (state: ChangelogWebviewState) => T,
-    equals?: (a: T, b: T) => boolean,
+  selector: (state: ChangelogWebviewState) => T,
+  equals?: (a: T, b: T) => boolean,
 ) {
-    return useVscodeSelector<ChangelogWebviewState, void, T>(selector, equals);
+  return useVscodeSelector<ChangelogWebviewState, void, T>(selector, equals);
 }

@@ -5,9 +5,9 @@
 
 import { FormContextProps } from "../../../sharedInterfaces/form";
 import {
-    IPublishForm,
-    PublishDialogFormItemSpec,
-    PublishDialogState,
+  IPublishForm,
+  PublishDialogFormItemSpec,
+  PublishDialogState,
 } from "../../../sharedInterfaces/publishDialog";
 
 /**
@@ -15,9 +15,13 @@ import {
  * Combines the base form context with publish-specific actions.
  */
 export interface PublishFormContext
-    extends FormContextProps<IPublishForm, PublishDialogState, PublishDialogFormItemSpec> {
-    publishNow: () => void;
-    generatePublishScript: () => void;
-    selectPublishProfile: () => void;
-    savePublishProfile: (profileName: string) => void;
+  extends FormContextProps<
+    IPublishForm,
+    PublishDialogState,
+    PublishDialogFormItemSpec
+  > {
+  publishNow: () => void;
+  generatePublishScript: () => void;
+  selectPublishProfile: () => void;
+  savePublishProfile: (profileName: string) => void;
 }

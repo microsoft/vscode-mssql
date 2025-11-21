@@ -11,41 +11,43 @@ import { MssqlChatAgent as loc } from "../../constants/locConstants";
 
 /** Parameters for the disconnect tool. */
 export interface DisconnectToolParams {
-    connectionId: string;
+  connectionId: string;
 }
 
 /** Result of the disconnect tool. */
 export interface DisconnectToolResult {
-    success: boolean;
+  success: boolean;
 }
 
 export class DisconnectTool extends ToolBase<DisconnectToolParams> {
-    public readonly toolName = Constants.copilotDisconnectToolName;
+  public readonly toolName = Constants.copilotDisconnectToolName;
 
-    constructor(private _connectionManager: ConnectionManager) {
-        super();
-    }
+  constructor(private _connectionManager: ConnectionManager) {
+    super();
+  }
 
-    async call(
-        options: vscode.LanguageModelToolInvocationOptions<DisconnectToolParams>,
-        _token: vscode.CancellationToken,
-    ) {
-        const { connectionId } = options.input;
-        await this._connectionManager.disconnect(connectionId);
+  async call(
+    options: vscode.LanguageModelToolInvocationOptions<DisconnectToolParams>,
+    _token: vscode.CancellationToken,
+  ) {
+    const { connectionId } = options.input;
+    await this._connectionManager.disconnect(connectionId);
 
-        return JSON.stringify({ success: true } as DisconnectToolResult);
-    }
+    return JSON.stringify({ success: true } as DisconnectToolResult);
+  }
 
-    async prepareInvocation(
-        options: vscode.LanguageModelToolInvocationPrepareOptions<DisconnectToolParams>,
-        _token: vscode.CancellationToken,
-    ) {
-        const { connectionId } = options.input;
-        const confirmationMessages = {
-            title: `${Constants.extensionName}: ${loc.disconnectToolConfirmationTitle}`,
-            message: new vscode.MarkdownString(loc.disconnectToolConfirmationMessage(connectionId)),
-        };
-        const invocationMessage = loc.disconnectToolInvocationMessage(connectionId);
-        return { invocationMessage, confirmationMessages };
-    }
+  async prepareInvocation(
+    options: vscode.LanguageModelToolInvocationPrepareOptions<DisconnectToolParams>,
+    _token: vscode.CancellationToken,
+  ) {
+    const { connectionId } = options.input;
+    const confirmationMessages = {
+      title: `${Constants.extensionName}: ${loc.disconnectToolConfirmationTitle}`,
+      message: new vscode.MarkdownString(
+        loc.disconnectToolConfirmationMessage(connectionId),
+      ),
+    };
+    const invocationMessage = loc.disconnectToolInvocationMessage(connectionId);
+    return { invocationMessage, confirmationMessages };
+  }
 }

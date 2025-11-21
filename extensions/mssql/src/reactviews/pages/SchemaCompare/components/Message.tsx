@@ -9,48 +9,50 @@ import { locConstants as loc } from "../../../common/locConstants";
 import { makeStyles, Spinner, Text } from "@fluentui/react-components";
 
 const useStyles = makeStyles({
-    container: {
-        marginTop: "32px",
-        display: "flex",
-        gap: "16px",
-        flexDirection: "column",
-        alignItems: "stretch",
-    },
+  container: {
+    marginTop: "32px",
+    display: "flex",
+    gap: "16px",
+    flexDirection: "column",
+    alignItems: "stretch",
+  },
 });
 
 const Message = () => {
-    const context = useContext(schemaCompareContext);
-    const state = context.state;
-    const classes = useStyles();
+  const context = useContext(schemaCompareContext);
+  const state = context.state;
+  const classes = useStyles();
 
-    let message = "";
-    if (
-        !state.isComparisonInProgress &&
-        state.schemaCompareResult &&
-        state.schemaCompareResult.areEqual
-    ) {
-        message = loc.schemaCompare.noDifferences;
-    } else if (state.isComparisonInProgress) {
-        message = loc.schemaCompare.initializingComparison;
-    } else if (!state.isComparisonInProgress && !state.schemaCompareResult) {
-        message = loc.schemaCompare.intro;
-    }
+  let message = "";
+  if (
+    !state.isComparisonInProgress &&
+    state.schemaCompareResult &&
+    state.schemaCompareResult.areEqual
+  ) {
+    message = loc.schemaCompare.noDifferences;
+  } else if (state.isComparisonInProgress) {
+    message = loc.schemaCompare.initializingComparison;
+  } else if (!state.isComparisonInProgress && !state.schemaCompareResult) {
+    message = loc.schemaCompare.intro;
+  }
 
-    if (!message) {
-        return <></>;
-    }
+  if (!message) {
+    return <></>;
+  }
 
-    return (
-        <div className={classes.container}>
-            {state.isComparisonInProgress && <Spinner labelPosition="below" label={message} />}
+  return (
+    <div className={classes.container}>
+      {state.isComparisonInProgress && (
+        <Spinner labelPosition="below" label={message} />
+      )}
 
-            {!state.isComparisonInProgress && (
-                <Text size={400} align="center">
-                    {message}
-                </Text>
-            )}
-        </div>
-    );
+      {!state.isComparisonInProgress && (
+        <Text size={400} align="center">
+          {message}
+        </Text>
+      )}
+    </div>
+  );
 };
 
 export default Message;

@@ -1,5 +1,5 @@
 module.exports = {
-    rules: {
-        "banned-imports": require("./banned-imports"),
-    },
+  rules: {
+    "banned-imports": require("./banned-imports"),
+  },
 };

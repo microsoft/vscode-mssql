@@ -1,45 +1,51 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-    "editor.insertSpaces": false,
-    "files.trimTrailingWhitespace": true,
-    "files.exclude": {
-        "out": false // set this to true to hide the "out" folder with the compiled JS files
-    },
-    "search.exclude": {
-        "out": true, // set this to false to include "out" folder in search results
-        "coverage": true
-    },
-    "typescript.tsdk": "./node_modules/typescript/lib", // we want to use the TS server from our node_modules folder to control its version
-    "files.watcherExclude": {
-        "**/.git/objects/**": true,
-        "**/out/*": true
-    },
+  "editor.insertSpaces": false,
+  "files.trimTrailingWhitespace": true,
+  "files.exclude": {
+    "out": false // set this to true to hide the "out" folder with the compiled JS files
+  },
+  "search.exclude": {
+    "out": true, // set this to false to include "out" folder in search results
+    "coverage": true
+  },
+  "typescript.tsdk": "./node_modules/typescript/lib", // we want to use the TS server from our node_modules folder to control its version
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/out/*": true
+  },
 
-    "lcov.path": ["coverage/lcov.info"],
-    "yaml.schemas": {
-        "https://raw.githubusercontent.com/microsoft/azure-pipelines-vscode/master/service-schema.json": "build/**/*.yml"
-    },
-    "eslint.validate": ["javascript", "javascriptreact", "html", "typescriptreact", "typescript"],
-    "svg.preview.background": "dark-transparent",
-    // also update Prettier settings in prettier.config.mjs so that both CLI and VS Code formatting use the same options!
-    "prettier.printWidth": 100,
-    "prettier.bracketSameLine": true,
-    "[typescript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[javascript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[json]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[typescriptreact]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[html]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[css]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+  "lcov.path": ["coverage/lcov.info"],
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/microsoft/azure-pipelines-vscode/master/service-schema.json": "build/**/*.yml"
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "html",
+    "typescriptreact",
+    "typescript"
+  ],
+  "svg.preview.background": "dark-transparent",
+  // also update Prettier settings in prettier.config.mjs so that both CLI and VS Code formatting use the same options!
+  "prettier.printWidth": 100,
+  "prettier.bracketSameLine": true,
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }

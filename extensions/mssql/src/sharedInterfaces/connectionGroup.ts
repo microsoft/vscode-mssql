@@ -17,55 +17,56 @@ export const CREATE_NEW_GROUP_ID = "CREATE_NEW_GROUP";
  * color, and an optional description.
  */
 export interface IConnectionGroup {
-    id: string;
-    name: string;
-    parentId?: string;
-    color?: string;
-    description?: string;
+  id: string;
+  name: string;
+  parentId?: string;
+  color?: string;
+  description?: string;
 }
 
 /**
  * Props for the Create Connection Group dialog.
  */
 export interface CreateConnectionGroupDialogProps extends IDialogProps {
-    type: "createConnectionGroup";
-    props: ConnectionGroupState;
+  type: "createConnectionGroup";
+  props: ConnectionGroupState;
 }
 
 /**
  * State for the Connection Group webview
  */
 export interface ConnectionGroupState {
-    existingGroupName?: string;
-    name: string;
-    description?: string;
-    color?: string;
-    message?: string;
+  existingGroupName?: string;
+  name: string;
+  description?: string;
+  color?: string;
+  message?: string;
 }
 
 /**
  * Reducers for the Connection Group webview - to be implemented later
  */
 export interface ConnectionGroupReducers {
-    saveConnectionGroup: {
-        name: string;
-        description?: string;
-        color?: string;
-    };
+  saveConnectionGroup: {
+    name: string;
+    description?: string;
+    color?: string;
+  };
 
-    closeDialog: {};
+  closeDialog: {};
 }
 
 /**
  * Context props for the Connection Group webview
  */
-export interface ConnectionGroupContextProps extends WebviewContextProps<ConnectionGroupState> {
-    closeDialog: () => void;
-    saveConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
+export interface ConnectionGroupContextProps
+  extends WebviewContextProps<ConnectionGroupState> {
+  closeDialog: () => void;
+  saveConnectionGroup: (connectionGroupSpec: ConnectionGroupSpec) => void;
 }
 
 export interface ConnectionGroupSpec {
-    name: string;
-    description?: string;
-    color?: string;
+  name: string;
+  description?: string;
+  color?: string;
 }

@@ -9,37 +9,37 @@ import { ConnectionGroupContext } from "./connectionGroupStateProvider";
 import { ConnectionGroupDialog } from "./connectionGroup.component";
 
 const useStyles = makeStyles({
-    root: {
-        display: "flex",
-        flexDirection: "column",
-        width: "600px",
-        maxWidth: "calc(100% - 20px)",
-        "> *": {
-            marginBottom: "15px",
-        },
-        padding: "10px",
+  root: {
+    display: "flex",
+    flexDirection: "column",
+    width: "600px",
+    maxWidth: "calc(100% - 20px)",
+    "> *": {
+      marginBottom: "15px",
     },
+    padding: "10px",
+  },
 });
 
 /**
  * Component for managing connection groups
  */
 export const ConnectionGroupPage = () => {
-    const classes = useStyles();
-    const context = useContext(ConnectionGroupContext);
+  const classes = useStyles();
+  const context = useContext(ConnectionGroupContext);
 
-    // If context isn't available yet, don't render
-    if (!context?.state) {
-        return undefined;
-    }
+  // If context isn't available yet, don't render
+  if (!context?.state) {
+    return undefined;
+  }
 
-    return (
-        <div className={classes.root}>
-            <ConnectionGroupDialog
-                state={context.state}
-                saveConnectionGroup={context.saveConnectionGroup}
-                closeDialog={context.closeDialog}
-            />
-        </div>
-    );
+  return (
+    <div className={classes.root}>
+      <ConnectionGroupDialog
+        state={context.state}
+        saveConnectionGroup={context.saveConnectionGroup}
+        closeDialog={context.closeDialog}
+      />
+    </div>
+  );
 };

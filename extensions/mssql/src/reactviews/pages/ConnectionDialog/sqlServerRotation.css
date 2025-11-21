@@ -1,13 +1,13 @@
 /* styles.css */
 @keyframes rotate {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .sqlServerSvg {
-    animation: rotate 2s linear infinite;
+  animation: rotate 2s linear infinite;
 }

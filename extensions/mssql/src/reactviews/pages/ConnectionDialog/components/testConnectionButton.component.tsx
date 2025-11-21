@@ -9,26 +9,27 @@ import { ConnectionDialogContext } from "../connectionDialogStateProvider";
 import { locConstants } from "../../../common/locConstants";
 
 export const TestConnectionButton = ({
-    style,
-    className,
+  style,
+  className,
 }: {
-    style?: CSSProperties;
-    className?: string;
+  style?: CSSProperties;
+  className?: string;
 }) => {
-    const connectionDialogContext = useContext(ConnectionDialogContext);
+  const connectionDialogContext = useContext(ConnectionDialogContext);
 
-    if (!connectionDialogContext) {
-        return undefined;
-    }
+  if (!connectionDialogContext) {
+    return undefined;
+  }
 
-    return (
-        <Button
-            onClick={(_event) => {
-                // TODO: connectionDialogContext.testConnection();
-            }}
-            className={className}
-            style={style}>
-            {locConstants.connectionDialog.testConnection}
-        </Button>
-    );
+  return (
+    <Button
+      onClick={(_event) => {
+        // TODO: connectionDialogContext.testConnection();
+      }}
+      className={className}
+      style={style}
+    >
+      {locConstants.connectionDialog.testConnection}
+    </Button>
+  );
 };

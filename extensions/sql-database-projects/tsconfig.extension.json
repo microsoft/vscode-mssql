@@ -1,20 +1,20 @@
 {
-    "compileOnSave": true,
-    "compilerOptions": {
-        "outDir": "out",
-        "module": "CommonJS",
-        "target": "ES2024",
-        "lib": ["ES2024", "dom"],
-        "sourceMap": true,
-        "allowUnusedLabels": false,
-        "allowSyntheticDefaultImports": true,
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "jsx": "react-jsx",
-        "rootDir": ".",
-        "noUnusedLocals": true,
-        "skipLibCheck": true
-    },
-    "include": ["src", "test", "typings"],
-    "exclude": ["node_modules", "src/reactviews", "samples"]
+  "compileOnSave": true,
+  "compilerOptions": {
+    "outDir": "out",
+    "module": "CommonJS",
+    "target": "ES2024",
+    "lib": ["ES2024", "dom"],
+    "sourceMap": true,
+    "allowUnusedLabels": false,
+    "allowSyntheticDefaultImports": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "jsx": "react-jsx",
+    "rootDir": ".",
+    "noUnusedLocals": true,
+    "skipLibCheck": true
+  },
+  "include": ["src", "test", "typings"],
+  "exclude": ["node_modules", "src/reactviews", "samples"]
 }

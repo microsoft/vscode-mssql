@@ -14,28 +14,29 @@ import { DeleteNodesButton } from "./deleteNodesButton";
 import { UndoRedoButtons } from "./undoRedoButton";
 
 export function SchemaDesignerToolbar() {
-    return (
-        <div style={{ width: "100%", height: "30px", padding: "5px 0px" }}>
-            <Toolbar
-                size="small"
-                style={{
-                    width: "100%",
-                    overflow: "hidden",
-                    overflowX: "auto",
-                    gap: "3px",
-                    alignItems: "center",
-                }}>
-                <PublishChangesDialogButton />
-                <ViewDefinitionsButton />
-                <ExportDiagramButton />
-                <ToolbarDivider />
-                <AddTableButton />
-                <UndoRedoButtons />
-                <AutoArrangeButton />
-                <DeleteNodesButton />
-                <ToolbarDivider />
-                <FilterTablesButton />
-            </Toolbar>
-        </div>
-    );
+  return (
+    <div style={{ width: "100%", height: "30px", padding: "5px 0px" }}>
+      <Toolbar
+        size="small"
+        style={{
+          width: "100%",
+          overflow: "hidden",
+          overflowX: "auto",
+          gap: "3px",
+          alignItems: "center",
+        }}
+      >
+        <PublishChangesDialogButton />
+        <ViewDefinitionsButton />
+        <ExportDiagramButton />
+        <ToolbarDivider />
+        <AddTableButton />
+        <UndoRedoButtons />
+        <AutoArrangeButton />
+        <DeleteNodesButton />
+        <ToolbarDivider />
+        <FilterTablesButton />
+      </Toolbar>
+    </div>
+  );
 }

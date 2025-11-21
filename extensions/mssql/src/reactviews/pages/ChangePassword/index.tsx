@@ -10,9 +10,9 @@ import { ChangePasswordStateProvider } from "./changePasswordStateProvider";
 import { ChangePasswordPage } from "./changePasswordPage";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider2>
-        <ChangePasswordStateProvider>
-            <ChangePasswordPage />
-        </ChangePasswordStateProvider>
-    </VscodeWebviewProvider2>,
+  <VscodeWebviewProvider2>
+    <ChangePasswordStateProvider>
+      <ChangePasswordPage />
+    </ChangePasswordStateProvider>
+  </VscodeWebviewProvider2>,
 );

@@ -10,9 +10,9 @@ import { ExecutionPlanPage } from "./executionPlanPage";
 import { VscodeWebviewProvider2 } from "../../common/vscodeWebviewProvider2";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider2>
-        <ExecutionPlanStateProvider>
-            <ExecutionPlanPage />
-        </ExecutionPlanStateProvider>
-    </VscodeWebviewProvider2>,
+  <VscodeWebviewProvider2>
+    <ExecutionPlanStateProvider>
+      <ExecutionPlanPage />
+    </ExecutionPlanStateProvider>
+  </VscodeWebviewProvider2>,
 );

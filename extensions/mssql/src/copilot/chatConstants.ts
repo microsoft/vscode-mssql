@@ -20,28 +20,29 @@ export const errorLabelPrefix = "> ❌";
 export const serverDatabaseLabelPrefix = "> ➖";
 
 /** URL for GitHub Copilot feedback */
-export const copilotFeedbackUrl = "https://aka.ms/vscode-mssql-copilot-feedback";
+export const copilotFeedbackUrl =
+  "https://aka.ms/vscode-mssql-copilot-feedback";
 
 /**
  * Chat command names
  */
 export const CHAT_COMMAND_NAMES = {
-    help: "help",
-    connect: "connect",
-    disconnect: "disconnect",
-    changeDatabase: "changeDatabase",
-    getConnectionDetails: "getConnectionDetails",
-    listServers: "listServers",
-    listDatabases: "listDatabases",
-    listSchemas: "listSchemas",
-    listTables: "listTables",
-    listViews: "listViews",
-    listFunctions: "listFunctions",
-    listProcedures: "listProcedures",
-    showSchema: "showSchema",
-    showDefinition: "showDefinition",
-    runQuery: "runQuery",
-    explain: "explain",
-    fix: "fix",
-    optimize: "optimize",
+  help: "help",
+  connect: "connect",
+  disconnect: "disconnect",
+  changeDatabase: "changeDatabase",
+  getConnectionDetails: "getConnectionDetails",
+  listServers: "listServers",
+  listDatabases: "listDatabases",
+  listSchemas: "listSchemas",
+  listTables: "listTables",
+  listViews: "listViews",
+  listFunctions: "listFunctions",
+  listProcedures: "listProcedures",
+  showSchema: "showSchema",
+  showDefinition: "showDefinition",
+  runQuery: "runQuery",
+  explain: "explain",
+  fix: "fix",
+  optimize: "optimize",
 } as const;

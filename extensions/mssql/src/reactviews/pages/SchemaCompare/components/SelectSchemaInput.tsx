@@ -4,65 +4,76 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    Button,
-    Input,
-    Label,
-    makeStyles,
-    mergeClasses,
-    type InputProps,
+  Button,
+  Input,
+  Label,
+  makeStyles,
+  mergeClasses,
+  type InputProps,
 } from "@fluentui/react-components";
 
 const useStyles = makeStyles({
-    layoutVertically: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "2px",
-    },
+  layoutVertically: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "2px",
+  },
 
-    layoutHorizontally: {
-        display: "flex",
-        flexDirection: "row",
-    },
+  layoutHorizontally: {
+    display: "flex",
+    flexDirection: "row",
+  },
 
-    inputWidth: {
-        width: "100%",
-        maxWidth: "745px",
-        minwidth: "300px",
-    },
+  inputWidth: {
+    width: "100%",
+    maxWidth: "745px",
+    minwidth: "300px",
+  },
 
-    buttonLeftSmallMargin: {
-        marginLeft: "8px",
-    },
+  buttonLeftSmallMargin: {
+    marginLeft: "8px",
+  },
 });
 
 interface Props extends InputProps {
-    label: string;
-    buttonAriaLabel: string;
-    disableBrowseButton: boolean;
-    selectFile: () => void;
+  label: string;
+  buttonAriaLabel: string;
+  disableBrowseButton: boolean;
+  selectFile: () => void;
 }
 
 const SelectSchemaInput = (props: Props) => {
-    const classes = useStyles();
+  const classes = useStyles();
 
-    return (
-        <div className={mergeClasses(classes.layoutVertically, classes.inputWidth)}>
-            <Label htmlFor={props.id} size={props.size} disabled={props.disabled}>
-                {props.label}
-            </Label>
-            <div className={mergeClasses(classes.layoutHorizontally, props.className ?? "")}>
-                <Input id={props.id} className={classes.inputWidth} value={props.value} readOnly />
-                <Button
-                    size="small"
-                    className={classes.buttonLeftSmallMargin}
-                    disabled={props.disableBrowseButton}
-                    onClick={props.selectFile}
-                    aria-label={props.buttonAriaLabel}>
-                    ...
-                </Button>
-            </div>
-        </div>
-    );
+  return (
+    <div className={mergeClasses(classes.layoutVertically, classes.inputWidth)}>
+      <Label htmlFor={props.id} size={props.size} disabled={props.disabled}>
+        {props.label}
+      </Label>
+      <div
+        className={mergeClasses(
+          classes.layoutHorizontally,
+          props.className ?? "",
+        )}
+      >
+        <Input
+          id={props.id}
+          className={classes.inputWidth}
+          value={props.value}
+          readOnly
+        />
+        <Button
+          size="small"
+          className={classes.buttonLeftSmallMargin}
+          disabled={props.disableBrowseButton}
+          onClick={props.selectFile}
+          aria-label={props.buttonAriaLabel}
+        >
+          ...
+        </Button>
+      </div>
+    </div>
+  );
 };
 
 export default SelectSchemaInput;

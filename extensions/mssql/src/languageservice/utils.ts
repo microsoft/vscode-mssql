@@ -5,22 +5,22 @@
 
 import { languageId } from "../constants/constants";
 import {
-    DidChangeLanguageFlavorParams,
-    LanguageFlavorChangedNotification,
+  DidChangeLanguageFlavorParams,
+  LanguageFlavorChangedNotification,
 } from "../models/contracts/languageService";
 import StatusView from "../views/statusView";
 import SqlToolsServiceClient from "./serviceclient";
 
 export function changeLanguageServiceForFile(
-    client: SqlToolsServiceClient,
-    uri: string,
-    flavor: string,
-    statusView: StatusView,
+  client: SqlToolsServiceClient,
+  uri: string,
+  flavor: string,
+  statusView: StatusView,
 ): void {
-    client.sendNotification(LanguageFlavorChangedNotification.type, {
-        uri: uri,
-        language: languageId,
-        flavor: flavor,
-    } as DidChangeLanguageFlavorParams);
-    statusView.languageFlavorChanged(uri, flavor);
+  client.sendNotification(LanguageFlavorChangedNotification.type, {
+    uri: uri,
+    language: languageId,
+    flavor: flavor,
+  } as DidChangeLanguageFlavorParams);
+  statusView.languageFlavorChanged(uri, flavor);
 }

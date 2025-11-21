@@ -9,24 +9,29 @@ import { useVscodeWebview2 } from "../../common/vscodeWebviewProvider2";
 import { WebviewRpc } from "../../common/rpc";
 
 export interface ChangePasswordReactProvider {
-    extensionRpc: WebviewRpc<void>;
+  extensionRpc: WebviewRpc<void>;
 }
 
-export const ChangePasswordContext = createContext<ChangePasswordReactProvider | undefined>(
-    undefined,
-);
+export const ChangePasswordContext = createContext<
+  ChangePasswordReactProvider | undefined
+>(undefined);
 
 interface ChangePasswordProviderProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
-const ChangePasswordStateProvider: React.FC<ChangePasswordProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<ChangePasswordWebviewState, void>();
-    return (
-        <ChangePasswordContext.Provider value={{ extensionRpc }}>
-            {children}
-        </ChangePasswordContext.Provider>
-    );
+const ChangePasswordStateProvider: React.FC<ChangePasswordProviderProps> = ({
+  children,
+}) => {
+  const { extensionRpc } = useVscodeWebview2<
+    ChangePasswordWebviewState,
+    void
+  >();
+  return (
+    <ChangePasswordContext.Provider value={{ extensionRpc }}>
+      {children}
+    </ChangePasswordContext.Provider>
+  );
 };
 
 export { ChangePasswordStateProvider };

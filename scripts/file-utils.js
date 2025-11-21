@@ -17,15 +17,15 @@ const LF = "\n";
  * @returns {Promise<boolean>} True if formatting succeeded, false otherwise
  */
 async function formatWithPrettier(filePaths) {
-    try {
-        const paths = Array.isArray(filePaths) ? filePaths.join(" ") : filePaths;
-        execSync(`npx prettier --write ${paths}`, {
-            stdio: "inherit",
-        });
-        return true;
-    } catch (error) {
-        return false;
-    }
+  try {
+    const paths = Array.isArray(filePaths) ? filePaths.join(" ") : filePaths;
+    execSync(`npx prettier --write ${paths}`, {
+      stdio: "inherit",
+    });
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 /**
@@ -36,23 +36,28 @@ async function formatWithPrettier(filePaths) {
  * @param {boolean} [crlf=false] - Whether to use CRLF line endings
  * @returns {Promise<boolean>} True if formatting succeeded, false otherwise
  */
-async function writeAndFormat(filePath, content, prettier = true, crlf = false) {
-    const finalContent = crlf ? content.replace(/\r?\n/g, CRLF) : content;
-    await fs.writeFile(filePath, finalContent);
-    if (prettier) {
-        const formatted = await formatWithPrettier(filePath);
-        if (!formatted) {
-            return false;
-        }
+async function writeAndFormat(
+  filePath,
+  content,
+  prettier = true,
+  crlf = false,
+) {
+  const finalContent = crlf ? content.replace(/\r?\n/g, CRLF) : content;
+  await fs.writeFile(filePath, finalContent);
+  if (prettier) {
+    const formatted = await formatWithPrettier(filePath);
+    if (!formatted) {
+      return false;
     }
+  }
 
-    if (crlf) {
-        const data = await fs.readFile(filePath, "utf8");
-        const crlfData = data.replace(/\r?\n/g, CRLF);
-        await fs.writeFile(filePath, crlfData);
-    }
+  if (crlf) {
+    const data = await fs.readFile(filePath, "utf8");
+    const crlfData = data.replace(/\r?\n/g, CRLF);
+    await fs.writeFile(filePath, crlfData);
+  }
 
-    return true;
+  return true;
 }
 
 /**
@@ -63,12 +68,12 @@ async function writeAndFormat(filePath, content, prettier = true, crlf = false) 
  * @returns {Promise<boolean>} True if formatting succeeded, false otherwise
  */
 async function writeJsonAndFormat(filePath, data, indent = 2) {
-    const content = JSON.stringify(data, null, indent);
-    return await writeAndFormat(filePath, content, true, true);
+  const content = JSON.stringify(data, null, indent);
+  return await writeAndFormat(filePath, content, true, true);
 }
 
 module.exports = {
-    formatWithPrettier,
-    writeAndFormat,
-    writeJsonAndFormat,
+  formatWithPrettier,
+  writeAndFormat,
+  writeJsonAndFormat,
 };

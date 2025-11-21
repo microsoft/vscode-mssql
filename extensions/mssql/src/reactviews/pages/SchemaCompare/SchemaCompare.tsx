@@ -15,118 +15,122 @@ import Message from "./components/Message";
 import { makeStyles } from "@fluentui/react-components";
 
 const useStyles = makeStyles({
-    container: {
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        overflow: "hidden",
-    },
-    contentContainer: {
-        display: "flex",
-        flexDirection: "column",
-        flex: 1,
-        overflow: "hidden",
-        position: "relative",
-    },
-    resizableContainer: {
-        display: "flex",
-        flexDirection: "column",
-        flex: 1,
-        overflow: "hidden",
-        position: "relative",
-    },
+  container: {
+    display: "flex",
+    flexDirection: "column",
+    height: "100vh",
+    overflow: "hidden",
+  },
+  contentContainer: {
+    display: "flex",
+    flexDirection: "column",
+    flex: 1,
+    overflow: "hidden",
+    position: "relative",
+  },
+  resizableContainer: {
+    display: "flex",
+    flexDirection: "column",
+    flex: 1,
+    overflow: "hidden",
+    position: "relative",
+  },
 });
 
 export const SchemaComparePage = () => {
-    const classes = useStyles();
-    const context = useContext(schemaCompareContext);
-    const [selectedDiffId, setSelectedDiffId] = useState(0);
-    const [showDrawer, setShowDrawer] = useState(false);
-    const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
-    const [endpointType, setEndpointType] = useState<"source" | "target">("source");
+  const classes = useStyles();
+  const context = useContext(schemaCompareContext);
+  const [selectedDiffId, setSelectedDiffId] = useState(0);
+  const [showDrawer, setShowDrawer] = useState(false);
+  const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
+  const [endpointType, setEndpointType] = useState<"source" | "target">(
+    "source",
+  );
 
-    // Create refs for the resizable components
-    const differencesRef = useRef<HTMLDivElement>(null);
-    const diffEditorRef = useRef<HTMLDivElement>(null);
+  // Create refs for the resizable components
+  const differencesRef = useRef<HTMLDivElement>(null);
+  const diffEditorRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        context.isSqlProjectExtensionInstalled();
-    }, []);
+  useEffect(() => {
+    context.isSqlProjectExtensionInstalled();
+  }, []);
 
-    const handleSelectSchemaClicked = (endpointType: "source" | "target"): void => {
-        setShowDrawer(true);
-        setEndpointType(endpointType);
-    };
+  const handleSelectSchemaClicked = (
+    endpointType: "source" | "target",
+  ): void => {
+    setShowDrawer(true);
+    setEndpointType(endpointType);
+  };
 
-    const handleDiffSelected = (id: number): void => {
-        setSelectedDiffId(id);
-    };
+  const handleDiffSelected = (id: number): void => {
+    setSelectedDiffId(id);
+  };
 
-    const handleShowDrawer = (show: boolean): void => {
-        setShowDrawer(show);
-    };
+  const handleShowDrawer = (show: boolean): void => {
+    setShowDrawer(show);
+  };
 
-    const openOptionsDialog = (): void => {
-        setShowOptionsDrawer(true);
-    };
+  const openOptionsDialog = (): void => {
+    setShowOptionsDrawer(true);
+  };
 
-    const handleShowOptionsDrawer = (show: boolean): void => {
-        setShowOptionsDrawer(show);
-    };
+  const handleShowOptionsDrawer = (show: boolean): void => {
+    setShowOptionsDrawer(show);
+  };
 
-    const showMessage = () => {
-        if (
-            !context.state.schemaCompareResult ||
-            context.state.schemaCompareResult.areEqual ||
-            context.state.isComparisonInProgress
-        ) {
-            return true;
-        }
+  const showMessage = () => {
+    if (
+      !context.state.schemaCompareResult ||
+      context.state.schemaCompareResult.areEqual ||
+      context.state.isComparisonInProgress
+    ) {
+      return true;
+    }
 
-        return false;
-    };
+    return false;
+  };
 
-    return (
-        <div className={classes.container}>
-            <CompareActionBar onOptionsClicked={openOptionsDialog} />
-            <SelectSchemasPanel onSelectSchemaClicked={handleSelectSchemaClicked} />
+  return (
+    <div className={classes.container}>
+      <CompareActionBar onOptionsClicked={openOptionsDialog} />
+      <SelectSchemasPanel onSelectSchemaClicked={handleSelectSchemaClicked} />
 
-            {showMessage() && <Message />}
+      {showMessage() && <Message />}
 
-            {!showMessage() && (
-                <div className={classes.contentContainer}>
-                    <div className={classes.resizableContainer}>
-                        <SchemaDifferences
-                            ref={differencesRef}
-                            selectedDiffId={selectedDiffId}
-                            onDiffSelected={handleDiffSelected}
-                            siblingRef={diffEditorRef}
-                        />
+      {!showMessage() && (
+        <div className={classes.contentContainer}>
+          <div className={classes.resizableContainer}>
+            <SchemaDifferences
+              ref={differencesRef}
+              selectedDiffId={selectedDiffId}
+              onDiffSelected={handleDiffSelected}
+              siblingRef={diffEditorRef}
+            />
 
-                        {selectedDiffId !== -1 && (
-                            <CompareDiffEditor
-                                ref={diffEditorRef}
-                                selectedDiffId={selectedDiffId}
-                            />
-                        )}
-                    </div>
-                </div>
+            {selectedDiffId !== -1 && (
+              <CompareDiffEditor
+                ref={diffEditorRef}
+                selectedDiffId={selectedDiffId}
+              />
             )}
-
-            {showDrawer && (
-                <SchemaSelectorDrawer
-                    show={showDrawer}
-                    endpointType={endpointType}
-                    showDrawer={handleShowDrawer}
-                />
-            )}
-
-            {showOptionsDrawer && (
-                <SchemaOptionsDrawer
-                    show={showOptionsDrawer}
-                    showDrawer={handleShowOptionsDrawer}
-                />
-            )}
+          </div>
         </div>
-    );
+      )}
+
+      {showDrawer && (
+        <SchemaSelectorDrawer
+          show={showDrawer}
+          endpointType={endpointType}
+          showDrawer={handleShowDrawer}
+        />
+      )}
+
+      {showOptionsDrawer && (
+        <SchemaOptionsDrawer
+          show={showOptionsDrawer}
+          showDrawer={handleShowOptionsDrawer}
+        />
+      )}
+    </div>
+  );
 };

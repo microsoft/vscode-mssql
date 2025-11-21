@@ -6,7 +6,10 @@
 import * as locConstants from "../constants/locConstants";
 import * as vscode from "vscode";
 
-import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+import {
+  TelemetryActions,
+  TelemetryViews,
+} from "../sharedInterfaces/telemetry";
 
 import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
 import { ReactWebviewBaseController } from "./reactWebviewBaseController";
@@ -22,121 +25,125 @@ import { Deferred } from "../protocol";
  * @template Reducers The type of the reducers that the webview will use
  */
 export class ReactWebviewPanelController<
-    State,
-    Reducers,
-    Result = void,
+  State,
+  Reducers,
+  Result = void,
 > extends ReactWebviewBaseController<State, Reducers> {
-    private _panel: vscode.WebviewPanel;
-    public readonly dialogResult: Deferred<Result | undefined> = new Deferred<Result | undefined>();
+  private _panel: vscode.WebviewPanel;
+  public readonly dialogResult: Deferred<Result | undefined> = new Deferred<
+    Result | undefined
+  >();
 
-    /**
-     * Creates a new ReactWebviewPanelController
-     * @param _context The context of the extension
-     * @param title The title of the webview panel
-     * @param sourceFile The source file that the webview will use
-     * @param initialData The initial state object that the webview will use
-     * @param viewColumn The view column that the webview will be displayed in
-     * @param _iconPath The icon path that the webview will use
-     */
-    constructor(
-        _context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
-        sourceFile: string,
-        _viewId: string,
-        initialData: State,
-        private _options: MssqlWebviewPanelOptions,
-    ) {
-        super(_context, vscodeWrapper, sourceFile, initialData, _viewId);
-        this.createWebviewPanel();
-        // This call sends messages to the Webview so it's called after the Webview creation.
-        this.initializeBase();
-    }
+  /**
+   * Creates a new ReactWebviewPanelController
+   * @param _context The context of the extension
+   * @param title The title of the webview panel
+   * @param sourceFile The source file that the webview will use
+   * @param initialData The initial state object that the webview will use
+   * @param viewColumn The view column that the webview will be displayed in
+   * @param _iconPath The icon path that the webview will use
+   */
+  constructor(
+    _context: vscode.ExtensionContext,
+    vscodeWrapper: VscodeWrapper,
+    sourceFile: string,
+    _viewId: string,
+    initialData: State,
+    private _options: MssqlWebviewPanelOptions,
+  ) {
+    super(_context, vscodeWrapper, sourceFile, initialData, _viewId);
+    this.createWebviewPanel();
+    // This call sends messages to the Webview so it's called after the Webview creation.
+    this.initializeBase();
+  }
 
-    private createWebviewPanel() {
-        this._panel = vscode.window.createWebviewPanel(
-            "mssql-react-webview",
-            this._options.title,
-            {
-                viewColumn: this._options.viewColumn,
-                preserveFocus: this._options.preserveFocus,
-            },
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [vscode.Uri.file(this._context.extensionPath)],
-            },
-        );
+  private createWebviewPanel() {
+    this._panel = vscode.window.createWebviewPanel(
+      "mssql-react-webview",
+      this._options.title,
+      {
+        viewColumn: this._options.viewColumn,
+        preserveFocus: this._options.preserveFocus,
+      },
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [vscode.Uri.file(this._context.extensionPath)],
+      },
+    );
 
-        this._panel.webview.html = this._getHtmlTemplate();
-        this._panel.iconPath = this._options.iconPath;
-        this.updateConnectionWebview(this._panel.webview);
-        this.registerDisposable(
-            this._panel.onDidDispose(async () => {
-                let prompt;
-                if (this._options.showRestorePromptAfterClose) {
-                    prompt = await this.showRestorePrompt();
-                }
-                if (prompt) {
-                    await prompt.run();
-                    return;
-                }
-                this.dispose();
-            }),
-        );
-    }
+    this._panel.webview.html = this._getHtmlTemplate();
+    this._panel.iconPath = this._options.iconPath;
+    this.updateConnectionWebview(this._panel.webview);
+    this.registerDisposable(
+      this._panel.onDidDispose(async () => {
+        let prompt;
+        if (this._options.showRestorePromptAfterClose) {
+          prompt = await this.showRestorePrompt();
+        }
+        if (prompt) {
+          await prompt.run();
+          return;
+        }
+        this.dispose();
+      }),
+    );
+  }
 
-    protected _getWebview(): vscode.Webview {
-        return this._panel.webview;
-    }
+  protected _getWebview(): vscode.Webview {
+    return this._panel.webview;
+  }
 
-    /**
-     * Gets the vscode.WebviewPanel that the controller is managing
-     */
-    public get panel(): vscode.WebviewPanel {
-        return this._panel;
-    }
+  /**
+   * Gets the vscode.WebviewPanel that the controller is managing
+   */
+  public get panel(): vscode.WebviewPanel {
+    return this._panel;
+  }
 
-    /**
-     * Displays the webview in the foreground
-     * @param viewColumn The view column that the webview will be displayed in
-     */
-    public revealToForeground(viewColumn: vscode.ViewColumn = vscode.ViewColumn.One): void {
-        this._panel.reveal(viewColumn, true);
-    }
+  /**
+   * Displays the webview in the foreground
+   * @param viewColumn The view column that the webview will be displayed in
+   */
+  public revealToForeground(
+    viewColumn: vscode.ViewColumn = vscode.ViewColumn.One,
+  ): void {
+    this._panel.reveal(viewColumn, true);
+  }
 
-    protected async showRestorePrompt(): Promise<{
-        title: string;
-        run: () => Promise<void>;
-    }> {
-        return await vscode.window.showInformationMessage(
-            locConstants.Webview.webviewRestorePrompt(this._options.title),
-            {
-                modal: true,
-            },
-            {
-                title: locConstants.Webview.Restore,
-                run: async () => {
-                    sendActionEvent(
-                        TelemetryViews.WebviewController,
-                        TelemetryActions.Restore,
-                        {},
-                        {},
-                    );
-                    await this.createWebviewPanel();
-                    this._panel.reveal(this._options.viewColumn);
-                },
-            },
-        );
-    }
+  protected async showRestorePrompt(): Promise<{
+    title: string;
+    run: () => Promise<void>;
+  }> {
+    return await vscode.window.showInformationMessage(
+      locConstants.Webview.webviewRestorePrompt(this._options.title),
+      {
+        modal: true,
+      },
+      {
+        title: locConstants.Webview.Restore,
+        run: async () => {
+          sendActionEvent(
+            TelemetryViews.WebviewController,
+            TelemetryActions.Restore,
+            {},
+            {},
+          );
+          await this.createWebviewPanel();
+          this._panel.reveal(this._options.viewColumn);
+        },
+      },
+    );
+  }
 
-    public set showRestorePromptAfterClose(value: boolean) {
-        this._options.showRestorePromptAfterClose = value;
-    }
+  public set showRestorePromptAfterClose(value: boolean) {
+    this._options.showRestorePromptAfterClose = value;
+  }
 
-    public override dispose(): void {
-        // Ensure that the promise is resolved, regardless of how the panel is disposed.
-        // If it has already been resolved/rejected, this won't change that.
-        this.dialogResult.resolve(undefined);
-        super.dispose();
-    }
+  public override dispose(): void {
+    // Ensure that the promise is resolved, regardless of how the panel is disposed.
+    // If it has already been resolved/rejected, this won't change that.
+    this.dialogResult.resolve(undefined);
+    super.dispose();
+  }
 }

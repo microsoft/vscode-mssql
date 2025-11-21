@@ -10,9 +10,9 @@ import { SchemaComparePage } from "./SchemaCompare";
 import { SchemaCompareStateProvider } from "./SchemaCompareStateProvider";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider>
-        <SchemaCompareStateProvider>
-            <SchemaComparePage />
-        </SchemaCompareStateProvider>
-    </VscodeWebviewProvider>,
+  <VscodeWebviewProvider>
+    <SchemaCompareStateProvider>
+      <SchemaComparePage />
+    </SchemaCompareStateProvider>
+  </VscodeWebviewProvider>,
 );

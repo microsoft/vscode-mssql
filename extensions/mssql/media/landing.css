@@ -4,173 +4,173 @@
  *--------------------------------------------------------------------------------------------*/
 
 html {
-    height: 100%;
+  height: 100%;
 }
 
 body {
-    box-sizing: border-box;
-    min-height: 100%;
-    margin: 0;
-    padding: 15px 30px;
-    display: flex;
-    flex-direction: column;
-    color: #007acc;
-    font-family: "Segoe UI", "Helvetica Neue", "Helvetica", Arial, sans-serif;
-    background-color: white;
+  box-sizing: border-box;
+  min-height: 100%;
+  margin: 0;
+  padding: 15px 30px;
+  display: flex;
+  flex-direction: column;
+  color: #007acc;
+  font-family: "Segoe UI", "Helvetica Neue", "Helvetica", Arial, sans-serif;
+  background-color: white;
 }
 
 .branding {
-    background-image: url("/media/mssql-icon.Default");
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: left 50%;
-    padding-left: 55px;
-    font-size: 20px;
-    letter-spacing: -0.04rem;
-    font-weight: 400;
-    color: #007acc;
-    text-decoration: none;
+  background-image: url("/media/mssql-icon.Default");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: left 50%;
+  padding-left: 55px;
+  font-size: 20px;
+  letter-spacing: -0.04rem;
+  font-weight: 400;
+  color: #007acc;
+  text-decoration: none;
 }
 
 .message-container {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin: 0 30px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 30px;
 }
 
 .text {
-    text-align: center;
+  text-align: center;
 }
 
 .message-image img {
-    max-width: 300px;
-    width: 100%;
+  max-width: 300px;
+  width: 100%;
 }
 
 .message-large {
-    font-weight: 500;
-    font-size: 1.5rem;
+  font-weight: 500;
+  font-size: 1.5rem;
 }
 
 .message-small {
-    font-weight: 300;
-    font-size: 1.1rem;
-    color: gray;
+  font-weight: 300;
+  font-size: 1.1rem;
+  color: gray;
 }
 
 body.error .message {
-    display: none;
+  display: none;
 }
 
 body.error .error-message {
-    display: block;
+  display: block;
 }
 
 .error-message {
-    display: none;
-    font-weight: 300;
-    font-size: 1.3rem;
+  display: none;
+  font-weight: 300;
+  font-size: 1.3rem;
 }
 
 .error-text {
-    color: red;
-    font-size: 1rem;
+  color: red;
+  font-size: 1rem;
 }
 
 @font-face {
-    font-family: "Segoe UI";
-    src:
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/light/latest.eot"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/light/latest.eot?#iefix")
-            format("embedded-opentype");
-    src:
-        local("Segoe UI Light"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/light/latest.woff2")
-            format("woff2"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/light/latest.woff")
-            format("woff"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/light/latest.ttf")
-            format("truetype"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/light/latest.svg#web")
-            format("svg");
-    font-weight: 200;
+  font-family: "Segoe UI";
+  src:
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/light/latest.eot"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/light/latest.eot?#iefix")
+      format("embedded-opentype");
+  src:
+    local("Segoe UI Light"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/light/latest.woff2")
+      format("woff2"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/light/latest.woff")
+      format("woff"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/light/latest.ttf")
+      format("truetype"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/light/latest.svg#web")
+      format("svg");
+  font-weight: 200;
 }
 
 @font-face {
-    font-family: "Segoe UI";
-    src:
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semilight/latest.eot"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semilight/latest.eot?#iefix")
-            format("embedded-opentype");
-    src:
-        local("Segoe UI Semilight"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semilight/latest.woff2")
-            format("woff2"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semilight/latest.woff")
-            format("woff"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semilight/latest.ttf")
-            format("truetype"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semilight/latest.svg#web")
-            format("svg");
-    font-weight: 300;
+  font-family: "Segoe UI";
+  src:
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semilight/latest.eot"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semilight/latest.eot?#iefix")
+      format("embedded-opentype");
+  src:
+    local("Segoe UI Semilight"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semilight/latest.woff2")
+      format("woff2"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semilight/latest.woff")
+      format("woff"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semilight/latest.ttf")
+      format("truetype"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semilight/latest.svg#web")
+      format("svg");
+  font-weight: 300;
 }
 
 @font-face {
-    font-family: "Segoe UI";
-    src:
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/normal/latest.eot"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/normal/latest.eot?#iefix")
-            format("embedded-opentype");
-    src:
-        local("Segoe UI"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/normal/latest.woff2")
-            format("woff"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/normal/latest.woff")
-            format("woff"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/normal/latest.ttf")
-            format("truetype"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/normal/latest.svg#web")
-            format("svg");
-    font-weight: 400;
+  font-family: "Segoe UI";
+  src:
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/normal/latest.eot"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/normal/latest.eot?#iefix")
+      format("embedded-opentype");
+  src:
+    local("Segoe UI"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/normal/latest.woff2")
+      format("woff"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/normal/latest.woff")
+      format("woff"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/normal/latest.ttf")
+      format("truetype"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/normal/latest.svg#web")
+      format("svg");
+  font-weight: 400;
 }
 
 @font-face {
-    font-family: "Segoe UI";
-    src:
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semibold/latest.eot"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semibold/latest.eot?#iefix")
-            format("embedded-opentype");
-    src:
-        local("Segoe UI Semibold"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semibold/latest.woff2")
-            format("woff"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semibold/latest.woff")
-            format("woff"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semibold/latest.ttf")
-            format("truetype"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semibold/latest.svg#web")
-            format("svg");
-    font-weight: 600;
+  font-family: "Segoe UI";
+  src:
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semibold/latest.eot"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semibold/latest.eot?#iefix")
+      format("embedded-opentype");
+  src:
+    local("Segoe UI Semibold"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semibold/latest.woff2")
+      format("woff"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semibold/latest.woff")
+      format("woff"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semibold/latest.ttf")
+      format("truetype"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/semibold/latest.svg#web")
+      format("svg");
+  font-weight: 600;
 }
 
 @font-face {
-    font-family: "Segoe UI";
-    src:
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/bold/latest.eot"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/bold/latest.eot?#iefix")
-            format("embedded-opentype");
-    src:
-        local("Segoe UI Bold"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/bold/latest.woff2")
-            format("woff"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/bold/latest.woff")
-            format("woff"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/bold/latest.ttf")
-            format("truetype"),
-        url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/bold/latest.svg#web")
-            format("svg");
-    font-weight: 700;
+  font-family: "Segoe UI";
+  src:
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/bold/latest.eot"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/bold/latest.eot?#iefix")
+      format("embedded-opentype");
+  src:
+    local("Segoe UI Bold"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/bold/latest.woff2")
+      format("woff"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/bold/latest.woff")
+      format("woff"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/bold/latest.ttf")
+      format("truetype"),
+    url("https://c.s-microsoft.com/static/fonts/segoe-ui/west-european/bold/latest.svg#web")
+      format("svg");
+  font-weight: 700;
 }

@@ -1,9 +1,9 @@
 {
-	"name": "sql-database-projects-vscode",
+  "name": "sql-database-projects-vscode",
   "displayName": "SQL Database Projects",
   "description": "Enables users to develop and publish database schemas for MSSQL Databases",
   "version": "1.5.5",
-	"publisher": "ms-mssql",
+  "publisher": "ms-mssql",
   "preview": false,
   "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/sql-database-projects/README.md",
   "engines": {
@@ -32,20 +32,20 @@
     "url": "https://github.com/Microsoft/vscode-mssql/issues"
   },
   "extensionDependencies": [
-		"ms-mssql.mssql",
-		"ms-mssql.data-workspace-vscode"
+    "ms-mssql.mssql",
+    "ms-mssql.data-workspace-vscode"
   ],
   "scripts": {
-        "build:runtime-localization": "node ../../scripts/localization-generate.js sql-database-projects .",
-        "build:extension": "tsc -p tsconfig.extension.json",
-        "build:prepare": "yarn build:runtime-localization",
-        "build": "node scripts/build.js",
-        "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
-        "watch": "yarn build:prepare && run-p -l watch:extension",
-        "lint": "eslint ./src",
-        "localization": "node ../../scripts/localization-extract.js sql-database-projects",
-        "test": "yarn build && node ./out/test/runTest.js",
-        "package": "yarn build && vsce package --no-yarn"
+    "build:runtime-localization": "node ../../scripts/localization-generate.js sql-database-projects .",
+    "build:extension": "tsc -p tsconfig.extension.json",
+    "build:prepare": "yarn build:runtime-localization",
+    "build": "node scripts/build.js",
+    "watch:extension": "tsc -watch -p tsconfig.extension.json  --preserveWatchOutput",
+    "watch": "yarn build:prepare && run-p -l watch:extension",
+    "lint": "eslint ./src",
+    "localization": "node ../../scripts/localization-extract.js sql-database-projects",
+    "test": "yarn build && node ./out/test/runTest.js",
+    "package": "yarn build && vsce package --no-yarn"
   },
   "capabilities": {
     "virtualWorkspaces": false,
@@ -62,9 +62,9 @@
         "title": "%sqlDatabaseProjects.Settings%",
         "properties": {
           "sqlDatabaseProjects.enablePreviewFeatures": {
-						"type": "boolean",
-						"description": "%sqlDatabaseProjects.enablePreviewFeatures%"
-					},
+            "type": "boolean",
+            "description": "%sqlDatabaseProjects.enablePreviewFeatures%"
+          },
           "sqlDatabaseProjects.dotnetSDK Location": {
             "type": "string",
             "description": "%sqlDatabaseProjects.dotnetInstallLocation%"

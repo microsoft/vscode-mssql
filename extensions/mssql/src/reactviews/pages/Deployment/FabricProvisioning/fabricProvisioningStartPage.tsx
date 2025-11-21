@@ -13,53 +13,56 @@ import { FabricProvisioningState } from "../../../../sharedInterfaces/fabricProv
 import { FabricProvisioningInputForm } from "./fabricProvisioningInputForm";
 
 const useStyles = makeStyles({
-    outerDiv: {
-        height: "100%",
-        position: "relative",
-        overflowY: "auto",
-        overflowX: "unset",
-    },
-    spinnerDiv: {
-        height: "100%",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        flexDirection: "column",
-        padding: "20px",
-    },
-    errorIcon: {
-        fontSize: "100px",
-        opacity: 0.5,
-    },
+  outerDiv: {
+    height: "100%",
+    position: "relative",
+    overflowY: "auto",
+    overflowX: "unset",
+  },
+  spinnerDiv: {
+    height: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "column",
+    padding: "20px",
+  },
+  errorIcon: {
+    fontSize: "100px",
+    opacity: 0.5,
+  },
 });
 
 export const FabricProvisioningStartPage = () => {
-    const classes = useStyles();
-    const context = useContext(DeploymentContext);
-    const fabricProvisioningState = context?.state.deploymentTypeState as FabricProvisioningState;
+  const classes = useStyles();
+  const context = useContext(DeploymentContext);
+  const fabricProvisioningState = context?.state
+    .deploymentTypeState as FabricProvisioningState;
 
-    const renderMainContent = () => {
-        switch (fabricProvisioningState?.loadState) {
-            case ApiStatus.Loading:
-                return (
-                    <div className={classes.spinnerDiv}>
-                        <Spinner
-                            label={locConstants.fabricProvisioning.loadingFabricProvisioning}
-                            labelPosition="below"
-                        />
-                    </div>
-                );
-            case ApiStatus.Loaded:
-                return <FabricProvisioningInputForm />;
-            case ApiStatus.Error:
-                return (
-                    <div className={classes.spinnerDiv}>
-                        <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>{fabricProvisioningState?.errorMessage ?? ""}</Text>
-                    </div>
-                );
-        }
-    };
+  const renderMainContent = () => {
+    switch (fabricProvisioningState?.loadState) {
+      case ApiStatus.Loading:
+        return (
+          <div className={classes.spinnerDiv}>
+            <Spinner
+              label={locConstants.fabricProvisioning.loadingFabricProvisioning}
+              labelPosition="below"
+            />
+          </div>
+        );
+      case ApiStatus.Loaded:
+        return <FabricProvisioningInputForm />;
+      case ApiStatus.Error:
+        return (
+          <div className={classes.spinnerDiv}>
+            <ErrorCircleRegular className={classes.errorIcon} />
+            <Text size={400}>
+              {fabricProvisioningState?.errorMessage ?? ""}
+            </Text>
+          </div>
+        );
+    }
+  };
 
-    return <div className={classes.outerDiv}>{renderMainContent()}</div>;
+  return <div className={classes.outerDiv}>{renderMainContent()}</div>;
 };

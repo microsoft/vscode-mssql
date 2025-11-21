@@ -8,24 +8,25 @@ import { ExecutionPlanStateProvider } from "../ExecutionPlan/executionPlanStateP
 import { ExecutionPlanPage } from "../ExecutionPlan/executionPlanPage";
 
 const useStyles = makeStyles({
-    queryResultContainer: {
-        width: "100%",
-        position: "relative",
-        display: "flex",
-        fontWeight: "normal",
-    },
+  queryResultContainer: {
+    width: "100%",
+    position: "relative",
+    display: "flex",
+    fontWeight: "normal",
+  },
 });
 
 export const QueryExecutionPlanTab = () => {
-    const classes = useStyles();
-    return (
-        <div
-            id={"executionPlanResultsTab"}
-            className={classes.queryResultContainer}
-            style={{ height: "100%", minHeight: "300px" }}>
-            <ExecutionPlanStateProvider>
-                <ExecutionPlanPage />
-            </ExecutionPlanStateProvider>
-        </div>
-    );
+  const classes = useStyles();
+  return (
+    <div
+      id={"executionPlanResultsTab"}
+      className={classes.queryResultContainer}
+      style={{ height: "100%", minHeight: "300px" }}
+    >
+      <ExecutionPlanStateProvider>
+        <ExecutionPlanPage />
+      </ExecutionPlanStateProvider>
+    </div>
+  );
 };

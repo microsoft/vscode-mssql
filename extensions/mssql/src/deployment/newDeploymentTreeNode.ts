@@ -9,16 +9,19 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 
 export class NewDeploymentTreeNode extends vscode.TreeItem {
-    constructor(parent?: vscode.TreeItem) {
-        super(LocalizedConstants.newDeployment, vscode.TreeItemCollapsibleState.None);
-        this.command = {
-            title: LocalizedConstants.newDeployment,
-            command: Constants.cmdDeployNewDatabase,
-            arguments: parent ? [parent] : undefined,
-        };
-        this.iconPath = {
-            light: ObjectExplorerUtils.iconPath("add_light"),
-            dark: ObjectExplorerUtils.iconPath("add_dark"),
-        };
-    }
+  constructor(parent?: vscode.TreeItem) {
+    super(
+      LocalizedConstants.newDeployment,
+      vscode.TreeItemCollapsibleState.None,
+    );
+    this.command = {
+      title: LocalizedConstants.newDeployment,
+      command: Constants.cmdDeployNewDatabase,
+      arguments: parent ? [parent] : undefined,
+    };
+    this.iconPath = {
+      light: ObjectExplorerUtils.iconPath("add_light"),
+      dark: ObjectExplorerUtils.iconPath("add_dark"),
+    };
+  }
 }

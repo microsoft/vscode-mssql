@@ -7,20 +7,20 @@
  * JSON format for datasources.json
  */
 export interface DataSourceFileJson {
-	version: string;
-	datasources: DataSourceJson[];
+  version: string;
+  datasources: DataSourceJson[];
 }
 
 /**
  * JSON format for a datasource entry in datasources.json
  */
 export interface DataSourceJson {
-	name: string;
-	type: string;
-	version: string;
+  name: string;
+  type: string;
+  version: string;
 
-	/**
-	 * contents for concrete datasource implementation
-	 */
-	data: string;
+  /**
+   * contents for concrete datasource implementation
+   */
+  data: string;
 }

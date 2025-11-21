@@ -7,26 +7,30 @@ import EscapeException from "../utils/escapeException";
 import VscodeWrapper from "../controllers/vscodeWrapper";
 
 export default class ConfirmPrompt extends Prompt {
-    constructor(question: any, vscodeWrapper: VscodeWrapper, ignoreFocusOut?: boolean) {
-        super(question, vscodeWrapper, ignoreFocusOut);
-    }
+  constructor(
+    question: any,
+    vscodeWrapper: VscodeWrapper,
+    ignoreFocusOut?: boolean,
+  ) {
+    super(question, vscodeWrapper, ignoreFocusOut);
+  }
 
-    public render(): any {
-        let choices: { [id: string]: boolean } = {};
-        choices[LocalizedConstants.msgYes] = true;
-        choices[LocalizedConstants.msgNo] = false;
+  public render(): any {
+    let choices: { [id: string]: boolean } = {};
+    choices[LocalizedConstants.msgYes] = true;
+    choices[LocalizedConstants.msgNo] = false;
 
-        let options = this.defaultQuickPickOptions;
-        options.placeHolder = this._question.message;
+    let options = this.defaultQuickPickOptions;
+    options.placeHolder = this._question.message;
 
-        return this._vscodeWrapper
-            .showQuickPickStrings(Object.keys(choices), options)
-            .then((result) => {
-                if (result === undefined) {
-                    throw new EscapeException();
-                }
+    return this._vscodeWrapper
+      .showQuickPickStrings(Object.keys(choices), options)
+      .then((result) => {
+        if (result === undefined) {
+          throw new EscapeException();
+        }
 
-                return choices[result] || false;
-            });
-    }
+        return choices[result] || false;
+      });
+  }
 }

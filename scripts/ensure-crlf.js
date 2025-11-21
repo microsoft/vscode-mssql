@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-const { execSync } = require('child_process');
-const fs = require('fs');
+const { execSync } = require("child_process");
+const fs = require("fs");
 
 const SKIP_PATTERNS = [/^\.husky\//];
 
@@ -10,12 +10,12 @@ function shouldSkip(file) {
 
 function getFiles(targetAll) {
   const command = targetAll
-    ? 'git ls-files -z'
-    : 'git diff --cached --name-only --diff-filter=ACM -z';
-  const output = execSync(command, { encoding: 'buffer' });
+    ? "git ls-files -z"
+    : "git diff --cached --name-only --diff-filter=ACM -z";
+  const output = execSync(command, { encoding: "buffer" });
   return output
-    .toString('utf8')
-    .split('\0')
+    .toString("utf8")
+    .split("\0")
     .map((f) => f.trim())
     .filter(Boolean);
 }
@@ -33,15 +33,15 @@ function convertFile(file) {
     return false;
   }
 
-  const original = buffer.toString('utf8');
-  const normalized = original.replace(/\r?\n/g, '\n');
-  const crlfContent = normalized.replace(/\n/g, '\r\n');
+  const original = buffer.toString("utf8");
+  const normalized = original.replace(/\r?\n/g, "\n");
+  const crlfContent = normalized.replace(/\n/g, "\r\n");
 
   if (crlfContent === original) {
     return false;
   }
 
-  fs.writeFileSync(file, crlfContent, 'utf8');
+  fs.writeFileSync(file, crlfContent, "utf8");
   return true;
 }
 
@@ -50,11 +50,14 @@ function stageFiles(files) {
     return;
   }
 
-  execSync('git add -- ' + files.map((f) => `'${f.replace(/'/g, "'\\''")}'`).join(' '), { stdio: 'inherit' });
+  execSync(
+    "git add -- " + files.map((f) => `'${f.replace(/'/g, "'\\''")}'`).join(" "),
+    { stdio: "inherit" },
+  );
 }
 
 function main() {
-  const runAll = process.argv.includes('--all');
+  const runAll = process.argv.includes("--all");
   const files = getFiles(runAll);
   if (!files.length) {
     return;
@@ -66,7 +69,9 @@ function main() {
       console.log(`Converted ${updated.length} file(s) to CRLF.`);
     } else {
       stageFiles(updated);
-      console.log(`Converted ${updated.length} file(s) to CRLF and re-staged them.`);
+      console.log(
+        `Converted ${updated.length} file(s) to CRLF and re-staged them.`,
+      );
     }
   }
 }
@@ -74,6 +79,6 @@ function main() {
 try {
   main();
 } catch (error) {
-  console.error('Failed to enforce CRLF line endings:', error.message);
+  console.error("Failed to enforce CRLF line endings:", error.message);
   process.exit(1);
 }

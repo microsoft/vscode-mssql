@@ -1,53 +1,50 @@
 {
-	"name": "sql-database-projects",
-	"publisher": "Microsoft",
-	"extensionDependencies": [
-		"ms-mssql.mssql",
-		"ms-mssql.data-workspace-vscode"
-	],
+  "name": "sql-database-projects",
+  "publisher": "Microsoft",
+  "extensionDependencies": ["ms-mssql.mssql", "ms-mssql.data-workspace-vscode"],
 
-    "contributes": {
-        "menus": {
-            "objectExplorer/item/context": [
-                {
-                "command": "sqlDatabaseProjects.createProjectFromDatabase",
-                "when": "nodeType =~ /^(Database|Server)$/ && connectionProvider == MSSQL && mssql:engineedition != 11",
-                "group": "export@1"
-                },
-                {
-                "command": "sqlDatabaseProjects.updateProjectFromDatabase",
-                "when": "nodeType =~ /^(Database|Server)$/ && connectionProvider == MSSQL && mssql:engineedition != 11",
-                "group": "export@2"
-                }
-            ],
-            "dataExplorer/context": [
-                {
-                "command": "sqlDatabaseProjects.createProjectFromDatabase",
-                "when": "nodeType =~ /^(Database|Server)$/ && connectionProvider == MSSQL && mssql:engineedition != 11",
-                "group": "export@1"
-                },
-                {
-                "command": "sqlDatabaseProjects.updateProjectFromDatabase",
-                "when": "nodeType =~ /^(Database|Server)$/ && connectionProvider == MSSQL && mssql:engineedition != 11",
-                "group": "export@2"
-                }
-            ],
-            "dashboard/toolbar": [
-                {
-                "command": "sqlDatabaseProjects.createProjectFromDatabase",
-                "when": "connectionProvider == 'MSSQL' && mssql:engineedition != 11"
-                },
-                {
-                "command": "sqlDatabaseProjects.updateProjectFromDatabase",
-                "when": "connectionProvider == 'MSSQL' && mssql:engineedition != 11"
-                }
-            ]
+  "contributes": {
+    "menus": {
+      "objectExplorer/item/context": [
+        {
+          "command": "sqlDatabaseProjects.createProjectFromDatabase",
+          "when": "nodeType =~ /^(Database|Server)$/ && connectionProvider == MSSQL && mssql:engineedition != 11",
+          "group": "export@1"
+        },
+        {
+          "command": "sqlDatabaseProjects.updateProjectFromDatabase",
+          "when": "nodeType =~ /^(Database|Server)$/ && connectionProvider == MSSQL && mssql:engineedition != 11",
+          "group": "export@2"
         }
-    },
+      ],
+      "dataExplorer/context": [
+        {
+          "command": "sqlDatabaseProjects.createProjectFromDatabase",
+          "when": "nodeType =~ /^(Database|Server)$/ && connectionProvider == MSSQL && mssql:engineedition != 11",
+          "group": "export@1"
+        },
+        {
+          "command": "sqlDatabaseProjects.updateProjectFromDatabase",
+          "when": "nodeType =~ /^(Database|Server)$/ && connectionProvider == MSSQL && mssql:engineedition != 11",
+          "group": "export@2"
+        }
+      ],
+      "dashboard/toolbar": [
+        {
+          "command": "sqlDatabaseProjects.createProjectFromDatabase",
+          "when": "connectionProvider == 'MSSQL' && mssql:engineedition != 11"
+        },
+        {
+          "command": "sqlDatabaseProjects.updateProjectFromDatabase",
+          "when": "connectionProvider == 'MSSQL' && mssql:engineedition != 11"
+        }
+      ]
+    }
+  },
 
-	"__metadata": {
-        "id": "70",
-        "publisherDisplayName": "Microsoft",
-        "publisherId": "Microsoft"
-}
+  "__metadata": {
+    "id": "70",
+    "publisherDisplayName": "Microsoft",
+    "publisherId": "Microsoft"
+  }
 }

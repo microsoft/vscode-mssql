@@ -11,34 +11,35 @@ import { ACTIONBAR_WIDTH_PX } from "./table/table";
 import CommandBar from "./commandBar";
 
 const useStyles = makeStyles({
-    textViewContainer: {
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        fontWeight: "normal",
-    },
+  textViewContainer: {
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    fontWeight: "normal",
+  },
 });
 
 export const QueryResultsTextView = () => {
-    const classes = useStyles();
-    const uri = useQueryResultSelector((state) => state.uri);
-    const viewMode =
-        useQueryResultSelector((state) => state.tabStates?.resultViewMode) ??
-        qr.QueryResultViewMode.Grid;
+  const classes = useStyles();
+  const uri = useQueryResultSelector((state) => state.uri);
+  const viewMode =
+    useQueryResultSelector((state) => state.tabStates?.resultViewMode) ??
+    qr.QueryResultViewMode.Grid;
 
-    return (
-        <div className={classes.textViewContainer}>
-            <div style={{ flex: 1, display: "flex", flexDirection: "row" }}>
-                <div
-                    style={{
-                        width: `calc(100% - ${ACTIONBAR_WIDTH_PX}px)`,
-                        height: "100%",
-                    }}>
-                    <TextView />
-                </div>
-                <CommandBar uri={uri} viewMode={viewMode} />
-            </div>
+  return (
+    <div className={classes.textViewContainer}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "row" }}>
+        <div
+          style={{
+            width: `calc(100% - ${ACTIONBAR_WIDTH_PX}px)`,
+            height: "100%",
+          }}
+        >
+          <TextView />
         </div>
-    );
+        <CommandBar uri={uri} viewMode={viewMode} />
+      </div>
+    </div>
+  );
 };

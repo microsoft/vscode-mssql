@@ -6,11 +6,11 @@
 import { WebviewApi } from "vscode-webview";
 
 class VsCodeApiFetcher {
-    public vscodeApiInstance: WebviewApi<unknown>;
+  public vscodeApiInstance: WebviewApi<unknown>;
 
-    constructor() {
-        this.vscodeApiInstance = acquireVsCodeApi<unknown>();
-    }
+  constructor() {
+    this.vscodeApiInstance = acquireVsCodeApi<unknown>();
+  }
 }
 
 export const vsCodeApiInstance = new VsCodeApiFetcher();

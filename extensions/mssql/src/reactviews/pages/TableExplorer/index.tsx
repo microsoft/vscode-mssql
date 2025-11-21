@@ -10,9 +10,9 @@ import { TableExplorerPage } from "./TableExplorerPage";
 import { TableExplorerStateProvider } from "./TableExplorerStateProvider";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider2>
-        <TableExplorerStateProvider>
-            <TableExplorerPage />
-        </TableExplorerStateProvider>
-    </VscodeWebviewProvider2>,
+  <VscodeWebviewProvider2>
+    <TableExplorerStateProvider>
+      <TableExplorerPage />
+    </TableExplorerStateProvider>
+  </VscodeWebviewProvider2>,
 );

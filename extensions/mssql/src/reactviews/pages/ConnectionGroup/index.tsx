@@ -10,9 +10,9 @@ import { ConnectionGroupPage } from "./connectionGroupPage";
 import "../../index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider>
-        <ConnectionGroupStateProvider>
-            <ConnectionGroupPage />
-        </ConnectionGroupStateProvider>
-    </VscodeWebviewProvider>,
+  <VscodeWebviewProvider>
+    <ConnectionGroupStateProvider>
+      <ConnectionGroupPage />
+    </ConnectionGroupStateProvider>
+  </VscodeWebviewProvider>,
 );

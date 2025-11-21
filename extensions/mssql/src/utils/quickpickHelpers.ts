@@ -6,8 +6,8 @@
 import * as vscode from "vscode";
 
 export interface MssqlQuickPickItem extends vscode.QuickPickItem {
-    /** Optional group label for the quick pick item */
-    group?: string;
+  /** Optional group label for the quick pick item */
+  group?: string;
 }
 
 /**
@@ -16,28 +16,28 @@ export interface MssqlQuickPickItem extends vscode.QuickPickItem {
  * Ungrouped items appear first, and are not assigned a group label.
  */
 export function groupQuickPickItems<TQuickPickItem extends MssqlQuickPickItem>(
-    items: TQuickPickItem[],
+  items: TQuickPickItem[],
 ): TQuickPickItem[] {
-    const grouped = Map.groupBy<string, TQuickPickItem>(items, (x) => x.group);
-    const result: TQuickPickItem[] = [];
+  const grouped = Map.groupBy<string, TQuickPickItem>(items, (x) => x.group);
+  const result: TQuickPickItem[] = [];
 
-    // Ungrouped items first...
-    if (grouped.has(undefined)) {
-        result.push(...grouped.get(undefined));
-    }
+  // Ungrouped items first...
+  if (grouped.has(undefined)) {
+    result.push(...grouped.get(undefined));
+  }
 
-    // ...then grouped items
-    const definedGroups = Array.from(grouped.keys())
-        .filter((group) => group !== undefined)
-        .sort();
+  // ...then grouped items
+  const definedGroups = Array.from(grouped.keys())
+    .filter((group) => group !== undefined)
+    .sort();
 
-    for (const group of definedGroups) {
-        result.push({
-            label: group,
-            kind: vscode.QuickPickItemKind.Separator,
-        } as TQuickPickItem);
-        result.push(...grouped.get(group));
-    }
+  for (const group of definedGroups) {
+    result.push({
+      label: group,
+      kind: vscode.QuickPickItemKind.Separator,
+    } as TQuickPickItem);
+    result.push(...grouped.get(group));
+  }
 
-    return result;
+  return result;
 }

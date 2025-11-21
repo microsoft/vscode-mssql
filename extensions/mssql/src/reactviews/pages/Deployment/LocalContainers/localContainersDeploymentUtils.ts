@@ -13,16 +13,17 @@ import { ApiStatus } from "../../../../sharedInterfaces/webview";
  * @param lastStep The index of the last step to check against.
  */
 export async function runDockerStep(
-    state: DeploymentContextProps,
-    lastStep: number,
+  state: DeploymentContextProps,
+  lastStep: number,
 ): Promise<void> {
-    const localContainersState = state.state.deploymentTypeState as LocalContainersState;
-    const currentStep = localContainersState.currentDockerStep;
-    // If the current step is less than or equal to the last step,
-    // complete the step to move to the next one
-    if (currentStep <= lastStep) {
-        await state.completeDockerStep(currentStep);
-    }
+  const localContainersState = state.state
+    .deploymentTypeState as LocalContainersState;
+  const currentStep = localContainersState.currentDockerStep;
+  // If the current step is less than or equal to the last step,
+  // complete the step to move to the next one
+  if (currentStep <= lastStep) {
+    await state.completeDockerStep(currentStep);
+  }
 }
 
 /**
@@ -31,9 +32,15 @@ export async function runDockerStep(
  * @param lastStep The index of the last step to check.
  * @return {boolean} True if the last step is loaded, false otherwise.
  */
-export function isLastStepLoaded(state: DeploymentContextProps, lastStep: number): boolean {
-    const localContainersState = state.state.deploymentTypeState as LocalContainersState;
-    return localContainersState.dockerSteps[lastStep].loadState === ApiStatus.Loaded;
+export function isLastStepLoaded(
+  state: DeploymentContextProps,
+  lastStep: number,
+): boolean {
+  const localContainersState = state.state
+    .deploymentTypeState as LocalContainersState;
+  return (
+    localContainersState.dockerSteps[lastStep].loadState === ApiStatus.Loaded
+  );
 }
 
 /**
@@ -42,16 +49,17 @@ export function isLastStepLoaded(state: DeploymentContextProps, lastStep: number
  * @return {boolean} True if the current step has errored, false otherwise.
  */
 export function checkStepErrored(state: DeploymentContextProps): boolean {
-    const localContainersState = state.state.deploymentTypeState as LocalContainersState;
+  const localContainersState = state.state
+    .deploymentTypeState as LocalContainersState;
 
-    // Safe check to ensure currentDockerStep is within bounds; if not, we've finished all steps
-    if (
-        localContainersState.currentDockerStep ===
-        Object.keys(localContainersState.dockerSteps).length
-    )
-        return false;
-    // Check if the current Docker step has errored
-    const currentDockerStep =
-        localContainersState.dockerSteps[localContainersState.currentDockerStep];
-    return currentDockerStep.loadState === ApiStatus.Error;
+  // Safe check to ensure currentDockerStep is within bounds; if not, we've finished all steps
+  if (
+    localContainersState.currentDockerStep ===
+    Object.keys(localContainersState.dockerSteps).length
+  )
+    return false;
+  // Check if the current Docker step has errored
+  const currentDockerStep =
+    localContainersState.dockerSteps[localContainersState.currentDockerStep];
+  return currentDockerStep.loadState === ApiStatus.Error;
 }

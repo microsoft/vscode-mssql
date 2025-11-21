@@ -4,5 +4,5 @@
  *--------------------------------------------------------------------------------------------*/
 
 export const connectionCertValidationReadMoreUrl =
-    "https://learn.microsoft.com/sql/database-engine/configure-windows/enable-encrypted-connections-to-the-database-engine";
+  "https://learn.microsoft.com/sql/database-engine/configure-windows/enable-encrypted-connections-to-the-database-engine";
 export const addFirewallRuleReadMoreUrl = "https://aka.ms/sqlopsfirewallhelp";

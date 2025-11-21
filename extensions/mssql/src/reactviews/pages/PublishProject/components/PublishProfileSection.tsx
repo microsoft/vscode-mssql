@@ -12,64 +12,68 @@ import { FormItemType } from "../../../../sharedInterfaces/form";
 import { renderInput } from "./FormFieldComponents";
 
 const useStyles = makeStyles({
-    root: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        gap: "8px",
-        maxWidth: "640px",
-        width: "100%",
-    },
-    buttons: {
-        display: "flex",
-        flexDirection: "row",
-        gap: "8px",
-        paddingBottom: "4px",
-        alignSelf: "flex-end",
-    },
-    fieldContainer: {
-        flexGrow: 1,
-        minWidth: 0,
-    },
+  root: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "stretch",
+    gap: "8px",
+    maxWidth: "640px",
+    width: "100%",
+  },
+  buttons: {
+    display: "flex",
+    flexDirection: "row",
+    gap: "8px",
+    paddingBottom: "4px",
+    alignSelf: "flex-end",
+  },
+  fieldContainer: {
+    flexGrow: 1,
+    minWidth: 0,
+  },
 });
 
 // Publish profile name input with action buttons (select & save) rendered inline via selectors.
 export const PublishProfileField: React.FC = () => {
-    const classes = useStyles();
-    const loc = LocConstants.getInstance().publishProject;
-    const context = useContext(PublishProjectContext);
-    const component = usePublishDialogSelector((s) => s.formComponents.publishProfilePath);
-    const value = usePublishDialogSelector((s) => s.formState.publishProfilePath);
-    const [localValue, setLocalValue] = useState(value || "");
+  const classes = useStyles();
+  const loc = LocConstants.getInstance().publishProject;
+  const context = useContext(PublishProjectContext);
+  const component = usePublishDialogSelector(
+    (s) => s.formComponents.publishProfilePath,
+  );
+  const value = usePublishDialogSelector((s) => s.formState.publishProfilePath);
+  const [localValue, setLocalValue] = useState(value || "");
 
-    useEffect(() => setLocalValue(value || ""), [value]);
+  useEffect(() => setLocalValue(value || ""), [value]);
 
-    if (!context || !component || component.hidden) {
-        return undefined;
-    }
-    if (component.type !== FormItemType.Input) {
-        return undefined;
-    }
+  if (!context || !component || component.hidden) {
+    return undefined;
+  }
+  if (component.type !== FormItemType.Input) {
+    return undefined;
+  }
 
-    return (
-        <div className={classes.root}>
-            <div className={classes.fieldContainer}>
-                {renderInput(component, localValue, context, { readOnly: true })}
-            </div>
-            <div className={classes.buttons}>
-                <Button
-                    size="small"
-                    appearance="secondary"
-                    onClick={() => context.selectPublishProfile?.()}>
-                    {loc.SelectPublishProfile}
-                </Button>
-                <Button
-                    size="small"
-                    appearance="secondary"
-                    onClick={() => context.savePublishProfile?.("")}>
-                    {loc.SaveAs}
-                </Button>
-            </div>
-        </div>
-    );
+  return (
+    <div className={classes.root}>
+      <div className={classes.fieldContainer}>
+        {renderInput(component, localValue, context, { readOnly: true })}
+      </div>
+      <div className={classes.buttons}>
+        <Button
+          size="small"
+          appearance="secondary"
+          onClick={() => context.selectPublishProfile?.()}
+        >
+          {loc.SelectPublishProfile}
+        </Button>
+        <Button
+          size="small"
+          appearance="secondary"
+          onClick={() => context.savePublishProfile?.("")}
+        >
+          {loc.SaveAs}
+        </Button>
+      </div>
+    </div>
+  );
 };

@@ -10,9 +10,9 @@ import { DacpacDialogStateProvider } from "./dacpacDialogStateProvider";
 import { DacpacDialogPage } from "./dacpacDialogPage";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider2>
-        <DacpacDialogStateProvider>
-            <DacpacDialogPage />
-        </DacpacDialogStateProvider>
-    </VscodeWebviewProvider2>,
+  <VscodeWebviewProvider2>
+    <DacpacDialogStateProvider>
+      <DacpacDialogPage />
+    </DacpacDialogStateProvider>
+  </VscodeWebviewProvider2>,
 );

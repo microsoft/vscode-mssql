@@ -9,20 +9,26 @@ import { WebviewRpc } from "../../common/rpc";
 import { ChangelogWebviewState } from "../../../sharedInterfaces/changelog";
 
 export interface ChangelogReactProvider {
-    extensionRpc: WebviewRpc<void>;
+  extensionRpc: WebviewRpc<void>;
 }
 
-export const ChangelogContext = createContext<ChangelogReactProvider | undefined>(undefined);
+export const ChangelogContext = createContext<
+  ChangelogReactProvider | undefined
+>(undefined);
 
 interface ChangelogProviderProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
-const ChangelogStateProvider: React.FC<ChangelogProviderProps> = ({ children }) => {
-    const { extensionRpc } = useVscodeWebview2<ChangelogWebviewState, void>();
-    return (
-        <ChangelogContext.Provider value={{ extensionRpc }}>{children}</ChangelogContext.Provider>
-    );
+const ChangelogStateProvider: React.FC<ChangelogProviderProps> = ({
+  children,
+}) => {
+  const { extensionRpc } = useVscodeWebview2<ChangelogWebviewState, void>();
+  return (
+    <ChangelogContext.Provider value={{ extensionRpc }}>
+      {children}
+    </ChangelogContext.Provider>
+  );
 };
 
 export { ChangelogStateProvider };

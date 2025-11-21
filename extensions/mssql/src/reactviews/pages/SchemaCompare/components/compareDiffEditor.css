@@ -5,17 +5,17 @@
 
 .monaco-diff-editor.side-by-side,
 .diffOverview {
-    display: flex;
+  display: flex;
 }
 
 .monaco-diff-editor.side-by-side > .editor.original,
 .diffOverview > .original.diffOverviewRuler {
-    position: unset !important;
-    order: 1; /* Move original to the right */
+  position: unset !important;
+  order: 1; /* Move original to the right */
 }
 
 .monaco-diff-editor.side-by-side > .editor.modified,
 .diffOverview > .modified.diffOverviewRuler {
-    position: unset !important;
-    order: 0; /* Move modified to the left */
+  position: unset !important;
+  order: 0; /* Move modified to the left */
 }

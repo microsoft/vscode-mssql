@@ -11,62 +11,64 @@ import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
 
 export interface ListDatabasesToolParams {
-    connectionId: string;
+  connectionId: string;
 }
 
 export interface ListDatabasesToolResult {
-    success: boolean;
-    message?: string;
-    databases: string[];
+  success: boolean;
+  message?: string;
+  databases: string[];
 }
 
 export class ListDatabasesTool extends ToolBase<ListDatabasesToolParams> {
-    public readonly toolName = Constants.copilotListDatabasesToolName;
+  public readonly toolName = Constants.copilotListDatabasesToolName;
 
-    constructor(private _connectionManager: ConnectionManager) {
-        super();
+  constructor(private _connectionManager: ConnectionManager) {
+    super();
+  }
+
+  async call(
+    options: vscode.LanguageModelToolInvocationOptions<ListDatabasesToolParams>,
+    _token: vscode.CancellationToken,
+  ) {
+    const { connectionId } = options.input;
+    try {
+      const connInfo = this._connectionManager.getConnectionInfo(connectionId);
+      const connCreds = connInfo?.credentials;
+      if (!connCreds) {
+        return JSON.stringify({
+          success: false,
+          message: loc.noConnectionError(connectionId),
+        });
+      }
+      const databases =
+        await this._connectionManager.listDatabases(connectionId);
+
+      return JSON.stringify({
+        success: true,
+        databases,
+      });
+    } catch (err) {
+      return JSON.stringify({
+        success: false,
+        message: getErrorMessage(err),
+      });
     }
+  }
 
-    async call(
-        options: vscode.LanguageModelToolInvocationOptions<ListDatabasesToolParams>,
-        _token: vscode.CancellationToken,
-    ) {
-        const { connectionId } = options.input;
-        try {
-            const connInfo = this._connectionManager.getConnectionInfo(connectionId);
-            const connCreds = connInfo?.credentials;
-            if (!connCreds) {
-                return JSON.stringify({
-                    success: false,
-                    message: loc.noConnectionError(connectionId),
-                });
-            }
-            const databases = await this._connectionManager.listDatabases(connectionId);
-
-            return JSON.stringify({
-                success: true,
-                databases,
-            });
-        } catch (err) {
-            return JSON.stringify({
-                success: false,
-                message: getErrorMessage(err),
-            });
-        }
-    }
-
-    async prepareInvocation(
-        options: vscode.LanguageModelToolInvocationPrepareOptions<ListDatabasesToolParams>,
-        _token: vscode.CancellationToken,
-    ) {
-        const { connectionId } = options.input;
-        const confirmationMessages = {
-            title: `${Constants.extensionName}: ${loc.listDatabasesToolConfirmationTitle}`,
-            message: new vscode.MarkdownString(
-                loc.listDatabasesToolConfirmationMessage(connectionId),
-            ),
-        };
-        const invocationMessage = loc.listDatabasesToolInvocationMessage(connectionId);
-        return { invocationMessage, confirmationMessages };
-    }
+  async prepareInvocation(
+    options: vscode.LanguageModelToolInvocationPrepareOptions<ListDatabasesToolParams>,
+    _token: vscode.CancellationToken,
+  ) {
+    const { connectionId } = options.input;
+    const confirmationMessages = {
+      title: `${Constants.extensionName}: ${loc.listDatabasesToolConfirmationTitle}`,
+      message: new vscode.MarkdownString(
+        loc.listDatabasesToolConfirmationMessage(connectionId),
+      ),
+    };
+    const invocationMessage =
+      loc.listDatabasesToolInvocationMessage(connectionId);
+    return { invocationMessage, confirmationMessages };
+  }
 }

@@ -10,9 +10,9 @@ import PublishProjectPage from "./publishProject";
 import { PublishProjectStateProvider } from "./publishProjectStateProvider";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider2>
-        <PublishProjectStateProvider>
-            <PublishProjectPage />
-        </PublishProjectStateProvider>
-    </VscodeWebviewProvider2>,
+  <VscodeWebviewProvider2>
+    <PublishProjectStateProvider>
+      <PublishProjectPage />
+    </PublishProjectStateProvider>
+  </VscodeWebviewProvider2>,
 );

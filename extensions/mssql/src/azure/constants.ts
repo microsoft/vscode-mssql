@@ -23,7 +23,8 @@ export const authSection = "auth";
 
 export const azureSection = "azure";
 
-export const azureAccountProviderCredentials = "azureAccountProviderCredentials";
+export const azureAccountProviderCredentials =
+  "azureAccountProviderCredentials";
 
 export const cloudSection = "cloud";
 
@@ -39,15 +40,20 @@ export const sqlAuthProviderSection = "enableSqlAuthenticationProvider";
 
 export const enableConnectionPoolingSection = "enableConnectionPooling";
 
-export const mssqlAuthenticationProviderConfig = mssqlSection + "." + sqlAuthProviderSection;
+export const mssqlAuthenticationProviderConfig =
+  mssqlSection + "." + sqlAuthProviderSection;
 
-export const accountsClearTokenCacheCommand = accountsSection + "." + clearTokenCacheCommand;
+export const accountsClearTokenCacheCommand =
+  accountsSection + "." + clearTokenCacheCommand;
 
-export const accountsAzureAuthSection = accountsSection + "." + azureSection + "." + authSection;
+export const accountsAzureAuthSection =
+  accountsSection + "." + azureSection + "." + authSection;
 
-export const accountsAzureCloudSection = accountsSection + "." + azureSection + "." + cloudSection;
+export const accountsAzureCloudSection =
+  accountsSection + "." + azureSection + "." + cloudSection;
 
-export const azureTenantConfigSection = azureSection + "." + tenantSection + "." + configSection;
+export const azureTenantConfigSection =
+  azureSection + "." + tenantSection + "." + configSection;
 
 export const oldMsalCacheFileName = "azureTokenCacheMsal-azure_publicCloud";
 
@@ -106,52 +112,53 @@ export const s256CodeChallengeMethod = "S256";
 export const selectAccount = "select_account";
 
 export const commonTenant: ITenant = {
-    id: "common",
-    displayName: "common",
+  id: "common",
+  displayName: "common",
 };
 
 export const organizationTenant: ITenant = {
-    id: "organizations",
-    displayName: "organizations",
+  id: "organizations",
+  displayName: "organizations",
 };
 /**
  * Account issuer as received from access token
  */
 export enum AccountIssuer {
-    Corp = "corp",
-    Msft = "msft",
+  Corp = "corp",
+  Msft = "msft",
 }
 /**
  * http methods
  */
 export enum HttpMethod {
-    GET = "get",
-    POST = "post",
+  GET = "get",
+  POST = "post",
 }
 
 export enum HttpStatus {
-    SUCCESS_RANGE_START = 200,
-    SUCCESS_RANGE_END = 299,
-    REDIRECT = 302,
-    CLIENT_ERROR_RANGE_START = 400,
-    CLIENT_ERROR_RANGE_END = 499,
-    SERVER_ERROR_RANGE_START = 500,
-    SERVER_ERROR_RANGE_END = 599,
+  SUCCESS_RANGE_START = 200,
+  SUCCESS_RANGE_END = 299,
+  REDIRECT = 302,
+  CLIENT_ERROR_RANGE_START = 400,
+  CLIENT_ERROR_RANGE_END = 499,
+  SERVER_ERROR_RANGE_START = 500,
+  SERVER_ERROR_RANGE_END = 599,
 }
 
 export enum ProxyStatus {
-    SUCCESS_RANGE_START = 200,
-    SUCCESS_RANGE_END = 299,
-    SERVER_ERROR = 500,
+  SUCCESS_RANGE_START = 200,
+  SUCCESS_RANGE_END = 299,
+  SERVER_ERROR = 500,
 }
 
 /**
  * Constants
  */
 export const constants = {
-    MSAL_SKU: "msal.js.node",
-    JWT_BEARER_ASSERTION_TYPE: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-    AUTHORIZATION_PENDING: "authorization_pending",
-    HTTP_PROTOCOL: "http://",
-    LOCALHOST: "localhost",
+  MSAL_SKU: "msal.js.node",
+  JWT_BEARER_ASSERTION_TYPE:
+    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+  AUTHORIZATION_PENDING: "authorization_pending",
+  HTTP_PROTOCOL: "http://",
+  LOCALHOST: "localhost",
 };

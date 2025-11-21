@@ -16,16 +16,24 @@ import { ReactWebviewPanelController } from "./reactWebviewPanelController";
 import VscodeWrapper from "./vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 import { startActivity } from "../telemetry/telemetry";
-import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
+import {
+  TelemetryViews,
+  TelemetryActions,
+  ActivityStatus,
+} from "../sharedInterfaces/telemetry";
 import * as dacpacDialog from "../sharedInterfaces/dacpacDialog";
 import { TaskExecutionMode } from "../sharedInterfaces/schemaCompare";
 import { ListDatabasesRequest } from "../models/contracts/connection";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
-import { getConnectionDisplayName, getServerTypes, ServerType } from "../models/connectionInfo";
 import {
-    validateDatabaseNameFormat,
-    DatabaseNameValidationError,
-    ConnectionMatcher,
+  getConnectionDisplayName,
+  getServerTypes,
+  ServerType,
+} from "../models/connectionInfo";
+import {
+  validateDatabaseNameFormat,
+  DatabaseNameValidationError,
+  ConnectionMatcher,
 } from "../models/utils";
 import { PlatformInformation } from "../models/platform";
 import { UserSurvey } from "../nps/userSurvey";
@@ -46,16 +54,20 @@ const DACPAC_DIALOG_VIEW_ID = "dacpacDialog";
  * @returns The appropriate localized string based on the operating system
  */
 function getRevealInOsButtonText(): string {
-    const platformInfo = new PlatformInformation(process.platform, process.arch, undefined);
+  const platformInfo = new PlatformInformation(
+    process.platform,
+    process.arch,
+    undefined,
+  );
 
-    if (platformInfo.isMacOS) {
-        return LocConstants.DacpacDialog.RevealInFinder;
-    } else if (platformInfo.isLinux) {
-        return LocConstants.DacpacDialog.OpenContainingFolder;
-    } else {
-        // Windows or any other platform
-        return LocConstants.DacpacDialog.RevealInExplorer;
-    }
+  if (platformInfo.isMacOS) {
+    return LocConstants.DacpacDialog.RevealInFinder;
+  } else if (platformInfo.isLinux) {
+    return LocConstants.DacpacDialog.OpenContainingFolder;
+  } else {
+    // Windows or any other platform
+    return LocConstants.DacpacDialog.RevealInExplorer;
+  }
 }
 
 /**
@@ -63,979 +75,1057 @@ function getRevealInOsButtonText(): string {
  * Manages DACPAC and BACPAC operations (Deploy, Extract, Import, Export) using the Data-tier Application Framework (DacFx).
  */
 export class DacpacDialogWebviewController extends ReactWebviewPanelController<
-    dacpacDialog.DacpacDialogWebviewState,
-    void,
-    dacpacDialog.DacpacDialogResult
+  dacpacDialog.DacpacDialogWebviewState,
+  void,
+  dacpacDialog.DacpacDialogResult
 > {
-    private _ownerUri: string;
+  private _ownerUri: string;
 
-    constructor(
-        context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
-        private connectionManager: ConnectionManager,
-        private dacFxService: DacFxService,
-        initialState: dacpacDialog.DacpacDialogWebviewState,
-        ownerUri: string,
-    ) {
-        super(context, vscodeWrapper, DACPAC_DIALOG_VIEW_ID, DACPAC_DIALOG_VIEW_ID, initialState, {
-            title: LocConstants.DacpacDialog.Title,
-            viewColumn: vscode.ViewColumn.Active,
-            iconPath: {
-                dark: vscode.Uri.joinPath(context.extensionUri, "media", "database_dark.svg"),
-                light: vscode.Uri.joinPath(context.extensionUri, "media", "database_light.svg"),
-            },
-            preserveFocus: true,
-        });
+  constructor(
+    context: vscode.ExtensionContext,
+    vscodeWrapper: VscodeWrapper,
+    private connectionManager: ConnectionManager,
+    private dacFxService: DacFxService,
+    initialState: dacpacDialog.DacpacDialogWebviewState,
+    ownerUri: string,
+  ) {
+    super(
+      context,
+      vscodeWrapper,
+      DACPAC_DIALOG_VIEW_ID,
+      DACPAC_DIALOG_VIEW_ID,
+      initialState,
+      {
+        title: LocConstants.DacpacDialog.Title,
+        viewColumn: vscode.ViewColumn.Active,
+        iconPath: {
+          dark: vscode.Uri.joinPath(
+            context.extensionUri,
+            "media",
+            "database_dark.svg",
+          ),
+          light: vscode.Uri.joinPath(
+            context.extensionUri,
+            "media",
+            "database_light.svg",
+          ),
+        },
+        preserveFocus: true,
+      },
+    );
 
-        this._ownerUri = ownerUri;
-        this.registerRpcHandlers();
-    }
+    this._ownerUri = ownerUri;
+    this.registerRpcHandlers();
+  }
 
-    /**
-     * Registers all RPC handlers for webview communication
-     */
-    private registerRpcHandlers(): void {
-        // Publish DACPAC request handler
-        this.onRequest(
-            dacpacDialog.DeployDacpacWebviewRequest.type,
-            async (params: dacpacDialog.DeployDacpacParams) => {
-                return await this.handleDeployDacpac(params);
-            },
-        );
+  /**
+   * Registers all RPC handlers for webview communication
+   */
+  private registerRpcHandlers(): void {
+    // Publish DACPAC request handler
+    this.onRequest(
+      dacpacDialog.DeployDacpacWebviewRequest.type,
+      async (params: dacpacDialog.DeployDacpacParams) => {
+        return await this.handleDeployDacpac(params);
+      },
+    );
 
-        // Extract DACPAC request handler
-        this.onRequest(
-            dacpacDialog.ExtractDacpacWebviewRequest.type,
-            async (params: dacpacDialog.ExtractDacpacParams) => {
-                return await this.handleExtractDacpac(params);
-            },
-        );
+    // Extract DACPAC request handler
+    this.onRequest(
+      dacpacDialog.ExtractDacpacWebviewRequest.type,
+      async (params: dacpacDialog.ExtractDacpacParams) => {
+        return await this.handleExtractDacpac(params);
+      },
+    );
 
-        // Import BACPAC request handler
-        this.onRequest(
-            dacpacDialog.ImportBacpacWebviewRequest.type,
-            async (params: dacpacDialog.ImportBacpacParams) => {
-                return await this.handleImportBacpac(params);
-            },
-        );
+    // Import BACPAC request handler
+    this.onRequest(
+      dacpacDialog.ImportBacpacWebviewRequest.type,
+      async (params: dacpacDialog.ImportBacpacParams) => {
+        return await this.handleImportBacpac(params);
+      },
+    );
 
-        // Export BACPAC request handler
-        this.onRequest(
-            dacpacDialog.ExportBacpacWebviewRequest.type,
-            async (params: dacpacDialog.ExportBacpacParams) => {
-                return await this.handleExportBacpac(params);
-            },
-        );
+    // Export BACPAC request handler
+    this.onRequest(
+      dacpacDialog.ExportBacpacWebviewRequest.type,
+      async (params: dacpacDialog.ExportBacpacParams) => {
+        return await this.handleExportBacpac(params);
+      },
+    );
 
-        // Validate file path request handler
-        this.onRequest(
-            dacpacDialog.ValidateFilePathWebviewRequest.type,
-            async (params: { filePath: string; shouldExist: boolean }) => {
-                return this.validateFilePath(params.filePath, params.shouldExist);
-            },
-        );
+    // Validate file path request handler
+    this.onRequest(
+      dacpacDialog.ValidateFilePathWebviewRequest.type,
+      async (params: { filePath: string; shouldExist: boolean }) => {
+        return this.validateFilePath(params.filePath, params.shouldExist);
+      },
+    );
 
-        // List databases request handler
-        this.onRequest(
-            dacpacDialog.ListDatabasesWebviewRequest.type,
-            async (params: { ownerUri: string }) => {
-                if (!params.ownerUri || params.ownerUri.trim() === "") {
-                    this.logger.error("Cannot list databases: ownerUri is empty");
-                    return { databases: [] };
-                }
-                return await this.listDatabases(params.ownerUri);
-            },
-        );
-
-        // Validate database name request handler
-        this.onRequest(
-            dacpacDialog.ValidateDatabaseNameWebviewRequest.type,
-            async (params: {
-                databaseName: string;
-                ownerUri: string;
-                shouldNotExist: boolean;
-                operationType?: dacpacDialog.DacPacDialogOperationType;
-            }) => {
-                if (!params.ownerUri || params.ownerUri.trim() === "") {
-                    this.logger.error("Cannot validate database name: ownerUri is empty");
-                    return {
-                        isValid: false,
-                        errorMessage:
-                            "No active connection. Please ensure you are connected to a SQL Server instance.",
-                    };
-                }
-                return await this.validateDatabaseName(
-                    params.databaseName,
-                    params.ownerUri,
-                    params.shouldNotExist,
-                    params.operationType,
-                );
-            },
-        );
-
-        // List connections request handler
-        this.onRequest(dacpacDialog.ListConnectionsWebviewRequest.type, async () => {
-            return await this.listConnections();
-        });
-
-        // Initialize connection request handler
-        this.onRequest(
-            dacpacDialog.InitializeConnectionWebviewRequest.type,
-            async (params: {
-                initialServerName?: string;
-                initialDatabaseName?: string;
-                initialOwnerUri?: string;
-                initialProfileId?: string;
-            }) => {
-                return await this.initializeConnection(params);
-            },
-        );
-
-        // Connect to server request handler
-        this.onRequest(
-            dacpacDialog.ConnectToServerWebviewRequest.type,
-            async (params: { profileId: string }) => {
-                return await this.connectToServer(params.profileId);
-            },
-        );
-
-        // Browse for input file (DACPAC or BACPAC) request handler
-        this.onRequest(
-            dacpacDialog.BrowseInputFileWebviewRequest.type,
-            async (params: { fileExtension: string }) => {
-                const fileUri = await vscode.window.showOpenDialog({
-                    canSelectFiles: true,
-                    canSelectFolders: false,
-                    canSelectMany: false,
-                    openLabel: LocConstants.DacpacDialog.Select,
-                    filters: {
-                        [`${params.fileExtension.toUpperCase()} ${LocConstants.DacpacDialog.Files}`]:
-                            [params.fileExtension],
-                    },
-                });
-
-                if (!fileUri || fileUri.length === 0) {
-                    return { filePath: undefined };
-                }
-
-                return { filePath: fileUri[0].fsPath };
-            },
-        );
-
-        // Browse for output file (DACPAC or BACPAC) request handler
-        this.onRequest(
-            dacpacDialog.BrowseOutputFileWebviewRequest.type,
-            async (params: { fileExtension: string; defaultFileName?: string }) => {
-                const defaultFileName =
-                    params.defaultFileName || `database.${params.fileExtension}`;
-                const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
-                const defaultUri = workspaceFolder
-                    ? vscode.Uri.joinPath(workspaceFolder, defaultFileName)
-                    : vscode.Uri.file(path.join(homedir(), defaultFileName));
-
-                const fileUri = await vscode.window.showSaveDialog({
-                    defaultUri: defaultUri,
-                    saveLabel: LocConstants.DacpacDialog.Save,
-                    filters: {
-                        [`${params.fileExtension.toUpperCase()} ${LocConstants.DacpacDialog.Files}`]:
-                            [params.fileExtension],
-                    },
-                });
-
-                if (!fileUri) {
-                    return { filePath: undefined };
-                }
-
-                return { filePath: fileUri.fsPath };
-            },
-        );
-
-        // Get default output path without showing dialog
-        this.onRequest(
-            dacpacDialog.GetSuggestedOutputPathWebviewRequest.type,
-            async (params: {
-                databaseName: string;
-                operationType: dacpacDialog.DacPacDialogOperationType;
-            }) => {
-                const fileExtension =
-                    params.operationType === dacpacDialog.DacPacDialogOperationType.Extract
-                        ? "dacpac"
-                        : "bacpac";
-
-                const timestamp = this.formatTimestampForFilename();
-                const suggestedFileName = `${params.databaseName}-${timestamp}.${fileExtension}`;
-
-                // Get workspace folder or home directory
-                const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
-                const defaultUri = workspaceFolder
-                    ? vscode.Uri.joinPath(workspaceFolder, suggestedFileName)
-                    : vscode.Uri.file(path.join(homedir(), suggestedFileName));
-
-                return { fullPath: defaultUri.fsPath };
-            },
-        );
-
-        // Get suggested filename with timestamp
-        this.onRequest(
-            dacpacDialog.GetSuggestedFilenameWebviewRequest.type,
-            async (params: { databaseName: string; fileExtension: string }) => {
-                const timestamp = this.formatTimestampForFilename();
-                const filename = `${params.databaseName}-${timestamp}.${params.fileExtension}`;
-                return { filename };
-            },
-        );
-
-        // Get suggested database name from file path
-        this.onRequest(
-            dacpacDialog.GetSuggestedDatabaseNameWebviewRequest.type,
-            async (params: { filePath: string }) => {
-                // Remove file extension (.dacpac or .bacpac) to get the database name
-                // Keep the full filename including any timestamps that may be present
-                const databaseName = path.basename(params.filePath, path.extname(params.filePath));
-
-                return { databaseName };
-            },
-        );
-
-        // Confirm deploy to existing database request handler
-        this.onRequest(dacpacDialog.ConfirmDeployToExistingWebviewRequest.type, async () => {
-            const result = await this.vscodeWrapper.showWarningMessageAdvanced(
-                LocConstants.DacpacDialog.DeployToExistingMessage,
-                { modal: true },
-                [LocConstants.DacpacDialog.DeployToExistingConfirm],
-            );
-
-            return {
-                confirmed: result === LocConstants.DacpacDialog.DeployToExistingConfirm,
-            };
-        });
-
-        // Cancel operation notification handler
-        this.onNotification(dacpacDialog.CancelDacpacDialogWebviewNotification.type, () => {
-            this.dialogResult.resolve(undefined);
-            this.panel.dispose();
-        });
-    }
-
-    /**
-     * Handles deploying a DACPAC file to a database
-     */
-    private async handleDeployDacpac(
-        params: dacpacDialog.DeployDacpacParams,
-    ): Promise<dacpacDialog.DacpacDialogResult> {
-        this.logger.verbose("Starting Deploy DACPAC operation");
-
-        const activity = startActivity(
-            TelemetryViews.DacpacDialog,
-            TelemetryActions.DacpacDialogDeployDacpac,
-            undefined,
-            {
-                isNewDatabase: params.isNewDatabase.toString(),
-            },
-        );
-
-        try {
-            const result = await this.dacFxService.deployDacpac(
-                params.packageFilePath,
-                params.databaseName,
-                !params.isNewDatabase, // upgradeExisting
-                params.ownerUri,
-                TaskExecutionMode.execute,
-            );
-
-            const appResult: dacpacDialog.DacpacDialogResult = {
-                success: result.success,
-                errorMessage: result.errorMessage,
-                operationId: result.operationId,
-            };
-
-            if (result.success) {
-                this.logger.verbose("Deploy DACPAC operation completed successfully");
-                activity.end(ActivityStatus.Succeeded);
-                // Show success notification for Deploy operation
-                void this.vscodeWrapper.showInformationMessage(
-                    LocConstants.DacpacDialog.DeploySuccessWithDatabase(params.databaseName),
-                );
-                // Prompt user for NPS survey feedback
-                UserSurvey.getInstance().promptUserForNPSFeedback(
-                    `${DACPAC_DIALOG_VIEW_ID}_deploy`,
-                );
-                this.dialogResult.resolve(appResult);
-            } else {
-                this.logger.error("Deploy DACPAC operation failed");
-                activity.endFailed(
-                    new Error(result.errorMessage || "Deploy operation failed"),
-                    false,
-                );
-                this.dialogResult.resolve(appResult);
-            }
-
-            return appResult;
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            const errorType = error instanceof Error ? error.constructor.name : typeof error;
-            this.logger.error(
-                `Deploy DACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
-            );
-            activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
-            return {
-                success: false,
-                errorMessage: errorMessage,
-            };
+    // List databases request handler
+    this.onRequest(
+      dacpacDialog.ListDatabasesWebviewRequest.type,
+      async (params: { ownerUri: string }) => {
+        if (!params.ownerUri || params.ownerUri.trim() === "") {
+          this.logger.error("Cannot list databases: ownerUri is empty");
+          return { databases: [] };
         }
-    }
+        return await this.listDatabases(params.ownerUri);
+      },
+    );
 
-    /**
-     * Handles extracting a DACPAC file from a database
-     */
-    private async handleExtractDacpac(
-        params: dacpacDialog.ExtractDacpacParams,
-    ): Promise<dacpacDialog.DacpacDialogResult> {
-        this.logger.verbose("Starting Extract DACPAC operation");
-
-        const activity = startActivity(
-            TelemetryViews.DacpacDialog,
-            TelemetryActions.DacpacDialogExtractDacpac,
+    // Validate database name request handler
+    this.onRequest(
+      dacpacDialog.ValidateDatabaseNameWebviewRequest.type,
+      async (params: {
+        databaseName: string;
+        ownerUri: string;
+        shouldNotExist: boolean;
+        operationType?: dacpacDialog.DacPacDialogOperationType;
+      }) => {
+        if (!params.ownerUri || params.ownerUri.trim() === "") {
+          this.logger.error("Cannot validate database name: ownerUri is empty");
+          return {
+            isValid: false,
+            errorMessage:
+              "No active connection. Please ensure you are connected to a SQL Server instance.",
+          };
+        }
+        return await this.validateDatabaseName(
+          params.databaseName,
+          params.ownerUri,
+          params.shouldNotExist,
+          params.operationType,
         );
+      },
+    );
 
-        try {
-            const result = await this.dacFxService.extractDacpac(
-                params.databaseName,
-                params.packageFilePath,
-                params.applicationName,
-                params.applicationVersion,
-                params.ownerUri,
-                TaskExecutionMode.execute,
-            );
+    // List connections request handler
+    this.onRequest(
+      dacpacDialog.ListConnectionsWebviewRequest.type,
+      async () => {
+        return await this.listConnections();
+      },
+    );
 
-            const appResult: dacpacDialog.DacpacDialogResult = {
-                success: result.success,
-                errorMessage: result.errorMessage,
-                operationId: result.operationId,
-            };
-
-            if (result.success) {
-                this.logger.verbose("Extract DACPAC operation completed successfully");
-                activity.end(ActivityStatus.Succeeded);
-                // Show success notification with OS-specific "Reveal/Open" button for Extract operation
-                const fileName = path.basename(params.packageFilePath);
-                const revealButtonText = getRevealInOsButtonText();
-                void this.vscodeWrapper
-                    .showInformationMessage(
-                        LocConstants.DacpacDialog.ExtractSuccessWithFile(fileName),
-                        revealButtonText,
-                    )
-                    .then((selection) => {
-                        if (selection === revealButtonText) {
-                            void vscode.commands.executeCommand(
-                                REVEAL_FILE_IN_OS_COMMAND,
-                                vscode.Uri.file(params.packageFilePath),
-                            );
-                        }
-                    });
-                // Prompt user for NPS survey feedback
-                UserSurvey.getInstance().promptUserForNPSFeedback(
-                    `${DACPAC_DIALOG_VIEW_ID}_extract`,
-                );
-                this.dialogResult.resolve(appResult);
-            } else {
-                this.logger.error("Extract DACPAC operation failed");
-                activity.endFailed(
-                    new Error(result.errorMessage || "Extract operation failed"),
-                    false,
-                );
-                this.dialogResult.resolve(appResult);
-            }
-
-            return appResult;
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            const errorType = error instanceof Error ? error.constructor.name : typeof error;
-            this.logger.error(
-                `Extract DACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
-            );
-            activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
-            return {
-                success: false,
-                errorMessage: errorMessage,
-            };
-        }
-    }
-
-    /**
-     * Handles importing a BACPAC file to create a new database
-     */
-    private async handleImportBacpac(
-        params: dacpacDialog.ImportBacpacParams,
-    ): Promise<dacpacDialog.DacpacDialogResult> {
-        this.logger.verbose("Starting Import BACPAC operation");
-
-        const activity = startActivity(
-            TelemetryViews.DacpacDialog,
-            TelemetryActions.DacpacDialogImportBacpac,
-        );
-
-        try {
-            const result = await this.dacFxService.importBacpac(
-                params.packageFilePath,
-                params.databaseName,
-                params.ownerUri,
-                TaskExecutionMode.execute,
-            );
-
-            const appResult: dacpacDialog.DacpacDialogResult = {
-                success: result.success,
-                errorMessage: result.errorMessage,
-                operationId: result.operationId,
-            };
-
-            if (result.success) {
-                this.logger.verbose("Import BACPAC operation completed successfully");
-                activity.end(ActivityStatus.Succeeded);
-                // Show success notification for Import operation
-                void this.vscodeWrapper.showInformationMessage(
-                    LocConstants.DacpacDialog.ImportSuccessWithDatabase(params.databaseName),
-                );
-                // Prompt user for NPS survey feedback
-                UserSurvey.getInstance().promptUserForNPSFeedback(
-                    `${DACPAC_DIALOG_VIEW_ID}_import`,
-                );
-                this.dialogResult.resolve(appResult);
-            } else {
-                this.logger.error("Import BACPAC operation failed");
-                activity.endFailed(
-                    new Error(result.errorMessage || "Import operation failed"),
-                    false,
-                );
-                this.dialogResult.resolve(appResult);
-            }
-
-            return appResult;
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            const errorType = error instanceof Error ? error.constructor.name : typeof error;
-            this.logger.error(
-                `Import BACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
-            );
-            activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
-            return {
-                success: false,
-                errorMessage: errorMessage,
-            };
-        }
-    }
-
-    /**
-     * Handles exporting a database to a BACPAC file
-     */
-    private async handleExportBacpac(
-        params: dacpacDialog.ExportBacpacParams,
-    ): Promise<dacpacDialog.DacpacDialogResult> {
-        this.logger.verbose("Starting Export BACPAC operation");
-
-        const activity = startActivity(
-            TelemetryViews.DacpacDialog,
-            TelemetryActions.DacpacDialogExportBacpac,
-        );
-
-        try {
-            const result = await this.dacFxService.exportBacpac(
-                params.databaseName,
-                params.packageFilePath,
-                params.ownerUri,
-                TaskExecutionMode.execute,
-            );
-
-            const appResult: dacpacDialog.DacpacDialogResult = {
-                success: result.success,
-                errorMessage: result.errorMessage,
-                operationId: result.operationId,
-            };
-
-            if (result.success) {
-                this.logger.verbose("Export BACPAC operation completed successfully");
-                activity.end(ActivityStatus.Succeeded);
-                // Show success notification with OS-specific "Reveal/Open" button for Export operation
-                const fileName = path.basename(params.packageFilePath);
-                const revealButtonText = getRevealInOsButtonText();
-                void this.vscodeWrapper
-                    .showInformationMessage(
-                        LocConstants.DacpacDialog.ExportSuccessWithFile(fileName),
-                        revealButtonText,
-                    )
-                    .then((selection) => {
-                        if (selection === revealButtonText) {
-                            void vscode.commands.executeCommand(
-                                REVEAL_FILE_IN_OS_COMMAND,
-                                vscode.Uri.file(params.packageFilePath),
-                            );
-                        }
-                    });
-                // Prompt user for NPS survey feedback
-                UserSurvey.getInstance().promptUserForNPSFeedback(
-                    `${DACPAC_DIALOG_VIEW_ID}_export`,
-                );
-                this.dialogResult.resolve(appResult);
-            } else {
-                this.logger.error("Export BACPAC operation failed");
-                activity.endFailed(
-                    new Error(result.errorMessage || "Export operation failed"),
-                    false,
-                );
-                this.dialogResult.resolve(appResult);
-            }
-
-            return appResult;
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            const errorType = error instanceof Error ? error.constructor.name : typeof error;
-            this.logger.error(
-                `Export BACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
-            );
-            activity.endFailed(error instanceof Error ? error : new Error(errorMessage), false);
-            return {
-                success: false,
-                errorMessage: errorMessage,
-            };
-        }
-    }
-
-    /**
-     * Validates a file path
-     */
-    private validateFilePath(
-        filePath: string,
-        shouldExist: boolean,
-    ): { isValid: boolean; errorMessage?: string } {
-        if (!filePath || filePath.trim() === "") {
-            return {
-                isValid: false,
-                errorMessage: LocConstants.DacpacDialog.FilePathRequired,
-            };
-        }
-
-        const fileFound = existsSync(filePath);
-
-        if (shouldExist && !fileFound) {
-            return {
-                isValid: false,
-                errorMessage: LocConstants.DacpacDialog.FileNotFound,
-            };
-        }
-
-        const extension = path.extname(filePath).toLowerCase();
-        if (extension !== DACPAC_EXTENSION && extension !== BACPAC_EXTENSION) {
-            return {
-                isValid: false,
-                errorMessage: LocConstants.DacpacDialog.InvalidFileExtension,
-            };
-        }
-
-        if (!shouldExist) {
-            // Check if the directory exists and is writable
-            const directory = path.dirname(filePath);
-            if (!fs.existsSync(directory)) {
-                return {
-                    isValid: false,
-                    errorMessage: LocConstants.DacpacDialog.DirectoryNotFound,
-                };
-            }
-
-            // Check if file already exists (for output files)
-            if (fileFound) {
-                // This is just a warning - the operation can continue with user confirmation
-                return {
-                    isValid: true,
-                    errorMessage: LocConstants.DacpacDialog.FileAlreadyExists,
-                };
-            }
-        }
-
-        return { isValid: true };
-    }
-
-    /**
-     * Lists databases on the connected server
-     */
-    private async listDatabases(ownerUri: string): Promise<{ databases: string[] }> {
-        try {
-            const result = await this.connectionManager.client.sendRequest(
-                ListDatabasesRequest.type,
-                { ownerUri: ownerUri },
-            );
-
-            // Filter out system databases
-            const systemDatabases = ["master", "tempdb", "model", "msdb"];
-            const userDatabases = (result.databaseNames || []).filter(
-                (db) => !systemDatabases.includes(db.toLowerCase()),
-            );
-
-            return { databases: userDatabases };
-        } catch (error) {
-            this.logger.error(`Failed to list databases: ${error}`);
-            return { databases: [] };
-        }
-    }
-
-    /**
-     * Lists all available connections from the connection store
-     */
-    private async listConnections(): Promise<{
-        connections: IConnectionDialogProfile[];
-    }> {
-        try {
-            // Get all saved connections from connection store (saved profiles only, not recent connections)
-            const savedConnections =
-                await this.connectionManager.connectionStore.readAllConnections();
-
-            // Convert to IConnectionDialogProfile format and ensure profileName is set
-            const connections: IConnectionDialogProfile[] = savedConnections.map((conn) => {
-                const profile = conn as IConnectionProfile;
-                // Use getConnectionDisplayName if profileName is not set
-                const displayName = profile.profileName || getConnectionDisplayName(profile);
-
-                return {
-                    server: profile.server,
-                    database: profile.database,
-                    user: profile.user,
-                    password: profile.password,
-                    authenticationType: profile.authenticationType,
-                    profileName: displayName,
-                    id: profile.id,
-                    groupId: profile.groupId,
-                    savePassword: profile.savePassword,
-                    azureAuthType: profile.azureAuthType,
-                } as IConnectionDialogProfile;
-            });
-
-            return { connections };
-        } catch (error) {
-            this.logger.error(`Failed to list connections: ${error}`);
-            return { connections: [] };
-        }
-    }
-
-    /**
-     * Checks if a connection profile is connected to a Fabric server
-     */
-    private isFabricConnection(profile: IConnectionDialogProfile): boolean {
-        try {
-            const serverTypes = getServerTypes(profile as vscodeMssql.IConnectionInfo);
-            return serverTypes.includes(ServerType.Fabric);
-        } catch (error) {
-            this.logger.error(`Failed to determine server type: ${error}`);
-            return false;
-        }
-    }
-
-    /**
-     * Initializes connection based on initial state from Object Explorer or previous session
-     * Handles auto-matching and auto-connecting to provide seamless user experience
-     */
-    private async initializeConnection(params: {
+    // Initialize connection request handler
+    this.onRequest(
+      dacpacDialog.InitializeConnectionWebviewRequest.type,
+      async (params: {
         initialServerName?: string;
         initialDatabaseName?: string;
         initialOwnerUri?: string;
         initialProfileId?: string;
-    }): Promise<{
-        connections: IConnectionDialogProfile[];
-        selectedConnection?: IConnectionDialogProfile;
-        ownerUri?: string;
-        autoConnected: boolean;
-        errorMessage?: string;
-        isFabric?: boolean;
-    }> {
-        try {
-            // Get all connections
-            const { connections } = await this.listConnections();
-            const connectionProfile = {
-                server: params.initialServerName,
-                database: params.initialDatabaseName,
-                id: params.initialProfileId,
-            } as IConnectionProfile;
+      }) => {
+        return await this.initializeConnection(params);
+      },
+    );
 
-            // Find matching connection based on initial parameters
-            const matchingConnection = await ConnectionMatcher.findMatchingProfile(
-                connectionProfile,
-                connections as IConnectionProfile[],
-            );
+    // Connect to server request handler
+    this.onRequest(
+      dacpacDialog.ConnectToServerWebviewRequest.type,
+      async (params: { profileId: string }) => {
+        return await this.connectToServer(params.profileId);
+      },
+    );
 
-            if (!matchingConnection.profile) {
-                // No match found - return all connections, let user choose
-                this.logger.verbose("No matching connection found in initial state");
-                return {
-                    connections,
-                    autoConnected: false,
-                };
-            }
+    // Browse for input file (DACPAC or BACPAC) request handler
+    this.onRequest(
+      dacpacDialog.BrowseInputFileWebviewRequest.type,
+      async (params: { fileExtension: string }) => {
+        const fileUri = await vscode.window.showOpenDialog({
+          canSelectFiles: true,
+          canSelectFolders: false,
+          canSelectMany: false,
+          openLabel: LocConstants.DacpacDialog.Select,
+          filters: {
+            [`${params.fileExtension.toUpperCase()} ${LocConstants.DacpacDialog.Files}`]:
+              [params.fileExtension],
+          },
+        });
 
-            // Check if this is a Fabric connection
-            const isFabric = this.isFabricConnection(matchingConnection.profile);
-
-            // Handle existing connection from Object Explorer
-            if (params.initialOwnerUri) {
-                const existingConnResult = this.useExistingConnection(
-                    matchingConnection.profile,
-                    params.initialOwnerUri,
-                );
-                return { ...existingConnResult, connections, isFabric };
-            }
-
-            // Attempt to connect to the matched profile
-            const connectResult = await this.connectToMatchedProfile(matchingConnection.profile);
-            return { ...connectResult, connections, isFabric };
-        } catch (error) {
-            this.logger.error(`Failed to initialize connection: ${error}`);
-            // Fallback: return empty state
-            return {
-                connections: [],
-                autoConnected: false,
-                errorMessage: error instanceof Error ? error.message : String(error),
-            };
+        if (!fileUri || fileUri.length === 0) {
+          return { filePath: undefined };
         }
-    }
 
-    /**
-     * Returns result for an existing connection (from Object Explorer)
-     */
-    private useExistingConnection(
-        matchingConnection: IConnectionDialogProfile,
-        ownerUri: string,
-    ): {
-        selectedConnection: IConnectionDialogProfile;
-        ownerUri: string;
-        autoConnected: boolean;
-    } {
-        this.logger.verbose(`Using existing connection from Object Explorer: ${ownerUri}`);
+        return { filePath: fileUri[0].fsPath };
+      },
+    );
+
+    // Browse for output file (DACPAC or BACPAC) request handler
+    this.onRequest(
+      dacpacDialog.BrowseOutputFileWebviewRequest.type,
+      async (params: { fileExtension: string; defaultFileName?: string }) => {
+        const defaultFileName =
+          params.defaultFileName || `database.${params.fileExtension}`;
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
+        const defaultUri = workspaceFolder
+          ? vscode.Uri.joinPath(workspaceFolder, defaultFileName)
+          : vscode.Uri.file(path.join(homedir(), defaultFileName));
+
+        const fileUri = await vscode.window.showSaveDialog({
+          defaultUri: defaultUri,
+          saveLabel: LocConstants.DacpacDialog.Save,
+          filters: {
+            [`${params.fileExtension.toUpperCase()} ${LocConstants.DacpacDialog.Files}`]:
+              [params.fileExtension],
+          },
+        });
+
+        if (!fileUri) {
+          return { filePath: undefined };
+        }
+
+        return { filePath: fileUri.fsPath };
+      },
+    );
+
+    // Get default output path without showing dialog
+    this.onRequest(
+      dacpacDialog.GetSuggestedOutputPathWebviewRequest.type,
+      async (params: {
+        databaseName: string;
+        operationType: dacpacDialog.DacPacDialogOperationType;
+      }) => {
+        const fileExtension =
+          params.operationType ===
+          dacpacDialog.DacPacDialogOperationType.Extract
+            ? "dacpac"
+            : "bacpac";
+
+        const timestamp = this.formatTimestampForFilename();
+        const suggestedFileName = `${params.databaseName}-${timestamp}.${fileExtension}`;
+
+        // Get workspace folder or home directory
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
+        const defaultUri = workspaceFolder
+          ? vscode.Uri.joinPath(workspaceFolder, suggestedFileName)
+          : vscode.Uri.file(path.join(homedir(), suggestedFileName));
+
+        return { fullPath: defaultUri.fsPath };
+      },
+    );
+
+    // Get suggested filename with timestamp
+    this.onRequest(
+      dacpacDialog.GetSuggestedFilenameWebviewRequest.type,
+      async (params: { databaseName: string; fileExtension: string }) => {
+        const timestamp = this.formatTimestampForFilename();
+        const filename = `${params.databaseName}-${timestamp}.${params.fileExtension}`;
+        return { filename };
+      },
+    );
+
+    // Get suggested database name from file path
+    this.onRequest(
+      dacpacDialog.GetSuggestedDatabaseNameWebviewRequest.type,
+      async (params: { filePath: string }) => {
+        // Remove file extension (.dacpac or .bacpac) to get the database name
+        // Keep the full filename including any timestamps that may be present
+        const databaseName = path.basename(
+          params.filePath,
+          path.extname(params.filePath),
+        );
+
+        return { databaseName };
+      },
+    );
+
+    // Confirm deploy to existing database request handler
+    this.onRequest(
+      dacpacDialog.ConfirmDeployToExistingWebviewRequest.type,
+      async () => {
+        const result = await this.vscodeWrapper.showWarningMessageAdvanced(
+          LocConstants.DacpacDialog.DeployToExistingMessage,
+          { modal: true },
+          [LocConstants.DacpacDialog.DeployToExistingConfirm],
+        );
+
         return {
-            selectedConnection: matchingConnection,
-            ownerUri,
-            autoConnected: false, // Was already connected
+          confirmed:
+            result === LocConstants.DacpacDialog.DeployToExistingConfirm,
         };
+      },
+    );
+
+    // Cancel operation notification handler
+    this.onNotification(
+      dacpacDialog.CancelDacpacDialogWebviewNotification.type,
+      () => {
+        this.dialogResult.resolve(undefined);
+        this.panel.dispose();
+      },
+    );
+  }
+
+  /**
+   * Handles deploying a DACPAC file to a database
+   */
+  private async handleDeployDacpac(
+    params: dacpacDialog.DeployDacpacParams,
+  ): Promise<dacpacDialog.DacpacDialogResult> {
+    this.logger.verbose("Starting Deploy DACPAC operation");
+
+    const activity = startActivity(
+      TelemetryViews.DacpacDialog,
+      TelemetryActions.DacpacDialogDeployDacpac,
+      undefined,
+      {
+        isNewDatabase: params.isNewDatabase.toString(),
+      },
+    );
+
+    try {
+      const result = await this.dacFxService.deployDacpac(
+        params.packageFilePath,
+        params.databaseName,
+        !params.isNewDatabase, // upgradeExisting
+        params.ownerUri,
+        TaskExecutionMode.execute,
+      );
+
+      const appResult: dacpacDialog.DacpacDialogResult = {
+        success: result.success,
+        errorMessage: result.errorMessage,
+        operationId: result.operationId,
+      };
+
+      if (result.success) {
+        this.logger.verbose("Deploy DACPAC operation completed successfully");
+        activity.end(ActivityStatus.Succeeded);
+        // Show success notification for Deploy operation
+        void this.vscodeWrapper.showInformationMessage(
+          LocConstants.DacpacDialog.DeploySuccessWithDatabase(
+            params.databaseName,
+          ),
+        );
+        // Prompt user for NPS survey feedback
+        UserSurvey.getInstance().promptUserForNPSFeedback(
+          `${DACPAC_DIALOG_VIEW_ID}_deploy`,
+        );
+        this.dialogResult.resolve(appResult);
+      } else {
+        this.logger.error("Deploy DACPAC operation failed");
+        activity.endFailed(
+          new Error(result.errorMessage || "Deploy operation failed"),
+          false,
+        );
+        this.dialogResult.resolve(appResult);
+      }
+
+      return appResult;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorType =
+        error instanceof Error ? error.constructor.name : typeof error;
+      this.logger.error(
+        `Deploy DACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
+      );
+      activity.endFailed(
+        error instanceof Error ? error : new Error(errorMessage),
+        false,
+      );
+      return {
+        success: false,
+        errorMessage: errorMessage,
+      };
+    }
+  }
+
+  /**
+   * Handles extracting a DACPAC file from a database
+   */
+  private async handleExtractDacpac(
+    params: dacpacDialog.ExtractDacpacParams,
+  ): Promise<dacpacDialog.DacpacDialogResult> {
+    this.logger.verbose("Starting Extract DACPAC operation");
+
+    const activity = startActivity(
+      TelemetryViews.DacpacDialog,
+      TelemetryActions.DacpacDialogExtractDacpac,
+    );
+
+    try {
+      const result = await this.dacFxService.extractDacpac(
+        params.databaseName,
+        params.packageFilePath,
+        params.applicationName,
+        params.applicationVersion,
+        params.ownerUri,
+        TaskExecutionMode.execute,
+      );
+
+      const appResult: dacpacDialog.DacpacDialogResult = {
+        success: result.success,
+        errorMessage: result.errorMessage,
+        operationId: result.operationId,
+      };
+
+      if (result.success) {
+        this.logger.verbose("Extract DACPAC operation completed successfully");
+        activity.end(ActivityStatus.Succeeded);
+        // Show success notification with OS-specific "Reveal/Open" button for Extract operation
+        const fileName = path.basename(params.packageFilePath);
+        const revealButtonText = getRevealInOsButtonText();
+        void this.vscodeWrapper
+          .showInformationMessage(
+            LocConstants.DacpacDialog.ExtractSuccessWithFile(fileName),
+            revealButtonText,
+          )
+          .then((selection) => {
+            if (selection === revealButtonText) {
+              void vscode.commands.executeCommand(
+                REVEAL_FILE_IN_OS_COMMAND,
+                vscode.Uri.file(params.packageFilePath),
+              );
+            }
+          });
+        // Prompt user for NPS survey feedback
+        UserSurvey.getInstance().promptUserForNPSFeedback(
+          `${DACPAC_DIALOG_VIEW_ID}_extract`,
+        );
+        this.dialogResult.resolve(appResult);
+      } else {
+        this.logger.error("Extract DACPAC operation failed");
+        activity.endFailed(
+          new Error(result.errorMessage || "Extract operation failed"),
+          false,
+        );
+        this.dialogResult.resolve(appResult);
+      }
+
+      return appResult;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorType =
+        error instanceof Error ? error.constructor.name : typeof error;
+      this.logger.error(
+        `Extract DACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
+      );
+      activity.endFailed(
+        error instanceof Error ? error : new Error(errorMessage),
+        false,
+      );
+      return {
+        success: false,
+        errorMessage: errorMessage,
+      };
+    }
+  }
+
+  /**
+   * Handles importing a BACPAC file to create a new database
+   */
+  private async handleImportBacpac(
+    params: dacpacDialog.ImportBacpacParams,
+  ): Promise<dacpacDialog.DacpacDialogResult> {
+    this.logger.verbose("Starting Import BACPAC operation");
+
+    const activity = startActivity(
+      TelemetryViews.DacpacDialog,
+      TelemetryActions.DacpacDialogImportBacpac,
+    );
+
+    try {
+      const result = await this.dacFxService.importBacpac(
+        params.packageFilePath,
+        params.databaseName,
+        params.ownerUri,
+        TaskExecutionMode.execute,
+      );
+
+      const appResult: dacpacDialog.DacpacDialogResult = {
+        success: result.success,
+        errorMessage: result.errorMessage,
+        operationId: result.operationId,
+      };
+
+      if (result.success) {
+        this.logger.verbose("Import BACPAC operation completed successfully");
+        activity.end(ActivityStatus.Succeeded);
+        // Show success notification for Import operation
+        void this.vscodeWrapper.showInformationMessage(
+          LocConstants.DacpacDialog.ImportSuccessWithDatabase(
+            params.databaseName,
+          ),
+        );
+        // Prompt user for NPS survey feedback
+        UserSurvey.getInstance().promptUserForNPSFeedback(
+          `${DACPAC_DIALOG_VIEW_ID}_import`,
+        );
+        this.dialogResult.resolve(appResult);
+      } else {
+        this.logger.error("Import BACPAC operation failed");
+        activity.endFailed(
+          new Error(result.errorMessage || "Import operation failed"),
+          false,
+        );
+        this.dialogResult.resolve(appResult);
+      }
+
+      return appResult;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorType =
+        error instanceof Error ? error.constructor.name : typeof error;
+      this.logger.error(
+        `Import BACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
+      );
+      activity.endFailed(
+        error instanceof Error ? error : new Error(errorMessage),
+        false,
+      );
+      return {
+        success: false,
+        errorMessage: errorMessage,
+      };
+    }
+  }
+
+  /**
+   * Handles exporting a database to a BACPAC file
+   */
+  private async handleExportBacpac(
+    params: dacpacDialog.ExportBacpacParams,
+  ): Promise<dacpacDialog.DacpacDialogResult> {
+    this.logger.verbose("Starting Export BACPAC operation");
+
+    const activity = startActivity(
+      TelemetryViews.DacpacDialog,
+      TelemetryActions.DacpacDialogExportBacpac,
+    );
+
+    try {
+      const result = await this.dacFxService.exportBacpac(
+        params.databaseName,
+        params.packageFilePath,
+        params.ownerUri,
+        TaskExecutionMode.execute,
+      );
+
+      const appResult: dacpacDialog.DacpacDialogResult = {
+        success: result.success,
+        errorMessage: result.errorMessage,
+        operationId: result.operationId,
+      };
+
+      if (result.success) {
+        this.logger.verbose("Export BACPAC operation completed successfully");
+        activity.end(ActivityStatus.Succeeded);
+        // Show success notification with OS-specific "Reveal/Open" button for Export operation
+        const fileName = path.basename(params.packageFilePath);
+        const revealButtonText = getRevealInOsButtonText();
+        void this.vscodeWrapper
+          .showInformationMessage(
+            LocConstants.DacpacDialog.ExportSuccessWithFile(fileName),
+            revealButtonText,
+          )
+          .then((selection) => {
+            if (selection === revealButtonText) {
+              void vscode.commands.executeCommand(
+                REVEAL_FILE_IN_OS_COMMAND,
+                vscode.Uri.file(params.packageFilePath),
+              );
+            }
+          });
+        // Prompt user for NPS survey feedback
+        UserSurvey.getInstance().promptUserForNPSFeedback(
+          `${DACPAC_DIALOG_VIEW_ID}_export`,
+        );
+        this.dialogResult.resolve(appResult);
+      } else {
+        this.logger.error("Export BACPAC operation failed");
+        activity.endFailed(
+          new Error(result.errorMessage || "Export operation failed"),
+          false,
+        );
+        this.dialogResult.resolve(appResult);
+      }
+
+      return appResult;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorType =
+        error instanceof Error ? error.constructor.name : typeof error;
+      this.logger.error(
+        `Export BACPAC operation threw exception: ${errorType} - ${getErrorMessage(error)}`,
+      );
+      activity.endFailed(
+        error instanceof Error ? error : new Error(errorMessage),
+        false,
+      );
+      return {
+        success: false,
+        errorMessage: errorMessage,
+      };
+    }
+  }
+
+  /**
+   * Validates a file path
+   */
+  private validateFilePath(
+    filePath: string,
+    shouldExist: boolean,
+  ): { isValid: boolean; errorMessage?: string } {
+    if (!filePath || filePath.trim() === "") {
+      return {
+        isValid: false,
+        errorMessage: LocConstants.DacpacDialog.FilePathRequired,
+      };
     }
 
-    /**
-     * Attempts to connect to a matched profile and returns the result
-     */
-    private async connectToMatchedProfile(matchingConnection: IConnectionDialogProfile): Promise<{
-        selectedConnection: IConnectionDialogProfile;
-        ownerUri?: string;
-        autoConnected: boolean;
-        errorMessage?: string;
-    }> {
-        this.logger.verbose(`Connecting to profile: ${matchingConnection.id}`);
-        try {
-            const connectResult = await this.connectToServer(matchingConnection.id!);
+    const fileFound = existsSync(filePath);
 
-            if (connectResult.isConnected && connectResult.ownerUri) {
-                this.logger.info(`Connected to: ${matchingConnection.server}`);
-                return {
-                    selectedConnection: matchingConnection,
-                    ownerUri: connectResult.ownerUri,
-                    autoConnected: true,
-                };
-            } else {
-                // Connection failed
-                this.logger.error(
-                    `Connection failed: ${connectResult.errorMessage || "Unknown error"}`,
-                );
-                return {
-                    selectedConnection: matchingConnection,
-                    autoConnected: false,
-                    errorMessage: connectResult.errorMessage,
-                };
-            }
-        } catch (error) {
-            const errorMsg = error instanceof Error ? error.message : String(error);
-            this.logger.error(`Connection exception: ${errorMsg}`);
-            return {
-                selectedConnection: matchingConnection,
-                autoConnected: false,
-                errorMessage: errorMsg,
-            };
-        }
+    if (shouldExist && !fileFound) {
+      return {
+        isValid: false,
+        errorMessage: LocConstants.DacpacDialog.FileNotFound,
+      };
     }
 
-    /**
-     * Connects to a server using the specified profile ID
-     */
-    private async connectToServer(profileId: string): Promise<{
-        ownerUri: string;
-        isConnected: boolean;
-        errorMessage?: string;
-        isFabric?: boolean;
-    }> {
-        try {
-            // Find the profile in saved connections
-            const savedConnections =
-                await this.connectionManager.connectionStore.readAllConnections();
-            const profile = savedConnections.find((conn: vscodeMssql.IConnectionInfo) => {
-                const connProfile = conn as IConnectionProfile;
-                const connId = connProfile.id || `${conn.server}_${conn.database || ""}`;
-                return connId === profileId;
-            }) as IConnectionProfile | undefined;
-
-            if (!profile) {
-                return {
-                    ownerUri: "",
-                    isConnected: false,
-                    errorMessage: "Connection profile not found",
-                };
-            }
-
-            // Check if this is a Fabric connection
-            const isFabric = this.isFabricConnection(profile as IConnectionDialogProfile);
-
-            // Check if already connected and the connection is valid
-            let ownerUri = this.connectionManager.getUriForConnection(profile);
-            if (ownerUri && this.connectionManager.isConnected(ownerUri)) {
-                // Connection is active and valid
-                return {
-                    ownerUri,
-                    isConnected: true,
-                    isFabric,
-                };
-            }
-
-            // Not connected or connection is stale - establish new connection
-            // Pass empty string to let connect() generate the URI
-            // This will prompt for password if needed
-            const result = await this.connectionManager.connect("", profile);
-
-            if (result) {
-                // Get the actual ownerUri that was used for the connection
-                ownerUri = this.connectionManager.getUriForConnection(profile);
-                return {
-                    ownerUri,
-                    isConnected: true,
-                    isFabric,
-                };
-            } else {
-                // Check if connection failed due to error or if it was never initiated
-                // (e.g., user cancelled password prompt)
-                ownerUri = this.connectionManager.getUriForConnection(profile);
-                const connectionInfo = ownerUri
-                    ? this.connectionManager.activeConnections[ownerUri]
-                    : undefined;
-                const errorMessage = connectionInfo?.errorMessage || "Failed to connect to server";
-                return {
-                    ownerUri: "",
-                    isConnected: false,
-                    errorMessage,
-                    isFabric,
-                };
-            }
-        } catch (error) {
-            this.logger.error(`Failed to connect to server: ${error}`);
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            return {
-                ownerUri: "",
-                isConnected: false,
-                errorMessage: `Connection failed: ${errorMessage}`,
-            };
-        }
+    const extension = path.extname(filePath).toLowerCase();
+    if (extension !== DACPAC_EXTENSION && extension !== BACPAC_EXTENSION) {
+      return {
+        isValid: false,
+        errorMessage: LocConstants.DacpacDialog.InvalidFileExtension,
+      };
     }
 
-    /**
-     * Formats the current date/time as yyyy-MM-dd-HH-mm for use in filenames
-     */
-    private formatTimestampForFilename(): string {
-        const pad = (n: number) => String(n).padStart(2, "0");
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = pad(now.getMonth() + 1);
-        const day = pad(now.getDate());
-        const hours = pad(now.getHours());
-        const minutes = pad(now.getMinutes());
-        return `${year}-${month}-${day}-${hours}-${minutes}`;
+    if (!shouldExist) {
+      // Check if the directory exists and is writable
+      const directory = path.dirname(filePath);
+      if (!fs.existsSync(directory)) {
+        return {
+          isValid: false,
+          errorMessage: LocConstants.DacpacDialog.DirectoryNotFound,
+        };
+      }
+
+      // Check if file already exists (for output files)
+      if (fileFound) {
+        // This is just a warning - the operation can continue with user confirmation
+        return {
+          isValid: true,
+          errorMessage: LocConstants.DacpacDialog.FileAlreadyExists,
+        };
+      }
     }
 
-    /**
-     * Validates a database name
-     */
-    private async validateDatabaseName(
-        databaseName: string,
-        ownerUri: string,
-        shouldNotExist: boolean,
-        operationType?: dacpacDialog.DacPacDialogOperationType,
-    ): Promise<{ isValid: boolean; errorMessage?: string }> {
-        // Validate database name format
-        const formatValidation = validateDatabaseNameFormat(databaseName);
-        if (!formatValidation.isValid) {
-            // Map error type to localized message
-            let errorMessage: string;
-            switch (formatValidation.errorType) {
-                case DatabaseNameValidationError.Required:
-                    errorMessage = LocConstants.DacpacDialog.DatabaseNameRequired;
-                    break;
-                case DatabaseNameValidationError.InvalidCharacters:
-                    errorMessage = LocConstants.DacpacDialog.InvalidDatabaseName;
-                    break;
-                case DatabaseNameValidationError.TooLong:
-                    errorMessage = LocConstants.DacpacDialog.DatabaseNameTooLong;
-                    break;
-                default:
-                    errorMessage = LocConstants.DacpacDialog.InvalidDatabaseName;
-                    break;
-            }
-            return { isValid: false, errorMessage };
-        }
+    return { isValid: true };
+  }
 
-        // Check if database exists
-        try {
-            const result = await this.connectionManager.client.sendRequest(
-                ListDatabasesRequest.type,
-                { ownerUri: ownerUri },
-            );
+  /**
+   * Lists databases on the connected server
+   */
+  private async listDatabases(
+    ownerUri: string,
+  ): Promise<{ databases: string[] }> {
+    try {
+      const result = await this.connectionManager.client.sendRequest(
+        ListDatabasesRequest.type,
+        { ownerUri: ownerUri },
+      );
 
-            const databases = result.databaseNames || [];
-            const exists = databases.some((db) => db.toLowerCase() === databaseName.toLowerCase());
+      // Filter out system databases
+      const systemDatabases = ["master", "tempdb", "model", "msdb"];
+      const userDatabases = (result.databaseNames || []).filter(
+        (db) => !systemDatabases.includes(db.toLowerCase()),
+      );
 
-            // For Deploy operations, always warn if database exists to trigger confirmation
-            // This ensures confirmation dialog is shown in both cases:
-            // 1. User selected "New Database" but database already exists (shouldNotExist=true)
-            // 2. User selected "Existing Database" and selected existing database (shouldNotExist=false)
-            if (operationType === dacpacDialog.DacPacDialogOperationType.Deploy && exists) {
-                return {
-                    isValid: true, // Allow the operation but with a warning
-                    errorMessage: LocConstants.DacpacDialog.DatabaseAlreadyExists,
-                };
-            }
+      return { databases: userDatabases };
+    } catch (error) {
+      this.logger.error(`Failed to list databases: ${error}`);
+      return { databases: [] };
+    }
+  }
 
-            // For new database operations (Import), database should not exist
-            if (shouldNotExist && exists) {
-                return {
-                    isValid: true, // Allow the operation but with a warning
-                    errorMessage: LocConstants.DacpacDialog.DatabaseAlreadyExists,
-                };
-            }
+  /**
+   * Lists all available connections from the connection store
+   */
+  private async listConnections(): Promise<{
+    connections: IConnectionDialogProfile[];
+  }> {
+    try {
+      // Get all saved connections from connection store (saved profiles only, not recent connections)
+      const savedConnections =
+        await this.connectionManager.connectionStore.readAllConnections();
 
-            // For Extract/Export operations, database must exist
-            if (!shouldNotExist && !exists) {
-                return {
-                    isValid: false,
-                    errorMessage: LocConstants.DacpacDialog.DatabaseNotFound,
-                };
-            }
+      // Convert to IConnectionDialogProfile format and ensure profileName is set
+      const connections: IConnectionDialogProfile[] = savedConnections.map(
+        (conn) => {
+          const profile = conn as IConnectionProfile;
+          // Use getConnectionDisplayName if profileName is not set
+          const displayName =
+            profile.profileName || getConnectionDisplayName(profile);
 
-            return { isValid: true };
-        } catch (error) {
-            const errorMessage =
-                error instanceof Error
-                    ? `Failed to validate database name: ${error.message}`
-                    : LocConstants.DacpacDialog.ValidationFailed;
-            this.logger.error(errorMessage);
-            return {
-                isValid: false,
-                errorMessage: errorMessage,
-            };
-        }
+          return {
+            server: profile.server,
+            database: profile.database,
+            user: profile.user,
+            password: profile.password,
+            authenticationType: profile.authenticationType,
+            profileName: displayName,
+            id: profile.id,
+            groupId: profile.groupId,
+            savePassword: profile.savePassword,
+            azureAuthType: profile.azureAuthType,
+          } as IConnectionDialogProfile;
+        },
+      );
+
+      return { connections };
+    } catch (error) {
+      this.logger.error(`Failed to list connections: ${error}`);
+      return { connections: [] };
+    }
+  }
+
+  /**
+   * Checks if a connection profile is connected to a Fabric server
+   */
+  private isFabricConnection(profile: IConnectionDialogProfile): boolean {
+    try {
+      const serverTypes = getServerTypes(
+        profile as vscodeMssql.IConnectionInfo,
+      );
+      return serverTypes.includes(ServerType.Fabric);
+    } catch (error) {
+      this.logger.error(`Failed to determine server type: ${error}`);
+      return false;
+    }
+  }
+
+  /**
+   * Initializes connection based on initial state from Object Explorer or previous session
+   * Handles auto-matching and auto-connecting to provide seamless user experience
+   */
+  private async initializeConnection(params: {
+    initialServerName?: string;
+    initialDatabaseName?: string;
+    initialOwnerUri?: string;
+    initialProfileId?: string;
+  }): Promise<{
+    connections: IConnectionDialogProfile[];
+    selectedConnection?: IConnectionDialogProfile;
+    ownerUri?: string;
+    autoConnected: boolean;
+    errorMessage?: string;
+    isFabric?: boolean;
+  }> {
+    try {
+      // Get all connections
+      const { connections } = await this.listConnections();
+      const connectionProfile = {
+        server: params.initialServerName,
+        database: params.initialDatabaseName,
+        id: params.initialProfileId,
+      } as IConnectionProfile;
+
+      // Find matching connection based on initial parameters
+      const matchingConnection = await ConnectionMatcher.findMatchingProfile(
+        connectionProfile,
+        connections as IConnectionProfile[],
+      );
+
+      if (!matchingConnection.profile) {
+        // No match found - return all connections, let user choose
+        this.logger.verbose("No matching connection found in initial state");
+        return {
+          connections,
+          autoConnected: false,
+        };
+      }
+
+      // Check if this is a Fabric connection
+      const isFabric = this.isFabricConnection(matchingConnection.profile);
+
+      // Handle existing connection from Object Explorer
+      if (params.initialOwnerUri) {
+        const existingConnResult = this.useExistingConnection(
+          matchingConnection.profile,
+          params.initialOwnerUri,
+        );
+        return { ...existingConnResult, connections, isFabric };
+      }
+
+      // Attempt to connect to the matched profile
+      const connectResult = await this.connectToMatchedProfile(
+        matchingConnection.profile,
+      );
+      return { ...connectResult, connections, isFabric };
+    } catch (error) {
+      this.logger.error(`Failed to initialize connection: ${error}`);
+      // Fallback: return empty state
+      return {
+        connections: [],
+        autoConnected: false,
+        errorMessage: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  /**
+   * Returns result for an existing connection (from Object Explorer)
+   */
+  private useExistingConnection(
+    matchingConnection: IConnectionDialogProfile,
+    ownerUri: string,
+  ): {
+    selectedConnection: IConnectionDialogProfile;
+    ownerUri: string;
+    autoConnected: boolean;
+  } {
+    this.logger.verbose(
+      `Using existing connection from Object Explorer: ${ownerUri}`,
+    );
+    return {
+      selectedConnection: matchingConnection,
+      ownerUri,
+      autoConnected: false, // Was already connected
+    };
+  }
+
+  /**
+   * Attempts to connect to a matched profile and returns the result
+   */
+  private async connectToMatchedProfile(
+    matchingConnection: IConnectionDialogProfile,
+  ): Promise<{
+    selectedConnection: IConnectionDialogProfile;
+    ownerUri?: string;
+    autoConnected: boolean;
+    errorMessage?: string;
+  }> {
+    this.logger.verbose(`Connecting to profile: ${matchingConnection.id}`);
+    try {
+      const connectResult = await this.connectToServer(matchingConnection.id!);
+
+      if (connectResult.isConnected && connectResult.ownerUri) {
+        this.logger.info(`Connected to: ${matchingConnection.server}`);
+        return {
+          selectedConnection: matchingConnection,
+          ownerUri: connectResult.ownerUri,
+          autoConnected: true,
+        };
+      } else {
+        // Connection failed
+        this.logger.error(
+          `Connection failed: ${connectResult.errorMessage || "Unknown error"}`,
+        );
+        return {
+          selectedConnection: matchingConnection,
+          autoConnected: false,
+          errorMessage: connectResult.errorMessage,
+        };
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Connection exception: ${errorMsg}`);
+      return {
+        selectedConnection: matchingConnection,
+        autoConnected: false,
+        errorMessage: errorMsg,
+      };
+    }
+  }
+
+  /**
+   * Connects to a server using the specified profile ID
+   */
+  private async connectToServer(profileId: string): Promise<{
+    ownerUri: string;
+    isConnected: boolean;
+    errorMessage?: string;
+    isFabric?: boolean;
+  }> {
+    try {
+      // Find the profile in saved connections
+      const savedConnections =
+        await this.connectionManager.connectionStore.readAllConnections();
+      const profile = savedConnections.find(
+        (conn: vscodeMssql.IConnectionInfo) => {
+          const connProfile = conn as IConnectionProfile;
+          const connId =
+            connProfile.id || `${conn.server}_${conn.database || ""}`;
+          return connId === profileId;
+        },
+      ) as IConnectionProfile | undefined;
+
+      if (!profile) {
+        return {
+          ownerUri: "",
+          isConnected: false,
+          errorMessage: "Connection profile not found",
+        };
+      }
+
+      // Check if this is a Fabric connection
+      const isFabric = this.isFabricConnection(
+        profile as IConnectionDialogProfile,
+      );
+
+      // Check if already connected and the connection is valid
+      let ownerUri = this.connectionManager.getUriForConnection(profile);
+      if (ownerUri && this.connectionManager.isConnected(ownerUri)) {
+        // Connection is active and valid
+        return {
+          ownerUri,
+          isConnected: true,
+          isFabric,
+        };
+      }
+
+      // Not connected or connection is stale - establish new connection
+      // Pass empty string to let connect() generate the URI
+      // This will prompt for password if needed
+      const result = await this.connectionManager.connect("", profile);
+
+      if (result) {
+        // Get the actual ownerUri that was used for the connection
+        ownerUri = this.connectionManager.getUriForConnection(profile);
+        return {
+          ownerUri,
+          isConnected: true,
+          isFabric,
+        };
+      } else {
+        // Check if connection failed due to error or if it was never initiated
+        // (e.g., user cancelled password prompt)
+        ownerUri = this.connectionManager.getUriForConnection(profile);
+        const connectionInfo = ownerUri
+          ? this.connectionManager.activeConnections[ownerUri]
+          : undefined;
+        const errorMessage =
+          connectionInfo?.errorMessage || "Failed to connect to server";
+        return {
+          ownerUri: "",
+          isConnected: false,
+          errorMessage,
+          isFabric,
+        };
+      }
+    } catch (error) {
+      this.logger.error(`Failed to connect to server: ${error}`);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        ownerUri: "",
+        isConnected: false,
+        errorMessage: `Connection failed: ${errorMessage}`,
+      };
+    }
+  }
+
+  /**
+   * Formats the current date/time as yyyy-MM-dd-HH-mm for use in filenames
+   */
+  private formatTimestampForFilename(): string {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = pad(now.getMonth() + 1);
+    const day = pad(now.getDate());
+    const hours = pad(now.getHours());
+    const minutes = pad(now.getMinutes());
+    return `${year}-${month}-${day}-${hours}-${minutes}`;
+  }
+
+  /**
+   * Validates a database name
+   */
+  private async validateDatabaseName(
+    databaseName: string,
+    ownerUri: string,
+    shouldNotExist: boolean,
+    operationType?: dacpacDialog.DacPacDialogOperationType,
+  ): Promise<{ isValid: boolean; errorMessage?: string }> {
+    // Validate database name format
+    const formatValidation = validateDatabaseNameFormat(databaseName);
+    if (!formatValidation.isValid) {
+      // Map error type to localized message
+      let errorMessage: string;
+      switch (formatValidation.errorType) {
+        case DatabaseNameValidationError.Required:
+          errorMessage = LocConstants.DacpacDialog.DatabaseNameRequired;
+          break;
+        case DatabaseNameValidationError.InvalidCharacters:
+          errorMessage = LocConstants.DacpacDialog.InvalidDatabaseName;
+          break;
+        case DatabaseNameValidationError.TooLong:
+          errorMessage = LocConstants.DacpacDialog.DatabaseNameTooLong;
+          break;
+        default:
+          errorMessage = LocConstants.DacpacDialog.InvalidDatabaseName;
+          break;
+      }
+      return { isValid: false, errorMessage };
     }
 
-    /**
-     * Gets the owner URI for the current connection
-     */
-    public get ownerUri(): string {
-        return this._ownerUri;
+    // Check if database exists
+    try {
+      const result = await this.connectionManager.client.sendRequest(
+        ListDatabasesRequest.type,
+        { ownerUri: ownerUri },
+      );
+
+      const databases = result.databaseNames || [];
+      const exists = databases.some(
+        (db) => db.toLowerCase() === databaseName.toLowerCase(),
+      );
+
+      // For Deploy operations, always warn if database exists to trigger confirmation
+      // This ensures confirmation dialog is shown in both cases:
+      // 1. User selected "New Database" but database already exists (shouldNotExist=true)
+      // 2. User selected "Existing Database" and selected existing database (shouldNotExist=false)
+      if (
+        operationType === dacpacDialog.DacPacDialogOperationType.Deploy &&
+        exists
+      ) {
+        return {
+          isValid: true, // Allow the operation but with a warning
+          errorMessage: LocConstants.DacpacDialog.DatabaseAlreadyExists,
+        };
+      }
+
+      // For new database operations (Import), database should not exist
+      if (shouldNotExist && exists) {
+        return {
+          isValid: true, // Allow the operation but with a warning
+          errorMessage: LocConstants.DacpacDialog.DatabaseAlreadyExists,
+        };
+      }
+
+      // For Extract/Export operations, database must exist
+      if (!shouldNotExist && !exists) {
+        return {
+          isValid: false,
+          errorMessage: LocConstants.DacpacDialog.DatabaseNotFound,
+        };
+      }
+
+      return { isValid: true };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? `Failed to validate database name: ${error.message}`
+          : LocConstants.DacpacDialog.ValidationFailed;
+      this.logger.error(errorMessage);
+      return {
+        isValid: false,
+        errorMessage: errorMessage,
+      };
     }
+  }
+
+  /**
+   * Gets the owner URI for the current connection
+   */
+  public get ownerUri(): string {
+    return this._ownerUri;
+  }
 }

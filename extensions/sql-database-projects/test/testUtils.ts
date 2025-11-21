@@ -3,94 +3,148 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as path from 'path';
-import * as os from 'os';
-import * as constants from '../src/common/constants';
-import * as templates from '../src/templates/templates';
-import * as vscode from 'vscode';
-import * as sqldbproj from 'sqldbproj';
-import * as utils from '../src/common/utils';
+import * as path from "path";
+import * as os from "os";
+import * as constants from "../src/common/constants";
+import * as templates from "../src/templates/templates";
+import * as vscode from "vscode";
+import * as sqldbproj from "sqldbproj";
+import * as utils from "../src/common/utils";
 
-import { promises as fs } from 'fs';
-import should = require('should/as-function');
-import { AssertionError } from 'assert';
-import { Project } from '../src/models/project';
-import { Uri } from 'vscode';
-import { exists } from '../src/common/utils';
+import { promises as fs } from "fs";
+import should = require("should/as-function");
+import { AssertionError } from "assert";
+import { Project } from "../src/models/project";
+import { Uri } from "vscode";
+import { exists } from "../src/common/utils";
 
-export async function shouldThrowSpecificError(block: Function, expectedMessage: string, details?: string) {
-	let succeeded = false;
-	try {
-		await block();
-		succeeded = true;
-	}
-	catch (err) {
-		should(err.message).equal(expectedMessage);
-	}
+export async function shouldThrowSpecificError(
+  block: Function,
+  expectedMessage: string,
+  details?: string,
+) {
+  let succeeded = false;
+  try {
+    await block();
+    succeeded = true;
+  } catch (err) {
+    should(err.message).equal(expectedMessage);
+  }
 
-	if (succeeded) {
-		throw new AssertionError({ message: `Operation succeeded, but expected failure with exception: "${expectedMessage}".${details ? '  ' + details : ''}` });
-	}
+  if (succeeded) {
+    throw new AssertionError({
+      message: `Operation succeeded, but expected failure with exception: "${expectedMessage}".${details ? "  " + details : ""}`,
+    });
+  }
 }
 
 export function getExtensionResourcePath(...segments: string[]): string {
-	const extName = utils.getAzdataApi() ? sqldbproj.extension.name : sqldbproj.extension.vsCodeName;
-	const extensionPath = vscode.extensions.getExtension(extName)?.extensionPath ?? '';
-	return path.join(extensionPath, ...segments);
+  const extName = utils.getAzdataApi()
+    ? sqldbproj.extension.name
+    : sqldbproj.extension.vsCodeName;
+  const extensionPath =
+    vscode.extensions.getExtension(extName)?.extensionPath ?? "";
+  return path.join(extensionPath, ...segments);
 }
 
 export function getTemplatesRootPath(): string {
-	return getExtensionResourcePath('resources', 'templates');
+  return getExtensionResourcePath("resources", "templates");
 }
 
-export async function createTestSqlProject(test: Mocha.Runnable | undefined): Promise<Project> {
-	return await createTestProject(test, templates.newSqlProjectTemplate);
+export async function createTestSqlProject(
+  test: Mocha.Runnable | undefined,
+): Promise<Project> {
+  return await createTestProject(test, templates.newSqlProjectTemplate);
 }
 
-export async function getTestProjectPath(test: Mocha.Runnable | undefined): Promise<string> {
-	return path.join(await generateTestFolderPath(test), 'TestProject', 'TestProject.sqlproj');
+export async function getTestProjectPath(
+  test: Mocha.Runnable | undefined,
+): Promise<string> {
+  return path.join(
+    await generateTestFolderPath(test),
+    "TestProject",
+    "TestProject.sqlproj",
+  );
 }
 
-export async function createTestSqlProjFile(test: Mocha.Runnable | undefined, contents: string, folderPath?: string): Promise<string> {
-	folderPath = folderPath ?? path.join(await generateTestFolderPath(test), 'TestProject');
-	const macroDict: Map<string, string> = new Map([['PROJECT_DSP', constants.defaultDSP]]);
-	contents = templates.macroExpansion(contents, macroDict);
-	return await createTestFile(test, contents, 'TestProject.sqlproj', folderPath);
+export async function createTestSqlProjFile(
+  test: Mocha.Runnable | undefined,
+  contents: string,
+  folderPath?: string,
+): Promise<string> {
+  folderPath =
+    folderPath ?? path.join(await generateTestFolderPath(test), "TestProject");
+  const macroDict: Map<string, string> = new Map([
+    ["PROJECT_DSP", constants.defaultDSP],
+  ]);
+  contents = templates.macroExpansion(contents, macroDict);
+  return await createTestFile(
+    test,
+    contents,
+    "TestProject.sqlproj",
+    folderPath,
+  );
 }
 
-export async function createTestProject(test: Mocha.Runnable | undefined, contents: string, folderPath?: string): Promise<Project> {
-	return await Project.openProject(await createTestSqlProjFile(test, contents, folderPath));
+export async function createTestProject(
+  test: Mocha.Runnable | undefined,
+  contents: string,
+  folderPath?: string,
+): Promise<Project> {
+  return await Project.openProject(
+    await createTestSqlProjFile(test, contents, folderPath),
+  );
 }
 
-export async function createTestDataSources(test: Mocha.Runnable | undefined, contents: string, folderPath?: string): Promise<string> {
-	return await createTestFile(test, contents, constants.dataSourcesFileName, folderPath);
+export async function createTestDataSources(
+  test: Mocha.Runnable | undefined,
+  contents: string,
+  folderPath?: string,
+): Promise<string> {
+  return await createTestFile(
+    test,
+    contents,
+    constants.dataSourcesFileName,
+    folderPath,
+  );
 }
 
-export async function generateTestFolderPath(test: Mocha.Runnable | undefined): Promise<string> {
-	const testName = test?.title === undefined ? '' : `${normalizeTestName(test?.title)}_`
-	const folderPath = path.join(generateBaseFolderName(), `Test_${testName}${new Date().getTime()}_${Math.floor((Math.random() * 1000))}`);
-	await fs.mkdir(folderPath, { recursive: true });
+export async function generateTestFolderPath(
+  test: Mocha.Runnable | undefined,
+): Promise<string> {
+  const testName =
+    test?.title === undefined ? "" : `${normalizeTestName(test?.title)}_`;
+  const folderPath = path.join(
+    generateBaseFolderName(),
+    `Test_${testName}${new Date().getTime()}_${Math.floor(Math.random() * 1000)}`,
+  );
+  await fs.mkdir(folderPath, { recursive: true });
 
-	return folderPath;
+  return folderPath;
 }
 
 function normalizeTestName(rawTestName: string): string {
-	return rawTestName.replace(/[^\w]+/g, '').substring(0, 40); // remove all non-alphanumeric characters, then trim to a reasonable length
+  return rawTestName.replace(/[^\w]+/g, "").substring(0, 40); // remove all non-alphanumeric characters, then trim to a reasonable length
 }
 
 export function generateBaseFolderName(): string {
-	const folderPath = path.join(os.tmpdir(), 'ADS_Tests');
-	return folderPath;
+  const folderPath = path.join(os.tmpdir(), "ADS_Tests");
+  return folderPath;
 }
 
-export async function createTestFile(test: Mocha.Runnable | undefined, contents: string, fileName: string, folderPath?: string): Promise<string> {
-	folderPath = folderPath ?? await generateTestFolderPath(test);
-	const filePath = path.join(folderPath, fileName);
+export async function createTestFile(
+  test: Mocha.Runnable | undefined,
+  contents: string,
+  fileName: string,
+  folderPath?: string,
+): Promise<string> {
+  folderPath = folderPath ?? (await generateTestFolderPath(test));
+  const filePath = path.join(folderPath, fileName);
 
-	await fs.mkdir(path.dirname(filePath), { recursive: true });
-	await fs.writeFile(filePath, contents);
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, contents);
 
-	return filePath;
+  return filePath;
 }
 
 /**
@@ -115,36 +169,41 @@ export async function createTestFile(test: Mocha.Runnable | undefined, contents:
  * @param list List of files and folders that are been created
  * @param testFolderPath
  */
-export async function createDummyFileStructure(test: Mocha.Runnable | undefined, createList?: boolean, list?: Uri[], testFolderPath?: string): Promise<string> {
-	testFolderPath = testFolderPath ?? await generateTestFolderPath(test);
+export async function createDummyFileStructure(
+  test: Mocha.Runnable | undefined,
+  createList?: boolean,
+  list?: Uri[],
+  testFolderPath?: string,
+): Promise<string> {
+  testFolderPath = testFolderPath ?? (await generateTestFolderPath(test));
 
-	let filePath = path.join(testFolderPath, 'file1.sql');
-	await fs.writeFile(filePath, '');
-	if (createList) {
-		list?.push(Uri.file(filePath));
-	}
+  let filePath = path.join(testFolderPath, "file1.sql");
+  await fs.writeFile(filePath, "");
+  if (createList) {
+    list?.push(Uri.file(filePath));
+  }
 
-	for (let dirCount = 1; dirCount <= 2; dirCount++) {
-		let dirName = path.join(testFolderPath, `folder${dirCount}`);
-		await fs.mkdir(dirName, { recursive: true });
+  for (let dirCount = 1; dirCount <= 2; dirCount++) {
+    let dirName = path.join(testFolderPath, `folder${dirCount}`);
+    await fs.mkdir(dirName, { recursive: true });
 
-		for (let fileCount = 1; fileCount <= 5; fileCount++) {
-			let fileName = path.join(dirName, `file${fileCount}.sql`);
-			await fs.writeFile(fileName, '');
-			if (createList) {
-				list?.push(Uri.file(fileName));
-			}
-		}
-	}
+    for (let fileCount = 1; fileCount <= 5; fileCount++) {
+      let fileName = path.join(dirName, `file${fileCount}.sql`);
+      await fs.writeFile(fileName, "");
+      if (createList) {
+        list?.push(Uri.file(fileName));
+      }
+    }
+  }
 
-	filePath = path.join(testFolderPath, 'file2.txt');
+  filePath = path.join(testFolderPath, "file2.txt");
 
-	await fs.writeFile(filePath, '');
-	if (createList) {
-		list?.push(Uri.file(filePath));
-	}
+  await fs.writeFile(filePath, "");
+  if (createList) {
+    list?.push(Uri.file(filePath));
+  }
 
-	return testFolderPath;
+  return testFolderPath;
 }
 
 /**
@@ -176,48 +235,83 @@ export async function createDummyFileStructure(test: Mocha.Runnable | undefined,
  * @param list List of files and folders that are been created
  * @param testFolderPath
  */
-export async function createDummyFileStructureWithPrePostDeployScripts(test: Mocha.Runnable | undefined, createList?: boolean, list?: Uri[], testFolderPath?: string): Promise<string> {
-	testFolderPath = await createDummyFileStructure(test, createList, list, testFolderPath);
+export async function createDummyFileStructureWithPrePostDeployScripts(
+  test: Mocha.Runnable | undefined,
+  createList?: boolean,
+  list?: Uri[],
+  testFolderPath?: string,
+): Promise<string> {
+  testFolderPath = await createDummyFileStructure(
+    test,
+    createList,
+    list,
+    testFolderPath,
+  );
 
-	// add pre-deploy scripts
-	const predeployscript1 = path.join(testFolderPath, 'Script.PreDeployment1.sql');
-	await fs.writeFile(predeployscript1, '');
-	const predeployscript2 = path.join(testFolderPath, 'Script.PreDeployment2.sql');
-	await fs.writeFile(predeployscript2, '');
+  // add pre-deploy scripts
+  const predeployscript1 = path.join(
+    testFolderPath,
+    "Script.PreDeployment1.sql",
+  );
+  await fs.writeFile(predeployscript1, "");
+  const predeployscript2 = path.join(
+    testFolderPath,
+    "Script.PreDeployment2.sql",
+  );
+  await fs.writeFile(predeployscript2, "");
 
-	if (createList) {
-		list?.push(Uri.file(predeployscript1));
-		list?.push(Uri.file(predeployscript2));
-	}
+  if (createList) {
+    list?.push(Uri.file(predeployscript1));
+    list?.push(Uri.file(predeployscript2));
+  }
 
-	// add post-deploy scripts
-	const postdeployscript1 = path.join(testFolderPath, 'Script.PostDeployment1.sql');
-	await fs.writeFile(postdeployscript1, '');
-	const postdeployscript2 = path.join(testFolderPath, 'folder1', 'Script.PostDeployment2.sql');
-	await fs.writeFile(postdeployscript2, '');
+  // add post-deploy scripts
+  const postdeployscript1 = path.join(
+    testFolderPath,
+    "Script.PostDeployment1.sql",
+  );
+  await fs.writeFile(postdeployscript1, "");
+  const postdeployscript2 = path.join(
+    testFolderPath,
+    "folder1",
+    "Script.PostDeployment2.sql",
+  );
+  await fs.writeFile(postdeployscript2, "");
 
+  // add nested files
+  await fs.mkdir(path.join(testFolderPath, "folder1", "nestedFolder"));
+  const otherfile1 = path.join(
+    testFolderPath,
+    "folder1",
+    "nestedFolder",
+    "otherFile1.sql",
+  );
+  await fs.writeFile(otherfile1, "");
+  const otherfile2 = path.join(
+    testFolderPath,
+    "folder1",
+    "nestedFolder",
+    "otherFile2.sql",
+  );
+  await fs.writeFile(otherfile2, "");
 
-	// add nested files
-	await fs.mkdir(path.join(testFolderPath, 'folder1', 'nestedFolder'));
-	const otherfile1 = path.join(testFolderPath, 'folder1', 'nestedFolder', 'otherFile1.sql');
-	await fs.writeFile(otherfile1, '');
-	const otherfile2 = path.join(testFolderPath, 'folder1', 'nestedFolder', 'otherFile2.sql');
-	await fs.writeFile(otherfile2, '');
+  if (createList) {
+    list?.push(Uri.file(postdeployscript1));
+    list?.push(Uri.file(postdeployscript2));
+  }
 
-	if (createList) {
-		list?.push(Uri.file(postdeployscript1));
-		list?.push(Uri.file(postdeployscript2));
-	}
-
-	return testFolderPath;
+  return testFolderPath;
 }
 
-export async function createListOfFiles(test: Mocha.Runnable | undefined, filePath?: string): Promise<Uri[]> {
-	let fileFolderList: Uri[] = [];
+export async function createListOfFiles(
+  test: Mocha.Runnable | undefined,
+  filePath?: string,
+): Promise<Uri[]> {
+  let fileFolderList: Uri[] = [];
 
-	await createDummyFileStructure(test, true, fileFolderList, filePath);
+  await createDummyFileStructure(test, true, fileFolderList, filePath);
 
-	return fileFolderList;
+  return fileFolderList;
 }
 
 /**
@@ -237,56 +331,72 @@ export async function createListOfFiles(test: Mocha.Runnable | undefined, filePa
  * 			- Script.PostDeployment2.sql
  *
  */
-export async function createOtherDummyFiles(testFolderPath: string): Promise<Uri[]> {
-	const filesList: Uri[] = [];
-	let filePath = path.join(testFolderPath, 'file1.sql');
-	await fs.writeFile(filePath, '');
-	filesList.push(Uri.file(filePath));
+export async function createOtherDummyFiles(
+  testFolderPath: string,
+): Promise<Uri[]> {
+  const filesList: Uri[] = [];
+  let filePath = path.join(testFolderPath, "file1.sql");
+  await fs.writeFile(filePath, "");
+  filesList.push(Uri.file(filePath));
 
-	for (let dirCount = 1; dirCount <= 2; dirCount++) {
-		let dirName = path.join(testFolderPath, `folder${dirCount}`);
-		await fs.mkdir(dirName, { recursive: true });
+  for (let dirCount = 1; dirCount <= 2; dirCount++) {
+    let dirName = path.join(testFolderPath, `folder${dirCount}`);
+    await fs.mkdir(dirName, { recursive: true });
 
-		for (let fileCount = 1; fileCount <= 2; fileCount++) {
-			let fileName = path.join(dirName, `file${fileCount}.sql`);
-			await fs.writeFile(fileName, '');
-			filesList.push(Uri.file(fileName));
-		}
-	}
+    for (let fileCount = 1; fileCount <= 2; fileCount++) {
+      let fileName = path.join(dirName, `file${fileCount}.sql`);
+      await fs.writeFile(fileName, "");
+      filesList.push(Uri.file(fileName));
+    }
+  }
 
-	const test1 = path.join(testFolderPath, 'folder1', 'test1.sql');
-	await fs.writeFile(test1, '');
-	filesList.push(Uri.file(test1));
-	const test2 = path.join(testFolderPath, 'folder1', 'test2.sql');
-	await fs.writeFile(test2, '');
-	filesList.push(Uri.file(test2));
-	const testLongerName = path.join(testFolderPath, 'folder1', 'testLongerName.sql');
-	await fs.writeFile(testLongerName, '');
-	filesList.push(Uri.file(testLongerName));
+  const test1 = path.join(testFolderPath, "folder1", "test1.sql");
+  await fs.writeFile(test1, "");
+  filesList.push(Uri.file(test1));
+  const test2 = path.join(testFolderPath, "folder1", "test2.sql");
+  await fs.writeFile(test2, "");
+  filesList.push(Uri.file(test2));
+  const testLongerName = path.join(
+    testFolderPath,
+    "folder1",
+    "testLongerName.sql",
+  );
+  await fs.writeFile(testLongerName, "");
+  filesList.push(Uri.file(testLongerName));
 
-	const preDeploymentScript = path.join(testFolderPath, 'folder2', 'Script.PreDeployment1.sql');
-	await fs.writeFile(preDeploymentScript, '');
-	filesList.push(Uri.file(preDeploymentScript));
+  const preDeploymentScript = path.join(
+    testFolderPath,
+    "folder2",
+    "Script.PreDeployment1.sql",
+  );
+  await fs.writeFile(preDeploymentScript, "");
+  filesList.push(Uri.file(preDeploymentScript));
 
-	const postDeploymentScript1 = path.join(testFolderPath, 'folder2', 'Script.PostDeployment1.sql');
-	await fs.writeFile(postDeploymentScript1, '');
-	filesList.push(Uri.file(preDeploymentScript));
+  const postDeploymentScript1 = path.join(
+    testFolderPath,
+    "folder2",
+    "Script.PostDeployment1.sql",
+  );
+  await fs.writeFile(postDeploymentScript1, "");
+  filesList.push(Uri.file(preDeploymentScript));
 
-	const postDeploymentScript2 = path.join(testFolderPath, 'folder2', 'Script.PostDeployment2.sql');
-	await fs.writeFile(postDeploymentScript2, '');
-	filesList.push(Uri.file(postDeploymentScript2));
+  const postDeploymentScript2 = path.join(
+    testFolderPath,
+    "folder2",
+    "Script.PostDeployment2.sql",
+  );
+  await fs.writeFile(postDeploymentScript2, "");
+  filesList.push(Uri.file(postDeploymentScript2));
 
-	return filesList;
+  return filesList;
 }
 
 /**
  * Deletes folder generated for testing
  */
 export async function deleteGeneratedTestFolder(): Promise<void> {
-	const testFolderPath: string = generateBaseFolderName();
-	if (await exists(testFolderPath)) {
-		await fs.rm(testFolderPath, { recursive: true }); // cleanup folder
-	}
+  const testFolderPath: string = generateBaseFolderName();
+  if (await exists(testFolderPath)) {
+    await fs.rm(testFolderPath, { recursive: true }); // cleanup folder
+  }
 }
-
-

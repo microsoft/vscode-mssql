@@ -1,21 +1,21 @@
 {
-    "Projects": [
+  "Projects": [
+    {
+      "LanguageSet": "AzureKatal_Languages",
+      "LocItems": [
         {
-            "LanguageSet": "AzureKatal_Languages",
-            "LocItems": [
-                {
-                    "SourceFile": "localization\\xliff\\vscode-mssql.xlf",
-                    "LclFile": "localization\\LCL\\{Lang}\\vscode-mssql.xlf.lcl",
-                    "CopyOption": "LangIDOnName",
-                    "OutputPath": "localization\\xliff\\"
-                },
-                {
-                    "SourceFile": "localization\\xliff\\sql-database-projects.xlf",
-                    "LclFile": "localization\\LCL\\{Lang}\\sql-database-projects.xlf.lcl",
-                    "CopyOption": "LangIDOnName",
-                    "OutputPath": "localization\\xliff\\"
-                }
-            ]
+          "SourceFile": "localization\\xliff\\vscode-mssql.xlf",
+          "LclFile": "localization\\LCL\\{Lang}\\vscode-mssql.xlf.lcl",
+          "CopyOption": "LangIDOnName",
+          "OutputPath": "localization\\xliff\\"
+        },
+        {
+          "SourceFile": "localization\\xliff\\sql-database-projects.xlf",
+          "LclFile": "localization\\LCL\\{Lang}\\sql-database-projects.xlf.lcl",
+          "CopyOption": "LangIDOnName",
+          "OutputPath": "localization\\xliff\\"
         }
-    ]
+      ]
+    }
+  ]
 }

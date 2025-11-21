@@ -7,20 +7,23 @@ import { RequestType } from "vscode-languageclient";
 import * as vscodeMssql from "vscode-mssql";
 
 export class MetadataQueryParams {
-    /**
-     * Owner URI of the connection that changed.
-     */
-    public ownerUri: string;
+  /**
+   * Owner URI of the connection that changed.
+   */
+  public ownerUri: string;
 }
 
 export class MetadataQueryResult {
-    public metadata: vscodeMssql.ObjectMetadata[];
+  public metadata: vscodeMssql.ObjectMetadata[];
 }
 
 // ------------------------------- < Metadata Events > ------------------------------------
 
 export namespace MetadataQueryRequest {
-    export const type = new RequestType<MetadataQueryParams, MetadataQueryResult, void, void>(
-        "metadata/list",
-    );
+  export const type = new RequestType<
+    MetadataQueryParams,
+    MetadataQueryResult,
+    void,
+    void
+  >("metadata/list");
 }

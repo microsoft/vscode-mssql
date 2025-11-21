@@ -9,9 +9,9 @@ import * as os from "os";
 import * as path from "path";
 import { promises as fs } from "fs";
 import {
-    SchemaCompareEndpointType,
-    SchemaCompareReducers,
-    TaskExecutionMode,
+  SchemaCompareEndpointType,
+  SchemaCompareReducers,
+  TaskExecutionMode,
 } from "../sharedInterfaces/schemaCompare";
 import { generateGuid } from "../models/utils";
 import * as locConstants from "../constants/locConstants";
@@ -23,7 +23,7 @@ import * as locConstants from "../constants/locConstants";
  * schema compare feature of the SQL Database Projects extension.
  */
 export const sqlDatabaseProjectsPublishChanges =
-    "sqlDatabaseProjects.schemaComparePublishProjectChanges";
+  "sqlDatabaseProjects.schemaComparePublishProjectChanges";
 
 /**
  * Generates a unique operation ID.
@@ -31,7 +31,7 @@ export const sqlDatabaseProjectsPublishChanges =
  * @returns {string} A new GUID representing the operation ID.
  */
 export function generateOperationId(): string {
-    return generateGuid();
+  return generateGuid();
 }
 
 /**
@@ -44,12 +44,15 @@ export function generateOperationId(): string {
  * @param filePath - The file path to check.
  * @returns A promise that resolves to the starting file path.
  */
-export async function getStartingPathForOpenDialog(filePath?: string): Promise<string> {
-    const rootPath = getRootPath();
+export async function getStartingPathForOpenDialog(
+  filePath?: string,
+): Promise<string> {
+  const rootPath = getRootPath();
 
-    const startingFilePath = filePath && (await fileExists(filePath)) ? filePath : rootPath;
+  const startingFilePath =
+    filePath && (await fileExists(filePath)) ? filePath : rootPath;
 
-    return startingFilePath;
+  return startingFilePath;
 }
 
 /**
@@ -59,86 +62,91 @@ export async function getStartingPathForOpenDialog(filePath?: string): Promise<s
  * @returns A promise that resolves to the selected file path or undefined if no file was selected.
  */
 export async function showOpenDialog(
-    startingFilePath: string,
-    filters: { [name: string]: string[] },
+  startingFilePath: string,
+  filters: { [name: string]: string[] },
 ): Promise<string | undefined> {
-    const fileUris = await vscode.window.showOpenDialog({
-        canSelectFiles: true,
-        canSelectFolders: false,
-        canSelectMany: false,
-        defaultUri: vscode.Uri.file(startingFilePath),
-        openLabel: locConstants.SchemaCompare.Open,
-        filters: filters,
-    });
+  const fileUris = await vscode.window.showOpenDialog({
+    canSelectFiles: true,
+    canSelectFolders: false,
+    canSelectMany: false,
+    defaultUri: vscode.Uri.file(startingFilePath),
+    openLabel: locConstants.SchemaCompare.Open,
+    filters: filters,
+  });
 
-    if (!fileUris || fileUris.length === 0) {
-        return undefined;
-    }
+  if (!fileUris || fileUris.length === 0) {
+    return undefined;
+  }
 
-    const fileUri = fileUris[0];
-    return fileUri.fsPath;
+  const fileUri = fileUris[0];
+  return fileUri.fsPath;
 }
 
 export async function showOpenDialogForDacpacOrSqlProj(
-    filePath: string,
-    filters: { [name: string]: string[] },
+  filePath: string,
+  filters: { [name: string]: string[] },
 ): Promise<string | undefined> {
-    const startingFilePath = await getStartingPathForOpenDialog(filePath);
+  const startingFilePath = await getStartingPathForOpenDialog(filePath);
 
-    const selectedFilePath = await showOpenDialog(startingFilePath, filters);
+  const selectedFilePath = await showOpenDialog(startingFilePath, filters);
 
-    return selectedFilePath;
+  return selectedFilePath;
 }
 
 export async function showOpenDialogForScmp(): Promise<string | undefined> {
-    const startingFilePath = await getStartingPathForOpenDialog();
+  const startingFilePath = await getStartingPathForOpenDialog();
 
-    const fileDialogFilters = {
-        "scmp Files": ["scmp"],
-    };
+  const fileDialogFilters = {
+    "scmp Files": ["scmp"],
+  };
 
-    const selectedFilePath = await showOpenDialog(startingFilePath, fileDialogFilters);
+  const selectedFilePath = await showOpenDialog(
+    startingFilePath,
+    fileDialogFilters,
+  );
 
-    return selectedFilePath;
+  return selectedFilePath;
 }
 
 export async function showSaveDialogForScmp(): Promise<string | undefined> {
-    const startingFilePath = await getStartingPathForOpenDialog();
+  const startingFilePath = await getStartingPathForOpenDialog();
 
-    const selectedSavePath = await showSaveDialog(startingFilePath);
+  const selectedSavePath = await showSaveDialog(startingFilePath);
 
-    return selectedSavePath;
+  return selectedSavePath;
 }
 
-export async function showSaveDialog(startingFilePath: string): Promise<string | undefined> {
-    const filePath = await vscode.window.showSaveDialog({
-        defaultUri: vscode.Uri.file(startingFilePath),
-        saveLabel: locConstants.SchemaCompare.Save,
-        filters: {
-            "scmp Files": ["scmp"],
-        },
-    });
+export async function showSaveDialog(
+  startingFilePath: string,
+): Promise<string | undefined> {
+  const filePath = await vscode.window.showSaveDialog({
+    defaultUri: vscode.Uri.file(startingFilePath),
+    saveLabel: locConstants.SchemaCompare.Save,
+    filters: {
+      "scmp Files": ["scmp"],
+    },
+  });
 
-    if (!filePath) {
-        return undefined;
-    }
+  if (!filePath) {
+    return undefined;
+  }
 
-    return filePath.fsPath;
+  return filePath.fsPath;
 }
 
 function getRootPath(): string {
-    return vscode.workspace.workspaceFolders
-        ? vscode.workspace.workspaceFolders[0].uri.fsPath
-        : os.homedir();
+  return vscode.workspace.workspaceFolders
+    ? vscode.workspace.workspaceFolders[0].uri.fsPath
+    : os.homedir();
 }
 
 async function fileExists(path: string): Promise<boolean> {
-    try {
-        await fs.access(path);
-        return true;
-    } catch (e) {
-        return false;
-    }
+  try {
+    await fs.access(path);
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
 /**
@@ -151,20 +159,20 @@ async function fileExists(path: string): Promise<boolean> {
  * @returns A promise that resolves to the result of the schema comparison.
  */
 export async function compare(
-    operationId: string,
-    taskExecutionMode: TaskExecutionMode,
-    payload: SchemaCompareReducers["compare"],
-    schemaCompareService: mssql.ISchemaCompareService,
+  operationId: string,
+  taskExecutionMode: TaskExecutionMode,
+  payload: SchemaCompareReducers["compare"],
+  schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareResult> {
-    const result = await schemaCompareService.compare(
-        operationId,
-        payload.sourceEndpointInfo,
-        payload.targetEndpointInfo,
-        taskExecutionMode,
-        payload.deploymentOptions,
-    );
+  const result = await schemaCompareService.compare(
+    operationId,
+    payload.sourceEndpointInfo,
+    payload.targetEndpointInfo,
+    taskExecutionMode,
+    payload.deploymentOptions,
+  );
 
-    return result;
+  return result;
 }
 
 /**
@@ -176,19 +184,19 @@ export async function compare(
  * @returns A promise that resolves to the result status of the script generation operation.
  */
 export async function generateScript(
-    operationId: string,
-    taskExecutionMode: TaskExecutionMode,
-    payload: SchemaCompareReducers["generateScript"],
-    schemaCompareService: mssql.ISchemaCompareService,
+  operationId: string,
+  taskExecutionMode: TaskExecutionMode,
+  payload: SchemaCompareReducers["generateScript"],
+  schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
-    const result = await schemaCompareService.generateScript(
-        operationId,
-        payload.targetServerName,
-        payload.targetDatabaseName,
-        taskExecutionMode,
-    );
+  const result = await schemaCompareService.generateScript(
+    operationId,
+    payload.targetServerName,
+    payload.targetDatabaseName,
+    taskExecutionMode,
+  );
 
-    return result;
+  return result;
 }
 
 /**
@@ -200,19 +208,19 @@ export async function generateScript(
  * @returns A promise that resolves to the result status of the publish operation.
  */
 export async function publishDatabaseChanges(
-    operationId: string,
-    taskExecutionMode: TaskExecutionMode,
-    payload: SchemaCompareReducers["publishChanges"],
-    schemaCompareService: mssql.ISchemaCompareService,
+  operationId: string,
+  taskExecutionMode: TaskExecutionMode,
+  payload: SchemaCompareReducers["publishChanges"],
+  schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
-    const result = await schemaCompareService.publishDatabaseChanges(
-        operationId,
-        payload.targetServerName,
-        payload.targetDatabaseName,
-        taskExecutionMode,
-    );
+  const result = await schemaCompareService.publishDatabaseChanges(
+    operationId,
+    payload.targetServerName,
+    payload.targetDatabaseName,
+    taskExecutionMode,
+  );
 
-    return result;
+  return result;
 }
 
 /**
@@ -224,22 +232,22 @@ export async function publishDatabaseChanges(
  * @returns A promise that resolves to the result of the publish project changes operation.
  */
 export async function publishProjectChanges(
-    operationId: string,
-    payload: SchemaCompareReducers["publishProjectChanges"],
-    schemaCompareService: mssql.ISchemaCompareService,
+  operationId: string,
+  payload: SchemaCompareReducers["publishProjectChanges"],
+  schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaComparePublishProjectResult> {
-    // Extract the directory path from the project file path
-    // The service expects a directory path, and not a file path.
-    const projectDirectoryPath = path.dirname(payload.targetProjectPath);
+  // Extract the directory path from the project file path
+  // The service expects a directory path, and not a file path.
+  const projectDirectoryPath = path.dirname(payload.targetProjectPath);
 
-    const result = await schemaCompareService.publishProjectChanges(
-        operationId,
-        projectDirectoryPath,
-        payload.targetFolderStructure,
-        payload.taskExecutionMode,
-    );
+  const result = await schemaCompareService.publishProjectChanges(
+    operationId,
+    projectDirectoryPath,
+    payload.targetFolderStructure,
+    payload.taskExecutionMode,
+  );
 
-    return result;
+  return result;
 }
 
 /**
@@ -249,11 +257,11 @@ export async function publishProjectChanges(
  * @returns A promise that resolves to the default schema compare options result.
  */
 export async function getDefaultOptions(
-    schemaCompareService: mssql.ISchemaCompareService,
+  schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareOptionsResult> {
-    const result = await schemaCompareService.schemaCompareGetDefaultOptions();
+  const result = await schemaCompareService.schemaCompareGetDefaultOptions();
 
-    return result;
+  return result;
 }
 
 /**
@@ -266,19 +274,19 @@ export async function getDefaultOptions(
  * @returns A promise that resolves to the result of the include/exclude operation.
  */
 export async function includeExcludeNode(
-    operationId: string,
-    taskExecutionMode: TaskExecutionMode,
-    payload: SchemaCompareReducers["includeExcludeNode"],
-    schemaCompareService: mssql.ISchemaCompareService,
+  operationId: string,
+  taskExecutionMode: TaskExecutionMode,
+  payload: SchemaCompareReducers["includeExcludeNode"],
+  schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareIncludeExcludeResult> {
-    const result = await schemaCompareService.includeExcludeNode(
-        operationId,
-        payload.diffEntry,
-        payload.includeRequest,
-        taskExecutionMode,
-    );
+  const result = await schemaCompareService.includeExcludeNode(
+    operationId,
+    payload.diffEntry,
+    payload.includeRequest,
+    taskExecutionMode,
+  );
 
-    return result;
+  return result;
 }
 
 /**
@@ -291,18 +299,18 @@ export async function includeExcludeNode(
  * @returns A promise that resolves to the result of the include/exclude operation.
  */
 export async function includeExcludeAllNodes(
-    operationId: string,
-    taskExecutionMode: TaskExecutionMode,
-    payload: SchemaCompareReducers["includeExcludeAllNodes"],
-    schemaCompareService: mssql.ISchemaCompareService,
+  operationId: string,
+  taskExecutionMode: TaskExecutionMode,
+  payload: SchemaCompareReducers["includeExcludeAllNodes"],
+  schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareIncludeExcludeAllResult> {
-    const result = await schemaCompareService.includeExcludeAllNodes(
-        operationId,
-        payload.includeRequest,
-        taskExecutionMode,
-    );
+  const result = await schemaCompareService.includeExcludeAllNodes(
+    operationId,
+    payload.includeRequest,
+    taskExecutionMode,
+  );
 
-    return result;
+  return result;
 }
 
 /**
@@ -313,12 +321,12 @@ export async function includeExcludeAllNodes(
  * @returns A promise that resolves to the result of opening the .scmp file.
  */
 export async function openScmp(
-    filePath: string,
-    schemaCompareService: mssql.ISchemaCompareService,
+  filePath: string,
+  schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.SchemaCompareOpenScmpResult> {
-    const result = await schemaCompareService.openScmp(filePath);
+  const result = await schemaCompareService.openScmp(filePath);
 
-    return result;
+  return result;
 }
 
 /**
@@ -335,26 +343,26 @@ export async function openScmp(
  * @returns A promise that resolves to the result status of the save operation.
  */
 export async function saveScmp(
-    sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
-    targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
-    taskExecutionMode: TaskExecutionMode,
-    deploymentOptions: mssql.DeploymentOptions,
-    scmpFilePath: string,
-    excludedSourceObjects: mssql.SchemaCompareObjectId[],
-    excludedTargetObjects: mssql.SchemaCompareObjectId[],
-    schemaCompareService: mssql.ISchemaCompareService,
+  sourceEndpointInfo: mssql.SchemaCompareEndpointInfo,
+  targetEndpointInfo: mssql.SchemaCompareEndpointInfo,
+  taskExecutionMode: TaskExecutionMode,
+  deploymentOptions: mssql.DeploymentOptions,
+  scmpFilePath: string,
+  excludedSourceObjects: mssql.SchemaCompareObjectId[],
+  excludedTargetObjects: mssql.SchemaCompareObjectId[],
+  schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
-    const result = await schemaCompareService.saveScmp(
-        sourceEndpointInfo,
-        targetEndpointInfo,
-        taskExecutionMode,
-        deploymentOptions,
-        scmpFilePath,
-        excludedSourceObjects,
-        excludedTargetObjects,
-    );
+  const result = await schemaCompareService.saveScmp(
+    sourceEndpointInfo,
+    targetEndpointInfo,
+    taskExecutionMode,
+    deploymentOptions,
+    scmpFilePath,
+    excludedSourceObjects,
+    excludedTargetObjects,
+  );
 
-    return result;
+  return result;
 }
 
 /**
@@ -365,12 +373,12 @@ export async function saveScmp(
  * @returns A promise that resolves to the result status of the cancel operation.
  */
 export async function cancel(
-    operationId: string,
-    schemaCompareService: mssql.ISchemaCompareService,
+  operationId: string,
+  schemaCompareService: mssql.ISchemaCompareService,
 ): Promise<mssql.ResultStatus> {
-    const result = await schemaCompareService.cancel(operationId);
+  const result = await schemaCompareService.cancel(operationId);
 
-    return result;
+  return result;
 }
 
 /**
@@ -381,16 +389,16 @@ export async function cancel(
  *          Possible values are "Database", "Dacpac", "Project", or "Unknown: {endpointType}".
  */
 export function getSchemaCompareEndpointTypeString(
-    endpointType: SchemaCompareEndpointType,
+  endpointType: SchemaCompareEndpointType,
 ): string {
-    switch (endpointType) {
-        case SchemaCompareEndpointType.Database:
-            return "Database";
-        case SchemaCompareEndpointType.Dacpac:
-            return "Dacpac";
-        case SchemaCompareEndpointType.Project:
-            return "Project";
-        default:
-            return `Unknown: ${endpointType}`;
-    }
+  switch (endpointType) {
+    case SchemaCompareEndpointType.Database:
+      return "Database";
+    case SchemaCompareEndpointType.Dacpac:
+      return "Dacpac";
+    case SchemaCompareEndpointType.Project:
+      return "Project";
+    default:
+      return `Unknown: ${endpointType}`;
+  }
 }

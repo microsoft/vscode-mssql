@@ -9,16 +9,17 @@ import { locConstants } from "../../../common/locConstants";
 import eventBus from "../schemaDesignerEvents";
 
 export function ViewDefinitionsButton() {
-    return (
-        <Button
-            size="small"
-            appearance="subtle"
-            icon={<FluentIcons.Code16Filled />}
-            title={locConstants.schemaDesigner.definition}
-            onClick={() => {
-                eventBus.emit("openCodeDrawer");
-            }}>
-            {locConstants.schemaDesigner.definition}
-        </Button>
-    );
+  return (
+    <Button
+      size="small"
+      appearance="subtle"
+      icon={<FluentIcons.Code16Filled />}
+      title={locConstants.schemaDesigner.definition}
+      onClick={() => {
+        eventBus.emit("openCodeDrawer");
+      }}
+    >
+      {locConstants.schemaDesigner.definition}
+    </Button>
+  );
 }

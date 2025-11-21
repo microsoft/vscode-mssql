@@ -12,36 +12,37 @@ import { locConstants } from "../../../common/locConstants";
 export const ConnectButtonId = "connectButton";
 
 export const ConnectButton = ({
-    style,
-    className,
+  style,
+  className,
 }: {
-    style?: CSSProperties;
-    className?: string;
+  style?: CSSProperties;
+  className?: string;
 }) => {
-    const context = useContext(ConnectionDialogContext);
+  const context = useContext(ConnectionDialogContext);
 
-    if (!context) {
-        return undefined;
-    }
+  if (!context) {
+    return undefined;
+  }
 
-    return (
-        <Button
-            id={ConnectButtonId}
-            type="submit"
-            appearance="primary"
-            disabled={
-                context.state.connectionStatus === ApiStatus.Loading ||
-                !context.state.readyToConnect
-            }
-            className={className}
-            style={style}
-            iconPosition="after"
-            icon={
-                context.state.connectionStatus === ApiStatus.Loading ? (
-                    <Spinner size="tiny" />
-                ) : undefined
-            }>
-            {locConstants.connectionDialog.connect}
-        </Button>
-    );
+  return (
+    <Button
+      id={ConnectButtonId}
+      type="submit"
+      appearance="primary"
+      disabled={
+        context.state.connectionStatus === ApiStatus.Loading ||
+        !context.state.readyToConnect
+      }
+      className={className}
+      style={style}
+      iconPosition="after"
+      icon={
+        context.state.connectionStatus === ApiStatus.Loading ? (
+          <Spinner size="tiny" />
+        ) : undefined
+      }
+    >
+      {locConstants.connectionDialog.connect}
+    </Button>
+  );
 };

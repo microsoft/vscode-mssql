@@ -14,40 +14,40 @@ import ConfirmPrompt from "../../src/prompts/confirm";
 chai.use(sinonChai);
 
 suite("Test Confirm Prompt", () => {
-    let sandbox: sinon.SinonSandbox;
+  let sandbox: sinon.SinonSandbox;
 
-    setup(() => {
-        sandbox = sinon.createSandbox();
-    });
+  setup(() => {
+    sandbox = sinon.createSandbox();
+  });
 
-    teardown(() => {
-        sandbox.restore();
-    });
+  teardown(() => {
+    sandbox.restore();
+  });
 
-    test("Test Confirm prompt with simple question", async () => {
-        const question = {
-            name: "test",
-        };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPickStrings.resolves(LocalizedConstants.msgYes);
+  test("Test Confirm prompt with simple question", async () => {
+    const question = {
+      name: "test",
+    };
+    const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+    vscodeWrapper.showQuickPickStrings.resolves(LocalizedConstants.msgYes);
 
-        const confirm = new ConfirmPrompt(question, vscodeWrapper);
-        await confirm.render();
+    const confirm = new ConfirmPrompt(question, vscodeWrapper);
+    await confirm.render();
 
-        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
-    });
+    expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+  });
 
-    test("Test Checkbox prompt with error", async () => {
-        const question = {
-            name: "test",
-        };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPickStrings.resolves(undefined);
+  test("Test Checkbox prompt with error", async () => {
+    const question = {
+      name: "test",
+    };
+    const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+    vscodeWrapper.showQuickPickStrings.resolves(undefined);
 
-        const confirm = new ConfirmPrompt(question, vscodeWrapper);
+    const confirm = new ConfirmPrompt(question, vscodeWrapper);
 
-        await confirm.render().catch(() => undefined);
+    await confirm.render().catch(() => undefined);
 
-        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
-    });
+    expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+  });
 });

@@ -10,9 +10,9 @@ import { TableDesignerStateProvider } from "./tableDesignerStateProvider";
 import { TableDesigner } from "./tableDesignerPage";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider>
-        <TableDesignerStateProvider>
-            <TableDesigner />
-        </TableDesignerStateProvider>
-    </VscodeWebviewProvider>,
+  <VscodeWebviewProvider>
+    <TableDesignerStateProvider>
+      <TableDesigner />
+    </TableDesignerStateProvider>
+  </VscodeWebviewProvider>,
 );

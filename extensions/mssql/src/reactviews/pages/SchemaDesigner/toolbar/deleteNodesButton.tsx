@@ -10,15 +10,16 @@ import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
 import { useContext } from "react";
 
 export function DeleteNodesButton() {
-    const context = useContext(SchemaDesignerContext);
-    return (
-        <Button
-            size="small"
-            appearance="subtle"
-            icon={<FluentIcons.Delete16Regular />}
-            title={locConstants.schemaDesigner.delete}
-            onClick={() => context.deleteSelectedNodes()}>
-            {locConstants.schemaDesigner.delete}
-        </Button>
-    );
+  const context = useContext(SchemaDesignerContext);
+  return (
+    <Button
+      size="small"
+      appearance="subtle"
+      icon={<FluentIcons.Delete16Regular />}
+      title={locConstants.schemaDesigner.delete}
+      onClick={() => context.deleteSelectedNodes()}
+    >
+      {locConstants.schemaDesigner.delete}
+    </Button>
+  );
 }

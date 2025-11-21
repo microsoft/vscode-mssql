@@ -4,243 +4,270 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    SchemaCompareEndpointInfo,
-    DiffEntry,
-    DeploymentOptions,
-    ResultStatus,
-    SchemaCompareResult,
-    SchemaComparePublishProjectResult,
-    SchemaCompareOptionsResult,
-    SchemaCompareIncludeExcludeResult,
-    SchemaCompareObjectId,
-    SchemaCompareOpenScmpResult,
+  SchemaCompareEndpointInfo,
+  DiffEntry,
+  DeploymentOptions,
+  ResultStatus,
+  SchemaCompareResult,
+  SchemaComparePublishProjectResult,
+  SchemaCompareOptionsResult,
+  SchemaCompareIncludeExcludeResult,
+  SchemaCompareObjectId,
+  SchemaCompareOpenScmpResult,
 } from "vscode-mssql";
 import { ColorThemeKind } from "./webview";
 
 export const enum SchemaUpdateAction {
-    Delete = 0,
-    Change = 1,
-    Add = 2,
+  Delete = 0,
+  Change = 1,
+  Add = 2,
 }
 
 export const enum SchemaCompareEndpointType {
-    Database = 0,
-    Dacpac = 1,
-    Project = 2,
-    // must be kept in-sync with SchemaCompareEndpointType in SQL Tools Service
-    // located at \src\Microsoft.SqlTools.ServiceLayer\SchemaCompare\Contracts\SchemaCompareRequest.cs
+  Database = 0,
+  Dacpac = 1,
+  Project = 2,
+  // must be kept in-sync with SchemaCompareEndpointType in SQL Tools Service
+  // located at \src\Microsoft.SqlTools.ServiceLayer\SchemaCompare\Contracts\SchemaCompareRequest.cs
 }
 
 // If this enum changes, then please update the ExtractTarget enum in vscode-mssql.d.ts.
 export const enum ExtractTarget {
-    dacpac = 0,
-    file = 1,
-    flat = 2,
-    objectType = 3,
-    schema = 4,
-    schemaObjectType = 5,
+  dacpac = 0,
+  file = 1,
+  flat = 2,
+  objectType = 3,
+  schema = 4,
+  schemaObjectType = 5,
 }
 
 export const enum TaskExecutionMode {
-    execute = 0,
-    script = 1,
-    executeAndScript = 2,
+  execute = 0,
+  script = 1,
+  executeAndScript = 2,
 }
 
 export const enum SchemaDifferenceType {
-    Object = 0,
-    Property = 1,
+  Object = 0,
+  Property = 1,
 }
 export interface SchemaCompareWebViewState {
-    isSqlProjectExtensionInstalled: boolean;
-    isComparisonInProgress: boolean;
-    isIncludeExcludeAllOperationInProgress: boolean;
-    activeServers: { [connectionUri: string]: { profileName: string; server: string } };
-    databases: string[];
-    defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
-    auxiliaryEndpointInfo: SchemaCompareEndpointInfo;
-    intermediaryOptionsResult: SchemaCompareOptionsResult;
-    endpointsSwitched: boolean;
-    sourceEndpointInfo: SchemaCompareEndpointInfo;
-    targetEndpointInfo: SchemaCompareEndpointInfo;
-    scmpSourceExcludes: SchemaCompareObjectId[];
-    scmpTargetExcludes: SchemaCompareObjectId[];
-    originalSourceExcludes: Map<string, DiffEntry>;
-    originalTargetExcludes: Map<string, DiffEntry>;
-    sourceTargetSwitched: boolean;
-    schemaCompareResult: SchemaCompareResult;
-    generateScriptResultStatus: ResultStatus;
-    publishDatabaseChangesResultStatus: ResultStatus;
-    schemaComparePublishProjectResult: SchemaComparePublishProjectResult;
-    schemaCompareIncludeExcludeResult: SchemaCompareIncludeExcludeResult;
-    schemaCompareOpenScmpResult: SchemaCompareOpenScmpResult;
-    saveScmpResultStatus: ResultStatus;
-    cancelResultStatus: ResultStatus;
-    waitingForNewConnection: boolean;
-    pendingConnectionEndpointType: "source" | "target" | null;
+  isSqlProjectExtensionInstalled: boolean;
+  isComparisonInProgress: boolean;
+  isIncludeExcludeAllOperationInProgress: boolean;
+  activeServers: {
+    [connectionUri: string]: { profileName: string; server: string };
+  };
+  databases: string[];
+  defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
+  auxiliaryEndpointInfo: SchemaCompareEndpointInfo;
+  intermediaryOptionsResult: SchemaCompareOptionsResult;
+  endpointsSwitched: boolean;
+  sourceEndpointInfo: SchemaCompareEndpointInfo;
+  targetEndpointInfo: SchemaCompareEndpointInfo;
+  scmpSourceExcludes: SchemaCompareObjectId[];
+  scmpTargetExcludes: SchemaCompareObjectId[];
+  originalSourceExcludes: Map<string, DiffEntry>;
+  originalTargetExcludes: Map<string, DiffEntry>;
+  sourceTargetSwitched: boolean;
+  schemaCompareResult: SchemaCompareResult;
+  generateScriptResultStatus: ResultStatus;
+  publishDatabaseChangesResultStatus: ResultStatus;
+  schemaComparePublishProjectResult: SchemaComparePublishProjectResult;
+  schemaCompareIncludeExcludeResult: SchemaCompareIncludeExcludeResult;
+  schemaCompareOpenScmpResult: SchemaCompareOpenScmpResult;
+  saveScmpResultStatus: ResultStatus;
+  cancelResultStatus: ResultStatus;
+  waitingForNewConnection: boolean;
+  pendingConnectionEndpointType: "source" | "target" | null;
 }
 
 export interface SchemaCompareReducers {
-    isSqlProjectExtensionInstalled: {};
+  isSqlProjectExtensionInstalled: {};
 
-    listActiveServers: {};
+  listActiveServers: {};
 
-    listDatabasesForActiveServer: { connectionUri: string };
+  listDatabasesForActiveServer: { connectionUri: string };
 
-    openAddNewConnectionDialog: { endpointType: "source" | "target" };
+  openAddNewConnectionDialog: { endpointType: "source" | "target" };
 
-    selectFile: {
-        endpoint: SchemaCompareEndpointInfo;
-        endpointType: "source" | "target";
-        fileType: "dacpac" | "sqlproj";
-    };
+  selectFile: {
+    endpoint: SchemaCompareEndpointInfo;
+    endpointType: "source" | "target";
+    fileType: "dacpac" | "sqlproj";
+  };
 
-    confirmSelectedSchema: {
-        endpointType: "source" | "target";
-        folderStructure: string;
-    };
+  confirmSelectedSchema: {
+    endpointType: "source" | "target";
+    folderStructure: string;
+  };
 
-    confirmSelectedDatabase: {
-        endpointType: "source" | "target";
-        serverConnectionUri: string;
-        databaseName: string;
-    };
+  confirmSelectedDatabase: {
+    endpointType: "source" | "target";
+    serverConnectionUri: string;
+    databaseName: string;
+  };
 
-    setIntermediarySchemaOptions: {};
+  setIntermediarySchemaOptions: {};
 
-    intermediaryGeneralOptionsChanged: { key: string };
+  intermediaryGeneralOptionsChanged: { key: string };
 
-    intermediaryGeneralOptionsBulkChanged: { keys: string[]; checked: boolean };
+  intermediaryGeneralOptionsBulkChanged: { keys: string[]; checked: boolean };
 
-    intermediaryIncludeObjectTypesOptionsChanged: { key: string };
+  intermediaryIncludeObjectTypesOptionsChanged: { key: string };
 
-    intermediaryIncludeObjectTypesBulkChanged: { keys: string[]; checked: boolean };
+  intermediaryIncludeObjectTypesBulkChanged: {
+    keys: string[];
+    checked: boolean;
+  };
 
-    resetSchemaOptions: {};
+  resetSchemaOptions: {};
 
-    confirmSchemaOptions: { optionsChanged: boolean };
+  confirmSchemaOptions: { optionsChanged: boolean };
 
-    switchEndpoints: {
-        newSourceEndpointInfo: SchemaCompareEndpointInfo;
-        newTargetEndpointInfo: SchemaCompareEndpointInfo;
-    };
+  switchEndpoints: {
+    newSourceEndpointInfo: SchemaCompareEndpointInfo;
+    newTargetEndpointInfo: SchemaCompareEndpointInfo;
+  };
 
-    compare: {
-        sourceEndpointInfo: SchemaCompareEndpointInfo;
-        targetEndpointInfo: SchemaCompareEndpointInfo;
-        deploymentOptions: DeploymentOptions;
-    };
+  compare: {
+    sourceEndpointInfo: SchemaCompareEndpointInfo;
+    targetEndpointInfo: SchemaCompareEndpointInfo;
+    deploymentOptions: DeploymentOptions;
+  };
 
-    generateScript: {
-        targetServerName: string;
-        targetDatabaseName: string;
-    };
+  generateScript: {
+    targetServerName: string;
+    targetDatabaseName: string;
+  };
 
-    publishChanges: {
-        targetServerName: string;
-        targetDatabaseName: string;
-    };
+  publishChanges: {
+    targetServerName: string;
+    targetDatabaseName: string;
+  };
 
-    publishDatabaseChanges: {
-        targetServerName: string;
-        targetDatabaseName: string;
-    };
+  publishDatabaseChanges: {
+    targetServerName: string;
+    targetDatabaseName: string;
+  };
 
-    publishProjectChanges: {
-        targetProjectPath: string;
-        targetFolderStructure: ExtractTarget;
-        taskExecutionMode: TaskExecutionMode;
-    };
+  publishProjectChanges: {
+    targetProjectPath: string;
+    targetFolderStructure: ExtractTarget;
+    taskExecutionMode: TaskExecutionMode;
+  };
 
-    resetOptions: {};
+  resetOptions: {};
 
-    includeExcludeNode: {
-        id: number;
-        diffEntry: DiffEntry;
-        includeRequest: boolean;
-    };
+  includeExcludeNode: {
+    id: number;
+    diffEntry: DiffEntry;
+    includeRequest: boolean;
+  };
 
-    includeExcludeAllNodes: {
-        includeRequest: boolean;
-    };
+  includeExcludeAllNodes: {
+    includeRequest: boolean;
+  };
 
-    openScmp: {};
+  openScmp: {};
 
-    saveScmp: {};
+  saveScmp: {};
 
-    cancel: {};
+  cancel: {};
 }
 
 export interface SchemaCompareContextProps {
-    state: SchemaCompareWebViewState;
-    themeKind: ColorThemeKind;
+  state: SchemaCompareWebViewState;
+  themeKind: ColorThemeKind;
 
-    isSqlProjectExtensionInstalled: () => void;
+  isSqlProjectExtensionInstalled: () => void;
 
-    listActiveServers: () => void;
+  listActiveServers: () => void;
 
-    listDatabasesForActiveServer: (connectionUri: string) => void;
+  listDatabasesForActiveServer: (connectionUri: string) => void;
 
-    openAddNewConnectionDialog: (endpointType: "source" | "target") => void;
+  openAddNewConnectionDialog: (endpointType: "source" | "target") => void;
 
-    selectFile: (
-        endpoint: SchemaCompareEndpointInfo,
-        endpointType: "source" | "target",
-        fileType: "dacpac" | "sqlproj",
-    ) => void;
+  selectFile: (
+    endpoint: SchemaCompareEndpointInfo,
+    endpointType: "source" | "target",
+    fileType: "dacpac" | "sqlproj",
+  ) => void;
 
-    confirmSelectedSchema: (endpointType: "source" | "target", folderStructure: string) => void;
+  confirmSelectedSchema: (
+    endpointType: "source" | "target",
+    folderStructure: string,
+  ) => void;
 
-    confirmSelectedDatabase: (
-        endpointType: "source" | "target",
-        serverConnectionUri: string,
-        databaseName: string,
-    ) => void;
+  confirmSelectedDatabase: (
+    endpointType: "source" | "target",
+    serverConnectionUri: string,
+    databaseName: string,
+  ) => void;
 
-    setIntermediarySchemaOptions: () => void;
+  setIntermediarySchemaOptions: () => void;
 
-    intermediaryGeneralOptionsChanged: (key: string) => void;
+  intermediaryGeneralOptionsChanged: (key: string) => void;
 
-    intermediaryGeneralOptionsBulkChanged: (keys: string[], checked: boolean) => void;
+  intermediaryGeneralOptionsBulkChanged: (
+    keys: string[],
+    checked: boolean,
+  ) => void;
 
-    intermediaryIncludeObjectTypesOptionsChanged: (key: string) => void;
+  intermediaryIncludeObjectTypesOptionsChanged: (key: string) => void;
 
-    intermediaryIncludeObjectTypesBulkChanged: (keys: string[], checked: boolean) => void;
+  intermediaryIncludeObjectTypesBulkChanged: (
+    keys: string[],
+    checked: boolean,
+  ) => void;
 
-    confirmSchemaOptions: (optionsChanged: boolean) => void;
+  confirmSchemaOptions: (optionsChanged: boolean) => void;
 
-    switchEndpoints: (
-        newSourceEndpointInfo: SchemaCompareEndpointInfo,
-        newTargetEndpointInfo: SchemaCompareEndpointInfo,
-    ) => void;
+  switchEndpoints: (
+    newSourceEndpointInfo: SchemaCompareEndpointInfo,
+    newTargetEndpointInfo: SchemaCompareEndpointInfo,
+  ) => void;
 
-    compare: (
-        sourceEndpointInfo: SchemaCompareEndpointInfo,
-        targetEndpointInfo: SchemaCompareEndpointInfo,
-        deploymentOptions: DeploymentOptions,
-    ) => void;
+  compare: (
+    sourceEndpointInfo: SchemaCompareEndpointInfo,
+    targetEndpointInfo: SchemaCompareEndpointInfo,
+    deploymentOptions: DeploymentOptions,
+  ) => void;
 
-    generateScript: (targetServerName: string, targetDatabaseName: string) => void;
+  generateScript: (
+    targetServerName: string,
+    targetDatabaseName: string,
+  ) => void;
 
-    publishChanges: (targetServerName: string, targetDatabaseName: string) => void;
+  publishChanges: (
+    targetServerName: string,
+    targetDatabaseName: string,
+  ) => void;
 
-    publishDatabaseChanges: (targetServerName: string, targetDatabaseName: string) => void;
+  publishDatabaseChanges: (
+    targetServerName: string,
+    targetDatabaseName: string,
+  ) => void;
 
-    publishProjectChanges: (
-        targetProjectPath: string,
-        targetFolderStructure: ExtractTarget,
-        taskExecutionMode: TaskExecutionMode,
-    ) => void;
+  publishProjectChanges: (
+    targetProjectPath: string,
+    targetFolderStructure: ExtractTarget,
+    taskExecutionMode: TaskExecutionMode,
+  ) => void;
 
-    resetOptions: () => void;
+  resetOptions: () => void;
 
-    includeExcludeNode: (id: number, diffEntry: DiffEntry, includeRequest: boolean) => void;
+  includeExcludeNode: (
+    id: number,
+    diffEntry: DiffEntry,
+    includeRequest: boolean,
+  ) => void;
 
-    includeExcludeAllNodes: (includeRequest: boolean) => void;
+  includeExcludeAllNodes: (includeRequest: boolean) => void;
 
-    openScmp: () => void;
+  openScmp: () => void;
 
-    saveScmp: () => void;
+  saveScmp: () => void;
 
-    cancel: () => void;
+  cancel: () => void;
 }

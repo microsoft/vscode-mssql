@@ -10,111 +10,111 @@ import { KeyCode } from "../../common/keys";
 import { isMetaOrCtrlKeyPressed } from "../../common/utils";
 
 const useStyles = makeStyles({
-    root: {
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        width: "100%",
-        maxWidth: "100%",
-        maxHeight: "100%",
-    },
-    pageContext: {
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100%",
-        width: "100%",
-        flexDirection: "column",
-    },
-    errorIcon: {
-        fontSize: "100px",
-        opacity: 0.5,
-    },
-    retryButton: {
-        marginTop: "10px",
-    },
-    resultPaneHandle: {
-        position: "absolute",
-        top: "0",
-        right: "0",
-        width: "100%",
-        height: "10px",
-        cursor: "ns-resize",
-        zIndex: 1,
-        boxShadow: "0px -1px 1px  #e0e0e0",
-    },
-    propertiesPaneHandle: {
-        position: "absolute",
-        top: "0",
-        left: "0",
-        width: "10px",
-        height: "100%",
-        cursor: "ew-resize",
-        zIndex: 1,
-        // boxShadow: '0px -1px 1px  #e0e0e0'
-    },
-    designerRibbon: {
-        width: "100%",
-    },
-    mainContent: {
-        height: "100%",
-        width: "100%",
-        minHeight: "100%",
-        display: "flex",
-        ...shorthands.flex(1),
-        flexDirection: "column",
-        ...shorthands.overflow("hidden"),
-    },
-    editor: {
-        ...shorthands.overflow("hidden"),
-        ...shorthands.flex(1),
-        width: "100%",
-        display: "flex",
-        flexDirection: "row",
-    },
-    resultPaneContainer: {
-        width: "100%",
-        position: "relative",
-    },
-    mainPaneContainer: {
-        ...shorthands.flex(1),
-        height: "100%",
-        ...shorthands.overflow("hidden"),
-    },
-    propertiesPaneContainer: {
-        position: "relative",
-        height: "100%",
-        width: "300px",
-        ...shorthands.overflow("hidden"),
-    },
+  root: {
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
+    width: "100%",
+    maxWidth: "100%",
+    maxHeight: "100%",
+  },
+  pageContext: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100%",
+    width: "100%",
+    flexDirection: "column",
+  },
+  errorIcon: {
+    fontSize: "100px",
+    opacity: 0.5,
+  },
+  retryButton: {
+    marginTop: "10px",
+  },
+  resultPaneHandle: {
+    position: "absolute",
+    top: "0",
+    right: "0",
+    width: "100%",
+    height: "10px",
+    cursor: "ns-resize",
+    zIndex: 1,
+    boxShadow: "0px -1px 1px  #e0e0e0",
+  },
+  propertiesPaneHandle: {
+    position: "absolute",
+    top: "0",
+    left: "0",
+    width: "10px",
+    height: "100%",
+    cursor: "ew-resize",
+    zIndex: 1,
+    // boxShadow: '0px -1px 1px  #e0e0e0'
+  },
+  designerRibbon: {
+    width: "100%",
+  },
+  mainContent: {
+    height: "100%",
+    width: "100%",
+    minHeight: "100%",
+    display: "flex",
+    ...shorthands.flex(1),
+    flexDirection: "column",
+    ...shorthands.overflow("hidden"),
+  },
+  editor: {
+    ...shorthands.overflow("hidden"),
+    ...shorthands.flex(1),
+    width: "100%",
+    display: "flex",
+    flexDirection: "row",
+  },
+  resultPaneContainer: {
+    width: "100%",
+    position: "relative",
+  },
+  mainPaneContainer: {
+    ...shorthands.flex(1),
+    height: "100%",
+    ...shorthands.overflow("hidden"),
+  },
+  propertiesPaneContainer: {
+    position: "relative",
+    height: "100%",
+    width: "300px",
+    ...shorthands.overflow("hidden"),
+  },
 });
 
 export const QueryResult = () => {
-    const classes = useStyles();
+  const classes = useStyles();
 
-    // This is needed to stop the browser from selecting all the raw text in the webview when ctrl+a is pressed
-    useEffect(() => {
-        const handleKeyDown = async (e: KeyboardEvent): Promise<void> => {
-            if (isMetaOrCtrlKeyPressed(e) && e.code === KeyCode.KeyA) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        };
-        document.addEventListener("keydown", async (e) => {
-            await handleKeyDown(e);
-        });
-        return function cleanup() {
-            document.removeEventListener("keydown", handleKeyDown);
-        };
-    }, []);
+  // This is needed to stop the browser from selecting all the raw text in the webview when ctrl+a is pressed
+  useEffect(() => {
+    const handleKeyDown = async (e: KeyboardEvent): Promise<void> => {
+      if (isMetaOrCtrlKeyPressed(e) && e.code === KeyCode.KeyA) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    document.addEventListener("keydown", async (e) => {
+      await handleKeyDown(e);
+    });
+    return function cleanup() {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
-    return (
-        <div className={classes.root}>
-            {
-                <div className={classes.mainContent}>
-                    <QueryResultPane />
-                </div>
-            }
+  return (
+    <div className={classes.root}>
+      {
+        <div className={classes.mainContent}>
+          <QueryResultPane />
         </div>
-    );
+      }
+    </div>
+  );
 };

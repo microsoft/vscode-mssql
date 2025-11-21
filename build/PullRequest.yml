@@ -11,7 +11,7 @@ steps:
       yarn install --frozen-lockfile
     displayName: Install root dependencies
     workingDirectory: "$(Build.SourcesDirectory)"
-  
+
   - template: ./templates/build-mssql.yml@self
     parameters:
       packageOffline: false # don't build offline packages for PR builds to speed runs up

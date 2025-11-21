@@ -14,76 +14,76 @@ import ExpandPrompt from "../../src/prompts/expand";
 chai.use(sinonChai);
 
 suite("Test Expand Prompt", () => {
-    let sandbox: sinon.SinonSandbox;
+  let sandbox: sinon.SinonSandbox;
 
-    setup(() => {
-        sandbox = sinon.createSandbox();
-    });
+  setup(() => {
+    sandbox = sinon.createSandbox();
+  });
 
-    teardown(() => {
-        sandbox.restore();
-    });
+  teardown(() => {
+    sandbox.restore();
+  });
 
-    test("Test expand prompt with simple question", async () => {
-        const question = {
-            choices: [{ name: "test", value: "test" }],
-            validate: () => false,
-        };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPickStrings.resolves("test");
+  test("Test expand prompt with simple question", async () => {
+    const question = {
+      choices: [{ name: "test", value: "test" }],
+      validate: () => false,
+    };
+    const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+    vscodeWrapper.showQuickPickStrings.resolves("test");
 
-        const expand = new ExpandPrompt(question, vscodeWrapper);
-        await expand.render();
+    const expand = new ExpandPrompt(question, vscodeWrapper);
+    await expand.render();
 
-        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
-    });
+    expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+  });
 
-    // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
-    test.skip("Test expand prompt with error question", async () => {
-        const question = {
-            choices: [{ name: "test", value: "test" }],
-            validate: () => true,
-        };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPickStrings.resolves(undefined);
+  // @cssuh 10/22 - commented this test because it was throwing some random undefined errors
+  test.skip("Test expand prompt with error question", async () => {
+    const question = {
+      choices: [{ name: "test", value: "test" }],
+      validate: () => true,
+    };
+    const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+    vscodeWrapper.showQuickPickStrings.resolves(undefined);
 
-        const expand = new ExpandPrompt(question, vscodeWrapper);
-        await expand.render();
+    const expand = new ExpandPrompt(question, vscodeWrapper);
+    await expand.render();
 
-        expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
-    });
+    expect(vscodeWrapper.showQuickPickStrings).to.have.been.calledOnce;
+  });
 
-    test.skip("Test expand prompt with quick pick item", async () => {
-        const quickPickItem: vscode.QuickPickItem = {
-            label: "test",
-        };
-        const question = {
-            choices: [quickPickItem],
-            validate: () => true,
-        };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPick.resolves(quickPickItem);
+  test.skip("Test expand prompt with quick pick item", async () => {
+    const quickPickItem: vscode.QuickPickItem = {
+      label: "test",
+    };
+    const question = {
+      choices: [quickPickItem],
+      validate: () => true,
+    };
+    const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+    vscodeWrapper.showQuickPick.resolves(quickPickItem);
 
-        const expand = new ExpandPrompt(question, vscodeWrapper);
-        await expand.render();
+    const expand = new ExpandPrompt(question, vscodeWrapper);
+    await expand.render();
 
-        expect(vscodeWrapper.showQuickPick).to.have.been.calledOnce;
-    });
+    expect(vscodeWrapper.showQuickPick).to.have.been.calledOnce;
+  });
 
-    test.skip("Test expand prompt with error quick pick item", async () => {
-        const quickPickItem: vscode.QuickPickItem = {
-            label: "test",
-        };
-        const question = {
-            choices: [quickPickItem],
-            validate: () => false,
-        };
-        const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        vscodeWrapper.showQuickPick.resolves(undefined);
+  test.skip("Test expand prompt with error quick pick item", async () => {
+    const quickPickItem: vscode.QuickPickItem = {
+      label: "test",
+    };
+    const question = {
+      choices: [quickPickItem],
+      validate: () => false,
+    };
+    const vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+    vscodeWrapper.showQuickPick.resolves(undefined);
 
-        const expand = new ExpandPrompt(question, vscodeWrapper);
-        await expand.render();
+    const expand = new ExpandPrompt(question, vscodeWrapper);
+    await expand.render();
 
-        expect(vscodeWrapper.showQuickPick).to.have.been.calledOnce;
-    });
+    expect(vscodeWrapper.showQuickPick).to.have.been.calledOnce;
+  });
 });

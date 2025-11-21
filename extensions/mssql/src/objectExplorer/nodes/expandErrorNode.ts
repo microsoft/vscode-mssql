@@ -9,22 +9,22 @@ import { TreeNodeInfo } from "./treeNodeInfo";
 import { ObjectExplorerUtils } from "../objectExplorerUtils";
 
 export class ExpandErrorNode extends vscode.TreeItem {
-    constructor(
-        private _parentNode: TreeNodeInfo,
-        errorMessage: string,
-    ) {
-        super(
-            LocalizedConstants.ObjectExplorer.ErrorLoadingRefreshToTryAgain,
-            vscode.TreeItemCollapsibleState.None,
-        );
-        this.tooltip = errorMessage;
-        this.iconPath = {
-            light: ObjectExplorerUtils.iconPath("Error_light"),
-            dark: ObjectExplorerUtils.iconPath("Error_dark"),
-        };
-    }
+  constructor(
+    private _parentNode: TreeNodeInfo,
+    errorMessage: string,
+  ) {
+    super(
+      LocalizedConstants.ObjectExplorer.ErrorLoadingRefreshToTryAgain,
+      vscode.TreeItemCollapsibleState.None,
+    );
+    this.tooltip = errorMessage;
+    this.iconPath = {
+      light: ObjectExplorerUtils.iconPath("Error_light"),
+      dark: ObjectExplorerUtils.iconPath("Error_dark"),
+    };
+  }
 
-    public get parentNode(): TreeNodeInfo {
-        return this._parentNode;
-    }
+  public get parentNode(): TreeNodeInfo {
+    return this._parentNode;
+  }
 }

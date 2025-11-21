@@ -12,54 +12,54 @@ import { locConstants } from "../../common/locConstants";
 import { ChooseDeploymentTypePage } from "./chooseDeploymentTypePage";
 
 const useStyles = makeStyles({
-    outerDiv: {
-        height: "100%",
-        width: "100%",
-        position: "relative",
-        overflowY: "auto",
-        overflowX: "unset",
-    },
-    spinnerDiv: {
-        height: "100%",
-        width: "100%",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        flexDirection: "column",
-        padding: "20px",
-    },
-    errorIcon: {
-        fontSize: "100px",
-        opacity: 0.5,
-    },
+  outerDiv: {
+    height: "100%",
+    width: "100%",
+    position: "relative",
+    overflowY: "auto",
+    overflowX: "unset",
+  },
+  spinnerDiv: {
+    height: "100%",
+    width: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "column",
+    padding: "20px",
+  },
+  errorIcon: {
+    fontSize: "100px",
+    opacity: 0.5,
+  },
 });
 
 export const DeploymentStartPage = () => {
-    const classes = useStyles();
-    const context = useContext(DeploymentContext);
-    const deploymentState = context?.state;
-    const renderMainContent = () => {
-        switch (deploymentState?.loadState) {
-            case ApiStatus.Loading:
-                return (
-                    <div className={classes.spinnerDiv}>
-                        <Spinner
-                            label={`${locConstants.deployment.loadingDeploymentPage}...`}
-                            labelPosition="below"
-                        />
-                    </div>
-                );
-            case ApiStatus.Loaded:
-                return <ChooseDeploymentTypePage />;
-            case ApiStatus.Error:
-                return (
-                    <div className={classes.spinnerDiv}>
-                        <ErrorCircleRegular className={classes.errorIcon} />
-                        <Text size={400}>{deploymentState?.errorMessage ?? ""}</Text>
-                    </div>
-                );
-        }
-    };
+  const classes = useStyles();
+  const context = useContext(DeploymentContext);
+  const deploymentState = context?.state;
+  const renderMainContent = () => {
+    switch (deploymentState?.loadState) {
+      case ApiStatus.Loading:
+        return (
+          <div className={classes.spinnerDiv}>
+            <Spinner
+              label={`${locConstants.deployment.loadingDeploymentPage}...`}
+              labelPosition="below"
+            />
+          </div>
+        );
+      case ApiStatus.Loaded:
+        return <ChooseDeploymentTypePage />;
+      case ApiStatus.Error:
+        return (
+          <div className={classes.spinnerDiv}>
+            <ErrorCircleRegular className={classes.errorIcon} />
+            <Text size={400}>{deploymentState?.errorMessage ?? ""}</Text>
+          </div>
+        );
+    }
+  };
 
-    return <div className={classes.outerDiv}>{renderMainContent()}</div>;
+  return <div className={classes.outerDiv}>{renderMainContent()}</div>;
 };
