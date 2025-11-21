@@ -8,6 +8,7 @@ import ConnectionManager from "../../controllers/connectionManager";
 import { ToolBase } from "./toolBase";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
+import { getDisplayNameForTool } from "./toolsUtils";
 
 /** Parameters for the disconnect tool. */
 export interface DisconnectToolParams {
@@ -41,11 +42,16 @@ export class DisconnectTool extends ToolBase<DisconnectToolParams> {
         _token: vscode.CancellationToken,
     ) {
         const { connectionId } = options.input;
+        const connInfo = this._connectionManager.getConnectionInfo(connectionId);
+        const displayName = getDisplayNameForTool(connInfo);
+
         const confirmationMessages = {
             title: `${Constants.extensionName}: ${loc.disconnectToolConfirmationTitle}`,
-            message: new vscode.MarkdownString(loc.disconnectToolConfirmationMessage(connectionId)),
+            message: new vscode.MarkdownString(
+                loc.disconnectToolConfirmationMessage(displayName, connectionId),
+            ),
         };
-        const invocationMessage = loc.disconnectToolInvocationMessage(connectionId);
+        const invocationMessage = loc.disconnectToolInvocationMessage(displayName, connectionId);
         return { invocationMessage, confirmationMessages };
     }
 }
