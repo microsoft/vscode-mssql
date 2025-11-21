@@ -46,7 +46,7 @@ async function writeAndFormat(filePath, content, prettier = true, crlf = false) 
  */
 async function writeJsonAndFormat(filePath, data, indent = 2) {
     const content = JSON.stringify(data, null, indent);
-    return await writeAndFormat(filePath, content);
+    return await writeAndFormat(filePath, content, true, true);
 }
 
 module.exports = {
