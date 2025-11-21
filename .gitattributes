@@ -2,3 +2,4 @@
 * text=auto eol=crlf
 # Ensure shell scripts use LF line endings
 .husky text eol=lf
+*.sh text eol=lf
