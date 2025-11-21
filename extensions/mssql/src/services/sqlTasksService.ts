@@ -39,6 +39,7 @@ export interface TaskInfo {
     description: string;
     providerName: string;
     isCancelable: boolean;
+    targetLocation: string;
 }
 
 namespace TaskStatusChangedNotification {
@@ -66,11 +67,62 @@ type ActiveTaskInfo = {
 type ProgressCallback = (value: { message?: string; increment?: number }) => void;
 
 /**
+ * Configuration for a custom task completion handler that shows a notification with an action button
+ */
+export interface TaskCompletionHandler {
+    /**
+     * The name of the task to handle (must match taskInfo.name from SQL Tools Service)
+     */
+    taskName: string;
+
+    /**
+     * Resolves the target location from the task info.
+     * For file operations, this might return taskInfo.targetLocation.
+     * For database operations, this might return taskInfo.databaseName.
+     * @param taskInfo The task information
+     * @returns The target location string, or undefined if not available
+     */
+    getTargetLocation: (taskInfo: TaskInfo) => string | undefined;
+
+    /**
+     * Gets the success message to display when the task completes successfully
+     * @param taskInfo The task information
+     * @param targetLocation The resolved target location
+     * @returns The localized success message to display
+     */
+    getSuccessMessage: (taskInfo: TaskInfo, targetLocation: string) => string;
+
+    /**
+     * Gets the action button text (e.g., "Reveal in Explorer")
+     * Optional - if not provided, no action button will be shown
+     * @returns The localized button text
+     */
+    getActionButtonText?: () => string;
+
+    /**
+     * Gets the VS Code command to execute when the action button is clicked
+     * Optional - required only if getActionButtonText is provided
+     * @returns The VS Code command ID
+     */
+    getActionCommand?: () => string;
+
+    /**
+     * Gets the command arguments to pass when executing the action
+     * Optional - required only if getActionButtonText is provided
+     * @param taskInfo The task information
+     * @param targetLocation The resolved target location
+     * @returns The command arguments
+     */
+    getActionCommandArgs?: (taskInfo: TaskInfo, targetLocation: string) => unknown[];
+}
+
+/**
  * A simple service that hooks into the SQL Task Service feature provided by SQL Tools Service. This handles detecting when
  * new tasks are started and displaying a progress notification for those tasks while they're running.
  */
 export class SqlTasksService {
     private _activeTasks = new Map<string, ActiveTaskInfo>();
+    private _completionHandlers = new Map<string, TaskCompletionHandler>();
 
     constructor(
         private _client: SqlToolsServiceClient,
@@ -82,6 +134,16 @@ export class SqlTasksService {
         this._client.onNotification(TaskStatusChangedNotification.type, (taskProgressInfo) =>
             this.handleTaskChangedNotification(taskProgressInfo),
         );
+    }
+
+    /**
+     * Registers a custom completion handler for a specific task type.
+     * When a task with the specified name completes successfully, the handler will be invoked
+     * to show a custom notification with an action button.
+     * @param handler The task completion handler configuration
+     */
+    public registerCompletionHandler(handler: TaskCompletionHandler): void {
+        this._completionHandlers.set(handler.taskName, handler);
     }
 
     private cancelTask(taskId: string): Thenable<boolean> {
@@ -147,6 +209,9 @@ export class SqlTasksService {
         }
 
         if (isTaskCompleted(taskProgressInfo.status)) {
+            // Check if there's a custom completion handler registered for this task
+            const handler = this._completionHandlers.get(taskInfo.taskInfo.name);
+
             // Task is completed, complete the progress notification and display a final toast informing the
             // user of the final status.
             this._activeTasks.delete(taskProgressInfo.taskId);
@@ -156,21 +221,51 @@ export class SqlTasksService {
                 taskInfo.completionPromise.resolve();
             }
 
-            // Get the message to display, if the last status doesn't have a valid message then get the last valid one
-            const lastMessage =
-                (taskProgressInfo.message &&
-                    taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()) ??
-                taskInfo.lastMessage;
-            // Only include the message if it isn't the same as the task status string we already have - some (but not all) task status
-            // notifications include this string as the message
-            const taskMessage = lastMessage
-                ? localizedConstants.taskStatusWithNameAndMessage(
-                      taskInfo.taskInfo.name,
-                      taskStatusString,
-                      lastMessage.toString(),
-                  )
-                : localizedConstants.taskStatusWithName(taskInfo.taskInfo.name, taskStatusString);
-            showCompletionMessage(taskProgressInfo.status, taskMessage);
+            const targetLocation = handler
+                ? handler.getTargetLocation(taskInfo.taskInfo)
+                : undefined;
+            if (taskProgressInfo.status === TaskStatus.Succeeded && handler && targetLocation) {
+                // Show custom notification with optional action button
+                const successMessage = handler.getSuccessMessage(taskInfo.taskInfo, targetLocation);
+                const actionButtonText = handler.getActionButtonText?.();
+
+                if (actionButtonText && handler.getActionCommand && handler.getActionCommandArgs) {
+                    // Show notification with action button
+                    void vscode.window
+                        .showInformationMessage(successMessage, actionButtonText)
+                        .then((selection) => {
+                            if (selection === actionButtonText) {
+                                const command = handler.getActionCommand!();
+                                const args = handler.getActionCommandArgs!(
+                                    taskInfo.taskInfo,
+                                    targetLocation,
+                                );
+                                void vscode.commands.executeCommand(command, ...args);
+                            }
+                        });
+                } else {
+                    // Show notification without action button
+                    void vscode.window.showInformationMessage(successMessage);
+                }
+            } else {
+                // Show generic completion message for tasks without custom handlers
+                const lastMessage =
+                    (taskProgressInfo.message &&
+                        taskProgressInfo.message.toLowerCase() !==
+                            taskStatusString.toLowerCase()) ??
+                    taskInfo.lastMessage;
+                const taskMessage = lastMessage
+                    ? localizedConstants.taskStatusWithNameAndMessage(
+                          taskInfo.taskInfo.name,
+                          taskStatusString,
+                          lastMessage.toString(),
+                      )
+                    : localizedConstants.taskStatusWithName(
+                          taskInfo.taskInfo.name,
+                          taskStatusString,
+                      );
+                showCompletionMessage(taskProgressInfo.status, taskMessage);
+            }
             if (
                 taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script &&
                 taskProgressInfo.script
