@@ -124,5 +124,26 @@ suite("HttpHelper tests", () => {
 
             expect(proxy).to.equal(envProxy);
         });
+
+        test("setupConfigAndProxyForRequest", () => {
+            const fakeToken = "fake-token";
+            const fakeProxyUrl = new URL("http://fake-proxy.test:8080");
+
+            const loadProxyConfigStub = sandbox.stub();
+            httpHelper["loadProxyConfig"] = loadProxyConfigStub.returns(fakeProxyUrl.toString());
+
+            const result = httpHelper["setupConfigAndProxyForRequest"](
+                "http://fakeUrl.ms/",
+                fakeToken,
+            );
+
+            expect(result.headers.Authorization).to.contain(fakeToken);
+            expect(result.proxy, "Automatic proxy detection should be disabled").to.be.false;
+            expect(result.httpAgent.proxyOptions).to.deep.equal({
+                host: fakeProxyUrl.hostname,
+                port: parseInt(fakeProxyUrl.port),
+            });
+            expect(result.httpsAgent).to.be.undefined;
+        });
     });
 });
