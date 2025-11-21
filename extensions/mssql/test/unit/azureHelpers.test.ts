@@ -197,12 +197,15 @@ suite("Azure Helpers", () => {
 
     test("fetchServersFromAzure", async () => {
         sandbox
-            .stub(azureHelpers.VsCodeAzureHelper, "fetchSqlDbResourcesForSubscription")
-            .resolves(mockSqlDbList);
-
-        sandbox
-            .stub(azureHelpers.VsCodeAzureHelper, "fetchManagedInstanceResourcesForSubscription")
-            .resolves(mockManagedInstanceList);
+            .stub(azureHelpers.VsCodeAzureHelper, "fetchSqlResourcesForSubscription")
+            .callsFake(async (sub, listServers /*, listDatabasesFactory */) => {
+                const fnText = String(listServers);
+                if (fnText.includes("managedInstances")) {
+                    return mockManagedInstanceList;
+                } else {
+                    return mockSqlDbList;
+                }
+            });
 
         const servers = await azureHelpers.VsCodeAzureHelper.fetchServersFromAzure(
             mockSubscriptions[0],
