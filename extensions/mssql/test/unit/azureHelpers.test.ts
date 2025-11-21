@@ -4,12 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import * as chai from "chai";
+import sinonChai from "sinon-chai";
 import { AzureAccountService } from "../../src/services/azureAccountService";
 import * as sinon from "sinon";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
 import { Logger } from "../../src/models/logger";
 import { IAccount } from "vscode-mssql";
 import * as vscode from "vscode";
+import * as armSql from "@azure/arm-sql";
 import {
     mockAccounts,
     mockSqlDbList,
@@ -19,6 +22,8 @@ import {
     mockTenants,
 } from "./azureHelperStubs";
 import { MssqlVSCodeAzureSubscriptionProvider } from "../../src/azure/MssqlVSCodeAzureSubscriptionProvider";
+
+chai.use(sinonChai);
 
 suite("Azure Helpers", () => {
     let sandbox: sinon.SinonSandbox;
@@ -235,5 +240,53 @@ suite("Azure Helpers", () => {
         expect(managedInstances[1].uri).to.equal(
             `${mockAzureResources.azureManagedInstance.name}.public.${mockAzureResources.azureManagedInstance.dnsZone}.database.windows.net,${azureHelpers.MANAGED_INSTANCE_PUBLIC_PORT}`,
         );
+    });
+
+    test("fetchSqlResourcesForSubscription", async () => {
+        sandbox.stub(armSql, "SqlManagementClient").callsFake(
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            (credential: any, subscriptionId: string, options?: any) => {
+                return {} as armSql.SqlManagementClient;
+            },
+        );
+
+        const listServersFactory = sandbox.stub().callsFake(
+            () =>
+                async function* () {
+                    yield mockAzureResources.azureSqlDbServer;
+                } as unknown as any,
+        );
+
+        const listDatabasesFactory = sandbox.stub().callsFake(
+            () =>
+                async function* (_resourceGroup?: string, _serverName?: string) {
+                    yield mockAzureResources.azureSqlDbDatabase1;
+                    yield mockAzureResources.azureSqlDbDatabase2;
+                } as unknown as any,
+        );
+
+        const result = await azureHelpers.VsCodeAzureHelper.fetchSqlResourcesForSubscription(
+            mockSubscriptions[0],
+            listServersFactory,
+            listDatabasesFactory,
+        );
+
+        const expectedResult = {
+            servers: [mockAzureResources.azureSqlDbServer],
+            databases: [
+                {
+                    ...mockAzureResources.azureSqlDbDatabase1,
+                    server: mockAzureResources.azureSqlDbServer.name,
+                },
+                {
+                    ...mockAzureResources.azureSqlDbDatabase2,
+                    server: mockAzureResources.azureSqlDbServer.name,
+                },
+            ],
+        };
+
+        expect(result).to.deep.equal(expectedResult);
+        expect(listServersFactory).to.have.been.calledOnce;
+        expect(listDatabasesFactory).to.have.been.calledOnce;
     });
 });
