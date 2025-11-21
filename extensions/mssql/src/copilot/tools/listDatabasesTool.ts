@@ -8,6 +8,7 @@ import { ToolBase } from "./toolBase";
 import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
+import { getDisplayNameForTool } from "./toolsUtils";
 import { getErrorMessage } from "../../utils/utils";
 
 export interface ListDatabasesToolParams {
@@ -60,13 +61,16 @@ export class ListDatabasesTool extends ToolBase<ListDatabasesToolParams> {
         _token: vscode.CancellationToken,
     ) {
         const { connectionId } = options.input;
+        const connInfo = this._connectionManager.getConnectionInfo(connectionId);
+        const displayName = getDisplayNameForTool(connInfo);
+
         const confirmationMessages = {
             title: `${Constants.extensionName}: ${loc.listDatabasesToolConfirmationTitle}`,
             message: new vscode.MarkdownString(
-                loc.listDatabasesToolConfirmationMessage(connectionId),
+                loc.listDatabasesToolConfirmationMessage(displayName, connectionId),
             ),
         };
-        const invocationMessage = loc.listDatabasesToolInvocationMessage(connectionId);
+        const invocationMessage = loc.listDatabasesToolInvocationMessage(displayName, connectionId);
         return { invocationMessage, confirmationMessages };
     }
 }

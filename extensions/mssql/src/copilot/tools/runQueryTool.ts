@@ -15,6 +15,7 @@ import { SimpleExecuteResult, IDbColumn, DbCellValue } from "vscode-mssql";
 import { UserSurvey } from "../../nps/userSurvey";
 import { sendActionEvent } from "../../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../../sharedInterfaces/telemetry";
+import { getDisplayNameForTool } from "./toolsUtils";
 
 export interface RunQueryToolParams {
     connectionId: string;
@@ -110,13 +111,16 @@ export class RunQueryTool extends ToolBase<RunQueryToolParams> {
         // Send query-specific telemetry for prepare phase to track what queries are proposed
         this.sendQueryTelemetry(queryTypes, queryIntent, "prepare");
 
+        const connInfo = this._connectionManager.getConnectionInfo(connectionId);
+        const displayName = getDisplayNameForTool(connInfo);
+
         const confirmationMessages = {
             title: `${Constants.extensionName}: ${loc.RunQueryToolConfirmationTitle}`,
             message: new vscode.MarkdownString(
-                loc.RunQueryToolConfirmationMessage(connectionId, query),
+                loc.RunQueryToolConfirmationMessage(displayName, connectionId, query),
             ),
         };
-        const invocationMessage = loc.RunQueryToolInvocationMessage(connectionId);
+        const invocationMessage = loc.RunQueryToolInvocationMessage(displayName, connectionId);
         return { invocationMessage, confirmationMessages };
     }
 }

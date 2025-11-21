@@ -9,6 +9,7 @@ import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
 import { getErrorMessage } from "../../utils/utils";
+import { getDisplayNameForTool } from "./toolsUtils";
 
 export interface ChangeDatabaseToolParams {
     connectionId: string;
@@ -88,13 +89,20 @@ export class ChangeDatabaseTool extends ToolBase<ChangeDatabaseToolParams> {
         _token: vscode.CancellationToken,
     ) {
         const { connectionId, database } = options.input;
+        const connInfo = this._connectionManager.getConnectionInfo(connectionId);
+        const displayName = getDisplayNameForTool(connInfo);
+
         const confirmationMessages = {
             title: `${Constants.extensionName}: ${loc.changeDatabaseToolConfirmationTitle}`,
             message: new vscode.MarkdownString(
-                loc.changeDatabaseToolConfirmationMessage(connectionId, database),
+                loc.changeDatabaseToolConfirmationMessage(displayName, connectionId, database),
             ),
         };
-        const invocationMessage = loc.changeDatabaseToolInvocationMessage(connectionId, database);
+        const invocationMessage = loc.changeDatabaseToolInvocationMessage(
+            displayName,
+            connectionId,
+            database,
+        );
         return { invocationMessage, confirmationMessages };
     }
 }

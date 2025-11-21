@@ -8,6 +8,7 @@ import { ToolBase } from "./toolBase";
 import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
+import { getDisplayNameForTool } from "./toolsUtils";
 import { getErrorMessage } from "../../utils/utils";
 import SqlToolsServiceClient from "../../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
@@ -101,13 +102,15 @@ export class ListSchemasTool extends ToolBase<ListSchemasToolParams> {
         _token: vscode.CancellationToken,
     ) {
         const { connectionId } = options.input;
+        const connInfo = this._connectionManager.getConnectionInfo(connectionId);
+        const displayName = getDisplayNameForTool(connInfo);
         const confirmationMessages = {
             title: `${Constants.extensionName}: ${loc.ListSchemasToolConfirmationTitle}`,
             message: new vscode.MarkdownString(
-                loc.ListSchemasToolConfirmationMessage(connectionId),
+                loc.ListSchemasToolConfirmationMessage(displayName, connectionId),
             ),
         };
-        const invocationMessage = loc.ListSchemasToolInvocationMessage(connectionId);
+        const invocationMessage = loc.ListSchemasToolInvocationMessage(displayName, connectionId);
         return { invocationMessage, confirmationMessages };
     }
 }

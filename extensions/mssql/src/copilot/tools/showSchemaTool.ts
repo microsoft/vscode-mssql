@@ -8,6 +8,7 @@ import { ToolBase } from "./toolBase";
 import ConnectionManager from "../../controllers/connectionManager";
 import * as Constants from "../../constants/constants";
 import { MssqlChatAgent as loc } from "../../constants/locConstants";
+import { getDisplayNameForTool } from "./toolsUtils";
 
 export interface ShowSchemaToolParams {
     connectionId: string;
@@ -61,11 +62,16 @@ export class ShowSchemaTool extends ToolBase<ShowSchemaToolParams> {
         _token: vscode.CancellationToken,
     ) {
         const { connectionId } = options.input;
+        const connInfo = this._connectionManager.getConnectionInfo(connectionId);
+        const displayName = getDisplayNameForTool(connInfo);
+
         const confirmationMessages = {
             title: `${Constants.extensionName}: ${loc.showSchemaToolConfirmationTitle}`,
-            message: new vscode.MarkdownString(loc.showSchemaToolConfirmationMessage(connectionId)),
+            message: new vscode.MarkdownString(
+                loc.showSchemaToolConfirmationMessage(displayName, connectionId),
+            ),
         };
-        const invocationMessage = loc.showSchemaToolInvocationMessage(connectionId);
+        const invocationMessage = loc.showSchemaToolInvocationMessage(displayName, connectionId);
         return { invocationMessage, confirmationMessages };
     }
 }
