@@ -5,9 +5,6 @@ trigger:
   branches:
     include:
       - refs/heads/main
-  paths:
-    include:
-      - src
 
 jobs:
   - job: Localization
