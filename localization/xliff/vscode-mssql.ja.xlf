@@ -5850,7 +5850,7 @@ Once you're done making your changes, click the 'Publish' button to send the cha
       </trans-unit>
       <trans-unit id="mssql.enableQueryHistoryCapture">
         <source xml:lang="en">Enable Query History Capture</source>
-        <target state="translated">Query History キャプチャを有効にする</target>
+        <target state="translated">クエリ履歴キャプチャを有効にする</target>
       </trans-unit>
       <trans-unit id="mssql.query.ansiDefaults">
         <source xml:lang="en">Enable SET ANSI_DEFAULTS</source>
@@ -6122,7 +6122,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
-        <target state="translated">Query History キャプチャの一時停止</target>
+        <target state="translated">クエリ履歴キャプチャの一時停止</target>
       </trans-unit>
       <trans-unit id="mssql.preventAutoExecuteScript">
         <source xml:lang="en">Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.</source>
@@ -6362,7 +6362,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.startQueryHistoryCapture">
         <source xml:lang="en">Start Query History Capture</source>
-        <target state="translated">Query History キャプチャの開始</target>
+        <target state="translated">クエリ履歴キャプチャの開始</target>
       </trans-unit>
       <trans-unit id="mssql.stopContainer">
         <source xml:lang="en">Stop Container</source>
