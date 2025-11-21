@@ -6,6 +6,11 @@
 const fs = require("fs").promises;
 const { execSync } = require("child_process");
 
+// Prettier output respects endOfLine, but enforce CRLF after formatting to guard against
+// contributors with custom setups.
+const CRLF = "\r\n";
+const LF = "\n";
+
 /**
  * Formats files using Prettier
  * @param {string|string[]} filePaths - Single file path or array of file paths to format
@@ -32,9 +37,22 @@ async function formatWithPrettier(filePaths) {
  * @returns {Promise<boolean>} True if formatting succeeded, false otherwise
  */
 async function writeAndFormat(filePath, content, prettier = true, crlf = false) {
-    const finalContent = crlf ? content.replace(/\r?\n/g, "\r\n") : content;
+    const finalContent = crlf ? content.replace(/\r?\n/g, CRLF) : content;
     await fs.writeFile(filePath, finalContent);
-    return prettier ? await formatWithPrettier(filePath) : true;
+    if (prettier) {
+        const formatted = await formatWithPrettier(filePath);
+        if (!formatted) {
+            return false;
+        }
+    }
+
+    if (crlf) {
+        const data = await fs.readFile(filePath, "utf8");
+        const crlfData = data.replace(/\r?\n/g, CRLF);
+        await fs.writeFile(filePath, crlfData);
+    }
+
+    return true;
 }
 
 /**
