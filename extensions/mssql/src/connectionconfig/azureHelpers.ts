@@ -34,7 +34,9 @@ import {
     ManagedInstance,
     Server,
     SqlManagementClient,
+    TrackedResource,
 } from "@azure/arm-sql";
+import { PagedAsyncIterableIterator } from "@azure/core-paging";
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
@@ -193,56 +195,34 @@ export class VsCodeAzureHelper {
         }));
     }
 
-    public static async fetchSqlDbResourcesForSubscription(
+    public static async fetchSqlResourcesForSubscription<
+        TServer extends TrackedResource,
+        TDatabase extends TrackedResource,
+    >(
         sub: AzureSubscription,
-    ): Promise<{ servers: Server[]; databases: (Database & { server: string })[] }> {
-        const sql = new SqlManagementClient(sub.credential, sub.subscriptionId, {
-            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
-        });
-
-        const servers = await listAllIterator(sql.servers.list());
-        const databases = [];
-
-        for (const server of servers) {
-            const newDbs = await listAllIterator(
-                sql.databases.listByServer(
-                    extractFromResourceId(server.id, "resourceGroups"),
-                    server.name,
-                ),
-            );
-
-            databases.push(
-                ...newDbs.map((db) => {
-                    return {
-                        ...db,
-                        server: server.name, // add server name to database for later use
-                    };
-                }),
-            );
-        }
-
-        return { servers, databases };
-    }
-
-    public static async fetchManagedInstanceResourcesForSubscription(
-        sub: AzureSubscription,
+        listServers: (
+            sqlManagementClient: SqlManagementClient,
+        ) => () => PagedAsyncIterableIterator<TServer>,
+        listDatabases: (
+            sqlManagementClient: SqlManagementClient,
+        ) => (
+            resourceGroupName: string,
+            serverName: string,
+        ) => PagedAsyncIterableIterator<TDatabase>,
     ): Promise<{
-        servers: ManagedInstance[];
-        databases: (ManagedDatabase & { server: string })[];
+        servers: TServer[];
+        databases: (TDatabase & { server: string })[];
     }> {
         const sql = new SqlManagementClient(sub.credential, sub.subscriptionId, {
             endpoint: getCloudProviderSettings().settings.armResource.endpoint,
         });
 
-        const servers = await listAllIterator(sql.managedInstances.list());
-        const databases: (ManagedDatabase & { server: string })[] = [];
+        const servers = await listAllIterator(listServers(sql)());
+        const databases: (TDatabase & { server: string })[] = [];
 
         for (const server of servers) {
             const newDbs = await listAllIterator(
-                sql.managedDatabases.listByInstance(
-                    extractFromResourceId(server.id, "resourceGroups"),
-                    server.name,
-                ),
+                listDatabases(sql)(extractFromResourceId(server.id, "resourceGroups"), server.name),
             );
 
             databases.push(
@@ -265,8 +245,20 @@ export class VsCodeAzureHelper {
     public static async fetchServersFromAzure(
         sub: AzureSubscription,
     ): Promise<AzureSqlServerInfo[]> {
-        const sqlDbResources = await this.fetchSqlDbResourcesForSubscription(sub);
-        const miResources = await this.fetchManagedInstanceResourcesForSubscription(sub);
+        const sqlDbResources = await this.fetchSqlResourcesForSubscription<Server, Database>(
+            sub,
+            (sql) => sql.servers.list.bind(sql.servers),
+            (sql) => sql.databases.listByServer.bind(sql.databases),
+        );
+
+        const miResources = await this.fetchSqlResourcesForSubscription<
+            ManagedInstance,
+            ManagedDatabase
+        >(
+            sub,
+            (sql) => sql.managedInstances.list.bind(sql.managedInstances),
+            (sql) => sql.managedDatabases.listByInstance.bind(sql.managedDatabases),
+        );
 
         const sqlDbMap = this.populateServerMap(
             sub,
