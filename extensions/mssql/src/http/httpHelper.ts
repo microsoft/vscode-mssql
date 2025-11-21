@@ -60,7 +60,7 @@ export class HttpHelper {
         return response;
     }
 
-    public async warnOnInvalidProxySettings(): Promise<void> {
+    public warnOnInvalidProxySettings(): void {
         const proxy = this.loadProxyConfig();
 
         let message = undefined;

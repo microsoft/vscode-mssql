@@ -47,7 +47,7 @@ suite("HttpHelper tests", () => {
                 .stub(vscode.window, "showWarningMessage")
                 .resolves(undefined);
 
-            await httpHelper.warnOnInvalidProxySettings();
+            httpHelper.warnOnInvalidProxySettings();
 
             expect(warningMessageStub).to.have.been.calledOnceWithExactly(
                 LocalizedConstants.Proxy.missingProtocolWarning(invalidProxyValue),
@@ -66,7 +66,7 @@ suite("HttpHelper tests", () => {
                 .stub(vscode.window, "showWarningMessage")
                 .resolves(undefined);
 
-            await httpHelper.warnOnInvalidProxySettings();
+            httpHelper.warnOnInvalidProxySettings();
 
             expect(warningMessageStub).to.have.been.calledOnceWithExactly(
                 LocalizedConstants.Proxy.unparseableWarning(invalidProxyValue, uriError.message),
